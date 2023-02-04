@@ -134,7 +134,8 @@ def check_n_jobs(n_jobs: int) -> int:
         The number of jobs for parallelization.
         If None or 0, 1 is used.
         If negative, (n_cpus + 1 + n_jobs) is used. In such a case, -1 would use all
-        available CPUs and -2 would use all but one.
+        available CPUs and -2 would use all but one. If the number of CPUs used would
+        fall under 1, 1 is returned instead.
 
     Returns
     -------
@@ -146,7 +147,7 @@ def check_n_jobs(n_jobs: int) -> int:
     elif not is_int(n_jobs):
         raise ValueError(f"`n_jobs` must be None or an integer, but found: {n_jobs}")
     elif n_jobs < 0:
-        return os.cpu_count() + 1 + n_jobs
+        return max(1, os.cpu_count() + 1 + n_jobs)
     else:
         return n_jobs
 
