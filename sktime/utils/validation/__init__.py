@@ -126,24 +126,27 @@ def all_inputs_are_time_like(args: list) -> bool:
 def check_n_jobs(n_jobs: int) -> int:
     """Check `n_jobs` parameter according to the scikit-learn convention.
 
+    https://scikit-learn.org/stable/glossary.html#term-n_jobs
+
     Parameters
     ----------
-    n_jobs : int, positive or -1
+    n_jobs : int or None
         The number of jobs for parallelization.
+        If None or 0, 1 is used.
+        If negative, (n_cpus + 1 + n_jobs) is used. In such a case, -1 would use all
+        available CPUs and -2 would use all but one.
 
     Returns
     -------
     n_jobs : int
-        Checked number of jobs.
+        The number of threads to be used.
     """
-    # scikit-learn convention
-    # https://scikit-learn.org/stable/glossary.html#term-n-jobs
-    if n_jobs is None:
+    if n_jobs is None or n_jobs == 0:
         return 1
-    elif not is_int(n_jobs):
+    elif isinstance(n_jobs, (int, np.integer)):
         raise ValueError(f"`n_jobs` must be None or an integer, but found: {n_jobs}")
     elif n_jobs < 0:
-        return os.cpu_count() - n_jobs + 1
+        return os.cpu_count() + 1 + n_jobs
     else:
         return n_jobs
 
