@@ -57,6 +57,8 @@ def test_feature_selection(method, n_columns, random_state):
         assert (
             transformer_f1.feature_importances_ != transformer_f2.feature_importances_
         )
+
+
     if method == "random":
         if n_columns is None:
             n_columns = int(math.ceil(X_train.shape[1] / 2))
