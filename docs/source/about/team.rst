@@ -14,23 +14,8 @@ Community Council
 
    * - Name
      - GitHub ID
-   * - Franz Király
-     - :user:`fkiraly`
-
-Community Council Observers
----------------------------
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - GitHub ID
-   * - Leonidas Tsaprounis
-     - :user:`ltsaprounis`
-   * - Lovkush Agarwal
-     - :user:`lovkush-a`
-   * - Mirae Parker
-     - :user:`miraep8`
+   * - tbd
+     - :user:`tbd`
 
 Code of Conduct Committee
 -------------------------
@@ -40,8 +25,8 @@ Code of Conduct Committee
 
    * - Name
      - GitHub ID
-   * - Franz Király
-     - :user:`fkiraly`
+   * - tbd
+     - :user:`tbd`
 
 Core Developers
 ---------------
@@ -51,68 +36,21 @@ Core Developers
 
    * - Name
      - GitHub ID
-   * - Chris Holder
-     - :user:`chrisholder`
-   * - Daniel Bartling
-     - :user:`danbartl`
-   * - Franz Király
-     - :user:`fkiraly`
-   * - Freddy A Boulton
-     - :user:`freddyaboulton`
-   * - Guzal Bulatova
-     - :user:`GuzalBulatova`
-   * - Lovkush Agarwal
-     - :user:`lovkush-a`
-   * - Łukasz Mentel
-     - :user:`lmmentel`
-   * - Markus Löning
-     - :user:`mloning`
-   * - Mirae Parker
-     - :user:`miraep8`
-   * - Ryan Kuhns
-     - :user:`rnkuhns`
-   * - Sagar Mishra
-     - :user:`achieveordie`
-   * - Stanislav Khrapov
-     - :user:`khrapovs`
-   * - Svea Marie Meyer
-     - :user:`SveaMeyer13`
-
-Former Core Developers
-----------------------
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - GitHub ID
-   * - Aaron Bostrom
-     - :user:`abostrom`
    * - Anthony Bagnall
      - :user:`TonyBagnall`
-   * - Ayushmaan Seth
-     - :user:`ayushmaanseth`
-   * - George Oastler
-     - :user:`goastler`
-   * - Hongyi Yang
-     - :user:`hyang1996`
-   * - James Large
-     - :user:`james-large`
-   * - Jason Lines
-     - :user:`jasonlines`
+   * - Chris Holder
+     - :user:`chrisholder`
+   * - Franz Király
+     - :user:`fkiraly`
+   * - Guzal Bulatova
+     - :user:`GuzalBulatova`
    * - Leonidas Tsaprounis
      - :user:`ltsaprounis`
+   * - Łukasz Mentel
+     - :user:`lmmentel`
    * - Martin Walter
      - :user:`aiwalter`
-   * - Mathew Smith
-     - :user:`matteogales`
    * - Matthew Middlehurst
      - :user:`mattewmiddlehurst`
-   * - Patrick Rockenschaub
-     - :user:`prockenschaub`
    * - Patrick Schäfer
      - :user:`patrickzib`
-   * - Sajaysurya Ganesh
-     - :user:`sajaysurya`
-   * - Anonymous upon contributor's request
-     - :user:`big-o`
