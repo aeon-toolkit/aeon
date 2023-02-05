@@ -207,9 +207,6 @@ Dr Franz Király (f.kiraly@ucl.ac.uk)
 
 We encourage community members to step up to become a member of the committee.
 
-You can use the NumFOCUS CoC reporting process as an alternative entry point
-for reporting, see 3.2.
-
 4.2 Urgent Situations: Acting Unilaterally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -303,9 +300,9 @@ committee is not required to act on this feedback.
 4.5 Conflicts of Interest
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In case of conflict of interest of sktime CoC committee members, you can report
-through the [NumFOCUS CoC process](https://numfocus.org/code-of-conduct),
-or, in case of events, to the organisation at which the event is taking place (e.g., a university).
+In case of conflict of interest of sktime CoC committee members, you can report to the
+Community Council, or, in case of events, to the organisation at which the event is
+taking place (e.g., a university).
 
 5 Acknowledgements
 ------------------
