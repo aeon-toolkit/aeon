@@ -54,14 +54,16 @@ class Imputer(BaseTransformer):
         The placeholder for the missing values. All occurrences of
         missing_values will be imputed, in addition to np.nan.
         If None, then only np.nan values are imputed.
-    value : int/float, default=None
-        Value to use to fill missing values when method="constant".
+    value : int/float, default=0
+        Value to use to fill missing values when method="constant" or
+        for other methods in case a column of X contains only NaN values.
     forecaster : Any Forecaster based on sktime.BaseForecaster, default=None
         Use a given Forecaster to impute by insample predictions when
         method="forecaster". Before fitting, missing data is imputed with
         method="ffill" or "bfill" as heuristic. in case of multivariate X,
         the forecaster is applied separete to each column like a
-        ColumnEnsembleForecaster.
+        ColumnEnsembleForecaster. Forecaster is only applied if the param
+        method="forecaster" is set, otherwise forecaster is ignored.
     random_state : int/float/str, optional
         Value to set random.seed() if method="random", default None
 
@@ -102,7 +104,7 @@ class Imputer(BaseTransformer):
         self,
         method="drift",
         random_state=None,
-        value=None,
+        value=0,
         forecaster=None,
         missing_values=None,
     ):
@@ -175,6 +177,11 @@ class Imputer(BaseTransformer):
         if self.missing_values:
             X = X.replace(to_replace=self.missing_values, value=np.nan)
 
+        # in case a columns only contains missing values, fill with value
+        for col in X.columns:
+            if all(X[col].isna()):
+                X[col] = self.value
+
         if not _has_missing_values(X):
             return X
 
@@ -221,25 +228,15 @@ class Imputer(BaseTransformer):
             "forecaster",
         ]:
             raise ValueError(f"Given method {method} is not an allowed method.")
-        if (
-            self.value is not None
-            and method != "constant"
-            or method == "constant"
-            and self.value is None
-        ):
+        if method == "constant" and self.value is None:
             raise ValueError(
-                """Imputing with a value can only be
-                used if method="constant" and if parameter "value" is not None"""
+                """Imputing with method=\"constant\" can only be used if parameter
+                value" is not None"""
             )
-        elif (
-            self.forecaster is not None
-            and method != "forecaster"
-            or method == "forecaster"
-            and self.forecaster is None
-        ):
+        elif method == "forecaster" and self.forecaster is None:
             raise ValueError(
-                """Imputing with a forecaster can only be used if
-                method=\"forecaster\" and if arg forecaster is not None"""
+                """Imputing with method=\"forecaster\" can only be
+                used if param forecaster is not None"""
             )
         else:
             pass
@@ -286,10 +283,15 @@ class Imputer(BaseTransformer):
                 fh = ForecastingHorizon(values=na_index, is_relative=False)
 
                 # fill NaN before fitting with ffill and backfill (heuristic)
-
                 self._forecaster.fit(
-                    y=self._X[col].fillna(method="ffill").fillna(method="backfill"),
-                    X=self._y[col].fillna(method="ffill").fillna(method="backfill")
+                    y=self._X[col]
+                    .fillna(method="ffill")
+                    .fillna(method="backfill")
+                    .fillna(self.value),
+                    X=self._y[col]
+                    .fillna(method="ffill")
+                    .fillna(method="backfill")
+                    .fillna(self.value)
                     if self._y is not None
                     else None,
                 )
