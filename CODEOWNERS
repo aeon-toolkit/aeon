@@ -1,7 +1,7 @@
 # The file lists sktime's algorithm maintainers as specified in GOVERNANCE.md.
 # Each line is a file pattern followed by one or more owners.
 
-* @fkiraly @aiwalter @guzalbulatova
+* @aiwalter @guzalbulatova
 
 
 sktime/regression/dummy/ @badrmarani
@@ -63,7 +63,7 @@ sktime/transformations/tests/test_multiplexer.py @miraep8
 sktime/transformations/panel/channel_selection.py @haskarb @a-pasos-ruiz @TonyBagnall
 sktime/transformations/series/time_since.py @KishManani
 
-sktime/forecasting/base/ @fkiraly @mloning @aiwalter
+sktime/forecasting/base/ @mloning @aiwalter
 sktime/forecasting/base/adapters/_statsforecast.py @FedericoGarza
 sktime/forecasting/naive.py @Flix6x
 sktime/forecasting/ets.py @HYang1996
