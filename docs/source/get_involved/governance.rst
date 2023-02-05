@@ -301,6 +301,14 @@ anonymous.
 To avoid deadlocks if there is an even number of CoC committee members, one
 of them will have a tie breaking privilege.
 
+End of tenure
+^^^^^^^^^^^^^
+
+CoC members can resign voluntarily at any point in time, by informing the CoC or core developers in writing.
+
+CoC membership ends automatically after a person has been in this role for 2 years. If the person would like to continue the membership of CoC, a new appointment vote has to happen following the procedure as for appointment of a new CoC member.
+The vote can be requested by the affected CoC member or by any core developer.
+
 .. _cc-members:
 
 CC members
@@ -367,13 +375,16 @@ and need not follow their anonymous vote if they have voted.
 End of tenure
 ^^^^^^^^^^^^^
 
-CC members can resign voluntarily at any point in time, by informing the CC in writing.
+CC members can resign voluntarily at any point in time, by informing the CC or core developers in writing.
 
 CC members who do not actively engage with their CC member role responsibilities are
 expected to resign voluntarily.
 
 Tenure also ends automatically when a CC member's tenure as core developer ends,
 e.g., through resignation or inactivity.
+
+CC membership ends automatically after a person has been in this role for 2 years. If the person would like to continue the membership of CC, a new appointment vote has to happen following the procedure as for appointment of a new CC member.
+The vote can be requested by the affected CC member or by any core developer.
 
 Communications
 ^^^^^^^^^^^^^^
@@ -681,7 +692,7 @@ In addition, we plan to add more roles for managing/coordinating
 specific project:
 
 * Community manager (mentorship, outreach, social media, etc),
-* Sub-councils for project-specific technical leadership (e.g.  for documentation, learning tasks, continuous integration)
+* Sub-councils for project-specific technical leadership (e.g.  for documentation, learning tasks, continuous integration)
 
 .. _references:
 
