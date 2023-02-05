@@ -170,9 +170,7 @@ Please contact the current chair of the code of conduct committee (CoCC) directl
 3.2 Alternate contact points
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In case of conflict of interest of sktime CoC committee members, you can report
-through the [NumFOCUS CoC process](https://numfocus.org/code-of-conduct),
-or, in case of events, to the organisation at which the event is taking place (e.g., a university).
+tbd
 
 3.3 What to do if someone is in physical danger
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
