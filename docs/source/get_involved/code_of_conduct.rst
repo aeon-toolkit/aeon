@@ -173,9 +173,9 @@ Please contact the CoCC directly by email, see 4.1.
 3.2 Alternate contact points
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In case of conflict of interest of sktime CoCC members, you can report
-through the [NumFOCUS CoC process](https://numfocus.org/code-of-conduct),
-or, in case of events, to the organisation at which the event is taking place (e.g., a university).
+In case of conflict of interest of sktime CoCC members, you can report to the
+Community Council, or, in case of events, to the organisation at which the
+event is taking place (e.g., a university).
 
 3.3 What to do if someone is in physical danger
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
