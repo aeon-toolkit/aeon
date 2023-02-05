@@ -40,9 +40,8 @@ of Conduct. This Code of Conduct applies to all spaces managed by the
 sktime project including, but not limited to, in-person focus groups and
 workshops, and communications online via GitHub.
 
-The lead investigator of the sktime - Dr Franz Király - is responsible
-for enforcing the Code of Conduct. He can be contacted by emailing
-f.kiraly@ucl.ac.uk.
+The CoCC is responsible
+for enforcing the Code of Conduct. It can be reached via info@sktime.org.
 
 Reports may be reviewed by other members of the core development team,
 unless there is a conflict of interest, and will be kept confidential.
@@ -158,9 +157,8 @@ details).
 
 This Code of Conduct is not intended as a static set of rules by which
 everyone must abide. Rather, you are invited to make suggestions for
-updates or clarifications by contacting Dr Franz Király at
-f.kiraly@ucl.ac.uk or by making a pull request to this document on
-GitHub.
+updates or clarifications by contacting the CoCC via info@sktime.org
+or by making a pull request to this document on GitHub.
 
 3 Incident Reporting Guidelines
 -------------------------------
@@ -168,7 +166,7 @@ GitHub.
 3.1 Contact points
 ~~~~~~~~~~~~~~~~~~
 
-Please contact the current chair of the code of conduct committee directly by email, see 4.1.
+Please contact the current chair of the code of conduct committee (CoCC) directly by email, see 4.1.
 
 3.2 Alternate contact points
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -201,9 +199,8 @@ respectful and not include any harassing behaviours.
 4.1 The Code of Conduct Committee
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The sktime Code of Conduct committee currently consists of:
-
-Dr Franz Király (f.kiraly@ucl.ac.uk)
+The sktime Code of Conduct committee currently consists of members listed
+`here <https://github.com/sktime/sktime/blob/main/docs/source/about/team.rst>`__.
 
 We encourage community members to step up to become a member of the committee.
 
