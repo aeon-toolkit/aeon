@@ -9,12 +9,11 @@ experience. Accordingly, everyone who participates in the sktime project
 is expected to show respect and courtesy to other community members at
 all times.
 
-Dr Franz Király, as principal investigator of this project, and all
-project members, are dedicated to a **harassment-free experience for
-everyone**, regardless of gender, gender identity and expression,
-sexual orientation, disability, physical appearance, body size, race,
-age or religion. **We do not tolerate harassment by and/or of members of
-our community in any form**.
+The CoCC and all project members, are dedicated to a **harassment-free
+experience for everyone**, regardless of gender, gender identity and
+expression, sexual orientation, disability, physical appearance, body
+size, race, age or religion. **We do not tolerate harassment by
+and/or of members of our community in any form**.
 
 We are particularly motivated to support new and/or anxious
 collaborators, people who are looking to learn and develop their skills,
@@ -223,7 +222,7 @@ enforcement manual, including bans and blocks online, or removal from a
 physical space.
 
 In situations where an individual community member acts unilaterally,
-they must inform Dr Franz Király as soon as possible, and report their
+they must inform the CoCC as soon as possible, and report their
 actions for review within 24 hours.
 
 4.3 Less-Urgent Situations
@@ -255,9 +254,7 @@ reporter(s) with an update and projected timeline for resolution.
 ~~~~~~~~~~~~~~~
 
 The Code of Conduct committee will seek to agree on a resolution by
-consensus of all members investigating the report in question. If the
-committee cannot reach consensus and deadlocks for over a week, Dr Franz
-Király, as currently longest serving committee member, will break the tie.
+consensus of all members investigating the report in question.
 
 Possible responses may include:
 
@@ -274,13 +271,12 @@ Possible responses may include:
    the conversation will provide a written summary for record keeping.
 -  A private written reprimand from a member of the research team to the
    individual(s) involved. In this case, the research team member will
-   deliver that reprimand to the individual(s) over email, cc'ing Dr
-   Franz Király for record keeping.
+   deliver that reprimand to the individual(s) over email.
 -  A public announcement of an incident, ideally in the same venue that
    the violation occurred (i.e. on the listserv for a listserv
    violation; GitHub for a GitHub violation, etc.). The committee may
    choose to publish this message elsewhere for posterity.
--  An imposed "time out" from online spaces. Dr Franz Király will
+-  An imposed "time out" from online spaces. CoCC will
    communicate this "time out" to the individual(s) involved.
 -  A permanent or temporary ban from some or all sktime project spaces
    (GitHub, in-person events etc). The research team will maintain
