@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""sklearn PCA applied as transofrmation."""
+"""sklearn PCA applied as transformation."""
 __author__ = ["prockenschaub", "fkiraly", "aiwalter"]
 __all__ = ["PCATransformer"]
 
@@ -10,7 +10,7 @@ from sktime.transformations.base import BaseTransformer
 
 
 class PCATransformer(BaseTransformer):
-    """Principal Components Analysis applied to panel of time seires.
+    """Principal Components Analysis applied as transformer.
 
     Provides a simple wrapper around ``sklearn.decomposition.PCA``.
 
@@ -133,10 +133,10 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
+        X : Series or Panel of mtype X_inner_mtype
+            if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
+        y : Ignored
 
         Returns
         -------
@@ -164,15 +164,14 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
+        X : Series or Panel of mtype X_inner_mtype
+            if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
+        y : Ignored
 
         Returns
         -------
-        Xt : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
-            transformed version of X
+        transformed version of X
         """
         Xt = self.pca_.transform(X=X)
         columns = [f"PC_{i}" for i in range(Xt.shape[1])]
