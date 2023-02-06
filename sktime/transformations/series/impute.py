@@ -177,7 +177,7 @@ class Imputer(BaseTransformer):
         if self.missing_values:
             X = X.replace(to_replace=self.missing_values, value=np.nan)
 
-        # in case a columns only contains missing values, fill with value
+        # in case a column only contains missing values, fill with value
         for col in X.columns:
             if all(X[col].isna()):
                 X[col] = self.value
