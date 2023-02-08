@@ -489,7 +489,7 @@ core developers.
 -  Proposers are expected to give reasonable time for consideration, that is,
    time and opportunity for core developers to review and
    give their opinion on the PR.
-   21 days constitute "reasonable time" in the above sense.
+   14 days constitute "reasonable time" in the above sense.
    The period resets at every new change made to the PR.
    It starts only when all GitHub checks pass.
 -  During this period, the PR can be merged if it has an approval and no rejection, but should be
