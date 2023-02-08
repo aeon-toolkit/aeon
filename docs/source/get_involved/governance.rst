@@ -334,8 +334,7 @@ Eligibility
 
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer, and a core developer appointment vote
-concurrent with the 5 day discussion period (see below).
+by a nomination for core developer.
 
 .. _appointment-3:
 
