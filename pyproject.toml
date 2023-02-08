@@ -1,13 +1,12 @@
 [project]
-name = "sktime"
-version = "0.16.0"
+name = "scikit-time"
+version = "0.1.0"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "sktime developers", email = "sktime.toolbox@gmail.com"},
+    {name = "scikit-time developers", email = "scikit-time.toolbox@gmail.com"},
 ]
 maintainers = [
-    {name = "sktime developers", email = "sktime.toolbox@gmail.com"},
-    {name = "Franz Király", email = "f.kiraly@ucl.ac.uk"},
+    {name = "scikit-time developers", email = "sktime.toolbox@gmail.com"},
 ]
 readme = "README.md"
 keywords = [
@@ -123,12 +122,12 @@ dl = [
 ]
 
 [project.urls]
-Homepage = "https://www.sktime.org"
-Repository = "https://github.com/sktime/sktime"
-Documentation = "https://www.sktime.org"
-Download = "https://pypi.org/project/sktime/#files"
-"API Reference" = "https://www.sktime.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.sktime.org/en/stable/changelog.html"
+Homepage = "https://www.scikit-time.org"
+Repository = "https://github.com/scikit-time/scikit-time"
+Documentation = "https://www.scikit-time.org"
+Download = "https://pypi.org/project/scikit-time/#files"
+"API Reference" = "https://www.scikit-time.org/en/stable/api_reference.html"
+"Release Notes" = "https://www.scikit-time.org/en/stable/changelog.html"
 
 [project.license]
 file = "LICENSE"
