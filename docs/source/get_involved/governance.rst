@@ -179,7 +179,7 @@ give up their rights and responsibilities as algorithm maintainers.
 
 Unresponsiveness is defined as:
 * not engaging with decision making procedures within the reasonably time frames defined there
-* not reacting to issues or bug reports related to the algorithm, within ten working days
+* not reacting to issues or bug reports related to the algorithm, within 14 days
 
 .. _core-developers:
 
@@ -490,7 +490,7 @@ core developers.
 -  Proposers are expected to give reasonable time for consideration, that is,
    time and opportunity for core developers to review and
    give their opinion on the PR.
-   Ten working days excluding week-ends constitute "reasonable time" in the above sense.
+   21 days constitute "reasonable time" in the above sense.
    The period resets at every new change made to the PR.
    It starts only when all GitHub checks pass.
 -  During this period, the PR can be merged if it has an approval and no rejection, but should be
@@ -560,7 +560,7 @@ sktime enhancement proposals (STEPs) are required for:
 * certain types of proposed changes, by default, see `decision making process <#Decision-making>`__
 * for all stage 3 decisions
 
-If a STEP is required by a vote, it must have been made public at least 5 working days (excluding week-ends) before that vote.
+If a STEP is required by a vote, it must have been made public at least 7 days before that vote.
 
 A STEP is a consolidated document, with a concise
 problem statement, a clear description of the proposed solution and a
