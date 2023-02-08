@@ -287,9 +287,8 @@ Appointment
 ^^^^^^^^^^^
 
 Membership of the CoC is by nomination by a core developer and a vote by
-all core developers. A nomination will result in discussion which will stay
-open for 5 days excluding weekends and then a vote by the core
-developers which will stay open for 5 days excluding weekends. CoC committee
+all core developers. A vote by the core
+developers which will stay open for 7 days. CoC committee
 membership votes are subject to:
 
 * a 2/3 majority of all cast votes, and
@@ -345,9 +344,8 @@ Appointment
 ^^^^^^^^^^^
 
 Appointment to the CC is by nomination by a core developer and a vote by
-all core developers. A nomination will result in discussion which stays open
-for 5 days excluding weekends and then a vote by core developers which will
-stay open for 5 days excluding weekends. Approval of appointment requires:
+all core developers. A vote by core developers which will
+stay open 7 days. Approval of appointment requires:
 
 * a 2/3 majority of all cast votes, and
 * a simple majority approval of all the current CC members.
