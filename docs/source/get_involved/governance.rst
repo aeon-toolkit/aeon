@@ -287,7 +287,7 @@ Appointment
 
 Membership of the CoC is by nomination by a core developer and a vote by
 all core developers. A vote by the core
-developers which will stay open for 7 days. CoC committee
+developers will stay open for 7 days. CoC committee
 membership votes are subject to:
 
 * a 2/3 majority of all cast votes, and
@@ -343,7 +343,7 @@ Appointment
 ^^^^^^^^^^^
 
 Appointment to the CC is by nomination by a core developer and a vote by
-all core developers. A vote by core developers which will
+all core developers. A vote by core developers will
 stay open 7 days. Approval of appointment requires:
 
 * a 2/3 majority of all cast votes, and
