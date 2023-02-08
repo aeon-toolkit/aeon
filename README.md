@@ -6,33 +6,33 @@
 
 :rocket: **Version 0.16.0 out now!** [Check out the release notes here](https://www.scikit-time.org/en/latest/changelog.html).
 
-scikit-time is a library for time series analysis in Python. It provides a unified interface for multiple time series learning tasks. Currently, this includes time series classification, regression, clustering, annotation and forecasting. It comes with [time series algorithms](https://www.scikit-time.org/en/stable/estimator_overview.html) and [scikit-learn](https://scikit-learn.org/stable/) compatible tools to build, tune and validate time series models.
+scikit-time is a library for time series analysis in Python. It provides a unified interface for multiple time series learning tasks. Currently, this includes time series classification, regression, clustering, annotation and forecasting. It comes with [time series algorithms](https://www.scikit-time.org/en/stable/estimator_overview.html) and [scikit-learn] compatible tools to build, tune and validate time series models.
 
-| Overview | |
-|---|---|
-| **CI/CD** | [![github-actions](https://img.shields.io/github/actions/workflow/status/scikit-time/scikit-time/wheels.yml?logo=github)](https://github.com/scikit-time/scikit-time/actions/workflows/wheels.yml) [![!codecov](https://img.shields.io/codecov/c/github/scikit-time/scikit-time?label=codecov&logo=codecov)](https://codecov.io/gh/scikit-time/scikit-time) [![readthedocs](https://img.shields.io/readthedocs/scikit-time?logo=readthedocs)](https://www.scikit-time.org/en/latest/?badge=latest) [![platform](https://img.shields.io/conda/pn/conda-forge/scikit-time)](https://github.com/scikit-time/scikit-time) |
-| **Code** |  [![!pypi](https://img.shields.io/pypi/v/scikit-time?color=orange)](https://pypi.org/project/scikit-time/) [![!conda](https://img.shields.io/conda/vn/conda-forge/scikit-time)](https://anaconda.org/conda-forge/scikit-time) [![!python-versions](https://img.shields.io/pypi/pyversions/scikit-time)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scikit-time/scikit-time/main?filepath=examples) |
-| **Downloads**| [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=week&units=international_system&left_color=grey&right_color=blue&left_text=weekly%20(pypi))](https://pepy.tech/project/scikit-time) [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=month&units=international_system&left_color=grey&right_color=blue&left_text=monthly%20(pypi))](https://pepy.tech/project/scikit-time) [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=total&units=international_system&left_color=grey&right_color=blue&left_text=cumulative%20(pypi))](https://pepy.tech/project/scikit-time) |
-| **Community** | [![!slack](https://img.shields.io/static/v1?logo=slack&label=slack&message=chat&color=lightgreen)](https://join.slack.com/t/scikit-time-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig) [![!slack](https://img.shields.io/static/v1?logo=linkedin&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/scikit-time/) [![!twitter](https://img.shields.io/static/v1?logo=twitter&label=Twitter&message=news&color=lightblue)](https://twitter.com/scikit-time_toolbox) |
+[scikit-learn]: https://scikit-learn.org/stable/
+
+| Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **CI/CD**     | [![github-actions](https://img.shields.io/github/actions/workflow/status/scikit-time/scikit-time/wheels.yml?logo=github)](https://github.com/scikit-time/scikit-time/actions/workflows/wheels.yml) [![!codecov](https://img.shields.io/codecov/c/github/scikit-time/scikit-time?label=codecov&logo=codecov)](https://codecov.io/gh/scikit-time/scikit-time) [![readthedocs](https://img.shields.io/readthedocs/scikit-time?logo=readthedocs)](https://www.scikit-time.org/en/latest/?badge=latest) [![platform](https://img.shields.io/conda/pn/conda-forge/scikit-time)](https://github.com/scikit-time/scikit-time)                                     |
+| **Code**      | [![!pypi](https://img.shields.io/pypi/v/scikit-time?color=orange)](https://pypi.org/project/scikit-time/) [![!conda](https://img.shields.io/conda/vn/conda-forge/scikit-time)](https://anaconda.org/conda-forge/scikit-time) [![!python-versions](https://img.shields.io/pypi/pyversions/scikit-time)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/scikit-time/scikit-time/main?filepath=examples)                                                                                         |
+| **Downloads** | [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=week&units=international_system&left_color=grey&right_color=blue&left_text=weekly%20(pypi))](https://pepy.tech/project/scikit-time) [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=month&units=international_system&left_color=grey&right_color=blue&left_text=monthly%20(pypi))](https://pepy.tech/project/scikit-time) [![Downloads](https://static.pepy.tech/personalized-badge/scikit-time?period=total&units=international_system&left_color=grey&right_color=blue&left_text=cumulative%20(pypi))](https://pepy.tech/project/scikit-time) |
+| **Community** | [![!slack](https://img.shields.io/static/v1?logo=slack&label=slack&message=chat&color=lightgreen)](https://join.slack.com/t/scikit-time-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig) [![!slack](https://img.shields.io/static/v1?logo=linkedin&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/scikit-time/) [![!twitter](https://img.shields.io/static/v1?logo=twitter&label=Twitter&message=news&color=lightblue)](https://twitter.com/scikit-time_toolbox)                                                                                                                                                  |
 
 ## :books: Documentation
 
-| Documentation              |                                                                |
-| -------------------------- | -------------------------------------------------------------- |
-| :star: **[Tutorials]**        | New to scikit-time? Here's everything you need to know!              |
-| :clipboard: **[Binder Notebooks]** | Example notebooks to play with in your browser.              |
-| :woman_technologist: **[User Guides]**      | How to use scikit-time and its features.                             |
-| :scissors: **[Extension Templates]** | How to build your own estimator using scikit-time's API.            |
-| :control_knobs: **[API Reference]**      | The detailed reference for scikit-time's API.                        |
-| :tv: **[Video Tutorial]**            | Our video tutorial from 2021 PyData Global.      |
-| :hammer_and_wrench: **[Changelog]**          | Changes and version history.                                   |
-| :deciduous_tree: **[Roadmap]**          | scikit-time's software and community development plan.                                   |
-| :pencil: **[Related Software]**          | A list of related software. |
+| Documentation                          |                                                          |
+|----------------------------------------|----------------------------------------------------------|
+| :star: **[Tutorials]**                 | New to scikit-time? Here's everything you need to know!  |
+| :clipboard: **[Binder Notebooks]**     | Example notebooks to play with in your browser.          |
+| :woman_technologist: **[User Guides]** | How to use scikit-time and its features.                 |
+| :scissors: **[Extension Templates]**   | How to build your own estimator using scikit-time's API. |
+| :control_knobs: **[API Reference]**    | The detailed reference for scikit-time's API.            |
+| :hammer_and_wrench: **[Changelog]**    | Changes and version history.                             |
+| :deciduous_tree: **[Roadmap]**         | scikit-time's software and community development plan.   |
+| :pencil: **[Related Software]**        | A list of related software.                              |
 
 [tutorials]: https://www.scikit-time.org/en/latest/tutorials.html
 [binder notebooks]: https://mybinder.org/v2/gh/scikit-time/scikit-time/main?filepath=examples
 [user guides]: https://www.scikit-time.org/en/latest/user_guide.html
-[video tutorial]: https://github.com/scikit-time/scikit-time-tutorial-pydata-global-2021
 [api reference]: https://www.scikit-time.org/en/latest/api_reference.html
 [changelog]: https://www.scikit-time.org/en/latest/changelog.html
 [roadmap]: https://www.scikit-time.org/en/latest/roadmap.html
@@ -42,27 +42,23 @@ scikit-time is a library for time series analysis in Python. It provides a unifi
 
 Questions and feedback are extremely welcome! Please understand that we won't be able to provide individual support via email. We also believe that help is much more valuable if it's shared publicly, so that more people can benefit from it.
 
-| Type                            | Platforms                               |
-| ------------------------------- | --------------------------------------- |
-| :bug: **Bug Reports**              | [GitHub Issue Tracker]                  |
-| :sparkles: **Feature Requests & Ideas** | [GitHub Issue Tracker]                       |
-| :woman_technologist: **Usage Questions**          | [GitHub Discussions] · [Stack Overflow] |
-| :speech_balloon: **General Discussion**        | [GitHub Discussions] |
-| :factory: **Contribution & Development** | [Slack], contributors channel · [Discord] |
-| :globe_with_meridians: **Community collaboration session** | [Discord] - Fridays 1pm UTC, dev/meet-ups channel |
+| Type                                                       | Platforms              |
+|------------------------------------------------------------|------------------------|
+| :bug: **Bug Reports**                                      | [GitHub Issue Tracker] |
+| :sparkles: **Feature Requests & Ideas**                    | [GitHub Issue Tracker] |
+| :woman_technologist: **Usage Questions**                   | [GitHub Discussions]   |
+| :speech_balloon: **General Discussion**                    | [GitHub Discussions]   |
+| :factory: **Contribution & Development**                   | [Slack]                |
+| :globe_with_meridians: **Community collaboration session** | ?                      |
 
 [github issue tracker]: https://github.com/scikit-time/scikit-time/issues
 [github discussions]: https://github.com/scikit-time/scikit-time/discussions
-[stack overflow]: https://stackoverflow.com/questions/tagged/scikit-time
-[discord]: https://discord.com/invite/gqSab2K
 [slack]: https://join.slack.com/t/scikit-time-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig
 
 ## :dizzy: Features
 Our aim is to make the time series analysis ecosystem more interoperable and usable as a whole. scikit-time provides a __unified interface for distinct but related time series learning tasks__. It features [__dedicated time series algorithms__](https://www.scikit-time.org/en/stable/estimator_overview.html) and __tools for composite model building__ including pipelining, ensembling, tuning and reduction that enables users to apply an algorithm for one task to another.
 
 scikit-time also provides **interfaces to related libraries**, for example [scikit-learn], [statsmodels], [tsfresh], [PyOD] and [fbprophet], among others.
-
-For **deep learning**, see our companion package: [scikit-time-dl](https://github.com/scikit-time/scikit-time-dl).
 
 [statsmodels]: https://www.statsmodels.org/stable/index.html
 [tsfresh]: https://tsfresh.readthedocs.io/en/latest/
@@ -79,19 +75,19 @@ For **deep learning**, see our companion package: [scikit-time-dl](https://githu
 | **[Time Series Distances/Kernels]** | experimental | [Extension Template](https://github.com/scikit-time/scikit-time/blob/main/extension_templates/dist_kern_panel.py) |
 | **[Annotation]** | experimental | [Extension Template](https://github.com/scikit-time/scikit-time/blob/main/extension_templates/annotation.py) |
 
-[forecasting]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/forecasting
-[time series classification]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/classification
-[time series regression]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/regression
-[time series clustering]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/clustering
-[annotation]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/annotation
-[time series distances/kernels]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/dists_kernels
-[transformations]: https://github.com/scikit-time/scikit-time/tree/main/scikit-time/transformations
+[forecasting]: https://github.com/scikit-time/scikit-time/tree/main/sktime/forecasting
+[time series classification]: https://github.com/scikit-time/scikit-time/tree/main/sktime/classification
+[time series regression]: https://github.com/scikit-time/scikit-time/tree/main/sktime/regression
+[time series clustering]: https://github.com/scikit-time/scikit-time/tree/main/sktime/clustering
+[annotation]: https://github.com/scikit-time/scikit-time/tree/main/sktime/annotation
+[time series distances/kernels]: https://github.com/scikit-time/scikit-time/tree/main/sktime/dists_kernels
+[transformations]: https://github.com/scikit-time/scikit-time/tree/main/sktime/transformations
 
 
 ## :hourglass_flowing_sand: Install scikit-time
-For trouble shooting and detailed installation instructions, see the [documentation](https://www.scikit-time.org/en/latest/installation.html).
+For troubleshooting and detailed installation instructions, see the [documentation](https://www.scikit-time.org/en/latest/installation.html).
 
-- **Operating system**: macOS X · Linux · Windows 8.1 or higher
+- **Operating system**: Mac OS X · Linux · Windows 8.1 or higher
 - **Python version**: Python 3.7, 3.8, 3.9, and 3.10 (only 64 bit)
 - **Package managers**: [pip] · [conda] (via `conda-forge`)
 
@@ -129,11 +125,11 @@ conda install -c conda-forge scikit-time-all-extras
 ### Forecasting
 
 ```python
-from scikit-time.datasets import load_airline
-from scikit-time.forecasting.base import ForecastingHorizon
-from scikit-time.forecasting.model_selection import temporal_train_test_split
-from scikit-time.forecasting.theta import ThetaForecaster
-from scikit-time.performance_metrics.forecasting import mean_absolute_percentage_error
+from sktime.datasets import load_airline
+from sktime.forecasting.base import ForecastingHorizon
+from sktime.forecasting.model_selection import temporal_train_test_split
+from sktime.forecasting.theta import ThetaForecaster
+from sktime.performance_metrics.forecasting import mean_absolute_percentage_error
 
 y = load_airline()
 y_train, y_test = temporal_train_test_split(y)
@@ -148,8 +144,8 @@ mean_absolute_percentage_error(y_test, y_pred)
 ### Time Series Classification
 
 ```python
-from scikit-time.classification.interval_based import TimeSeriesForestClassifier
-from scikit-time.datasets import load_arrow_head
+from sktime.classification.interval_based import TimeSeriesForestClassifier
+from sktime.datasets import load_arrow_head
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
