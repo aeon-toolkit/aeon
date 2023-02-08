@@ -232,8 +232,7 @@ place on the project’s private communication channels. The vote will be
 anonymous.
 
 While it is expected that most votes will be unanimous, a 2/3 majority of
-the cast votes is enough. The vote needs to be open for five days excluding
-weekends.
+the cast votes is enough. The vote needs to be open for 7 days.
 
 End of tenure
 ^^^^^^^^^^^^^
@@ -419,7 +418,7 @@ Appointment
 ^^^^^^^^^^^
 Membership of the CC observers is by nomination by a core developer and a vote
 by CC members. A nomination will result in a vote by the CC members which will
-stay open for 5 days excluding weekends. CC observer membership votes are
+stay open for 7 days. CC observer membership votes are
 subject to a simple majority approval of all the current CC committee members.
 
 In case of ties, the CC member with shortest tenure breaks the tie.
@@ -498,7 +497,7 @@ core developers.
    reverted if it receives a rejection in addition.
 -  If the "reasonable time" period elapses and no approval or rejection has been expressed on a PR,
    the PR is scheduled at the top of agenda for the next developer meetup.
-   In that meeting, a core developer is assigned to review the PR and either approve or reject within five days of the meeting excluding weekends.
+   In that meeting, a core developer is assigned to review the PR and either approve or reject within 7 days of the meeting.
 
 Failure of lazy consensus, in the above sense, can arise only under the following condition:
 at least one approval and at least one rejection in the PR.
@@ -517,7 +516,7 @@ Voting takes place:
 
 -  The start of a voting period after stage 1 is at the moment the lazy consensus fails.
 -  Start and end time of the vote must be announced in the core developer channel, and on the PR (if on a PR).
--  The vote will conclude 5 days excluding weekends from the call for the vote.
+-  The vote will conclude 7 days from the call for the vote.
 -  Votes are voluntary. Abstentions are allowed. Core developers can
    abstain by simply not casting a vote.
 -  All votes are a binary vote: for or against accepting the proposal.
@@ -544,12 +543,12 @@ If the proposed change cannot gather a 2/3 majority of the votes cast,
 the CC tries to resolve the deadlock.
 
 -  The CC will use consensus seeking.
--  If no consensus can be found within twenty working days excluding weekends
-   since the beginning of the stage-1 "reasonable time for consideration" period,
+-  If no consensus can be found within 21 days since the beginning of the
+-  stage-1 "reasonable time for consideration" period,
    the decision is made through a simple majority vote (with tie breaking) among the CC
    members.
 -  Any proposal reaching stage 3 must be supported by an :ref:`steps`,
-   which has been made public at least 5 days, excluding weekends, before the vote.
+   which has been made public at least 7 days, before the vote.
 
 .. _steps:
 
