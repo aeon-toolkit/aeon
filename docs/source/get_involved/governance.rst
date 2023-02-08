@@ -345,7 +345,7 @@ Eligibility
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
 by a nomination for core developer. CC member can only be a person
-that it not member of CoC Committee, this is due to separation of power.
+that it not member of CoC Committee.
 
 .. _appointment-3:
 
