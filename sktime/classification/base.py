@@ -131,9 +131,6 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
                 (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -206,9 +203,6 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
                 (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -217,7 +211,7 @@ class BaseClassifier(BaseEstimator, ABC):
         """
         self.check_is_fitted()
 
-        # boilerplate input checks for predict-like methods
+        # input checks for predict-like methods
         X = self._check_convert_X_for_predict(X)
 
         # handle the single-class-label case
@@ -238,9 +232,6 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
                 (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -251,7 +242,7 @@ class BaseClassifier(BaseEstimator, ABC):
         """
         self.check_is_fitted()
 
-        # boilerplate input checks for predict-like methods
+        # input checks for predict-like methods
         X = self._check_convert_X_for_predict(X)
 
         # handle the single-class-label case
@@ -281,9 +272,6 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
                 (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
         cv : None, int, or sklearn cross-validation object, optional, default=None
@@ -312,7 +300,7 @@ class BaseClassifier(BaseEstimator, ABC):
         )
 
     def _fit_predict_boilerplate(self, X, y, cv, change_state, method):
-        """Boilerplate logic for fit_predict and fit_predict_proba."""
+        """ logic for fit_predict and fit_predict_proba."""
         from sklearn.model_selection import KFold
 
         if isinstance(cv, int):
