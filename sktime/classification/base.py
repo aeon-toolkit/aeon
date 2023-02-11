@@ -193,7 +193,7 @@ class BaseClassifier(BaseEstimator, ABC):
         return self
 
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts labels for time series in X.
 
         Parameters
         ----------
@@ -236,9 +236,9 @@ class BaseClassifier(BaseEstimator, ABC):
         Returns
         -------
         y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
-            1st dimension indices correspond to instance indices in X
-            2nd dimension indices correspond to possible labels (integers)
-            (i, j)-th entry is predictive probability that i-th instance is of class j
+            First dimension indices correspond to instance indices in X,
+            second dimension indices correspond to class labels, (i, j)-th entry is
+            estimated probability that i-th instance is of class j
         """
         self.check_is_fitted()
 
@@ -255,8 +255,8 @@ class BaseClassifier(BaseEstimator, ABC):
     def fit_predict(self, X, y, cv=None, change_state=True) -> np.ndarray:
         """Fit and predict labels for sequences in X.
 
-        Convenience method to produce in-sample predictions and
-        cross-validated out-of-sample predictions.
+        Method to produce predictions for the train set, either using the model fit
+        on the whole data or through cross validation.
 
         Writes to self, if change_state=True:
             Sets self.is_fitted to True.
@@ -640,7 +640,7 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         self : this classifier
-        X : pd.DataFrame or np.ndarray. Input attribute data
+        X : pd.DataFrame or np.ndarray. Input time series.
 
         Returns
         -------
@@ -664,14 +664,14 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : check whether conformant with any sktime Panel mtype specification
-        y : check whether a pd.Series or np.array
+        X : check whether X is a valid input type
+        y : check whether y is a pd.Series or np.array
         enforce_min_instances : int, optional (default=1)
             check there are a minimum number of instances.
 
         Returns
         -------
-        metadata : dict with metadata for X returned by datatypes.check_is_scitype
+        metadata : dict with metadata for X
 
         Raises
         ------
@@ -727,25 +727,23 @@ class BaseClassifier(BaseEstimator, ABC):
         return X_metadata
 
     def _internal_convert(self, X, y=None):
-        """Convert X and y if necessary as a user convenience.
+        """Convert X and y to supported types.
 
-        Convert X to a 3D numpy array if already a 2D and convert y into an 1D numpy
-        array if passed as a Series.
+        Convert X to a 3D numpy array if it is a 2D and convert y into an 1D numpy
+        array if passed as a pd.Series.
 
         Parameters
         ----------
-        X : an object of a supported Panel mtype, or 2D numpy.ndarray
+        X : an object of any type
         y : np.ndarray or pd.Series
 
         Returns
         -------
-        X: an object of a supported Panel mtype, numpy3D if X was a 2D numpy.ndarray
+        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged
         y: np.ndarray
         """
         if isinstance(X, np.ndarray):
-            # Temporary fix to insist on 3D numpy. For univariate problems,
-            # most classifiers simply convert back to 2D. This squeezing should be
-            # done here, but touches a lot of files, so will get this to work first.
+            # Force 2D numpy to be 3D numpy for interface consistency.
             if X.ndim == 2:
                 X = X.reshape(X.shape[0], 1, X.shape[1])
         if y is not None and isinstance(y, pd.Series):
