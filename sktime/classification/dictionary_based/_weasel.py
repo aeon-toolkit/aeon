@@ -21,9 +21,9 @@ from sktime.transformations.panel.dictionary_based import SFAFast
 
 
 class WEASEL(BaseClassifier):
-    """Word Extraction for Time Series Classification (WEASEL).
+    """Word Extraction for Time Series Classification (WEASEL) [1].
 
-    Overview: Input *n* series length *m*
+    Overview: Input 'n' series length 'm'
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
     for different window lengths and learns a logistic regression classifier
     on this bag.
@@ -73,9 +73,9 @@ class WEASEL(BaseClassifier):
     feature_selection: {"chi2", "none", "random"}, default: chi2
         Sets the feature selections strategy to be used. *Chi2* reduces the number
         of words significantly and is thus much faster (preferred). If set to chi2,
-         p_threshold is applied.  *Random* also reduces the number significantly.
-         *None* applies not feature selectiona and yields large bag of words,
-         e.g. much memory may be needed.
+        p_threshold is applied.  *Random* also reduces the number significantly.
+        *None* applies not feature selectiona and yields large bag of words,
+        e.g. much memory may be needed.
     support_probabilities: bool, default: False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
@@ -84,13 +84,6 @@ class WEASEL(BaseClassifier):
         needed for example in Early-Classification like TEASER.
     random_state: int or None, default=None
         Seed for random, integer
-
-    Attributes
-    ----------
-    n_classes_ : int
-        The number of classes.
-    classes_ : list
-        The classes labels.
 
     See Also
     --------
