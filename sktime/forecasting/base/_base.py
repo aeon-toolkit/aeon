@@ -1578,10 +1578,7 @@ class BaseForecaster(BaseEstimator):
         cutoff : pandas compatible index element, or None
             pandas compatible index element, if cutoff has been set; None otherwise
         """
-        if self._cutoff is None:
-            return None
-        else:
-            return self._cutoff
+        return self._cutoff
 
     def _set_cutoff(self, cutoff):
         """Set and update cutoff.
@@ -1594,8 +1591,6 @@ class BaseForecaster(BaseEstimator):
         -----
         Set self._cutoff to `cutoff`, coerced to a pandas.Index.
         """
-        if not isinstance(cutoff, pd.Index):
-            cutoff = pd.Index([cutoff])
         self._cutoff = cutoff
 
     def _set_cutoff_from_y(self, y):
@@ -2374,7 +2369,6 @@ def _format_moving_cutoff_predictions(y_preds, cutoffs):
         # return series for single step ahead predictions
         y_pred = pd.concat(y_preds)
     else:
-        cutoffs = [cutoff[0] for cutoff in cutoffs]
         y_pred = pd.concat(y_preds, axis=1, keys=cutoffs)
 
     return y_pred
