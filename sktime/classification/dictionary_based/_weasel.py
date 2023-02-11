@@ -80,7 +80,7 @@ class WEASEL(BaseClassifier):
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
-        predict_proba(), yet is slower and typically less accuracy. predict_proba() is
+        predict_proba(), yet is slower and typically less accurate. predict_proba() is
         needed for example in Early-Classification like TEASER.
     random_state: int or None, default=None
         Seed for random, integer
