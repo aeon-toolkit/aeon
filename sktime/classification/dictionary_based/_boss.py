@@ -82,14 +82,14 @@ class BOSSEnsemble(BaseClassifier):
     Attributes
     ----------
     n_instances_ : int
-        Number of instances. Extracted from the data.
+        Number of train instances in data passed to fit.
     n_estimators_ : int
         The final number of classifiers used. Will be <= `max_ensemble_size` if
         `max_ensemble_size` has been specified.
     series_length_ : int
         Length of all series (assumed equal).
     estimators_ : list
-       List of DecisionTree classifiers.
+       List of DecisionTree classifiers size n_estimators_.
 
     See Also
     --------
