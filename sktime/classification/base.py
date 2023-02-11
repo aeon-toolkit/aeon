@@ -48,10 +48,10 @@ class BaseClassifier(BaseEstimator, ABC):
     Parameters
     ----------
     classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of classes_)
+    n_classes_          : integer, number of classes (length of ``classes_``)
     fit_time_           : integer, time (in milliseconds) for fit to run.
-    _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _threads_to_use     : number of threads to use in fit as determined by n_jobs.
+    _class_dictionary   : dictionary mapping classes_ onto integers 0...``n_classes_``-1.
+    _threads_to_use     : number of threads to use in ``fit`` as determined by ``n_jobs``.
     """
 
     _tags = {
