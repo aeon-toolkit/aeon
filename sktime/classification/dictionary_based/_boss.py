@@ -74,17 +74,13 @@ class BOSSEnsemble(BaseClassifier):
     feature_selection: {"chi2", "none", "random"}, default: none
         Sets the feature selections strategy to be used. Chi2 reduces the number
         of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selectiona and yields large
+        the number significantly. None applies not feature selection and yields large
         bag of words, e.g. much memory may be needed.
     random_state : int or None, default=None
         Seed for random, integer.
 
     Attributes
     ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : list
-        The classes labels.
     n_instances_ : int
         Number of instances. Extracted from the data.
     n_estimators_ : int
