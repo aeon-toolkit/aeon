@@ -45,13 +45,15 @@ class BaseClassifier(BaseEstimator, ABC):
     classifiers have to implement. Attributes with an underscore suffix are set in the
     method fit.
 
-    Parameters
+    Attributes
     ----------
     classes_            : ndarray of class labels, possibly strings
     n_classes_          : integer, number of classes (length of ``classes_``)
     fit_time_           : integer, time (in milliseconds) for fit to run.
+    X_metadata_         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers 0...``n_classes_``-1.
     _threads_to_use     : number of threads to use in ``fit`` as determined by ``n_jobs``.
+
     """
 
     _tags = {
@@ -71,9 +73,9 @@ class BaseClassifier(BaseEstimator, ABC):
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = 0  # number of unique classes in y
         self.fit_time_ = 0  # time elapsed in last fit call
+        self.X_metadata_ = []  # metadata/properties of X seen in fit
         self._class_dictionary = {}
         self._threads_to_use = 1
-        self._X_metadata = []  # metadata/properties of X seen in fit
 
         # required for compatability with some sklearn interfaces
         # i.e. CalibratedClassifierCV
@@ -154,7 +156,7 @@ class BaseClassifier(BaseEstimator, ABC):
         missing = X_metadata["has_nans"]
         multivariate = not X_metadata["is_univariate"]
         unequal = not X_metadata["is_equal_length"]
-        self._X_metadata = X_metadata
+        self.X_metadata_ = X_metadata
 
         # Check this classifier can handle characteristics
         self._check_capabilities(missing, multivariate, unequal)
