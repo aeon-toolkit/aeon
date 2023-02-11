@@ -53,7 +53,8 @@ class BaseClassifier(BaseEstimator, ABC):
     X_metadata_         : metadata/properties of X seen in fit
     class_dictionary_   : dictionary mapping classes_ onto integers
     0...``n_classes_``-1.
-    _threads_to_use     : number of threads to use in ``fit`` as determined by ``n_jobs``.
+    _threads_to_use     : number of threads to use in ``fit`` as determined by
+    ``n_jobs``.
     _estimator_type     : string required by sklearn, set to "classifier"
     """
 
@@ -78,7 +79,8 @@ class BaseClassifier(BaseEstimator, ABC):
         self.class_dictionary_ = {}
         self._threads_to_use = 1
 
-        # required for compatability with some sklearn interfaces e.g.        # CalibratedClassifierCV
+        # required for compatibility with some sklearn interfaces e.g.       #
+        # CalibratedClassifierCV
         self._estimator_type = "classifier"
 
         super(BaseClassifier, self).__init__()
@@ -302,7 +304,7 @@ class BaseClassifier(BaseEstimator, ABC):
         )
 
     def _fit_predict_boilerplate(self, X, y, cv, change_state, method):
-        """ logic for fit_predict and fit_predict_proba."""
+        """Logic for fit_predict and fit_predict_proba."""
         from sklearn.model_selection import KFold
 
         if isinstance(cv, int):
