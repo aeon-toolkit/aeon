@@ -24,7 +24,7 @@ from sktime.transformations.panel.dictionary_based import SFAFast
 class MUSE(BaseClassifier):
     """MUSE (MUltivariate Symbolic Extension).
 
-    Also known as WEASLE-MUSE: implementation of multivariate version of WEASEL,
+    Also known as WEASEL-MUSE: implementation of multivariate version of WEASEL,
     referred to as just MUSE from [1].
 
     Overview: Input n series length m
@@ -37,8 +37,7 @@ class MUSE(BaseClassifier):
              chi2-threshold: used for feature selection to select best words
              anova: select best l/2 fourier coefficients other than first ones
              bigrams: using bigrams of SFA words
-             binning_strategy: the binning strategy used to disctrtize into
-                               SFA words.
+             binning_strategy: the binning strategy used to disctrtize into SFA words.
 
     Parameters
     ----------
