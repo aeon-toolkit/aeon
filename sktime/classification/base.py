@@ -54,7 +54,7 @@ class BaseClassifier(BaseEstimator, ABC):
     class_dictionary_   : dictionary mapping classes_ onto integers
     0...``n_classes_``-1.
     _threads_to_use     : number of threads to use in ``fit`` as determined by ``n_jobs``.
-
+    _estimator_type     : string required by sklearn, set to "classifier"
     """
 
     _tags = {
