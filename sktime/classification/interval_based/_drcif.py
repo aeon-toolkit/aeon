@@ -404,7 +404,7 @@ class DrCIF(BaseClassifier):
         X, y = check_X_y(X, y, coerce_to_numpy=True)
 
         # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
+        if len(self.class_dictionary_) == 1:
             return self._single_class_y_pred(X, method="predict_proba")
 
         n_instances, n_dims, series_length = X.shape
@@ -588,7 +588,7 @@ class DrCIF(BaseClassifier):
         if probas.shape[1] != self.n_classes_:
             new_probas = np.zeros((probas.shape[0], self.n_classes_))
             for i, cls in enumerate(clf.classes_):
-                cls_idx = self._class_dictionary[cls]
+                cls_idx = self.class_dictionary_[cls]
                 new_probas[:, cls_idx] = probas[:, i]
             probas = new_probas
 

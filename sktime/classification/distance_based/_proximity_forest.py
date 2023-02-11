@@ -1194,7 +1194,7 @@ class ProximityTree(BaseClassifier):
                         (1, self.n_classes_), np.finfo(float).eps
                     )
                     class_label = self.stump.y_exemplar[index]
-                    sub_distribution[0][self._class_dictionary[class_label]] = 1
+                    sub_distribution[0][self.class_dictionary_[class_label]] = 1
                 else:
                     sub_X = X.iloc[indices, :]
                     sub_distribution = sub_tree.predict_proba(sub_X)

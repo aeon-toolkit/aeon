@@ -353,7 +353,7 @@ class ContractableBOSS(BaseClassifier):
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
             for i in range(0, X.shape[0]):
-                sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
+                sums[i, self.class_dictionary_[preds[i]]] += self.weights_[n]
 
         dists = sums / (np.ones(self.n_classes_) * self._weight_sum)
 
@@ -403,7 +403,7 @@ class ContractableBOSS(BaseClassifier):
 
                 for n, pred in enumerate(preds):
                     results[subsample[n]][
-                        self._class_dictionary[pred]
+                        self.class_dictionary_[pred]
                     ] += self.weights_[i]
                     divisors[subsample[n]] += self.weights_[i]
 
@@ -420,7 +420,7 @@ class ContractableBOSS(BaseClassifier):
 
                 for n, pred in enumerate(preds):
                     results[subsample[n]][
-                        self._class_dictionary[pred]
+                        self.class_dictionary_[pred]
                     ] += self.weights_[i]
                     divisors[subsample[n]] += self.weights_[i]
 

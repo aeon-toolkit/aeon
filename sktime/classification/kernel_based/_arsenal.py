@@ -322,7 +322,7 @@ class Arsenal(BaseClassifier):
         X, y = check_X_y(X, y, coerce_to_numpy=True)
 
         # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
+        if len(self.class_dictionary_) == 1:
             return self._single_class_y_pred(X, method="predict_proba")
 
         n_instances, n_dims, series_length = X.shape
@@ -380,7 +380,7 @@ class Arsenal(BaseClassifier):
         preds = classifier.predict(X)
         weights = np.zeros((X.shape[0], self.n_classes_))
         for i in range(0, X.shape[0]):
-            weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
+            weights[i, self.class_dictionary_[preds[i]]] += self.weights_[idx]
         return weights
 
     def _train_probas_for_estimator(self, y, idx):
@@ -410,7 +410,7 @@ class Arsenal(BaseClassifier):
         weight = clf.steps[1][1].best_score_
 
         for n, pred in enumerate(preds):
-            results[oob[n]][self._class_dictionary[pred]] += weight
+            results[oob[n]][self.class_dictionary_[pred]] += weight
 
         return results, weight, oob
 
