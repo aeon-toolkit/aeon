@@ -54,3 +54,52 @@ Core Developers
      - :user:`mattewmiddlehurst`
    * - Patrick Schäfer
      - :user:`patrickzib`
+
+Pre-split `sktime` Core Developers
+----------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - GitHub ID
+   * - Aaron Bostrom
+     - :user:`abostrom`
+   * - Ayushmaan Seth
+     - :user:`ayushmaanseth`
+   * - George Oastler
+     - :user:`goastler`
+   * - Hongyi Yang
+     - :user:`hyang1996`
+   * - James Large
+     - :user:`james-large`
+   * - Jason Lines
+     - :user:`jasonlines`
+   * - Mathew Smith
+     - :user:`matteogales`
+   * - Patrick Rockenschaub
+     - :user:`prockenschaub`
+   * - Sajaysurya Ganesh
+     - :user:`sajaysurya`
+   * - Franz Király
+     - :user:`fkiraly`
+   * - Markus Löning
+     - :user:`mloning`
+   * - Mirae Parker
+     - :user:`miraep8`
+   * - Ryan Kuhns
+     - :user:`rnkuhns`
+   * - Sagar Mishra
+     - :user:`achieveordie`
+   * - Stanislav Khrapov
+     - :user:`khrapovs`
+   * - Svea Marie Meyer
+     - :user:`SveaMeyer13`
+   * - Lovkush Agarwal
+     - :user:`lovkush-a`
+   * - Freddy A Boulton
+     - :user:`freddyaboulton`
+   * - Daniel Bartling
+     - :user:`danbartl`
+   * - Anonymous upon contributor's request
+     - :user:`big-o`
