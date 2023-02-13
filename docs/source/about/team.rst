@@ -40,8 +40,6 @@ Core Developers
      - :user:`TonyBagnall`
    * - Chris Holder
      - :user:`chrisholder`
-   * - Franz Király
-     - :user:`fkiraly`
    * - Guzal Bulatova
      - :user:`GuzalBulatova`
    * - Leonidas Tsaprounis
