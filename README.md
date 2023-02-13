@@ -1,5 +1,7 @@
 <a href="https://scikit-time.org"><img src="https://github.com/scikit-time/scikit-time/blob/main/docs/source/images/scikit-time-logo.jpg?raw=true)" width="175" align="right" /></a>
 
+## DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links and documentation to reflect this. We do not recommend using this repository in any production setting, but welcome any contributors willing to help us update the project.
+
 # Welcome to scikit-time
 
 > A unified interface for machine learning with time series
