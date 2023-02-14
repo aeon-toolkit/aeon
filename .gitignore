@@ -165,3 +165,5 @@ sktime/_contrib/temp/
 
 # example mlflow runs
 examples/local/
+sktime/tony_debug/notebook_examples.py
+sktime/tony_debug/__init__.py
