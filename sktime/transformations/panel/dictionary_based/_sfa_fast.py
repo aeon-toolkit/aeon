@@ -9,7 +9,6 @@ __author__ = ["patrickzib"]
 __all__ = ["SFAFast"]
 
 import math
-import multiprocessing
 import sys
 from warnings import simplefilter
 
@@ -21,11 +20,10 @@ from numba import (
     njit,
     objmode,
     prange,
-    set_num_threads,
 )
 from numba.core import types
 from numba.typed import Dict
-from scipy.sparse import csr_matrix, hstack
+from scipy.sparse import csr_matrix
 from sklearn.feature_selection import chi2, f_classif
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier
@@ -413,7 +411,7 @@ class SFAFast(BaseTransformer):
                 words.shape[0],
                 words,
                 word_len,  # self.word_length_actual,
-                self.remove_repeat_words
+                self.remove_repeat_words,
             )
         else:
             feature_names = create_feature_names(words)
@@ -448,8 +446,10 @@ class SFAFast(BaseTransformer):
             # Chi-squared feature selection taking
             # a) the top-k features
             # b) a p-threshold
-            elif self.feature_selection == "chi2_top_k" \
-                 or self.feature_selection == "chi2":
+            elif (
+                self.feature_selection == "chi2_top_k"
+                or self.feature_selection == "chi2"
+            ):
                 feature_names_array = np.array(list(feature_names))
                 feature_count = len(feature_names_array)
                 relevant_features_idx = np.arange(feature_count, dtype=np.uint32)
@@ -996,8 +996,9 @@ def _dilation(X, d, first_difference):
 
     # adding dilation
     X_dilated = _dilation2(X, d)
-    X_index = _dilation2(np.arange(X_dilated.shape[-1], dtype=np.float_)
-                         .reshape(1, -1), d)[0]
+    X_index = _dilation2(
+        np.arange(X_dilated.shape[-1], dtype=np.float_).reshape(1, -1), d
+    )[0]
 
     return (
         X_dilated,
@@ -1032,12 +1033,7 @@ def create_feature_names(sfa_words):
 
 @njit(cache=True, fastmath=True)
 def create_bag_none(
-    X_index,
-    breakpoints,
-    n_instances,
-    sfa_words,
-    word_length,
-    remove_repeat_words
+    X_index, breakpoints, n_instances, sfa_words, word_length, remove_repeat_words
 ):
     feature_count = np.uint32(breakpoints.shape[1] ** word_length)
     all_win_words = np.zeros((n_instances, feature_count), dtype=np.uint32)
@@ -1062,7 +1058,7 @@ def create_bag_feature_selection(
     relevant_features_idx,
     feature_names,
     sfa_words,
-    remove_repeat_words
+    remove_repeat_words,
 ):
     relevant_features = Dict.empty(key_type=types.uint32, value_type=types.uint32)
     for k, v in zip(
@@ -1090,7 +1086,7 @@ def create_bag_transform(
     feature_selection,
     relevant_features,
     sfa_words,
-    remove_repeat_words
+    remove_repeat_words,
 ):
     all_win_words = np.zeros((len(sfa_words), feature_count), np.uint32)
     for j in prange(sfa_words.shape[0]):
@@ -1118,9 +1114,7 @@ def create_bag_transform(
 
 @njit(fastmath=True, cache=True)
 def create_dict(feature_names, features_idx):
-    relevant_features = Dict.empty(
-        key_type=types.uint32, value_type=types.uint32
-    )
+    relevant_features = Dict.empty(key_type=types.uint32, value_type=types.uint32)
     for k, v in zip(
         feature_names[features_idx],
         np.arange(len(features_idx), dtype=np.uint32),
@@ -1128,6 +1122,7 @@ def create_dict(feature_names, features_idx):
         relevant_features[k] = v
 
     return relevant_features
+
 
 @njit(fastmath=True, cache=True)
 def shorten_words(words, amount, letter_bits):
