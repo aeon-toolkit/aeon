@@ -25,7 +25,7 @@ from numba import (
 )
 from numba.core import types
 from numba.typed import Dict
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, hstack
 from sklearn.feature_selection import chi2, f_classif
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier
@@ -83,17 +83,25 @@ class SFAFast(BaseTransformer):
             variance. If False, the first Fourier coefficients are selected.
             Only applicable if labels are given
 
+        dilation:            int, default = 0
+            When set to dilation > 1, adds dilation to the sliding window operation.
+
         save_words:          boolean, default = False
             whether to save the words generated for each series (default False)
 
         bigrams:             boolean, default = False
-            whether to create bigrams of SFA words
+            whether to create bigrams of SFA words.
 
-        feature_selection: {"chi2", "none", "random"}, default: chi2
-            Sets the feature selections strategy to be used. Chi2 reduces the number
-            of words significantly and is thus much faster (preferred). Random also
-            reduces the number significantly. None applies not feature selectiona and
-            yields large bag of words, e.g. much memory may be needed.
+        feature_selection: {"chi2", "chi2_top_k", "none", "random"}, default: none
+            Sets the feature selections strategy to be used. Large amounts of memory
+            may be needed depending on the setting of bigrams (true is more) or
+            alpha (larger is more).
+            'chi2' reduces the number of words, keeping those above the 'p_threshold'.
+            'chi2_top_k' reduces the number of words to at most 'max_feature_count',
+            dropping values based on p-value.
+            'random' reduces the number to at most 'max_feature_count',
+            by randomly selecting features.
+            'none' does not apply any feature selection and yields large bag of words,
 
         p_threshold:  int, default=0.05 (disabled by default)
             If feature_selection=chi2 is chosen, feature selection is applied based on
@@ -165,6 +173,8 @@ class SFAFast(BaseTransformer):
         remove_repeat_words=False,
         lower_bounding=True,
         save_words=False,
+        dilation=0,
+        first_difference=False,
         feature_selection="none",
         max_feature_count=256,
         p_threshold=0.05,
@@ -204,6 +214,9 @@ class SFAFast(BaseTransformer):
         self.series_length = 0
         self.letter_bits = 0
 
+        self.dilation = dilation
+        self.first_difference = first_difference
+
         # Feature selection part
         self.feature_selection = feature_selection
         self.max_feature_count = max_feature_count
@@ -218,11 +231,11 @@ class SFAFast(BaseTransformer):
 
         self.random_state = random_state
 
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
-        set_num_threads(n_jobs)
+        # if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+        #     n_jobs = multiprocessing.cpu_count()
+        # else:
+        #     n_jobs = self.n_jobs
+        # set_num_threads(n_jobs)
 
         super(SFAFast, self).__init__()
 
@@ -265,12 +278,17 @@ class SFAFast(BaseTransformer):
         X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
-        self.n_instances, self.series_length = X.shape
-        self.breakpoints = self._binning(X, y)
+        if self.dilation >= 1 or self.first_difference:
+            X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
+        else:
+            X2, self.X_index = X, np.arange(X.shape[-1])
+
+        self.n_instances, self.series_length = X2.shape
+        self.breakpoints = self._binning(X2, y)
         self._is_fitted = True
 
         words, dfts = _transform_case(
-            X,
+            X2,
             self.window_size,
             self.dft_length,
             self.word_length_actual,
@@ -328,8 +346,13 @@ class SFAFast(BaseTransformer):
         X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
+        if self.dilation >= 1 or self.first_difference:
+            X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
+        else:
+            X2, self.X_index = X, np.arange(X.shape[-1])
+
         words, dfts = _transform_case(
-            X,
+            X2,
             self.window_size,
             self.dft_length,
             self.word_length_actual,
@@ -358,11 +381,11 @@ class SFAFast(BaseTransformer):
 
         # transform
         bags = create_bag_transform(
+            self.X_index,
             self.feature_count,
             self.feature_selection,
             self.relevant_features if self.relevant_features else empty_dict,
             words,
-            self.bigrams,
             self.remove_repeat_words,
         )[0]
 
@@ -380,14 +403,17 @@ class SFAFast(BaseTransformer):
         rng = check_random_state(self.random_state)
 
         if self.feature_selection == "none" and (
-            self.breakpoints.shape[1] <= 2 and not self.bigrams
+            self.breakpoints.shape[1] <= 2
+            and not self.bigrams
+            and self.word_length <= 8
         ):
             bag_of_words = create_bag_none(
+                self.X_index,
                 self.breakpoints,
                 words.shape[0],
                 words,
                 word_len,  # self.word_length_actual,
-                self.remove_repeat_words,
+                self.remove_repeat_words
             )
         else:
             feature_names = create_feature_names(words)
@@ -396,6 +422,7 @@ class SFAFast(BaseTransformer):
                 feature_count = len(list(feature_names))
                 relevant_features_idx = np.arange(feature_count, dtype=np.uint32)
                 bag_of_words, self.relevant_features = create_bag_feature_selection(
+                    self.X_index,
                     words.shape[0],
                     relevant_features_idx,
                     np.array(list(feature_names)),
@@ -410,6 +437,7 @@ class SFAFast(BaseTransformer):
                     len(feature_names), replace=False, size=feature_count
                 )
                 bag_of_words, self.relevant_features = create_bag_feature_selection(
+                    self.X_index,
                     words.shape[0],
                     relevant_features_idx,
                     np.array(list(feature_names)),
@@ -417,29 +445,38 @@ class SFAFast(BaseTransformer):
                     self.remove_repeat_words,
                 )
 
-            # Chi-squared feature selection
-            elif self.feature_selection == "chi2":
-                feature_count = len(list(feature_names))
+            # Chi-squared feature selection taking
+            # a) the top-k features
+            # b) a p-threshold
+            elif self.feature_selection == "chi2_top_k" \
+                 or self.feature_selection == "chi2":
+                feature_names_array = np.array(list(feature_names))
+                feature_count = len(feature_names_array)
                 relevant_features_idx = np.arange(feature_count, dtype=np.uint32)
                 bag_of_words, _ = create_bag_feature_selection(
+                    self.X_index,
                     words.shape[0],
                     relevant_features_idx,
-                    np.array(list(feature_names)),
+                    feature_names_array,
                     words,
                     self.remove_repeat_words,
                 )
 
+                # apply chi2-based feature selection
                 chi2_statistics, p = chi2(bag_of_words, y)
-                relevant_features_idx = np.where(p <= self.p_threshold)[0]
-                self.relevant_features = Dict.empty(
-                    key_type=types.uint32, value_type=types.uint32
-                )
-                for k, v in zip(
-                    np.array(list(feature_names))[relevant_features_idx],
-                    np.arange(len(relevant_features_idx)),
-                ):
-                    self.relevant_features[k] = v
 
+                # p-threshold using 'p_threshold'
+                if self.feature_selection == "chi2":
+                    relevant_features_idx = np.where(p <= self.p_threshold)[0]
+
+                # top-k using 'max_feature_count'
+                else:
+                    relevant_features_idx = np.argsort(p)[: self.max_feature_count]
+
+                self.relevant_features = create_dict(
+                    feature_names_array[relevant_features_idx],
+                    np.arange(len(relevant_features_idx), dtype=np.uint32),
+                )
                 # select subset of features
                 bag_of_words = bag_of_words[:, relevant_features_idx]
 
@@ -707,7 +744,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size):
     for i in range(len(stds)):
         stds[i] = np.std(X[i])
     # stds = np.std(X, axis=1)  # not available in numba
-    stds = np.where(stds < 1e-8, 1e-8, stds)
+    stds = np.where(stds < 1e-8, 1, stds)
 
     with objmode(X_ffts="complex128[:,:]"):
         X_ffts = np.fft.rfft(X, axis=1)  # complex128
@@ -791,7 +828,7 @@ def _calc_incremental_mean_std(series, end, window_size):
     r_window_length = 1.0 / window_size
     mean = series_sum * r_window_length
     buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-    stds[0] = buf if buf > 1e-8 else 1e-8
+    stds[0] = buf if buf > 1e-8 else 1
 
     for w in range(1, end):
         series_sum += series[w + window_size - 1] - series[w - 1]
@@ -801,7 +838,7 @@ def _calc_incremental_mean_std(series, end, window_size):
             - series[w - 1] * series[w - 1]
         )
         buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-        stds[w] = buf if buf > 1e-8 else 1e-8
+        stds[w] = buf if buf > 1e-8 else 1
 
     return stds
 
@@ -867,15 +904,6 @@ def generate_words(
     #             words[:, dfts.shape[1] + a] = (first_word << word_bits) | second_word
 
     return words
-
-
-@njit(cache=True, fastmath=True)
-def create_feature_names(sfa_words):
-    feature_names = set()
-    for t_words in sfa_words:
-        for t_word in t_words:
-            feature_names.add(t_word)
-    return feature_names
 
 
 @njit(fastmath=True, cache=True)
@@ -958,9 +986,58 @@ def _mft(
         ]
 
 
+def _dilation(X, d, first_difference):
+    padding = np.zeros((len(X), 10))
+    X = np.concatenate((padding, X, padding), axis=1)
+
+    # using only first order differences
+    if first_difference:
+        X = np.diff(X, axis=1, prepend=0)
+
+    # adding dilation
+    X_dilated = _dilation2(X, d)
+    X_index = _dilation2(np.arange(X_dilated.shape[-1], dtype=np.float_)
+                         .reshape(1, -1), d)[0]
+
+    return (
+        X_dilated,
+        X_index,
+    )
+
+
+@njit(cache=True, fastmath=True)
+def _dilation2(X, d):
+    # dilation on actual data
+    if d > 1:
+        start = 0
+        data = np.zeros(X.shape, dtype=np.float_)
+        for i in range(0, d):
+            curr = X[:, i::d]
+            end = curr.shape[1]
+            data[:, start : start + end] = curr
+            start += end
+        return data
+    else:
+        return X.astype(np.float_)
+
+
+@njit(cache=True, fastmath=True)
+def create_feature_names(sfa_words):
+    feature_names = set()
+    for t_words in sfa_words:
+        for t_word in t_words:
+            feature_names.add(t_word)
+    return feature_names
+
+
 @njit(cache=True, fastmath=True)
 def create_bag_none(
-    breakpoints, n_instances, sfa_words, word_length, remove_repeat_words
+    X_index,
+    breakpoints,
+    n_instances,
+    sfa_words,
+    word_length,
+    remove_repeat_words
 ):
     feature_count = np.uint32(breakpoints.shape[1] ** word_length)
     all_win_words = np.zeros((n_instances, feature_count), dtype=np.uint32)
@@ -980,7 +1057,12 @@ def create_bag_none(
 
 @njit(cache=True, fastmath=True)
 def create_bag_feature_selection(
-    n_instances, relevant_features_idx, feature_names, sfa_words, remove_repeat_words
+    X_index,
+    n_instances,
+    relevant_features_idx,
+    feature_names,
+    sfa_words,
+    remove_repeat_words
 ):
     relevant_features = Dict.empty(key_type=types.uint32, value_type=types.uint32)
     for k, v in zip(
@@ -1003,14 +1085,13 @@ def create_bag_feature_selection(
 
 @njit(cache=True, fastmath=True)
 def create_bag_transform(
+    X_index,
     feature_count,
     feature_selection,
     relevant_features,
     sfa_words,
-    bigrams,
-    remove_repeat_words,
+    remove_repeat_words
 ):
-    # merging arrays
     all_win_words = np.zeros((len(sfa_words), feature_count), np.uint32)
     for j in prange(sfa_words.shape[0]):
         if len(relevant_features) == 0 and feature_selection == "none":
@@ -1034,6 +1115,19 @@ def create_bag_transform(
 
     return all_win_words, all_win_words.shape[1]
 
+
+@njit(fastmath=True, cache=True)
+def create_dict(feature_names, features_idx):
+    relevant_features = Dict.empty(
+        key_type=types.uint32, value_type=types.uint32
+    )
+    for k, v in zip(
+        feature_names[features_idx],
+        np.arange(len(features_idx), dtype=np.uint32),
+    ):
+        relevant_features[k] = v
+
+    return relevant_features
 
 @njit(fastmath=True, cache=True)
 def shorten_words(words, amount, letter_bits):
