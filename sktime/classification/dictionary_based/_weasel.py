@@ -68,20 +68,23 @@ class WEASEL(BaseClassifier):
         This is the p-value threshold to use for chi-squared test on bag-of-words
         (lower means more strict). 1 indicates that the test
         should not be performed.
-    alphabet_size : default = 2
+    alphabet_size : default = 4
         Number of possible letters (values) for each word.
     feature_selection: {"chi2", "none", "random"}, default: chi2
-        Sets the feature selections strategy to be used. *Chi2* reduces the number
-        of words significantly and is thus much faster (preferred). If set to chi2,
-        p_threshold is applied.  *Random* also reduces the number significantly.
-        *None* applies not feature selectiona and yields large bag of words,
-        e.g. much memory may be needed.
+        Sets the feature selections strategy to be used. Large amounts of memory may be
+        needed depending on the setting of bigrams (true is more) or
+        alpha (larger is more).
+        'chi2' reduces the number of words, keeping those above the 'p_threshold'.
+        'random' reduces the number to at most 'max_feature_count',
+        by randomly selecting features.
+        'none' does not apply any feature selection and yields large bag of words
     support_probabilities: bool, default: False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accuracy. predict_proba() is
         needed for example in Early-Classification like TEASER.
+
     random_state: int or None, default=None
         Seed for random, integer
 
@@ -126,7 +129,7 @@ class WEASEL(BaseClassifier):
         binning_strategy="information-gain",
         window_inc=2,
         p_threshold=0.05,
-        alphabet_size=2,
+        alphabet_size=4,
         n_jobs=1,
         feature_selection="chi2",
         support_probabilities=False,
@@ -241,6 +244,11 @@ class WEASEL(BaseClassifier):
             )
 
         self.clf.fit(all_words, y)
+
+        self.total_features_count = all_words.shape[1]
+        if hasattr(self.clf, "best_score_"):
+            self.cross_val_score = self.clf.best_score_
+
         return self
 
     def _predict(self, X) -> np.ndarray:
