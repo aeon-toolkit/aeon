@@ -36,6 +36,7 @@ EXCLUDE_ESTIMATORS = [
 
 
 EXCLUDED_TESTS = {
+    # Issue with test, see #68
     "WEASEL": ["test_est_fit_without_modulenotfound"],
     "ContractableBOSS": ["test_est_fit_without_modulenotfound"],
     "BOSS": ["test_est_fit_without_modulenotfound"],
