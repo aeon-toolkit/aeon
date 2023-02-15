@@ -49,7 +49,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
                 X, X2 which are pd_multiindex and numpy3D mtype
         can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
     distance_params : dict, optional. default = None.
-        dictionary for metric parameters , in case that distane is a str
+        dictionary for metric parameters , in case that distance is a str
 
     Examples
     --------
@@ -109,8 +109,8 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         self.y_ = y
         return self
 
-    def _predict(self, X) -> np.ndarray:
-        """Predict the class labels for the provided data.
+    def _predict(self, X):
+        """Predict the target values for the provided data.
 
         Parameters
         ----------
