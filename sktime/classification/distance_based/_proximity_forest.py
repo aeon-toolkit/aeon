@@ -1507,8 +1507,6 @@ class ProximityForest(BaseClassifier):
             return {"n_estimators": 2, "max_depth": 1, "n_stump_evaluations": 1}
 
 
-# start of util functions
-
 # find the index of the best value in the array
 def arg_bests(array, comparator):
     indices = [0]
