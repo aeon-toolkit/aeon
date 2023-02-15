@@ -4,38 +4,25 @@
 This class is a KNN regressor which supports time series distance measures.
 The class has hardcoded string references to numba based distances in sktime.distances.
 It can also be used with callables, or sktime (pairwise transformer) estimators.
-
-This is a direct wrap or sklearn KNeighbors, with added functionality that allows
-time series distances to be passed, and the sktime time series regressor interface.
 """
 
-__author__ = ["fkiraly"]
+__author__ = ["TonyBagnall", "GuiArcencio"]
 __all__ = ["KNeighborsTimeSeriesRegressor"]
 
-from sklearn.neighbors import KNeighborsRegressor
+import numpy as np
 
-from sktime.distances import pairwise_distance
+from sktime.distances import distance_factory
 from sktime.regression.base import BaseRegressor
 
-# add new distance string codes here
-DISTANCES_SUPPORTED = [
-    "euclidean",
-    # Euclidean will default to the base class distance
-    "dtw",
-    "ddtw",
-    "wdtw",
-    "wddtw",
-    "lcss",
-    "edr",
-    "erp",
-    "msm",
+WEIGHTS_SUPPORTED = [
+    "uniform",
+    "distance"
 ]
-
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """KNN Time Series Regressor.
 
-    An adapted version of the scikit-learn KNeighborsRegressor for time series data.
+    An adapted K-Neighbors Regressor for time series data.
 
     This class is a KNN regressor which supports time series distance measures.
     It has hardcoded string references to numba based distances in sktime.distances,
@@ -47,9 +34,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     weights : string or callable function, optional. default = 'uniform'
         mechanism for weighting a vot
         one of: 'uniform', 'distance', or a callable function
-    algorithm : str, optional. default = 'brute'
-        search method for neighbours
-        one of {'auto’, 'ball_tree', 'kd_tree', 'brute'}
     distance : str or callable, optional. default ='dtw'
         distance measure between time series
         if str, must be one of the following strings:
@@ -66,17 +50,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
     distance_params : dict, optional. default = None.
         dictionary for metric parameters , in case that distane is a str
-    distance_mtype : str, or list of str optional. default = None.
-        mtype that distance expects for X and X2, if a callable
-            only set this if distance is not BasePairwiseTransformerPanel descendant
-    leaf_size : int, default=30
-        Leaf size passed to BallTree or KDTree. This can affect the
-        speed of the construction and query, as well as the memory required to store
-        the tree. The optimal value depends on the nature of the problem.
-    n_jobs : int, default=None
-        The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors.
 
     Examples
     --------
@@ -92,80 +65,28 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:unequal_length": True,
-        "capability:missing_values": True,
-        "X_inner_mtype": ["pd-multiindex", "numpy3D"],
+        "X_inner_mtype": ["numpy3D"],
     }
 
     def __init__(
         self,
-        n_neighbors=1,
-        weights="uniform",
-        algorithm="brute",
         distance="dtw",
         distance_params=None,
-        distance_mtype=None,
-        leaf_size=30,
-        n_jobs=None,
+        n_neighbors=1,
+        weights="uniform",
     ):
-        self.n_neighbors = n_neighbors
-        self.algorithm = algorithm
         self.distance = distance
         self.distance_params = distance_params
-        self.distance_mtype = distance_mtype
-        self.leaf_size = leaf_size
-        self.n_jobs = n_jobs
-        # translate distance strings into distance callables
-        if isinstance(distance, str) and distance not in DISTANCES_SUPPORTED:
-            raise ValueError(
-                f"Unrecognised distance measure string: {distance}. "
-                f"Allowed values for string codes are: {DISTANCES_SUPPORTED}. "
-                "Alternatively, pass a callable distance measure into the constuctor."
-            )
+        self.n_neighbors = n_neighbors
 
-        self.knn_estimator_ = KNeighborsRegressor(
-            n_neighbors=n_neighbors,
-            algorithm=algorithm,
-            metric="precomputed",
-            metric_params=distance_params,
-            leaf_size=leaf_size,
-            n_jobs=n_jobs,
-        )
+        if weights not in WEIGHTS_SUPPORTED:
+            raise ValueError(
+                f"Unrecognised kNN weights: {weights}. "
+                f"Allowed values are: {WEIGHTS_SUPPORTED}. "
+            )
         self.weights = weights
 
         super(KNeighborsTimeSeriesRegressor, self).__init__()
-
-        # the distances in sktime.distances want numpy3D
-        #   otherwise all Panel formats are ok
-        if isinstance(self.distance, str):
-            self.set_tags(X_inner_mtype="numpy3D")
-            self.set_tags(**{"capability:unequal_length": False})
-            self.set_tags(**{"capability:missing_values": False})
-        elif distance_mtype is not None:
-            self.set_tags(X_inner_mtype=distance_mtype)
-
-        from sktime.dists_kernels import BasePairwiseTransformerPanel
-
-        # inherit capability tags from distance, if it is an estimator
-        if isinstance(distance, BasePairwiseTransformerPanel):
-            inherit_tags = [
-                "capability:missing_values",
-                "capability:unequal_length",
-                "capability:multivariate",
-            ]
-            self.clone_tags(distance, inherit_tags)
-
-    def _distance(self, X, X2):
-        """Compute distance - unified interface to str code and callable."""
-        distance = self.distance
-        distance_params = self.distance_params
-        if distance_params is None:
-            distance_params = {}
-
-        if isinstance(distance, str):
-            return pairwise_distance(X, X2, distance, **distance_params)
-        else:
-            return distance(X, X2)
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
@@ -176,54 +97,19 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : {array-like, sparse matrix}
             Target values of shape = [n_samples]
         """
-        # store full data as indexed X
-        self._X = X
+        if isinstance(self.distance, str):
+            if self.distance_params is None:
+                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
+            else:
+                self.metric_ = distance_factory(
+                    X[0], X[0], metric=self.distance, **self.distance_params
+                )
 
-        dist_mat = self._distance(X, X)
-
-        self.knn_estimator_.fit(dist_mat, y)
-
+        self.X_ = X
+        self.y_ = y
         return self
 
-    def kneighbors(self, X, n_neighbors=None, return_distance=True):
-        """Find the K-neighbors of a point.
-
-        Returns indices of and distances to the neighbors of each point.
-
-        Parameters
-        ----------
-        X : sktime-compatible data format, Panel or Series, with n_samples series
-        y : {array-like, sparse matrix}
-            Target values of shape = [n_samples]
-        n_neighbors : int
-            Number of neighbors to get (default is the value
-            passed to the constructor).
-        return_distance : boolean, optional. Defaults to True.
-            If False, distances will not be returned
-
-        Returns
-        -------
-        dist : array
-            Array representing the lengths to points, only present if
-            return_distance=True
-        ind : array
-            Indices of the nearest points in the population matrix.
-        """
-        self.check_is_fitted()
-
-        # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
-
-        # self._X should be the stored _X
-        dist_mat = self._distance(X, self._X)
-
-        neigh_ind = self.knn_estimator_.kneighbors(
-            dist_mat, n_neighbors=n_neighbors, return_distance=return_distance
-        )
-
-        return neigh_ind
-
-    def _predict(self, X):
+    def _predict(self, X) -> np.ndarray:
         """Predict the class labels for the provided data.
 
         Parameters
@@ -233,11 +119,55 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         Returns
         -------
         y : array of shape [n_samples] or [n_samples, n_outputs]
-            Class labels for each data sample.
+            Target values for each data sample.
         """
-        # self._X should be the stored _X
-        dist_mat = self._distance(X, self._X)
+        self.check_is_fitted()
 
-        y_pred = self.knn_estimator_.predict(dist_mat)
+        preds = np.zeros(X.shape[0])
+        for i in range(X.shape[0]):
+            idx, weights = self._kneighbors(X[i])
+            preds[i] = np.average(self.y_[idx], weights=weights)
 
-        return y_pred
+        return preds
+    
+    def _kneighbors(self, X):
+        """Find the K-neighbors of a point.
+
+        Returns indices and weights of each point.
+
+        Parameters
+        ----------
+        X : sktime-compatible data format, Panel or Series, with n_samples series
+
+        Returns
+        -------
+        ind : array
+            Indices of the nearest points in the population matrix.
+        ws : array
+            Array representing the weights of each neighbor.
+        """
+        
+        distances = np.array(
+            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+        )
+
+        # Find indices of k nearest neighbors using partitioning:
+        # [0..k-1], [k], [k+1..n-1]
+        # They might not be ordered within themselves,
+        # but it is not necessary and partitioning is
+        # O(n) while sorting is O(nlogn)
+        closest_idx = np.argpartition(distances, self.n_neighbors)
+        closest_idx = closest_idx[: self.n_neighbors]
+
+        if self.weights == "distance":
+            ws = distances[closest_idx]
+            ws = ws**2
+
+            # Using epsilon ~= 0 to avoid division by zero
+            ws = 1 / (ws + np.finfo(float).eps)
+        elif self.weights == "uniform":
+            ws = np.repeat(1., self.n_neighbors)
+        else:
+            raise Exception(f"Invalid kNN weights: {self.weights}")
+
+        return closest_idx, ws
