@@ -135,39 +135,28 @@ class WEASEL(BaseClassifier):
         support_probabilities=False,
         random_state=None,
     ):
-
         self.alphabet_size = alphabet_size
-
         # feature selection is applied based on the chi-squared test.
         self.p_threshold = p_threshold
-
         self.anova = anova
-
         self.norm_options = [False]
         self.word_lengths = [4, 6]
-
         self.bigrams = bigrams
         self.binning_strategy = binning_strategy
         self.random_state = random_state
-
         self.min_window = 6
         self.max_window = 100
-
         self.feature_selection = feature_selection
         self.window_inc = window_inc
         self.highest_bit = -1
         self.window_sizes = []
-
         self.series_length = 0
         self.n_instances = 0
-
         self.SFA_transformers = []
         self.clf = None
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
-
         set_num_threads(n_jobs)
-
         super(WEASEL, self).__init__()
 
     def _fit(self, X, y):
