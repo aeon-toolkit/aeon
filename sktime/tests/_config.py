@@ -32,15 +32,15 @@ EXCLUDE_ESTIMATORS = [
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
+    # Issue with test, see #68
+    "WEASEL",
+    "ContractableBOSS",
+    "BOSS",
+    "RandomShapeletTransform",
 ]
 
 
 EXCLUDED_TESTS = {
-    # Issue with test, see #68
-    "WEASEL": ["test_est_fit_without_modulenotfound"],
-    "ContractableBOSS": ["test_est_fit_without_modulenotfound"],
-    "BOSS": ["test_est_fit_without_modulenotfound"],
-    "RandomShapeletTransform": ["test_est_fit_without_modulenotfound"],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
     # known issue when X is passed, wrong time indices are returned, #1364
