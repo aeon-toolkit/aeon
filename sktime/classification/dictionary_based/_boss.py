@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """BOSS classifiers.
 
-Dictionary based BOSS classifiers based on SFA transform. Contains a single
-BOSS and a BOSS ensemble.
+Dictionary based BOSS classifiers based on SFA transform.
+Contains a single BOSS and a BOSS ensemble.
 """
 
-__author__ = ["MatthewMiddlehurst", "patrickzib"]
+__author__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
 from itertools import compress
@@ -63,7 +63,7 @@ class BOSSEnsemble(BaseClassifier):
     save_train_predictions : bool, default=False
         Save the ensemble member train predictions in fit for use in _get_train_probs
         leave-one-out cross-validation.
-    alphabet_size : default = 2
+    alphabet_size : default = 4
         Number of possible letters (values) for each word.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
@@ -136,7 +136,7 @@ class BOSSEnsemble(BaseClassifier):
         save_train_predictions=False,
         feature_selection="none",
         use_boss_distance=True,
-        alphabet_size=2,
+        alphabet_size=4,
         n_jobs=1,
         random_state=None,
     ):
@@ -474,7 +474,7 @@ class IndividualBOSS(BaseClassifier):
         Length of word to use to use in BOSS algorithm.
     norm : bool, default = False
         Whether to normalize words by dropping the first Fourier coefficient.
-    alphabet_size : default = 2
+    alphabet_size : default = 4
         Number of possible letters (values) for each word.
     save_words : bool, default = True
         Whether to keep NumPy array of words in SFA transformation even after
@@ -531,7 +531,7 @@ class IndividualBOSS(BaseClassifier):
         window_size=10,
         word_length=8,
         norm=False,
-        alphabet_size=2,
+        alphabet_size=4,
         save_words=False,
         typed_dict="deprecated",
         use_boss_distance=True,
