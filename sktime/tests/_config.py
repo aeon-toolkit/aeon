@@ -36,6 +36,10 @@ EXCLUDE_ESTIMATORS = [
 
 
 EXCLUDED_TESTS = {
+    "WEASEL": ["test_est_fit_without_modulenotfound"],
+    "ContractableBOSS": ["test_est_fit_without_modulenotfound"],
+    "BOSS": ["test_est_fit_without_modulenotfound"],
+    "RandomShapeletTransform": ["test_est_fit_without_modulenotfound"],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
     # known issue when X is passed, wrong time indices are returned, #1364
