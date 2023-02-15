@@ -7,17 +7,15 @@ It can also be used with callables, or sktime (pairwise transformer) estimators.
 """
 
 __author__ = ["TonyBagnall", "GuiArcencio"]
-__all__ = ["KNeighborsTimeSeriesRegressor"]
+__all__ = ["KNeighborsTimeSeriesClassifier"]
 
 import numpy as np
 
-from sktime.distances import distance_factory
 from sktime.classification.base import BaseClassifier
+from sktime.distances import distance_factory
 
-WEIGHTS_SUPPORTED = [
-    "uniform",
-    "distance"
-]
+WEIGHTS_SUPPORTED = ["uniform", "distance"]
+
 
 class KNeighborsTimeSeriesClassifier(BaseClassifier):
     """KNN Time Series Classifier.
@@ -80,7 +78,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         distance_params=None,
         n_neighbors=1,
         weights="uniform",
-        n_jobs=1
+        n_jobs=1,
     ):
         self.distance = distance
         self.distance_params = distance_params
@@ -164,11 +162,11 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             for id, w in zip(idx, weights):
                 predicted_class = self.y_[id]
                 scores[predicted_class] += w
-            
+
             preds[i] = self.classes_[np.argmax(scores)]
 
         return preds
-    
+
     def _kneighbors(self, X):
         """Find the K-neighbors of a point.
 
@@ -185,7 +183,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ws : array
             Array representing the weights of each neighbor.
         """
-        
         distances = np.array(
             [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
         )
@@ -205,7 +202,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
-            ws = np.repeat(1., self.n_neighbors)
+            ws = np.repeat(1.0, self.n_neighbors)
         else:
             raise Exception(f"Invalid kNN weights: {self.weights}")
 

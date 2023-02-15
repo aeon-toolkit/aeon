@@ -14,10 +14,8 @@ import numpy as np
 from sktime.distances import distance_factory
 from sktime.regression.base import BaseRegressor
 
-WEIGHTS_SUPPORTED = [
-    "uniform",
-    "distance"
-]
+WEIGHTS_SUPPORTED = ["uniform", "distance"]
+
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """KNN Time Series Regressor.
@@ -129,7 +127,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             preds[i] = np.average(self.y_[idx], weights=weights)
 
         return preds
-    
+
     def _kneighbors(self, X):
         """Find the K-neighbors of a point.
 
@@ -146,7 +144,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         ws : array
             Array representing the weights of each neighbor.
         """
-        
         distances = np.array(
             [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
         )
@@ -166,7 +163,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
-            ws = np.repeat(1., self.n_neighbors)
+            ws = np.repeat(1.0, self.n_neighbors)
         else:
             raise Exception(f"Invalid kNN weights: {self.weights}")
 
