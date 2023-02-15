@@ -139,32 +139,24 @@ class MUSE(BaseClassifier):
         n_jobs=1,
         random_state=None,
     ):
-
-        # currently other values than 4 are not supported.
+        # currently values other than 4 are not supported.
         self.alphabet_size = alphabet_size
-
         # feature selection is applied based on the chi-squared test.
         self.p_threshold = p_threshold
         self.anova = anova
         self.variance = variance
         self.use_first_order_differences = use_first_order_differences
-
         self.norm_options = [False]
         self.word_lengths = [4, 6]
-
         self.bigrams = bigrams
         self.binning_strategies = ["equi-width", "equi-depth"]
         self.random_state = random_state
-
         self.min_window = 6
         self.max_window = 100
-
         self.window_inc = window_inc
         self.window_sizes = []
-
         self.SFA_transformers = []
         self.clf = None
-
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
         self.total_features_count = 0
@@ -199,7 +191,8 @@ class MUSE(BaseClassifier):
         if self.n_dims == 1:
             warnings.warn(
                 "MUSE Warning: Input series is univariate; MUSE is designed for"
-                + " multivariate series. It is recommended WEASEL is used instead."
+                + " multivariate series. It is recommended WEASEL is used instead.",
+                stacklevel=2,
             )
 
         if self.variance and self.anova:
