@@ -34,9 +34,6 @@ EXCLUDE_ESTIMATORS = [
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
     # Issue with test, see #68
     "WEASEL",
-    "ContractableBOSS",
-    "BOSS",
-    "RandomShapeletTransform",
 ]
 
 
