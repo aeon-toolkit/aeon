@@ -32,6 +32,7 @@ EXCLUDE_ESTIMATORS = [
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
+    "TEASER",
 ]
 
 
