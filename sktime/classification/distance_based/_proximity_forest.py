@@ -1522,7 +1522,6 @@ def arg_bests(array, comparator):
     return indices
 
 
-# pick values from array at given indices
 def _pick_from_indices(array, indices):
     picked = []
     for index in indices:
