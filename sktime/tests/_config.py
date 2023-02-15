@@ -33,7 +33,7 @@ EXCLUDE_ESTIMATORS = [
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
     # Issue with test, see #68
-    "WEASEL",
+    "TEASER",
 ]
 
 
