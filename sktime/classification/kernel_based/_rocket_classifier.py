@@ -192,7 +192,7 @@ class RocketClassifier(_DelegatedClassifier):
         use_multivariate = self.use_multivariate
         if use_multivariate == "auto":
             code_dict = {True: "yes", False: "no"}
-            use_multivariate = code_dict[not self.X_metadata_["is_univariate"]]
+            use_multivariate = code_dict[not self._X_metadata["is_univariate"]]
 
         if use_multivariate == "yes":
             delegate = self.multivar_rocket_
