@@ -312,7 +312,7 @@ class BOSSEnsemble(BaseClassifier):
         for clf in self.estimators_:
             preds = clf.predict(X)
             for i in range(0, X.shape[0]):
-                sums[i, self.class_dictionary_[preds[i]]] += 1
+                sums[i, self._class_dictionary[preds[i]]] += 1
         dists = sums / (np.ones(self.n_classes_) * self.n_estimators_)
 
         return dists
@@ -356,7 +356,7 @@ class BOSSEnsemble(BaseClassifier):
             for clf in self.estimators_:
                 preds = clf._train_predictions
                 for n, pred in enumerate(preds):
-                    results[n][self.class_dictionary_[pred]] += 1
+                    results[n][self._class_dictionary[pred]] += 1
                     divisors[n] += 1
 
         else:
@@ -373,7 +373,7 @@ class BOSSEnsemble(BaseClassifier):
                         preds.append(clf._train_predict(i, distance_matrix))
 
                     for n, pred in enumerate(preds):
-                        results[n][self.class_dictionary_[pred]] += 1
+                        results[n][self._class_dictionary[pred]] += 1
                         divisors[n] += 1
 
         for i in range(n_instances):
@@ -659,7 +659,7 @@ class IndividualBOSS(BaseClassifier):
         new_boss._class_vals = self._class_vals
         new_boss.n_classes_ = self.n_classes_
         new_boss.classes_ = self.classes_
-        new_boss.class_dictionary_ = self.class_dictionary_
+        new_boss._class_dictionary = self._class_dictionary
         new_boss._is_fitted = True
 
         return new_boss

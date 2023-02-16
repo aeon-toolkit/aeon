@@ -51,7 +51,7 @@ class BaseClassifier(BaseEstimator, ABC):
     n_classes_          : integer, number of classes (length of ``classes_``)
     fit_time_           : integer, time (in milliseconds) for fit to run.
     X_metadata_         : metadata/properties of X seen in fit
-    class_dictionary_   : dictionary mapping classes_ onto integers
+    _class_dictionary   : dictionary mapping classes_ onto integers
     0...``n_classes_``-1.
     _threads_to_use     : number of threads to use in ``fit`` as determined by
     ``n_jobs``.
@@ -76,7 +76,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self.n_classes_ = 0  # number of unique classes in y
         self.fit_time_ = 0  # time elapsed in last fit call
         self.X_metadata_ = []  # metadata/properties of X seen in fit
-        self.class_dictionary_ = {}
+        self._class_dictionary = {}
         self._threads_to_use = 1
 
         # required for compatibility with some sklearn interfaces e.g.       #
@@ -166,9 +166,9 @@ class BaseClassifier(BaseEstimator, ABC):
         # remember class labels
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
-        self.class_dictionary_ = {}
+        self._class_dictionary = {}
         for index, class_val in enumerate(self.classes_):
-            self.class_dictionary_[class_val] = index
+            self._class_dictionary[class_val] = index
 
         # escape early and do not fit if only one class label has been seen
         #   in this case, we later predict the single class label seen
@@ -219,7 +219,7 @@ class BaseClassifier(BaseEstimator, ABC):
         X = self._check_convert_X_for_predict(X)
 
         # handle the single-class-label case
-        if len(self.class_dictionary_) == 1:
+        if len(self._class_dictionary) == 1:
             return self._single_class_y_pred(X, method="predict")
 
         # call internal _predict_proba
@@ -250,7 +250,7 @@ class BaseClassifier(BaseEstimator, ABC):
         X = self._check_convert_X_for_predict(X)
 
         # handle the single-class-label case
-        if len(self.class_dictionary_) == 1:
+        if len(self._class_dictionary) == 1:
             return self._single_class_y_pred(X, method="predict_proba")
 
         # call internal _predict_proba
@@ -332,7 +332,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self._check_capabilities(missing, multivariate, unequal)
 
         # handle single class case
-        if len(self.class_dictionary_) == 1:
+        if len(self._class_dictionary) == 1:
             return self._single_class_y_pred(X)
 
         # Convert data to format easily useable for applying cv
@@ -421,7 +421,7 @@ class BaseClassifier(BaseEstimator, ABC):
         _, _, X_meta = check_is_scitype(X, scitype="Panel", return_metadata=True)
         n_instances = X_meta["n_instances"]
         if method == "predict":
-            return np.repeat(list(self.class_dictionary_.keys()), n_instances)
+            return np.repeat(list(self._class_dictionary.keys()), n_instances)
         else:  # method == "predict_proba"
             return np.repeat([[1]], n_instances, axis=0)
 
@@ -559,7 +559,7 @@ class BaseClassifier(BaseEstimator, ABC):
         n_pred = len(preds)
         dists = np.zeros((n_pred, self.n_classes_))
         for i in range(n_pred):
-            dists[i, self.class_dictionary_[preds[i]]] = 1
+            dists[i, self._class_dictionary[preds[i]]] = 1
 
         return dists
 

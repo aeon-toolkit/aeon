@@ -414,7 +414,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
             for i in range(0, X.shape[0]):
-                sums[i, self.class_dictionary_[preds[i]]] += self.weights_[n]
+                sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
 
@@ -477,7 +477,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
                 for n, pred in enumerate(preds):
                     results[subsample[n]][
-                        self.class_dictionary_[pred]
+                        self._class_dictionary[pred]
                     ] += self.weights_[i]
                     divisors[subsample[n]] += self.weights_[i]
         elif train_estimate_method.lower() == "oob":
@@ -491,7 +491,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = clf.predict(X[oob])
 
                 for n, pred in enumerate(preds):
-                    results[oob[n]][self.class_dictionary_[pred]] += self.weights_[i]
+                    results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
                     divisors[oob[n]] += self.weights_[i]
         else:
             raise ValueError(
