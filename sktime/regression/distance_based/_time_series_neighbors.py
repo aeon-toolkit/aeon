@@ -36,15 +36,13 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         distance measure between time series
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
-            'lcss', 'edr', 'erp', 'msm'
+            'lcss', 'edr', 'erp', 'msm', 'twe'
         this will substitute a hard-coded distance metric from sktime.distances
         When mpdist is used, the subsequence length (parameter m) must be set
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 metric='mpdist', metric_params={'m':30})
-        if callable, must be of signature (X: Panel, X2: Panel) -> np.ndarray
-            output must be mxn array if X is Panel of m Series, X2 of n Series
-            if distance_mtype is not set, must be able to take
-                X, X2 which are pd_multiindex and numpy3D mtype
+        if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
+            output must be mxn array if X is array of m Series, X2 of n Series
         can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
     distance_params : dict, optional. default = None.
         dictionary for metric parameters , in case that distance is a str
@@ -55,7 +53,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     >>> from sktime.regression.distance_based import KNeighborsTimeSeriesRegressor
     >>> X_train, y_train = load_unit_test(return_X_y=True, split="train")
     >>> X_test, y_test = load_unit_test(return_X_y=True, split="test")
-    >>> regressor = KNeighborsTimeSeriesRegressor()
+    >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
     KNeighborsTimeSeriesRegressor(...)
     >>> y_pred = regressor.predict(X_test)
