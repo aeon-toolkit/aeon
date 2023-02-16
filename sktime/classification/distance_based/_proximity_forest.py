@@ -1194,7 +1194,7 @@ class ProximityTree(BaseClassifier):
                         (1, self.n_classes_), np.finfo(float).eps
                     )
                     class_label = self.stump.y_exemplar[index]
-                    sub_distribution[0][self.class_dictionary_[class_label]] = 1
+                    sub_distribution[0][self._class_dictionary[class_label]] = 1
                 else:
                     sub_X = X.iloc[indices, :]
                     sub_distribution = sub_tree.predict_proba(sub_X)
@@ -1507,6 +1507,9 @@ class ProximityForest(BaseClassifier):
             return {"n_estimators": 2, "max_depth": 1, "n_stump_evaluations": 1}
 
 
+# start of util functions
+
+
 # find the index of the best value in the array
 def arg_bests(array, comparator):
     indices = [0]
@@ -1522,6 +1525,7 @@ def arg_bests(array, comparator):
     return indices
 
 
+# pick values from array at given indices
 def _pick_from_indices(array, indices):
     picked = []
     for index in indices:
