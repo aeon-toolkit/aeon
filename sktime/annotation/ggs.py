@@ -156,7 +156,7 @@ class GGS:
         """
         Calculate cumulative GGS log-likelihood for all segments.
 
-        Args
+        Parameters
         ----
         data: array_like
             2D `array_like` representing time series with sequence index along
