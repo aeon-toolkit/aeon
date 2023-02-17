@@ -1,13 +1,12 @@
 [project]
-name = "sktime"
-version = "0.16.0"
+name = "scikit-time"
+version = "0.0.1"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "sktime developers", email = "sktime.toolbox@gmail.com"},
+    {name = "scikit-time developers", email = "scikit-time@gmail.com"},
 ]
 maintainers = [
-    {name = "sktime developers", email = "sktime.toolbox@gmail.com"},
-    {name = "Franz Király", email = "f.kiraly@ucl.ac.uk"},
+    {name = "scikit-time developers", email = "scikit-time@gmail.com"},
 ]
 readme = "README.md"
 keywords = [
@@ -107,13 +106,14 @@ binder = [
 docs = [
     "jupyter",
     "myst-parser",
-    "nbsphinx>=0.8.6",
+    "nbsphinx>=0.8.12",
     "numpydoc",
     "pydata-sphinx-theme",
-    "sphinx_issues==1.2.0",
-    "sphinx-gallery==0.6.0",
-    "sphinx-design==0.3.0",
-    "sphinx==4.1.1",
+    "sphinx_issues>=3.0.1",
+    "sphinx-gallery>=0.11.1",
+    "sphinx-design>=0.3.0",
+    # sphinx has <6 because of shinx-design
+    "sphinx>=5.0.0,<6",
     "tabulate",
 ]
 
@@ -123,12 +123,12 @@ dl = [
 ]
 
 [project.urls]
-Homepage = "https://www.sktime.org"
-Repository = "https://github.com/sktime/sktime"
-Documentation = "https://www.sktime.org"
-Download = "https://pypi.org/project/sktime/#files"
-"API Reference" = "https://www.sktime.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.sktime.org/en/stable/changelog.html"
+Homepage = "https://www.scikit-time.org"
+Repository = "https://github.com/scikit-time/scikit-time"
+Documentation = "https://www.scikit-time.org"
+Download = "https://pypi.org/project/scikit-time/#files"
+"API Reference" = "https://www.scikit-time.org/en/stable/api_reference.html"
+"Release Notes" = "https://www.scikit-time.org/en/stable/changelog.html"
 
 [project.license]
 file = "LICENSE"
