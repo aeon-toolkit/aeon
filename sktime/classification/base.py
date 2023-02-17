@@ -738,7 +738,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : an object of any type
+        X : an object of any supported type
         y : np.ndarray or pd.Series
 
         Returns
