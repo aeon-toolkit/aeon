@@ -275,7 +275,9 @@ In addition, they are responsible for maintaining and improving the CoC.
 Eligibility
 ^^^^^^^^^^^
 
-Anyone is eligible to be a CoC committee member.
+Anyone is eligible to be a CoC Committee member with the exception that a person that
+is CC member can not be CoC member.
+
 
 .. _appointment-2:
 
@@ -339,7 +341,8 @@ Eligibility
 
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer.
+by a nomination for core developer. Members of the CoC Committee are
+not eligible to become CC members.
 
 .. _appointment-3:
 
