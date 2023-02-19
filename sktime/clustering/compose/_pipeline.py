@@ -74,7 +74,7 @@ class ClustererPipeline(_HeterogenousMetaEstimator, BaseClusterer):
 
     Examples
     --------
-    >>> from sktime.transformations.panel.pca import PCATransformer
+    >>> from sktime.transformations.series.pca import PCATransformer
     >>> from sktime.clustering.k_means import TimeSeriesKMeans
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.clustering.compose import ClustererPipeline
@@ -102,7 +102,6 @@ class ClustererPipeline(_HeterogenousMetaEstimator, BaseClusterer):
     # no default tag values - these are set dynamically below
 
     def __init__(self, clusterer, transformers):
-
         self.clusterer = clusterer
         self.clusterer_ = clusterer.clone()
         self.transformers = transformers
@@ -410,7 +409,6 @@ class SklearnClustererPipeline(ClustererPipeline):
     # no default tag values - these are set dynamically below
 
     def __init__(self, clusterer, transformers):
-
         from sklearn.base import clone
 
         self.clusterer = clusterer

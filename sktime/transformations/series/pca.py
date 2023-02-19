@@ -120,6 +120,7 @@ class PCATransformer(BaseTransformer):
         self.whiten = whiten
         self.svd_solver = svd_solver
         self.tol = tol
+
         self.n_oversamples = n_oversamples
         self.power_iteration_normalizer = power_iteration_normalizer
         self.iterated_power = iterated_power

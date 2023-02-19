@@ -74,7 +74,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from sktime.transformations.panel.pca import PCATransformer
+    >>> from sktime.transformations.series.pca import PCATransformer
     >>> from sktime.classification.interval_based import TimeSeriesForestClassifier
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.classification.compose import ClassifierPipeline
@@ -104,7 +104,6 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         self.classifier = classifier
         self.classifier_ = classifier.clone()
         self.transformers = transformers
@@ -414,7 +413,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         from sklearn.base import clone
 
         self.classifier = classifier
