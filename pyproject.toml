@@ -74,6 +74,7 @@ all_extras = [
     "tsfresh>=0.17.0; python_version < '3.10'",
     "tslearn>=0.5.2",
     "xarray",
+    "mlflow",
 ]
 
 dev = [
@@ -86,17 +87,10 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
     "wheel",
-]
-
-mlflow = [
-    "mlflow",
-]
-
-mlflow_tests = [
-    "boto3",
-    "botocore",
-    "mlflow",
-    "moto",
+    "boto3",  # mlflow related
+    "botocore",  # mlflow related
+    "mlflow",  # mlflow related
+    "moto",  # mlflow related
 ]
 
 binder = [
