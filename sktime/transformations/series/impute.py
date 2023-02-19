@@ -15,8 +15,6 @@ from sktime.forecasting.trend import PolynomialTrendForecaster
 from sktime.transformations.base import BaseTransformer
 
 
-
-
 class Imputer(BaseTransformer):
     """Missing value imputation.
 
@@ -110,10 +108,10 @@ class Imputer(BaseTransformer):
         forecaster=None,
         missing_values=None,
     ):
-
         self.method = method
         self.missing_values = missing_values
         self.value = value
+
         self.forecaster = forecaster
         self.random_state = random_state
         super(Imputer, self).__init__()

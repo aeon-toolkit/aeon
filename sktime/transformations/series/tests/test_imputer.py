@@ -7,13 +7,13 @@ __author__ = ["aiwalter"]
 __all__ = []
 
 import numpy as np
-import pytest
 import pandas as pd
+import pytest
 
+from sktime.forecasting.model_selection import temporal_train_test_split
 from sktime.forecasting.naive import NaiveForecaster
 from sktime.transformations.series.impute import Imputer
 from sktime.utils._testing.forecasting import make_forecasting_problem
-from sktime.forecasting.model_selection import temporal_train_test_split
 
 y, X = make_forecasting_problem(make_X=True)
 
