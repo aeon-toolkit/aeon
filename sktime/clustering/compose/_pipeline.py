@@ -74,19 +74,19 @@ class ClustererPipeline(_HeterogenousMetaEstimator, BaseClusterer):
 
     Examples
     --------
-    >>> from sktime.transformations.series.pca import PCATransformer
+    >>> from sktime.transformations.panel.interpolate import TSInterpolator
     >>> from sktime.clustering.k_means import TimeSeriesKMeans
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.clustering.compose import ClustererPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> pipeline = ClustererPipeline(TimeSeriesKMeans(), [PCATransformer()])
+    >>> pipeline = ClustererPipeline(TimeSeriesKMeans(), [TSInterpolator(length=10)])
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
 
     Alternative construction via dunder method:
-    >>> pipeline = PCATransformer() * TimeSeriesKMeans()
+    >>> pipeline = TSInterpolator(length=10) * TimeSeriesKMeans()
     """
 
     _tags = {

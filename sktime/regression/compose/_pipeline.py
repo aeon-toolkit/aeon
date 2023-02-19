@@ -70,21 +70,21 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from sktime.transformations.series.pca import PCATransformer
+    >>> from sktime.transformations.panel.interpolate import TSInterpolator
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.regression.compose import RegressorPipeline
     >>> from sktime.regression.distance_based import KNeighborsTimeSeriesRegressor
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [PCATransformer()]
+    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     RegressorPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
 
     Alternative construction via dunder method:
-    >>> pipeline = PCATransformer() * KNeighborsTimeSeriesRegressor(n_neighbors=2)
+    >>> pipeline = TSInterpolator(length=10) * KNeighborsTimeSeriesRegressor(n_neighbors=2)  # noqa: E501
     """
 
     _tags = {

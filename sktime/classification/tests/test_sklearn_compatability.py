@@ -35,7 +35,7 @@ from sklearn.model_selection import (
 from sklearn.pipeline import Pipeline
 
 from sktime.classification.interval_based import CanonicalIntervalForest
-from sktime.transformations.series.pca import PCATransformer
+from sktime.transformations.panel.interpolate import TSInterpolator
 from sktime.utils._testing.panel import _make_panel_X, make_classification_problem
 
 DATA_ARGS = [
@@ -66,7 +66,7 @@ PARAMETER_TUNING_METHODS = [
 COMPOSITE_ESTIMATORS = [
     Pipeline(
         [
-            ("transform", PCATransformer()),
+            ("transform", TSInterpolator(length=10)),
             ("clf", CanonicalIntervalForest.create_test_instance()),
         ]
     ),
