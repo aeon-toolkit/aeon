@@ -97,7 +97,6 @@ EXCLUDED_TESTS = {
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
-    "SeriesToPrimitivesRowTransformer": ["test_methods_do_not_change_state"],
     "SeriesToSeriesRowTransformer": ["test_methods_do_not_change_state"],
     # ColumnTransformer still needs to be refactored, see #2537
     "ColumnTransformer": ["test_methods_do_not_change_state"],
