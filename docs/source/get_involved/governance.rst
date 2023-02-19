@@ -66,13 +66,10 @@ responsibilities, and appointment process in more detail below.
      - Nomination by core developers, vote by core developers, 2/3 majority
    * - :ref:`coc-committee-members`
      - CoC maintenance, investigation and enforcement
-     - Nomination by core developers, vote by core developers, 2/3 majority and simple CoC majority
+     - Nomination by core developers, vote by core developers, 2/3 majority
    * - :ref:`cc-members`
      - Conflict resolution, technical leadership, project management
-     - Nomination by core developers, vote by core developers, 2/3 majority and simple CC majority
-   * - :ref:`cc-observers`
-     - Full view of CC communication, direct input on CC decisions
-     - Nomination by core developers, vote by CC members, simple CC majority
+     - Nomination by core developers, vote by core developers, 2/3 majority
 
 .. _contributors:
 
@@ -179,7 +176,7 @@ give up their rights and responsibilities as algorithm maintainers.
 
 Unresponsiveness is defined as:
 * not engaging with decision making procedures within the reasonably time frames defined there
-* not reacting to issues or bug reports related to the algorithm, within ten working days
+* not reacting to issues or bug reports related to the algorithm, within 14 days
 
 .. _core-developers:
 
@@ -232,8 +229,7 @@ place on the project’s private communication channels. The vote will be
 anonymous.
 
 While it is expected that most votes will be unanimous, a 2/3 majority of
-the cast votes is enough. The vote needs to be open for five days excluding
-weekends.
+the cast votes is enough. The vote needs to be open for 7 days.
 
 End of tenure
 ^^^^^^^^^^^^^
@@ -287,9 +283,8 @@ Appointment
 ^^^^^^^^^^^
 
 Membership of the CoC is by nomination by a core developer and a vote by
-all core developers. A nomination will result in discussion which will stay
-open for 5 days excluding weekends and then a vote by the core
-developers which will stay open for 5 days excluding weekends. CoC committee
+all core developers. A vote by the core
+developers will stay open for 7 days. CoC committee
 membership votes are subject to:
 
 * a 2/3 majority of all cast votes, and
@@ -300,6 +295,14 @@ anonymous.
 
 To avoid deadlocks if there is an even number of CoC committee members, one
 of them will have a tie breaking privilege.
+
+End of tenure
+^^^^^^^^^^^^^
+
+CoC members can resign voluntarily at any point in time, by informing the CoC or core developers in writing.
+
+CoC membership ends automatically after a person has been in this role for 2 years. If the person would like to continue the membership of CoC, a new appointment vote has to happen following the procedure as for appointment of a new CoC member.
+The vote can be requested by the affected CoC member or by any core developer.
 
 .. _cc-members:
 
@@ -336,8 +339,7 @@ Eligibility
 
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer, and a core developer appointment vote
-concurrent with the 5 day discussion period (see below).
+by a nomination for core developer.
 
 .. _appointment-3:
 
@@ -345,9 +347,8 @@ Appointment
 ^^^^^^^^^^^
 
 Appointment to the CC is by nomination by a core developer and a vote by
-all core developers. A nomination will result in discussion which stays open
-for 5 days excluding weekends and then a vote by core developers which will
-stay open for 5 days excluding weekends. Approval of appointment requires:
+all core developers. A vote by core developers will
+stay open 7 days. Approval of appointment requires:
 
 * a 2/3 majority of all cast votes, and
 * a simple majority approval of all the current CC members.
@@ -367,13 +368,16 @@ and need not follow their anonymous vote if they have voted.
 End of tenure
 ^^^^^^^^^^^^^
 
-CC members can resign voluntarily at any point in time, by informing the CC in writing.
+CC members can resign voluntarily at any point in time, by informing the CC or core developers in writing.
 
 CC members who do not actively engage with their CC member role responsibilities are
 expected to resign voluntarily.
 
 Tenure also ends automatically when a CC member's tenure as core developer ends,
 e.g., through resignation or inactivity.
+
+CC membership ends automatically after a person has been in this role for 2 years. If the person would like to continue the membership of CC, a new appointment vote has to happen following the procedure as for appointment of a new CC member.
+The vote can be requested by the affected CC member or by any core developer.
 
 Communications
 ^^^^^^^^^^^^^^
@@ -384,47 +388,6 @@ For more details about our meetings, please go to our `community-council reposit
 
 To contact the CC directly, please send an email to info@sktime.org.
 
-.. _cc-observers:
-
-CC observers
-~~~~~~~~~~~~
-
-CC (community council) observers are core developers with additional rights and
-responsibilities. Current CC observers are listed in the `community-council
-observers <https://www.sktime.org/en/stable/about/team.html>`__ .
-
-.. _rights-and-responsibilities-4:
-
-Rights and responsibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-CC observers have a full view of reserved CC proceedings, the private CC
-channels and the sktime email account. CC observers can participate in
-discussions on private CC channels to ensure that more members of the community
-have direct input on CC decisions.
-
-CC observers' responsibilities include to critically scrutinize CC decision
-making and give their input on what is of community's interest or benefit.
-
-CC observers do not possess the voting or decision making rights of full
-CC members.
-
-Eligibility
-^^^^^^^^^^^
-Only core developers are eligible for appointment as CC observers.
-Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer, and a core developer appointment vote
-(see below).
-
-.. _appointment-4:
-
-Appointment
-^^^^^^^^^^^
-Membership of the CC observers is by nomination by a core developer and a vote
-by CC members. A nomination will result in a vote by the CC members which will
-stay open for 5 days excluding weekends. CC observer membership votes are
-subject to a simple majority approval of all the current CC committee members.
-
-In case of ties, the CC member with shortest tenure breaks the tie.
 
 .. _decision-making:
 
@@ -493,14 +456,14 @@ core developers.
 -  Proposers are expected to give reasonable time for consideration, that is,
    time and opportunity for core developers to review and
    give their opinion on the PR.
-   Ten working days excluding week-ends constitute "reasonable time" in the above sense.
+   14 days constitute "reasonable time" in the above sense.
    The period resets at every new change made to the PR.
    It starts only when all GitHub checks pass.
 -  During this period, the PR can be merged if it has an approval and no rejection, but should be
    reverted if it receives a rejection in addition.
 -  If the "reasonable time" period elapses and no approval or rejection has been expressed on a PR,
    the PR is scheduled at the top of agenda for the next developer meetup.
-   In that meeting, a core developer is assigned to review the PR and either approve or reject within five days of the meeting excluding weekends.
+   In that meeting, a core developer is assigned to review the PR and either approve or reject within 7 days of the meeting.
 
 Failure of lazy consensus, in the above sense, can arise only under the following condition:
 at least one approval and at least one rejection in the PR.
@@ -519,7 +482,7 @@ Voting takes place:
 
 -  The start of a voting period after stage 1 is at the moment the lazy consensus fails.
 -  Start and end time of the vote must be announced in the core developer channel, and on the PR (if on a PR).
--  The vote will conclude 5 days excluding weekends from the call for the vote.
+-  The vote will conclude 7 days from the call for the vote.
 -  Votes are voluntary. Abstentions are allowed. Core developers can
    abstain by simply not casting a vote.
 -  All votes are a binary vote: for or against accepting the proposal.
@@ -546,12 +509,12 @@ If the proposed change cannot gather a 2/3 majority of the votes cast,
 the CC tries to resolve the deadlock.
 
 -  The CC will use consensus seeking.
--  If no consensus can be found within twenty working days excluding weekends
-   since the beginning of the stage-1 "reasonable time for consideration" period,
+-  If no consensus can be found within 21 days since the beginning of the
+-  stage-1 "reasonable time for consideration" period,
    the decision is made through a simple majority vote (with tie breaking) among the CC
    members.
 -  Any proposal reaching stage 3 must be supported by an :ref:`steps`,
-   which has been made public at least 5 days, excluding weekends, before the vote.
+   which has been made public at least 7 days, before the vote.
 
 .. _steps:
 
@@ -563,7 +526,7 @@ sktime enhancement proposals (STEPs) are required for:
 * certain types of proposed changes, by default, see `decision making process <#Decision-making>`__
 * for all stage 3 decisions
 
-If a STEP is required by a vote, it must have been made public at least 5 working days (excluding week-ends) before that vote.
+If a STEP is required by a vote, it must have been made public at least 7 days before that vote.
 
 A STEP is a consolidated document, with a concise
 problem statement, a clear description of the proposed solution and a
@@ -681,7 +644,7 @@ In addition, we plan to add more roles for managing/coordinating
 specific project:
 
 * Community manager (mentorship, outreach, social media, etc),
-* Sub-councils for project-specific technical leadership (e.g.  for documentation, learning tasks, continuous integration)
+* Sub-councils for project-specific technical leadership (e.g.  for documentation, learning tasks, continuous integration)
 
 .. _references:
 
