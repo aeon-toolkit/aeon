@@ -66,13 +66,10 @@ responsibilities, and appointment process in more detail below.
      - Nomination by core developers, vote by core developers, 2/3 majority
    * - :ref:`coc-committee-members`
      - CoC maintenance, investigation and enforcement
-     - Nomination by core developers, vote by core developers, 2/3 majority and simple CoC majority
+     - Nomination by core developers, vote by core developers, 2/3 majority
    * - :ref:`cc-members`
      - Conflict resolution, technical leadership, project management
-     - Nomination by core developers, vote by core developers, 2/3 majority and simple CC majority
-   * - :ref:`cc-observers`
-     - Full view of CC communication, direct input on CC decisions
-     - Nomination by core developers, vote by CC members, simple CC majority
+     - Nomination by core developers, vote by core developers, 2/3 majority
 
 .. _contributors:
 
@@ -278,7 +275,9 @@ In addition, they are responsible for maintaining and improving the CoC.
 Eligibility
 ^^^^^^^^^^^
 
-Anyone is eligible to be a CoC committee member.
+Anyone is eligible to be a CoC Committee member with the exception that a person that
+is CC member can not be CoC member.
+
 
 .. _appointment-2:
 
@@ -342,7 +341,8 @@ Eligibility
 
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer.
+by a nomination for core developer. Members of the CoC Committee are
+not eligible to become CC members.
 
 .. _appointment-3:
 
@@ -391,47 +391,6 @@ For more details about our meetings, please go to our `community-council reposit
 
 To contact the CC directly, please send an email to info@sktime.org.
 
-.. _cc-observers:
-
-CC observers
-~~~~~~~~~~~~
-
-CC (community council) observers are core developers with additional rights and
-responsibilities. Current CC observers are listed in the `community-council
-observers <https://www.sktime.org/en/stable/about/team.html>`__ .
-
-.. _rights-and-responsibilities-4:
-
-Rights and responsibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-CC observers have a full view of reserved CC proceedings, the private CC
-channels and the sktime email account. CC observers can participate in
-discussions on private CC channels to ensure that more members of the community
-have direct input on CC decisions.
-
-CC observers' responsibilities include to critically scrutinize CC decision
-making and give their input on what is of community's interest or benefit.
-
-CC observers do not possess the voting or decision making rights of full
-CC members.
-
-Eligibility
-^^^^^^^^^^^
-Only core developers are eligible for appointment as CC observers.
-Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer, and a core developer appointment vote
-(see below).
-
-.. _appointment-4:
-
-Appointment
-^^^^^^^^^^^
-Membership of the CC observers is by nomination by a core developer and a vote
-by CC members. A nomination will result in a vote by the CC members which will
-stay open for 7 days. CC observer membership votes are
-subject to a simple majority approval of all the current CC committee members.
-
-In case of ties, the CC member with shortest tenure breaks the tie.
 
 .. _decision-making:
 

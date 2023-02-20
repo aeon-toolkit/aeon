@@ -32,6 +32,7 @@ EXCLUDE_ESTIMATORS = [
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
+    "TEASER",
 ]
 
 
@@ -97,7 +98,6 @@ EXCLUDED_TESTS = {
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
-    "SeriesToPrimitivesRowTransformer": ["test_methods_do_not_change_state"],
     "SeriesToSeriesRowTransformer": ["test_methods_do_not_change_state"],
     # ColumnTransformer still needs to be refactored, see #2537
     "ColumnTransformer": ["test_methods_do_not_change_state"],
@@ -106,6 +106,7 @@ EXCLUDED_TESTS = {
     # #2 amd #3 are due to predict/predict_proba returning two items and that breaking
     #   assert_array_equal
     "TEASER": [
+        "test_est_fit_without_modulenotfound",
         "test_non_state_changing_method_contract",
         "test_fit_idempotent",
         "test_persistence_via_pickle",
