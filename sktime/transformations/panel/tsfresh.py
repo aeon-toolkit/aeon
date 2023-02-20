@@ -603,8 +603,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
                 then the return is a `Panel` object of type `pd-multiindex`
                 Example: i-th instance of the output is the i-th window running over `X`
         """
-        X, y, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector
 
