@@ -1,7 +1,10 @@
-# The file lists sktime's algorithm maintainers as specified in GOVERNANCE.md.
+# The file lists scikit-time's algorithm maintainers as specified in GOVERNANCE.md.
 # Each line is a file pattern followed by one or more owners.
 
-* @fkiraly @aiwalter @guzalbulatova
+* @aiwalter @guzalbulatova
+
+
+sktime/regression/dummy/ @badrmarani
 
 sktime/classification/dictionary_based/_boss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
 sktime/classification/dictionary_based/_cboss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
@@ -60,7 +63,7 @@ sktime/transformations/tests/test_multiplexer.py @miraep8
 sktime/transformations/panel/channel_selection.py @haskarb @a-pasos-ruiz @TonyBagnall
 sktime/transformations/series/time_since.py @KishManani
 
-sktime/forecasting/base/ @fkiraly @mloning @aiwalter
+sktime/forecasting/base/ @mloning @aiwalter
 sktime/forecasting/base/adapters/_statsforecast.py @FedericoGarza
 sktime/forecasting/naive.py @Flix6x
 sktime/forecasting/ets.py @HYang1996
@@ -69,6 +72,7 @@ sktime/forecasting/fbprophet.py @aiwalter
 sktime/forecasting/bats.py @aiwalter
 sktime/forecasting/tbats.py @aiwalter
 sktime/forecasting/arima.py @HYang1996
+sktime/forecasting/adapters/_hcrystalball.py @MichalChromcak
 sktime/forecasting/statsforecast.py @FedericoGarza
 sktime/forecasting/structural.py @juanitorduz
 sktime/forecasting/model_selection/_split @koralturkk
@@ -90,3 +94,5 @@ sktime/annotation/datagen.py @lmmentel
 sktime/transformations/series/clasp.py @patrickzib @ermshaua
 
 .github/workflows/* @lmmentel @freddyaboulton
+
+sktime/utils/mlflow_sktime.py @benjaminbluhm

@@ -4,7 +4,7 @@
 Roles
 =====
 
-The roles are described in sktime's :ref:`governance` document.
+The roles are described in scikit-time's :ref:`governance` document.
 A list of all contributors can be found `here <contributors.md>`_.
 
 Community Council
@@ -14,25 +14,8 @@ Community Council
 
    * - Name
      - GitHub ID
-   * - Franz Király
-     - :user:`fkiraly`
-   * - Guzal Bulatova
-     - :user:`GuzalBulatova`
-   * - Martin Walter
-     - :user:`aiwalter`
-
-Community Council Observers
----------------------------
-
-.. list-table::
-   :header-rows: 1
-
-   * - Name
-     - GitHub ID
-   * - Leonidas Tsaprounis
-     - :user:`ltsaprounis`
-   * - Lovkush Agarwal
-     - :user:`lovkush-a`
+   * - tbd
+     - :user:`tbd`
 
 Code of Conduct Committee
 -------------------------
@@ -42,8 +25,14 @@ Code of Conduct Committee
 
    * - Name
      - GitHub ID
-   * - Franz Király
-     - :user:`fkiraly`
+   * - Guzal Bulatova
+     - :user:`GuzalBulatova`
+   * - Katie Buchhorn
+     - :user:`KatieBuc`
+   * - Matthew Middlehurst
+     - :user:`mattewmiddlehurst`
+   * - Patrick Schäfer
+     - :user:`patrickzib`
 
 Core Developers
 ---------------
@@ -57,41 +46,21 @@ Core Developers
      - :user:`TonyBagnall`
    * - Chris Holder
      - :user:`chrisholder`
-   * - Daniel Bartling
-     - :user:`danbartl`
-   * - Franz Király
-     - :user:`fkiraly`
-   * - Freddy A Boulton
-     - :user:`freddyaboulton`
    * - Guzal Bulatova
      - :user:`GuzalBulatova`
    * - Leonidas Tsaprounis
      - :user:`ltsaprounis`
-   * - Lovkush Agarwal
-     - :user:`lovkush-a`
    * - Łukasz Mentel
      - :user:`lmmentel`
-   * - Markus Löning
-     - :user:`mloning`
-   * - Matthew Middlehurst
-     - :user:`mattewmiddlehurst`
    * - Martin Walter
      - :user:`aiwalter`
-   * - Mirae Parker
-     - :user:`miraep8`
+   * - Matthew Middlehurst
+     - :user:`mattewmiddlehurst`
    * - Patrick Schäfer
      - :user:`patrickzib`
-   * - Ryan Kuhns
-     - :user:`rnkuhns`
-   * - Sagar Mishra
-     - :user:`achieveordie`
-   * - Stanislav Khrapov
-     - :user:`khrapovs`
-   * - Svea Marie Meyer
-     - :user:`SveaMeyer13`
 
-Former Core Developers (inactive)
----------------------------------
+Pre-fork `sktime` Core Developers
+----------------------------------
 
 .. list-table::
    :header-rows: 1
@@ -116,5 +85,25 @@ Former Core Developers (inactive)
      - :user:`prockenschaub`
    * - Sajaysurya Ganesh
      - :user:`sajaysurya`
+   * - Franz Király
+     - :user:`fkiraly`
+   * - Markus Löning
+     - :user:`mloning`
+   * - Mirae Parker
+     - :user:`miraep8`
+   * - Ryan Kuhns
+     - :user:`rnkuhns`
+   * - Sagar Mishra
+     - :user:`achieveordie`
+   * - Stanislav Khrapov
+     - :user:`khrapovs`
+   * - Svea Marie Meyer
+     - :user:`SveaMeyer13`
+   * - Lovkush Agarwal
+     - :user:`lovkush-a`
+   * - Freddy A Boulton
+     - :user:`freddyaboulton`
+   * - Daniel Bartling
+     - :user:`danbartl`
    * - Anonymous upon contributor's request
      - :user:`big-o`
