@@ -195,7 +195,7 @@ class TEASER(BaseEarlyClassifier):
             )
 
             # calculate harmonic mean from finished state info
-            hm, acc, earl = self._compute_harmonic_mean(state_info, y)
+            hm, acc, earl = self.compute_harmonic_mean(state_info, y)
 
             if hm > best_hm:
                 best_hm = hm
