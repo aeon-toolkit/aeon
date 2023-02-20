@@ -7,9 +7,11 @@ __author__ = ["aiwalter"]
 __all__ = []
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from sktime.forecasting.exp_smoothing import ExponentialSmoothing
+from sktime.forecasting.model_selection import temporal_train_test_split
+from sktime.forecasting.naive import NaiveForecaster
 from sktime.transformations.series.impute import Imputer
 from sktime.utils._testing.forecasting import make_forecasting_problem
 
@@ -25,7 +27,8 @@ y.iloc[0] = np.nan
 y.iloc[-1] = np.nan
 
 
-@pytest.mark.parametrize("Z", [y, X])
+@pytest.mark.parametrize("forecaster", [None, NaiveForecaster()])
+@pytest.mark.parametrize("X", [y, X])
 @pytest.mark.parametrize(
     "method",
     [
@@ -41,10 +44,38 @@ y.iloc[-1] = np.nan
         "forecaster",
     ],
 )
-def test_imputer(method, Z):
+def test_imputer(method, X, forecaster):
     """Test univariate and multivariate Imputer with all methods."""
-    forecaster = ExponentialSmoothing() if method == "forecaster" else None
-    value = 3 if method == "constant" else None
-    t = Imputer(method=method, forecaster=forecaster, value=value)
-    y_hat = t.fit_transform(Z)
+    forecaster = NaiveForecaster() if method == "forecaster" else forecaster
+
+    t = Imputer(method=method, forecaster=forecaster)
+    y_hat = t.fit_transform(X)
     assert not y_hat.isnull().to_numpy().any()
+
+    # test train and transform data is different
+    X_train, X_test = temporal_train_test_split(X, test_size=5)
+
+    t = Imputer(method=method, forecaster=forecaster)
+    t = t.fit(X_train)
+    y_hat = t.transform(X_test)
+    assert not y_hat.isnull().to_numpy().any()
+
+    # test some columns only contain NaN, either in fit or transform
+    t = Imputer(method=method, forecaster=forecaster)
+    # one column only contains NaN
+    if isinstance(X, pd.Series):
+        X = X.to_frame()
+        X.iloc[:, 0] = np.nan
+        X = pd.Series(X.iloc[:, 0])
+
+    y_hat = t.fit_transform(X)
+    assert not y_hat.isnull().to_numpy().any()
+
+    if isinstance(X, pd.DataFrame):
+        X_train.iloc[:, 0] = np.nan
+        X_test.iloc[:, 1] = np.nan
+
+        t = Imputer(method=method, forecaster=NaiveForecaster())
+        t = t.fit(X_train)
+        y_hat = t.transform(X_test)
+        assert not y_hat.isnull().to_numpy().any()

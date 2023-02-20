@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """BOSS classifiers.
 
-Dictionary based BOSS classifiers based on SFA transform. Contains a single
-BOSS and a BOSS ensemble.
+Dictionary based BOSS classifiers based on SFA transform.
+Contains a single BOSS and a BOSS ensemble.
 """
 
-__author__ = ["MatthewMiddlehurst", "patrickzib"]
+__author__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
-import warnings
 from itertools import compress
 
 import numpy as np
@@ -61,15 +60,6 @@ class BOSSEnsemble(BaseClassifier):
         Maximum window length as a proportion of the series length.
     min_window : int, default=10
         Minimum window size.
-    typed_dict : bool, default="deprecated"
-        Use a numba TypedDict to store word counts. May increase memory usage, but will
-        be faster for larger datasets. As the Dict cannot be pickled currently, there
-        will be some overhead converting it to a python dict with multiple threads and
-        pickling.
-
-        .. deprecated:: 0.13.3
-            ``typed_dict`` was deprecated in version 0.13.3 and will be removed in 0.15.
-
     save_train_predictions : bool, default=False
         Save the ensemble member train predictions in fit for use in _get_train_probs
         leave-one-out cross-validation.
@@ -84,26 +74,22 @@ class BOSSEnsemble(BaseClassifier):
     feature_selection: {"chi2", "none", "random"}, default: none
         Sets the feature selections strategy to be used. Chi2 reduces the number
         of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selectiona and yields large
+        the number significantly. None applies not feature selection and yields large
         bag of words, e.g. much memory may be needed.
     random_state : int or None, default=None
         Seed for random, integer.
 
     Attributes
     ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : list
-        The classes labels.
     n_instances_ : int
-        Number of instances. Extracted from the data.
+        Number of train instances in data passed to fit.
     n_estimators_ : int
         The final number of classifiers used. Will be <= `max_ensemble_size` if
         `max_ensemble_size` has been specified.
     series_length_ : int
         Length of all series (assumed equal).
     estimators_ : list
-       List of DecisionTree classifiers.
+       List of DecisionTree classifiers size n_estimators_.
 
     See Also
     --------
@@ -147,7 +133,6 @@ class BOSSEnsemble(BaseClassifier):
         max_ensemble_size=500,
         max_win_len_prop=1,
         min_window=10,
-        typed_dict=True,
         save_train_predictions=False,
         feature_selection="none",
         use_boss_distance=True,
@@ -159,8 +144,6 @@ class BOSSEnsemble(BaseClassifier):
         self.max_ensemble_size = max_ensemble_size
         self.max_win_len_prop = max_win_len_prop
         self.min_window = min_window
-
-        self.typed_dict = typed_dict
         self.save_train_predictions = save_train_predictions
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -210,12 +193,6 @@ class BOSSEnsemble(BaseClassifier):
         max_window_searches = self.series_length_ / 4
         max_window = int(self.series_length_ * self.max_win_len_prop)
         win_inc = max(1, int((max_window - self.min_window) / max_window_searches))
-
-        if self.typed_dict != "deprecated":
-            warnings.warn(
-                "``typed_dict`` was deprecated in version 0.13.3 and "
-                "will be removed in 0.15."
-            )
 
         if self.min_window > max_window + 1:
             raise ValueError(
@@ -463,6 +440,7 @@ class BOSSEnsemble(BaseClassifier):
                 "max_ensemble_size": 5,
                 "feature_selection": "none",
                 "use_boss_distance": False,
+                "alphabet_size": 4,
             }
         elif parameter_set == "train_estimate":
             return {
@@ -512,14 +490,6 @@ class IndividualBOSS(BaseClassifier):
         the dictionary of words is returned. If True, the array is saved, which
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
-    typed_dict : bool, default="deprecated"
-        Use a numba TypedDict to store word counts. May increase memory usage, but will
-        be faster for larger datasets. As the Dict cannot be pickled currently, there
-        will be some overhead converting it to a python dict with multiple threads and
-        pickling.
-
-        .. deprecated:: 0.13.3
-            ``typed_dict`` was deprecated in version 0.13.3 and will be removed in 0.15.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -651,7 +621,11 @@ class IndividualBOSS(BaseClassifier):
             Predicted class labels.
         """
         test_bags = self._transformer.transform(X)
-        classes = np.zeros(test_bags.shape[0], dtype=type(self._class_vals[0]))
+        data_type = type(self._class_vals[0])
+        if data_type == np.str_ or data_type == str:
+            data_type = "object"
+
+        classes = np.zeros(test_bags.shape[0], dtype=data_type)
 
         if self._transformed_data.shape[1] > 0:
             distance_matrix = pairwise_distances(

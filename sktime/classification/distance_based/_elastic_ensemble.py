@@ -266,7 +266,6 @@ class ElasticEnsemble(BaseClassifier):
             # If 100 parameter options are being considered per measure,
             # use a GridSearchCV
             if self.proportion_of_param_options == 1:
-
                 grid = GridSearchCV(
                     estimator=KNeighborsTimeSeriesClassifier(
                         distance=this_measure, n_neighbors=1
@@ -488,12 +487,6 @@ class ElasticEnsemble(BaseClassifier):
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-                "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
-                    functionality
-                "train_estimate" - used in some classifiers that set the
-                    "capability:train_estimate" tag to True to allow for more efficient
-                    testing when relevant parameters are available
 
         Returns
         -------

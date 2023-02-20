@@ -15,6 +15,7 @@ from sktime.transformations.base import BaseTransformer
 from sktime.utils.multiindex import flatten_multiindex
 from sktime.utils.sklearn import (
     is_sklearn_classifier,
+    is_sklearn_clusterer,
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
@@ -166,8 +167,13 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     # for default get_params/set_params from _HeterogenousMetaEstimator
     # _steps_attr points to the attribute of self
     # which contains the heterogeneous set of estimators
-    # this must be an iterable of (name: str, estimator) pairs for the default
+    # this must be an iterable of (name: str, estimator, ...) tuples for the default
     _steps_attr = "_steps"
+    # if the estimator is fittable, _HeterogenousMetaEstimator also
+    # provides an override for get_fitted_params for params from the fitted estimators
+    # the fitted estimators should be in a different attribute, _steps_fitted_attr
+    # this must be an iterable of (name: str, estimator, ...) tuples for the default
+    _steps_fitted_attr = "steps_"
 
     def __init__(self, steps):
 
@@ -246,6 +252,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
             not nested, contains only non-TransformerPipeline `sktime` transformers
         """
         from sktime.classification.compose import SklearnClassifierPipeline
+        from sktime.clustering.compose import SklearnClustererPipeline
         from sktime.regression.compose import SklearnRegressorPipeline
 
         other = _coerce_to_sktime(other)
@@ -253,6 +260,10 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         # if sklearn classifier, use sklearn classifier pipeline
         if is_sklearn_classifier(other):
             return SklearnClassifierPipeline(classifier=other, transformers=self.steps)
+
+        # if sklearn clusterer, use sklearn clusterer pipeline
+        if is_sklearn_clusterer(other):
+            return SklearnClustererPipeline(clusterer=other, transformers=self.steps)
 
         # if sklearn regressor, use sklearn regressor pipeline
         if is_sklearn_regressor(other):
@@ -482,6 +493,10 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     # which contains the heterogeneous set of estimators
     # this must be an iterable of (name: str, estimator) pairs for the default
     _steps_attr = "_transformer_list"
+    # if the estimator is fittable, _HeterogenousMetaEstimator also
+    # provides an override for get_fitted_params for params from the fitted estimators
+    # the fitted estimators should be in a different attribute, _steps_fitted_attr
+    _steps_fitted_attr = "transformer_list_"
 
     def __init__(
         self,
@@ -662,7 +677,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
 
 class FitInTransform(BaseTransformer):
-    """Transformer composition to always fit a given transformer on the transform data only.
+    """Transformer wrapper to delay fit to the transform phase.
 
     In panel settings, e.g., time series classification, it can be preferable
     (or, necessary) to fit and transform on the test set, e.g., interpolate within the
@@ -858,7 +873,6 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     >>> cv = ExpandingWindowSplitter(
     ...     initial_window=24,
     ...     step_length=12,
-    ...     start_with_window=True,
     ...     fh=[1,2,3])
     >>> pipe = TransformedTargetForecaster(steps = [
     ...     ("multiplex", multiplexer),
@@ -893,6 +907,10 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     # which contains the heterogeneous set of estimators
     # this must be an iterable of (name: str, estimator) pairs for the default
     _steps_attr = "_transformers"
+    # if the estimator is fittable, _HeterogenousMetaEstimator also
+    # provides an override for get_fitted_params for params from the fitted estimators
+    # the fitted estimators should be in a different attribute, _steps_fitted_attr
+    _steps_fitted_attr = "transformers_"
 
     def __init__(
         self,
@@ -1284,7 +1302,7 @@ class OptionalPassthrough(_DelegatedTransformer):
     --------
     >>> from sktime.datasets import load_airline
     >>> from sktime.forecasting.naive import NaiveForecaster
-    >>> from sktime.transformations.series.compose import OptionalPassthrough
+    >>> from sktime.transformations.compose import OptionalPassthrough
     >>> from sktime.transformations.series.detrend import Deseasonalizer
     >>> from sktime.transformations.series.adapt import TabularToSeriesAdaptor
     >>> from sktime.forecasting.compose import TransformedTargetForecaster
@@ -1296,24 +1314,24 @@ class OptionalPassthrough(_DelegatedTransformer):
     >>> pipe = TransformedTargetForecaster(steps=[
     ...     ("deseasonalizer", OptionalPassthrough(Deseasonalizer())),
     ...     ("scaler", OptionalPassthrough(TabularToSeriesAdaptor(StandardScaler()))),
-    ...     ("forecaster", NaiveForecaster())])
+    ...     ("forecaster", NaiveForecaster())])  # doctest: +SKIP
     >>> # putting it all together in a grid search
     >>> cv = SlidingWindowSplitter(
     ...     initial_window=60,
     ...     window_length=24,
     ...     start_with_window=True,
-    ...     step_length=48)
+    ...     step_length=48)  # doctest: +SKIP
     >>> param_grid = {
     ...     "deseasonalizer__passthrough" : [True, False],
     ...     "scaler__transformer__transformer__with_mean": [True, False],
     ...     "scaler__passthrough" : [True, False],
-    ...     "forecaster__strategy": ["drift", "mean", "last"]}
+    ...     "forecaster__strategy": ["drift", "mean", "last"]}  # doctest: +SKIP
     >>> gscv = ForecastingGridSearchCV(
     ...     forecaster=pipe,
     ...     param_grid=param_grid,
     ...     cv=cv,
-    ...     n_jobs=-1)
-    >>> gscv_fitted = gscv.fit(load_airline())
+    ...     n_jobs=-1)  # doctest: +SKIP
+    >>> gscv_fitted = gscv.fit(load_airline())  # doctest: +SKIP
     """
 
     _tags = {
@@ -1342,7 +1360,6 @@ class OptionalPassthrough(_DelegatedTransformer):
             "scitype:transform-input",
             "scitype:transform-output",
             "scitype:instancewise",
-            "X_inner_mtype",
             "y_inner_mtype",
             "capability:inverse_transform",
             "handles-missing-data",
@@ -1417,7 +1434,7 @@ class ColumnwiseTransformer(BaseTransformer):
     --------
     >>> from sktime.datasets import load_longley
     >>> from sktime.transformations.series.detrend import Detrender
-    >>> from sktime.transformations.series.compose import ColumnwiseTransformer
+    >>> from sktime.transformations.compose import ColumnwiseTransformer
     >>> _, X = load_longley()
     >>> transformer = ColumnwiseTransformer(Detrender())
     >>> Xt = transformer.fit_transform(X)
