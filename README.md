@@ -1,7 +1,5 @@
 ## DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links and documentation to reflect this. We do not recommend using this repository in any production setting, but welcome any contributors willing to help us update the project.
 
-
-
 # Welcome to scikit-time
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -11,8 +9,6 @@
 | **Community** | [![!slack](https://img.shields.io/static/v1?logo=slack&label=slack&message=chat&color=lightgreen)](https://join.slack.com/t/scikit-time-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig)                                                                                                                                                                                                                  |
 
 ## 💬 Where to ask questions
-
-Questions and feedback are extremely welcome! Please understand that we won't be able to provide individual support via email. We also believe that help is much more valuable if it's shared publicly, so that more people can benefit from it.
 
 | Type                                                       | Platforms                        |
 |------------------------------------------------------------|----------------------------------|
