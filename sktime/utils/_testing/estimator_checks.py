@@ -13,7 +13,6 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 from sklearn.utils.validation import check_random_state
 
-from sktime.alignment.base import BaseAligner
 from sktime.base import BaseEstimator, BaseObject
 from sktime.classification.base import BaseClassifier
 from sktime.classification.early_classification import BaseEarlyClassifier
@@ -70,15 +69,6 @@ def _list_required_methods(estimator):
 
     if isinstance(estimator, BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM):
         required_methods += ["transform"]
-
-    if isinstance(estimator, BaseAligner):
-        required_methods += [
-            "get_alignment",
-            "get_alignment_loc",
-            "get_aligned",
-            "get_distance",
-            "get_distance_matrix",
-        ]
 
     return required_methods
 
