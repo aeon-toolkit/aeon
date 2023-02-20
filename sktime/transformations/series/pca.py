@@ -101,6 +101,7 @@ class PCATransformer(BaseTransformer):
         "univariate-only": False,
         "fit_is_empty": False,
         "handles-missing-data": False,
+        "python_version": ">3.7",
     }
 
     def __init__(
