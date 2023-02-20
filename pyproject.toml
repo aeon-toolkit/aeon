@@ -3,10 +3,10 @@ name = "scikit-time"
 version = "0.0.1"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "scikit-time developers", email = "scikit-time@gmail.com"},
+    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
 ]
 maintainers = [
-    {name = "scikit-time developers", email = "scikit-time@gmail.com"},
+    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
 ]
 readme = "README.md"
 keywords = [

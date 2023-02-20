@@ -55,7 +55,6 @@ class ElasticEnsemble(BaseClassifier):
       ``-1`` means using all processors.
     random_state : int, default=0
       The random seed.
-      If ``>0``, then prints out debug information.
 
     Attributes
     ----------
