@@ -10,7 +10,6 @@ from inspect import isclass
 
 from sktime.base import BaseObject
 from sktime.registry import BASE_CLASS_LIST, BASE_CLASS_SCITYPE_LIST, scitype
-from sktime.utils._testing.scenarios_aligners import scenarios_aligners
 from sktime.utils._testing.scenarios_classification import (
     scenarios_classification,
     scenarios_early_classification,
@@ -26,7 +25,6 @@ from sktime.utils._testing.scenarios_transformers_pairwise import (
 )
 
 scenarios = dict()
-scenarios["aligner"] = scenarios_aligners
 scenarios["classifier"] = scenarios_classification
 scenarios["early_classifier"] = scenarios_early_classification
 scenarios["clusterer"] = scenarios_clustering
@@ -137,7 +135,7 @@ def _check_tag_cond(obj, filter_tags=None):
 
     cond_sat = True
 
-    for (key, value) in filter_tags.items():
+    for key, value in filter_tags.items():
         if not isinstance(value, list):
             value = [value]
         cond_sat = cond_sat and obj.get_class_tag(key) in set(value)
