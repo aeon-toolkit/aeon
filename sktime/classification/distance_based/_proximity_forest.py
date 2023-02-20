@@ -1509,6 +1509,7 @@ class ProximityForest(BaseClassifier):
 
 # start of util functions
 
+
 # find the index of the best value in the array
 def arg_bests(array, comparator):
     indices = [0]

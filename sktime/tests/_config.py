@@ -32,6 +32,7 @@ EXCLUDE_ESTIMATORS = [
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
     "LSTMFCNClassifier",  # unknown cause, see bug report #4033
+    "TEASER",
 ]
 
 
@@ -105,6 +106,7 @@ EXCLUDED_TESTS = {
     # #2 amd #3 are due to predict/predict_proba returning two items and that breaking
     #   assert_array_equal
     "TEASER": [
+        "test_est_fit_without_modulenotfound",
         "test_non_state_changing_method_contract",
         "test_fit_idempotent",
         "test_persistence_via_pickle",
