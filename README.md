@@ -10,13 +10,13 @@
 
 ## 💬 Where to ask questions
 
-| Type                                                       | Platforms                        |
-|------------------------------------------------------------|----------------------------------|
-| 🐛 **Bug Reports**                                      | [GitHub Issue Tracker]           |
-| ✨ **Feature Requests & Ideas**                    | [GitHub Issue Tracker] & [Slack] |
-| 💻 **Usage Questions**                   | [Slack]                          |
-| 🗫 **General Discussion**                    | [Slack]                          |
-| 🏭 **Contribution & Development**                   | [Slack]                          |
+| Type                                | Platforms                        |
+|-------------------------------------|----------------------------------|
+| 🐛 **Bug Reports**                  | [GitHub Issue Tracker]           |
+| ✨ **Feature Requests & Ideas**      | [GitHub Issue Tracker] & [Slack] |
+| 💻 **Usage Questions**              | [Slack]                          |
+| 🗫 **General Discussion**           | [Slack]                          |
+| 🏭 **Contribution & Development**   | [Slack]                          |
 
 [github issue tracker]: https://github.com/scikit-time/scikit-time/issues
 [github discussions]: https://github.com/scikit-time/scikit-time/discussions
