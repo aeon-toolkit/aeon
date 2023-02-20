@@ -146,9 +146,6 @@ class ElasticEnsemble(BaseClassifier):
         # into derivatives, and then call the
         # standard DTW algorithm on it, rather than transforming each series
         # every time a distance calculation
-
-
-
         # is made. Please note that using DDTW elsewhere will not benefit
         # from this speed enhancement
         if self.distance_measures.__contains__(
