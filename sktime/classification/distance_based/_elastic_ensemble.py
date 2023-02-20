@@ -34,8 +34,8 @@ class ElasticEnsemble(BaseClassifier):
 
     The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
     distances (as defined in sktime.distances). By default, each 1-NN classifier
-    is tuned over 100 parameter values and the ensemble vote is weighted by an
-    estimate of accuracy formed on the train set. 
+    is tuned over 100 parameter values and the ensemble vote is weighted by
+    an estimate of accuracy formed on the train set.
 
     Parameters
     ----------
