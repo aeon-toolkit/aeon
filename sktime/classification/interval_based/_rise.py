@@ -495,6 +495,7 @@ def acf(x, max_lag):
 #
 #     return y
 
+
 # @jit(parallel=True, cache=True, nopython=True)
 def matrix_acf(x, num_cases, max_lag):
     """Autocorrelation function transform.
