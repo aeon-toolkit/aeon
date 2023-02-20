@@ -32,12 +32,10 @@ from sktime.transformations.panel.summarize import DerivativeSlopeTransformer
 class ElasticEnsemble(BaseClassifier):
     """The Elastic Ensemble (EE).
 
-    EE as described in [1].
-
-    Overview:
-
-    - Input n series length m
-    - EE is an ensemble of elastic nearest neighbor classifiers
+    The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
+    distances (as defined in sktime.distances). By default, each 1-NN classifier
+    is tuned over 100 parameter values and the ensemble vote is weighted by an
+    estimate of accuracy formed on the train set. 
 
     Parameters
     ----------
@@ -148,13 +146,16 @@ class ElasticEnsemble(BaseClassifier):
         # into derivatives, and then call the
         # standard DTW algorithm on it, rather than transforming each series
         # every time a distance calculation
+
+
+
         # is made. Please note that using DDTW elsewhere will not benefit
         # from this speed enhancement
         if self.distance_measures.__contains__(
             "ddtw"
         ) or self.distance_measures.__contains__("wddtw"):
             der_X = DerivativeSlopeTransformer().fit_transform(X)
-            # convert back to numpy
+            # convert back to numpy: remove this and just create differences
             if isinstance(der_X, pd.DataFrame):
                 der_X = from_nested_to_3d_numpy(der_X)
         else:
@@ -316,7 +317,7 @@ class ElasticEnsemble(BaseClassifier):
         else:
             der_X = None
 
-        # reshape X for use with the efficient cython distance measures
+        # reshape X for use with the numba distance measures
         if isinstance(X, pd.DataFrame):
             X = np.array([np.asarray([x]).reshape(1, len(x)) for x in X.iloc[:, 0]])
 
