@@ -149,7 +149,6 @@ class BaseTransformer(BaseEstimator):
     ]
 
     def __init__(self, _output_convert="auto"):
-
         self._converter_store_X = dict()  # storage dictionary for in/output conversion
         self._output_convert = _output_convert
 
@@ -892,7 +891,6 @@ class BaseTransformer(BaseEstimator):
         # end checking X
 
         if y_inner_mtype != ["None"] and y is not None:
-
             if "Table" in y_inner_scitype:
                 y_possible_scitypes = "Table"
             elif X_scitype == "Series":
@@ -1149,20 +1147,12 @@ class BaseTransformer(BaseEstimator):
             return Xt
 
         if methodname == "fit_transform":
-            X, _, Xs, ys, n, row_idx, col_idx = unwrap(kwargs)
+            self.transformers_ = X.vectorize_est(self, method="clone")
 
-            # create container of transformers
-            self.transformers_ = pd.DataFrame(index=row_idx, columns=col_idx)
-            for ix in range(n):
-                i, j = X.get_iloc_indexer(ix)
-                self.transformers_.iloc[i].iloc[j] = self.clone()
-
-            # fit/update the ix-th transformer with the ix-th series/panel
-            Xts = []
-            for ix in range(n):
-                i, j = X.get_iloc_indexer(ix)
-                method = getattr(self.transformers_.iloc[i].iloc[j], methodname)
-                Xts += [method(X=Xs[ix], y=ys[i], **kwargs)]
+            # transform the i-th series/panel with the i-th stored transformer
+            Xts = X.vectorize_est(
+                self.transformers_, method=methodname, return_type="list", **kwargs
+            )
             Xt = X.reconstruct(Xts, overwrite_index=False)
 
             return Xt
