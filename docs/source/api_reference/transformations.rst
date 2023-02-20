@@ -10,6 +10,12 @@ transformations.
    :no-members:
    :no-inherited-members:
 
+All (simple) transformers in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+using ``estimator_types="regressor"``, optionally filtered by tags.
+Valid tags can be listed using ``sktime.registry.all_tags``.
+
+For pairwise transformers (time series distances, kernels), instead see :ref:`_transformations_pairwise_ref`.
+
 Transformations are categorized as follows:
 
 .. list-table::
@@ -75,21 +81,6 @@ Pipeline building
 
     FunctionTransformer
 
-.. currentmodule:: sktime.transformations.panel.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    SeriesToSeriesRowTransformer
-    SeriesToPrimitivesRowTransformer
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    make_row_transformer
-
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -100,6 +91,7 @@ Sklearn and pandas adapters
     :template: class.rst
 
     Tabularizer
+    TimeBinner
 
 .. currentmodule:: sktime.transformations.series.adapt
 
@@ -164,6 +156,7 @@ Shapelets, wavelets, and convolution
     Rocket
     MiniRocket
     MiniRocketMultivariate
+    MiniRocketMultivariateVariable
 
 .. currentmodule:: sktime.transformations.panel.dwt
 
@@ -315,6 +308,22 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+.. currentmodule:: sktime.transformations.series.bkfilter
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BKFilter
+
+.. currentmodule:: sktime.transformations.series.filter
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    Filter
+
 .. currentmodule:: sktime.transformations.series.kalman_filter
 
 .. autosummary::
@@ -354,6 +363,14 @@ Differencing and slope
 Binning and segmentation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. currentmodule:: sktime.transformations.series.binning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TimeBinAggregate
+
 .. currentmodule:: sktime.transformations.panel.interpolate
 
 .. autosummary::
@@ -392,6 +409,14 @@ Seasonality and Date-Time Features
     :template: class.rst
 
     DateTimeFeatures
+
+.. currentmodule:: sktime.transformations.series.time_since
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TimeSince
 
 .. currentmodule:: sktime.transformations.series.fourier
 
