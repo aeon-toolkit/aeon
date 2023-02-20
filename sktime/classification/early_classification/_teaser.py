@@ -337,7 +337,7 @@ class TEASER(BaseEarlyClassifier):
 
     def _score(self, X, y) -> Tuple[float, float, float]:
         self._predict(X)
-        hm, acc, earl = self._compute_harmonic_mean(self.state_info, y)
+        hm, acc, earl = self.compute_harmonic_mean(self.state_info, y)
 
         return hm, acc, earl
 
