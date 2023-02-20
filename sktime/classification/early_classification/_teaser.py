@@ -487,7 +487,6 @@ class TEASER(BaseEarlyClassifier):
     def _predict_oc_classifier(
         self, X_oc, n_consecutive_predictions, idx, estimator_preds, state_info
     ):
-
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= n_consecutive_predictions
@@ -529,29 +528,9 @@ class TEASER(BaseEarlyClassifier):
 
         return accept_decision, state_info
 
-    def _compute_harmonic_mean(self, state_info, y):
-        # calculate harmonic mean from finished state info
-        accuracy = np.average(
-            [
-                state_info[i][2] == self._class_dictionary[y[i]]
-                for i in range(len(state_info))
-            ]
-        )
-        earliness = np.average(
-            [
-                self._classification_points[state_info[i][0]] / self.series_length_
-                for i in range(len(state_info))
-            ]
-        )
-        return (
-            (2 * accuracy * (1 - earliness)) / (accuracy + (1 - earliness)),
-            accuracy,
-            earliness,
-        )
-
-    def _update_state_info(self, acccept_decision, preds, state_info, idx, time_stamp):
+    def _update_state_info(self, accept_decision, preds, state_info, idx, time_stamp):
         # consecutive predictions, add one if positive decision and same class
-        if acccept_decision[idx] and preds[idx] == state_info[idx][2]:
+        if accept_decision[idx] and preds[idx] == state_info[idx][2]:
             return (
                 time_stamp,
                 state_info[idx][1] + 1,
@@ -562,7 +541,7 @@ class TEASER(BaseEarlyClassifier):
         else:
             return (
                 time_stamp,
-                1 if acccept_decision[idx] else 0,
+                1 if accept_decision[idx] else 0,
                 preds[idx],
                 self._classification_points[time_stamp],
             )
@@ -581,6 +560,48 @@ class TEASER(BaseEarlyClassifier):
         )
         return preds, out[1]
 
+    def compute_harmonic_mean(self, state_info, y) -> Tuple[float, float, float]:
+        """Calculate harmonic mean from a state info matrix and array of class labeles.
+
+        Parameters
+        ----------
+        state_info : 2d np.ndarray of int
+            The state_info from a TEASER object after a prediction or update. It is
+            assumed the state_info is complete, and a positive decision has been
+            returned for all cases.
+        y : 1D np.array of int
+            Actual class labels for predictions. indices correspond to instance indices
+            in state_info.
+
+        Returns
+        -------
+        harmonic_mean : float
+            Harmonic Mean represents the balance between accuracy and earliness for a
+            set of early predictions.
+        accuracy : float
+            Accuracy for the predictions made in the state_info.
+        earliness : float
+            Average time taken to make a classification. The earliness for a single case
+            is the number of time points required divided by the total series length.
+        """
+        accuracy = np.average(
+            [
+                state_info[i][2] == self._class_dictionary[y[i]]
+                for i in range(len(state_info))
+            ]
+        )
+        earliness = np.average(
+            [
+                self._classification_points[state_info[i][0]] / self.series_length_
+                for i in range(len(state_info))
+            ]
+        )
+        return (
+            (2 * accuracy * (1 - earliness)) / (accuracy + (1 - earliness)),
+            accuracy,
+            earliness,
+        )
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -590,19 +611,31 @@ class TEASER(BaseEarlyClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-
+            TEASER provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from sktime.classification.feature_based import Catch22Classifier
+        from sktime.classification.feature_based import SummaryClassifier
+        from sktime.classification.interval_based import TimeSeriesForestClassifier
 
-        params = {
-            "classification_points": [3],
-            "estimator": Catch22Classifier(
-                estimator=RandomForestClassifier(n_estimators=2)
-            ),
-        }
-        return params
+        if parameter_set == "results_comparison":
+            return {
+                "classification_points": [6, 10, 16, 24],
+                "estimator": TimeSeriesForestClassifier(n_estimators=10),
+            }
+        else:
+            return {
+                "classification_points": [3, 5],
+                "estimator": SummaryClassifier(
+                    estimator=RandomForestClassifier(n_estimators=2)
+                ),
+            }

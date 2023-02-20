@@ -31,8 +31,7 @@ EXCLUDE_ESTIMATORS = [
     "TapNetRegressor",
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
-    "LSTMFCNClassifier",  # unknown cause, see bug report #4033
-    "TEASER",
+    "LSTMFCNClassifier",  # unknown cause, see bug report #4033,
 ]
 
 
@@ -101,16 +100,19 @@ EXCLUDED_TESTS = {
     "SeriesToSeriesRowTransformer": ["test_methods_do_not_change_state"],
     # ColumnTransformer still needs to be refactored, see #2537
     "ColumnTransformer": ["test_methods_do_not_change_state"],
-    # Early classifiers intentionally retain information from previous predict calls
-    #   for #1.
-    # #2 amd #3 are due to predict/predict_proba returning two items and that breaking
-    #   assert_array_equal
-    "TEASER": [
-        "test_est_fit_without_modulenotfound",
-        "test_non_state_changing_method_contract",
+    # Early classifiers (EC) intentionally retain information from previous predict
+    # calls for #1 (test_methods_do_not_change_state).
+    # #2 (test_fit_idempotent) and #3 (test_persistence_via_pickle) are due to
+    # predict/predict_proba returning two items and that breaking assert_array_equal.
+    "TEASER": [  # EC
+        "test_methods_do_not_change_state",
         "test_fit_idempotent",
         "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
+    ],
+    "ProbabilityThresholdEarlyClassifier": [  # EC
+        "test_methods_do_not_change_state",
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
     ],
     "CNNNetwork": "test_inheritance",  # not a registered base class, WiP, see #3028
     "VARMAX": [
