@@ -142,7 +142,7 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.classification.kernel_based
+.. currentmodule:: sktime.classification.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
