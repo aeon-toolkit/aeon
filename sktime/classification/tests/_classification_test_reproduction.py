@@ -23,7 +23,6 @@ from sktime.classification.early_classification import (
 from sktime.classification.feature_based import (
     Catch22Classifier,
     MatrixProfileClassifier,
-    RandomIntervalClassifier,
     SignatureClassifier,
     SummaryClassifier,
 )
@@ -31,6 +30,7 @@ from sktime.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from sktime.classification.interval_based import (
     CanonicalIntervalForest,
     DrCIF,
+    RandomIntervalClassifier,
     RandomIntervalSpectralEnsemble,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
