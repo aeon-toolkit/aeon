@@ -17,9 +17,9 @@ As described in
 __author__ = ["ermshaua", "patrickzib"]
 __all__ = ["ClaSPTransformer"]
 
-import numpy as np
+import warnings
 
-# import numpy.fft as fft
+import numpy as np
 import pandas as pd
 from numba import njit
 
@@ -67,7 +67,7 @@ def _sliding_mean_std(X, m):
     segSum = s[m:] - s[:-m]
     segSumSq = sSq[m:] - sSq[:-m]
     movmean = segSum / m
-    movstd = np.sqrt(segSumSq / m - (segSum / m) ** 2)
+    movstd = np.sqrt(np.clip(segSumSq / m - (segSum / m) ** 2, 0, None))  # at least 0
 
     # avoid dividing by too small std, like 0
     movstd = np.where(abs(movstd) < 0.001, 1, movstd)
@@ -128,7 +128,10 @@ def _compute_distances_iterative(X, m, k):
         )
         dist[trivialMatchRange[0] : trivialMatchRange[1]] = np.inf
 
-        idx = np.argpartition(dist, k)
+        if len(dist) >= k:
+            idx = np.argpartition(dist, k)
+        else:
+            idx = np.arange(len(dist))
 
         knns[order, :] = idx[:k]
         dot_prev = dot_rolled
@@ -178,6 +181,7 @@ def _calc_knn_labels(knn_mask, split_idx, m):
 
     # apply exclusion zone at split point
     exclusion_zone = np.arange(split_idx - m, split_idx)
+    # exclusion_zone[exclusion_zone < 0] = 0
     y_pred[exclusion_zone] = np.ones(m, dtype=np.int64)
 
     return y_true, y_pred
@@ -340,9 +344,9 @@ def clasp(
     knn_mask = _compute_distances_iterative(X, m, k_neighbours).T
 
     n_timepoints = knn_mask.shape[1]
-    exclusion_radius = np.int64(n_timepoints * exclusion_radius)
+    exclusion_zone = max(m, np.int64(n_timepoints * exclusion_radius))
 
-    profile = _calc_profile(m, knn_mask, score, exclusion_radius)
+    profile = _calc_profile(m, knn_mask, score, exclusion_zone)
 
     if interpolate is True:
         profile = pd.Series(profile).interpolate(limit_direction="both").to_numpy()
@@ -428,6 +432,11 @@ class ClaSPTransformer(BaseTransformer):
             ClaSP of the single time series as output
             with length as (n-window_length+1)
         """
+        if len(X) - self.window_length < 2 * self.exclusion_radius * len(X):
+            warnings.warn(
+                "Period-Length is larger than size of the time series", stacklevel=1
+            )
+
         scoring_metric_call = self._check_scoring_metric(self.scoring_metric)
 
         X = X.flatten()
