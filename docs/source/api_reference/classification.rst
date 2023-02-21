@@ -67,9 +67,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ProximityForest
-    ProximityStump
-    ProximityTree
     ShapeDTW
 
 Dummy

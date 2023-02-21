@@ -59,7 +59,6 @@ def _get_type_tuple(estimator_scitype):
         corresponding to scitype strings in estimator_scitypes
     """
     if estimator_scitype is not None:
-
         estimator_classes = tuple(
             BASE_CLASS_LOOKUP[scitype] for scitype in _to_list(estimator_scitype)
         )
@@ -146,9 +145,6 @@ def test_all_estimators_return_names(return_names):
 # arbitrary list for exclude_estimators argument test
 EXCLUDE_ESTIMATORS = [
     "ElasticEnsemble",
-    "ProximityForest",
-    "ProximityStump",
-    "ProximityTree",
 ]
 
 

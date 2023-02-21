@@ -10,11 +10,7 @@ from sktime.classification.dictionary_based import (
     ContractableBOSS,
     TemporalDictionaryEnsemble,
 )
-from sktime.classification.distance_based import (
-    ElasticEnsemble,
-    ProximityForest,
-    ShapeDTW,
-)
+from sktime.classification.distance_based import ElasticEnsemble, ShapeDTW
 from sktime.classification.early_classification import (
     TEASER,
     ProbabilityThresholdEarlyClassifier,
@@ -216,14 +212,6 @@ if __name__ == "__main__":
                 majority_vote=True,
                 distance_measures=["dtw", "ddtw", "wdtw"],
                 random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "ProximityForest - UnitTest",
-        _reproduce_classification_unit_test(
-            ProximityForest(
-                n_estimators=3, max_depth=2, n_stump_evaluations=2, random_state=0
             )
         ),
     )
