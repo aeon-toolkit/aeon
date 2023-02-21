@@ -97,22 +97,25 @@ EXCLUDED_TESTS = {
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
-    "SeriesToSeriesRowTransformer": ["test_methods_do_not_change_state"],
+    "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
     # ColumnTransformer still needs to be refactored, see #2537
-    "ColumnTransformer": ["test_methods_do_not_change_state"],
+    "ColumnTransformer": ["test_non_state_changing_method_contract"],
     # Early classifiers (EC) intentionally retain information from previous predict
-    # calls for #1 (test_methods_do_not_change_state).
-    # #2 (test_fit_idempotent) and #3 (test_persistence_via_pickle) are due to
-    # predict/predict_proba returning two items and that breaking assert_array_equal.
+    # calls for #1 (test_non_state_changing_method_contract).
+    # #2 (test_fit_idempotent), #3 (test_persistence_via_pickle) and #4
+    # (test_save_estimators_to_file) are due to predict/predict_proba returning two
+    # items and that breaking assert_array_equal.
     "TEASER": [  # EC
-        "test_methods_do_not_change_state",
+        "test_non_state_changing_method_contract",
         "test_fit_idempotent",
         "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
     ],
     "ProbabilityThresholdEarlyClassifier": [  # EC
-        "test_methods_do_not_change_state",
+        "test_non_state_changing_method_contract",
         "test_fit_idempotent",
         "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
     ],
     "CNNNetwork": "test_inheritance",  # not a registered base class, WiP, see #3028
     "VARMAX": [
