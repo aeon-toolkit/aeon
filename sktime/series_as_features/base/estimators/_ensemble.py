@@ -370,7 +370,6 @@ class BaseTimeSeriesForest(BaseForest):
         return fis
 
     def _get_fitted_params(self):
-
         return {
             "estimators": self.estimators_,
         }
