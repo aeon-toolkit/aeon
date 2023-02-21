@@ -146,7 +146,7 @@ class RocketClassifier(_DelegatedClassifier):
             "num_kernels": self.num_kernels,
             "random_state": self.random_state,
             "max_dilations_per_kernel": self.max_dilations_per_kernel,
-            "n_jobs": self._threads_to_use,
+            "n_jobs": self._n_jobs,
         }
 
         if rocket_transform == "rocket":

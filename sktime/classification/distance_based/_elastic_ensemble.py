@@ -228,7 +228,7 @@ class ElasticEnsemble(BaseClassifier):
                     ),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
                 grid.fit(param_train_to_use, param_train_y)
 
@@ -245,7 +245,7 @@ class ElasticEnsemble(BaseClassifier):
                     n_iter=100 * self.proportion_of_param_options,
                     cv=LeaveOneOut(),
                     scoring="accuracy",
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                     random_state=rand,
                 )
                 grid.fit(param_train_to_use, param_train_y)
@@ -263,7 +263,7 @@ class ElasticEnsemble(BaseClassifier):
                     n_neighbors=1,
                     distance=this_measure,
                     distance_params=grid.best_params_["distance_params"],
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
                 preds = cross_val_predict(
                     best_model, full_train_to_use, y, cv=LeaveOneOut()

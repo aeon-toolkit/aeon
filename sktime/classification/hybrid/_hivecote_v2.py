@@ -182,7 +182,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._stc_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._stc.fit(X, y)
 
@@ -206,7 +206,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._drcif_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._drcif.fit(X, y)
 
@@ -230,7 +230,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._arsenal_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._arsenal.fit(X, y)
 
@@ -254,7 +254,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._tde_params,
             save_train_predictions=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._tde.fit(X, y)
 

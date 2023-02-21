@@ -273,7 +273,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         ]
 
         # Parallel loop
-        worker_rets = Parallel(n_jobs=self._threads_to_use)(
+        worker_rets = Parallel(n_jobs=self._n_jobs)(
             delayed(_parallel_build_trees)(
                 X,
                 y,
@@ -345,7 +345,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
             )
 
         # Assign chunk of trees to jobs
-        n_jobs, _, _ = _partition_estimators(self.n_estimators, self._threads_to_use)
+        n_jobs, _, _ = _partition_estimators(self.n_estimators, self._n_jobs)
 
         # Parallel loop
         all_proba = Parallel(n_jobs=n_jobs)(
@@ -494,6 +494,7 @@ def acf(x, max_lag):
 #     y[non_zero] /= np.sqrt(covar[non_zero])
 #
 #     return y
+
 
 # @jit(parallel=True, cache=True, nopython=True)
 def matrix_acf(x, num_cases, max_lag):

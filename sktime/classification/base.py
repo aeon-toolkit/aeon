@@ -53,7 +53,7 @@ class BaseClassifier(BaseEstimator, ABC):
     _X_metadata         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers
     0...``n_classes_``-1.
-    _threads_to_use     : number of threads to use in ``fit`` as determined by
+    _n_jobs     : number of threads to use in ``fit`` as determined by
     ``n_jobs``.
     _estimator_type     : string required by sklearn, set to "classifier"
     """
@@ -77,7 +77,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self.fit_time_ = 0  # time elapsed in last fit call
         self._X_metadata = []  # metadata/properties of X seen in fit
         self._class_dictionary = {}
-        self._threads_to_use = 1
+        self._n_jobs = 1
 
         # required for compatibility with some sklearn interfaces e.g.       #
         # CalibratedClassifierCV
@@ -182,7 +182,7 @@ class BaseClassifier(BaseEstimator, ABC):
         multithread = self.get_tag("capability:multithreading")
         if multithread:
             try:
-                self._threads_to_use = check_n_jobs(self.n_jobs)
+                self._n_jobs = check_n_jobs(self.n_jobs)
             except NameError:
                 raise AttributeError(
                     "self.n_jobs must be set if capability:multithreading is True"

@@ -279,7 +279,7 @@ class WEASEL(BaseClassifier):
             )
 
     def _transform_words(self, X):
-        parallel_res = Parallel(n_jobs=self._threads_to_use, backend="threading")(
+        parallel_res = Parallel(n_jobs=self._n_jobs, backend="threading")(
             delayed(transformer.transform)(X) for transformer in self.SFA_transformers
         )
         all_words = []

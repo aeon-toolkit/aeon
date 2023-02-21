@@ -329,7 +329,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 dim_threshold=self.dim_threshold,
                 max_dims=self.max_dims,
                 typed_dict=self.typed_dict,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             tde.fit(X_subsample, y_subsample)
@@ -467,7 +467,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = (
                     clf._train_predictions
                     if self.save_train_predictions
-                    else Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+                    else Parallel(n_jobs=self._n_jobs, prefer="threads")(
                         delayed(clf._train_predict)(
                             i,
                         )
@@ -511,8 +511,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        if self._threads_to_use > 1:
-            c = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        if self._n_jobs > 1:
+            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(tde._train_predict)(
                     i,
                 )
@@ -824,7 +824,7 @@ class IndividualTDE(BaseClassifier):
                     save_words=False,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
             )
             sfa = self._transformers[0].fit_transform(X, y)
@@ -880,7 +880,7 @@ class IndividualTDE(BaseClassifier):
             test_bags = self._transformers[0].transform(X)
             test_bags = test_bags[0]
 
-        classes = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._test_nn)(
                 test_bag,
             )
@@ -927,7 +927,7 @@ class IndividualTDE(BaseClassifier):
                     keep_binning_dft=True,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
             )
 
