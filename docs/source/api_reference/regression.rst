@@ -68,7 +68,7 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.regression.kernel_based
+.. currentmodule:: sktime.regression.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
