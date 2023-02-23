@@ -87,10 +87,10 @@ class PCATransformer(BaseTransformer):
     Examples
     --------
     >>> from sktime.transformations.series.pca import PCATransformer
-    >>> from sktime.datasets import load_macroeconomic
-    >>> y = load_macroeconomic()
+    >>> from sktime.datasets import load_longley
+    >>> _, X = load_longley()
     >>> transformer = PCATransformer(n_components=2)
-    >>> y_hat = transformer.fit_transform(y)
+    >>> X_hat = transformer.fit_transform(X)
 
     References
     ----------
