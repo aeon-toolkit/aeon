@@ -77,7 +77,30 @@ class CNNNetwork(BaseDeepNetwork):
 
         padding = "valid"
         input_layer = keras.layers.Input(input_shape)
-        # sort this out, why hard coded to 60?
+        # sort this out, why hard coded to 60? [hadifawaz1999 answer: It was proposed like that in the original paper, check code in https://github.com/hfawaz/dl-4-tsc/blob/3ee62e16e118e4f5cfa86d01661846dfa75febfa/classifiers/cnn.py#L30]
+        
+        '''
+        
+        When the UCR archive was published in 2015, it contained 85 datasets, each dataset had
+        different characteristics such as the time series length.
+
+        The smallest dataset (refering to time series length) was the ItalyPowerDemand dataset
+        with a length of 24,
+        the second smallest one was SyntheticControl with a length of 60.
+        
+        The authors in [1], added the padding condition on the length 60 because it was the second smallest
+        dataset (refering to time series length), SyntheticControl.
+
+        Padding helps in the case of short time series because the samples would contain a small amount
+        of information, which leads to a loss of information when applying convolutions without padding.
+        This is due to the fact to negleting the side parts of the time series.
+
+        Note that when the UCR archive had new datasets, 128 in 2018, more datasets of small length were added.
+        For this reason, we keep the conditioning on 60 as length of input time series to add the padding in 
+        the convolution.
+
+        '''
+        
         if input_shape[0] < 60:
             padding = "same"
 
