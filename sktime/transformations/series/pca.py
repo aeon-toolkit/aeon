@@ -84,6 +84,14 @@ class PCATransformer(BaseTransformer):
     pca_ : sklearn.decomposition.PCA
         The fitted PCA object
 
+    Examples
+    --------
+    >>> from sktime.transformations.series.pca import PCATransformer
+    >>> from sktime.datasets import load_macroeconomic
+    >>> y = load_macroeconomic()
+    >>> transformer = PCATransformer(n_components=2)
+    >>> y_hat = transformer.fit_transform(y)
+
     References
     ----------
     # noqa: E501
@@ -101,7 +109,7 @@ class PCATransformer(BaseTransformer):
         "univariate-only": False,
         "fit_is_empty": False,
         "handles-missing-data": False,
-        "python_version": ">3.7",
+        "python_version": ">=3.8",
     }
 
     def __init__(
