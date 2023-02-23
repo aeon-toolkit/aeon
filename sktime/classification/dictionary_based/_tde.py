@@ -32,9 +32,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input "n" series length "m" with "d" dimensions
-    TDE searches "k" parameter values selected using a Gaussian processes
-    regressor, evaluating each with a LOOCV. It then retains "s"
+    Overview: Input 'n' series length 'm' with 'd' dimensions
+    TDE searches 'k' parameter values selected using a Gaussian processes
+    regressor, evaluating each with a LOOCV. It then retains 's'
     ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
@@ -53,7 +53,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     from a reduced histogram is used to select dimensions.
 
     fit involves finding n histograms.
-    predict uses 1 nearest neighbour with a the histogram intersection
+    predict uses 1 nearest neighbour with the histogram intersection
     distance function.
 
     Parameters
@@ -238,7 +238,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             warnings.warn(
                 "TemporalDictionaryEnsemble warning: n_parameter_samples <= "
                 "randomly_selected_params, ensemble member parameters will be fully "
-                "randomly selected."
+                "randomly selected.",
+                stacklevel=2,
             )
 
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
@@ -257,7 +258,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             warnings.warn(
                 f"TemporalDictionaryEnsemble warning: min_window = "
                 f"{self.min_window} is larger than max_window = {max_window}."
-                f" min_window has been set to {max_window}."
+                f" min_window has been set to {max_window}.",
+                stacklevel=2,
             )
 
         win_inc = int((max_window - self._min_window) / max_window_searches)
@@ -825,7 +827,9 @@ class IndividualTDE(BaseClassifier):
                     n_jobs=self._threads_to_use,
                 )
             )
-            sfa = self._transformers[0].fit_transform(X, y)
+            # todo use fit_transform when SFA is interface compliant
+            self._transformers[0].fit(X, y)
+            sfa = self._transformers[0].transform(X, y)
             self._transformed_data = sfa[0]
 
     def _predict(self, X):

@@ -275,7 +275,9 @@ In addition, they are responsible for maintaining and improving the CoC.
 Eligibility
 ^^^^^^^^^^^
 
-Anyone is eligible to be a CoC committee member.
+Anyone is eligible to be a CoC Committee member with the exception that a person that
+is CC member can not be CoC member.
+
 
 .. _appointment-2:
 
@@ -287,14 +289,11 @@ all core developers. A vote by the core
 developers will stay open for 7 days. CoC committee
 membership votes are subject to:
 
-* a 2/3 majority of all cast votes, and
-* a simple majority approval of all the current CoC committee members.
+* a 2/3 majority of all cast votes
 
 The vote will take place in private communication channels and will be
 anonymous.
 
-To avoid deadlocks if there is an even number of CoC committee members, one
-of them will have a tie breaking privilege.
 
 End of tenure
 ^^^^^^^^^^^^^
@@ -339,7 +338,8 @@ Eligibility
 
 Only core developers are eligible for appointment as CC members.
 Non-core-developers can be nominated, but this must be accompanied
-by a nomination for core developer.
+by a nomination for core developer. Members of the CoC Committee are
+not eligible to become CC members.
 
 .. _appointment-3:
 
@@ -350,20 +350,12 @@ Appointment to the CC is by nomination by a core developer and a vote by
 all core developers. A vote by core developers will
 stay open 7 days. Approval of appointment requires:
 
-* a 2/3 majority of all cast votes, and
-* a simple majority approval of all the current CC members.
+* a 2/3 majority of all cast votes
 
 The core developer vote takes place in private communication channels,
 visible to, and only to, core developers, and is anonymous.
 The CC members' vote takes place in private communication channels,
 visible to, and only to, CC members, and is anonymous.
-
-In case the CC members' vote is tied,
-the CC member with the shortest continuous tenure has a tie breaking privilege.
-
-The tie breaking is by construction visible to CC members,
-does not require the tie breaking CC member to have voted in the anonymous vote,
-and need not follow their anonymous vote if they have voted.
 
 End of tenure
 ^^^^^^^^^^^^^

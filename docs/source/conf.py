@@ -14,7 +14,12 @@ rst_prolog = """.. attention::
     and documentation to reflect this. We do not recommend using this repository in any
     production setting, but welcome any contributors willing to help us update the
     project.
-"""
+
+    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
+    contributions.
+
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+"""  # noqa: E501
 
 # -- Path setup --------------------------------------------------------------
 

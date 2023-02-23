@@ -31,7 +31,7 @@ __author__ = ["vincent-nich12"]
 class ShapeDTW(BaseClassifier):
     """ShapeDTW classifier.
 
-    ShapeDTW[1] works by initially extracting a set of subsequences
+    ShapeDTW [1] works by initially extracting a set of subsequences
     describing local neighbourhoods around each data point in a time series.
     These subsequences are then passed into a shape descriptor function that
     transforms these local neighbourhoods into a new representation. This
