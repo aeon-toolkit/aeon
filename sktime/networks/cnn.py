@@ -105,6 +105,14 @@ class CNNNetwork(BaseDeepNetwork):
             padding = "same"
 
         # this does what?
+
+        '''
+        
+        Ensure that the number of filter sizes available is equal to the number of demanded convolution
+        layers to construct.
+
+        '''
+
         if len(self.filter_sizes) > self.n_conv_layers:
             self.filter_sizes = self.filter_sizes[: self.n_conv_layers]
         elif len(self.filter_sizes) < self.n_conv_layers:
