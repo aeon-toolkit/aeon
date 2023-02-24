@@ -67,7 +67,6 @@ class PwTrafoPanelPipeline(_HeterogenousMetaEstimator, BasePairwiseTransformerPa
     }
 
     def __init__(self, pw_trafo, transformers):
-
         self.pw_trafo = pw_trafo
         self.transformers = transformers
         self.transformers_ = TransformerPipeline(transformers)
@@ -155,7 +154,6 @@ class PwTrafoPanelPipeline(_HeterogenousMetaEstimator, BasePairwiseTransformerPa
         Xt = trafos.fit_transform(X)
 
         # find out whether we know that the resulting matrix is symmetric
-        #   since aligner distances are always symmetric,
         #   we know it's the case for sure if X equals X2
         if X2 is None:
             X2t = None
