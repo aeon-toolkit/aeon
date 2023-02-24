@@ -161,13 +161,16 @@ class EncoderClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
-        import tensorflow as tf
-        import os
+        try:
+            import tensorflow as tf
+            import os
 
-        self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
-        os.remove(self.file_path+'best_model.hdf5')
+            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
+            os.remove(self.file_path+'best_model.hdf5')
 
-        return self
+            return self
+        except:
+            return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
