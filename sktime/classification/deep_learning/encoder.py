@@ -160,6 +160,13 @@ class EncoderClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
+
+        import tensorflow as tf
+        import os
+
+        self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
+        os.remove(self.file_path+'best_model.hdf5')
+
         return self
 
     @classmethod
