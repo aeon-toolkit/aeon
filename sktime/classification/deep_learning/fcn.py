@@ -65,32 +65,58 @@ class FCNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+
+        n_layers=3,
+        n_filters=[128, 256, 128],
+        kernel_sizes=[8, 5, 3],
+        dilation_rate=1,
+        strides=1,
+        padding='same',
+        activation='relu',
+
         n_epochs=2000,
         batch_size=16,
+        use_mini_batch_size=True,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
         random_state=None,
-        activation="sigmoid",
         use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
         super(FCNClassifier, self).__init__()
+
+        self.n_layers = n_layers
+        self.kernel_sizes = kernel_sizes
+        self.n_filters = n_filters
+        self.strides = strides
+        self.activation = activation
+        self.dilation_rate = dilation_rate
+        self.padding = padding
+        self.use_bias = use_bias
+
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.random_state = random_state
-        self.activation = activation
-        self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
         self._network = FCNNetwork(
             random_state=self.random_state,
+            n_layers=self.n_layers,
+            kernel_sizes=self.kernel_sizes,
+            n_filters=self.n_filters,
+            strides=self.strides,
+            padding=self.padding,
+            dilation_rate=self.dilation_rate,
+            activation=self.activation,
+            use_bias=self.use_bias
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -124,11 +150,11 @@ class FCNClassifier(BaseDeepClassifier):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation='softmax', use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
+            keras.optimizers.Adam()
             if self.optimizer is None
             else self.optimizer
         )
@@ -139,6 +165,16 @@ class FCNClassifier(BaseDeepClassifier):
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
+        self.callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5',
+                                        monitor='loss', save_best_only=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5,
+                                                 patience=50, min_lr=0.0001)
+            if self.callbacks is None
+            else self.callbacks
+        ]
+
         return model
 
     def _fit(self, X, y):
@@ -164,15 +200,31 @@ class FCNClassifier(BaseDeepClassifier):
         self.model_ = self.build_model(self.input_shape, self.n_classes_)
         if self.verbose:
             self.model_.summary()
+
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+        
         self.history = self.model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
-        return self
+
+        try:
+            import tensorflow as tf
+            import os
+
+            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
+            os.remove(self.file_path+'best_model.hdf5')
+
+            return self
+        except:
+            return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
