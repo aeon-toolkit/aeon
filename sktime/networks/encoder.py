@@ -79,7 +79,7 @@ class EncoderNetwork(BaseDeepNetwork):
 
         self.fc_units = fc_units
 
-        super(CNNNetwork, self).__init__()
+        super(EncoderNetwork, self).__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
