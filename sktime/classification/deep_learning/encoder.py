@@ -121,7 +121,7 @@ class EncoderClassifier(BaseDeepClassifier):
         )
 
         self.callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(filepath=self.file_path,
+            tf.keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5',
                                         monitor='loss', save_best_only=True)
             if self.callbacks is None
             else self.callbacks
