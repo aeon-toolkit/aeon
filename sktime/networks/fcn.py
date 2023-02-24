@@ -51,6 +51,7 @@ class FCNNetwork(BaseDeepNetwork):
         strides=1,
         padding='same',
         activation='relu',
+        use_bias=True,
         random_state=0,
     ):
         super(FCNNetwork, self).__init__()
@@ -79,6 +80,11 @@ class FCNNetwork(BaseDeepNetwork):
             self.activation = activation
         else:
             self.activation = [activation] * self.n_layers
+        
+        if isinstance(use_bias, list):
+            self.use_bias = use_bias
+        else:
+            self.use_bias = [use_bias] * self.n_layers
 
         self.random_state = random_state
         
@@ -88,6 +94,7 @@ class FCNNetwork(BaseDeepNetwork):
         assert(len(self.strides) == self.n_layers)
         assert(len(self.activation) == self.n_layers)
         assert(len(self.dilation_rate) == self.n_layers)
+        assert(len(self.use_bias) == self.n_layers)
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -114,7 +121,8 @@ class FCNNetwork(BaseDeepNetwork):
                                           kernel_size=self.kernel_sizes[i],
                                           strides=self.strides[i],
                                           dilation_rate=self.dilation_rate[i],
-                                          padding=self.padding)(x)
+                                          padding=self.padding,
+                                          use_bias=self.use_bias[i])(x)
             
             conv = tf.keras.layers.BatchNormalization()(conv)
             conv = tf.keras.layers.Activation(activation=self.activation)(conv)
