@@ -43,10 +43,24 @@ class FCNNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
+        n_filters=[128, 256, 128],
+        kernel_sizes=[8, 5, 3],
+        dilation_rates=[1, 1, 1],
+        strides=1,
+        padding='same',
+        activation='relu',
         random_state=0,
     ):
         super(FCNNetwork, self).__init__()
         _check_dl_dependencies(severity="error")
+
+        self.n_filters = n_filters
+        self.kernel_sizes = kernel_sizes
+        self.dilation_rates = dilation_rates
+        self.strides = strides
+        self.padding = padding
+        self.activation = activation
+
         self.random_state = random_state
 
     def build_network(self, input_shape, **kwargs):
@@ -62,24 +76,25 @@ class FCNNetwork(BaseDeepNetwork):
         input_layer : a keras layer
         output_layer : a keras layer
         """
-        from tensorflow import keras
+        import tensorflow as tf
 
-        input_layer = keras.layers.Input(input_shape)
+        input_layer = tf.keras.layers.Input(input_shape)
 
-        conv1 = keras.layers.Conv1D(filters=128, kernel_size=8, padding="same")(
-            input_layer
-        )
-        conv1 = keras.layers.BatchNormalization()(conv1)
-        conv1 = keras.layers.Activation(activation="relu")(conv1)
+        x = input_layer
 
-        conv2 = keras.layers.Conv1D(filters=256, kernel_size=5, padding="same")(conv1)
-        conv2 = keras.layers.BatchNormalization()(conv2)
-        conv2 = keras.layers.Activation(activation="relu")(conv2)
+        for i, kernel_size in enumerate(self.kernel_sizes):
 
-        conv3 = keras.layers.Conv1D(filters=128, kernel_size=3, padding="same")(conv2)
-        conv3 = keras.layers.BatchNormalization()(conv3)
-        conv3 = keras.layers.Activation(activation="relu")(conv3)
+            conv = tf.keras.layers.Conv1D(filters=self.n_filters[i],
+                                          kernel_size=kernel_size,
+                                          strides=self.strides[i],
+                                          dilation_rate=self.dilation_rates[i],
+                                          padding=self.padding)(x)
+            
+            conv = tf.keras.layers.BatchNormalization()(conv)
+            conv = tf.keras.layers.Activation(activation=self.activation)(conv)
 
-        gap_layer = keras.layers.GlobalAveragePooling1D()(conv3)
+            x = conv
+
+        gap_layer = tf.keras.layers.GlobalAveragePooling1D()(conv)
 
         return input_layer, gap_layer
