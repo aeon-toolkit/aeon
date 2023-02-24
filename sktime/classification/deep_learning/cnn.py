@@ -80,6 +80,7 @@ class CNNClassifier(BaseDeepClassifier):
         avg_pool_size=3,
         n_conv_layers=2,
         callbacks=None,
+        file_path='./',
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
@@ -90,18 +91,21 @@ class CNNClassifier(BaseDeepClassifier):
     ):
         _check_dl_dependencies(severity="error")
         super(CNNClassifier, self).__init__()
+
         self.n_conv_layers = n_conv_layers
         self.avg_pool_size = avg_pool_size
         self.kernel_size = kernel_size
-        self.callbacks = callbacks
+        self.activation = activation
+        self.use_bias = use_bias
+        self.random_state = random_state
+
         self.n_epochs = n_epochs
         self.batch_size = batch_size
+        self.callbacks = callbacks
+        self.file_path = file_path
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
-        self.activation = activation
-        self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
         self._network = CNNNetwork(
@@ -147,7 +151,7 @@ class CNNClassifier(BaseDeepClassifier):
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
+            keras.optimizers.Adam()
             if self.optimizer is None
             else self.optimizer
         )
@@ -158,6 +162,14 @@ class CNNClassifier(BaseDeepClassifier):
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
+        self.callbacks = [
+            keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5', monitor='loss',
+                                                           save_best_only=True)
+            if self.callbacks is not None
+            else self.callbacks
+        ]
+
         return model
 
     def _fit(self, X, y):
