@@ -15,6 +15,8 @@ class FCNNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
+
+
     random_state    : int, default = 0
         seed to any needed random actions
 
@@ -42,6 +44,7 @@ class FCNNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
+        n_layers=3,
         n_filters=[128, 256, 128],
         kernel_sizes=[8, 5, 3],
         dilation_rate=1,
@@ -53,14 +56,38 @@ class FCNNetwork(BaseDeepNetwork):
         super(FCNNetwork, self).__init__()
         _check_dl_dependencies(severity="error")
 
+        self.n_layers = n_layers
         self.n_filters = n_filters
         self.kernel_sizes = kernel_sizes
-        self.dilation_rate = dilation_rate
-        self.strides = strides
-        self.padding = padding
-        self.activation = activation
+
+        if isinstance(dilation_rate, list):
+            self.dilation_rate = dilation_rate
+        else:
+            self.dilation_rate = [dilation_rate] * self.n_layers
+        
+        if isinstance(strides, list):
+            self.strides = strides
+        else:
+            self.strides = [strides] * self.n_layers
+        
+        if isinstance(padding, list):
+            self.padding = padding
+        else:
+            self.padding = [padding] * self.n_layers
+        
+        if isinstance(activation, list):
+            self.activation = activation
+        else:
+            self.activation = [activation] * self.n_layers
 
         self.random_state = random_state
+        
+        assert(len(self.kernel_sizes) == self.n_layers)
+        assert(len(self.n_filters) == self.n_layers)
+        assert(len(self.padding) == self.n_layers)
+        assert(len(self.strides) == self.n_layers)
+        assert(len(self.activation) == self.n_layers)
+        assert(len(self.dilation_rate) == self.n_layers)
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -81,10 +108,10 @@ class FCNNetwork(BaseDeepNetwork):
 
         x = input_layer
 
-        for i, kernel_size in enumerate(self.kernel_sizes):
+        for i in range(self.n_layers):
 
             conv = tf.keras.layers.Conv1D(filters=self.n_filters[i],
-                                          kernel_size=kernel_size,
+                                          kernel_size=self.kernel_sizes[i],
                                           strides=self.strides[i],
                                           dilation_rate=self.dilation_rate[i],
                                           padding=self.padding)(x)
