@@ -8,7 +8,6 @@ from sktime.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 
-
 class FCNNetwork(BaseDeepNetwork):
     """Establish the network structure for a FCN.
 
@@ -45,7 +44,7 @@ class FCNNetwork(BaseDeepNetwork):
         self,
         n_filters=[128, 256, 128],
         kernel_sizes=[8, 5, 3],
-        dilation_rates=[1, 1, 1],
+        dilation_rate=1,
         strides=1,
         padding='same',
         activation='relu',
@@ -56,7 +55,7 @@ class FCNNetwork(BaseDeepNetwork):
 
         self.n_filters = n_filters
         self.kernel_sizes = kernel_sizes
-        self.dilation_rates = dilation_rates
+        self.dilation_rate = dilation_rate
         self.strides = strides
         self.padding = padding
         self.activation = activation
@@ -87,7 +86,7 @@ class FCNNetwork(BaseDeepNetwork):
             conv = tf.keras.layers.Conv1D(filters=self.n_filters[i],
                                           kernel_size=kernel_size,
                                           strides=self.strides[i],
-                                          dilation_rate=self.dilation_rates[i],
+                                          dilation_rate=self.dilation_rate[i],
                                           padding=self.padding)(x)
             
             conv = tf.keras.layers.BatchNormalization()(conv)
