@@ -89,7 +89,7 @@ class PCATransformer(BaseTransformer):
     >>> # skip DOCTEST if Python < 3.8
     >>> import sys, pytest
     >>> if sys.version_info < (3, 8):
-    ...     pytest.skip("requires Python >= 3.8")
+    ...     pytest.skip("PCATransformer requires Python >= 3.8")
     >>>
     >>> from sktime.transformations.series.pca import PCATransformer
     >>> from sktime.datasets import load_longley
