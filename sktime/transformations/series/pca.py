@@ -86,7 +86,7 @@ class PCATransformer(BaseTransformer):
 
     Examples
     --------
-    >>> # skip DOCSTEST if Python < 3.8
+    >>> # skip DOCTEST if Python < 3.8
     >>> import sys, pytest
     >>> if sys.version_info < (3, 8):
     ...     pytest.skip("requires Python >= 3.8")
