@@ -4,7 +4,6 @@
 __author__ = ["aiwalter"]
 
 from sktime.transformations.series.pca import PCATransformer
-
 from sktime.utils._testing.series import _make_series
 from sktime.utils.validation._dependencies import _check_python_version
 
