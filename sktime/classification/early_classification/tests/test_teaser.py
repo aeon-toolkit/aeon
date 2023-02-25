@@ -8,13 +8,12 @@ from sklearn.ensemble import IsolationForest
 from sktime.classification.early_classification._teaser import TEASER
 from sktime.classification.interval_based import TimeSeriesForestClassifier
 from sktime.datasets import load_unit_test
-from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
 
 
 def load_unit_data():
     """Load unit test data."""
-    X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
     return X_train, y_train, X_test, y_test, indices
 
@@ -31,7 +30,7 @@ def test_teaser_on_unit_test_data():
     )
     teaser.fit(X_train, y_train)
 
-    X_test = from_nested_to_3d_numpy(X_test)[indices]
+    X_test = X_test[indices]
     final_probas = np.zeros((10, 2))
     open_idx = np.arange(0, 10)
 
@@ -59,7 +58,7 @@ def test_teaser_with_different_decision_maker():
     )
     teaser.fit(X_train, y_train)
 
-    X_test = from_nested_to_3d_numpy(X_test)[indices]
+    X_test = X_test[indices]
     final_probas = np.zeros((10, 2))
     open_idx = np.arange(0, 10)
 
@@ -88,7 +87,6 @@ def test_teaser_near_classification_points():
     # use test_points that are not within list above
     test_points = [7, 11, 19, 20]
 
-    X_test = from_nested_to_3d_numpy(X_test)
     X_test = X_test[indices]
 
     decisions = np.zeros(len(X_test), dtype=bool)
