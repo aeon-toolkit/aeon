@@ -48,7 +48,6 @@ EXCEPTED_FROM_NO_DEP_CHECK = []
 # since such adapters will import estimators from the adapted framework
 EXCEPTED_FROM_GET_PARAMS_CHECK = [
     "PyODAnnotator",  # adapters always require soft dep. Here: pyod
-    "HCrystalBallAdapter",  # adapters always require soft dep. Here: hcrystalball
 ]
 
 
