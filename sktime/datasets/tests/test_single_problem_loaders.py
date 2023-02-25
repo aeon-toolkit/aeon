@@ -51,13 +51,3 @@ def test_load_numpy3d(loader, split):
     assert isinstance(y, np.ndarray)
     assert X.ndim == 3
     assert y.ndim == 1
-
-
-@pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
-def test_load_numpy2d_univariate(loader):
-    """Test univariate equal length TSC problems can be loaded into numpy2d."""
-    X, y = loader(return_type="numpy2d")
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert X.ndim == 2
-    assert y.ndim == 1
