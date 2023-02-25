@@ -289,14 +289,11 @@ all core developers. A vote by the core
 developers will stay open for 7 days. CoC committee
 membership votes are subject to:
 
-* a 2/3 majority of all cast votes, and
-* a simple majority approval of all the current CoC committee members.
+* a 2/3 majority of all cast votes
 
 The vote will take place in private communication channels and will be
 anonymous.
 
-To avoid deadlocks if there is an even number of CoC committee members, one
-of them will have a tie breaking privilege.
 
 End of tenure
 ^^^^^^^^^^^^^
@@ -353,20 +350,12 @@ Appointment to the CC is by nomination by a core developer and a vote by
 all core developers. A vote by core developers will
 stay open 7 days. Approval of appointment requires:
 
-* a 2/3 majority of all cast votes, and
-* a simple majority approval of all the current CC members.
+* a 2/3 majority of all cast votes
 
 The core developer vote takes place in private communication channels,
 visible to, and only to, core developers, and is anonymous.
 The CC members' vote takes place in private communication channels,
 visible to, and only to, CC members, and is anonymous.
-
-In case the CC members' vote is tied,
-the CC member with the shortest continuous tenure has a tie breaking privilege.
-
-The tie breaking is by construction visible to CC members,
-does not require the tie breaking CC member to have voted in the anonymous vote,
-and need not follow their anonymous vote if they have voted.
 
 End of tenure
 ^^^^^^^^^^^^^

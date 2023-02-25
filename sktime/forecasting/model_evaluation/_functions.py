@@ -118,7 +118,6 @@ def _evaluate_window(
     error_score,
     cutoff_dtype,
 ):
-
     # set default result values in case estimator fitting fails
     score = error_score
     fit_time = np.nan
@@ -182,6 +181,7 @@ def _evaluate_window(
                 Failed forecaster: {forecaster}.
                 """,
                 FitFailedWarning,
+                stacklevel=1,
             )
 
     if pd.isnull(cutoff):
@@ -242,7 +242,7 @@ def evaluate(
     scoring : subclass of sktime.performance_metrics.BaseMetric or list of same,
         default=None. Used to get a score function that takes y_pred and y_test
         arguments and accept y_train as keyword argument.
-        If None, then uses scoring = MeanAbsolutePercentageError(symmetric=True).
+        If None, then uses scoring = MeanAbsolutePercentageError().
     return_data : bool, default=False
         Returns three additional columns in the DataFrame, by default False.
         The cells of the columns contain each a pd.Series for y_train,
@@ -263,9 +263,8 @@ def evaluate(
         If backend="dask", whether returned DataFrame is computed.
         If set to True, returns `pd.DataFrame`, otherwise `dask.dataframe.DataFrame`.
     **kwargs : Keyword arguments
-        Only relevant if backend is specified. Additional kwargs are passed into
-        `dask.distributed.get_client` or `dask.distributed.Client` if backend is
-        set to "dask", otherwise kwargs are passed into `joblib.Parallel`.
+        Only relevant if backend is specified. Additional kwargs are passed
+        into `joblib.Parallel` if backend is "loky", "multiprocessing" or "threading".
 
     Returns
     -------
