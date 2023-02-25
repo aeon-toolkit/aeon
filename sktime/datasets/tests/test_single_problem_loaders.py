@@ -45,7 +45,7 @@ def test_load_dataframe(loader):
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
 def test_load_numpy3d(loader, split):
-    """Test equal length TSC problems into numpy3d."""
+    """Test equal length TSC problems load into numpy3d."""
     X, y = loader()
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
@@ -55,7 +55,7 @@ def test_load_numpy3d(loader, split):
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
 def test_load_numpy2d_univariate(loader):
-    """Test that we can load univariate equal length TSC problems into numpy2d."""
+    """Test univariate equal length TSC problems can be loaded into numpy2d."""
     X, y = loader(return_type="numpy2d")
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
