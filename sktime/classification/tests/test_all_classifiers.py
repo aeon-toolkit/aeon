@@ -167,8 +167,8 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             estimator_instance.set_params(random_state=0)
 
         # load unit test data
-        X_train, y_train = load_basic_motions(split="train")
-        X_test, _ = load_basic_motions(split="test")
+        X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
+        X_test, _ = load_basic_motions(split="test", return_type="nested_univ")
         indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
         # train classifier and predict probas
