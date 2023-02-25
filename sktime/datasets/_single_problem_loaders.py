@@ -423,14 +423,6 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
 
     Returns
     -------
-    X: sktime data container, following mtype specification `return_type`
-        The time series data for the problem, with n instances
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
-
-    Returns
-    -------
     X: numpy array
         shape (n_cases, 6, 100) (if return_type="numpy3d"), where n_cases where
         n_cases is either 40 (split = "train" or split="test") or 80.
