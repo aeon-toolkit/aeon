@@ -429,10 +429,6 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
 
-    Raises
-    ------
-    ValueError if argument "numpy2d"/"numpyflat" is passed as return_type
-
     Returns
     -------
     X: numpy array
