@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+
 from sktime.datasets import load_basic_motions
 from sktime.transformations.panel.compose import ColumnConcatenator
 
 
 def test_TimeSeriesConcatenator():
-    X, y = load_basic_motions(split="train", return_X_y=True)
+    X, y = load_basic_motions(split="train", return_type="nested_univ")
 
     # check that loaded dataframe is multivariate
     assert X.shape[1] > 1

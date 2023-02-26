@@ -149,8 +149,8 @@ def test_kmeans():
 )
 def test_kmeans_dba():
     """Test implementation of Kmeans using dba."""
-    X_train, y_train = load_basic_motions(split="train")
-    X_test, y_test = load_basic_motions(split="test")
+    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
+    X_test, y_test = load_basic_motions(split="test", return_type="nested_univ")
 
     num_test_values = 5
 

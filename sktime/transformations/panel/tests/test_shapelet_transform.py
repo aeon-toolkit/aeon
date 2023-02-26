@@ -17,10 +17,10 @@ def test_st_on_unit_test():
     st = RandomShapeletTransform(
         max_shapelets=10, n_shapelet_samples=500, random_state=0
     )
-    st.fit(X_train.iloc[indices], y_train[indices])
+    st.fit(X_train[indices], y_train[indices])
 
     # assert transformed data is the same
-    data = st.transform(X_train.iloc[indices])
+    data = st.transform(X_train[indices])
     testing.assert_array_almost_equal(
         data, shapelet_transform_unit_test_data, decimal=4
     )
@@ -29,17 +29,17 @@ def test_st_on_unit_test():
 def test_st_on_basic_motions():
     """Test of ShapeletTransform on basic motions data."""
     # load basic motions data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(split="train")
     indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
 
     # fit the shapelet transform
     st = RandomShapeletTransform(
         max_shapelets=10, n_shapelet_samples=500, random_state=0
     )
-    st.fit(X_train.iloc[indices], y_train[indices])
+    st.fit(X_train[indices], y_train[indices])
 
     # assert transformed data is the same
-    data = st.transform(X_train.iloc[indices])
+    data = st.transform(X_train[indices])
     testing.assert_array_almost_equal(
         data, shapelet_transform_basic_motions_data, decimal=4
     )
