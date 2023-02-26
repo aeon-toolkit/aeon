@@ -44,14 +44,14 @@ def test_catch22_wrapper_on_basic_motions():
 
     # fit Catch22Wrapper and assert transformed data is the same
     c22 = Catch22Wrapper(replace_nans=True)
-    data = c22.fit_transform(X_train.iloc[indices])
+    data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data, catch22wrapper_basic_motions_data, decimal=4
     )
 
     # fit Catch22Wrapper with select features and assert transformed data is the same
     c22 = Catch22Wrapper(replace_nans=True, features=feature_names)
-    data = c22.fit_transform(X_train.iloc[indices])
+    data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data,
         catch22wrapper_basic_motions_data[
