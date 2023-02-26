@@ -14,6 +14,7 @@ from sklearn.ensemble._forest import (
     _get_n_samples_bootstrap,
 )
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import compute_sample_weight
@@ -729,7 +730,9 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             exponent = self.weights
             for clf_name, clf in self.classifiers_:
-                train_probs = clf.fit_predict_proba(X=X, y=y, cv=self.cv)
+                train_probs = cross_val_predict(
+                    X, y, cv=self.cv, method="predict_proba"
+                )
                 train_preds = clf.classes_[np.argmax(train_probs, axis=1)]
                 if self.metric_type == "proba":
                     for i in range(len(train_preds)):
