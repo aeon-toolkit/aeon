@@ -730,10 +730,15 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             exponent = self.weights
             for clf_name, clf in self.classifiers_:
+                # learn cross-val accuracy of the model
                 train_probs = cross_val_predict(
-                    X, y, cv=self.cv, method="predict_proba"
+                    clf, X=X, y=y, cv=self.cv, method="predict_proba"
                 )
+
+                # train final model
+                clf.fit(X, y)
                 train_preds = clf.classes_[np.argmax(train_probs, axis=1)]
+
                 if self.metric_type == "proba":
                     for i in range(len(train_preds)):
                         train_preds[i] = train_probs[i, np.argmax(train_probs[i, :])]
