@@ -85,7 +85,10 @@ def test_automated_orchestration_vs_manual(data_loader):
 @pytest.mark.parametrize(
     "dataset",
     [
-        RAMDataset(dataset=load_arrow_head(return_X_y=False), name="ArrowHead"),
+        RAMDataset(
+            dataset=load_arrow_head(return_X_y=False, return_type="nested_univ"),
+            name="ArrowHead",
+        ),
         UEADataset(path=DATAPATH, name="GunPoint", target_name="class_val"),
     ],
 )
