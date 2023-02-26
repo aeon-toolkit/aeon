@@ -256,53 +256,6 @@ class BaseClassifier(BaseEstimator, ABC):
         # call internal _predict_proba
         return self._predict_proba(X)
 
-    def fit_predict(self, X, y, cv=None, change_state=True) -> np.ndarray:
-        """Fit and predict labels for sequences in X.
-
-        Method to produce predictions for the train set, either using the model fit
-        on the whole data or through cross validation.
-
-        Writes to self, if change_state=True:
-            Sets self.is_fitted to True.
-            Sets fitted model attributes ending in "_".
-
-        Does not update state if change_state=False.
-
-        Parameters
-        ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
-            indices correspond to instance indices in X
-        cv : None, int, or sklearn cross-validation object, optional, default=None
-            None : predictions are in-sample, equivalent to fit(X, y).predict(X)
-            cv : predictions are equivalent to fit(X_train, y_train).predict(X_test)
-                where multiple X_train, y_train, X_test are obtained from cv folds
-                returned y is union over all test fold predictions
-                cv test folds must be non-intersecting
-            int : equivalent to cv=KFold(cv, shuffle=True, random_state=x),
-                i.e., k-fold cross-validation predictions out-of-sample
-                random_state x is taken from self if exists, otherwise x=None
-        change_state : bool, optional (default=True)
-            if False, will not change the state of the classifier,
-                i.e., fit/predict sequence is run with a copy, self does not change
-            if True, will fit self to the full X and y,
-                end state will be equivalent to running fit(X, y)
-
-        Returns
-        -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
-            indices correspond to instance indices in X
-            if cv is passed, -1 indicates entries not seen in union of test sets
-        """
-        return self._fit_predict_boilerplate(
-            X=X, y=y, cv=cv, change_state=change_state, method="predict"
-        )
-
     def _single_class_y_pred(self, X, method="predict"):
         """Handle the prediction case where only single class label was seen in fit."""
         _, _, X_meta = check_is_scitype(X, scitype="Panel", return_metadata=True)
