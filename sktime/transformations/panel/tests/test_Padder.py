@@ -41,7 +41,9 @@ def test_padding_parameterised_transformer():
 def test_padding_fill_value_transformer():
     """Test full fill padding."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(
+        split="train", return_X_y=True, return_type="nested_univ"
+    )
 
     padding_transformer = PaddingTransformer(pad_length=120, fill_value=1)
     Xt = padding_transformer.fit_transform(X_train)

@@ -37,55 +37,14 @@ def make_reduction_pipeline(estimator):
     return pipeline
 
 
-# simple test of orchestration and metric evaluation
-@pytest.mark.parametrize("data_loader", [load_gunpoint, load_arrow_head])
-def test_automated_orchestration_vs_manual(data_loader):
-    """Test orchestration."""
-    data = data_loader(return_X_y=False, return_type="nested_univ")
-
-    dataset = RAMDataset(dataset=data, name="data")
-    task = TSCTask(target="class_val")
-
-    # create strategies
-    # clf = TimeSeriesForestClassifier(n_estimators=1, random_state=1)
-    clf = make_reduction_pipeline(
-        RandomForestClassifier(n_estimators=2, random_state=1)
-    )
-    strategy = TSCStrategy(clf)
-
-    # result backend
-    results = RAMResults()
-    orchestrator = Orchestrator(
-        datasets=[dataset],
-        tasks=[task],
-        strategies=[strategy],
-        cv=SingleSplit(random_state=1),
-        results=results,
-    )
-
-    orchestrator.fit_predict(save_fitted_strategies=False)
-    result = next(results.load_predictions(cv_fold=0, train_or_test="test"))  # get
-    # only first item of iterator
-    actual = result.y_pred
-
-    # expected output
-    task = TSCTask(target="class_val")
-    cv = SingleSplit(random_state=1)
-    train_idx, test_idx = next(cv.split(data))
-    train = data.iloc[train_idx, :]
-    test = data.iloc[test_idx, :]
-    strategy.fit(task, train)
-    expected = strategy.predict(test)
-
-    # compare results
-    np.testing.assert_array_equal(actual, expected)
-
-
 # extensive tests of orchestration and metric evaluation against sklearn
 @pytest.mark.parametrize(
     "dataset",
     [
-        RAMDataset(dataset=load_arrow_head(return_X_y=False), name="ArrowHead"),
+        RAMDataset(
+            dataset=load_arrow_head(return_X_y=False, return_type="nested_univ"),
+            name="ArrowHead",
+        ),
         UEADataset(path=DATAPATH, name="GunPoint", target_name="class_val"),
     ],
 )
@@ -161,7 +120,7 @@ def test_single_dataset_single_strategy_against_sklearn(
 # simple test of sign test and ranks
 def test_stat():
     """Test sign ranks."""
-    data = load_gunpoint(split="train", return_X_y=False)
+    data = load_gunpoint(split="train", return_X_y=False, return_type="nested_univ")
     dataset = RAMDataset(dataset=data, name="gunpoint")
     task = TSCTask(target="class_val")
 

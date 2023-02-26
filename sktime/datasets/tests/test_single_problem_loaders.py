@@ -44,7 +44,7 @@ def test_load_dataframe(loader):
 
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
-def test_load_numpy3d(loader, split):
+def test_load_numpy3d(loader):
     """Test equal length TSC problems load into numpy3d."""
     X, y = loader()
     assert isinstance(X, np.ndarray)
