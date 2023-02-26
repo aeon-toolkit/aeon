@@ -23,7 +23,7 @@ from sktime.benchmarking.strategies import TSCStrategy
 from sktime.benchmarking.tasks import TSCTask
 from sktime.classification.compose import ComposableTimeSeriesForestClassifier
 from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
-from sktime.datasets import load_arrow_head, load_unit_test
+from sktime.datasets import load_arrow_head, load_gunpoint
 from sktime.series_as_features.model_selection import SingleSplit
 from sktime.transformations.panel.reduce import Tabularizer
 
@@ -38,7 +38,7 @@ def make_reduction_pipeline(estimator):
 
 
 # simple test of orchestration and metric evaluation
-@pytest.mark.parametrize("data_loader", [load_arrow_head, load_unit_test])
+@pytest.mark.parametrize("data_loader", [load_gunpoint, load_arrow_head])
 def test_automated_orchestration_vs_manual(data_loader):
     """Test orchestration."""
     data = data_loader(return_X_y=False, return_type="nested_univ")
@@ -85,10 +85,7 @@ def test_automated_orchestration_vs_manual(data_loader):
 @pytest.mark.parametrize(
     "dataset",
     [
-        RAMDataset(
-            dataset=load_arrow_head(return_X_y=False, return_type="nested_univ"),
-            name="ArrowHead",
-        ),
+        RAMDataset(dataset=load_arrow_head(return_X_y=False), name="ArrowHead"),
         UEADataset(path=DATAPATH, name="GunPoint", target_name="class_val"),
     ],
 )
@@ -164,8 +161,8 @@ def test_single_dataset_single_strategy_against_sklearn(
 # simple test of sign test and ranks
 def test_stat():
     """Test sign ranks."""
-    data = load_unit_test(split="train", return_X_y=False, return_type="nested_univ")
-    dataset = RAMDataset(dataset=data, name="unit_test")
+    data = load_gunpoint(split="train", return_X_y=False)
+    dataset = RAMDataset(dataset=data, name="gunpoint")
     task = TSCTask(target="class_val")
 
     fc = ComposableTimeSeriesForestClassifier(n_estimators=1, random_state=1)
