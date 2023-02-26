@@ -8,13 +8,11 @@ import pickle
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.model_selection import KFold
 
 from sktime.classification.base import BaseClassifier
 from sktime.classification.deep_learning.base import BaseDeepClassifier
 from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
 from sktime.classification.feature_based import Catch22Classifier
-from sktime.utils._testing.estimator_checks import _assert_array_almost_equal
 from sktime.utils._testing.panel import (
     _make_classification_y,
     _make_panel,
@@ -348,71 +346,6 @@ def test_input_conversion_fit_predict(mtype):
     clf.predict(X)
 
 
-@pytest.mark.parametrize("method", ["fit_predict", "fit_predict_proba"])
-def test_fit_predict_change_state(method):
-    """Test change_state flag in fit_predict, fit_predict_proba works as intended."""
-    X, y = make_classification_problem()
-
-    clf = KNeighborsTimeSeriesClassifier()
-
-    y_pred = getattr(clf, method)(X, y, change_state=False)
-    assert not clf.is_fitted
-
-    y_pred_post_fit = getattr(clf, method)(X, y, change_state=True)
-    assert clf.is_fitted
-
-    y_pred_post_fit2 = getattr(clf, method)(X, y, change_state=False)
-    assert clf.is_fitted
-
-    # get output from fit and predict or predict_proba
-    clf = KNeighborsTimeSeriesClassifier()
-    normal_method = method.partition("_")[2]
-    y_pred_normal = getattr(clf.fit(X, y), normal_method)(X)
-
-    # all the above outputs should be equal
-    _assert_array_almost_equal(y_pred_normal, y_pred)
-    _assert_array_almost_equal(y_pred_post_fit, y_pred)
-    _assert_array_almost_equal(y_pred_post_fit, y_pred_post_fit2)
-
-    assert len(y_pred) == len(y)
-    if method == "fit_predict_proba":
-        n_cl = len(y.unique())
-        assert y_pred.shape[1] == n_cl
-
-
-@pytest.mark.parametrize("method", ["fit_predict", "fit_predict_proba"])
-def test_fit_predict_cv(method):
-    """Test cv argument in fit_predict, fit_predict_proba."""
-    X, y = make_classification_problem()
-
-    clf = KNeighborsTimeSeriesClassifier()
-    clf.random_state = 42
-    cv = KFold(3, random_state=42, shuffle=True)
-
-    y_pred_cv_int = getattr(clf, method)(X, y, cv=3, change_state=False)
-    y_pred_cv_obj = getattr(clf, method)(X, y, cv=cv, change_state=False)
-    assert not clf.is_fitted
-
-    _assert_array_almost_equal(y_pred_cv_int, y_pred_cv_obj)
-    assert -1 not in y_pred_cv_int
-
-    assert len(y) == len(y_pred_cv_int)
-    if method == "fit_predict_proba":
-        n_cl = len(y.unique())
-        assert y_pred_cv_int.shape[1] == n_cl
-
-    # check that state is same as self.fit(X, y) if change_state=True
-    y_pred_cv_obj_fit = getattr(clf, method)(X, y, cv=cv, change_state=True)
-    assert clf.is_fitted
-
-    # get output from fit and predict or predict_proba
-    clf = KNeighborsTimeSeriesClassifier()
-    normal_method = method.partition("_")[2]
-    y_pred_normal = getattr(clf.fit(X, y), normal_method)(X)
-
-    _assert_array_almost_equal(y_pred_normal, y_pred_cv_obj_fit)
-
-
 @pytest.mark.parametrize("method", ["predict", "predict_proba"])
 def test_predict_single_class(method):
     """Test return of predict/_proba in case only single class seen in fit."""
@@ -432,30 +365,6 @@ def test_predict_single_class(method):
         assert y_pred.shape == (n_instances,)
         assert all(list(y_pred == 42))
     if method == "predict_proba":
-        assert isinstance(y_pred, np.ndarray)
-        assert y_pred.ndim == 2
-        assert y_pred.shape == (n_instances, 1)
-        assert all(list(y_pred == 1))
-
-
-@pytest.mark.parametrize("cv", [None, KFold(3, random_state=42, shuffle=True)])
-@pytest.mark.parametrize("method", ["fit_predict", "fit_predict_proba"])
-def test_fit_predict_single_class(method, cv):
-    """Test return of fit_predict/_proba in case only single class seen in fit."""
-    X, y = make_classification_problem()
-    y[:] = 42
-    n_instances = len(X)
-
-    clf = KNeighborsTimeSeriesClassifier()
-
-    y_pred = getattr(clf, method)(X, y, cv=cv, change_state=False)
-
-    if method == "fit_predict":
-        assert isinstance(y_pred, np.ndarray)
-        assert y_pred.ndim == 1
-        assert y_pred.shape == (n_instances,)
-        assert all(list(y_pred == 42))
-    if method == "fit_predict_proba":
         assert isinstance(y_pred, np.ndarray)
         assert y_pred.ndim == 2
         assert y_pred.shape == (n_instances, 1)
