@@ -197,78 +197,10 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "icon_links": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/sktime/sktime",
-            "icon": "fab fa-github",
-        },
-        {
-            "name": "Slack",
-            "url": "https://join.slack.com/t/sktime-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig",  # noqa: E501
-            "icon": "fab fa-slack",
-        },
-        {
-            "name": "Discord",
-            "url": "https://discord.com/invite/gqSab2K",
-            "icon": "fab fa-discord",
-        },
-        {
-            "name": "LinkedIn",
-            "url": "https://www.linkedin.com/company/sktime/",
-            "icon": "fab fa-linkedin",
-        },
-        {
-            "name": "Twitter",
-            "url": "https://twitter.com/sktime_toolbox",
-            "icon": "fab fa-twitter",
-        },
-    ],
-    "favicons": [
-        {
-            "rel": "icon",
-            "sizes": "16x16",
-            "href": "images/sktime-favicon.ico",
-        }
-    ],
-    "show_prev_next": False,
-    "use_edit_page_button": False,
-    "navbar_start": ["navbar-logo"],
-    "navbar_center": ["navbar-nav"],
-    "navbar_end": ["navbar-icon-links"],
+    "sidebar_hide_name": True,
+    "top_of_page_button": None,
 }
 html_logo = "images/sktime-logo-text-horizontal.png"
-html_context = {
-    "github_user": "sktime",
-    "github_repo": "sktime",
-    "github_version": "main",
-    "doc_path": "docs/source/",
-}
-html_favicon = "images/sktime-favicon.ico"
-html_sidebars = {
-    "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"]
-}
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
-html_css_files = ["css/custom.css"]
-html_js_files = [
-    "js/dynamic_table.js",
-]
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
-
-html_show_sourcelink = False
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
