@@ -21,6 +21,17 @@ rst_prolog = """.. attention::
     .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
 """  # noqa: E501
 
+# -- Project information -----------------------------------------------------
+
+project = "scikit-time"
+copyright = "The scikit-time developers (BSD-3 License)"
+author = "scikit-time developers"
+
+version = sktime.__version__
+release = sktime.__version__
+
+github_tag = f"v{version}"
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -33,17 +44,6 @@ else:
     rtd_version = os.environ.get("READTHEDOCS_VERSION")
     if rtd_version == "latest":
         github_tag = "main"
-
-# -- Project information -----------------------------------------------------
-
-project = "scikit-time"
-copyright = "The scikit-time developers (BSD-3 License)"
-author = "scikit-time developers"
-
-version = sktime.__version__
-release = sktime.__version__
-
-github_tag = f"v{version}"
 
 # -- General configuration ---------------------------------------------------
 
@@ -422,7 +422,7 @@ nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
 
 # make sure Binder points to latest stable release, not main
-binder_url = f"https://mybinder.org/v2/gh/sktime/sktime/{CURRENT_VERSION}?filepath={current_file}"  # noqa
+binder_url = f"https://mybinder.org/v2/gh/sktime/sktime/{github_tag}?filepath={current_file}"  # noqa
 nbsphinx_prolog = f"""
 .. |binder| image:: https://mybinder.org/badge_logo.svg
 .. _Binder: {binder_url}
@@ -432,7 +432,7 @@ nbsphinx_prolog = f"""
 
 # add link to original notebook at the bottom
 notebook_url = (
-    f"https://github.com/sktime/sktime/tree/{CURRENT_VERSION}/{current_file}"  # noqa
+    f"https://github.com/sktime/sktime/tree/{github_tag}/{current_file}"  # noqa
 )
 nbsphinx_epilog = f"""
 ----
