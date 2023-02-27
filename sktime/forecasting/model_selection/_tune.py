@@ -10,7 +10,6 @@ from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed
 from sklearn.model_selection import ParameterGrid, ParameterSampler, check_cv
 
 from sktime.datatypes import mtype_to_scitype
@@ -21,7 +20,6 @@ from sktime.utils.validation.forecasting import check_scoring
 
 
 class BaseGridSearch(_DelegatedForecaster):
-
     _tags = {
         "scitype:y": "both",
         "requires-fh-in-fit": False,
@@ -45,7 +43,6 @@ class BaseGridSearch(_DelegatedForecaster):
         update_behaviour="full_refit",
         error_score=np.nan,
     ):
-
         self.forecaster = forecaster
         self.cv = cv
         self.strategy = strategy
@@ -149,10 +146,6 @@ class BaseGridSearch(_DelegatedForecaster):
         scoring = check_scoring(self.scoring)
         scoring_name = f"test_{scoring.name}"
 
-        parallel = Parallel(
-            n_jobs=self.n_jobs, pre_dispatch=self.pre_dispatch, backend=self.backend
-        )
-
         def _fit_and_score(params):
             # Clone forecaster.
             forecaster = self.forecaster.clone()
@@ -169,6 +162,9 @@ class BaseGridSearch(_DelegatedForecaster):
                 strategy=self.strategy,
                 scoring=scoring,
                 error_score=self.error_score,
+                backend=self.backend,
+                n_jobs=self.n_jobs,
+                pre_dispatch=self.pre_dispatch,
             )
 
             # Filter columns.
@@ -195,10 +191,9 @@ class BaseGridSearch(_DelegatedForecaster):
                         n_splits, n_candidates, n_candidates * n_splits
                     )
                 )
-
-            out = parallel(
-                delayed(_fit_and_score)(params) for params in candidate_params
-            )
+            out = []
+            for params in candidate_params:
+                out.append(_fit_and_score(params))
 
             if len(out) < 1:
                 raise ValueError(
@@ -334,9 +329,11 @@ class ForecastingGridSearchCV(BaseGridSearch):
     param_grid : dict or list of dictionaries
         Model tuning parameters of the forecaster to evaluate
     scoring: function, optional (default=None)
-        Function to score models for evaluation of optimal parameters
+        Function to score models for evaluation of optimal parameters. If None,
+        then MeanAbsolutePercentageError() is used.
     n_jobs: int, optional (default=None)
-        Number of jobs to run in parallel.
+        Number of jobs to run in parallel if backend either "loky",
+        "multiprocessing" or "threading".
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
     refit: bool, optional (default=True)
@@ -346,13 +343,23 @@ class ForecastingGridSearchCV(BaseGridSearch):
     return_n_best_forecasters: int, default=1
         In case the n best forecaster should be returned, this value can be set
         and the n best forecasters will be assigned to n_best_forecasters_
-    pre_dispatch: str, optional (default='2*n_jobs')
+    pre_dispatch: str, optional (default='2*n_jobs').
+        Controls the number of jobs that get dispatched during parallel execution when
+        using the "loky", "threading", or "multiprocessing" backend.
     error_score: numeric value or the str 'raise', optional (default=np.nan)
         The test score returned when a forecaster fails to be fitted.
     return_train_score: bool, optional (default=False)
-    backend: str, optional (default="loky")
-        Specify the parallelisation backend implementation in joblib, where
-        "loky" is used by default.
+    backend : {"dask", "loky", "multiprocessing", "threading"}, by default "loky".
+        Runs parallel evaluate if specified and `strategy` is set as "refit".
+        - "loky", "multiprocessing" and "threading": uses `joblib` Parallel loops
+        - "dask": uses `dask`, requires `dask` package in environment
+        Recommendation: Use "dask" or "loky" for parallel evaluate.
+        "threading" is unlikely to see speed ups due to the GIL and the serialization
+        backend (`cloudpickle`) for "dask" and "loky" is generally more robust than the
+        standard `pickle` library used in "multiprocessing".
+    pre_dispatch: str, optional (default='2*n_jobs').
+        Controls the number of jobs that get dispatched during parallel execution when
+        using the "loky", "threading", or "multiprocessing" backend.
     error_score : "raise" or numeric, default=np.nan
         Value to assign to the score if an exception occurs in estimator fitting. If set
         to "raise", the exception is raised. If a numeric value is given,
@@ -397,7 +404,8 @@ class ForecastingGridSearchCV(BaseGridSearch):
     >>> gscv = ForecastingGridSearchCV(
     ...     forecaster=forecaster,
     ...     param_grid=param_grid,
-    ...     cv=cv)
+    ...     cv=cv,
+    ...     n_jobs=-1)
     >>> gscv.fit(y)
     ForecastingGridSearchCV(...)
     >>> y_pred = gscv.predict(fh)
@@ -583,9 +591,11 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         Number of parameter settings that are sampled. n_iter trades
         off runtime vs quality of the solution.
     scoring: function, optional (default=None)
-        Function to score models for evaluation of optimal parameters
+        Function to score models for evaluation of optimal parameters. If None,
+        then MeanAbsolutePercentageError() is used.
     n_jobs: int, optional (default=None)
-        Number of jobs to run in parallel.
+        Number of jobs to run in parallel if backend either "loky",
+        "multiprocessing" or "threading".
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
     refit: bool, optional (default=True)
@@ -595,16 +605,22 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
     return_n_best_forecasters: int, default=1
         In case the n best forecaster should be returned, this value can be set
         and the n best forecasters will be assigned to n_best_forecasters_
-    pre_dispatch: str, optional (default='2*n_jobs')
+    pre_dispatch: str, optional (default='2*n_jobs').
+        Controls the number of jobs that get dispatched during parallel execution when
+        using the "loky", "threading", or "multiprocessing" backend.
     random_state : int, RandomState instance or None, default=None
         Pseudo random number generator state used for random uniform sampling
         from lists of possible values instead of scipy.stats distributions.
         Pass an int for reproducible output across multiple
         function calls.
-    pre_dispatch: str, optional (default='2*n_jobs')
-    backend: str, optional (default="loky")
-        Specify the parallelisation backend implementation in joblib, where
-        "loky" is used by default.
+    backend : {"dask", "loky", "multiprocessing", "threading"}, by default "loky".
+        Runs parallel evaluate if specified and `strategy` is set as "refit".
+        - "loky", "multiprocessing" and "threading": uses `joblib` Parallel loops
+        - "dask": uses `dask`, requires `dask` package in environment
+        Recommendation: Use "dask" or "loky" for parallel evaluate.
+        "threading" is unlikely to see speed ups due to the GIL and the serialization
+        backend (`cloudpickle`) for "dask" and "loky" is generally more robust than the
+        standard `pickle` library used in "multiprocessing".
     error_score : "raise" or numeric, default=np.nan
         Value to assign to the score if an exception occurs in estimator fitting. If set
         to "raise", the exception is raised. If a numeric value is given,

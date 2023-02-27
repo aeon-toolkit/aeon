@@ -289,24 +289,6 @@ ESTIMATOR_TAG_REGISTER = [
         "classification algorithms.",
     ),
     (
-        "capability:multiple-alignment",
-        "aligner",
-        "bool",
-        "is aligner capable of aligning multiple series (True) or only two (False)?",
-    ),
-    (
-        "capability:distance",
-        "aligner",
-        "bool",
-        "does aligner return overall distance between aligned series?",
-    ),
-    (
-        "capability:distance-matrix",
-        "aligner",
-        "bool",
-        "does aligner return pairwise distance matrix between aligned series?",
-    ),
-    (
         "requires-y-train",
         "metric",
         "bool",

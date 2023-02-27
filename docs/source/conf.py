@@ -14,7 +14,12 @@ rst_prolog = """.. attention::
     and documentation to reflect this. We do not recommend using this repository in any
     production setting, but welcome any contributors willing to help us update the
     project.
-"""
+
+    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
+    contributions.
+
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+"""  # noqa: E501
 
 # -- Path setup --------------------------------------------------------------
 
@@ -89,7 +94,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

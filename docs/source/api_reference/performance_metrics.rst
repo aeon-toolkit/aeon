@@ -78,6 +78,8 @@ Functions
 Segmentation
 ~~~~~~~~~~~~
 
+.. currentmodule:: sktime.performance_metrics.annotation.metrics
+
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
