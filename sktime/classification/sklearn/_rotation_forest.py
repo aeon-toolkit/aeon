@@ -215,7 +215,7 @@ class RotationForest(BaseEstimator):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._n_jobs)(
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_estimator)(
                         X,
                         X_cls_split,
@@ -237,7 +237,7 @@ class RotationForest(BaseEstimator):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = Parallel(n_jobs=self._n_jobs)(
+            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_estimator)(
                     X,
                     X_cls_split,
@@ -316,7 +316,7 @@ class RotationForest(BaseEstimator):
         # normalise the data.
         X = (X - self._min) / self._ptp
 
-        y_probas = Parallel(n_jobs=self._n_jobs)(
+        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -364,7 +364,7 @@ class RotationForest(BaseEstimator):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        p = Parallel(n_jobs=self._n_jobs)(
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,

@@ -276,8 +276,8 @@ def test__check_classifier_input():
     _check_classifier_input(test_X2, test_y2)
     # 2. Test correct: X: pd.DataFrame with 1 (univariate) and 3 cols(multivariate) vs
     # y:np.array and np.Series
-    test_X3 = _create_nested_dataframe(5, 1, 10)
-    test_X4 = _create_nested_dataframe(5, 3, 10)
+    test_X3 = _create_example_dataframe(5, 1, 10)
+    test_X4 = _create_example_dataframe(5, 3, 10)
     _check_classifier_input(test_X3, test_y1)
     _check_classifier_input(test_X4, test_y1)
     _check_classifier_input(test_X3, test_y2)
@@ -306,16 +306,6 @@ def _create_example_dataframe(cases=5, dimensions=1, length=10):
             instance_list.append(pd.Series(np.random.randn(length)))
         test_X["dimension_" + str(i)] = instance_list
     return test_X
-
-
-def _create_nested_dataframe(cases=5, dimensions=1, length=10):
-    testy = pd.DataFrame(dtype=np.float32)
-    for i in range(0, dimensions):
-        instance_list = []
-        for _ in range(0, cases):
-            instance_list.append(pd.Series(np.random.randn(length)))
-        testy["dimension_" + str(i + 1)] = instance_list
-    return testy
 
 
 def _create_unequal_length_nested_dataframe(cases=5, dimensions=1, length=10):
