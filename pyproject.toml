@@ -108,7 +108,7 @@ docs = [
     "myst-parser",
     "nbsphinx>=0.8.12",
     "numpydoc",
-    "pydata-sphinx-theme",
+    "furo",
     "sphinx_issues>=3.0.1",
     "sphinx-gallery>=0.11.1",
     "sphinx-design>=0.3.0",
