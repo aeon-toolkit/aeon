@@ -1,8 +1,8 @@
 .. _home:
 
-=================
+======================
 Welcome to scikit-time
-=================
+======================
 
 * Framework for time series tasks such as forecasting and classification.
 * Extends the scikit-learn interface, allowing for ease of use for familiar users.
@@ -10,14 +10,11 @@ Welcome to scikit-time
 * Interfaces with other time series packages to provide a single framework for algorithm comparison.
 * Uses a system of optional dependencies to allow easy installation of basic functionality.
 
-Contents
-========
-
 .. grid:: 1 2 2 2
     :gutter: 3
 
     .. grid-item-card::
-        :img-top: examples/images/forecasting.png
+        :img-top: examples/img/forecasting.png
         :text-align: center
 
         Forecasting
@@ -36,7 +33,7 @@ Contents
             Forecasting
 
     .. grid-item-card::
-        :img-top: examples/images/tsc.png
+        :img-top: examples/img/tsc.png
         :text-align: center
 
         Classification
@@ -55,7 +52,7 @@ Contents
             Classification
 
     .. grid-item-card::
-        :img-top: examples/images/tser.png
+        :img-top: examples/img/tser.png
         :text-align: center
 
         Regression
@@ -74,7 +71,7 @@ Contents
             Regression
 
     .. grid-item-card::
-        :img-top: examples/images/tscl.png
+        :img-top: examples/img/tscl.png
         :text-align: center
 
         Clustering
@@ -93,7 +90,7 @@ Contents
             Clustering
 
     .. grid-item-card::
-        :img-top: examples/images/wip.png
+        :img-top: examples/img/wip.png
         :text-align: center
 
         Transformations
@@ -110,6 +107,20 @@ Contents
             :expand:
 
             Transformations
+
+Community Channels
+------------------
+
+**GitHub**: `github.com/scikit-time/scikit-time`_
+
+**Slack**: `scikit-time Slack`_
+
+**Twitter**: link
+
+**LinkedIn**: link
+
+.. _github.com/scikit-time/scikit-time: https://github.com/scikit-time/scikit-time
+.. _scikit-time Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
 
 
 .. toctree::
