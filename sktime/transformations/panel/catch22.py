@@ -8,7 +8,6 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["Catch22"]
 
 import math
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -56,7 +55,7 @@ class Catch22(BaseTransformer):
         Replace NaN or inf values from the Catch22 transform with 0.
     n_jobs : int, optional, default=1
         The number of jobs to run in parallel for transform. Requires multiple input
-        cases. A value of -1 uses all CPU cores.
+        cases. ``-1`` means using all processors.
 
     See Also
     --------
@@ -160,16 +159,7 @@ class Catch22(BaseTransformer):
 
         threads_to_use = check_n_jobs(self.n_jobs)
 
-        # todo remove in v0.16 and add to docstring: ``-1`` means using all processors.
-        if self.n_jobs == -1:
-            threads_to_use = 1
-            warnings.warn(
-                "``n_jobs`` default was changed to 1 from -1 in version 0.14.0. "
-                "In version 0.16.0 a value of -1 will use all CPU cores instead of the "
-                "current 1 CPU core."
-            )
-
-        c22_list = Parallel(n_jobs=threads_to_use)(
+        c22_list = Parallel(n_jobs=threads_to_use, prefer="threads")(
             delayed(self._transform_case)(
                 X.iloc[i],
                 f_idx,
@@ -328,15 +318,7 @@ class Catch22(BaseTransformer):
 
         threads_to_use = check_n_jobs(self.n_jobs)
 
-        if self.n_jobs == -1:
-            threads_to_use = 1
-            warnings.warn(
-                "``n_jobs`` default was changed to 1 from -1 in version 0.13.4. "
-                "In version 0.15 a value of -1 will use all CPU cores instead of the "
-                "current 1 CPU core."
-            )
-
-        c22_list = Parallel(n_jobs=threads_to_use)(
+        c22_list = Parallel(n_jobs=threads_to_use, prefer="threads")(
             delayed(self._transform_case_single)(
                 X[i],
                 feature,

@@ -53,23 +53,6 @@ Composition
 
     CombinedDistance
 
-.. currentmodule:: sktime.dists_kernels.compose_tab_to_panel
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    AggrDist
-    FlatDist
-
-.. currentmodule:: sktime.dists_kernels.compose_from_align
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DistFromAligner
-
 .. currentmodule:: sktime.dists_kernels.dist_to_kern
 
 .. autosummary::
@@ -105,18 +88,6 @@ Dynamic Time Warping Distances
     :template: class.rst
 
     DtwDist
-
-Time warping distances can also be obtained by composing ``DistFromAligner`` with
-a time warping aligner, see docstring of ``DistFromAligner``:
-
-.. currentmodule:: sktime.dists_kernels.compose_from_align
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DistFromAligner
-
 
 Edit Distances
 ~~~~~~~~~~~~~~

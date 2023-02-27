@@ -67,9 +67,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ProximityForest
-    ProximityStump
-    ProximityTree
     ShapeDTW
 
 Dummy
@@ -142,13 +139,12 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.classification.kernel_based
+.. currentmodule:: sktime.classification.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TimeSeriesSVC
     Arsenal
     RocketClassifier
 
