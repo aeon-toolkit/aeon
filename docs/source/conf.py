@@ -26,25 +26,24 @@ rst_prolog = """.. attention::
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-
-ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
-if not ON_READTHEDOCS:
-    sys.path.insert(0, os.path.abspath("../.."))
+on_readthedocs = os.environ.get("READTHEDOCS") == "True"
+if not on_readthedocs:
+    sys.path.insert(0, os.path.abspath(".."))
+else:
+    rtd_version = os.environ.get("READTHEDOCS_VERSION")
+    if rtd_version == "latest":
+        github_tag = "main"
 
 # -- Project information -----------------------------------------------------
-project = "sktime"
-copyright = "2019 - 2021 (BSD-3-Clause License)"
-author = "sktime developers"
 
-# The full version, including alpha/beta/rc tags
-CURRENT_VERSION = f"v{sktime.__version__}"
+project = "scikit-time"
+copyright = "The scikit-time developers (BSD-3 License)"
+author = "scikit-time developers"
 
-# If on readthedocs, and we're building the latest version, update tag to generate
-# correct links in notebooks
-if ON_READTHEDOCS:
-    READTHEDOCS_VERSION = os.environ.get("READTHEDOCS_VERSION")
-    if READTHEDOCS_VERSION == "latest":
-        CURRENT_VERSION = "main"
+version = sktime.__version__
+release = sktime.__version__
+
+github_tag = f"v{version}"
 
 # -- General configuration ---------------------------------------------------
 
@@ -55,14 +54,14 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
-    "numpydoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
+    "numpydoc",
     "nbsphinx",  # integrates example notebooks
     "sphinx_gallery.load_style",
-    "myst_parser",
     "sphinx_design",
     "sphinx_issues",
+    "myst_parser",
 ]
 
 # Recommended by sphinx_design when using the MyST Parser
@@ -181,7 +180,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     return "https://github.com/sktime/sktime/blob/%s/%s" % (
-        CURRENT_VERSION,
+        github_tag,
         filename,
     )
 
