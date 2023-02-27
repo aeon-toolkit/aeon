@@ -13,19 +13,6 @@ Welcome to scikit-time
 Contents
 ========
 
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-
-   get_started
-   users
-   installation
-   api_reference
-   get_involved
-   developers
-   about
-   examples
-
 .. grid:: 1 2 2 2
     :gutter: 3
 
@@ -118,3 +105,17 @@ Contents
             :expand:
 
             Transformations
+
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    installation
+    get_started
+    api_reference
+    examples
+    get_involved
+    users
+    developers
+    about
