@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 
 from sktime.classification.compose import ColumnEnsembleClassifier
+from sktime.classification.convolution_based import Arsenal, RocketClassifier
 from sktime.classification.dictionary_based import (
     MUSE,
     WEASEL,
@@ -10,11 +11,7 @@ from sktime.classification.dictionary_based import (
     ContractableBOSS,
     TemporalDictionaryEnsemble,
 )
-from sktime.classification.distance_based import (
-    ElasticEnsemble,
-    ProximityForest,
-    ShapeDTW,
-)
+from sktime.classification.distance_based import ElasticEnsemble, ShapeDTW
 from sktime.classification.early_classification import (
     TEASER,
     ProbabilityThresholdEarlyClassifier,
@@ -22,7 +19,6 @@ from sktime.classification.early_classification import (
 from sktime.classification.feature_based import (
     Catch22Classifier,
     MatrixProfileClassifier,
-    RandomIntervalClassifier,
     SignatureClassifier,
     SummaryClassifier,
 )
@@ -30,11 +26,11 @@ from sktime.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from sktime.classification.interval_based import (
     CanonicalIntervalForest,
     DrCIF,
+    RandomIntervalClassifier,
     RandomIntervalSpectralEnsemble,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
-from sktime.classification.kernel_based import Arsenal, RocketClassifier
 from sktime.classification.shapelet_based import ShapeletTransformClassifier
 from sktime.datasets import load_basic_motions, load_unit_test
 from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
@@ -210,14 +206,6 @@ if __name__ == "__main__":
                 majority_vote=True,
                 distance_measures=["dtw", "ddtw", "wdtw"],
                 random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "ProximityForest - UnitTest",
-        _reproduce_classification_unit_test(
-            ProximityForest(
-                n_estimators=3, max_depth=2, n_stump_evaluations=2, random_state=0
             )
         ),
     )

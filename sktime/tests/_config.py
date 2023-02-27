@@ -49,22 +49,6 @@ EXCLUDED_TESTS = {
         "test_classifier_on_unit_test_data",
         "test_classifier_on_basic_motions",
     ],
-    # pickling problem with local method see #2490
-    "ProximityStump": [
-        "test_persistence_via_pickle",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_save_estimators_to_file",
-    ],
-    "ProximityTree": [
-        "test_persistence_via_pickle",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_save_estimators_to_file",
-    ],
-    "ProximityForest": [
-        "test_persistence_via_pickle",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_save_estimators_to_file",
-    ],
     # TapNet fails due to Lambda layer, see #3539 and #3616
     "TapNetClassifier": [
         "test_fit_idempotent",

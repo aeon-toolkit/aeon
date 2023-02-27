@@ -14,6 +14,8 @@ As described in
 }
 """
 
+import warnings
+
 from sktime.annotation.base import BaseSeriesAnnotator
 
 __author__ = ["ermshaua", "patrickzib"]
@@ -64,6 +66,8 @@ def find_dominant_window_sizes(X, offset=0.05):
 
         return int(window_size / 2)
 
+    return window_sizes[idx[0]]
+
 
 def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0.05):
     """Check if a candidate change point is in close proximity to other change points.
@@ -86,11 +90,11 @@ def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0
         If the 'candidate' change point is a trivial match to the ones in change_points
     """
     change_points = [0] + change_points + [n_timepoints]
-    exclusion_radius = np.int64(n_timepoints * exclusion_radius)
+    exclusion_zone = np.int64(n_timepoints * exclusion_radius)
 
     for change_point in change_points:
-        left_begin = max(0, change_point - exclusion_radius)
-        right_end = min(n_timepoints, change_point + exclusion_radius)
+        left_begin = max(0, change_point - exclusion_zone)
+        right_end = min(n_timepoints, change_point + exclusion_zone)
         if candidate in range(left_begin, right_end):
             return True
 
@@ -153,7 +157,8 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
 
         for ranges in [left_range, right_range]:
             # create and enqueue left local profile
-            if len(ranges) > period_size:
+            exclusion_zone = np.int64(len(ranges) * exclusion_radius)
+            if len(ranges) - period_size > 2 * exclusion_zone:
                 profile = clasp.transform(X[ranges])
                 change_point = np.argmax(profile)
                 score = profile[change_point]
@@ -260,11 +265,18 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
             fmt=sparse : only the found change point locations are returned
             fnt=dense : an interval series is returned which contains the segmetation.
         """
-        self.found_cps, self.profiles, self.scores = self._run_clasp(X)
+        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
+            warnings.warn(
+                "Period-Length is larger than size of the time series", stacklevel=1
+            )
+
+            self.found_cps, self.profiles, self.scores = [], [], []
+        else:
+            self.found_cps, self.profiles, self.scores = self._run_clasp(X)
 
         # Change Points
         if self.fmt == "sparse":
-            return pd.Series(self.found_cps)
+            return pd.Series(self.found_cps, dtype="int64")
 
         # Segmentation
         elif self.fmt == "dense":

@@ -199,7 +199,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         class_weight=None,
         max_samples=None,
     ):
-
         self.estimator = estimator
 
         # Assign values, even though passed on to base estimator below,
@@ -254,7 +253,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         BaseTimeSeriesForest._fit(self, X=X, y=y)
 
     def _validate_estimator(self):
-
         if not isinstance(self.n_estimators, numbers.Integral):
             raise ValueError(
                 "n_estimators must be an integer, "
@@ -613,7 +611,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sktime.classification.dummy import DummyClassifier
-    >>> from sktime.classification.kernel_based import RocketClassifier
+    >>> from sktime.classification.convolution_based import RocketClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
@@ -789,8 +787,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
+        from sktime.classification.convolution_based import RocketClassifier
         from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from sktime.classification.kernel_based import RocketClassifier
 
         params1 = {
             "classifiers": [
