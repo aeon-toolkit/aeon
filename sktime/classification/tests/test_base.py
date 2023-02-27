@@ -276,8 +276,8 @@ def test__check_classifier_input():
     _check_classifier_input(test_X2, test_y2)
     # 2. Test correct: X: pd.DataFrame with 1 (univariate) and 3 cols(multivariate) vs
     # y:np.array and np.Series
-    test_X3 = _create_nested_dataframe(5, 1, 10)
-    test_X4 = _create_nested_dataframe(5, 3, 10)
+    test_X3 = _create_example_dataframe(5, 1, 10)
+    test_X4 = _create_example_dataframe(5, 3, 10)
     _check_classifier_input(test_X3, test_y1)
     _check_classifier_input(test_X4, test_y1)
     _check_classifier_input(test_X3, test_y2)
@@ -297,7 +297,7 @@ def test__check_classifier_input():
         _check_classifier_input(test_X2, test_y1, enforce_min_instances=6)
 
 
-def _create_nested_dataframe(cases=5, dimensions=1, length=10):
+def _create_example_dataframe(cases=5, dimensions=1, length=10):
     """Create a simple data frame set of time series (X) for testing."""
     test_X = pd.DataFrame(dtype=np.float32)
     for i in range(0, dimensions):
