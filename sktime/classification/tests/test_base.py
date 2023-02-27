@@ -297,7 +297,7 @@ def test__check_classifier_input():
         _check_classifier_input(test_X2, test_y1, enforce_min_instances=6)
 
 
-def _create_example_dataframe(cases=5, dimensions=1, length=10):
+def _create_nested_dataframe(cases=5, dimensions=1, length=10):
     """Create a simple data frame set of time series (X) for testing."""
     test_X = pd.DataFrame(dtype=np.float32)
     for i in range(0, dimensions):
