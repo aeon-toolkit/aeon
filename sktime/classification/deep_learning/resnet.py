@@ -21,7 +21,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    n_epochs       : int, default = 1500
+    nb_epochs       : int, default = 1500
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
@@ -59,7 +59,7 @@ class ResNetClassifier(BaseDeepClassifier):
     >>> from sktime.classification.deep_learning.resnet import ResNetClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> clf = ResNetClassifier(nb_epochs=20, bacth_size=4) # doctest: +SKIP
     >>> clf.fit(X_train, Y_train) # doctest: +SKIP
     ResNetClassifier(...)
     """
@@ -68,7 +68,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_epochs=1500,
+        nb_epochs=1500,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
@@ -81,7 +81,7 @@ class ResNetClassifier(BaseDeepClassifier):
     ):
         _check_dl_dependencies(severity="error")
         super(ResNetClassifier, self).__init__()
-        self.n_epochs = n_epochs
+        self.nb_epochs = nb_epochs
         self.callbacks = callbacks
         self.verbose = verbose
         self.loss = loss
@@ -171,7 +171,7 @@ class ResNetClassifier(BaseDeepClassifier):
             X,
             y_onehot,
             batch_size=self.batch_size,
-            epochs=self.n_epochs,
+            epochs=self.nb_epochs,
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
@@ -202,13 +202,13 @@ class ResNetClassifier(BaseDeepClassifier):
         from sktime.utils.validation._dependencies import _check_soft_dependencies
 
         param1 = {
-            "n_epochs": 10,
+            "nb_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
         }
 
         param2 = {
-            "n_epochs": 12,
+            "nb_epochs": 12,
             "batch_size": 6,
             "use_bias": True,
         }
@@ -219,7 +219,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
             test_params.append(
                 {
-                    "n_epochs": 2,
+                    "nb_epochs": 2,
                     "callbacks": [LambdaCallback()],
                 }
             )
