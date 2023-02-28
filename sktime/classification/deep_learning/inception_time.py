@@ -67,6 +67,7 @@ class InceptionTimeClassifier:
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
+        use_custom_filters=True,
         file_path='./',
         
         batch_size=64,
@@ -97,6 +98,8 @@ class InceptionTimeClassifier:
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.nb_epochs = nb_epochs
+
+        self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
 
@@ -131,6 +134,7 @@ class InceptionTimeClassifier:
                 use_residual=self.use_residual,
                 use_bottleneck=self.use_bottleneck,
                 depth=self.depth,
+                use_custom_filters=self.use_custom_filters,
                 file_path=self.file_path,
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
@@ -257,6 +261,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
+        use_custom_filters=True,
         file_path='./',
         
         batch_size=64,
@@ -288,6 +293,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.nb_epochs = nb_epochs
+        self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
 
@@ -314,6 +320,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             use_bottleneck=self.use_bottleneck,
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
+            use_custom_filters=self.use_custom_filters,
             random_state=self.random_state
         )
 
