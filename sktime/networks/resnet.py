@@ -39,10 +39,84 @@ class ResNetNetwork(BaseDeepNetwork):
 
     _tags = {"python_dependencies": ["tensorflow", "keras-self-attention"]}
 
-    def __init__(self, random_state=0):
+    def __init__(self, 
+    
+        n_residual_blocks=3,
+        n_conv_per_residual_block=3,
+        n_filters=[64, 128, 128],
+        kernel_sizes=[8, 5, 3],
+        strides=1,
+        dilation_rate=1,
+        padding='same',
+        activation='relu',
+        use_bias=True,
+    
+        random_state=0):
+
         _check_dl_dependencies(severity="error")
         super(ResNetNetwork, self).__init__()
+
+        self.n_residual_blocks = n_residual_blocks
+        self.n_conv_per_residual_block = n_conv_per_residual_block
+
+        if isinstance(n_filters, list):
+            self.n_filters = n_filters
+        else:
+            self.n_filters = [n_filters] * self.n_residual_blocks
+        
+        if isinstance(kernel_sizes, list):
+            self.kernel_sizes = kernel_sizes
+        else:
+            self.kernel_sizes = [kernel_sizes] * self.n_conv_per_residual_block
+        
+        if isinstance(strides, list):
+            self.strides = strides
+        else:
+            self.strides = [strides] * self.n_conv_per_residual_block
+        
+        if isinstance(dilation_rate, list):
+            self.dilation_rate = dilation_rate
+        else:
+            self.dilation_rate = [dilation_rate] * self.n_conv_per_residual_block
+        
+        if isinstance(padding, list):
+            self.padding = padding
+        else:
+            self.padding = [padding] * self.n_conv_per_residual_block
+        
+        if isinstance(activation, list):
+            self.activation = activation
+        else:
+            self.activation = [activation] * self.n_conv_per_residual_block
+        
+        if isinstance(use_bias, list):
+            self.use_bias = use_bias
+        else:
+            self.use_bias = [use_bias] * self.n_conv_per_residual_block
+        
+        assert(len(self.n_filters) == self.n_residual_blocks)
+        assert(len(self.kernel_sizes) == self.n_conv_per_residual_block)
+        assert(len(self.strides) == self.n_conv_per_residual_block)
+        assert(len(self.padding) == self.n_conv_per_residual_block)
+        assert(len(self.dilation_rate) == self.n_conv_per_residual_block)
+        assert(len(self.activation) == self.n_conv_per_residual_block)
+        assert(len(self.use_bias) == self.n_conv_per_residual_block)
+
         self.random_state = random_state
+    
+    def _shortcut_layer(self, input_tensor, output_tensor, padding='same', use_bias=True):
+
+        import tensorflow as tf
+
+        n_out_filters = int(output_tensor.shape[-1])
+
+        shortcut_layer = tf.keras.layers.Conv1D(filters=n_out_filters,
+                                                kernel_size=1,
+                                                padding=padding,
+                                                use_bias=use_bias)(input_tensor)
+        shortcut_layer = tf.keras.layers.BatchNormalization()(shortcut_layer)
+
+        return tf.keras.layers.Add()([output_tensor, shortcut_layer])
 
     def build_network(self, input_shape, **kwargs):
         """
@@ -60,95 +134,36 @@ class ResNetNetwork(BaseDeepNetwork):
         output_layer : keras.layers.Layer
             The output layer of the network.
         """
-        from tensorflow import keras
 
-        n_feature_maps = 64
+        import tensorflow as tf
 
-        input_layer = keras.layers.Input(input_shape)
+        input_layer = tf.keras.layers.Input(input_shape)
 
-        # 1st residual block
+        x = input_layer
 
-        conv_x = keras.layers.Conv1D(
-            filters=n_feature_maps, kernel_size=8, padding="same"
-        )(input_layer)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation("relu")(conv_x)
+        for d in range(self.n_residual_blocks):
 
-        conv_y = keras.layers.Conv1D(
-            filters=n_feature_maps, kernel_size=5, padding="same"
-        )(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation("relu")(conv_y)
+            input_block_tensor = x
 
-        conv_z = keras.layers.Conv1D(
-            filters=n_feature_maps, kernel_size=3, padding="same"
-        )(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
+            for c in range(self.n_conv_per_residual_block):
 
-        # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(
-            filters=n_feature_maps, kernel_size=1, padding="same"
-        )(input_layer)
-        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
+                conv = tf.keras.layers.Conv1D(filters=self.n_filters[d],
+                                              kernel_size=self.kernel_sizes[c],
+                                              strides=self.kernel_sizes[c],
+                                              padding=self.padding[c],
+                                              dilation_rate=self.dilation_rate[c])(x)
+                conv = tf.keras.layers.BatchNormalization()(conv)
 
-        output_block_1 = keras.layers.add([shortcut_y, conv_z])
-        output_block_1 = keras.layers.Activation("relu")(output_block_1)
+                if c == self.n_conv_per_residual_block - 1:
 
-        # 2nd residual block
+                    conv = self._shortcut_layer(
+                        input_tensor=input_block_tensor,
+                        output_tensor=conv)
+                    
+                conv = tf.keras.layers.Activation(activation=self.activation[c])(conv)
 
-        conv_x = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=8, padding="same"
-        )(output_block_1)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation("relu")(conv_x)
-
-        conv_y = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=5, padding="same"
-        )(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation("relu")(conv_y)
-
-        conv_z = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=3, padding="same"
-        )(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
-
-        # expand channels for the sum
-        shortcut_y = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=1, padding="same"
-        )(output_block_1)
-        shortcut_y = keras.layers.BatchNormalization()(shortcut_y)
-
-        output_block_2 = keras.layers.add([shortcut_y, conv_z])
-        output_block_2 = keras.layers.Activation("relu")(output_block_2)
-
-        # 3rd residual block
-
-        conv_x = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=8, padding="same"
-        )(output_block_2)
-        conv_x = keras.layers.BatchNormalization()(conv_x)
-        conv_x = keras.layers.Activation("relu")(conv_x)
-
-        conv_y = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=5, padding="same"
-        )(conv_x)
-        conv_y = keras.layers.BatchNormalization()(conv_y)
-        conv_y = keras.layers.Activation("relu")(conv_y)
-
-        conv_z = keras.layers.Conv1D(
-            filters=n_feature_maps * 2, kernel_size=3, padding="same"
-        )(conv_y)
-        conv_z = keras.layers.BatchNormalization()(conv_z)
-
-        # no need to expand channels because they are equal
-        shortcut_y = keras.layers.BatchNormalization()(output_block_2)
-
-        output_block_3 = keras.layers.add([shortcut_y, conv_z])
-        output_block_3 = keras.layers.Activation("relu")(output_block_3)
-
-        # global average pooling
-
-        gap_layer = keras.layers.GlobalAveragePooling1D()(output_block_3)
+                x = conv
+        
+        gap_layer = tf.keras.layers.GlobalAveragePooling1D(axis=-1)(conv)
 
         return input_layer, gap_layer
