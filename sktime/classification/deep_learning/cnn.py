@@ -20,34 +20,48 @@ class CNNClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    should inherited fields be listed here?
+    n_layers        : int, default = 2,
+        the number of convolution layers in the network
+    kernel_sizes    : int or list of int, default = 7,
+        kernel size of convolution layers, if not a list, the same kernel size
+        is used for all layer, len(list) should be n_layers
+    n_filters       : int or list of int, default = [6, 12],
+        number of filters for each convolution layer, if not a list, the same n_filters
+        is used in all layers.
+    avg_pool_size   : int or list of int, default = 3,
+        the size of the average pooling layer, if not a list, the same max pooling size is used
+        for all convolution layer
+    activation      : str or list of str, default = "sigmoid",
+        keras activation function used in the model for each layer, if not a list, the same
+        activation is used for all layers
+    padding         : str or list of str, default = 'valid',
+        the method of padding in convolution layers, if not a list, the same padding used
+        for all convolution layers
+    strides         : int or list of int, default = 1,
+        the strides of kernels in the convolution and max pooling layers, if not a list, 
+        the same strides are used for all layers
+    dilation_rate   : int or list of int, default = 1,
+        the dilation rate of the convolution layers, if not a list, the same dilation rate
+        is used all over the network
+    use_bias        : bool or list of bool, default = True,
+        condition on wether or not to use bias values for convolution layers, if not
+        a list, the same condition is used for all layers
+    random_state    : int, default = 0
+        seed to any needed random actions
     nb_epochs       : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
-    kernel_size     : int, default = 7
-        the length of the 1D convolution window
-    avg_pool_size   : int, default = 3
-        size of the average pooling windows
-    n_conv_layers   : int, default = 2
-        the number of convolutional plus average pooling layers
-    filter_sizes    : array of shape (n_conv_layers) default = [6, 12]
-    random_state    : int or None, default=None
-        Seed for random number generation.
     verbose         : boolean, default = False
         whether to output extra information
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
     optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
     metrics         : list of strings, default=["accuracy"],
-    activation      : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias        : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
+    callbacks       : keras.callbacks, default=model_checkpoint to save best
+                      model on training loss
+    file_path       : file_path for the best model (if checkpoint is used as callback)
+
 
     Notes
     -----
@@ -219,13 +233,16 @@ class CNNClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
-        import tensorflow as tf
-        import os
+        try:
+            import tensorflow as tf
+            import os
 
-        self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
-        os.remove(self.file_path+'best_model.hdf5')
+            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
+            os.remove(self.file_path+'best_model.hdf5')
 
-        return self
+            return self
+        except:
+            return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
