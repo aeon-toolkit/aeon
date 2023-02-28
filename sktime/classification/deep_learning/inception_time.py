@@ -218,23 +218,64 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    nb_filters: int, default = 32
-    use_residual: boolean, default = True
-    use_bottleneck: boolean, default = True
-    bottleneck_size: int, default = 32
-    depth: int, default = 6
-    kernel_size: int, default = 40
-        specifies the length of the 1D convolution window.
-    batch_size: int, default = 64
-        the number of samples per gradient update.
-    nb_epochs: int, default = 1500
-        the number of epochs to train the model.
-    callbacks: callable or None, default None
-        list of tf.keras.callbacks.Callback objects.
-    random_state: int, default = 0
-        seed to any needed random actions.
-    verbose: boolean, default = False
-        whether to output extra information
+        depth               : int, default = 6,
+            the number of inception modules used
+        nb_filters          : int or list of int32, default = 32,
+            the number of filters used in one inception module, if not a list,
+            the same number of filters is used in all inception modules
+        nb_conv_per_layer   : int or list of int, default = 3,
+            the number of convolution layers in each inception module, if not a list,
+            the same number of convolution layers is used in all inception modules
+        kernel_size         : int or list of int, default = 40,
+            the head kernel size used for each inception module, if not a list,
+            the same is used in all inception modules
+        use_max_pooling     : bool or list of bool, default = True,
+            conditioning wether or not to use max pooling layer in inception modules,if not a list,
+            the same is used in all inception modules
+        max_pool_size       : int or list of int, default = 3,
+            the size of the max pooling layer, if not a list,
+            the same is used in all inception modules
+        strides             : int or list of int, default = 1,
+            the strides of kernels in convolution layers for each inception module, if not a list,
+            the same is used in all inception modules
+        dilation_rate       : int or list of int, default = 1,
+            the dilation rate of convolutions in each inception module, if not a list,
+            the same is used in all inception modules
+        padding             : str or list of str, default = 'same',
+            the type of padding used for convoltuon for each inception module, if not a list,
+            the same is used in all inception modules
+        activation          : str or list of str, default = 'relu',
+            the activation function used in each inception module, if not a list,
+            the same is used in all inception modules
+        use_bias            : bool or list of bool, default = False,
+            conditioning wether or not convolutions should use bias values in each inception
+            module, if not a list,
+            the same is used in all inception modules
+        use_residual        : bool, default = True,
+            condition wether or not to use residual connections all over Inception
+        use_bottleneck      : bool, default = True,
+            confition wether or not to use bottlesnecks all over Inception
+        bottleneck_size     : int, default = 32,
+            the bottleneck size in case use_bottleneck = True
+        use_custom_filters  : bool, default = True,
+            condition on wether or not to use custom filters in the first inception module
+       
+        batch_size: int, default = 64
+            the number of samples per gradient update.
+        use_mini_batch_size: bool, default = False
+            condition on using the mini batch size formula Wang et al.
+        nb_epochs: int, default = 1500
+            the number of epochs to train the model.
+        callbacks: callable or None, default ReduceOnPlateau and ModelCheckpoint
+            list of tf.keras.callbacks.Callback objects.
+        file_path: str, default = './'
+            file_path when saving model_Checkpoint callback
+        random_state: int, default = 0
+            seed to any needed random actions.
+        verbose: boolean, default = False
+            whether to output extra information
+        optimizer: keras optimizer, default = keras.optimizers.Adam
+        loss: keras loss, default = keras.losses.categorical_crossentropy
 
     Notes
     -----
