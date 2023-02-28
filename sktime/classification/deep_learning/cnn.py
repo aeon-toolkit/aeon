@@ -21,7 +21,7 @@ class CNNClassifier(BaseDeepClassifier):
     Parameters
     ----------
     should inherited fields be listed here?
-    n_epochs       : int, default = 2000
+    nb_epochs       : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
@@ -65,7 +65,7 @@ class CNNClassifier(BaseDeepClassifier):
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> cnn = CNNClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> cnn = CNNClassifier(nb_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
     CNNClassifier(...)
     """
@@ -74,32 +74,42 @@ class CNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
-        kernel_size=7,
+
+        n_layers=2,
+        kernel_sizes=7,
+        n_filters=[6, 12],
         avg_pool_size=3,
-        n_conv_layers=2,
+        activation="sigmoid",
+        padding='valid',
+        strides=1,
+        dilation_rate=1,
+
+        nb_epochs=2000,
+        batch_size=16,
         callbacks=None,
         file_path='./',
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
         random_state=None,
-        activation="sigmoid",
         use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
         super(CNNClassifier, self).__init__()
 
-        self.n_conv_layers = n_conv_layers
+        self.n_layers = n_layers
+        self.kernel_sizes = kernel_sizes
+        self.n_filters = n_filters
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
         self.avg_pool_size = avg_pool_size
-        self.kernel_size = kernel_size
         self.activation = activation
         self.use_bias = use_bias
         self.random_state = random_state
 
-        self.n_epochs = n_epochs
+        self.nb_epochs = nb_epochs
         self.batch_size = batch_size
         self.callbacks = callbacks
         self.file_path = file_path
@@ -109,10 +119,15 @@ class CNNClassifier(BaseDeepClassifier):
         self.optimizer = optimizer
         self.history = None
         self._network = CNNNetwork(
-            kernel_size=self.kernel_size,
+            n_layers=self.n_layers,
+            kernel_sizes=self.kernel_sizes,
+            n_filters=self.n_filters,
             avg_pool_size=self.avg_pool_size,
-            n_conv_layers=self.n_conv_layers,
             activation=self.activation,
+            padding=self.padding,
+            strides=self.strides,
+            dilation_rate=self.dilation_rate,
+            use_bias=self.use_bias,
             random_state=self.random_state,
         )
 
@@ -166,7 +181,7 @@ class CNNClassifier(BaseDeepClassifier):
         self.callbacks = [
             keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5', monitor='loss',
                                                            save_best_only=True)
-            if self.callbacks is not None
+            if self.callbacks is None
             else self.callbacks
         ]
 
@@ -199,7 +214,7 @@ class CNNClassifier(BaseDeepClassifier):
             X,
             y_onehot,
             batch_size=self.batch_size,
-            epochs=self.n_epochs,
+            epochs=self.nb_epochs,
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
@@ -237,13 +252,13 @@ class CNNClassifier(BaseDeepClassifier):
         from sktime.utils.validation._dependencies import _check_soft_dependencies
 
         param1 = {
-            "n_epochs": 10,
+            "nb_epochs": 10,
             "batch_size": 4,
             "avg_pool_size": 4,
         }
 
         param2 = {
-            "n_epochs": 12,
+            "nb_epochs": 12,
             "batch_size": 6,
             "kernel_size": 2,
             "n_conv_layers": 1,
@@ -255,7 +270,7 @@ class CNNClassifier(BaseDeepClassifier):
 
             test_params.append(
                 {
-                    "n_epochs": 2,
+                    "nb_epochs": 2,
                     "callbacks": [LambdaCallback()],
                 }
             )
