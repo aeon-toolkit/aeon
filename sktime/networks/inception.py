@@ -124,7 +124,7 @@ class InceptionNetwork(BaseDeepNetwork):
 
         self.random_state = random_state
 
-        super(InceptionTimeNetwork, self).__init__()
+        super(InceptionNetwork, self).__init__()
 
     def _inception_module(self, input_tensor, nb_filters=32, dilation_rate=1, padding='same',
                                 strides=1, activation="relu", use_bias=False, kernel_size=40,
