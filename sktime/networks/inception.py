@@ -52,6 +52,7 @@ class InceptionNetwork(BaseDeepNetwork):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
+        use_custom_filters=True,
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
@@ -122,14 +123,110 @@ class InceptionNetwork(BaseDeepNetwork):
         self.depth = depth
         self.bottleneck_size = bottleneck_size
 
+        self.use_custom_filters = use_custom_filters
+
         self.random_state = random_state
 
         super(InceptionNetwork, self).__init__()
+    
+    def hybrid_layer(self,input_tensor, input_channels, kernel_sizes=[2,4,8,16,32,64]):
+
+        import numpy as np
+        import tensorflow as tf
+
+        self.keep_track = 0
+    
+
+        '''
+        Function to create the hybrid layer consisting of non trainable Conv1D layers with custom filters.
+
+        Args:
+
+            input_tensor: input tensor
+            input_channels : number of input channels, 1 in case of UCR Archive
+        '''
+
+        conv_list = []
+
+        # for increasing detection filters
+
+        for kernel_size in kernel_sizes:
+
+            filter_ = np.ones(shape=(kernel_size,input_channels,1)) # define the filter weights with the shape corresponding the Conv1D layer in keras (kernel_size, input_channels, output_channels)
+            indices_ = np.arange(kernel_size)
+
+            filter_[indices_ % 2 == 0] *= -1 # formula of increasing detection filter
+
+            # Create a Conv1D layer with non trainable option and no biases and set the filter weights that were calculated in the line above as the initialization
+
+            conv = tf.keras.layers.Conv1D(filters=1,kernel_size=kernel_size,padding='same',
+                                          use_bias=False,kernel_initializer=tf.keras.initializers.Constant(filter_),
+                                          trainable=False,name='hybrid-increasse-'+str(self.keep_track)+'-'+str(kernel_size))(input_tensor)
+
+            conv_list.append(conv) # add the conv layer to the list
+
+            self.keep_track += 1
+
+        # for decreasing detection filters
+        
+        for kernel_size in kernel_sizes:
+
+            filter_ = np.ones(shape=(kernel_size,input_channels,1)) # define the filter weights with the shape corresponding the Conv1D layer in keras (kernel_size, input_channels, output_channels)
+            indices_ = np.arange(kernel_size)
+
+            filter_[indices_ % 2 > 0] *= -1 # formula of decreasing detection filter
+
+            # Create a Conv1D layer with non trainable option and no biases and set the filter weights that were calculated in the line above as the initialization
+
+            conv = tf.keras.layers.Conv1D(filters=1,kernel_size=kernel_size,padding='same',
+                                          use_bias=False,kernel_initializer=tf.keras.initializers.Constant(filter_),
+                                          trainable=False,name='hybrid-decrease-'+str(self.keep_track)+'-'+str(kernel_size))(input_tensor)
+            
+            conv_list.append(conv) # add the conv layer to the list
+
+            self.keep_track += 1
+
+        # for peak detection filters
+        
+        for kernel_size in kernel_sizes[1:]:
+
+            filter_ = np.zeros(shape=(kernel_size + kernel_size // 2,input_channels,1))
+
+            xmesh = np.linspace(start=0,stop=1,num=kernel_size//4+1)[1:].reshape((-1,1,1))
+
+            # see utils.custom_filters.py to understand the formulas below
+
+            filter_left = xmesh**2
+            filter_right = filter_left[::-1]
+
+            filter_[0:kernel_size // 4] = -filter_left
+            filter_[kernel_size // 4:kernel_size // 2] = -filter_right
+            filter_[kernel_size // 2:3 * kernel_size // 4] = 2 * filter_left
+            filter_[3 * kernel_size // 4:kernel_size] = 2 * filter_right
+            filter_[kernel_size:5 * kernel_size // 4] = -filter_left
+            filter_[5 * kernel_size // 4:] = -filter_right
+            
+            # Create a Conv1D layer with non trainable option and no biases and set the filter weights that were calculated in the line above as the initialization
+
+            conv = tf.keras.layers.Conv1D(filters=1,kernel_size=kernel_size+kernel_size//2,padding='same',
+                                          use_bias=False,kernel_initializer=tf.keras.initializers.Constant(filter_),
+                                          trainable=False,name='hybrid-peeks-'+str(self.keep_track)+'-'+str(kernel_size))(input_tensor)
+
+            conv_list.append(conv) # add the conv layer to the list
+
+            self.keep_track += 1
+
+        
+        hybrid_layer = tf.keras.layers.Concatenate(axis=2)(conv_list) # concantenate all convolution layers
+        hybrid_layer = tf.keras.layers.Activation(activation='relu')(hybrid_layer) # apply activation ReLU
+
+        return hybrid_layer
+
 
     def _inception_module(self, input_tensor, nb_filters=32, dilation_rate=1, padding='same',
                                 strides=1, activation="relu", use_bias=False, kernel_size=40,
                                 nb_conv_per_layer=3, use_max_pooling=True,
-                                max_pool_size=3):
+                                max_pool_size=3, use_custom_filters=False):
 
         import tensorflow as tf
 
@@ -176,6 +273,12 @@ class InceptionNetwork(BaseDeepNetwork):
             )(max_pool_1)
 
             conv_list.append(conv_max_pool)
+        
+        if use_custom_filters:
+
+            hybrid_layer = self.hybrid_layer(input_tensor=input_tensor,
+                                             input_channels=int(input_tensor.shape[-1]))
+            conv_list.append(hybrid_layer)
 
         x = tf.keras.layers.Concatenate(axis=2)(conv_list)
         x = tf.keras.layers.BatchNormalization()(x)
@@ -220,7 +323,12 @@ class InceptionNetwork(BaseDeepNetwork):
         x = input_layer
         input_res = input_layer
 
+        use_custom_filters = self.use_custom_filters
+
         for d in range(self.depth):
+
+            if d > 0:
+                use_custom_filters = False
 
             x = self._inception_module(x,
                                 nb_filters=self.nb_filters[d],
@@ -232,7 +340,8 @@ class InceptionNetwork(BaseDeepNetwork):
                                 use_bias=self.use_bias[d],
                                 use_max_pooling=self.use_max_pooling[d],
                                 max_pool_size=self.max_pool_size[d],
-                                nb_conv_per_layer=self.nb_conv_per_layer[d])
+                                nb_conv_per_layer=self.nb_conv_per_layer[d],
+                                use_custom_filters=use_custom_filters)
 
             if self.use_residual and d % 3 == 2:
                 x = self._shortcut_layer(input_res, x, padding=self.padding[d])
