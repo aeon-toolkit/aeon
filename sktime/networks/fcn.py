@@ -58,8 +58,16 @@ class FCNNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
 
         self.n_layers = n_layers
-        self.n_filters = n_filters
-        self.kernel_sizes = kernel_sizes
+
+        if isinstance(n_filters, list):
+            self.n_filters = n_filters
+        else:
+            self.n_filters = [n_filters] * self.n_layers
+        
+        if isinstance(kernel_sizes, list):
+            self.kernel_sizes = kernel_sizes
+        else:
+            self.kernel_sizes = [kernel_sizes] * self.n_layers
 
         if isinstance(dilation_rate, list):
             self.dilation_rate = dilation_rate
@@ -121,11 +129,11 @@ class FCNNetwork(BaseDeepNetwork):
                                           kernel_size=self.kernel_sizes[i],
                                           strides=self.strides[i],
                                           dilation_rate=self.dilation_rate[i],
-                                          padding=self.padding,
+                                          padding=self.padding[i],
                                           use_bias=self.use_bias[i])(x)
             
             conv = tf.keras.layers.BatchNormalization()(conv)
-            conv = tf.keras.layers.Activation(activation=self.activation)(conv)
+            conv = tf.keras.layers.Activation(activation=self.activation[i])(conv)
 
             x = conv
 
