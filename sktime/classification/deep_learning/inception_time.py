@@ -5,7 +5,7 @@ __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst"]
 
 import numpy as np
 from sklearn.utils import check_random_state
-from sktime.classification.base import BaseClassifier
+# from sktime.classification.base import BaseClassifier
 from sktime.classification.deep_learning.base import BaseDeepClassifier
 from sktime.utils.validation._dependencies import _check_dl_dependencies
 
@@ -14,7 +14,7 @@ from sktime.networks.inception import InceptionNetwork
 _check_dl_dependencies(severity="warning")
 
 
-class InceptionTimeClassifier(BaseClassifier):
+class InceptionTimeClassifier:
     """InceptionTime ensemble classifier.
 
     Ensemble of IndividualInceptionTimeClassifiers, as desribed in [1].
@@ -22,7 +22,7 @@ class InceptionTimeClassifier(BaseClassifier):
     Parameters
     ----------
     n_classifiers=5,
-    n_filters: int,
+    nb_filters: int,
     use_residual: boolean,
     use_bottleneck: boolean,
     depth: int
@@ -53,7 +53,7 @@ class InceptionTimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
-        n_filters=32,
+        nb_filters=32,
         nb_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
@@ -76,12 +76,12 @@ class InceptionTimeClassifier(BaseClassifier):
         random_state=None,
         verbose=False,
         loss='categorical_crossentropy',
-        metric=None,
+        metrics=None,
         optimizer=None
     ):
         self.n_classifiers = n_classifiers
 
-        self.n_filters = n_filters
+        self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
@@ -105,20 +105,20 @@ class InceptionTimeClassifier(BaseClassifier):
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
-        self.metric = metric
+        self.metrics = metrics
         self.optimizer = optimizer
 
         self.classifers_ = []
 
-        super(InceptionTimeClassifier, self).__init__()
+        # super(InceptionTimeClassifier, self).__init__()
 
-    def _fit(self, X, y):
+    def fit(self, X, y):
         self.classifers_ = []
         rng = check_random_state(self.random_state)
 
         for _ in range(0, self.n_classifiers):
             cls = IndividualInceptionClassifier(
-                n_filters=self.n_filters,
+                nb_filters=self.nb_filters,
                 nb_conv_per_layer=self.nb_conv_per_layer,
                 kernel_size=self.kernel_size,
                 use_max_pooling=self.use_max_pooling,
@@ -137,7 +137,7 @@ class InceptionTimeClassifier(BaseClassifier):
                 nb_epochs=self.nb_epochs,
                 callbacks=self.callbacks,
                 loss=self.loss,
-                metric=self.metric,
+                metrics=self.metrics,
                 optimizer=self.optimizer,
                 random_state=rng.randint(0, np.iinfo(np.int32).max),
                 verbose=self.verbose,
@@ -145,18 +145,21 @@ class InceptionTimeClassifier(BaseClassifier):
             cls.fit(X, y)
             self.classifers_.append(cls)
 
+            self.classes_ = cls.classes_
+            self.n_classes_ = cls.n_classes_
+
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         rng = check_random_state(self.random_state)
         return np.array(
             [
                 self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self._predict_proba(X)
+                for prob in self.predict_proba(X)
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def predict_proba(self, X) -> np.ndarray:
         probs = np.zeros((X.shape[0], self.n_classes_))
 
         for cls in self.classifers_:
@@ -206,12 +209,12 @@ class InceptionTimeClassifier(BaseClassifier):
         return [param1, param2]
 
 
-class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
+class IndividualInceptionClassifier(BaseDeepClassifier):
     """Single InceptionTime classifier.
 
     Parameters
     ----------
-    n_filters: int, default = 32
+    nb_filters: int, default = 32
     use_residual: boolean, default = True
     use_bottleneck: boolean, default = True
     bottleneck_size: int, default = 32
@@ -240,7 +243,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
 
     def __init__(
         self,
-        n_filters=32,
+        nb_filters=32,
         nb_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
@@ -263,13 +266,13 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         random_state=None,
         verbose=False,
         loss='categorical_crossentropy',
-        metric=None,
+        metrics=None,
         optimizer=None
     ):
         _check_dl_dependencies(severity="error")
         super(IndividualInceptionClassifier, self).__init__()
         # predefined
-        self.n_filters = n_filters
+        self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
@@ -293,8 +296,26 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
-        self.metric = metric
+        self.metrics = metrics
         self.optimizer = optimizer
+
+        self._inception_network = InceptionNetwork(
+            nb_filters=self.nb_filters,
+            nb_conv_per_layer=self.nb_conv_per_layer,
+            kernel_size=self.kernel_size,
+            use_max_pooling=self.use_max_pooling,
+            max_pool_size=self.max_pool_size,
+            strides=self.strides,
+            dilation_rate=self.dilation_rate,
+            padding=self.padding,
+            activation=self.activation,
+            use_bias=self.use_bias,
+            use_residual=self.use_residual,
+            use_bottleneck=self.use_bottleneck,
+            bottleneck_size=self.bottleneck_size,
+            depth=self.depth,
+            random_state=self.random_state
+        )
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """
@@ -314,7 +335,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         """
         import tensorflow as tf
 
-        input_layer, output_layer = self.build_network(input_shape, **kwargs)
+        input_layer, output_layer = self._inception_network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(output_layer)
 
@@ -335,7 +356,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
 
         model.compile(
             loss=self.loss,
-            optimizer=self.optimizer,
+            optimizer=self.optimizer_,
             metrics=metrics,
         )
 
@@ -389,7 +410,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         -------
         self : object
         """
-        self.random_state = check_random_state(self.random_state)
+        # self.random_state = check_random_state(self.random_state)
+        
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -401,7 +423,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         if self.use_mini_batch_size:
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
-            self.batch_size = self.batch_size
+            mini_batch_size = self.batch_size
         self.model_ = self.build_model(self.input_shape, self.n_classes_)
 
         if self.verbose:
@@ -410,7 +432,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier, InceptionNetwork):
         self.history = self.model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.nb_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks,
