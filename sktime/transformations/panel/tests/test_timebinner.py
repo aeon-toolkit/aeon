@@ -10,7 +10,7 @@ from sktime.transformations.panel.reduce import TimeBinner
 
 def test_timebinner():
     """Test TimeBinner."""
-    X, y = load_basic_motions(return_X_y=True)
+    X, y = load_basic_motions(return_type="nested_univ")
 
     aggfunc = np.sum
     freq = 8
@@ -24,7 +24,7 @@ def test_timebinner():
 
 def test_timebinner2():
     """Test TimeBinner."""
-    X, y = load_basic_motions(return_X_y=True)
+    X, y = load_basic_motions(return_type="nested_univ")
 
     aggfunc = np.max
     freq = 10
@@ -40,7 +40,7 @@ def test_timebinner2():
 
 def test_timebinner3():
     """Test TimeBinner."""
-    X, y = load_basic_motions(return_X_y=True)
+    X, y = load_basic_motions(return_type="nested_univ")
 
     def aggfunc(ser):
         return np.quantile(ser, q=0.25)

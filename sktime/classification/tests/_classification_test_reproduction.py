@@ -48,7 +48,7 @@ def _reproduce_classification_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train, y_train)
-    return estimator.predict_proba(X_test.iloc[indices])
+    return estimator.predict_proba(X_test[indices])
 
 
 def _reproduce_classification_basic_motions(estimator):
@@ -56,8 +56,8 @@ def _reproduce_classification_basic_motions(estimator):
     X_test, y_test = load_basic_motions(split="test")
     indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
-    estimator.fit(X_train.iloc[indices], y_train[indices])
-    return estimator.predict_proba(X_test.iloc[indices])
+    estimator.fit(X_train[indices], y_train[indices])
+    return estimator.predict_proba(X_test[indices])
 
 
 def _reproduce_early_classification_unit_test(estimator):
@@ -89,7 +89,7 @@ def _reproduce_transform_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(X_train), 5, replace=False)
 
     return np.nan_to_num(
-        estimator.fit_transform(X_train.iloc[indices], y_train[indices]), False, 0, 0, 0
+        estimator.fit_transform(X_train[indices], y_train[indices]), False, 0, 0, 0
     )
 
 
@@ -98,7 +98,7 @@ def _reproduce_transform_basic_motions(estimator):
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)
 
     return np.nan_to_num(
-        estimator.fit_transform(X_train.iloc[indices], y_train[indices]), False, 0, 0, 0
+        estimator.fit_transform(X_train[indices], y_train[indices]), False, 0, 0, 0
     )
 
 

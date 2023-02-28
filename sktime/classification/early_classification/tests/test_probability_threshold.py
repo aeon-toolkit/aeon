@@ -8,14 +8,13 @@ from sktime.classification.early_classification import (
 )
 from sktime.classification.interval_based import TimeSeriesForestClassifier
 from sktime.datasets import load_unit_test
-from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
 
 
 def test_prob_threshold_on_unit_test_data():
     """Test of ProbabilityThresholdEarlyClassifier on unit test data."""
     # load unit test data
-    X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
     # train probability threshold
@@ -30,7 +29,6 @@ def test_prob_threshold_on_unit_test_data():
     final_probas = np.zeros((10, 2))
     final_decisions = np.zeros(10)
 
-    X_test = from_nested_to_3d_numpy(X_test)
     states = None
     for i in pt.classification_points:
         X = X_test[indices, :, :i]
