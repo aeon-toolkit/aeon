@@ -172,7 +172,7 @@ class TEASER(BaseEarlyClassifier):
         m = getattr(self.estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
-        fit = Parallel(n_jobs=threads)(
+        fit = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -231,7 +231,7 @@ class TEASER(BaseEarlyClassifier):
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
-        out = Parallel(n_jobs=threads)(
+        out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
@@ -304,7 +304,7 @@ class TEASER(BaseEarlyClassifier):
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
-        out = Parallel(n_jobs=threads)(
+        out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
@@ -487,7 +487,6 @@ class TEASER(BaseEarlyClassifier):
     def _predict_oc_classifier(
         self, X_oc, n_consecutive_predictions, idx, estimator_preds, state_info
     ):
-
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= n_consecutive_predictions

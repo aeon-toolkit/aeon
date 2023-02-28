@@ -32,12 +32,10 @@ from sktime.transformations.panel.summarize import DerivativeSlopeTransformer
 class ElasticEnsemble(BaseClassifier):
     """The Elastic Ensemble (EE).
 
-    EE as described in [1].
-
-    Overview:
-
-    - Input n series length m
-    - EE is an ensemble of elastic nearest neighbor classifiers
+    The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
+    distances (as defined in sktime.distances). By default, each 1-NN classifier
+    is tuned over 100 parameter values and the ensemble vote is weighted by
+    an estimate of accuracy formed on the train set.
 
     Parameters
     ----------
@@ -55,8 +53,6 @@ class ElasticEnsemble(BaseClassifier):
       ``-1`` means using all processors.
     random_state : int, default=0
       The random seed.
-    verbose : int, default=0
-      If ``>0``, then prints out debug information.
 
     Attributes
     ----------
@@ -102,7 +98,6 @@ class ElasticEnsemble(BaseClassifier):
         proportion_train_for_test=1.0,
         n_jobs=1,
         random_state=0,
-        verbose=0,
         majority_vote=False,
     ):
         if distance_measures == "all":
@@ -125,7 +120,6 @@ class ElasticEnsemble(BaseClassifier):
         self.train_accs_by_classifier = None
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.verbose = verbose
         self.train = None
         self.constituent_build_times = None
 
@@ -158,7 +152,7 @@ class ElasticEnsemble(BaseClassifier):
             "ddtw"
         ) or self.distance_measures.__contains__("wddtw"):
             der_X = DerivativeSlopeTransformer().fit_transform(X)
-            # convert back to numpy
+            # convert back to numpy: remove this and just create differences
             if isinstance(der_X, pd.DataFrame):
                 der_X = from_nested_to_3d_numpy(der_X)
         else:
@@ -188,10 +182,6 @@ class ElasticEnsemble(BaseClassifier):
         # If using less cases for parameter optimisation, use the
         # StratifiedShuffleSplit:
         if self.proportion_train_in_param_finding < 1:
-            if self.verbose > 0:
-                print(  # noqa: T001
-                    "Restricting training cases for parameter optimisation: ", end=""
-                )
             sss = StratifiedShuffleSplit(
                 n_splits=1,
                 test_size=1 - self.proportion_train_in_param_finding,
@@ -202,33 +192,14 @@ class ElasticEnsemble(BaseClassifier):
                 param_train_y = y[train_index]
                 if der_X is not None:
                     der_param_train_x = der_X[train_index, :]
-                if self.verbose > 0:
-                    print(  # noqa: T001
-                        "using "
-                        + str(len(param_train_x))
-                        + " training cases instead of "
-                        + str(len(X))
-                        + " for parameter optimisation"
-                    )
         # else, use the full training data for optimising parameters
         else:
-            if self.verbose > 0:
-                print(  # noqa: T001
-                    "Using all training cases for parameter optimisation"
-                )
             param_train_x = X
             param_train_y = y
             if der_X is not None:
                 der_param_train_x = der_X
 
         self.constituent_build_times = []
-
-        if self.verbose > 0:
-            print(  # noqa: T001
-                "Using " + str(100 * self.proportion_of_param_options) + " parameter "
-                "options per "
-                "measure"
-            )
         for dm in range(0, len(self.distance_measures)):
             this_measure = self.distance_measures[dm]
 
@@ -245,28 +216,9 @@ class ElasticEnsemble(BaseClassifier):
                     this_measure = "wdtw"
 
             start_build_time = time.time()
-            if self.verbose > 0:
-                if (
-                    self.distance_measures[dm] == "ddtw"
-                    or self.distance_measures[dm] == "wddtw"
-                ):
-                    print(  # noqa: T001
-                        "Currently evaluating "
-                        + str(self.distance_measures[dm].__name__)
-                        + " (implemented as "
-                        + str(this_measure.__name__)
-                        + " with pre-transformed derivative data)"
-                    )
-                else:
-                    print(  # noqa: T001
-                        "Currently evaluating "
-                        + str(self.distance_measures[dm].__name__)
-                    )
-
             # If 100 parameter options are being considered per measure,
             # use a GridSearchCV
             if self.proportion_of_param_options == 1:
-
                 grid = GridSearchCV(
                     estimator=KNeighborsTimeSeriesClassifier(
                         distance=this_measure, n_neighbors=1
@@ -277,7 +229,6 @@ class ElasticEnsemble(BaseClassifier):
                     cv=LeaveOneOut(),
                     scoring="accuracy",
                     n_jobs=self._threads_to_use,
-                    verbose=self.verbose,
                 )
                 grid.fit(param_train_to_use, param_train_y)
 
@@ -296,7 +247,6 @@ class ElasticEnsemble(BaseClassifier):
                     scoring="accuracy",
                     n_jobs=self._threads_to_use,
                     random_state=rand,
-                    verbose=self.verbose,
                 )
                 grid.fit(param_train_to_use, param_train_y)
 
@@ -319,18 +269,6 @@ class ElasticEnsemble(BaseClassifier):
                     best_model, full_train_to_use, y, cv=LeaveOneOut()
                 )
                 acc = accuracy_score(y, preds)
-
-            if self.verbose > 0:
-                print(  # noqa: T001
-                    "Training accuracy for "
-                    + str(self.distance_measures[dm].__name__)
-                    + ": "
-                    + str(acc)
-                    + " (with parameter setting: "
-                    + str(grid.best_params_["distance_params"])
-                    + ")"
-                )
-
             # Finally, reset the classifier for this measure and parameter
             # option, ready to be called for test classification
             best_model = KNeighborsTimeSeriesClassifier(
@@ -376,7 +314,7 @@ class ElasticEnsemble(BaseClassifier):
         else:
             der_X = None
 
-        # reshape X for use with the efficient cython distance measures
+        # reshape X for use with the numba distance measures
         if isinstance(X, pd.DataFrame):
             X = np.array([np.asarray([x]).reshape(1, len(x)) for x in X.iloc[:, 0]])
 

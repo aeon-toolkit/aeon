@@ -5,7 +5,8 @@ Time series classification
 
 The :mod:`sktime.classification` module contains algorithms and composition tools for time series classification.
 
-All classifiers in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All classifiers in ``scikit-time`` can be listed using the ``sktime.registry
+.all_estimators`` utility,
 using ``estimator_types="classifier"``, optionally filtered by tags.
 Valid tags can be listed using ``sktime.registry.all_tags``.
 
@@ -66,9 +67,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ProximityForest
-    ProximityStump
-    ProximityTree
     ShapeDTW
 
 Dummy
@@ -141,13 +139,12 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.classification.kernel_based
+.. currentmodule:: sktime.classification.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TimeSeriesSVC
     Arsenal
     RocketClassifier
 

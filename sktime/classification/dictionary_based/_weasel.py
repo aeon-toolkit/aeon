@@ -21,9 +21,9 @@ from sktime.transformations.panel.dictionary_based import SFAFast
 
 
 class WEASEL(BaseClassifier):
-    """Word Extraction for Time Series Classification (WEASEL).
+    """Word Extraction for Time Series Classification (WEASEL) [1].
 
-    Overview: Input *n* series length *m*
+    Overview: Input 'n' series length 'm'
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
     for different window lengths and learns a logistic regression classifier
     on this bag.
@@ -82,18 +82,11 @@ class WEASEL(BaseClassifier):
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
-        predict_proba(), yet is slower and typically less accuracy. predict_proba() is
+        predict_proba(), yet is slower and typically less accurate. predict_proba() is
         needed for example in Early-Classification like TEASER.
 
     random_state: int or None, default=None
         Seed for random, integer
-
-    Attributes
-    ----------
-    n_classes_ : int
-        The number of classes.
-    classes_ : list
-        The classes labels.
 
     See Also
     --------
@@ -142,39 +135,28 @@ class WEASEL(BaseClassifier):
         support_probabilities=False,
         random_state=None,
     ):
-
         self.alphabet_size = alphabet_size
-
         # feature selection is applied based on the chi-squared test.
         self.p_threshold = p_threshold
-
         self.anova = anova
-
         self.norm_options = [False]
         self.word_lengths = [4, 6]
-
         self.bigrams = bigrams
         self.binning_strategy = binning_strategy
         self.random_state = random_state
-
         self.min_window = 6
         self.max_window = 100
-
         self.feature_selection = feature_selection
         self.window_inc = window_inc
         self.highest_bit = -1
         self.window_sizes = []
-
         self.series_length = 0
         self.n_instances = 0
-
         self.SFA_transformers = []
         self.clf = None
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
-
         set_num_threads(n_jobs)
-
         super(WEASEL, self).__init__()
 
     def _fit(self, X, y):
@@ -210,7 +192,7 @@ class WEASEL(BaseClassifier):
         self.window_sizes = list(range(self.min_window, self.max_window, win_inc))
         self.highest_bit = (math.ceil(math.log2(self.max_window))) + 1
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 X,
                 y,
@@ -297,7 +279,7 @@ class WEASEL(BaseClassifier):
             )
 
     def _transform_words(self, X):
-        parallel_res = Parallel(n_jobs=self._threads_to_use, backend="threading")(
+        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(transformer.transform)(X) for transformer in self.SFA_transformers
         )
         all_words = []
