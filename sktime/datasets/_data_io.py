@@ -142,7 +142,7 @@ def _list_available_datasets(extract_path):
     return datasets
 
 
-def _load_dataset(name, split, return_X_y, return_type=None, extract_path=None):
+def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=None):
     """Load time series classification datasets (helper function).
 
     Parameters
@@ -162,7 +162,9 @@ def _load_dataset(name, split, return_X_y, return_type=None, extract_path=None):
         "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
         length series. There other options, see datatypes.SCITYPE_REGISTER, but these
         will not be supported longterm.
-    extract_path : path of the location for the data file.
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
 
     Raises
     ------
