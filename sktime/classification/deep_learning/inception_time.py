@@ -410,7 +410,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         self : object
         """
-        # self.random_state = check_random_state(self.random_state)
+        rng = check_random_state(self.random_state)
+        self.random_state = rng.randint(0, np.iinfo(np.int32).max)
         
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
