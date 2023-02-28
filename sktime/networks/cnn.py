@@ -16,15 +16,33 @@ class CNNNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    kernel_size     : int, default = 7
-        specifying the length of the 1D convolution window
-    avg_pool_size   : int, default = 3
-        size of the average pooling windows
-    n_conv_layers   : int, default = 2
-        the number of convolutional plus average pooling layers
-    filter_sizes    : array of int, shape = (nb_conv_layers)
-    activation      : string, default = sigmoid
-        keras activation function
+    
+    n_layers        : int, default = 2,
+        the number of convolution layers in the network
+    kernel_sizes    : int or list of int, default = 7,
+        kernel size of convolution layers, if not a list, the same kernel size
+        is used for all layer, len(list) should be n_layers
+    n_filters       : int or list of int, default = [6, 12],
+        number of filters for each convolution layer, if not a list, the same n_filters
+        is used in all layers.
+    avg_pool_size   : int or list of int, default = 3,
+        the size of the average pooling layer, if not a list, the same max pooling size is used
+        for all convolution layer
+    activation      : str or list of str, default = "sigmoid",
+        keras activation function used in the model for each layer, if not a list, the same
+        activation is used for all layers
+    padding         : str or list of str, default = 'valid',
+        the method of padding in convolution layers, if not a list, the same padding used
+        for all convolution layers
+    strides         : int or list of int, default = 1,
+        the strides of kernels in the convolution and max pooling layers, if not a list, 
+        the same strides are used for all layers
+    dilation_rate   : int or list of int, default = 1,
+        the dilation rate of the convolution layers, if not a list, the same dilation rate
+        is used all over the network
+    use_bias        : bool or list of bool, default = True,
+        condition on wether or not to use bias values for convolution layers, if not
+        a list, the same condition is used for all layers
     random_state    : int, default = 0
         seed to any needed random actions
 
