@@ -89,7 +89,6 @@ dev = [
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
-    "mlflow",  # mlflow related
     "moto",  # mlflow related
 ]
 
