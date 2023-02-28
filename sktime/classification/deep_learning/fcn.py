@@ -73,6 +73,7 @@ class FCNClassifier(BaseDeepClassifier):
         strides=1,
         padding='same',
         activation='relu',
+        file_path='./',
 
         n_epochs=2000,
         batch_size=16,
@@ -107,6 +108,7 @@ class FCNClassifier(BaseDeepClassifier):
         self.random_state = random_state
         self.optimizer = optimizer
         self.history = None
+        self.file_path = file_path
         self._network = FCNNetwork(
             random_state=self.random_state,
             n_layers=self.n_layers,
