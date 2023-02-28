@@ -43,19 +43,68 @@ class CNNNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
-        kernel_size=7,
+        n_layers=2,
+        kernel_sizes=7,
+        n_filters=[6, 12],
         avg_pool_size=3,
-        n_conv_layers=2,
         activation="sigmoid",
+        padding='valid',
+        strides=1,
+        dilation_rate=1,
+        use_bias=True,
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
         self.random_state = random_state
-        self.kernel_size = kernel_size
-        self.avg_pool_size = avg_pool_size
-        self.n_conv_layers = n_conv_layers
-        self.filter_sizes = [6, 12]
-        self.activation = activation
+
+        if isinstance(kernel_sizes, list):
+            self.kernel_sizes = kernel_sizes
+        else:
+            self.kernel_sizes = [kernel_sizes] * n_layers
+        
+        if isinstance(n_filters, list):
+            self.n_filters = n_filters
+        else:
+            self.n_filters = [n_filters] * n_layers
+        
+        if isinstance(avg_pool_size, list):
+            self.avg_pool_size = avg_pool_size
+        else:
+            self.avg_pool_size = [avg_pool_size] * n_layers
+        
+        if isinstance(activation, list):
+            self.activation = activation
+        else:
+            self.activation = [activation] * n_layers
+        
+        if isinstance(padding, list):
+            self.padding = padding
+        else:
+            self.padding = [padding] * n_layers
+        
+        if isinstance(strides, list):
+            self.strides = strides
+        else:
+            self.strides = [strides] * n_layers
+        
+        if isinstance(dilation_rate, list):
+            self.dilation_rate = dilation_rate
+        else:
+            self.dilation_rate = [dilation_rate] * n_layers
+        
+        if isinstance(use_bias, list):
+            self.use_bias = use_bias
+        else:
+            self.use_bias = [use_bias] * n_layers
+        
+        self.n_layers = n_layers
+
+        assert(len(self.kernel_sizes) == n_layers)
+        assert(len(self.avg_pool_size) == n_layers)
+        assert(len(self.strides) == n_layers)
+        assert(len(self.dilation_rate) == n_layers)
+        assert(len(self.padding) == n_layers)
+        assert(len(self.activation) == n_layers)
 
         super(CNNNetwork, self).__init__()
 
@@ -73,10 +122,9 @@ class CNNNetwork(BaseDeepNetwork):
         output_layer : a keras layer
         """
         # not sure of the whole padding thing
-        from tensorflow import keras
+        import tensorflow as tf
 
-        padding = "valid"
-        input_layer = keras.layers.Input(input_shape)
+        input_layer = tf.keras.layers.Input(input_shape)
         # sort this out, why hard coded to 60? [hadifawaz1999 answer: It was proposed like that in the original paper, check code in https://github.com/hfawaz/dl-4-tsc/blob/3ee62e16e118e4f5cfa86d01661846dfa75febfa/classifiers/cnn.py#L30]
         
         '''
@@ -102,40 +150,24 @@ class CNNNetwork(BaseDeepNetwork):
         '''
         
         if input_shape[0] < 60:
-            padding = "same"
+            self.padding = ['same'] * self.n_layers
 
-        # this does what?
+        x = input_layer
 
-        '''
-        
-        Ensure that the number of filter sizes available is equal to the number of demanded convolution
-        layers to construct.
+        for i in range(self.n_layers):
 
-        '''
+            conv = tf.keras.layers.Conv1D(filters=self.n_filters[i],
+                                          kernel_size=self.kernel_sizes[i],
+                                          strides=self.strides[i],
+                                          padding=self.padding[i],
+                                          dilation_rate=self.dilation_rate[i],
+                                          activation=self.activation[i],
+                                          use_bias=self.use_bias[i])(x)
+            
+            conv = tf.keras.layers.AveragePooling1D(pool_size=self.avg_pool_size[i])(conv)
 
-        if len(self.filter_sizes) > self.n_conv_layers:
-            self.filter_sizes = self.filter_sizes[: self.n_conv_layers]
-        elif len(self.filter_sizes) < self.n_conv_layers:
-            self.filter_sizes = self.filter_sizes + [self.filter_sizes[-1]] * (
-                self.n_conv_layers - len(self.filter_sizes)
-            )
-        conv = keras.layers.Conv1D(
-            filters=self.filter_sizes[0],
-            kernel_size=self.kernel_size,
-            padding=padding,
-            activation=self.activation,
-        )(input_layer)
-        conv = keras.layers.AveragePooling1D(pool_size=self.avg_pool_size)(conv)
-
-        for i in range(1, self.n_conv_layers):
-            conv = keras.layers.Conv1D(
-                filters=self.filter_sizes[i],
-                kernel_size=self.kernel_size,
-                padding=padding,
-                activation=self.activation,
-            )(conv)
-            conv = keras.layers.AveragePooling1D(pool_size=self.avg_pool_size)(conv)
-
-        flatten_layer = keras.layers.Flatten()(conv)
+            x = conv
+    
+        flatten_layer = tf.keras.layers.Flatten()(conv)
 
         return input_layer, flatten_layer
