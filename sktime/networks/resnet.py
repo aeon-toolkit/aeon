@@ -164,6 +164,6 @@ class ResNetNetwork(BaseDeepNetwork):
 
                 x = conv
         
-        gap_layer = tf.keras.layers.GlobalAveragePooling1D(axis=-1)(conv)
+        gap_layer = tf.keras.layers.GlobalAveragePooling1D()(conv)
 
         return input_layer, gap_layer
