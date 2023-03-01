@@ -336,12 +336,12 @@ class BaseFixtureGenerator:
         -------
         bool, whether scenario should be skipped in test_name
         """
-        # for forecasters tested in test_methods_do_not_change_state
+        # for forecasters tested in test_non_state_changing_method_contract
         #   if fh is not passed in fit, then this test would fail
         #   since fh will be stored in predict through fh handling
         #   as there are scenarios which pass it early and everything else is the same
         #   we skip those scenarios
-        if test_name == "test_methods_do_not_change_state":
+        if test_name == "test_non_state_changing_method_contract":
             if not scenario.get_tag("fh_passed_in_fit", True, raise_error=False):
                 return True
 
@@ -579,7 +579,6 @@ class QuickTester:
         results = dict()
         # loop A: we loop over all the tests
         for test_name in test_names_subset:
-
             test_fun = getattr(self, test_name)
             fixture_sequence = self.fixture_sequence
 
@@ -619,7 +618,6 @@ class QuickTester:
 
             # loop B: for each test, we loop over all fixtures
             for params, fixt_name in zip(fixture_prod, fixture_names):
-
                 # this is needed because pytest unwraps 1-tuples automatically
                 # but subsequent code assumes params is k-tuple, no matter what k is
                 if len(fixture_vars) == 1:
