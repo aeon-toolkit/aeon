@@ -74,21 +74,21 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from sktime.transformations.panel.pca import PCATransformer
+    >>> from sktime.transformations.panel.interpolate import TSInterpolator
     >>> from sktime.classification.interval_based import TimeSeriesForestClassifier
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [PCATransformer()]
+    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
 
     Alternative construction via dunder method:
-    >>> pipeline = PCATransformer() * TimeSeriesForestClassifier(n_estimators=5)
+    >>> pipeline = TSInterpolator(length=10) * TimeSeriesForestClassifier(n_estimators=5)  # noqa: E501
     """
 
     _tags = {
@@ -104,7 +104,6 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         self.classifier = classifier
         self.classifier_ = classifier.clone()
         self.transformers = transformers
@@ -414,7 +413,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         from sklearn.base import clone
 
         self.classifier = classifier
