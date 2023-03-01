@@ -22,11 +22,6 @@ MTYPE_REGISTER_PANEL = [
         "3D np.array of format (n_instances, n_channels, n_timepoints)",
     ),
     (
-        "numpy-list",
-        "Panel",
-        "List of 2D np.array of format (n_channels, n_timepoints)",
-    ),
-    (
         "numpyflat",
         "Panel",
         "2D np.array of format (n_instances, n_columns*n_timepoints)",
