@@ -286,7 +286,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                 probas[max(0, state_info[i][0] - last_idx)][i]
                 if accept_decision[i]
                 else [-1 for _ in range(self.n_classes_)]
-                for i in range(len(probas))
+                for i in range(len(accept_decision))
             ]
         )
 
