@@ -130,7 +130,6 @@ class EAgglo(BaseTransformer):
         for K in range(self.n_cluster - 1, 2 * self.n_cluster - 2):
             i, j = self._find_closest(K)
 
-            # self._update_distances(i, j, K)
             _update_distances(
                 i,
                 j,
@@ -243,14 +242,17 @@ class EAgglo(BaseTransformer):
 
         # array of within distances
         grouped = X.copy().set_index(self._member).groupby(level=0)
-        within = grouped.apply(lambda x: get_distance(x, x, self.alpha))
+        within = grouped.apply(lambda x: get_distance(x.values, x.values, self.alpha))
 
         # array of between-within distances
         self.distances = np.empty((2 * self.n_cluster, 2 * self.n_cluster))
 
         for i, xi in grouped:
             self.distances[: self.n_cluster, i] = (
-                2 * grouped.apply(lambda xj: get_distance(xi, xj, self.alpha))  # noqa
+                2
+                * grouped.apply(
+                    lambda xj: get_distance(xi.values, xj.values, self.alpha)  # noqa
+                )  # noqa
                 - within[i]
                 - within
             )
@@ -355,6 +357,13 @@ class EAgglo(BaseTransformer):
 def get_distance(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
     """Calculate within/between cluster distance."""
     return np.power(cdist(X, Y, "euclidean"), alpha).mean()
+
+
+# @njit(fastmath=True, cache=True)
+# def get_distance(X, Y, alpha) -> float:
+#    """Calculate within/between cluster distance."""
+#    return ((X@Y)**alpha).mean()
+#    # return np.power(cdist(X, Y, "euclidean"), alpha).mean()
 
 
 @njit(fastmath=True, cache=True)
