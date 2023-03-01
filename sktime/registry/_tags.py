@@ -272,9 +272,8 @@ ESTIMATOR_TAG_REGISTER = [
         "can the classifier set n_jobs to use multiple threads?",
     ),
     (
-        "classifier_type",
-        "classifier",
-        (
+        "estimator_type",
+        ["classifier", "early_classifier", "regressor", "clusterer"](
             "list",
             [
                 "dictionary",
@@ -282,7 +281,7 @@ ESTIMATOR_TAG_REGISTER = [
                 "feature",
                 "hybrid",
                 "interval",
-                "kernel",
+                "convolution",
                 "shapelet",
                 "deeplearning",
             ],
