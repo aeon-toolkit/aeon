@@ -67,7 +67,7 @@ class SummaryClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "classifier_type": "feature",
+        "estimator_type": "feature",
     }
 
     def __init__(

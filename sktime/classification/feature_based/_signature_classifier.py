@@ -92,7 +92,7 @@ class SignatureClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
-        "classifier_type": "feature",
+        "estimator_type": "feature",
         "python_dependencies": "esig",
         "python_version": "<3.10",
     }
