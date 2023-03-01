@@ -83,6 +83,10 @@ class TimeSeriesForestClassifier(
     >>> y_pred = clf.predict(X_test)
     """
 
+    _tags = {
+        "estimator_type": "interval",
+    }
+
     _base_estimator = DecisionTreeClassifier(criterion="entropy")
 
     def __init__(

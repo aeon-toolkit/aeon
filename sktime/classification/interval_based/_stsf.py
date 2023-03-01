@@ -88,7 +88,7 @@ class SupervisedTimeSeriesForest(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "interval",
+        "estimator_type": "interval",
     }
 
     def __init__(
