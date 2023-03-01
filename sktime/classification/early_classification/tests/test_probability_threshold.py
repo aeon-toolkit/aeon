@@ -12,12 +12,12 @@ from sktime.classification.early_classification.tests.test_all_early_classifiers
     load_unit_data,
 )
 from sktime.classification.interval_based import TimeSeriesForestClassifier
-from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
 
 
 def test_early_prob_threshold_near_classification_points():
     """Test of threshold with incremental time stamps outside defined class points."""
-    X_train, y_train, X_test, y_test, indices = load_unit_data()
+    X_train, y_train, X_test, _, indices = load_unit_data()
+    X_test = X_test[indices]
 
     # train probability threshold
     pt = ProbabilityThresholdEarlyClassifier(
@@ -30,9 +30,6 @@ def test_early_prob_threshold_near_classification_points():
 
     # use test_points that are not within list above
     test_points = [7, 11, 19, 20]
-
-    X_test = from_nested_to_3d_numpy(X_test)
-    X_test = X_test[indices]
 
     decisions = np.zeros(len(X_test), dtype=bool)
     for i in test_points:
@@ -49,6 +46,8 @@ def test_early_prob_threshold_near_classification_points():
 def test_early_prob_threshold_score():
     """Test of threshold on the full data with the default estimator."""
     X_train, y_train, X_test, y_test, indices = load_unit_data()
+    X_test = X_test[indices]
+    y_test = y_test[indices]
 
     # train probability threshold
     pt = ProbabilityThresholdEarlyClassifier(
@@ -58,14 +57,13 @@ def test_early_prob_threshold_score():
     )
     pt.fit(X_train, y_train)
 
-    _, acc, earl = pt.score(X_test.iloc[indices], y_test[indices])
+    _, acc, earl = pt.score(X_test, y_test)
     testing.assert_allclose(acc, 0.9, rtol=0.01)
     testing.assert_allclose(earl, 0.25, rtol=0.01)
 
     # make sure update ends up with the same score
     pt.reset_state_info()
 
-    X_test = from_nested_to_3d_numpy(X_test)[indices]
     final_states = np.zeros((10, 4), dtype=int)
     open_idx = np.arange(0, 10)
 
@@ -79,7 +77,7 @@ def test_early_prob_threshold_score():
         if len(X_test) == 0:
             break
 
-    _, acc, earl = pt.compute_harmonic_mean(final_states, y_test[indices])
+    _, acc, earl = pt.compute_harmonic_mean(final_states, y_test)
 
     testing.assert_allclose(acc, 0.9, rtol=0.01)
     testing.assert_allclose(earl, 0.25, rtol=0.01)

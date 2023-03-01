@@ -142,11 +142,21 @@ class TEASER(BaseEarlyClassifier):
         super(TEASER, self).__init__()
 
     def _fit(self, X, y):
-        m = getattr(self.estimator, "predict_proba", None)
-        if self.estimator is not None and not callable(m):
-            raise ValueError("Base estimator must have a predict_proba method.")
-
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+
+        self._estimator = (
+            (
+                MUSE(support_probabilities=True, alphabet_size=4)
+                if self.n_dims_ > 1
+                else WEASEL(support_probabilities=True, alphabet_size=4)
+            )
+            if self.estimator is None
+            else self.estimator
+        )
+
+        m = getattr(self._estimator, "predict_proba", None)
+        if not callable(m):
+            raise ValueError("Base estimator must have a predict_proba method.")
 
         self._classification_points = (
             copy.deepcopy(self.classification_points)
@@ -169,7 +179,8 @@ class TEASER(BaseEarlyClassifier):
         for index, classification_point in enumerate(self._classification_points):
             self._classification_point_dictionary[classification_point] = index
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
         fit = Parallel(n_jobs=threads, prefer="threads")(
@@ -227,7 +238,8 @@ class TEASER(BaseEarlyClassifier):
                 f"Current classification points: {self._classification_points}"
             )
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
@@ -300,7 +312,8 @@ class TEASER(BaseEarlyClassifier):
                 f">={self._classification_points[last_idx]}"
             )
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
@@ -354,13 +367,8 @@ class TEASER(BaseEarlyClassifier):
         rs = None if self.random_state is None else rs * 37 * (i + 1)
         rng = check_random_state(rs)
 
-        default = (
-            MUSE(support_probabilities=True, alphabet_size=4)
-            if X.shape[1] > 1
-            else WEASEL(support_probabilities=True, alphabet_size=4)
-        )
         estimator = _clone_estimator(
-            default if self.estimator is None else self.estimator,
+            self._estimator,
             rng,
         )
 

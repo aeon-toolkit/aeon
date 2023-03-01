@@ -124,11 +124,13 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         super(ProbabilityThresholdEarlyClassifier, self).__init__()
 
     def _fit(self, X, y):
-        m = getattr(self.estimator, "predict_proba", None)
-        if self.estimator is not None and not callable(m):
-            raise ValueError("Base estimator must have a predict_proba method.")
-
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+
+        self._estimator = DrCIF() if self.estimator is None else self.estimator
+
+        m = getattr(self._estimator, "predict_proba", None)
+        if not callable(m):
+            raise ValueError("Base estimator must have a predict_proba method.")
 
         self._classification_points = (
             copy.deepcopy(self.classification_points)
@@ -148,10 +150,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         for index, classification_point in enumerate(self._classification_points):
             self._classification_point_dictionary[classification_point] = index
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
-        self._estimators = Parallel(n_jobs=threads)(
+        self._estimators = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -184,11 +187,12 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                 f"Current classification points: {self._classification_points}"
             )
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
-        out = Parallel(n_jobs=threads)(
+        out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
@@ -202,28 +206,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # positive decisions made, and 3. the prediction made
         self.state_info = np.zeros((len(preds[0]), 4), dtype=int)
 
-        # only compute new indices
-        for i in range(0, next_idx):
-            accept_decision, self.state_info = self._decide_prediction_safety(
-                i,
-                probas[i],
-                preds[i],
-                self.state_info,
-            )
-
-        probas = np.array(
-            [
-                probas[self.state_info[i][0]][i]
-                if accept_decision[i]
-                else [-1 for _ in range(self.n_classes_)]
-                for i in range(n_instances)
-            ]
+        probas, accept_decision, self.state_info = self._decide_and_return_probas(
+            0, next_idx, probas, preds, self.state_info
         )
 
         return probas, accept_decision
 
     def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        series_length = X.shape[2]
 
         # maybe use the largest index that is smaller than the series length
         next_idx = self._get_next_idx(series_length) + 1
@@ -261,11 +251,12 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                 f">={self._classification_points[last_idx]}"
             )
 
-        m = getattr(self.estimator, "n_jobs", None)
+        # avoid nested parallelism
+        m = getattr(self._estimator, "n_jobs", None)
         threads = self._threads_to_use if m is None else 1
 
         # compute all new updates since then
-        out = Parallel(n_jobs=threads)(
+        out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
@@ -274,6 +265,13 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
         probas, preds = zip(*out)
 
+        probas, accept_decision, self.state_info = self._decide_and_return_probas(
+            last_idx, next_idx, probas, preds, state_info
+        )
+
+        return probas, accept_decision
+
+    def _decide_and_return_probas(self, last_idx, next_idx, probas, preds, state_info):
         # only compute new indices
         for i in range(last_idx, next_idx):
             accept_decision, state_info = self._decide_prediction_safety(
@@ -288,13 +286,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                 probas[max(0, state_info[i][0] - last_idx)][i]
                 if accept_decision[i]
                 else [-1 for _ in range(self.n_classes_)]
-                for i in range(n_instances)
+                for i in range(len(probas))
             ]
         )
 
-        self.state_info = state_info
-
-        return probas, accept_decision
+        return probas, accept_decision, state_info
 
     def _score(self, X, y) -> Tuple[float, float, float]:
         self._predict(X)
@@ -343,7 +339,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         rng = check_random_state(rs)
 
         estimator = _clone_estimator(
-            DrCIF() if self.estimator is None else self.estimator,
+            self._estimator,
             rng,
         )
 

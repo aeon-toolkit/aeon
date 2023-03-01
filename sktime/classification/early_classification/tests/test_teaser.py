@@ -10,12 +10,12 @@ from sktime.classification.early_classification.tests.test_all_early_classifiers
     load_unit_data,
 )
 from sktime.classification.interval_based import TimeSeriesForestClassifier
-from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
 
 
 def test_teaser_with_different_decision_maker():
     """Test of TEASER with different One-Class-Classifier."""
-    X_train, y_train, X_test, y_test, indices = load_unit_data()
+    X_train, y_train, X_test, _, indices = load_unit_data()
+    X_test = X_test[indices]
 
     # train probability threshold
     teaser = TEASER(
@@ -27,7 +27,7 @@ def test_teaser_with_different_decision_maker():
     )
     teaser.fit(X_train, y_train)
 
-    full_probas, _ = teaser.predict_proba(X_test.iloc[indices])
+    full_probas, _ = teaser.predict_proba(X_test)
     testing.assert_array_almost_equal(
         full_probas, teaser_if_unit_test_probas, decimal=2
     )
@@ -35,7 +35,6 @@ def test_teaser_with_different_decision_maker():
     # make sure update ends up with the same probas
     teaser.reset_state_info()
 
-    X_test = from_nested_to_3d_numpy(X_test)[indices]
     final_probas = np.zeros((10, 2))
     open_idx = np.arange(0, 10)
 
@@ -56,7 +55,8 @@ def test_teaser_with_different_decision_maker():
 
 def test_teaser_near_classification_points():
     """Test of TEASER with incremental time stamps outside defined class points."""
-    X_train, y_train, X_test, y_test, indices = load_unit_data()
+    X_train, y_train, X_test, _, indices = load_unit_data()
+    X_test = X_test[indices]
 
     # train probability threshold
     teaser = TEASER(
@@ -68,8 +68,6 @@ def test_teaser_near_classification_points():
 
     # use test_points that are not within list above
     test_points = [7, 11, 19, 20]
-
-    X_test = X_test[indices]
 
     decisions = np.zeros(len(X_test), dtype=bool)
     for i in test_points:
@@ -94,7 +92,7 @@ def test_teaser_default():
     )
     teaser.fit(X_train, y_train)
 
-    _, acc, earl = teaser.score(X_test.iloc[indices], y_test)
+    _, acc, earl = teaser.score(X_test[indices], y_test)
 
     testing.assert_allclose(acc, 0.6, rtol=0.01)
     testing.assert_allclose(earl, 0.766, rtol=0.01)
