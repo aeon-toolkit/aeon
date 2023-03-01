@@ -11,7 +11,7 @@ from sktime.transformations.series import augmenter as aug
 
 
 def _load_test_data():
-    X, y = load_basic_motions()
+    X, y = load_basic_motions(return_type="nested_univ")
     X1 = X.iloc[0, 1]
     return X1
 

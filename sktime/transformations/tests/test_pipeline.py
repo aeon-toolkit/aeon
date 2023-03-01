@@ -7,7 +7,6 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
-from sktime.datasets import load_gunpoint
 from sktime.transformations.panel.segment import RandomIntervalSegmenter
 from sktime.transformations.series.adapt import TabularToSeriesAdaptor
 from sktime.utils._testing.panel import make_classification_problem
@@ -46,7 +45,6 @@ def test_FeatureUnion_pipeline():
 
 def test_FeatureUnion():
     """Test FeatureUnion fit_transform."""
-    X, y = load_gunpoint(return_X_y=True)
     feature_union = FeatureUnion([("mean", mean_transformer), ("std", std_transformer)])
     Xt = feature_union.fit_transform(X, y)
     assert Xt.shape == (X.shape[0], X.shape[1] * len(feature_union.transformer_list))

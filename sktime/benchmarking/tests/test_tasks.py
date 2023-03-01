@@ -11,7 +11,7 @@ from sktime.datasets import load_gunpoint, load_shampoo_sales
 
 TASKS = (TSCTask, TSRTask)
 
-gunpoint = load_gunpoint(return_X_y=False)
+gunpoint = load_gunpoint(return_X_y=False, return_type="nested_univ")
 shampoo_sales = load_shampoo_sales()
 
 BASE_READONLY_ATTRS = ("target", "features", "metadata")

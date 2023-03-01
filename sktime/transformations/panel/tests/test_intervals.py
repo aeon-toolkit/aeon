@@ -16,7 +16,7 @@ def test_random_intervals_on_basic_motions():
 
     # fit random intervals
     ri = RandomIntervals(random_state=0, n_intervals=3)
-    data = ri.fit_transform(X_train.iloc[indices], y_train[indices])
+    data = ri.fit_transform(X_train[indices], y_train[indices])
 
     # assert transformed data is the same
     testing.assert_array_almost_equal(
@@ -32,7 +32,7 @@ def test_supervised_intervals_on_basic_motions():
 
     # fit supervised intervals
     si = SupervisedIntervals(random_state=0, n_intervals=1, randomised_split_point=True)
-    data = si.fit_transform(X_train.iloc[indices], y_train[indices])
+    data = si.fit_transform(X_train[indices], y_train[indices])
 
     # assert transformed data is the same
     testing.assert_array_almost_equal(

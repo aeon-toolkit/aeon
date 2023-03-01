@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 from sktime.datasets import load_gunpoint
-from sktime.transformations.panel.dictionary_based._sfa import SFA
 from sktime.datatypes._panel._convert import from_nested_to_2d_array
+from sktime.transformations.panel.dictionary_based._sfa import SFA
 
 
 # Check the transformer has changed the data correctly.
@@ -15,7 +15,7 @@ from sktime.datatypes._panel._convert import from_nested_to_2d_array
 )
 def test_transformer(binning_method):
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
 
     word_length = 6
     alphabet_size = 4
@@ -37,7 +37,7 @@ def test_transformer(binning_method):
 @pytest.mark.parametrize("norm", [True, False])
 def test_dft_mft(use_fallback_dft, norm):
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
     X_tab = from_nested_to_2d_array(X, return_numpy=True)
 
     word_length = 6
@@ -92,7 +92,7 @@ def test_dft_mft(use_fallback_dft, norm):
 @pytest.mark.parametrize("binning_method", ["equi-depth", "information-gain"])
 def test_sfa_anova(binning_method):
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
 
     word_length = 6
     alphabet_size = 4
@@ -135,7 +135,7 @@ def test_word_lengths(
     word_length, alphabet_size, window_size, bigrams, levels, use_fallback_dft
 ):
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
 
     p = SFA(
         word_length=word_length,
@@ -152,7 +152,7 @@ def test_word_lengths(
 
 def test_bit_size():
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
 
     word_length = 40
     alphabet_size = 12
@@ -175,7 +175,7 @@ def test_bit_size():
 
 def test_typed_dict():
     # load training data
-    X, y = load_gunpoint(split="train", return_X_y=True)
+    X, y = load_gunpoint(split="train", return_type="nested_univ")
 
     word_length = 6
     alphabet_size = 4

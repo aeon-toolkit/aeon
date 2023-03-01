@@ -10,7 +10,7 @@ from sktime.transformations.panel.truncation import TruncationTransformer
 def test_truncation_transformer():
     """Test truncation to the shortest series length."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
 
     truncated_transformer = TruncationTransformer(5)
     Xt = truncated_transformer.fit_transform(X_train)
@@ -24,7 +24,7 @@ def test_truncation_transformer():
 def test_truncation_paramterised_transformer():
     """Test truncation to the a user defined length."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
 
     truncated_transformer = TruncationTransformer(2, 10)
     Xt = truncated_transformer.fit_transform(X_train)

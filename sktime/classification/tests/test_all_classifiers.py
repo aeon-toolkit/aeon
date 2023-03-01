@@ -141,7 +141,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
 
         # train classifier and predict probas
         estimator_instance.fit(X_train, y_train)
-        y_proba = estimator_instance.predict_proba(X_test.iloc[indices])
+        y_proba = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
         _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
@@ -172,8 +172,8 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
         # train classifier and predict probas
-        estimator_instance.fit(X_train.iloc[indices], y_train[indices])
-        y_proba = estimator_instance.predict_proba(X_test.iloc[indices])
+        estimator_instance.fit(X_train[indices], y_train[indices])
+        y_proba = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
         _assert_array_almost_equal(y_proba, expected_probas, decimal=2)

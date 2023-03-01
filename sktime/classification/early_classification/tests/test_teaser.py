@@ -69,7 +69,6 @@ def test_teaser_near_classification_points():
     # use test_points that are not within list above
     test_points = [7, 11, 19, 20]
 
-    X_test = from_nested_to_3d_numpy(X_test)
     X_test = X_test[indices]
 
     decisions = np.zeros(len(X_test), dtype=bool)
