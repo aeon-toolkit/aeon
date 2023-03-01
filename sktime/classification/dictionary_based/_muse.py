@@ -121,7 +121,6 @@ class MUSE(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "estimator_type": "dictionary",
     }
 
