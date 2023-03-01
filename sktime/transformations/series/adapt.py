@@ -34,12 +34,12 @@ class TabularToSeriesAdaptor(BaseTransformer):
     If fit_in_transform = False, and X is of a panel/hierarchical type:
         - ``fit(X)`` fits a clone of ``transformer`` for each individual series x in X
         - ``transform(X)`` applies transform(x) of the clone belonging to x,
-                (where the index of x in transform equals the index of x in fit)
+            (where the index of x in transform equals the index of x in fit)
             for each individual series x in X, and returns the result
         - ``inverse_transform(X)`` applies transform(x) of the clone belonging to x,
-                (where the index of x in transform equals the index of x in fit)
+            (where the index of x in transform equals the index of x in fit)
             for each individual series x in X, and returns the result
-        Note: instances indices in transform/inverse_transform
+        .. warning:: instances indices in transform/inverse_transform
             must be equal to those seen in fit
     If fit_in_transform = True, and X is of a panel/hierarchical type:
         - ``fit`` is empty
@@ -58,8 +58,8 @@ class TabularToSeriesAdaptor(BaseTransformer):
     .. warning:: if fit_in_transform is set to True,
         then each series in the test set will be transformed as batch by fit-predict,
         this may cause information leakage in a forecasting setting
-            (but not in a time series classification/regression/clustering setting,
-            because in these settings the independent samples are the individual series)
+        (but not in a time series classification/regression/clustering setting,
+        because in these settings the independent samples are the individual series)
 
     Parameters
     ----------
