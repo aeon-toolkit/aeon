@@ -41,7 +41,7 @@ def make_reduction_pipeline(estimator):
 @pytest.mark.parametrize("data_loader", [load_gunpoint, load_arrow_head])
 def test_automated_orchestration_vs_manual(data_loader):
     """Test orchestration."""
-    data = data_loader(return_X_y=False)
+    data = data_loader(return_X_y=False, return_type="nested_univ")
 
     dataset = RAMDataset(dataset=data, name="data")
     task = TSCTask(target="class_val")
@@ -85,7 +85,10 @@ def test_automated_orchestration_vs_manual(data_loader):
 @pytest.mark.parametrize(
     "dataset",
     [
-        RAMDataset(dataset=load_arrow_head(return_X_y=False), name="ArrowHead"),
+        RAMDataset(
+            dataset=load_arrow_head(return_X_y=False, return_type="nested_univ"),
+            name="ArrowHead",
+        ),
         UEADataset(path=DATAPATH, name="GunPoint", target_name="class_val"),
     ],
 )
@@ -161,7 +164,7 @@ def test_single_dataset_single_strategy_against_sklearn(
 # simple test of sign test and ranks
 def test_stat():
     """Test sign ranks."""
-    data = load_gunpoint(split="train", return_X_y=False)
+    data = load_gunpoint(split="train", return_X_y=False, return_type="nested_univ")
     dataset = RAMDataset(dataset=data, name="gunpoint")
     task = TSCTask(target="class_val")
 

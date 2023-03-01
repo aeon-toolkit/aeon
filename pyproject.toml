@@ -18,6 +18,7 @@ keywords = [
     "forecasting",
     "time-series-analysis",
     "time-series-classification",
+    "time-series-clustering",
     "time-series-regression",
 ]
 classifiers = [
@@ -50,7 +51,6 @@ dependencies = [
 all_extras = [
     "cloudpickle",
     "dask",
-    "dtw-python",
     "esig==0.9.7; python_version < '3.10'",
     "filterpy>=1.4.5",
     "h5py",
@@ -74,6 +74,7 @@ all_extras = [
     "tsfresh>=0.17.0; python_version < '3.10'",
     "tslearn>=0.5.2",
     "xarray",
+    "mlflow",
 ]
 
 dev = [
@@ -86,17 +87,9 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
     "wheel",
-]
-
-mlflow = [
-    "mlflow",
-]
-
-mlflow_tests = [
-    "boto3",
-    "botocore",
-    "mlflow",
-    "moto",
+    "boto3",  # mlflow related
+    "botocore",  # mlflow related
+    "moto",  # mlflow related
 ]
 
 binder = [

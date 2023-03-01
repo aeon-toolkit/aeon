@@ -44,14 +44,7 @@ test_softdeps_full: ## Run all non-suite unit tests without soft dependencies
 	mkdir -p ${TEST_DIR}
 	cp setup.cfg ${TEST_DIR}
 	cd ${TEST_DIR}
-	python -m pytest -v --showlocals --durations=20 -k 'not TestAll' $(PYTESTOPTIONS)
-
-test_mlflow: ## Run mlflow integration tests
-	-rm -rf ${TEST_DIR}
-	mkdir -p ${TEST_DIR}
-	cp setup.cfg ${TEST_DIR}
-	cd ${TEST_DIR}
-	python -m pytest -v --showlocals --durations=20 $(PYTESTOPTIONS) --pyargs sktime.utils.tests.test_mlflow_sktime_model_export
+	python -m pytest -v --showlocals --durations=20 -k 'not TestAll' $(PYTESTOPTIONS) --ignore=sktime/utils/tests/test_mlflow_sktime_model_export.py
 
 tests: test
 

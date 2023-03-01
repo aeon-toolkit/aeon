@@ -6,6 +6,8 @@
 
 sktime/regression/dummy/ @badrmarani
 
+sktime/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
+sktime/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
 sktime/classification/dictionary_based/_boss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
 sktime/classification/dictionary_based/_cboss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
 sktime/classification/dictionary_based/_muse.py @patrickzib @MatthewMiddlehurst @TonyBagnall
@@ -29,8 +31,6 @@ sktime/classification/interval_based/_drcif.py @MatthewMiddlehurst @TonyBagnall
 sktime/classification/interval_based/_rise.py @MatthewMiddlehurst @TonyBagnall
 sktime/classification/interval_based/_stsf.py @MatthewMiddlehurst @TonyBagnall
 sktime/classification/interval_based/_tsf.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/kernel_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/kernel_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
 sktime/classification/shapelet_based/_stc.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
 sktime/classification/sklearn/_continuous_interval_tree.py @MatthewMiddlehurst
 sktime/classification/sklearn/_rotation_forest.py @MatthewMiddlehurst
@@ -72,7 +72,6 @@ sktime/forecasting/fbprophet.py @aiwalter
 sktime/forecasting/bats.py @aiwalter
 sktime/forecasting/tbats.py @aiwalter
 sktime/forecasting/arima.py @HYang1996
-sktime/forecasting/adapters/_hcrystalball.py @MichalChromcak
 sktime/forecasting/statsforecast.py @FedericoGarza
 sktime/forecasting/structural.py @juanitorduz
 sktime/forecasting/model_selection/_split @koralturkk
