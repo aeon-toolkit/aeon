@@ -9,23 +9,11 @@ from importlib import import_module
 
 import sktime
 
-rst_prolog = """.. attention::
-    DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links
-    and documentation to reflect this. We do not recommend using this repository in any
-    production setting, but welcome any contributors willing to help us update the
-    project.
-
-    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
-    contributions.
-
-    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
-"""  # noqa: E501
-
 # -- Project information -----------------------------------------------------
 
-project = "scikit-time"
-copyright = "The scikit-time developers (BSD-3 License)"
-author = "scikit-time developers"
+project = "aeon"
+copyright = "The aeon developers (BSD-3 License)"
+author = "aeon developers"
 
 version = sktime.__version__
 release = sktime.__version__
@@ -199,8 +187,59 @@ html_theme = "furo"
 html_theme_options = {
     "sidebar_hide_name": True,
     "top_of_page_button": None,
+    "light_css_variables": {
+        "color-brand-primary": "red",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "red",
+    },
+    "footer_icons": [
+        {
+            "name": "Slack",
+            "url": "https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg",  # noqa: E501
+            "html": "",
+            "class": "fab fa-slack",
+        },
+        {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/company/sktime/",
+            "html": "",
+            "class": "fab fa-linkedin",
+        },
+        {
+            "name": "Twitter",
+            "url": "https://twitter.com/sktime_toolbox",
+            "html": "",
+            "class": "fab fa-twitter",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/pradyunsg/furo",
+            "html": "",
+            "class": "fab fa-github",
+        },
+    ],
+    "favicons": [
+        {
+            "rel": "icon",
+            "sizes": "16x16",
+            "href": "images/aeon-favicon.ico",
+        }
+    ],
 }
-html_logo = "images/sktime-logo-text-horizontal.png"
+html_logo = "images/aeon-logo-horizontal.png"
+html_favicon = "images/aeon-favicon.ico"
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]
+html_js_files = [
+    "js/dynamic_table.js",
+]
+
+html_show_sourcelink = False
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
