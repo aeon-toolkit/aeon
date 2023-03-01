@@ -119,7 +119,7 @@ class WEASEL(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "dictionary",
+        "estimator_type": "dictionary",
     }
 
     def __init__(
