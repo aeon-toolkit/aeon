@@ -68,7 +68,7 @@ class LSTMFCNClassifier(BaseDeepClassifier):
 
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {"estimator_type": "deeplearning", "python_dependencies": "tensorflow"}
 
     def __init__(
         self,
@@ -83,7 +83,6 @@ class LSTMFCNClassifier(BaseDeepClassifier):
         random_state=None,
         verbose=0,
     ):
-
         super(LSTMFCNClassifier, self).__init__()
 
         self.classes_ = None

@@ -88,7 +88,7 @@ class TapNetClassifier(BaseDeepClassifier):
     TapNetClassifier(...)
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {"estimator_type": "deeplearning", "python_dependencies": "tensorflow"}
 
     def __init__(
         self,
