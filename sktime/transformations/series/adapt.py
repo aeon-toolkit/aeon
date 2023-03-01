@@ -28,25 +28,25 @@ class TabularToSeriesAdaptor(BaseTransformer):
     If fit_in_transform = True and X is a series (pd.DataFrame, pd.Series, np.ndarray):
         - ``fit`` is empty
         - ``transform(X)`` applies transformer.fit(X).transform.(X) to X,
-            considered as a table, and returns the result
+        considered as a table, and returns the result
         - ``inverse_transform(X)`` applies tansformer(X).inverse_transform(X) to X
 
     If fit_in_transform = False, and X is of a panel/hierarchical type:
         - ``fit(X)`` fits a clone of ``transformer`` for each individual series x in X
         - ``transform(X)`` applies transform(x) of the clone belonging to x,
-            (where the index of x in transform equals the index of x in fit)
-            for each individual series x in X, and returns the result
+        (where the index of x in transform equals the index of x in fit)
+        for each individual series x in X, and returns the result
         - ``inverse_transform(X)`` applies transform(x) of the clone belonging to x,
-            (where the index of x in transform equals the index of x in fit)
-            for each individual series x in X, and returns the result
+        (where the index of x in transform equals the index of x in fit)
+        for each individual series x in X, and returns the result
         .. warning:: instances indices in transform/inverse_transform
             must be equal to those seen in fit
     If fit_in_transform = True, and X is of a panel/hierarchical type:
         - ``fit`` is empty
         - ``transform(X)`` applies transformer.fit(x).transform(x)
-            to all individual series x in X and returns the result
+        to all individual series x in X and returns the result
         - ``inverse_transform(X)`` applies transformer.fit(x).inverse_transform(x)
-            to all individual series x in X and returns the result
+        to all individual series x in X and returns the result
 
     .. warning:: if fit_in_transform is set to False,
         when applied to Panel or Hierarchical data,
