@@ -15,8 +15,34 @@ class ResNetNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    random_state : int, optional (default = 0)
-        The random seed to use random activities.
+        n_residual_blocks               : int, default = 3,
+            the number of residual blocks of ResNet's model
+        n_conv_per_residual_block       : int, default = 3,
+            the number of convolution blocks in each residual block
+        n_filters                       : int or list of int, default = [128, 64, 64],
+            the number of convolution filters for all the convolution layers in the same
+            residual block, if not a list, the same number of filters is used in all
+            convolutions of all residual blocks.
+        kernel_sizes                    : int or list of int, default = [8, 5, 3],
+            the kernel size of all the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        strides                         : int or list of int, default = 1,
+            the strides of convolution kernels in each of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        dilation_rate                   : int or list of int, default = 1,
+            the dilation rate of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        padding                         : str or list of str, default = 'padding',
+            the type of padding used in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        activation                      : str or list of str, default = 'relu',
+            keras activation used in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        use_bias                        : bool or list of bool, default = True,
+            condition on wether or not to use bias values in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        random_state                    : int, optional (default = 0)
+            The random seed to use random activities.
 
     Notes
     -----
