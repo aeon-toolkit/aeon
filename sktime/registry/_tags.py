@@ -132,7 +132,7 @@ ESTIMATOR_TAG_REGISTER = [
                 "df-list",
             ],
         ),
-        "which machine type(s) is the internal _fit/_predict able to deal with?",
+        "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
         "X_inner_mtype",
@@ -147,9 +147,10 @@ ESTIMATOR_TAG_REGISTER = [
                 "pd-multiindex",
                 "numpy3D",
                 "df-list",
+                "numpy-list",
             ],
         ),
-        "which machine type(s) is the internal _fit/_predict able to deal with?",
+        "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
         "scitype:transform-input",
@@ -283,6 +284,7 @@ ESTIMATOR_TAG_REGISTER = [
                 "interval",
                 "kernel",
                 "shapelet",
+                "deeplearning",
             ],
         ),
         "which type the classifier falls under in the taxonomy of time series "

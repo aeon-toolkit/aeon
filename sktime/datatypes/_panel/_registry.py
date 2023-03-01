@@ -14,17 +14,21 @@ MTYPE_REGISTER_PANEL = [
     (
         "nested_univ",
         "Panel",
-        "pd.DataFrame with one column per variable, pd.Series in cells",
+        "pd.DataFrame with one column per channel, pd.Series in cells",
     ),
     (
         "numpy3D",
         "Panel",
-        "3D np.array of format (n_instances, n_columns, n_timepoints)",
+        "3D np.array of format (n_instances, n_channels, n_timepoints)",
+    ),
+    (
+        "numpy-list",
+        "Panel",
+        "List of 2D np.array of format (n_channels, n_timepoints)",
     ),
     (
         "numpyflat",
         "Panel",
-        "WARNING: only for internal use, not a fully supported Panel mtype. "
         "2D np.array of format (n_instances, n_columns*n_timepoints)",
     ),
     ("pd-multiindex", "Panel", "pd.DataFrame with multi-index (instances, timepoints)"),
