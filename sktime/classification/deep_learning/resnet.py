@@ -21,27 +21,49 @@ class ResNetClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    nb_epochs       : int, default = 1500
-        the number of epochs to train the model
-    batch_size      : int, default = 16
-        the number of samples per gradient update.
-    random_state    : int or None, default=None
-        Seed for random number generation.
-    verbose         : boolean, default = False
-        whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : list of strings, default=["accuracy"],
-    activation      : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias        : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
-
+        n_residual_blocks           : int, default = 3,
+            the number of residual blocks of ResNet's model
+        n_conv_per_residual_block   : int, default = 3,
+            the number of convolution blocks in each residual block
+        n_filters                   : int or list of int, default = [128, 64, 64],
+            the number of convolution filters for all the convolution layers in the same
+            residual block, if not a list, the same number of filters is used in all
+            convolutions of all residual blocks.
+        kernel_sizes                : int or list of int, default = [8, 5, 3],
+            the kernel size of all the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        strides                     : int or list of int, default = 1,
+            the strides of convolution kernels in each of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        dilation_rate               : int or list of int, default = 1,
+            the dilation rate of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        padding                     : str or list of str, default = 'padding',
+            the type of padding used in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        activation                  : str or list of str, default = 'relu',
+            keras activation used in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        use_bias                    : bool or list of bool, default = True,
+            condition on wether or not to use bias values in the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+    
+        nb_epochs                   : int, default = 1500
+            the number of epochs to train the model
+        batch_size                  : int, default = 16
+            the number of samples per gradient update.
+        use_mini_batch_size         : bool, default = False
+            condition on using the mini batch size formula Wang et al.
+        callbacks                   : callable or None, default ReduceOnPlateau and ModelCheckpoint
+            list of tf.keras.callbacks.Callback objects.
+        file_path                   : str, default = './'
+            file_path when saving model_Checkpoint callback
+        verbose                     : boolean, default = False
+            whether to output extra information
+        loss                        : string, default="mean_squared_error"
+            fit parameter for the keras model
+        optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
+        metrics                     : list of strings, default=["accuracy"],
 
     Notes
     -----
