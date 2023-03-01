@@ -273,7 +273,8 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "estimator_type",
-        ["classifier", "early_classifier", "regressor", "clusterer"](
+        ["classifier", "early_classifier", "regressor", "clusterer"],
+        (
             "list",
             [
                 "dictionary",
