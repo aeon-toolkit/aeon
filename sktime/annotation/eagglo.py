@@ -7,11 +7,10 @@ from typing import Callable, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from numba import njit
-from scipy.spatial.distance import cdist
 
 from sktime.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc"]
+__author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAgglo"]
 
 
@@ -240,22 +239,35 @@ class EAgglo(BaseTransformer):
             sum(self._member == i) for i in range(self.n_cluster)
         ]  # calculate initial cluster sizes
 
-        # array of within distances
-        grouped = X.copy().set_index(self._member).groupby(level=0)
-        within = grouped.apply(lambda x: get_distance(x.values, x.values, self.alpha))
-
         # array of between-within distances
         self.distances = np.empty((2 * self.n_cluster, 2 * self.n_cluster))
 
-        for i, xi in grouped:
-            self.distances[: self.n_cluster, i] = (
-                2
-                * grouped.apply(
-                    lambda xj: get_distance(xi.values, xj.values, self.alpha)  # noqa
-                )  # noqa
-                - within[i]
-                - within
+        # if there is no initial grouping...
+        if self.member is not None:
+            grouped = X.copy().set_index(self._member).groupby(level=0)
+            within = grouped.apply(
+                lambda x: get_distance_matrix(x.to_numpy(), x.to_numpy(), self.alpha)
             )
+
+            for i, xi in grouped:
+                self.distances[: self.n_cluster, i] = (
+                    2
+                    * grouped.apply(
+                        lambda xj: get_distance_matrix(
+                            xi.to_numpy(), xj.to_numpy(), self.alpha  # noqa
+                        )
+                    )
+                    - within[i]
+                    - within
+                )
+        # else...
+        else:
+            X_num = X.to_numpy()
+            for i in range(len(X)):
+                for j in range(len(X)):
+                    self.distances[i, j] = 2 * get_distance_single(
+                        X_num[i], X_num[j], self.alpha
+                    )
 
         np.fill_diagonal(self.distances, 0)
 
@@ -454,10 +466,16 @@ def mean_diff_penalty(x: pd.DataFrame) -> float:
 
 
 @njit(fastmath=True, cache=True)
-def get_distance(X, Y, alpha) -> float:
+def get_distance_matrix(X, Y, alpha) -> float:
     """Calculate cluster distance."""
     dist = euclidean_matrix_to_matrix(X, Y)
     return np.power(dist, alpha).mean()
+
+
+@njit(nopython=True, fastmath=True)
+def get_distance_single(X, Y, alpha) -> float:
+    dist = euclidean(X, Y)
+    return np.power(dist, alpha)  # .mean()
 
 
 @njit(nopython=True, fastmath=True)
@@ -467,23 +485,16 @@ def euclidean_matrix_to_matrix(a, b):
     out = np.zeros((n, m))
     for i in range(n):
         for j in range(m):
-            out[i][j] = euclidean(a[i], b[j])
+            out[i, j] = euclidean(a[i], b[j])
     return out
 
 
 @njit(fastmath=True, cache=True)
 def euclidean(u, v):
-    # return np.linalg.norm(u-v)
-    # dist = 0.0
-    # for i in range(len(u)):
-    #    buf = u[i] - v[i]
-    #    dist += buf*buf
-    # return np.sqrt(dist)
-
     buf = u - v
     return np.sqrt(buf @ buf)
 
 
-def get_distance_scipy(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
-    """Calculate within/between cluster distance using scipy."""
-    return np.power(cdist(X, Y, "euclidean"), alpha).mean()
+# def get_distance_scipy(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
+#    """Calculate within/between cluster distance using scipy."""
+#    return np.power(cdist(X, Y, "euclidean"), alpha).mean()
