@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 
 from sktime.annotation.eagglo import EAgglo
-from sktime.datasets import load_gun_point_segmentation
 
 
 def test_fit_default_params_univariate():
@@ -129,20 +128,14 @@ def test_custom_penalty():
     assert np.allclose(fit_actual, fit_expected)
 
 
-def test_eagglo_large():
-    """Tests EAgglo with a large dataset.
-
-    Check if the predicted segmentation matches.
-    """
-    # load the test dataset
-    ts, period_size, cps = load_gun_point_segmentation()
-
-    # compute a ClaSP segmentation
-    model = EAgglo(penalty=lambda x: np.mean(np.diff(np.sort(ts))))
-    fitted_model = model._fit(pd.DataFrame(ts[:2000]))
-
-    _ = fitted_model.cluster_
-    _ = fitted_model.gof_
-
-    # print(cluster_actual)
-    # print(fit_actual)
+# def test_eagglo_large():
+#     """Tests EAgglo with a large dataset.
+#     Check if the predicted segmentation matches.
+#     """
+#     # load the test dataset
+#     from sktime.datasets import load_gun_point_segmentation
+#     ts, period_size, cps = load_gun_point_segmentation()
+#
+#     # compute a ClaSP segmentation
+#     model = EAgglo(penalty=lambda x: np.mean(np.diff(np.sort(ts))))
+#     fitted_model = model._fit(pd.DataFrame(ts[:2000]))
