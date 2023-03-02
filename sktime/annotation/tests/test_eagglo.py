@@ -139,7 +139,7 @@ def test_eagglo_large():
 
     # compute a ClaSP segmentation
     model = EAgglo(penalty=lambda x: np.mean(np.diff(np.sort(ts))))
-    fitted_model = model._fit(pd.DataFrame(ts[:500]))
+    fitted_model = model._fit(pd.DataFrame(ts[:2000]))
 
     _ = fitted_model.cluster_
     _ = fitted_model.gof_

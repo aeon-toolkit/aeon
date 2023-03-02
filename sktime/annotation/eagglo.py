@@ -32,7 +32,7 @@ class EAgglo(BaseTransformer):
     Parameters
     ----------
     member : array_like (default=None)
-        Assigns points to to the initial cluster membership, therefore the first
+        Assigns points to the initial cluster membership, therefore the first
         dimension should be the same as for data. If `None` it will be initialized
         to dummy vector where each point is assigned to separate cluster.
     alpha : float (default=1.0)
@@ -354,18 +354,6 @@ class EAgglo(BaseTransformer):
         ]
 
 
-def get_distance(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
-    """Calculate within/between cluster distance."""
-    return np.power(cdist(X, Y, "euclidean"), alpha).mean()
-
-
-# @njit(fastmath=True, cache=True)
-# def get_distance(X, Y, alpha) -> float:
-#    """Calculate within/between cluster distance."""
-#    return ((X@Y)**alpha).mean()
-#    # return np.power(cdist(X, Y, "euclidean"), alpha).mean()
-
-
 @njit(fastmath=True, cache=True)
 def _update_distances(
     i, j, K, merged_, n_cluster, distances, left, right, open, sizes, progression, lm
@@ -463,3 +451,39 @@ def mean_diff_penalty(x: pd.DataFrame) -> float:
     the size of the new segments.
     """
     return np.mean(np.diff(np.sort(x)))
+
+
+@njit(fastmath=True, cache=True)
+def get_distance(X, Y, alpha) -> float:
+    """Calculate cluster distance."""
+    dist = euclidean_matrix_to_matrix(X, Y)
+    return np.power(dist, alpha).mean()
+
+
+@njit(nopython=True, fastmath=True)
+def euclidean_matrix_to_matrix(a, b):
+    """Compute the Euclidean distances between the rows of two matrices."""
+    n, m = a.shape[0], b.shape[0]
+    out = np.zeros((n, m))
+    for i in range(n):
+        for j in range(m):
+            out[i][j] = euclidean(a[i], b[j])
+    return out
+
+
+@njit(fastmath=True, cache=True)
+def euclidean(u, v):
+    # return np.linalg.norm(u-v)
+    # dist = 0.0
+    # for i in range(len(u)):
+    #    buf = u[i] - v[i]
+    #    dist += buf*buf
+    # return np.sqrt(dist)
+
+    buf = u - v
+    return np.sqrt(buf @ buf)
+
+
+def get_distance_scipy(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
+    """Calculate within/between cluster distance using scipy."""
+    return np.power(cdist(X, Y, "euclidean"), alpha).mean()
