@@ -465,19 +465,6 @@ def mean_diff_penalty(x: pd.DataFrame) -> float:
     return np.mean(np.diff(np.sort(x)))
 
 
-# @njit(fastmath=True, cache=True)
-# def get_distance_matrix(X, Y, alpha) -> float:
-#    """Calculate cluster distance."""
-#    dist = euclidean_distance(X, Y) # euclidean_matrix_to_matrix(X, Y)
-#    return np.power(dist, alpha).mean()
-
-
-# @njit(nopython=True, fastmath=True)
-# def get_distance_single(X, Y, alpha) -> float:
-#    dist = euclidean_distance(X, Y)
-#    return np.power(dist, alpha)  # .mean()
-
-
 @njit(fastmath=True, cache=True)
 def get_distance_matrix(X, Y, alpha) -> float:
     """Calculate cluster distance."""
