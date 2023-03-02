@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = ["James-Large", "TonyBagnall"]
+__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
 from copy import deepcopy
@@ -29,23 +29,26 @@ class CNNClassifier(BaseDeepClassifier):
         number of filters for each convolution layer, if not a list, the same n_filters
         is used in all layers.
     avg_pool_size   : int or list of int, default = 3,
-        the size of the average pooling layer, if not a list, the same max pooling size is used
+        the size of the average pooling layer, if not a list, the same
+        max pooling size is used
         for all convolution layer
     activation      : str or list of str, default = "sigmoid",
-        keras activation function used in the model for each layer, if not a list, the same
+        keras activation function used in the model for each layer,
+        if not a list, the same
         activation is used for all layers
     padding         : str or list of str, default = 'valid',
-        the method of padding in convolution layers, if not a list, the same padding used
+        the method of padding in convolution layers, if not a list,
+        the same padding used
         for all convolution layers
     strides         : int or list of int, default = 1,
-        the strides of kernels in the convolution and max pooling layers, if not a list, 
-        the same strides are used for all layers
+        the strides of kernels in the convolution and max pooling layers,
+        if not a list, the same strides are used for all layers
     dilation_rate   : int or list of int, default = 1,
-        the dilation rate of the convolution layers, if not a list, the same dilation rate
-        is used all over the network
+        the dilation rate of the convolution layers, if not a list,
+        the same dilation rate is used all over the network
     use_bias        : bool or list of bool, default = True,
-        condition on wether or not to use bias values for convolution layers, if not
-        a list, the same condition is used for all layers
+        condition on wether or not to use bias values for convolution layers,
+        if not a list, the same condition is used for all layers
     random_state    : int, default = 0
         seed to any needed random actions
     nb_epochs       : int, default = 2000
@@ -88,20 +91,18 @@ class CNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-
         n_layers=2,
         kernel_sizes=7,
-        n_filters=[6, 12],
+        n_filters=None,
         avg_pool_size=3,
         activation="sigmoid",
-        padding='valid',
+        padding="valid",
         strides=1,
         dilation_rate=1,
-
         nb_epochs=2000,
         batch_size=16,
         callbacks=None,
-        file_path='./',
+        file_path="./",
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
@@ -165,7 +166,6 @@ class CNNClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -175,17 +175,15 @@ class CNNClassifier(BaseDeepClassifier):
             metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
+        output_layer = tf.keras.layers.Dense(
             units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam()
-            if self.optimizer is None
-            else self.optimizer
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
@@ -193,8 +191,11 @@ class CNNClassifier(BaseDeepClassifier):
         )
 
         self.callbacks = [
-            keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5', monitor='loss',
-                                                           save_best_only=True)
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=self.file_path + "best_model.hdf5",
+                monitor="loss",
+                save_best_only=True,
+            )
             if self.callbacks is None
             else self.callbacks
         ]
@@ -234,14 +235,17 @@ class CNNClassifier(BaseDeepClassifier):
         )
 
         try:
-            import tensorflow as tf
             import os
 
-            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
-            os.remove(self.file_path+'best_model.hdf5')
+            import tensorflow as tf
+
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + "best_model.hdf5", compile=False
+            )
+            os.remove(self.file_path + "best_model.hdf5")
 
             return self
-        except:
+        except FileNotFoundError:
             return self
 
     @classmethod

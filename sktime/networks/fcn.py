@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 """Fully Connected Neural Network (FCN) (minus the final output layer)."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 
 from sktime.networks.base import BaseDeepNetwork
 from sktime.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 
+
 class FCNNetwork(BaseDeepNetwork):
-    """Establish the network structure for a FCN.
+    """
+    Establish the network structure for a FCN.
 
     Adapted from the implementation used in [1]
 
     Parameters
     ----------
-
-
     random_state    : int, default = 0
         seed to any needed random actions
 
@@ -45,17 +45,20 @@ class FCNNetwork(BaseDeepNetwork):
     def __init__(
         self,
         n_layers=3,
-        n_filters=[128, 256, 128],
-        kernel_sizes=[8, 5, 3],
+        n_filters=None,
+        kernel_sizes=None,
         dilation_rate=1,
         strides=1,
-        padding='same',
-        activation='relu',
+        padding="same",
+        activation="relu",
         use_bias=True,
         random_state=0,
     ):
         super(FCNNetwork, self).__init__()
         _check_dl_dependencies(severity="error")
+
+        n_filters = [128, 256, 128] if n_filters is None else n_filters
+        kernel_sizes = [8, 5, 3] if kernel_sizes is None else kernel_sizes
 
         self.n_layers = n_layers
 
@@ -63,7 +66,7 @@ class FCNNetwork(BaseDeepNetwork):
             self.n_filters = n_filters
         else:
             self.n_filters = [n_filters] * self.n_layers
-        
+
         if isinstance(kernel_sizes, list):
             self.kernel_sizes = kernel_sizes
         else:
@@ -73,36 +76,36 @@ class FCNNetwork(BaseDeepNetwork):
             self.dilation_rate = dilation_rate
         else:
             self.dilation_rate = [dilation_rate] * self.n_layers
-        
+
         if isinstance(strides, list):
             self.strides = strides
         else:
             self.strides = [strides] * self.n_layers
-        
+
         if isinstance(padding, list):
             self.padding = padding
         else:
             self.padding = [padding] * self.n_layers
-        
+
         if isinstance(activation, list):
             self.activation = activation
         else:
             self.activation = [activation] * self.n_layers
-        
+
         if isinstance(use_bias, list):
             self.use_bias = use_bias
         else:
             self.use_bias = [use_bias] * self.n_layers
 
         self.random_state = random_state
-        
-        assert(len(self.kernel_sizes) == self.n_layers)
-        assert(len(self.n_filters) == self.n_layers)
-        assert(len(self.padding) == self.n_layers)
-        assert(len(self.strides) == self.n_layers)
-        assert(len(self.activation) == self.n_layers)
-        assert(len(self.dilation_rate) == self.n_layers)
-        assert(len(self.use_bias) == self.n_layers)
+
+        assert len(self.kernel_sizes) == self.n_layers
+        assert len(self.n_filters) == self.n_layers
+        assert len(self.padding) == self.n_layers
+        assert len(self.strides) == self.n_layers
+        assert len(self.activation) == self.n_layers
+        assert len(self.dilation_rate) == self.n_layers
+        assert len(self.use_bias) == self.n_layers
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -124,14 +127,15 @@ class FCNNetwork(BaseDeepNetwork):
         x = input_layer
 
         for i in range(self.n_layers):
+            conv = tf.keras.layers.Conv1D(
+                filters=self.n_filters[i],
+                kernel_size=self.kernel_sizes[i],
+                strides=self.strides[i],
+                dilation_rate=self.dilation_rate[i],
+                padding=self.padding[i],
+                use_bias=self.use_bias[i],
+            )(x)
 
-            conv = tf.keras.layers.Conv1D(filters=self.n_filters[i],
-                                          kernel_size=self.kernel_sizes[i],
-                                          strides=self.strides[i],
-                                          dilation_rate=self.dilation_rate[i],
-                                          padding=self.padding[i],
-                                          use_bias=self.use_bias[i])(x)
-            
             conv = tf.keras.layers.BatchNormalization()(conv)
             conv = tf.keras.layers.Activation(activation=self.activation[i])(conv)
 

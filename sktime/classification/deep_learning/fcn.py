@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Fully Connected Neural Network (CNN) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
 from copy import deepcopy
@@ -65,16 +65,14 @@ class FCNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-
         n_layers=3,
-        n_filters=[128, 256, 128],
-        kernel_sizes=[8, 5, 3],
+        n_filters=None,
+        kernel_sizes=None,
         dilation_rate=1,
         strides=1,
-        padding='same',
-        activation='relu',
-        file_path='./',
-
+        padding="same",
+        activation="relu",
+        file_path="./",
         n_epochs=2000,
         batch_size=16,
         use_mini_batch_size=True,
@@ -118,7 +116,7 @@ class FCNClassifier(BaseDeepClassifier):
             padding=self.padding,
             dilation_rate=self.dilation_rate,
             activation=self.activation,
-            use_bias=self.use_bias
+            use_bias=self.use_bias,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -141,7 +139,6 @@ class FCNClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -151,17 +148,15 @@ class FCNClassifier(BaseDeepClassifier):
             metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=n_classes, activation='softmax', use_bias=self.use_bias
+        output_layer = tf.keras.layers.Dense(
+            units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam()
-            if self.optimizer is None
-            else self.optimizer
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
@@ -169,12 +164,16 @@ class FCNClassifier(BaseDeepClassifier):
         )
 
         self.callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5',
-                                        monitor='loss', save_best_only=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.5,
-                                                 patience=50, min_lr=0.0001)
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=self.file_path + "best_model.hdf5",
+                monitor="loss",
+                save_best_only=True,
+            ),
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+            )
             if self.callbacks is None
-            else self.callbacks
+            else self.callbacks,
         ]
 
         return model
@@ -207,7 +206,7 @@ class FCNClassifier(BaseDeepClassifier):
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
         else:
             mini_batch_size = self.batch_size
-        
+
         self.history = self.model_.fit(
             X,
             y_onehot,
@@ -218,14 +217,17 @@ class FCNClassifier(BaseDeepClassifier):
         )
 
         try:
-            import tensorflow as tf
             import os
 
-            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
-            os.remove(self.file_path+'best_model.hdf5')
+            import tensorflow as tf
+
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + "best_model.hdf5", compile=False
+            )
+            os.remove(self.file_path + "best_model.hdf5")
 
             return self
-        except:
+        except FileNotFoundError:
             return self
 
     @classmethod

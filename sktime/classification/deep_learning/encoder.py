@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+"""Encoder Classifier."""
 
+__author__ = ["hadifawaz1999"]
+__all__ = ["EncoderClassifier"]
 
 from copy import deepcopy
 
@@ -12,6 +16,47 @@ _check_dl_dependencies(severity="warning")
 
 
 class EncoderClassifier(BaseDeepClassifier):
+    """
+    Establish the network structure for an Encoder.
+
+    Adapted from the implementation used in [1]
+
+    Parameters
+    ----------
+    kernel_sizes    : array of int, default = [5, 11, 21]
+        specifying the length of the 1D convolution windows
+    n_filters       : array of int, default = [128, 256, 512]
+        specifying the number of 1D convolution filters used for each layer,
+        the shape of this array should be the same as kernel_sizes
+    max_pool_size   : int, default = 2
+        size of the max pooling windows
+    activation      : string, default = sigmoid
+        keras activation function
+    dropout_proba   : float, default = 0.2
+        specifying the dropout layer probability
+    padding         : string, default = same
+        specifying the type of padding used for the 1D convolution
+    strides         : int, default = 1
+        specifying the sliding rate of the 1D convolution filter
+    fc_units        : int, default = 256
+        specifying the number of units in the hiddent fully
+        connected layer used in the EncoderNetwork
+    random_state    : int, default = 0
+        seed to any needed random actions
+
+    Notes
+    -----
+    Adapted from source code
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
+
+    References
+    ----------
+    .. [1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
+    In proceedings International Conference of the Catalan Association
+    for Artificial Intelligence, 120--129 2018.
+
+
+    """
 
     _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
 
@@ -19,17 +64,16 @@ class EncoderClassifier(BaseDeepClassifier):
         self,
         n_epochs=100,
         batch_size=12,
-        kernel_sizes=[5, 11, 21],
-        n_filters=[128, 256, 512],
+        kernel_sizes=None,
+        n_filters=None,
         dropout_proba=0.2,
-        activation='sigmoid',
+        activation="sigmoid",
         max_pool_size=2,
-        padding='same',
+        padding="same",
         strides=1,
         fc_units=256,
-
         callbacks=None,
-        file_path='./',
+        file_path="./",
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
@@ -60,7 +104,7 @@ class EncoderClassifier(BaseDeepClassifier):
         self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
-        
+
         self._network = EncoderNetwork(
             kernel_sizes=self.kernel_sizes,
             max_pool_size=self.max_pool_size,
@@ -93,7 +137,6 @@ class EncoderClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -103,17 +146,17 @@ class EncoderClassifier(BaseDeepClassifier):
             metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
+        output_layer = tf.keras.layers.Dense(
             units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.00001)
+            tf.keras.optimizers.Adam(learning_rate=0.00001)
             if self.optimizer is None
             else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
@@ -121,8 +164,11 @@ class EncoderClassifier(BaseDeepClassifier):
         )
 
         self.callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(filepath=self.file_path+'best_model.hdf5',
-                                        monitor='loss', save_best_only=True)
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=self.file_path + "best_model.hdf5",
+                monitor="loss",
+                save_best_only=True,
+            )
             if self.callbacks is None
             else self.callbacks
         ]
@@ -162,14 +208,17 @@ class EncoderClassifier(BaseDeepClassifier):
         )
 
         try:
-            import tensorflow as tf
             import os
 
-            self.model_ = tf.keras.models.load_model(self.file_path+'best_model.hdf5', compile=False)
-            os.remove(self.file_path+'best_model.hdf5')
+            import tensorflow as tf
+
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + "best_model.hdf5", compile=False
+            )
+            os.remove(self.file_path + "best_model.hdf5")
 
             return self
-        except:
+        except FileNotFoundError:
             return self
 
     @classmethod
