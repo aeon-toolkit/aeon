@@ -126,16 +126,3 @@ def test_custom_penalty():
 
     assert np.allclose(cluster_actual, cluster_expected)
     assert np.allclose(fit_actual, fit_expected)
-
-
-# def test_eagglo_large():
-#     """Tests EAgglo with a large dataset.
-#     Check if the predicted segmentation matches.
-#     """
-#     # load the test dataset
-#     from sktime.datasets import load_gun_point_segmentation
-#     ts, period_size, cps = load_gun_point_segmentation()
-#
-#     # compute a segmentation
-#     model = EAgglo(penalty=lambda x: np.mean(np.diff(np.sort(ts))))
-#     fitted_model = model._fit(pd.DataFrame(ts[:2000]))
