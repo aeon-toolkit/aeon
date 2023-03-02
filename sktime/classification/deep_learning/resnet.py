@@ -33,28 +33,33 @@ class ResNetClassifier(BaseDeepClassifier):
             the kernel size of all the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         strides                     : int or list of int, default = 1,
-            the strides of convolution kernels in each of the convolution layers in one residual block, if not
+            the strides of convolution kernels in each of the
+            convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         dilation_rate               : int or list of int, default = 1,
             the dilation rate of the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         padding                     : str or list of str, default = 'padding',
-            the type of padding used in the convolution layers in one residual block, if not
+            the type of padding used in the convolution layers
+            in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         activation                  : str or list of str, default = 'relu',
-            keras activation used in the convolution layers in one residual block, if not
+            keras activation used in the convolution layers
+            in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         use_bias                    : bool or list of bool, default = True,
-            condition on wether or not to use bias values in the convolution layers in one residual block, if not
+            condition on wether or not to use bias values in
+            the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
-    
+
         nb_epochs                   : int, default = 1500
             the number of epochs to train the model
         batch_size                  : int, default = 16
             the number of samples per gradient update.
         use_mini_batch_size         : bool, default = False
             condition on using the mini batch size formula Wang et al.
-        callbacks                   : callable or None, default ReduceOnPlateau and ModelCheckpoint
+        callbacks                   : callable or None, default
+        ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
         file_path                   : str, default = './'
             file_path when saving model_Checkpoint callback
