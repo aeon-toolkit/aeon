@@ -7,7 +7,7 @@ __all__ = ["InceptionTimeClassifier"]
 import numpy as np
 from sklearn.utils import check_random_state
 
-# from sktime.classification.base import BaseClassifier
+from sktime.classification.base import BaseClassifier
 from sktime.classification.deep_learning.base import BaseDeepClassifier
 from sktime.networks.inception import InceptionNetwork
 from sktime.utils.validation._dependencies import _check_dl_dependencies
@@ -15,7 +15,7 @@ from sktime.utils.validation._dependencies import _check_dl_dependencies
 _check_dl_dependencies(severity="warning")
 
 
-class InceptionTimeClassifier:
+class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
     Ensemble of IndividualInceptionTimeClassifiers, as desribed in [1].
@@ -187,7 +187,7 @@ class InceptionTimeClassifier:
 
         # super(InceptionTimeClassifier, self).__init__()
 
-    def fit(self, X, y):
+    def _fit(self, X, y):
         """Fit each of the Individual Inception models.
 
         Arguments:
@@ -240,7 +240,7 @@ class InceptionTimeClassifier:
 
         return self
 
-    def predict(self, X) -> np.ndarray:
+    def _predict(self, X) -> np.ndarray:
         """Predict the labels of the test set using InceptionTime.
 
         Arguments:
@@ -262,7 +262,7 @@ class InceptionTimeClassifier:
             ]
         )
 
-    def predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X) -> np.ndarray:
         """Predict the proba of labels of the test set using InceptionTime.
 
         Arguments:
