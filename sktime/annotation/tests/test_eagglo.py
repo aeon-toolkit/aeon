@@ -136,6 +136,6 @@ def test_custom_penalty():
 #     from sktime.datasets import load_gun_point_segmentation
 #     ts, period_size, cps = load_gun_point_segmentation()
 #
-#     # compute a ClaSP segmentation
+#     # compute a segmentation
 #     model = EAgglo(penalty=lambda x: np.mean(np.diff(np.sort(ts))))
 #     fitted_model = model._fit(pd.DataFrame(ts[:2000]))

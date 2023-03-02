@@ -242,7 +242,7 @@ class EAgglo(BaseTransformer):
         # array of between-within distances
         self.distances = np.empty((2 * self.n_cluster, 2 * self.n_cluster))
 
-        # if there is no initial grouping...
+        # if there is an initial grouping...
         if self.member is not None:
             grouped = X.copy().set_index(self._member).groupby(level=0)
             within = grouped.apply(
@@ -260,7 +260,7 @@ class EAgglo(BaseTransformer):
                     - within[i]
                     - within
                 )
-        # else...
+        # else (no initial groupings)...
         else:
             X_num = X.to_numpy()
             for i in range(len(X)):
