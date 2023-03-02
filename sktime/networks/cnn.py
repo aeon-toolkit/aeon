@@ -81,47 +81,56 @@ class CNNNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
         self.random_state = random_state
 
-        n_filters = [6, 12] if n_filters is None else n_filters
+        self.n_filters = [6, 12] if n_filters is None else n_filters
 
-        if isinstance(kernel_sizes, list):
-            self.kernel_sizes = kernel_sizes
-        else:
-            self.kernel_sizes = [kernel_sizes] * n_layers
+        self.kernel_sizes = kernel_sizes
+        self.n_filters = n_filters
+        self.avg_pool_size = avg_pool_size
+        self.activation = activation
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.use_bias = use_bias
 
-        if isinstance(n_filters, list):
-            self.n_filters = n_filters
+        if isinstance(self.kernel_sizes, list):
+            self.kernel_sizes = self.kernel_sizes
         else:
-            self.n_filters = [n_filters] * n_layers
+            self.kernel_sizes = [self.kernel_sizes] * n_layers
 
-        if isinstance(avg_pool_size, list):
-            self.avg_pool_size = avg_pool_size
+        if isinstance(self.n_filters, list):
+            self.n_filters = self.n_filters
         else:
-            self.avg_pool_size = [avg_pool_size] * n_layers
+            self.n_filters = [self.n_filters] * n_layers
 
-        if isinstance(activation, list):
-            self.activation = activation
+        if isinstance(self.avg_pool_size, list):
+            self.avg_pool_size = self.avg_pool_size
         else:
-            self.activation = [activation] * n_layers
+            self.avg_pool_size = [self.avg_pool_size] * n_layers
 
-        if isinstance(padding, list):
-            self.padding = padding
+        if isinstance(self.activation, list):
+            self.activation = self.activation
         else:
-            self.padding = [padding] * n_layers
+            self.activation = [self.activation] * n_layers
 
-        if isinstance(strides, list):
-            self.strides = strides
+        if isinstance(self.padding, list):
+            self.padding = self.padding
         else:
-            self.strides = [strides] * n_layers
+            self.padding = [self.padding] * n_layers
 
-        if isinstance(dilation_rate, list):
-            self.dilation_rate = dilation_rate
+        if isinstance(self.strides, list):
+            self.strides = self.strides
         else:
-            self.dilation_rate = [dilation_rate] * n_layers
+            self.strides = [self.strides] * n_layers
 
-        if isinstance(use_bias, list):
-            self.use_bias = use_bias
+        if isinstance(self.dilation_rate, list):
+            self.dilation_rate = self.dilation_rate
         else:
-            self.use_bias = [use_bias] * n_layers
+            self.dilation_rate = [self.dilation_rate] * n_layers
+
+        if isinstance(self.use_bias, list):
+            self.use_bias = self.use_bias
+        else:
+            self.use_bias = [self.use_bias] * n_layers
 
         self.n_layers = n_layers
 

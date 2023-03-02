@@ -123,55 +123,66 @@ class InceptionNetwork(BaseDeepNetwork):
     ):
         _check_dl_dependencies(severity="error")
 
-        if isinstance(nb_filters, list):
-            self.nb_filters = nb_filters
-        else:
-            self.nb_filters = [nb_filters] * depth
+        self.nb_filters = nb_filters
+        self.nb_conv_per_layer = nb_conv_per_layer
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.use_bias = use_bias
+        self.use_max_pooling = use_max_pooling
+        self.max_pool_size = max_pool_size
 
-        if isinstance(kernel_size, list):
-            self.kernel_size = kernel_size
+        if isinstance(self.nb_filters, list):
+            self.nb_filters = self.nb_filters
         else:
-            self.kernel_size = [kernel_size] * depth
+            self.nb_filters = [self.nb_filters] * depth
 
-        if isinstance(nb_conv_per_layer, list):
-            self.nb_conv_per_layer = nb_conv_per_layer
+        if isinstance(self.kernel_size, list):
+            self.kernel_size = self.kernel_size
         else:
-            self.nb_conv_per_layer = [nb_conv_per_layer] * depth
+            self.kernel_size = [self.kernel_size] * depth
 
-        if isinstance(strides, list):
-            self.strides = strides
+        if isinstance(self.nb_conv_per_layer, list):
+            self.nb_conv_per_layer = self.nb_conv_per_layer
         else:
-            self.strides = [strides] * depth
+            self.nb_conv_per_layer = [self.nb_conv_per_layer] * depth
 
-        if isinstance(dilation_rate, list):
-            self.dilation_rate = dilation_rate
+        if isinstance(self.strides, list):
+            self.strides = self.strides
         else:
-            self.dilation_rate = [dilation_rate] * depth
+            self.strides = [self.strides] * depth
 
-        if isinstance(padding, list):
-            self.padding = padding
+        if isinstance(self.dilation_rate, list):
+            self.dilation_rate = self.dilation_rate
         else:
-            self.padding = [padding] * depth
+            self.dilation_rate = [self.dilation_rate] * depth
 
-        if isinstance(activation, list):
-            self.activation = activation
+        if isinstance(self.padding, list):
+            self.padding = self.padding
         else:
-            self.activation = [activation] * depth
+            self.padding = [self.padding] * depth
 
-        if isinstance(use_max_pooling, list):
-            self.use_max_pooling = use_max_pooling
+        if isinstance(self.activation, list):
+            self.activation = self.activation
         else:
-            self.use_max_pooling = [use_max_pooling] * depth
+            self.activation = [self.activation] * depth
 
-        if isinstance(max_pool_size, list):
-            self.max_pool_size = max_pool_size
+        if isinstance(self.use_max_pooling, list):
+            self.use_max_pooling = self.use_max_pooling
         else:
-            self.max_pool_size = [max_pool_size] * depth
+            self.use_max_pooling = [self.use_max_pooling] * depth
 
-        if isinstance(use_bias, list):
-            self.use_bias = use_bias
+        if isinstance(self.max_pool_size, list):
+            self.max_pool_size = self.max_pool_size
         else:
-            self.use_bias = [use_bias] * depth
+            self.max_pool_size = [self.max_pool_size] * depth
+
+        if isinstance(self.use_bias, list):
+            self.use_bias = self.use_bias
+        else:
+            self.use_bias = [self.use_bias] * depth
 
         assert len(self.nb_filters) == depth
         assert len(self.kernel_size) == depth

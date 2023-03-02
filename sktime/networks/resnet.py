@@ -85,46 +85,51 @@ class ResNetNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
         super(ResNetNetwork, self).__init__()
 
-        n_filters = [64, 128, 128] if n_filters is None else n_filters
-        kernel_sizes = [8, 5, 3] if kernel_sizes is None else kernel_sizes
+        self.n_filters = [64, 128, 128] if n_filters is None else n_filters
+        self.kernel_sizes = [8, 5, 3] if kernel_sizes is None else kernel_sizes
+        self.activation = activation
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.use_bias = use_bias
 
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
 
-        if isinstance(n_filters, list):
-            self.n_filters = n_filters
+        if isinstance(self.n_filters, list):
+            self.n_filters = self.n_filters
         else:
-            self.n_filters = [n_filters] * self.n_residual_blocks
+            self.n_filters = [self.n_filters] * self.n_residual_blocks
 
-        if isinstance(kernel_sizes, list):
-            self.kernel_sizes = kernel_sizes
+        if isinstance(self.kernel_sizes, list):
+            self.kernel_sizes = self.kernel_sizes
         else:
-            self.kernel_sizes = [kernel_sizes] * self.n_conv_per_residual_block
+            self.kernel_sizes = [self.kernel_sizes] * self.n_conv_per_residual_block
 
-        if isinstance(strides, list):
-            self.strides = strides
+        if isinstance(self.strides, list):
+            self.strides = self.strides
         else:
-            self.strides = [strides] * self.n_conv_per_residual_block
+            self.strides = [self.strides] * self.n_conv_per_residual_block
 
-        if isinstance(dilation_rate, list):
-            self.dilation_rate = dilation_rate
+        if isinstance(self.dilation_rate, list):
+            self.dilation_rate = self.dilation_rate
         else:
-            self.dilation_rate = [dilation_rate] * self.n_conv_per_residual_block
+            self.dilation_rate = [self.dilation_rate] * self.n_conv_per_residual_block
 
-        if isinstance(padding, list):
-            self.padding = padding
+        if isinstance(self.padding, list):
+            self.padding = self.padding
         else:
-            self.padding = [padding] * self.n_conv_per_residual_block
+            self.padding = [self.padding] * self.n_conv_per_residual_block
 
-        if isinstance(activation, list):
-            self.activation = activation
+        if isinstance(self.activation, list):
+            self.activation = self.activation
         else:
-            self.activation = [activation] * self.n_conv_per_residual_block
+            self.activation = [self.activation] * self.n_conv_per_residual_block
 
-        if isinstance(use_bias, list):
-            self.use_bias = use_bias
+        if isinstance(self.use_bias, list):
+            self.use_bias = self.use_bias
         else:
-            self.use_bias = [use_bias] * self.n_conv_per_residual_block
+            self.use_bias = [self.use_bias] * self.n_conv_per_residual_block
 
         assert len(self.n_filters) == self.n_residual_blocks
         assert len(self.kernel_sizes) == self.n_conv_per_residual_block
