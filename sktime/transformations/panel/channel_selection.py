@@ -10,6 +10,7 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -25,7 +26,7 @@ from sktime.distances import distance
 from sktime.transformations.base import BaseTransformer
 
 
-def _detect_knee_point(values, indices):
+def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
     """Find elbow point."""
     n_points = len(values)
     all_coords = np.vstack((range(n_points), values)).T
@@ -42,32 +43,49 @@ def _detect_knee_point(values, indices):
     best_dims = [idx for (elem, idx) in zip(values, indices) if elem > knee]
     if len(best_dims) == 0:
         return [knee_idx], knee_idx
-
     return best_dims
 
 
-class _distance_matrix:
-    """Create distance matrix."""
+class DistanceMatrix:
+    """
+    Create distance matrix.
 
-    def __init__(self, distance):
-        self.distance_ = str(distance)
+    Parameters
+    ----------
+    distance : str, default="euclidean"
+        Distance metric to be used for distance matrix creation.
+        options are euclidean and dtw.
 
-    def create_distance_matrix(self, cp_frame):
+
+    Attributes
+    ----------
+    distance_ : str
+        Distance metric to be used for distance matrix creation.
+
+
+    """
+
+    def __init__(self, distance_: str = "euclidean") -> pd.DataFrame:
+        self.distance = distance_
+
+    def create_distance_matrix(self, prototype_frame: pd.DataFrame):
         """Create a distance matrix between class_prototypes."""
-        distance_pair = list(itertools.combinations(range(0, cp_frame.shape[0]), 2))
+        distance_pair = list(
+            itertools.combinations(range(0, prototype_frame.shape[0]), 2)
+        )
 
-        idx_class = cp_frame.class_vals.to_dict()
+        idx_class = prototype_frame.class_vals.to_dict()
         distance_frame = pd.DataFrame()
         for cls_ in distance_pair:
             class_pair = []
             # calculate the distance of centroid here
             for _, (q, t) in enumerate(
                 zip(
-                    cp_frame.drop(["class_vals"], axis=1).iloc[cls_[0], :],
-                    cp_frame.iloc[cls_[1], :],
+                    prototype_frame.drop(["class_vals"], axis=1).iloc[cls_[0], :],
+                    prototype_frame.iloc[cls_[1], :],
                 )
             ):
-                class_pair.append(distance(q.values, t.values, metric=self.distance_))
+                class_pair.append(distance(q.values, t.values, metric=self.distance))
                 dict_ = {
                     f"Centroid_{idx_class[cls_[0]]}_{idx_class[cls_[1]]}": class_pair
                 }
@@ -80,16 +98,38 @@ def _clip(x, low_value, high_value):
     return np.clip(x, low_value, high_value)
 
 
-class Class_Prototype:
-    """Create centroid."""
+class ClassPrototype:
+    """
+    Class prototype for each class.
 
-    def __init__(self, cp: str = "mean", mean_centering: bool = False):
-        self.cp = cp
+    Parameters
+    ----------
+    prototype : str, default="mean"
+        Class prototype to be used for class prototype creation.
+        Available options are "mean", "median", "mad".
+    mean_centering : bool, default=False
+        If True, mean centering is applied to the class prototype.
+
+    Attributes
+    ----------
+    prototype : str
+        Class prototype to be used for class prototype creation.
+
+    """
+
+    def __init__(self, prototype: str = "mean", mean_centering: bool = False):
+        self.prototype = prototype
         self.mean_centering = mean_centering
 
-        assert self.cp in ["mean", "median", "mad"], "Class prototype not supported."
+        assert self.prototype in [
+            "mean",
+            "median",
+            "mad",
+        ], "Class prototype not supported."
 
     def _mad_median(self, class_X, median=None):
+        """Helper method to calculate MAD prototype."""
+
         _mad = median_abs_deviation(class_X, axis=0)
 
         low_value = median - _mad * 0.50
@@ -99,9 +139,10 @@ class Class_Prototype:
             _clip, axis=1, arr=class_X, low_value=low_value, high_value=high_value
         )
 
-        return np.mean(class_X, axis=0), class_X
+        return np.mean(class_X, axis=0)
 
-    def _class_mad(self, X, y):
+    def create_mad_prototype(self, X: pd.DataFrame, y: pd.Series) -> np.array:
+        """Create mad class prototype for each class."""
         classes_ = np.unique(y)
 
         channel_median = []
@@ -111,12 +152,13 @@ class Class_Prototype:
             )  # find the indexes of data point where particular class is located
 
             class_median = np.median(X[class_idx], axis=0)
-            class_median = self._mad_median(X[class_idx], class_median)[0]
+            class_median = self._mad_median(X[class_idx], class_median)
             channel_median.append(class_median)
 
         return np.array(channel_median)
 
-    def _class_median(self, X, y):
+    def create_median_prototype(self, X: pd.DataFrame, y: pd.Series):
+        """Create median class prototype for each class."""
         classes_ = np.unique(y)
 
         channel_median = []
@@ -128,10 +170,11 @@ class Class_Prototype:
             channel_median.append(class_median)
         return np.array(channel_median)
 
-    def _mean_centering(self, cp_):
-        return cp_.subtract(cp_.mean())
+    def _mean_centering(self, prototype):
+        """Helper method to apply mean centering."""
+        return prototype.subtract(prototype.mean())
 
-    def create_class_prototype(self, X, y):
+    def create_class_prototype(self, X: pd.DataFrame, y):
         """Create the class prototype for each class."""
         cols = X.columns.to_list()
         ts = from_nested_to_3d_numpy(X)  # Contains TS in numpy format
@@ -143,17 +186,17 @@ class Class_Prototype:
         for dim in range(ts.shape[1]):  # iterating over channels
             train = ts[:, dim, :]
 
-            if self.cp == "mean":
+            if self.prototype == "mean":
                 clf = NearestCentroid()
                 clf.fit(train, y_ind)
                 centroids.append(clf.centroids_)
 
-            elif self.cp == "median":
-                ch_median = self._class_median(train, y_ind)
+            elif self.prototype == "median":
+                ch_median = self.create_median_prototype(train, y_ind)
                 centroids.append(ch_median)
 
-            elif self.cp == "mad":
-                ch_mad = self._class_mad(train, y_ind)
+            elif self.prototype == "mad":
+                ch_mad = self.create_mad_prototype(train, y_ind)
                 centroids.append(ch_mad)
 
         centroid_frame = from_3d_numpy_to_nested(
@@ -275,12 +318,12 @@ class ElbowClassSum(BaseTransformer):
         -------
         self : reference to self.
         """
-        centroid_obj = Class_Prototype(
-            cp=self.class_prototype,
+        centroid_obj = ClassPrototype(
+            prototype=self.class_prototype,
             mean_centering=self.mean_centering,
         )
         self.class_prototype_ = centroid_obj.create_class_prototype(X.copy(), y)
-        obj = _distance_matrix(distance=self.distance)
+        obj = DistanceMatrix(distance=self.distance)
         self.distance_frame = obj.create_distance_matrix(self.class_prototype_.copy())
         self.channels_selected_idx = []
         distance = self.distance_frame.sum(axis=1).sort_values(ascending=False).values
@@ -389,9 +432,9 @@ class ElbowClassPairwise(BaseTransformer):
 
     def __init__(
         self,
-        distance="euclidean",
-        class_prototype="mad",
-        mean_centering=False,
+        distance: str = "euclidean",
+        class_prototype: str = "mad",
+        mean_centering: bool = False,
     ):
         self.distance = distance
         self.class_prototype = class_prototype
@@ -400,7 +443,7 @@ class ElbowClassPairwise(BaseTransformer):
 
         super(ElbowClassPairwise, self).__init__()
 
-    def _rank(self):
+    def _rank(self) -> List[int]:
         all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
         series = self.distance_frame.sum(axis=1)
         series.drop(
@@ -423,13 +466,13 @@ class ElbowClassPairwise(BaseTransformer):
         self : reference to self.
 
         """
-        centroid_obj = Class_Prototype(
-            cp=self.class_prototype, mean_centering=self.mean_centering
+        centroid_obj = ClassPrototype(
+            prototype=self.class_prototype, mean_centering=self.mean_centering
         )
         self.class_prototype_ = centroid_obj.create_class_prototype(
             X.copy(), y
         )  # Centroid created here
-        obj = _distance_matrix(distance=self.distance)
+        obj = DistanceMatrix(distance=self.distance)
         self.distance_frame = obj.create_distance_matrix(
             self.class_prototype_.copy()
         )  # Distance matrix created here
