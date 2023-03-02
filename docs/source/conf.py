@@ -18,7 +18,7 @@ rst_prolog = """.. attention::
     Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
     contributions.
 
-    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
 """  # noqa: E501
 
 # -- Path setup --------------------------------------------------------------
@@ -206,7 +206,7 @@ html_theme_options = {
         },
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/sktime-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig",  # noqa: E501
+            "url": "https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA",  # noqa: E501
             "icon": "fab fa-slack",
         },
         {
