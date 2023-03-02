@@ -55,12 +55,8 @@ def _local_euclidean_distance(x, y):
     float
         Euclidean distance between the two time series
     """
-    distance = 0.0
-    for i in range(x.shape[0]):
-        difference = x[i] - y[i]
-        distance += difference * difference
-
-    return np.sqrt(distance)
+    buf = x - y
+    return np.sqrt(buf @ buf)
 
 
 @njit(cache=True, fastmath=True)
@@ -81,7 +77,6 @@ def _numba_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     """
     distance = 0.0
     for i in range(x.shape[0]):
-        for j in range(x.shape[1]):
-            difference = x[i][j] - y[i][j]
-            distance += difference * difference
+        buf = x[i] - y[i]
+        distance += buf @ buf
     return np.sqrt(distance)
