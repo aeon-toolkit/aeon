@@ -31,12 +31,11 @@ Recommended steps for first time contributors, or to get started with regular co
 4. Feel free to attend the regular community collab sessions or one of the topic specific stand-ups and tech sessions (see schedule on `Slack`_)
 5. Once your first PR is merged and you’ve seen how things work, you could consider contributing more regularly: optionally, continue attending the Friday community collaboration sessions and stand-ups; or, optionally, `apply for mentoring <https://www.sktime.org/en/stable/get_involved/mentoring.html#mentoring>`_
 
-.. _Discord: https://discord.com/invite/gqSab2K
 .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
 
 .. note::
 
-   If you get stuck, chat with us on `Slack`_, or join one of the community sessions on `Discord`_.
+   If you get stuck, chat with us on `Slack`_.
 
 .. grid:: 1 2 2 2
     :gutter: 3
