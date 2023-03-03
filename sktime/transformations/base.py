@@ -147,10 +147,10 @@ class BaseTransformer(BaseEstimator):
         "pd_multiindex_hier",
     ]
 
-    def __init__(self, _output_convert="auto"):
+    def __init__(self, _output_convert="auto", do_conversions=True):
         self._converter_store_X = dict()  # storage dictionary for in/output conversion
         self._output_convert = _output_convert
-
+        self.do_conversions = do_conversions
         super(BaseTransformer, self).__init__()
         _check_estimator_deps(self)
 
@@ -379,28 +379,26 @@ class BaseTransformer(BaseEstimator):
         -------
         self : a fitted instance of the estimator
         """
-        # input checks and datatype conversion
-        X_inner, y_inner = self._fit_checks(X, y)
-
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
-
-        # checks and conversions complete, pass to inner fit
-        #####################################################
-        vectorization_needed = isinstance(X_inner, VectorizedDF)
-        self._is_vectorized = vectorization_needed
-        # we call the ordinary _fit if no looping/vectorization needed
-        if not vectorization_needed:
-            self._fit(X=X_inner, y=y_inner)
+        if self.do_conversions:
+            # input checks and datatype conversion
+            X_inner, y_inner = self._fit_checks(X, y)
+            vectorization_needed = isinstance(X_inner, VectorizedDF)
+            self._is_vectorized = vectorization_needed
+            # we call the ordinary _fit if no looping/vectorization needed
+            if not vectorization_needed:
+                self._fit(X=X_inner, y=y_inner)
+            else:
+                # otherwise we call the vectorized version of fit
+                self._vectorize("fit", X=X_inner, y=y_inner)
         else:
-            # otherwise we call the vectorized version of fit
-            self._vectorize("fit", X=X_inner, y=y_inner)
+            self._fit(X=X, y=y)
 
         # this should happen last: fitted state is set to True
         self._is_fitted = True
-
         return self
 
     def transform(self, X, y=None):
@@ -460,21 +458,21 @@ class BaseTransformer(BaseEstimator):
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
-        if not isinstance(X_inner, VectorizedDF):
-            Xt = self._transform(X=X_inner, y=y_inner)
+        if self.do_conversions:
+            X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+            if not isinstance(X_inner, VectorizedDF):
+                Xt = self._transform(X=X_inner, y=y_inner)
+            else:
+                # otherwise we call the vectorized version of predict
+                Xt = self._vectorize("transform", X=X_inner, y=y_inner)
+            # convert to output mtype
+            if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+                X_out = self._convert_output(Xt, metadata=metadata)
+            else:
+                X_out = Xt
+            return X_out
         else:
-            # otherwise we call the vectorized version of predict
-            Xt = self._vectorize("transform", X=X_inner, y=y_inner)
-
-        # convert to output mtype
-        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
-
-        return X_out
+            return self._transform(X=X, y=y)
 
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it.
@@ -532,28 +530,29 @@ class BaseTransformer(BaseEstimator):
                 then the return is a `Panel` object of type `pd-multiindex`
                 Example: i-th instance of the output is the i-th window running over `X`
         """
-        # input checks and datatype conversion
-        X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
+        if self.do_conversions:
+            # input checks and datatype conversion
+            X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
 
-        # checks and conversions complete, pass to inner fit_transform
-        ####################################################
-        vectorization_needed = isinstance(X_inner, VectorizedDF)
-        self._is_vectorized = vectorization_needed
-        # we call the ordinary _fit_transform if no looping/vectorization needed
-        if not vectorization_needed:
-            Xt = self._fit_transform(X=X_inner, y=y_inner)
+            # checks and conversions complete, pass to inner fit_transform
+            ####################################################
+            vectorization_needed = isinstance(X_inner, VectorizedDF)
+            self._is_vectorized = vectorization_needed
+            # we call the ordinary _fit_transform if no looping/vectorization needed
+            if not vectorization_needed:
+                Xt = self._fit_transform(X=X_inner, y=y_inner)
+            else:
+                # otherwise we call the vectorized version of fit_transform
+                Xt = self._vectorize("fit_transform", X=X_inner, y=y_inner)
+            # convert to output mtype
+            if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+                X_out = self._convert_output(Xt, metadata=metadata)
+            else:
+                X_out = Xt
         else:
-            # otherwise we call the vectorized version of fit_transform
-            Xt = self._vectorize("fit_transform", X=X_inner, y=y_inner)
+            X_out = self._fit_transform(X=X, y=y)
 
         self._is_fitted = True
-
-        # convert to output mtype
-        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
-
         return X_out
 
     def inverse_transform(self, X, y=None):
