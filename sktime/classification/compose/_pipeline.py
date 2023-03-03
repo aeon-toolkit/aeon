@@ -74,21 +74,21 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from sktime.transformations.panel.pca import PCATransformer
+    >>> from sktime.transformations.panel.interpolate import TSInterpolator
     >>> from sktime.classification.interval_based import TimeSeriesForestClassifier
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [PCATransformer()]
+    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
 
     Alternative construction via dunder method:
-    >>> pipeline = PCATransformer() * TimeSeriesForestClassifier(n_estimators=5)
+    >>> pipeline = TSInterpolator(length=10) * TimeSeriesForestClassifier(n_estimators=5)  # noqa: E501
     """
 
     _tags = {
@@ -104,7 +104,6 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         self.classifier = classifier
         self.classifier_ = classifier.clone()
         self.transformers = transformers
@@ -288,10 +287,6 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------
@@ -414,7 +409,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     # no default tag values - these are set dynamically below
 
     def __init__(self, classifier, transformers):
-
         from sklearn.base import clone
 
         self.classifier = classifier
@@ -617,10 +611,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------

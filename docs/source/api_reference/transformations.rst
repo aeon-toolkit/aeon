@@ -554,7 +554,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.pca
+.. currentmodule:: sktime.transformations.series.pca
 
 .. autosummary::
     :toctree: auto_generated/
