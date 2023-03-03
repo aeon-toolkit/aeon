@@ -1939,6 +1939,8 @@ def distance_factory(
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined.
     """
+    global dist_callable
+
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
