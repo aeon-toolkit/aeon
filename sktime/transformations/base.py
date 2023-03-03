@@ -351,7 +351,7 @@ class BaseTransformer(BaseEstimator):
             return ColumnSelect(key) * self
 
     def fit(self, X, y=None):
-        """Fit transformer to X, optionally to y.
+        """Fit transformer to X, optionally to or using y.
 
         State change:
             Changes state to "fitted".
@@ -365,12 +365,13 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported input type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to sktime input type format specifications, for further
+                details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
