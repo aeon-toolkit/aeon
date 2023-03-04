@@ -149,19 +149,19 @@ def to_numba_timeseries(x: np.ndarray) -> np.ndarray:
             f"The value {x} is an invalid time series. To perform a"
             f"distance computation a numpy array must be provided."
         )
+    num_dims = x.ndim
+    shape = x.shape
 
-    _x = np.array(x, copy=True, dtype=float)
-    num_dims = _x.ndim
-    shape = _x.shape
-    if num_dims == 1 or (num_dims == 2 and _x.shape[1] == 1 and _x.shape[0] != 1):
-        _x = np.reshape(_x, (1, shape[0]))
+    if num_dims == 1 or (num_dims == 2 and x.shape[1] == 1 and x.shape[0] != 1):
+        _x = np.array(x, copy=True, dtype=float)
+        return np.reshape(_x, (1, shape[0]))
     elif num_dims > 2:
         raise ValueError(
             "The matrix provided has more than 2 dimensions. This is not"
             "supported. Please provide a matrix with less than "
             "2 dimensions"
         )
-    return _x
+    return x
 
 
 @njit(cache=True)

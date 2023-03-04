@@ -68,7 +68,7 @@ class _DtwDistance(NumbaDistance):
         window: float = None,
         itakura_max_slope: float = None,
         bounding_matrix: np.ndarray = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
         """Create a no_python compiled dtw path distance callable.
 
@@ -145,7 +145,7 @@ class _DtwDistance(NumbaDistance):
         window: float = None,
         itakura_max_slope: float = None,
         bounding_matrix: np.ndarray = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> DistanceCallable:
         """Create a no_python compiled dtw distance callable.
 
@@ -237,7 +237,9 @@ def _cost_matrix(
             if np.isfinite(bounding_matrix[i, j]):
                 sum = 0
                 for k in range(dimensions):
-                    sum += (x[k][i] - y[k][j]) ** 2
+                    buf = x[k, i] - y[k, j]
+                    sum += buf * buf
+
                 cost_matrix[i + 1, j + 1] = sum
                 cost_matrix[i + 1, j + 1] += min(
                     cost_matrix[i, j + 1], cost_matrix[i + 1, j], cost_matrix[i, j]
