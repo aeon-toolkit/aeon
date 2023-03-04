@@ -4,7 +4,7 @@ import threading
 from contextlib import contextmanager as contextmanager
 
 _global_config = {
-    "check_X_y": False,
+    "check_X_y": True,
 }
 _threadlocal = threading.local()
 
