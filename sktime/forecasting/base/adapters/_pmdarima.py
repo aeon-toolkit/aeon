@@ -204,7 +204,7 @@ class _PmdArimaAdapter(BaseForecaster):
             alpha=DEFAULT_ALPHA,
         )
 
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs_idx = fh.to_absolute(self.cutoff)
         fh_idx = fh.to_indexer(self.cutoff)
         if return_pred_int:
             pred_ints = []
@@ -217,13 +217,13 @@ class _PmdArimaAdapter(BaseForecaster):
                 )
                 pred_int = result[1]
                 pred_int = pd.DataFrame(
-                    pred_int[fh_idx, :], index=fh_abs, columns=["lower", "upper"]
+                    pred_int[fh_idx, :], index=fh_abs_idx, columns=["lower", "upper"]
                 )
                 pred_ints.append(pred_int)
             return result[0], pred_ints
         else:
             result = pd.Series(result).iloc[fh_idx]
-            result.index = fh_abs
+            result.index = fh_abs_idx
             return result
 
     def _predict_interval(self, fh, X=None, coverage=0.90):
