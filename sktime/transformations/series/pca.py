@@ -1,47 +1,47 @@
 # -*- coding: utf-8 -*-
-"""sklearn PCA applied after flattening series."""
-__author__ = ["prockenschaub", "fkiraly"]
+"""sklearn PCA applied as transformation."""
+__author__ = ["prockenschaub", "fkiraly", "aiwalter"]
 __all__ = ["PCATransformer"]
 
-import numpy as np
+import pandas as pd
 from sklearn.decomposition import PCA
 
 from sktime.transformations.base import BaseTransformer
 
 
 class PCATransformer(BaseTransformer):
-    """Principal Components Analysis applied to panel of time seires.
+    """Principal Components Analysis applied as transformer.
 
     Provides a simple wrapper around ``sklearn.decomposition.PCA``.
 
-    Applies PCA to a panel [num_instances, num_variables, num_time_points] as follows:
-        1. flattens panel to [num_instances, num_time_points*num_variables]
-        2. if fit: fits sklearn.pca to flattened panel
-           in transform: projects on first n_components principal components,
-                then re-formats back to [num_instances, num_variables, num_time_points]
-
     Parameters
     ----------
-    n_components : int, float, str or None (default None)
-        Number principal components in projection
-        Default = min(num_instances, num_variables * num_time_points)
-        See ``sklearn.decomposition.PCA`` documentation for further documentation.
-
+    n_components : int, float or 'mle', default=None
+        Number of components to keep.
+        if n_components is not set all components are kept::
+            n_components == min(n_samples, n_features)
+        If ``n_components == 'mle'`` and ``svd_solver == 'full'``, Minka's
+        MLE is used to guess the dimension. Use of ``n_components == 'mle'``
+        will interpret ``svd_solver == 'auto'`` as ``svd_solver == 'full'``.
+        If ``0 < n_components < 1`` and ``svd_solver == 'full'``, select the
+        number of components such that the amount of variance that needs to be
+        explained is greater than the percentage specified by n_components.
+        If ``svd_solver == 'arpack'``, the number of components must be
+        strictly less than the minimum of n_features and n_samples.
+        Hence, the None case results in::
+            n_components == min(n_samples, n_features) - 1
     copy : bool, default=True
         If False, data passed to fit are overwritten and running
         fit(X).transform(X) will not yield the expected results,
         use fit_transform(X) instead.
-
     whiten : bool, default=False
         When True (False by default) the `components_` vectors are multiplied
         by the square root of n_samples and then divided by the singular values
         to ensure uncorrelated outputs with unit component-wise variances.
-
         Whitening will remove some information from the transformed signal
         (the relative variance scales of the components) but can sometime
         improve the predictive accuracy of the downstream estimators by
         making their data respect some hard-wired assumptions.
-
     svd_solver : {'auto', 'full', 'arpack', 'randomized'}, default='auto'
         If auto :
             The solver is selected by a default policy based on `X.shape` and
@@ -59,19 +59,48 @@ class PCATransformer(BaseTransformer):
             0 < n_components < min(X.shape)
         If randomized :
             run randomized SVD by the method of Halko et al.
-
     tol : float, default=0.0
         Tolerance for singular values computed by svd_solver == 'arpack'.
         Must be of range [0.0, infinity).
-
     iterated_power : int or 'auto', default='auto'
         Number of iterations for the power method computed by
         svd_solver == 'randomized'.
         Must be of range [0, infinity).
-
+    n_oversamples : int, default=10
+        This parameter is only relevant when `svd_solver="randomized"`.
+        It corresponds to the additional number of random vectors to sample the
+        range of `X` so as to ensure proper conditioning. See
+        :func:`~sklearn.utils.extmath.randomized_svd` for more details.
+    power_iteration_normalizer : {'auto', 'QR', 'LU', 'none'}, default='auto'
+        Power iteration normalizer for randomized SVD solver.
+        Not used by ARPACK. See :func:`~sklearn.utils.extmath.randomized_svd`
+        for more details.
     random_state : int, RandomState instance or None, default=None
         Used when the 'arpack' or 'randomized' solvers are used. Pass an int
         for reproducible results across multiple function calls.
+
+    Attributes
+    ----------
+    pca_ : sklearn.decomposition.PCA
+        The fitted PCA object
+
+    Examples
+    --------
+    >>> # skip DOCTEST if Python < 3.8
+    >>> import sys, pytest
+    >>> if sys.version_info < (3, 8):
+    ...     pytest.skip("PCATransformer requires Python >= 3.8")
+    >>>
+    >>> from sktime.transformations.series.pca import PCATransformer
+    >>> from sktime.datasets import load_longley
+    >>> _, X = load_longley()
+    >>> transformer = PCATransformer(n_components=2)
+    >>> X_hat = transformer.fit_transform(X)
+
+    References
+    ----------
+    # noqa: E501
+    .. [1] https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
     """
 
     _tags = {
@@ -80,10 +109,12 @@ class PCATransformer(BaseTransformer):
         "scitype:transform-output": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "univariate-only": False,
         "fit_is_empty": False,
+        "handles-missing-data": False,
+        "python_version": ">=3.8",
     }
 
     def __init__(
@@ -93,6 +124,8 @@ class PCATransformer(BaseTransformer):
         whiten=False,
         svd_solver="auto",
         tol=0.0,
+        n_oversamples=10,
+        power_iteration_normalizer="auto",
         iterated_power="auto",
         random_state=None,
     ):
@@ -101,19 +134,10 @@ class PCATransformer(BaseTransformer):
         self.whiten = whiten
         self.svd_solver = svd_solver
         self.tol = tol
+        self.n_oversamples = n_oversamples
+        self.power_iteration_normalizer = power_iteration_normalizer
         self.iterated_power = iterated_power
         self.random_state = random_state
-
-        self.pca = PCA(
-            n_components,
-            copy=copy,
-            whiten=whiten,
-            svd_solver=svd_solver,
-            tol=tol,
-            iterated_power=iterated_power,
-            random_state=random_state,
-        )
-
         super(PCATransformer, self).__init__()
 
     def _fit(self, X, y=None):
@@ -123,21 +147,27 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
+        X : Series or Panel of mtype X_inner_mtype
+            if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
+        y : Ignored
 
         Returns
         -------
         self: reference to self
         """
-        N, num_var, num_time = X.shape
-        X = X.reshape(N, num_time * num_var)
-
-        # Transform the time series column into tabular format and
-        # apply PCA to the tabular format
-        self.pca.fit(X)
+        self.pca_ = PCA(
+            n_components=self.n_components,
+            copy=self.copy,
+            whiten=self.whiten,
+            svd_solver=self.svd_solver,
+            tol=self.tol,
+            n_oversamples=self.n_oversamples,
+            power_iteration_normalizer=self.power_iteration_normalizer,
+            iterated_power=self.iterated_power,
+            random_state=self.random_state,
+        )
+        self.pca_.fit(X=X)
 
         return self
 
@@ -148,21 +178,17 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
+        X : Series or Panel of mtype X_inner_mtype
+            if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
+        y : Ignored
 
         Returns
         -------
-        Xt : Panel data in 3D np.ndarray format [n_instances, n_variables, n_timepoints]
-            transformed version of X
+        transformed version of X
         """
-        N, num_var, num_time = X.shape
-        X = X.reshape(N, num_time * num_var)
-
-        # Transform X using the fitted PCA
-        Xt = np.matmul(self.pca.transform(X), self.pca.components_)
-        Xt = Xt.reshape(N, num_var, num_time)
+        Xt = self.pca_.transform(X=X)
+        columns = [f"PC_{i}" for i in range(Xt.shape[1])]
+        Xt = pd.DataFrame(Xt, index=X.index, columns=columns)
 
         return Xt

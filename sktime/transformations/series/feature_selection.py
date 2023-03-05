@@ -120,6 +120,9 @@ class FeatureSelection(BaseTransformer):
         self.n_columns_ = self.n_columns
         self.feature_importances_ = None
 
+        if self.method == "none":
+            self.set_tags(**{"scitype:transform-output": "Primitives"})
+
         # multivariate X
         if not isinstance(X, pd.Series):
             if self.method == "feature-importances":
