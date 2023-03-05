@@ -11,6 +11,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from sktime.datatypes import VectorizedDF
 from sktime.datatypes._utilities import get_time_index
@@ -211,7 +212,7 @@ def _shift(x, by=1, return_index=False):
 
     # if we want index, we can simply use add dunder or shift
     if return_index:
-        if idx.is_integer():
+        if is_integer_dtype(idx):
             return idx + by
         else:
             return idx.shift(by)

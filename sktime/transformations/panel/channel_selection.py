@@ -61,7 +61,6 @@ class _distance_matrix:
         map_cls = centroid_frame.class_vals.to_dict()
         distance_frame = pd.DataFrame()
         for class_ in distance_pair:
-
             class_pair = []
             # calculate the distance of centroid here
             for _, (q, t) in enumerate(
@@ -193,7 +192,6 @@ class ElbowClassSum(BaseTransformer):
     }
 
     def __init__(self, distance=None):
-
         self.distance = distance
 
         super(ElbowClassSum, self).__init__()
@@ -384,7 +382,7 @@ class ElbowClassPairwise(BaseTransformer):
         obj = _distance_matrix()
         self.distance_frame_ = obj.distance(df)
 
-        for pairdistance in self.distance_frame_.iteritems():
+        for pairdistance in self.distance_frame_.items():
             distance = pairdistance[1].sort_values(ascending=False).values
             indices = pairdistance[1].sort_values(ascending=False).index
 

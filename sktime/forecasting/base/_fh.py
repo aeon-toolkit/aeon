@@ -7,7 +7,7 @@ __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
 __all__ = ["ForecastingHorizon"]
 
 from functools import lru_cache
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -71,7 +71,7 @@ def _delegator(method):
     return delegated
 
 
-def _check_values(values: Union[VALID_FORECASTING_HORIZON_TYPES]) -> pd.Index:
+def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
     """Validate forecasting horizon values.
 
     Validation checks validity and also converts forecasting horizon values
@@ -259,7 +259,7 @@ class ForecastingHorizon:
 
     def __new__(
         cls,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: bool = None,
         freq=None,
     ):
@@ -276,7 +276,7 @@ class ForecastingHorizon:
 
     def __init__(
         self,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: Optional[bool] = True,
         freq=None,
     ):
@@ -319,7 +319,7 @@ class ForecastingHorizon:
 
     def _new(
         self,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: bool = None,
         freq: str = None,
     ):
