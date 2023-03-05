@@ -345,11 +345,11 @@ class SquaringResiduals(BaseForecaster):
         """
         if cov:
             warn(f"cov={cov} is not supported. Defaulting to cov=False instead.")
-        fh_abs = fh.to_absolute(self.cutoff)
-        fh_rel = fh.to_relative(self.cutoff)
+        fh_abs = fh.to_absolute(self.cutoff).to_pandas()
+        fh_rel = fh.to_relative(self.cutoff).to_pandas()
         pred_var = pd.Series(index=fh_rel)
-        for el in fh_rel:
-            pred_var.at[el] = self._res_forecasters[el].predict(fh=el)[0]
+        for x in fh_rel:
+            pred_var.at[x] = self._res_forecasters[x].predict(fh=x)[0]
         if self.strategy == "square":
             pred_var = pred_var**0.5
         pred_var.index = fh_abs
