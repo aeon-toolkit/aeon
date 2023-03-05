@@ -132,7 +132,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         "capability:train_estimate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
-        "estimator_type": "shapelet",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
