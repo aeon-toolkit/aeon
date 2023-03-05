@@ -204,7 +204,7 @@ class _PmdArimaAdapter(BaseForecaster):
             alpha=DEFAULT_ALPHA,
         )
 
-        fh_abs_idx = fh.to_absolute(self.cutoff)
+        fh_abs_idx = fh.to_absolute(self.cutoff).to_pandas()
         fh_idx = fh.to_indexer(self.cutoff)
         if return_pred_int:
             pred_ints = []
