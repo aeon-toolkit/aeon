@@ -87,7 +87,7 @@ class ElasticEnsemble(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "estimator_type": "distance",
+        "algorithm_type": "distance",
     }
 
     def __init__(

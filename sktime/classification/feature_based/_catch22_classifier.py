@@ -84,7 +84,7 @@ class Catch22Classifier(_DelegatedClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "estimator_type": "feature",
+        "algorithm_type": "feature",
     }
 
     def __init__(

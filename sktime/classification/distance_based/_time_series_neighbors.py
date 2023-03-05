@@ -67,7 +67,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
-        "estimator_type": "distance",
+        "algorithm_type": "distance",
     }
 
     def __init__(

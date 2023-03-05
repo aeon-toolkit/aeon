@@ -113,7 +113,7 @@ class ShapeDTW(BaseClassifier):
     """
 
     _tags = {
-        "estimator_type": "distance",
+        "algorithm_type": "distance",
     }
 
     def __init__(

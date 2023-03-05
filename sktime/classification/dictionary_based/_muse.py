@@ -121,7 +121,7 @@ class MUSE(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "estimator_type": "dictionary",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
