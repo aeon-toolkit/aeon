@@ -101,7 +101,6 @@ class VECM(_StatsModelsAdapter):
         exog_coint=None,
         exog_coint_fc=None,
     ):
-
         self.dates = dates
         self.freq = freq
         self.missing = missing
@@ -191,7 +190,6 @@ class VECM(_StatsModelsAdapter):
 
         # in-sample prediction by means of residuals
         if fh_int.min() <= 0:
-
             # .resid returns np.ndarray
             # both values need to be pd DataFrame for subtraction
             y_pred_insample = self._y - pd.DataFrame(self._fitted_forecaster.resid)
@@ -204,7 +202,7 @@ class VECM(_StatsModelsAdapter):
                 y_pred_insample if y_pred_insample is not None else y_pred_outsample
             )
 
-        index = fh.to_absolute(self.cutoff)
+        index = fh.to_absolute(self.cutoff).to_pandas()
         index.name = self._y.index.name
         y_pred = pd.DataFrame(
             y_pred[fh.to_indexer(self.cutoff), :],

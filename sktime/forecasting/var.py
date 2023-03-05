@@ -182,7 +182,7 @@ class VAR(_StatsModelsAdapter):
                 y_pred_insample if y_pred_insample is not None else y_pred_outsample
             )
 
-        index = fh.to_absolute(self.cutoff)
+        index = fh.to_absolute(self.cutoff).to_pandas()
         index.name = self._y.index.name
         y_pred = pd.DataFrame(
             y_pred[fh.to_indexer(self.cutoff), :],
@@ -239,7 +239,6 @@ class VAR(_StatsModelsAdapter):
         df_list = []
 
         for cov in coverage:
-
             alpha = 1 - cov
 
             fcast_interval = model.forecast_interval(
@@ -299,7 +298,7 @@ class VAR(_StatsModelsAdapter):
             columns=pd.MultiIndex.from_tuples(final_columns),
         )
 
-        final_df.index = fh.to_absolute(self.cutoff)
+        final_df.index = fh.to_absolute(self.cutoff).to_pandas()
         final_df.index.name = self._y.index.name
 
         return final_df

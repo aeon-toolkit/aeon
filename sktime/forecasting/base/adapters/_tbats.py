@@ -218,7 +218,7 @@ class _TbatsAdapter(BaseForecaster):
 
             if len(fh) != len(fh_out):
                 epred_int = pd.DataFrame({"lower": nans(len_fh), "upper": nans(len_fh)})
-                epred_int.index = fh.to_absolute(self.cutoff)
+                epred_int.index = fh.to_absolute(self.cutoff).to_pandas()
 
                 in_pred_int = epred_int.index.isin(pred_int.index)
                 epred_int[in_pred_int] = pred_int
@@ -227,7 +227,7 @@ class _TbatsAdapter(BaseForecaster):
         else:
             y_out = nans(len_fh)
             pred_int = pd.DataFrame({"lower": nans(len_fh), "upper": nans(len_fh)})
-            pred_int.index = fh.to_absolute(self.cutoff)
+            pred_int.index = fh.to_absolute(self.cutoff).to_pandas()
 
         # y_pred
         y_in_sample = pd.Series(self._forecaster.y_hat)
@@ -282,7 +282,6 @@ class _TbatsAdapter(BaseForecaster):
         pred_int = pd.DataFrame(columns=int_idx, index=fh.to_absolute(cutoff))
 
         for c in coverage:
-
             # separate treatment for "0" coverage: upper/lower = point prediction
             if c == 0:
                 pred_int[("Coverage", 0, "lower")] = self._tbats_forecast(fh)
