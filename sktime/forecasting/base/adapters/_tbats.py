@@ -279,7 +279,9 @@ class _TbatsAdapter(BaseForecaster):
         # accumulator of results
         var_names = ["Coverage"]
         int_idx = pd.MultiIndex.from_product([var_names, coverage, ["lower", "upper"]])
-        pred_int = pd.DataFrame(columns=int_idx, index=fh.to_absolute(cutoff))
+        pred_int = pd.DataFrame(
+            columns=int_idx, index=fh.to_absolute(cutoff).to_pandas()
+        )
 
         for c in coverage:
             # separate treatment for "0" coverage: upper/lower = point prediction

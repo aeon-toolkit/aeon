@@ -186,7 +186,7 @@ class VAR(_StatsModelsAdapter):
         index.name = self._y.index.name
         y_pred = pd.DataFrame(
             y_pred[fh.to_indexer(self.cutoff), :],
-            index=fh.to_absolute(self.cutoff),
+            index=fh.to_absolute(self.cutoff).to_pandas(),
             columns=self._y.columns,
         )
         return y_pred
