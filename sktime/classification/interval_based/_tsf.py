@@ -84,7 +84,7 @@ class TimeSeriesForestClassifier(
     """
 
     _tags = {
-        "estimator_type": "interval",
+        "algorithm_type": "interval",
     }
 
     _base_estimator = DecisionTreeClassifier(criterion="entropy")

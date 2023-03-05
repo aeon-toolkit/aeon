@@ -177,7 +177,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "estimator_type": "interval",
+        "algorithm_type": "interval",
     }
 
     def __init__(

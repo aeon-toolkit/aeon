@@ -143,7 +143,7 @@ class DrCIF(BaseClassifier):
         "capability:train_estimate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
-        "estimator_type": "interval",
+        "algorithm_type": "interval",
     }
 
     def __init__(
