@@ -272,7 +272,7 @@ ESTIMATOR_TAG_REGISTER = [
         "can the classifier set n_jobs to use multiple threads?",
     ),
     (
-        "estimator_type",
+        "algorithm_type",
         ["classifier", "early_classifier", "regressor", "clusterer"],
         (
             "list",

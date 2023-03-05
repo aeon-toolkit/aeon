@@ -64,7 +64,7 @@ class ResNetClassifier(BaseDeepClassifier):
     ResNetClassifier(...)
     """
 
-    _tags = {"estimator_type": "deeplearning", "python_dependencies": "tensorflow"}
+    _tags = {"python_dependencies": "tensorflow"}
 
     def __init__(
         self,

@@ -63,7 +63,7 @@ class MLPClassifier(BaseDeepClassifier):
     MLPClassifier(...)
     """
 
-    _tags = {"estimator_type": "deeplearning", "python_dependencies": "tensorflow"}
+    _tags = {"python_dependencies": "tensorflow"}
 
     def __init__(
         self,
