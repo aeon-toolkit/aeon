@@ -343,7 +343,7 @@ class _TbatsAdapter(BaseForecaster):
         pred_int = pred_int.loc[
             pred_int["idx"].isin(fh_out.to_indexer(self.cutoff).values)
         ]
-        pred_int.index = fh_out.to_absolute(self.cutoff)
+        pred_int.index = fh_out.to_absolute(self.cutoff).to_pandas()
         pred_int = pred_int.drop(columns=["idx"])
         return pred_int
 
