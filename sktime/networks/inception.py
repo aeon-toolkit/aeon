@@ -102,6 +102,8 @@ class InceptionNetwork(BaseDeepNetwork):
     }
     """
 
+    _tags = {"python_dependencies": "tensorflow"}
+
     def __init__(
         self,
         nb_filters=32,

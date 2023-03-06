@@ -121,7 +121,7 @@ class InceptionTimeClassifier(BaseClassifier):
     https://github.com/MSD-IRIMAS/CF-4-TSC
     """
 
-    _tags = {"capability:multivariate": True}
+    _tags = {"python_dependencies": "tensorflow", "capability:multivariate": True}
 
     def __init__(
         self,
