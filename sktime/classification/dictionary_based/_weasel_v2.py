@@ -43,6 +43,11 @@ class WEASEL_V2(BaseClassifier):
     ----------
     min_window : int, default=4,
         Minimal length of the subsequences to compute words from.
+    norm_options : array of bool, default=[False],
+        If the array contains True, words are computed over mean-normed TS
+        If the array contains False, words are computed over raw TS
+        If both are set, words are computed for both.
+        A value will be randomly chosen for each parameter-configuration.
     word_lengths : array of int, default=[7, 8],
         Length of the words to compute. A value will be randomly chosen for each
         parameter-configuration.
@@ -111,6 +116,7 @@ class WEASEL_V2(BaseClassifier):
     def __init__(
         self,
         min_window=4,
+        norm_options=(False,),  # tuple
         word_lengths=(7, 8),
         use_first_differences=(True, False),
         feature_selection="chi2_top_k",
@@ -128,13 +134,7 @@ class WEASEL_V2(BaseClassifier):
         self.lower_bounding = True
         self.remove_repeat_words = False
 
-        #     norm_options : array of bool, default=[False],
-        #         If the array contains True, words are computed over mean-normed TS
-        #         If the array contains False, words are computed over raw TS
-        #         If both are set, words are computed for both.
-        #         A value will be randomly chosen for each parameter-configuration.
-        self.norm_options = [False]
-
+        self.norm_options = norm_options
         self.word_lengths = word_lengths
 
         self.random_state = random_state
