@@ -40,6 +40,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "X_inner_mtype": "numpy3D",
         "capability:multivariate": True,
         "python_dependencies": "tensorflow",
+        "algorithm_type": "deeplearning",
     }
 
     def __init__(self, batch_size=40, random_state=None):
