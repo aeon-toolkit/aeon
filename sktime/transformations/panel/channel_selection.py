@@ -9,6 +9,7 @@ __author__ = ["haskarb"]
 __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
+from functools import partial
 import itertools
 from typing import List, Tuple, Union
 
@@ -17,6 +18,7 @@ import pandas as pd
 from scipy.stats import median_abs_deviation
 from sklearn.neighbors import NearestCentroid
 from sklearn.preprocessing import LabelEncoder
+from sktime.datasets.tests.test_data_io import test_load_from_tsfile_to_dataframe
 
 from sktime.datatypes._panel._convert import (
     from_3d_numpy_to_nested,
@@ -56,20 +58,22 @@ def create_distance_matrix(
         class_vals
     ), "Prototype and class values must be of same length."
 
-    distance_pair = list(itertools.combinations(class_vals, 2))
-    print("labels", class_vals)
-    print("distance_pair", distance_pair)
-    # idx_class = prototype.class_vals.to_dict()
-    idx_class = {}
+    distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
+    # create a dictionary of class values and their indexes
+    idx_class = {i: class_vals[i] for i in range(0, len(class_vals))}
+
     distance_frame = pd.DataFrame()
+    ch_ = 0
     for cls_ in distance_pair:
-        class_pair = []
         # calculate the distance of centroid here
         for _, (q, t) in enumerate(
-            zip(prototype[class_vals == cls_[0]], prototype[class_vals == cls_[1]])
+            zip(
+                prototype[class_vals == idx_class[cls_[0]]],
+                prototype[class_vals == idx_class[cls_[1]]],
+            )
         ):
-            class_pair.append(distance(q, t, metric=distance_))
-            dict_ = {f"Centroid_{idx_class[cls_[0]]}_{idx_class[cls_[1]]}": class_pair}
+            dis = np.linalg.norm(q - t, axis=1)
+            dict_ = {f"Centroid_{idx_class[cls_[0]]}_{idx_class[cls_[1]]}": dis}
         distance_frame = pd.concat([distance_frame, pd.DataFrame(dict_)], axis=1)
     return distance_frame
 
@@ -129,6 +133,7 @@ class ClassPrototype:
 
         return np.mean(class_X, axis=0)
 
+    # TODO:: Fix this
     def create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
         """Create mad class prototype for each class."""
         classes_ = np.unique(y)
@@ -170,14 +175,10 @@ class ClassPrototype:
             channel_median.append(class_median)
         return np.vstack(channel_median)
 
-    def _mean_centering(self, prototype):
-        """Helper method to apply mean centering."""
-        return prototype.subtract(prototype.mean())
-
     # TODO: Fix this function
     def create_prototype(
         self, X: np.ndarray, y: np.array
-    ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.array, np.array]]:
+    ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
         # TODO: Add support for columns
         print(X.shape)
@@ -195,12 +196,13 @@ class ClassPrototype:
         prototypes = []
         for channel in range(X.shape[1]):  # iterating over channels
             train = X[:, channel, :]
-            print("train shpae", train.shape, "y_ind", y_ind.shape)
+            # print("train shpae", train.shape, "y_ind", y_ind.shape)
             _prototype = prototype_funcs[self.prototype](train, y_ind)
-            print("prototype", _prototype.shape)
+            # print("prototype", _prototype.shape)
             prototypes.append(_prototype)
 
-        prototypes = np.hstack(prototypes)
+        print("Total Pr: ", len(prototypes))
+        prototypes = np.stack(prototypes, axis=1)
         print(prototypes.shape)
         print(le.classes_)
 
@@ -357,7 +359,7 @@ class ElbowClassSum(BaseTransformer):
         output : pandas DataFrame
             X with a subset of channels
         """
-        return X.iloc[:, self.channels_selected_idx]
+        return X[:, self.channels_selected_idx]
 
 
 class ElbowClassPairwise(BaseTransformer):
@@ -482,7 +484,7 @@ class ElbowClassPairwise(BaseTransformer):
         self.class_prototype_ = centroid_obj.create_prototype(
             X.copy(), y
         )  # Centroid created here
-        obj = DistanceMatrix(distance=self.distance)
+        # obj = DistanceMatrix(distance=self.distance)
         self.distance_frame = obj.create_distance_matrix(
             self.class_prototype_.copy()
         )  # Distance matrix created here
@@ -524,13 +526,20 @@ class ElbowClassPairwise(BaseTransformer):
 # Add main function to run the code
 
 if __name__ == "__main__":
-    from sktime.datasets import load_basic_motions
+    from sktime.datasets import load_from_tsfile_to_dataframe, load_UCR_UEA_dataset
+    
 
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    data_train = "/home/bhaskar/Desktop/ChannelSelection-Extend/MP/FullUnnormalized25XY/TRAIN_X.ts"
+    data_test = "/home/bhaskar/Desktop/ChannelSelection-Extend/MP/FullUnnormalized25XY/TEST_X.ts"
+
+    X_train, y_train = load_from_tsfile_to_dataframe(data_train)
+    X_test, y_test = load_from_tsfile_to_dataframe(data_test)
 
     # Create a transformer
     cs = ElbowClassSum(distance_="euclidean", prototype="mad")
     cs.fit(X_train, y_train)
     Xt = cs.transform(X_train)
-
+    print(cs.rank)
+    # pprint([dcs50[i] for i in cs.rank])
+# 
     print(Xt.shape)
