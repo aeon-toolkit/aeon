@@ -132,7 +132,7 @@ class ContractableBOSS(BaseClassifier):
         "capability:train_estimate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
-        "classifier_type": "dictionary",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
