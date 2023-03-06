@@ -202,7 +202,7 @@ class _ProphetAdapter(BaseForecaster):
         y_pred.columns = self._y.columns
 
         if self.y_index_was_int_ or self.y_index_was_period_:
-            y_pred.index = self.fh.to_absolute(cutoff=self.cutoff).to_period()
+            y_pred.index = self.fh.to_absolute(cutoff=self.cutoff).to_pandas()
 
         return y_pred
 
