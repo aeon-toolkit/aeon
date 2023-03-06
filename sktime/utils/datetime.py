@@ -123,7 +123,7 @@ def set_hier_freq(x):
         x = (
             x.reset_index(-1)
             .groupby(level=0, group_keys=True)
-            .apply(lambda df: df.set_index(time_names).to_period())
+            .apply(lambda df: df.set_index(time_names).to_pandas())
         )
     return x
 
