@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 
 from sktime.classification.compose import ColumnEnsembleClassifier
+from sktime.classification.convolution_based import Arsenal, RocketClassifier
 from sktime.classification.dictionary_based import (
     MUSE,
     WEASEL,
@@ -10,11 +11,7 @@ from sktime.classification.dictionary_based import (
     ContractableBOSS,
     TemporalDictionaryEnsemble,
 )
-from sktime.classification.distance_based import (
-    ElasticEnsemble,
-    ProximityForest,
-    ShapeDTW,
-)
+from sktime.classification.distance_based import ElasticEnsemble, ShapeDTW
 from sktime.classification.early_classification import (
     TEASER,
     ProbabilityThresholdEarlyClassifier,
@@ -22,7 +19,6 @@ from sktime.classification.early_classification import (
 from sktime.classification.feature_based import (
     Catch22Classifier,
     MatrixProfileClassifier,
-    RandomIntervalClassifier,
     SignatureClassifier,
     SummaryClassifier,
 )
@@ -30,11 +26,11 @@ from sktime.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from sktime.classification.interval_based import (
     CanonicalIntervalForest,
     DrCIF,
+    RandomIntervalClassifier,
     RandomIntervalSpectralEnsemble,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
-from sktime.classification.kernel_based import Arsenal, RocketClassifier
 from sktime.classification.shapelet_based import ShapeletTransformClassifier
 from sktime.datasets import load_basic_motions, load_unit_test
 from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
@@ -52,7 +48,7 @@ def _reproduce_classification_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train, y_train)
-    return estimator.predict_proba(X_test.iloc[indices])
+    return estimator.predict_proba(X_test[indices])
 
 
 def _reproduce_classification_basic_motions(estimator):
@@ -60,8 +56,8 @@ def _reproduce_classification_basic_motions(estimator):
     X_test, y_test = load_basic_motions(split="test")
     indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
-    estimator.fit(X_train.iloc[indices], y_train[indices])
-    return estimator.predict_proba(X_test.iloc[indices])
+    estimator.fit(X_train[indices], y_train[indices])
+    return estimator.predict_proba(X_test[indices])
 
 
 def _reproduce_early_classification_unit_test(estimator):
@@ -70,22 +66,16 @@ def _reproduce_early_classification_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train, y_train)
+    return estimator.predict_proba(X_test.iloc[indices])[0]
 
-    final_probas = np.zeros((10, 2))
-    final_decisions = np.zeros(10)
 
-    X_test = from_nested_to_3d_numpy(X_test)
-    for i in estimator.classification_points:
-        X = X_test[indices, :, :i]
-        # TODO there are different return types as of now
-        probas, decisions = estimator.predict_proba(X)
+def _reproduce_early_classification_basic_motions(estimator):
+    X_train, y_train = load_basic_motions(split="train")
+    X_test, y_test = load_basic_motions(split="test")
+    indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
-        for n in range(10):
-            if decisions[n] and final_decisions[n] == 0:
-                final_probas[n] = probas[n]
-                final_decisions[n] = i
-
-    return final_probas
+    estimator.fit(X_train.iloc[indices], y_train[indices])
+    return estimator.predict_proba(X_test.iloc[indices])[0]
 
 
 def _reproduce_transform_unit_test(estimator):
@@ -93,7 +83,7 @@ def _reproduce_transform_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(X_train), 5, replace=False)
 
     return np.nan_to_num(
-        estimator.fit_transform(X_train.iloc[indices], y_train[indices]), False, 0, 0, 0
+        estimator.fit_transform(X_train[indices], y_train[indices]), False, 0, 0, 0
     )
 
 
@@ -102,7 +92,7 @@ def _reproduce_transform_basic_motions(estimator):
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)
 
     return np.nan_to_num(
-        estimator.fit_transform(X_train.iloc[indices], y_train[indices]), False, 0, 0, 0
+        estimator.fit_transform(X_train[indices], y_train[indices]), False, 0, 0, 0
     )
 
 
@@ -216,14 +206,6 @@ if __name__ == "__main__":
                 majority_vote=True,
                 distance_measures=["dtw", "ddtw", "wdtw"],
                 random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "ProximityForest - UnitTest",
-        _reproduce_classification_unit_test(
-            ProximityForest(
-                n_estimators=3, max_depth=2, n_stump_evaluations=2, random_state=0
             )
         ),
     )
@@ -476,17 +458,16 @@ if __name__ == "__main__":
         ),
     )
 
-    # _print_array(
-    #     "ProbabilityThresholdEarlyClassifier - UnitTest",
-    #     _reproduce_early_classification_unit_test(
-    #         ProbabilityThresholdEarlyClassifier(
-    #             random_state=0,
-    #             classification_points=[6, 16, 24],
-    #             probability_threshold=1,
-    #             estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
-    #         )
-    #     ),
-    # )
+    _print_array(
+        "ProbabilityThresholdEarlyClassifier - UnitTest",
+        _reproduce_early_classification_unit_test(
+            ProbabilityThresholdEarlyClassifier(
+                random_state=0,
+                classification_points=[6, 10, 16, 24],
+                estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
+            )
+        ),
+    )
     _print_array(
         "TEASER - UnitTest",
         _reproduce_early_classification_unit_test(

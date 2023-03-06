@@ -81,21 +81,6 @@ Pipeline building
 
     FunctionTransformer
 
-.. currentmodule:: sktime.transformations.panel.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    SeriesToSeriesRowTransformer
-    SeriesToPrimitivesRowTransformer
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    make_row_transformer
-
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -569,7 +554,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.pca
+.. currentmodule:: sktime.transformations.series.pca
 
 .. autosummary::
     :toctree: auto_generated/

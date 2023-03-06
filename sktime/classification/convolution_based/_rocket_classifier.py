@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
-"""RandOm Convolutional KErnel Transform (Rocket) regressor.
+"""RandOm Convolutional KErnel Transform (Rocket).
 
-Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
+Pipeline classifier using the ROCKET transformer and RidgeClassifierCV estimator.
 """
 
-__author__ = ["fkiraly"]
-__all__ = ["RocketRegressor"]
+__author__ = ["MatthewMiddlehurst", "victordremov", "fkiraly"]
+__all__ = ["RocketClassifier"]
 
 import numpy as np
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import RidgeClassifierCV
 from sklearn.preprocessing import StandardScaler
 
+from sktime.classification._delegate import _DelegatedClassifier
 from sktime.pipeline import make_pipeline
-from sktime.regression._delegate import _DelegatedRegressor
-from sktime.regression.base import BaseRegressor
 from sktime.transformations.panel.rocket import (
     MiniRocket,
     MiniRocketMultivariate,
@@ -23,14 +22,14 @@ from sktime.transformations.panel.rocket import (
 )
 
 
-class RocketRegressor(_DelegatedRegressor, BaseRegressor):
-    """Regressor wrapped for the Rocket transformer using RidgeCV regressor.
+class RocketClassifier(_DelegatedClassifier):
+    """Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
 
-    This regressor simply transforms the input data using the Rocket [1]_
-    transformer and builds a RidgeCV estimator using the transformed data.
+    This classifier simply transforms the input data using the Rocket [1]_
+    transformer and builds a RidgeClassifierCV estimator using the transformed data.
 
     Shorthand for the pipeline
-    `rocket * StandardScaler(with_mean=False) * RidgeCV(alphas)`
+    `rocket * StandardScaler(with_mean=False) * RidgeClassifierCV(alphas)`
     where `alphas = np.logspace(-3, 3, 10)`, and
     where `rocket` depends on params `rocket_transform`, `use_multivariate` as follows:
 
@@ -44,13 +43,13 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
 
     classes are sktime classes, other parameters are passed on to the rocket class.
 
-    To build other regressors with rocket transformers, use `make_pipeline` or the
-    pipeline dunder `*`, and different transformers/regressors in combination.
+    To build other classifiers with rocket transformers, use `make_pipeline` or the
+    pipeline dunder `*`, and different transformers/classifiers in combination.
 
     Parameters
     ----------
     num_kernels : int, optional, default=10,000
-        The number of kernels the for Rocket transform.
+        The number of kernels for the Rocket transform.
     rocket_transform : str, optional, default="rocket"
         The type of Rocket transformer to use.
         Valid inputs = ["rocket", "minirocket", "multirocket"]
@@ -75,12 +74,18 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
         The number of classes.
     classes_ : list
         The classes labels.
-    estimator_ : RegressorPipeline
-        RocketRegressor as a RegressorPipeline, fitted to data internally
+    estimator_ : ClassifierPipeline
+        RocketClassifier as a ClassifierPipeline, fitted to data internally
 
     See Also
     --------
-    Rocket, RocketClassifier
+    Rocket
+
+    Notes
+    -----
+    For the Java version, see
+    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/shapelet_based/ROCKETClassifier.java>`_.
 
     References
     ----------
@@ -90,19 +95,20 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
 
     Examples
     --------
-    >>> from sktime.regression.kernel_based import RocketRegressor
+    >>> from sktime.classification.convolution_based import RocketClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> reg = RocketRegressor(num_kernels=500)
-    >>> reg.fit(X_train, y_train)
-    RocketRegressor(...)
-    >>> y_pred = reg.predict(X_test)
+    >>> clf = RocketClassifier(num_kernels=500)
+    >>> clf.fit(X_train, y_train)
+    RocketClassifier(...)
+    >>> y_pred = clf.predict(X_test)
     """
 
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "classifier_type": "kernel",
     }
 
     # valid rocket strings for input validity checking
@@ -128,7 +134,7 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        super(RocketRegressor, self).__init__()
+        super(RocketClassifier, self).__init__()
 
         if use_multivariate not in self.VALID_MULTIVAR_VALUES:
             raise ValueError(
@@ -166,12 +172,12 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
         self.multivar_rocket_ = make_pipeline(
             multivar_rocket,
             StandardScaler(with_mean=False),
-            RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
         )
         self.univar_rocket_ = make_pipeline(
             univar_rocket,
             StandardScaler(with_mean=False),
-            RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
         )
 
         if not use_multivariate:
@@ -204,6 +210,10 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
+            RocketClassifier provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
         Returns
         -------
@@ -213,4 +223,7 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"num_kernels": 20}
+        if parameter_set == "results_comparison":
+            return {"num_kernels": 100}
+        else:
+            return {"num_kernels": 20}

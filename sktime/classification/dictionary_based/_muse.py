@@ -24,7 +24,7 @@ from sktime.transformations.panel.dictionary_based import SFAFast
 class MUSE(BaseClassifier):
     """MUSE (MUltivariate Symbolic Extension).
 
-    Also known as WEASLE-MUSE: implementation of multivariate version of WEASEL,
+    Also known as WEASEL-MUSE: implementation of multivariate version of WEASEL,
     referred to as just MUSE from [1].
 
     Overview: Input n series length m
@@ -37,8 +37,7 @@ class MUSE(BaseClassifier):
              chi2-threshold: used for feature selection to select best words
              anova: select best l/2 fourier coefficients other than first ones
              bigrams: using bigrams of SFA words
-             binning_strategy: the binning strategy used to disctrtize into
-                               SFA words.
+             binning_strategy: the binning strategy used to disctrtize into SFA words.
 
     Parameters
     ----------
@@ -140,32 +139,24 @@ class MUSE(BaseClassifier):
         n_jobs=1,
         random_state=None,
     ):
-
-        # currently other values than 4 are not supported.
+        # currently values other than 4 are not supported.
         self.alphabet_size = alphabet_size
-
         # feature selection is applied based on the chi-squared test.
         self.p_threshold = p_threshold
         self.anova = anova
         self.variance = variance
         self.use_first_order_differences = use_first_order_differences
-
         self.norm_options = [False]
         self.word_lengths = [4, 6]
-
         self.bigrams = bigrams
         self.binning_strategies = ["equi-width", "equi-depth"]
         self.random_state = random_state
-
         self.min_window = 6
         self.max_window = 100
-
         self.window_inc = window_inc
         self.window_sizes = []
-
         self.SFA_transformers = []
         self.clf = None
-
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
         self.total_features_count = 0
@@ -200,13 +191,14 @@ class MUSE(BaseClassifier):
         if self.n_dims == 1:
             warnings.warn(
                 "MUSE Warning: Input series is univariate; MUSE is designed for"
-                + " multivariate series. It is recommended WEASEL is used instead."
+                + " multivariate series. It is recommended WEASEL is used instead.",
+                stacklevel=2,
             )
 
         if self.variance and self.anova:
             raise ValueError("MUSE Warning: Please set either variance or anova.")
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 X,
                 y.copy(),  # no clue why, but this copy is required.
@@ -308,7 +300,7 @@ class MUSE(BaseClassifier):
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
 
-        parallel_res = Parallel(n_jobs=self._threads_to_use, backend="threading")(
+        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(_parallel_transform_words)(
                 X, self.window_sizes, self.SFA_transformers, ind
             )
@@ -341,10 +333,6 @@ class MUSE(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------

@@ -75,11 +75,8 @@ class ContinuousIntervalTree(BaseEstimator):
     --------
     >>> from sktime.classification.sklearn import ContinuousIntervalTree
     >>> from sktime.datasets import load_unit_test
-    >>> from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> X_train = from_nested_to_3d_numpy(X_train)
-    >>> X_test = from_nested_to_3d_numpy(X_test)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = ContinuousIntervalTree()
     >>> clf.fit(X_train, y_train)
     ContinuousIntervalTree(...)

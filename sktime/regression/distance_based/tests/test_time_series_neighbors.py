@@ -1,31 +1,26 @@
 # -*- coding: utf-8 -*-
 """Tests for KNeighborsTimeSeriesRegressor."""
 import numpy as np
-import pandas as pd
 
 from sktime.regression.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesRegressor,
 )
 
 
-def test_knn_kneighbors():
-    """Tests kneighbors method and absence of bug #3798."""
-    from sktime.utils._testing.hierarchical import _make_hierarchical
+def test_knn_neighbors():
+    """Tests kneighbors method."""
 
-    Xtrain = _make_hierarchical(hierarchy_levels=(3,), n_columns=3)
-    Xtest = _make_hierarchical(hierarchy_levels=(5,), n_columns=3)
+    from sklearn.datasets import make_regression
+    from sklearn.model_selection import train_test_split
 
-    ytrain = pd.Series([1, 1.5, 2])
+    X, y = make_regression(n_samples=9, n_features=3, random_state=42)
+    X = X.reshape((X.shape[0], 1, X.shape[1]))
+    X_train, X_test, y_train, _ = train_test_split(X, y, test_size=3, random_state=42)
 
-    kntsc = KNeighborsTimeSeriesRegressor(n_neighbors=1)
-    kntsc.fit(Xtrain, ytrain)
+    model = KNeighborsTimeSeriesRegressor(n_neighbors=5, weights="distance")
+    model.fit(X_train, y_train)
 
-    ret = kntsc.kneighbors(Xtest)
-    assert isinstance(ret, tuple)
-    assert len(ret) == 2
+    y_pred = model.predict(X_test)
+    y_pred_expected = np.array([-216.06541863, -4.54133078, -324.7624233])
 
-    dist, ind = ret
-    assert isinstance(dist, np.ndarray)
-    assert dist.shape == (5, 1)
-    assert isinstance(ind, np.ndarray)
-    assert ind.shape == (5, 1)
+    assert np.abs(y_pred - y_pred_expected).max() < 1e-6

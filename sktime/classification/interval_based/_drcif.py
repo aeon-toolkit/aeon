@@ -300,7 +300,7 @@ class DrCIF(BaseClassifier):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._threads_to_use)(
+                fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
                     delayed(self._fit_estimator)(
                         X,
                         X_p,
@@ -328,7 +328,7 @@ class DrCIF(BaseClassifier):
                 self._n_estimators += self._threads_to_use
                 train_time = time.time() - start_time
         else:
-            fit = Parallel(n_jobs=self._threads_to_use)(
+            fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
                 delayed(self._fit_estimator)(
                     X,
                     X_p,
@@ -381,7 +381,7 @@ class DrCIF(BaseClassifier):
 
         X_d = np.diff(X, 1)
 
-        y_probas = Parallel(n_jobs=self._threads_to_use)(
+        y_probas = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 X_p,
@@ -423,7 +423,7 @@ class DrCIF(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        p = Parallel(n_jobs=self._threads_to_use)(
+        p = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,
@@ -606,10 +606,16 @@ class DrCIF(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            DrCIF provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
+                "contracting" - used in classifiers that set the
+                    "capability:contractable" tag to True to test contacting
+                    functionality
+                "train_estimate" - used in some classifiers that set the
+                    "capability:train_estimate" tag to True to allow for more efficient
+                    testing when relevant parameters are available
 
         Returns
         -------
@@ -621,10 +627,19 @@ class DrCIF(BaseClassifier):
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}
-        else:
+        elif parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+                "att_subsample_size": 2,
+            }
+        elif parameter_set == "train_estimate":
             return {
                 "n_estimators": 2,
                 "n_intervals": 2,
                 "att_subsample_size": 2,
                 "save_transformed_data": True,
             }
+        else:
+            return {"n_estimators": 2, "n_intervals": 2, "att_subsample_size": 2}

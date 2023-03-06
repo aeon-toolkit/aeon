@@ -32,9 +32,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input "n" series length "m" with "d" dimensions
-    TDE searches "k" parameter values selected using a Gaussian processes
-    regressor, evaluating each with a LOOCV. It then retains "s"
+    Overview: Input 'n' series length 'm' with 'd' dimensions
+    TDE searches 'k' parameter values selected using a Gaussian processes
+    regressor, evaluating each with a LOOCV. It then retains 's'
     ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
@@ -53,7 +53,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     from a reduced histogram is used to select dimensions.
 
     fit involves finding n histograms.
-    predict uses 1 nearest neighbour with a the histogram intersection
+    predict uses 1 nearest neighbour with the histogram intersection
     distance function.
 
     Parameters
@@ -238,7 +238,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             warnings.warn(
                 "TemporalDictionaryEnsemble warning: n_parameter_samples <= "
                 "randomly_selected_params, ensemble member parameters will be fully "
-                "randomly selected."
+                "randomly selected.",
+                stacklevel=2,
             )
 
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
@@ -257,7 +258,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             warnings.warn(
                 f"TemporalDictionaryEnsemble warning: min_window = "
                 f"{self.min_window} is larger than max_window = {max_window}."
-                f" min_window has been set to {max_window}."
+                f" min_window has been set to {max_window}.",
+                stacklevel=2,
             )
 
         win_inc = int((max_window - self._min_window) / max_window_searches)
@@ -550,10 +552,16 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            TemporalDictionaryEnsemble provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
+                "contracting" - used in classifiers that set the
+                    "capability:contractable" tag to True to test contacting
+                    functionality
+                "train_estimate" - used in some classifiers that set the
+                    "capability:train_estimate" tag to True to allow for more efficient
+                    testing when relevant parameters are available
 
         Returns
         -------
@@ -569,12 +577,25 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 "max_ensemble_size": 5,
                 "randomly_selected_params": 5,
             }
-        else:
+        elif parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_parameter_samples": 5,
+                "max_ensemble_size": 2,
+                "randomly_selected_params": 3,
+            }
+        elif parameter_set == "train_estimate":
             return {
                 "n_parameter_samples": 5,
                 "max_ensemble_size": 2,
                 "randomly_selected_params": 3,
                 "save_train_predictions": True,
+            }
+        else:
+            return {
+                "n_parameter_samples": 5,
+                "max_ensemble_size": 2,
+                "randomly_selected_params": 3,
             }
 
 
@@ -825,7 +846,9 @@ class IndividualTDE(BaseClassifier):
                     n_jobs=self._threads_to_use,
                 )
             )
-            sfa = self._transformers[0].fit_transform(X, y)
+            # todo use fit_transform when SFA is interface compliant
+            self._transformers[0].fit(X, y)
+            sfa = self._transformers[0].transform(X, y)
             self._transformed_data = sfa[0]
 
     def _predict(self, X):

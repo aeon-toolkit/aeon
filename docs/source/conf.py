@@ -9,6 +9,18 @@ from importlib import import_module
 
 import sktime
 
+rst_prolog = """.. attention::
+    DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links
+    and documentation to reflect this. We do not recommend using this repository in any
+    production setting, but welcome any contributors willing to help us update the
+    project.
+
+    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
+    contributions.
+
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
+"""  # noqa: E501
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -82,7 +94,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -194,13 +206,8 @@ html_theme_options = {
         },
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/sktime-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig",  # noqa: E501
+            "url": "https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA",  # noqa: E501
             "icon": "fab fa-slack",
-        },
-        {
-            "name": "Discord",
-            "url": "https://discord.com/invite/gqSab2K",
-            "icon": "fab fa-discord",
         },
         {
             "name": "LinkedIn",

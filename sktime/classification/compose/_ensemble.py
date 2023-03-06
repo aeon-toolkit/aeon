@@ -14,6 +14,7 @@ from sklearn.ensemble._forest import (
     _get_n_samples_bootstrap,
 )
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import compute_sample_weight
@@ -199,7 +200,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         class_weight=None,
         max_samples=None,
     ):
-
         self.estimator = estimator
 
         # Assign values, even though passed on to base estimator below,
@@ -254,7 +254,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         BaseTimeSeriesForest._fit(self, X=X, y=y)
 
     def _validate_estimator(self):
-
         if not isinstance(self.n_estimators, numbers.Integral):
             raise ValueError(
                 "n_estimators must be an integer, "
@@ -536,10 +535,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------
@@ -613,7 +608,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sktime.classification.dummy import DummyClassifier
-    >>> from sktime.classification.kernel_based import RocketClassifier
+    >>> from sktime.classification.convolution_based import RocketClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
@@ -731,8 +726,15 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             exponent = self.weights
             for clf_name, clf in self.classifiers_:
-                train_probs = clf.fit_predict_proba(X=X, y=y, cv=self.cv)
+                # learn cross-val accuracy of the model
+                train_probs = cross_val_predict(
+                    clf, X=X, y=y, cv=self.cv, method="predict_proba"
+                )
+
+                # train final model
+                clf.fit(X, y)
                 train_preds = clf.classes_[np.argmax(train_probs, axis=1)]
+
                 if self.metric_type == "proba":
                     for i in range(len(train_preds)):
                         train_preds[i] = train_probs[i, np.argmax(train_probs[i, :])]
@@ -776,10 +778,6 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------
@@ -789,8 +787,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
+        from sktime.classification.convolution_based import RocketClassifier
         from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from sktime.classification.kernel_based import RocketClassifier
 
         params1 = {
             "classifiers": [

@@ -58,7 +58,6 @@ __author__ = ["fkiraly"]
 
 import pandas as pd
 
-from sktime.alignment.base import BaseAligner
 from sktime.annotation.base import BaseSeriesAnnotator
 from sktime.base import BaseEstimator, BaseObject
 from sktime.classification.base import BaseClassifier
@@ -85,7 +84,6 @@ from sktime.transformations.base import (
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    ("aligner", BaseAligner, "time series aligner or sequence aligner"),
     ("classifier", BaseClassifier, "time series classifier"),
     ("clusterer", BaseClusterer, "time series clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),

@@ -15,7 +15,6 @@ from sktime.transformations.base import BaseTransformer
 from sktime.utils.multiindex import flatten_multiindex
 from sktime.utils.sklearn import (
     is_sklearn_classifier,
-    is_sklearn_clusterer,
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
@@ -176,7 +175,6 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     _steps_fitted_attr = "steps_"
 
     def __init__(self, steps):
-
         self.steps = steps
         self.steps_ = self._check_estimators(self.steps, cls_type=BaseTransformer)
 
@@ -252,7 +250,6 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
             not nested, contains only non-TransformerPipeline `sktime` transformers
         """
         from sktime.classification.compose import SklearnClassifierPipeline
-        from sktime.clustering.compose import SklearnClustererPipeline
         from sktime.regression.compose import SklearnRegressorPipeline
 
         other = _coerce_to_sktime(other)
@@ -260,10 +257,6 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         # if sklearn classifier, use sklearn classifier pipeline
         if is_sklearn_classifier(other):
             return SklearnClassifierPipeline(classifier=other, transformers=self.steps)
-
-        # if sklearn clusterer, use sklearn clusterer pipeline
-        if is_sklearn_clusterer(other):
-            return SklearnClustererPipeline(clusterer=other, transformers=self.steps)
 
         # if sklearn regressor, use sklearn regressor pipeline
         if is_sklearn_regressor(other):
@@ -505,7 +498,6 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         transformer_weights=None,
         flatten_transform_index=True,
     ):
-
         self.transformer_list = transformer_list
         self.transformer_list_ = self._check_estimators(
             transformer_list, cls_type=BaseTransformer
@@ -1666,7 +1658,6 @@ class YtoX(BaseTransformer):
     }
 
     def __init__(self, subset_index=False):
-
         self.subset_index = subset_index
 
         super(YtoX, self).__init__()

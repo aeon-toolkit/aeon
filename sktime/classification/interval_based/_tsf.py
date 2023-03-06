@@ -158,7 +158,7 @@ class TimeSeriesForestClassifier(
             Predicted probabilities
         """
         X = X.squeeze(1)
-        y_probas = Parallel(n_jobs=self.n_jobs)(
+        y_probas = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_predict_single_classifier_proba)(
                 X, self.estimators_[i], self.intervals_[i]
             )
@@ -184,10 +184,10 @@ class TimeSeriesForestClassifier(
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            TimeSeriesForestClassifier provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
         Returns
         -------
