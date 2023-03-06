@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Martrix Profile classifier.
+"""Matrix Profile classifier.
 
 Pipeline classifier using the Matrix Profile transformer and an estimator.
 """
@@ -67,7 +67,7 @@ class MatrixProfileClassifier(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "distance",
+        "algorithm_type": "distance",
     }
 
     def __init__(

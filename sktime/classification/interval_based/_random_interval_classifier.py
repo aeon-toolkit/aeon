@@ -55,7 +55,7 @@ class RandomIntervalClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "classifier_type": "interval",
+        "algorithm_type": "interval",
     }
 
     def __init__(

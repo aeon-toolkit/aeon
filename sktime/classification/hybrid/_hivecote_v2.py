@@ -94,7 +94,7 @@ class HIVECOTEV2(BaseClassifier):
         "capability:multivariate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
-        "classifier_type": "hybrid",
+        "algorithm_type": "hybrid",
     }
 
     def __init__(
