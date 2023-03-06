@@ -24,7 +24,7 @@ Testing - implement if sktime forecaster (not needed locally):
 copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 
-from sktime.dists_kernels import BasePairwiseTransformer
+from aeon.dists_kernels import BasePairwiseTransformer
 
 # todo: add any necessary imports here
 
