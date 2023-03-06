@@ -36,16 +36,14 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         distance measure between time series
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
-            'lcss', 'edr', 'erp', 'msm', 'twe'
+            'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
         this will substitute a hard-coded distance metric from sktime.distances
         When mpdist is used, the subsequence length (parameter m) must be set
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 metric='mpdist', metric_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
-            output must be mxn array if X is array of m Series, X2 of n Series
-        can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
     distance_params : dict, optional. default = None.
-        dictionary for metric parameters , in case that distance is a str
+        dictionary for metric parameters for the case that distance is a str
     n_jobs : int, default=None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
@@ -57,8 +55,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     --------
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
-    >>> X_train, y_train = load_unit_test(return_X_y=True, split="train")
-    >>> X_test, y_test = load_unit_test(return_X_y=True, split="test")
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> classifier = KNeighborsTimeSeriesClassifier(distance="euclidean")
     >>> classifier.fit(X_train, y_train)
     KNeighborsTimeSeriesClassifier(...)
@@ -67,7 +65,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
-        "X_inner_mtype": ["numpy3D"],
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -215,10 +213,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------

@@ -16,8 +16,8 @@ DATASET_LOADERS = (load_gunpoint, load_italy_power_demand)
 @pytest.mark.parametrize("dataset", DATASET_LOADERS)
 def test_TSCStrategy(dataset):
     """Test strategy."""
-    train = dataset(split="train", return_X_y=False)
-    test = dataset(split="test", return_X_y=False)
+    train = dataset(split="train", return_X_y=False, return_type="nested_univ")
+    test = dataset(split="test", return_X_y=False, return_type="nested_univ")
     s = TSCStrategy(classifier)
     task = TSCTask(target="class_val")
     s.fit(task, train)

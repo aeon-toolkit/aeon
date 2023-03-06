@@ -23,7 +23,7 @@ def test_resizing():
     3) use transformer for resizing to resize time series to equal length
     4) result lengths are equal to length that was set for transformer
     """
-    X, _ = load_basic_motions(split="train", return_X_y=True)
+    X, _ = load_basic_motions(split="train", return_type="nested_univ")
 
     # 1) Check that lengths of all time series (all via the axis=1 - for
     # all dims in first row) are equal.

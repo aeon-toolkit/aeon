@@ -53,7 +53,7 @@ MODULE = os.path.dirname(__file__)
 
 
 # Return appropriate return_type in case an alias was used
-def _alias_mtype_check(return_type):
+def _alias_datatype_check(return_type):
     if return_type is None:
         return_type = "nested_univ"
     if return_type in ["numpy2d", "numpy2D", "np2d", "np2D"]:
@@ -142,7 +142,7 @@ def _list_available_datasets(extract_path):
     return datasets
 
 
-def _load_dataset(name, split, return_X_y, return_type=None, extract_path=None):
+def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=None):
     """Load time series classification datasets (helper function).
 
     Parameters
@@ -154,22 +154,25 @@ def _load_dataset(name, split, return_X_y, return_type=None, extract_path=None):
     return_X_y: bool, optional (default=True)
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
-    return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
-        Memory data format specification to return X in, None = "nested_univ" type.
-        str can be any supported sktime Panel mtype,
-            for list of mtypes, see datatypes.MTYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        commonly used specifications:
-            "nested_univ: nested pd.DataFrame, pd.Series in cells
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
-            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
-        Exception is raised if the data cannot be stored in the requested type.
-    extract_path : todo author: please fill in docstring
+    return_data_type : str, optional, default = "nested_univ"
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d.
+        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
+        length series. There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not be supported longterm.
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
 
     Returns
     -------
-    X: sktime data container, following mtype specification `return_type`
+    X: Data stored in specified `return_type`
         The time series data for the problem, with n instances
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
@@ -236,23 +239,24 @@ def _load_provided_dataset(
     return_X_y: bool, optional (default=True)
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
-    return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
-        Memory data format specification to return X in, None = "nested_univ" type.
-        str can be any supported sktime Panel mtype,
-            for list of mtypes, see datatypes.MTYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        commonly used specifications:
-            "nested_univ: nested pd.DataFrame, pd.Series in cells
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
-            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
-        Exception is raised if the data cannot be stored in the requested type.
+    return_data_type : str, optional, default = "nested_univ"
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d.
+        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
+        length series. There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not be supported longterm.
     local_module: default = os.path.dirname(__file__),
     local_dirname: default = "data"
 
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
+
     Returns
     -------
-    X: sktime data container, following mtype specification `return_type`
+    X: Data stored in specified `return_type`
         The time series data for the problem, with n instances
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
@@ -282,7 +286,7 @@ def _load_provided_dataset(
     else:
         raise ValueError("Invalid `split` value =", split)
 
-    return_type = _alias_mtype_check(return_type)
+    return_type = _alias_datatype_check(return_type)
     if return_X_y:
         X = convert(X, from_type="nested_univ", to_type=return_type)
         return X, y
@@ -398,22 +402,17 @@ def load_from_tsfile(
     return_y : boolean, default True
        whether to return the y variable, if it is present.
     return_data_type : str, optional, default = "nested_univ"
-        memory data format specification to return X in.
-        str can be any other supported Panel mtype
-            for list of mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        commonly used specifications:
-            "nested_univ: nested pd.DataFrame, pd.Series in cells
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
-            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
-        Exception is raised if the data cannot be stored in the requested type.
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d.
+        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
+        length series. There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not be supported longterm.
 
     Returns
     -------
-    X : sktime compatible in-memory container of mtype return_data_type
-        for list of mtypes, see datatypes.SCITYPE_REGISTER
-        for specifications, see examples/AA_datatypes_and_datasets.ipynb
+    X : sktime compatible in-memory container of return_data_type
     y : returned only if return_y=True, np.ndarray
 
     Raises
@@ -426,7 +425,7 @@ def load_from_tsfile(
     ValueError if return_data_type = numpy2d but the data are multivariate and/
     or unequal length series
     """
-    return_data_type = _alias_mtype_check(return_data_type)
+    return_data_type = _alias_datatype_check(return_data_type)
 
     if not isinstance(return_data_type, str):
         raise TypeError(

@@ -49,8 +49,8 @@ def test_seed(n, k, seed):
 
 def test_stratified_resample():
     """Test resampling returns valid data structure and maintains class distribution."""
-    trainX, trainy = load_unit_test(split="TRAIN")
-    testX, testy = load_unit_test(split="TEST")
+    trainX, trainy = load_unit_test(split="TRAIN", return_type="nested_univ")
+    testX, testy = load_unit_test(split="TEST", return_type="nested_univ")
     new_trainX, new_trainy, new_testX, new_testy = stratified_resample(
         trainX, trainy, testX, testy, 0
     )

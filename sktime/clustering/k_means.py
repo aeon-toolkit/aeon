@@ -13,7 +13,7 @@ from sktime.distances import pairwise_distance
 
 
 class TimeSeriesKMeans(TimeSeriesLloyds):
-    """Time series K-mean implementation.
+    """Time series K-means clustering algorithm.
 
     Parameters
     ----------
@@ -22,11 +22,11 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         centroids to generate.
     init_algorithm: str, defaults = 'forgy'
         Method for initializing cluster centers. Any of the following are valid:
-        ['kmeans++', 'random', 'forgy']
+        ['kmeans++', 'random', 'forgy'].
     metric: str or Callable, defaults = 'dtw'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw']
+        'wddtw'].
     n_init: int, defaults = 10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init

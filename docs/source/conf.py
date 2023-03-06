@@ -196,7 +196,7 @@ html_theme_options = {
     "footer_icons": [
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg",  # noqa: E501
+            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg",  # noqa: E501
             "html": "",
             "class": "fab fa-slack",
         },

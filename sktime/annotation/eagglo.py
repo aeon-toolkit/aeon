@@ -6,11 +6,11 @@ from typing import Callable, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import cdist
+from numba import njit
 
 from sktime.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc"]
+__author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAgglo"]
 
 
@@ -31,7 +31,7 @@ class EAgglo(BaseTransformer):
     Parameters
     ----------
     member : array_like (default=None)
-        Assigns points to to the initial cluster membership, therefore the first
+        Assigns points to the initial cluster membership, therefore the first
         dimension should be the same as for data. If `None` it will be initialized
         to dummy vector where each point is assigned to separate cluster.
     alpha : float (default=1.0)
@@ -128,15 +128,27 @@ class EAgglo(BaseTransformer):
         # find which clusters optimize the gof_ and then update the distances
         for K in range(self.n_cluster - 1, 2 * self.n_cluster - 2):
             i, j = self._find_closest(K)
-            self._update_distances(i, j, K)
+
+            _update_distances(
+                i,
+                j,
+                K,
+                self.merged_,
+                self.n_cluster,
+                self.distances,
+                self.left,
+                self.right,
+                self.open,
+                self.sizes,
+                self.progression,
+                self.lm,
+            )
 
         def filter_na(i):
             return list(
                 filter(
                     lambda v: v == v,
-                    self.progression[
-                        i,
-                    ],
+                    self.progression[i,],
                 )
             )
 
@@ -198,7 +210,8 @@ class EAgglo(BaseTransformer):
                 "Warning: Input data X differs from that given to fit(). "
                 "Refitting with both the data in fit and new input data, not storing "
                 "updated public class attributes. For this, explicitly use fit(X) or "
-                "fit_transform(X)."
+                "fit_transform(X).",
+                stacklevel=1,
             )
             return new_eagglo.cluster_
 
@@ -226,19 +239,35 @@ class EAgglo(BaseTransformer):
             sum(self._member == i) for i in range(self.n_cluster)
         ]  # calculate initial cluster sizes
 
-        # array of within distances
-        grouped = X.copy().set_index(self._member).groupby(level=0)
-        within = grouped.apply(lambda x: get_distance(x, x, self.alpha))
-
         # array of between-within distances
         self.distances = np.empty((2 * self.n_cluster, 2 * self.n_cluster))
 
-        for i, xi in grouped:
-            self.distances[: self.n_cluster, i] = (
-                2 * grouped.apply(lambda xj: get_distance(xi, xj, self.alpha))  # noqa
-                - within[i]
-                - within
+        # if there is an initial grouping...
+        if self.member is not None:
+            grouped = X.copy().set_index(self._member).groupby(level=0)
+            within = grouped.apply(
+                lambda x: get_distance_matrix(x.to_numpy(), x.to_numpy(), self.alpha)
             )
+
+            for i, xi in grouped:
+                self.distances[: self.n_cluster, i] = (
+                    2
+                    * grouped.apply(
+                        lambda xj: get_distance_matrix(
+                            xi.to_numpy(), xj.to_numpy(), self.alpha  # noqa
+                        )
+                    )
+                    - within[i]
+                    - within
+                )
+        # else (no initial groupings)...
+        else:
+            X_num = X.to_numpy()
+            for i in range(len(X)):
+                for j in range(len(X)):
+                    self.distances[i, j] = 2 * get_distance_single(
+                        X_num[i], X_num[j], self.alpha
+                    )
 
         np.fill_diagonal(self.distances, 0)
 
@@ -280,44 +309,6 @@ class EAgglo(BaseTransformer):
         self.lm = np.zeros(2 * self.n_cluster - 1, dtype=int)
         self.lm[: self.n_cluster] = range(self.n_cluster)
 
-    def _gof_update(self, i: int) -> float:
-        """Compute the updated goodness-of-fit statistic, left cluster given by i."""
-        fit = self.gof_[-1]
-        j = self.right[i]
-
-        # get new left and right clusters
-        rr = self.right[j]
-        ll = self.left[i]
-
-        # remove unneeded values in the gof_
-        fit -= 2 * (
-            self.distances[i, j] + self.distances[i, ll] + self.distances[j, rr]
-        )
-
-        # get cluster sizes
-        n1 = self.sizes[i]
-        n2 = self.sizes[j]
-
-        # add distance to new left cluster
-        n3 = self.sizes[ll]
-        k = (
-            (n1 + n3) * self.distances[i, ll]
-            + (n2 + n3) * self.distances[j, ll]
-            - n3 * self.distances[i, j]
-        ) / (n1 + n2 + n3)
-        fit += 2 * k
-
-        # add distance to new right
-        n3 = self.sizes[rr]
-        k = (
-            (n1 + n3) * self.distances[i, rr]
-            + (n2 + n3) * self.distances[j, rr]
-            - n3 * self.distances[i, j]
-        ) / (n1 + n2 + n3)
-        fit += 2 * k
-
-        return fit
-
     def _find_closest(self, K: int) -> Tuple[int, int]:
         """Determine which clusters will be merged_, for K clusters.
 
@@ -340,60 +331,16 @@ class EAgglo(BaseTransformer):
         # iterate through each cluster to see how the gof_ value changes if merged_
         for i in range(K + 1):
             if self.open[i]:
-                gof_ = self._gof_update(i)
+                gof_ = _gof_update(
+                    i, self.gof_, self.left, self.right, self.distances, self.sizes
+                )
+
                 if gof_ > best_fit:
                     best_fit = gof_
                     result = (i, self.right[i])
 
         self.gof_ = np.append(self.gof_, best_fit)
         return result
-
-    def _update_distances(self, i: int, j: int, K: int) -> None:
-        """Update distance from new cluster to other clusters, store to self."""
-        # which clusters were merged_, info only
-        self.merged_[K - self.n_cluster + 1, 0] = (
-            -i if i <= self.n_cluster else i - self.n_cluster
-        )
-        self.merged_[K - self.n_cluster + 1, 1] = (
-            -j if j <= self.n_cluster else j - self.n_cluster
-        )
-
-        # update left and right neighbors
-        ll = self.left[i]
-        rr = self.right[j]
-        self.left[K + 1] = ll
-        self.right[K + 1] = rr
-        self.right[ll] = K + 1
-        self.left[rr] = K + 1
-
-        # update information about which clusters have been merged_
-        self.open[i] = False
-        self.open[j] = False
-
-        # assign size to newly created cluster
-        n1 = self.sizes[i]
-        n2 = self.sizes[j]
-        self.sizes[K + 1] = n1 + n2
-
-        # update set of change points
-        self.progression[K - self.n_cluster + 2, :] = self.progression[
-            K - self.n_cluster + 1,
-        ]
-        self.progression[K - self.n_cluster + 2, self.lm[j]] = np.nan
-        self.lm[K + 1] = self.lm[i]
-
-        # update distances
-        for k in range(K + 1):
-            if self.open[k]:
-                n3 = self.sizes[k]
-                n = n1 + n2 + n3
-                val = (
-                    (n - n2) * self.distances[i, k]
-                    + (n - n1) * self.distances[j, k]
-                    - n3 * self.distances[i, j]
-                ) / n
-                self.distances[K + 1, k] = val
-                self.distances[k, K + 1] = val
 
     def _get_penalty_func(self) -> Callable:  # sourcery skip: raise-specific-error
         """Define penalty function given (possibly string) input."""
@@ -419,16 +366,96 @@ class EAgglo(BaseTransformer):
         ]
 
 
-def get_distance(X: pd.DataFrame, Y: pd.DataFrame, alpha: float) -> float:
-    """Calculate within/between cluster distance."""
-    return np.power(cdist(X, Y, "euclidean"), alpha).mean()
+@njit(fastmath=True, cache=True)
+def _update_distances(
+    i, j, K, merged_, n_cluster, distances, left, right, open, sizes, progression, lm
+) -> None:
+    """Update distance from new cluster to other clusters, store to self."""
+    # which clusters were merged_, info only
+    merged_[K - n_cluster + 1, 0] = -i if i <= n_cluster else i - n_cluster
+    merged_[K - n_cluster + 1, 1] = -j if j <= n_cluster else j - n_cluster
+
+    # update left and right neighbors
+    ll = left[i]
+    rr = right[j]
+    left[K + 1] = ll
+    right[K + 1] = rr
+    right[ll] = K + 1
+    left[rr] = K + 1
+
+    # update information about which clusters have been merged_
+    open[i] = False
+    open[j] = False
+
+    # assign size to newly created cluster
+    n1 = sizes[i]
+    n2 = sizes[j]
+    sizes[K + 1] = n1 + n2
+
+    # update set of change points
+    progression[K - n_cluster + 2, :] = progression[K - n_cluster + 1,]
+    progression[K - n_cluster + 2, lm[j]] = np.nan
+    lm[K + 1] = lm[i]
+
+    # update distances
+    for k in range(K + 1):
+        if open[k]:
+            n3 = sizes[k]
+            n = n1 + n2 + n3
+            val = (
+                (n - n2) * distances[i, k]
+                + (n - n1) * distances[j, k]
+                - n3 * distances[i, j]
+            ) / n
+            distances[K + 1, k] = val
+            distances[k, K + 1] = val
 
 
+@njit(fastmath=True, cache=True)
+def _gof_update(i, gof_, left, right, distances, sizes):
+    """Compute the updated goodness-of-fit statistic, left cluster given by i."""
+    fit = gof_[-1]
+    j = right[i]
+
+    # get new left and right clusters
+    rr = right[j]
+    ll = left[i]
+
+    # remove unneeded values in the gof_
+    fit -= 2 * (distances[i, j] + distances[i, ll] + distances[j, rr])
+
+    # get cluster sizes
+    n1 = sizes[i]
+    n2 = sizes[j]
+
+    # add distance to new left cluster
+    n3 = sizes[ll]
+    k = (
+        (n1 + n3) * distances[i, ll]
+        + (n2 + n3) * distances[j, ll]
+        - n3 * distances[i, j]
+    ) / (n1 + n2 + n3)
+    fit += 2 * k
+
+    # add distance to new right
+    n3 = sizes[rr]
+    k = (
+        (n1 + n3) * distances[i, rr]
+        + (n2 + n3) * distances[j, rr]
+        - n3 * distances[i, j]
+    ) / (n1 + n2 + n3)
+    fit += 2 * k
+
+    return fit
+
+
+@njit(fastmath=True, cache=True)
 def len_penalty(x: pd.DataFrame) -> int:
     """Penalize goodness-of-fit statistic for number of change points."""
     return -len(x)
 
 
+@njit(fastmath=True, cache=True)
 def mean_diff_penalty(x: pd.DataFrame) -> float:
     """Penalize goodness-of-fit statistic.
 
@@ -436,3 +463,33 @@ def mean_diff_penalty(x: pd.DataFrame) -> float:
     the size of the new segments.
     """
     return np.mean(np.diff(np.sort(x)))
+
+
+@njit(fastmath=True, cache=True)
+def get_distance_matrix(X, Y, alpha) -> float:
+    """Calculate cluster distance."""
+    dist = euclidean_matrix_to_matrix(X, Y)
+    return np.power(dist, alpha).mean()
+
+
+@njit(nopython=True, fastmath=True)
+def get_distance_single(X, Y, alpha) -> float:
+    dist = euclidean(X, Y)
+    return np.power(dist, alpha)  # .mean()
+
+
+@njit(nopython=True, fastmath=True)
+def euclidean_matrix_to_matrix(a, b):
+    """Compute the Euclidean distances between the rows of two matrices."""
+    n, m = a.shape[0], b.shape[0]
+    out = np.zeros((n, m))
+    for i in range(n):
+        for j in range(m):
+            out[i, j] = euclidean(a[i], b[j])
+    return out
+
+
+@njit(fastmath=True, cache=True)
+def euclidean(u, v):
+    buf = u - v
+    return np.sqrt(buf @ buf)
