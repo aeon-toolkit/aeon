@@ -110,7 +110,7 @@ class WEASEL_V2(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "dictionary",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
