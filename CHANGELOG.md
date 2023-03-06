@@ -1,3 +1,3 @@
 # Changelog
 
-You can find the scikit-time changelog on our [website](https://www.scikit-time.org/en/latest/changelog.html).
+You can find the Aeon changelog on our [website](https://www.aeon-toolkit.org/en/latest/changelog.html).

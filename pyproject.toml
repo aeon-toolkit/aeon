@@ -1,12 +1,12 @@
 [project]
-name = "scikit-time"
+name = "aeon"
 version = "0.0.1"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
+    {name = "Aeon developers", email = "scikit.time@gmail.com"},
 ]
 maintainers = [
-    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
+    {name = "Aeon developers", email = "scikit.time@gmail.com"},
 ]
 readme = "README.md"
 keywords = [
@@ -115,12 +115,12 @@ dl = [
 ]
 
 [project.urls]
-Homepage = "https://www.scikit-time.org"
-Repository = "https://github.com/scikit-time/scikit-time"
-Documentation = "https://www.scikit-time.org"
-Download = "https://pypi.org/project/scikit-time/#files"
-"API Reference" = "https://www.scikit-time.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.scikit-time.org/en/stable/changelog.html"
+Homepage = "https://www.aeon-toolkit.org"
+Repository = "https://github.com/aeon-toolkit/aeon"
+Documentation = "https://www.aeon-toolkit.org"
+Download = "https://pypi.org/project/aeon/#files"
+"API Reference" = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
+"Release Notes" = "https://www.aeon-toolkit.org/en/stable/changelog.html"
 
 [project.license]
 file = "LICENSE"
