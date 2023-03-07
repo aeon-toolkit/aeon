@@ -41,8 +41,8 @@ from sktime.tests._config import (
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
     VALID_ESTIMATOR_TYPES,
-    VALID_TRANSFORMER_TYPES,
 )
+from sktime.transformations.base import BaseTransformer
 from sktime.utils._testing._conditional_fixtures import (
     create_conditional_fixtures_and_names,
 )
@@ -855,7 +855,7 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
         # If the estimator inherits from more than one base estimator type, we check if
         # one of them is a transformer base type
         if n_base_types > 1:
-            assert issubclass(estimator_class, VALID_TRANSFORMER_TYPES)
+            assert issubclass(estimator_class, BaseTransformer)
 
     def test_has_common_interface(self, estimator_class):
         """Check estimator implements the common interface."""
