@@ -16,14 +16,9 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 from scipy.stats import median_abs_deviation
+from sklearn.metrics import accuracy_score
 from sklearn.neighbors import NearestCentroid
 from sklearn.preprocessing import LabelEncoder
-from sktime.datasets.tests.test_data_io import test_load_from_tsfile_to_dataframe
-
-from sktime.datatypes._panel._convert import (
-    from_3d_numpy_to_nested,
-    from_nested_to_3d_numpy,
-)
 from sktime.distances import distance
 from sktime.transformations.base import BaseTransformer
 
@@ -133,7 +128,7 @@ class ClassPrototype:
 
         return np.mean(class_X, axis=0)
 
-    # TODO:: Fix this
+    # FIXME: Fix this
     def create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
         """Create mad class prototype for each class."""
         classes_ = np.unique(y)
@@ -181,9 +176,6 @@ class ClassPrototype:
     ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
         # TODO: Add support for columns
-        print(X.shape)
-        # cols = X.columns.to_list()
-        # X = from_nested_to_3d_numpy(X)  # Contains TS in numpy format
 
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
@@ -196,22 +188,13 @@ class ClassPrototype:
         prototypes = []
         for channel in range(X.shape[1]):  # iterating over channels
             train = X[:, channel, :]
-            # print("train shpae", train.shape, "y_ind", y_ind.shape)
             _prototype = prototype_funcs[self.prototype](train, y_ind)
-            # print("prototype", _prototype.shape)
             prototypes.append(_prototype)
 
-        print("Total Pr: ", len(prototypes))
         prototypes = np.stack(prototypes, axis=1)
-        print(prototypes.shape)
-        print(le.classes_)
 
         if self.mean_centering:
             prototypes -= np.mean(prototypes, axis=2, keepdims=True)
-
-        if self.return_df:
-            centroid_frame = from_3d_numpy_to_nested(prototypes)
-            return centroid_frame.reset_index(drop=True), le.classes_
 
         return (prototypes, le.classes_)
 
@@ -359,6 +342,7 @@ class ElbowClassSum(BaseTransformer):
         output : pandas DataFrame
             X with a subset of channels
         """
+        assert self._is_fitted, "fit() must be called before transform()"
         return X[:, self.channels_selected_idx]
 
 
@@ -481,21 +465,16 @@ class ElbowClassPairwise(BaseTransformer):
         centroid_obj = ClassPrototype(
             prototype=self.class_prototype, mean_centering=self.mean_centering
         )
-        self.class_prototype_ = centroid_obj.create_prototype(
+        self.class_prototype_, labels = centroid_obj.create_prototype(
             X.copy(), y
         )  # Centroid created here
         # obj = DistanceMatrix(distance=self.distance)
-        self.distance_frame = obj.create_distance_matrix(
-            self.class_prototype_.copy()
+        self.distance_frame = create_distance_matrix(
+            self.class_prototype_.copy(), labels, self.distance
         )  # Distance matrix created here
 
-        all_chs = np.empty(
-            self.class_prototype_.shape[1] - 1
-        )  # -1 for removing class columsn
-        all_chs.fill(0)
         self.channels_selected_idx = []
-
-        for pairdistance in self.distance_frame.iteritems():
+        for pairdistance in self.distance_frame.items():
             distance_ = pairdistance[1].sort_values(ascending=False).values
             indices = pairdistance[1].sort_values(ascending=False).index
             chs_dis = _detect_knee_point(distance_, indices)
@@ -520,26 +499,6 @@ class ElbowClassPairwise(BaseTransformer):
         output : pandas DataFrame
             X with a subset of channels
         """
-        return X.iloc[:, self.channels_selected_idx]
+        assert self._is_fitted, "Transformer must be fitted before calling transform"
+        return X[:, self.channels_selected_idx]
 
-
-# Add main function to run the code
-
-if __name__ == "__main__":
-    from sktime.datasets import load_from_tsfile_to_dataframe, load_UCR_UEA_dataset
-    
-
-    data_train = "/home/bhaskar/Desktop/ChannelSelection-Extend/MP/FullUnnormalized25XY/TRAIN_X.ts"
-    data_test = "/home/bhaskar/Desktop/ChannelSelection-Extend/MP/FullUnnormalized25XY/TEST_X.ts"
-
-    X_train, y_train = load_from_tsfile_to_dataframe(data_train)
-    X_test, y_test = load_from_tsfile_to_dataframe(data_test)
-
-    # Create a transformer
-    cs = ElbowClassSum(distance_="euclidean", prototype="mad")
-    cs.fit(X_train, y_train)
-    Xt = cs.transform(X_train)
-    print(cs.rank)
-    # pprint([dcs50[i] for i in cs.rank])
-# 
-    print(Xt.shape)
