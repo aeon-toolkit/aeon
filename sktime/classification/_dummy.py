@@ -13,8 +13,8 @@ from sktime.classification.base import BaseClassifier
 class DummyClassifier(BaseClassifier):
     """DummyClassifier makes predictions that ignore the input features.
 
-    This classifier serves as a simple baseline to compare against other more
-    complex classifiers.
+    This classifier is a wrapper for SklearnDummyClassifier that serves as a simple
+    baseline to compare against other more complex classifiers.
     The specific behavior of the baseline is selected with the `strategy` parameter.
 
     All strategies make predictions that ignore the input feature values passed
@@ -61,9 +61,7 @@ class DummyClassifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_mtype": "nested_univ",
         "capability:missing_values": True,
-        "capability:unequal_length": True,
         "capability:multivariate": True,
     }
 
@@ -91,7 +89,7 @@ class DummyClassifier(BaseClassifier):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_classifier.fit(np.zeros(X.shape), y)
+        self.sklearn_dummy_classifier.fit(np.zeros(X.shape[0]), y)
         return self
 
     def _predict(self, X) -> np.ndarray:

@@ -8,8 +8,8 @@ from sktime.datasets import load_unit_test
 
 def test_dummy_classifier():
     """Test function for DummyClassifier."""
-    X_train, y_train = load_unit_test(split="train", return_type="numpy3D")
-    X_test, _ = load_unit_test(split="test", return_type="numpy3D")
+    X_train, y_train = load_unit_test(split="train")
+    X_test, _ = load_unit_test(split="test")
     dummy = DummyClassifier()
     dummy.fit(X_train, y_train)
     pred = dummy.predict(X_test)
