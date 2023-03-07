@@ -86,20 +86,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
-
-    Alternative construction via dunder method:
-    >>> pipeline = TSInterpolator(length=10) * TimeSeriesForestClassifier(n_estimators=5)  # noqa: E501
     """
-
-    _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:train_estimate": False,
-        "capability:contractable": False,
-        "capability:multithreading": False,
-    }
 
     # no default tag values - these are set dynamically below
 
@@ -391,20 +378,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     >>> pipeline = SklearnClassifierPipeline(KNeighborsClassifier(), [t1, t2])
     >>> pipeline = pipeline.fit(X_train, y_train)
     >>> y_pred = pipeline.predict(X_test)
-
-    Alternative construction via dunder method:
-    >>> pipeline = t1 * t2 * KNeighborsClassifier()
     """
-
-    _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": True,
-        "capability:train_estimate": False,
-        "capability:contractable": False,
-        "capability:multithreading": False,
-    }
 
     # no default tag values - these are set dynamically below
 
