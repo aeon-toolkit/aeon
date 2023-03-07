@@ -89,7 +89,7 @@ class DummyClassifier(BaseClassifier):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_classifier.fit(np.zeros(X.shape[0]), y)
+        self.sklearn_dummy_classifier.fit(None, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -97,13 +97,13 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe or array-like, shape (n, d)
+        X : np.array
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
-        return self.sklearn_dummy_classifier.predict(np.zeros(X.shape))
+        return self.sklearn_dummy_classifier.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -116,7 +116,7 @@ class DummyClassifier(BaseClassifier):
         -------
         y : predictions of probabilities for class values of X, np.ndarray
         """
-        return self.sklearn_dummy_classifier.predict_proba(np.zeros(X.shape))
+        return self.sklearn_dummy_classifier.predict_proba(X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
