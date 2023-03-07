@@ -26,20 +26,14 @@ from pathlib import Path
 import pandas as pd
 
 from sktime.base import BaseEstimator
-from sktime.registry._base_classes import (
-    BASE_CLASS_LIST,
-    BASE_CLASS_LOOKUP,
-    TRANSFORMER_MIXIN_LIST,
-)
+from sktime.registry._base_classes import BASE_CLASS_LIST, BASE_CLASS_LOOKUP
 from sktime.registry._tags import ESTIMATOR_TAG_REGISTER
 
-VALID_TRANSFORMER_TYPES = tuple(TRANSFORMER_MIXIN_LIST)
 VALID_ESTIMATOR_BASE_TYPES = tuple(BASE_CLASS_LIST)
 
 VALID_ESTIMATOR_TYPES = (
     BaseEstimator,
     *VALID_ESTIMATOR_BASE_TYPES,
-    *VALID_TRANSFORMER_TYPES,
 )
 
 
@@ -219,7 +213,6 @@ def all_estimators(
         for module_name in _walk(
             root=ROOT, exclude=MODULES_TO_IGNORE, prefix="sktime."
         ):
-
             # Filter modules
             if _is_private_module(module_name):
                 continue
@@ -396,7 +389,7 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
 
     cond_sat = True
 
-    for (key, value) in filter_tags.items():
+    for key, value in filter_tags.items():
         if not isinstance(value, list):
             value = [value]
         cond_sat = cond_sat and estimator.get_class_tag(key) in set(value)
