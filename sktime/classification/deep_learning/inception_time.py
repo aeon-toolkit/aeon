@@ -18,7 +18,7 @@ _check_dl_dependencies(severity="warning")
 class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifiers, as desribed in [1].
+    Ensemble of IndividualInceptionTimeClassifiers, as described in [1].
 
     Parameters
     ----------
@@ -81,7 +81,6 @@ class InceptionTimeClassifier(BaseClassifier):
         use_custom_filters  : bool, default = True,
             condition on wether or not to use custom
             filters in the first inception module
-
         batch_size          : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
@@ -193,7 +192,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ----------
 
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -246,7 +245,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
             The testing input samples.
 
         Returns
@@ -268,7 +267,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
             The testing input samples.
 
         Returns
@@ -498,7 +497,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer
-        nb_classes: int
+        n_classes: int
             The number of classes, which shall become the size of the output
              layer
 
@@ -567,17 +566,17 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_dimensions, series_length)
+        X : array-like of shape = (n_instances, n_channels, series_length)
             The training input samples. If a 2D array-like is passed,
-            n_dimensions is assumed to be 1.
+            n_channels is assumed to be 1.
         y : array-like, shape = [n_instances]
             The training data class labels.
         input_checks : boolean
             whether to check the X and y parameters
         validation_X : a nested pd.Dataframe, or array-like of shape =
-        (n_instances, series_length, n_dimensions)
+        (n_instances, series_length, n_channels)
             The validation samples. If a 2D array-like is passed,
-            n_dimensions is assumed to be 1.
+            n_channels is assumed to be 1.
             Unless strictly defined by the user via callbacks (such as
             EarlyStopping), the presence or state of the validation
             data does not alter training in any way. Predictions at each epoch
