@@ -147,8 +147,8 @@ class WEASEL_V2(BaseClassifier):
         self.feature_selection = feature_selection
 
         self.window_sizes = []
-        self.series_length = 0
-        self.n_instances = 0
+        self.series_length_ = 0
+        self.n_instances_ = 0
 
         self.SFA_transformers = []
 
@@ -176,27 +176,27 @@ class WEASEL_V2(BaseClassifier):
             Reference to self.
         """
         # Window length parameter space dependent on series length
-        self.n_instances, self.series_length = X.shape[0], X.shape[-1]
+        self.n_instances_, self.series_length_ = X.shape[0], X.shape[-1]
         XX = X.squeeze(1)
 
         # avoid overfitting with too many features
-        if self.n_instances < 250:
+        if self.n_instances_ < 250:
             self.max_window = 24
             self.ensemble_size = 50
-        elif self.series_length < 100:
+        elif self.series_length_ < 100:
             self.max_window = 44
             self.ensemble_size = 100
         else:
             self.max_window = 84
             self.ensemble_size = 150
 
-        self.max_window = int(min(self.series_length, self.max_window))
+        self.max_window = int(min(self.series_length_, self.max_window))
         if self.min_window > self.max_window:
             raise ValueError(
                 f"Error in WEASEL, min_window ="
                 f"{self.min_window} is bigger"
                 f" than max_window ={self.max_window},"
-                f" series length is {self.series_length}"
+                f" series length is {self.series_length_}"
                 f" try set min_window to be smaller than series length in "
                 f"the constructor, but the classifier may not work at "
                 f"all with very short series"
@@ -213,7 +213,7 @@ class WEASEL_V2(BaseClassifier):
                 self.window_sizes,
                 self.alphabet_sizes,
                 self.word_lengths,
-                self.series_length,
+                self.series_length_,
                 self.norm_options,
                 self.use_first_differences,
                 self.binning_strategies,
