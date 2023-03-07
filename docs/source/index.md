@@ -1,4 +1,4 @@
-# Welcome to <span style="color:#FF2828">**aeon**</span>
+# Welcome to the documentation for **aeon**
 
 <br>
 
