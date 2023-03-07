@@ -607,7 +607,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from sktime.classification.dummy import DummyClassifier
+    >>> from sktime.classification import DummyClassifier
     >>> from sktime.classification.convolution_based import RocketClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")

@@ -297,8 +297,8 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # imports
+        from sktime.classification import DummyClassifier
         from sktime.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from sktime.classification.dummy import DummyClassifier
         from sktime.transformations.series.exponent import ExponentTransformer
 
         t1 = ExponentTransformer(power=2)

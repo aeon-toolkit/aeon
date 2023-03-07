@@ -2,7 +2,7 @@
 """Test function of DummyClassifier."""
 import numpy as np
 
-from sktime.classification.dummy import DummyClassifier
+from sktime.classification import DummyClassifier
 from sktime.datasets import load_unit_test
 
 
