@@ -5,7 +5,7 @@ Code of Conduct
 
 We value the participation of every member of our community and want to
 ensure an that every contributor has an enjoyable and fulfilling
-experience. Accordingly, everyone who participates in the sktime project
+experience. Accordingly, everyone who participates in the aeon project
 is expected to show respect and courtesy to other community members at
 all times.
 
@@ -27,16 +27,16 @@ conform to the following Code of Conduct.
 1 Introduction
 --------------
 
-sktime is a community-oriented and -led project. We value the
+aeon is a community-oriented and -led project. We value the
 involvement of everyone in the community. We are committed to creating a
 friendly and respectful place for learning, teaching and contributing.
 All participants in our in-person events and online communications are
 expected to show respect and courtesy to others at all times.
 
 To make clear what is expected, everyone participating in activities
-associated with the sktime project is required to conform to this Code
+associated with the aeon project is required to conform to this Code
 of Conduct. This Code of Conduct applies to all spaces managed by the
-sktime project including, but not limited to, in-person focus groups and
+aeon project including, but not limited to, in-person focus groups and
 workshops, and communications online via GitHub.
 
 The CoCC is responsible
@@ -48,7 +48,7 @@ unless there is a conflict of interest, and will be kept confidential.
 2 Code of Conduct
 -----------------
 
-The sktime team are dedicated to providing a welcoming and supportive
+The aeon team are dedicated to providing a welcoming and supportive
 environment for all people, regardless of background or identity. As
 such, we do not tolerate behaviour that is disrespectful to our
 community members or that excludes, intimidates, or causes discomfort to
@@ -61,12 +61,12 @@ familial status, veteran status, genetic information, religion or belief
 education, socio-economic status, technical choices, and experience
 level.
 
-Everyone who participates in the sktime project activities is required
+Everyone who participates in the aeon project activities is required
 to conform to this Code of Conduct. This Code of Conduct applies to all
-spaces managed by the sktime project including, but not limited to, in
+spaces managed by the aeon project including, but not limited to, in
 person focus groups and workshops, and communications online via GitHub.
 By participating, contributors indicate their acceptance of the
-procedures by which the sktime project core development team resolves
+procedures by which the aeon project core development team resolves
 any Code of Conduct incidents, which may include storage and processing
 of their personal information.
 
@@ -118,7 +118,7 @@ feigning surprise, no well-actually's, no back-seat driving, no subtle
 2.2 Unacceptable Behaviour
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Examples of unacceptable behaviour by sktime community members at any
+Examples of unacceptable behaviour by aeon community members at any
 project event or platform include:
 
 -  written or verbal comments which have the effect of excluding people
@@ -143,7 +143,7 @@ project event or platform include:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Participants who are asked to stop any inappropriate behaviour are
-expected to comply immediately. This applies to all sktime community
+expected to comply immediately. This applies to all aeon community
 events and platforms, either online or in-person. If a participant
 engages in behaviour that violates this Code of Conduct, any member of
 the core development team may warn the offender, ask them to leave the
@@ -188,7 +188,7 @@ available in the Enforcement Manual below.
 4 Enforcement Manual
 --------------------
 
-This is the enforcement manual followed by the sktime project research
+This is the enforcement manual followed by the aeon project research
 team. It's used when we respond to an issue to make sure we're
 consistent and fair. Enforcement of the Code of Conduct should be
 respectful and not include any harassing behaviours.
@@ -196,8 +196,8 @@ respectful and not include any harassing behaviours.
 4.1 The Code of Conduct Committee (COCC)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The sktime Code of Conduct committee currently consists of members listed
-`here <https://github.com/sktime/sktime/blob/main/docs/source/about/team.rst>`__.
+The aeon Code of Conduct committee currently consists of members listed
+`here <https://github.com/aeon-toolkit/aeon/blob/main/docs/source/about/team.rst>`__.
 
 We encourage community members to step up to become a member of the committee.
 
@@ -208,7 +208,7 @@ If the incident involves physical danger, or involves a threat to
 anyone's safety (e.g. threats of violence), any member of the community
 may -- and should -- act unilaterally to protect the safety of any
 community member. This can include contacting law enforcement (or other
-local personnel) and speaking on behalf of the sktime team.
+local personnel) and speaking on behalf of the aeon team.
 
 If the act is ongoing, any community member may act immediately, before
 reaching consensus, to diffuse the situation. In ongoing situations, any
@@ -273,7 +273,7 @@ Possible responses may include:
    choose to publish this message elsewhere for posterity.
 -  An imposed "time out" from online spaces. CoCC will
    communicate this "time out" to the individual(s) involved.
--  A permanent or temporary ban from some or all sktime project spaces
+-  A permanent or temporary ban from some or all aeon project spaces
    (GitHub, in-person events etc). The research team will maintain
    records of all such bans so that they may be reviewed in the future,
    extended to a Code of Conduct safety team as it is built, or
@@ -291,7 +291,7 @@ committee is not required to act on this feedback.
 4.5 Conflicts of Interest
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In case of conflict of interest of sktime CoC committee members, you can report to the
+In case of conflict of interest of aeon CoC committee members, you can report to the
 Community Council, or, in case of events, to the organisation at which the event is
 taking place (e.g., a university).
 
