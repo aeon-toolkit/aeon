@@ -304,7 +304,7 @@ def _get_channel(X, key):
     """
     Get time series channel(s) from input data X.
 
-    Supported input types (X): numpy arrays and DataFrames
+    Supported input types (X): numpy arrays
 
     Supported key types (key):
     - scalar: output is 1D
@@ -314,7 +314,7 @@ def _get_channel(X, key):
     Supported key data types:
 
     - integer or boolean mask (positional):
-        - supported for arrays, sparse matrices and dataframes
+        - supported for arrays and sparse matrices
     - string (key-based):
         - only supported for dataframes
         - So no keys other than strings are allowed (while in principle you
@@ -324,8 +324,6 @@ def _get_channel(X, key):
     # check whether we have string channel names or integers
     if _check_key_type(key, int):
         channel_names = False
-    elif _check_key_type(key, str):
-        channel_names = True
     elif hasattr(key, "dtype") and np.issubdtype(key.dtype, np.bool_):
         # boolean mask
         channel_names = True
