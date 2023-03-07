@@ -73,9 +73,6 @@ class WEASEL_V2(BaseClassifier):
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accurate. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    n_jobs : int, default=4
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
     random_state: int or None, default=None
         Seed for random, integer
 
