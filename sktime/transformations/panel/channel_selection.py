@@ -97,8 +97,6 @@ class ClassPrototype:
         Available options are "mean", "median", "mad".
     mean_centering : bool, default=False
         If True, mean centering is applied to the class prototype.
-    return_df : bool, default=False
-        If True, returns a dataframe of class prototypes.
 
     Attributes
     ----------
@@ -111,11 +109,9 @@ class ClassPrototype:
         self,
         prototype: str = "mean",
         mean_centering: bool = False,
-        return_df: bool = False,
     ):
         self.prototype = prototype
         self.mean_centering = mean_centering
-        self.return_df = return_df
 
         assert self.prototype in [
             "mean",
@@ -207,7 +203,7 @@ class ElbowClassSum(BaseTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
     Overview: From the input of multivariate time series data, create a distance
-    matrix [1] by calculating the distance between each class prototype. The
+    matrix [1, 2] by calculating the distance between each class prototype. The
     ECS selects the subset of channels using the elbow method, which maximizes the
     distance between the class centroids by aggregating the distance for every
     class pair across each channel.
@@ -220,28 +216,24 @@ class ElbowClassSum(BaseTransformer):
     distance : str
         Distance metric to use for creating the class prototype.
         Default: 'euclidean'
-    class_prototype : str
+    prototype : str
         Type of class prototype to use for representing a class.
         Default: 'mean'
     mean_centering : bool
         If True, mean centering is applied to the class prototype.
         Default: False
 
-
     Attributes
     ----------
-    class_prototype_ : DataFrame
+    prototype_ : DataFrame
         Class prototype for each class.
     distance_frame_ : DataFrame
         Distance matrix for each class pair.
-        ``shape = [n_channels, n_class_prototype_pairs]``
+        ``shape = [n_channels, n_class_pairs]``
     channels_selected_idx : list
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
-    class_prototype_ : DataFrame
-        Class prototype for each class.
-
 
     Notes
     -----
@@ -314,12 +306,12 @@ class ElbowClassSum(BaseTransformer):
             prototype=self.prototype,
             mean_centering=self.mean_centering,
         )
-        self.prototype, labels = centroid_obj.create_prototype(X.copy(), y)
+        self.prototype_, labels = centroid_obj.create_prototype(X.copy(), y)
 
         # obj = DistanceMatrix(self.distance_)
 
         self.distance_frame = create_distance_matrix(
-            self.prototype.copy(), labels, distance_=self.distance_
+            self.prototype_.copy(), labels, distance_=self.distance_
         )
         self.channels_selected_idx = []
         distance = self.distance_frame.sum(axis=1).sort_values(ascending=False).values
@@ -365,7 +357,7 @@ class ElbowClassPairwise(BaseTransformer):
     distance : str
         Distance metric to use for creating the class prototype.
         Default: 'euclidean'
-    class_prototype : str
+    prototype : str
         Type of class prototype to use for representing a class.
         Default: 'mean'
     mean_centering : bool
@@ -375,16 +367,13 @@ class ElbowClassPairwise(BaseTransformer):
 
     Attributes
     ----------
-    class_prototype_ : DataFrame
-        Class prototype for each class.
-    distance_frame_ : DataFrame
-        Distance matrix for each class pair.
-        ``shape = [n_channels, n_class_prototype_pairs]``
+    distance_frame : DataFrame
+        Distance matrix between class prototypes.
     channels_selected_idx : list
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
-    class_prototype_ : DataFrame
+    prototype_ : DataFrame
         Class prototype for each class.
 
     Notes
@@ -430,11 +419,11 @@ class ElbowClassPairwise(BaseTransformer):
     def __init__(
         self,
         distance: str = "euclidean",
-        class_prototype: str = "mad",
+        prototype: str = "mad",
         mean_centering: bool = False,
     ):
         self.distance = distance
-        self.class_prototype = class_prototype
+        self.prototype = prototype
         self.mean_centering = mean_centering
         self._is_fitted = False
 
@@ -464,14 +453,14 @@ class ElbowClassPairwise(BaseTransformer):
         self : reference to self.
         """
         centroid_obj = ClassPrototype(
-            prototype=self.class_prototype, mean_centering=self.mean_centering
+            prototype=self.prototype, mean_centering=self.mean_centering
         )
-        self.class_prototype_, labels = centroid_obj.create_prototype(
+        self.prototype_, labels = centroid_obj.create_prototype(
             X.copy(), y
         )  # Centroid created here
         # obj = DistanceMatrix(distance=self.distance)
         self.distance_frame = create_distance_matrix(
-            self.class_prototype_.copy(), labels, self.distance
+            self.prototype_.copy(), labels, self.distance
         )  # Distance matrix created here
 
         self.channels_selected_idx = []
