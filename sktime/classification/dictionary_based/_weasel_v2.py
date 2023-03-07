@@ -317,16 +317,11 @@ class WEASEL_V2(BaseClassifier):
 
         all_words = []
         for words in parallel_res:
-            # words = words.astype(np.float32) / norm
             all_words.append(words)
 
-        # X_features = self.rocket.transform(X)
-
         if type(all_words[0]) is np.ndarray:
-            # all_words.append(X_features)
             all_words = np.concatenate(all_words, axis=1)
         else:
-            # all_words.append(csr_matrix(X_features.values))
             all_words = hstack(all_words)
 
         return all_words
