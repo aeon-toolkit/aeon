@@ -91,7 +91,7 @@ class ResNetClassifier(BaseDeepClassifier):
     ResNetClassifier(...)
     """
 
-    _tags = {"python_dependencies": ["tensorflow"]}
+    _tags = {"python_dependencies": "tensorflow"}
 
     def __init__(
         self,

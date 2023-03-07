@@ -121,7 +121,7 @@ class CanonicalIntervalForest(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "classifier_type": "interval",
+        "algorithm_type": "interval",
     }
 
     def __init__(
@@ -194,7 +194,7 @@ class CanonicalIntervalForest(BaseClassifier):
         if self._max_interval < self._min_interval:
             self._max_interval = self._min_interval
 
-        fit = Parallel(n_jobs=self._threads_to_use)(
+        fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -224,7 +224,7 @@ class CanonicalIntervalForest(BaseClassifier):
                 "that in the test data"
             )
 
-        y_probas = Parallel(n_jobs=self._threads_to_use)(
+        y_probas = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -371,10 +371,10 @@ class CanonicalIntervalForest(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            CanonicalIntervalForest provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
         Returns
         -------

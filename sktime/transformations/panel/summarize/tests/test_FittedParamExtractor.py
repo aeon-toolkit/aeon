@@ -12,7 +12,7 @@ from sktime.forecasting.exp_smoothing import ExponentialSmoothing
 from sktime.transformations.panel.summarize import FittedParamExtractor
 from sktime.utils.validation._dependencies import _check_estimator_deps
 
-X_train, y_train = load_gunpoint("train", return_X_y=True)
+X_train, y_train = load_gunpoint("train", return_type="nested_univ")
 
 
 @pytest.mark.skipif(

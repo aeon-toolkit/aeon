@@ -1,6 +1,6 @@
-# How to cite sktime
+# How to cite aeon
 
-If you use sktime in a scientific publication, we would appreciate
+If you use aeon in a scientific publication, we would appreciate
 citations to the following papers:
 
 * [Markus Löning, Anthony Bagnall, Sajaysurya Ganesh, Viktor Kazakov, Jason Lines, Franz Király (2019): “sktime: A Unified Interface for Machine Learning with Time Series”](http://learningsys.org/neurips19/assets/papers/sktime_ml_systems_neurips2019.pdf)

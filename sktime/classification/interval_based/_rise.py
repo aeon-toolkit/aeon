@@ -177,7 +177,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "interval",
+        "algorithm_type": "interval",
     }
 
     def __init__(
@@ -273,7 +273,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         ]
 
         # Parallel loop
-        worker_rets = Parallel(n_jobs=self._threads_to_use)(
+        worker_rets = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(_parallel_build_trees)(
                 X,
                 y,
@@ -348,7 +348,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         n_jobs, _, _ = _partition_estimators(self.n_estimators, self._threads_to_use)
 
         # Parallel loop
-        all_proba = Parallel(n_jobs=n_jobs)(
+        all_proba = Parallel(n_jobs=n_jobs, prefer="threads")(
             delayed(_predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -369,10 +369,10 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            RandomIntervalSpectralEnsemble provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
         Returns
         -------
@@ -494,6 +494,7 @@ def acf(x, max_lag):
 #     y[non_zero] /= np.sqrt(covar[non_zero])
 #
 #     return y
+
 
 # @jit(parallel=True, cache=True, nopython=True)
 def matrix_acf(x, num_cases, max_lag):

@@ -3,8 +3,7 @@
 Glossary of Common Terms
 ========================
 
-The glossary below defines common terms and API elements used throughout
-sktime.
+The glossary below defines common terms and API elements used throughout aeon.
 
 .. note::
 
@@ -64,7 +63,7 @@ sktime.
 
     Reduction
         Reduction refers to decomposing a given learning task into simpler tasks that can be composed to create a solution to the original task.
-        In sktime reduction is used to allow one learning task to be adapted as a solution for an alternative task.
+        In aeon reduction is used to allow one learning task to be adapted as a solution for an alternative task.
 
     Variable
         Refers to some measurement of interest. Variables may be cross-sectional (e.g. time-invariant measurements like a patient's place of birth) or

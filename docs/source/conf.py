@@ -18,7 +18,7 @@ rst_prolog = """.. attention::
     Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
     contributions.
 
-    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
 """  # noqa: E501
 
 # -- Path setup --------------------------------------------------------------
@@ -32,9 +32,9 @@ if not ON_READTHEDOCS:
     sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
-project = "sktime"
-copyright = "2019 - 2021 (BSD-3-Clause License)"
-author = "sktime developers"
+project = "aeon"
+copyright = "BSD-3-Clause License"
+author = "aeon developers"
 
 # The full version, including alpha/beta/rc tags
 CURRENT_VERSION = f"v{sktime.__version__}"
@@ -144,7 +144,7 @@ add_function_parentheses = False
 suppress_warnings = ["myst.mathjax"]
 
 # Link to GitHub repo for github_issues extension
-issues_github_path = "sktime/sktime"
+issues_github_path = "aeon-toolkit/aeon"
 
 
 def linkcode_resolve(domain, info):
@@ -180,7 +180,7 @@ def linkcode_resolve(domain, info):
         filename = "sktime/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/sktime/sktime/blob/%s/%s" % (
+    return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (
         CURRENT_VERSION,
         filename,
     )
@@ -201,18 +201,13 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/sktime/sktime",
+            "url": "https://github.com/aeon-toolkit/aeon",
             "icon": "fab fa-github",
         },
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/sktime-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig",  # noqa: E501
+            "url": "https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA",  # noqa: E501
             "icon": "fab fa-slack",
-        },
-        {
-            "name": "Discord",
-            "url": "https://discord.com/invite/gqSab2K",
-            "icon": "fab fa-discord",
         },
         {
             "name": "LinkedIn",
@@ -229,7 +224,7 @@ html_theme_options = {
         {
             "rel": "icon",
             "sizes": "16x16",
-            "href": "images/sktime-favicon.ico",
+            "href": "images/aeon-favicon.ico",
         }
     ],
     "show_prev_next": False,
@@ -238,14 +233,14 @@ html_theme_options = {
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["navbar-icon-links"],
 }
-html_logo = "images/sktime-logo-text-horizontal.png"
+html_logo = "images/aeon-logo-text-horizontal.png"
 html_context = {
-    "github_user": "sktime",
-    "github_repo": "sktime",
+    "github_user": "aeon-toolkit",
+    "github_repo": "aeon",
     "github_version": "main",
     "doc_path": "docs/source/",
 }
-html_favicon = "images/sktime-favicon.ico"
+html_favicon = "images/aeon-favicon.ico"
 html_sidebars = {
     "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"]
 }
@@ -274,7 +269,7 @@ html_show_sourcelink = False
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "sktimedoc"
+htmlhelp_basename = "aeondoc"
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -293,14 +288,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "sktime.tex", "sktime Documentation", "sktime developers", "manual"),
+    (master_doc, "aeon.tex", "aeon Documentation", "aeon developers", "manual"),
 ]
 
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "sktime", "sktime Documentation", [author], 1)]
+man_pages = [(master_doc, "aeon", "aeon Documentation", [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -310,10 +305,10 @@ man_pages = [(master_doc, "sktime", "sktime Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "sktime",
-        "sktime Documentation",
+        "aeon",
+        "aeon Documentation",
         author,
-        "sktime",
+        "aeon",
         "One line description of project.",
         "Miscellaneous",
     ),
@@ -381,7 +376,7 @@ def _make_estimator_overview(app):
         clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
         # adds html link reference
         modname = str(
-            '<a href="https://www.sktime.org/en/latest/api_reference'
+            '<a href="https://www.aeon-toolkit.org/en/latest/api_reference'
             + "/auto_generated/"
             + clean_path
             + '.html">'
@@ -423,7 +418,7 @@ nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
 
 # make sure Binder points to latest stable release, not main
-binder_url = f"https://mybinder.org/v2/gh/sktime/sktime/{CURRENT_VERSION}?filepath={current_file}"  # noqa
+binder_url = f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{CURRENT_VERSION}?filepath={current_file}"  # noqa
 nbsphinx_prolog = f"""
 .. |binder| image:: https://mybinder.org/badge_logo.svg
 .. _Binder: {binder_url}
@@ -432,9 +427,7 @@ nbsphinx_prolog = f"""
 """
 
 # add link to original notebook at the bottom
-notebook_url = (
-    f"https://github.com/sktime/sktime/tree/{CURRENT_VERSION}/{current_file}"  # noqa
-)
+notebook_url = f"https://github.com/aeon-toolkit/aeon/tree/{CURRENT_VERSION}/{current_file}"  # noqa
 nbsphinx_epilog = f"""
 ----
 

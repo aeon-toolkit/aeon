@@ -104,10 +104,8 @@ class RotationForest(BaseEstimator):
     >>> from sktime.classification.sklearn import RotationForest
     >>> from sktime.datasets import load_unit_test
     >>> from sktime.datatypes._panel._convert import from_nested_to_3d_numpy
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> X_train = from_nested_to_3d_numpy(X_train)
-    >>> X_test = from_nested_to_3d_numpy(X_test)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RotationForest(n_estimators=10)
     >>> clf.fit(X_train, y_train)
     RotationForest(...)
@@ -217,7 +215,7 @@ class RotationForest(BaseEstimator):
                 train_time < time_limit
                 and self._n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._n_jobs)(
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_estimator)(
                         X,
                         X_cls_split,
@@ -239,7 +237,7 @@ class RotationForest(BaseEstimator):
         else:
             self._n_estimators = self.n_estimators
 
-            fit = Parallel(n_jobs=self._n_jobs)(
+            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_estimator)(
                     X,
                     X_cls_split,
@@ -318,7 +316,7 @@ class RotationForest(BaseEstimator):
         # normalise the data.
         X = (X - self._min) / self._ptp
 
-        y_probas = Parallel(n_jobs=self._n_jobs)(
+        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -366,7 +364,7 @@ class RotationForest(BaseEstimator):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        p = Parallel(n_jobs=self._n_jobs)(
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,

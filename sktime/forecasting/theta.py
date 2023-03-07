@@ -96,7 +96,6 @@ class ThetaForecaster(ExponentialSmoothing):
     }
 
     def __init__(self, initial_level=None, deseasonalize=True, sp=1):
-
         self.sp = sp
         self.deseasonalize = deseasonalize
         self.deseasonalizer_ = None
@@ -370,7 +369,6 @@ class ThetaModularForecaster(BaseForecaster):
         "y_inner_mtype": "pd.Series",
         "requires-fh-in-fit": False,
         "handles-missing-data": False,
-        "python_version": ">3.7",
     }
 
     def __init__(

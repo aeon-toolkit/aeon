@@ -11,10 +11,10 @@ Mission
   Our :ref:`roadmap` describes how we try to achieve our mission.
 
 
-Motivation: Why we develop sktime
+Motivation: Why we develop aeon
 =================================
 
-There are a number of reasons why we develop sktime, here are the most important ones:
+There are a number of reasons why we develop aeon, here are the most important ones:
 
 * **Easier development of ML :term:`applications <application>`** with time series, by making the ecosystem more interoperable and usable as a whole, and by providing an easy-to-use and readable way of specifying and applying algorithms.
 * **Easier ML algorithm development**, from research to implementation and testing.

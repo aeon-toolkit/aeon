@@ -119,7 +119,7 @@ class WEASEL(BaseClassifier):
 
     _tags = {
         "capability:multithreading": True,
-        "classifier_type": "dictionary",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -192,7 +192,7 @@ class WEASEL(BaseClassifier):
         self.window_sizes = list(range(self.min_window, self.max_window, win_inc))
         self.highest_bit = (math.ceil(math.log2(self.max_window))) + 1
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 X,
                 y,
@@ -279,7 +279,7 @@ class WEASEL(BaseClassifier):
             )
 
     def _transform_words(self, X):
-        parallel_res = Parallel(n_jobs=self._threads_to_use, backend="threading")(
+        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(transformer.transform)(X) for transformer in self.SFA_transformers
         )
         all_words = []
@@ -307,10 +307,6 @@ class WEASEL(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------

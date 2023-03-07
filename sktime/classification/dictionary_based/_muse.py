@@ -121,8 +121,7 @@ class MUSE(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "classifier_type": "dictionary",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -198,7 +197,7 @@ class MUSE(BaseClassifier):
         if self.variance and self.anova:
             raise ValueError("MUSE Warning: Please set either variance or anova.")
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, backend="threading")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 X,
                 y.copy(),  # no clue why, but this copy is required.
@@ -300,7 +299,7 @@ class MUSE(BaseClassifier):
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
 
-        parallel_res = Parallel(n_jobs=self._threads_to_use, backend="threading")(
+        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(_parallel_transform_words)(
                 X, self.window_sizes, self.SFA_transformers, ind
             )
@@ -333,10 +332,6 @@ class MUSE(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
 
         Returns
         -------

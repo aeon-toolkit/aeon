@@ -2,15 +2,16 @@
 """Test the Padder transformer."""
 
 from sktime.datasets import load_basic_motions
-from sktime.transformations.panel.padder import PaddingTransformer
-
 from sktime.datatypes._panel._convert import from_nested_to_2d_array
+from sktime.transformations.panel.padder import PaddingTransformer
 
 
 def test_padding_transformer():
     """Test the dimensions after padding."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(
+        split="train", return_X_y=True, return_type="nested_univ"
+    )
 
     padding_transformer = PaddingTransformer()
     Xt = padding_transformer.fit_transform(X_train)
@@ -24,7 +25,9 @@ def test_padding_transformer():
 def test_padding_parameterised_transformer():
     """Test padding to user determined length."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(
+        split="train", return_X_y=True, return_type="nested_univ"
+    )
 
     padding_transformer = PaddingTransformer(pad_length=120)
     Xt = padding_transformer.fit_transform(X_train)
@@ -38,7 +41,9 @@ def test_padding_parameterised_transformer():
 def test_padding_fill_value_transformer():
     """Test full fill padding."""
     # load data
-    X_train, y_train = load_basic_motions(split="train", return_X_y=True)
+    X_train, y_train = load_basic_motions(
+        split="train", return_X_y=True, return_type="nested_univ"
+    )
 
     padding_transformer = PaddingTransformer(pad_length=120, fill_value=1)
     Xt = padding_transformer.fit_transform(X_train)
