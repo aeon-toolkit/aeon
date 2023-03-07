@@ -5,7 +5,7 @@ Development
 
 .. note::
 
-   If you are new to sktime, it may be helpful to take a look at the
+   If you are new to aeon, it may be helpful to take a look at the
    :ref:`get_involved` page first.
 
 .. toctree::
@@ -100,7 +100,7 @@ Development
 
         ^^^
 
-        How ``sktime`` is run.
+        How ``aeon`` is run.
 
         +++
 

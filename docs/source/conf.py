@@ -131,7 +131,7 @@ add_function_parentheses = False
 suppress_warnings = ["myst.mathjax"]
 
 # Link to GitHub repo for github_issues extension
-issues_github_path = "sktime/sktime"
+issues_github_path = "aeon-toolkit/aeon"
 
 
 def linkcode_resolve(domain, info):
@@ -167,7 +167,7 @@ def linkcode_resolve(domain, info):
         filename = "sktime/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/sktime/sktime/blob/%s/%s" % (
+    return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (
         github_tag,
         filename,
     )
@@ -244,7 +244,7 @@ html_show_sourcelink = False
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "sktimedoc"
+htmlhelp_basename = "aeondoc"
 
 # -- Options for LaTeX output ------------------------------------------------
 
@@ -263,14 +263,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "sktime.tex", "sktime Documentation", "sktime developers", "manual"),
+    (master_doc, "aeon.tex", "aeon Documentation", "aeon developers", "manual"),
 ]
 
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "sktime", "sktime Documentation", [author], 1)]
+man_pages = [(master_doc, "aeon", "aeon Documentation", [author], 1)]
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -280,10 +280,10 @@ man_pages = [(master_doc, "sktime", "sktime Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "sktime",
-        "sktime Documentation",
+        "aeon",
+        "aeon Documentation",
         author,
-        "sktime",
+        "aeon",
         "One line description of project.",
         "Miscellaneous",
     ),
@@ -351,7 +351,7 @@ def _make_estimator_overview(app):
         clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
         # adds html link reference
         modname = str(
-            '<a href="https://www.sktime.org/en/latest/api_reference'
+            '<a href="https://www.aeon-toolkit.org/en/latest/api_reference'
             + "/auto_generated/"
             + clean_path
             + '.html">'
@@ -393,7 +393,7 @@ nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
 
 # make sure Binder points to latest stable release, not main
-binder_url = f"https://mybinder.org/v2/gh/sktime/sktime/{github_tag}?filepath={current_file}"  # noqa
+binder_url = f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{CURRENT_VERSION}?filepath={current_file}"  # noqa
 nbsphinx_prolog = f"""
 .. |binder| image:: https://mybinder.org/badge_logo.svg
 .. _Binder: {binder_url}
@@ -402,9 +402,7 @@ nbsphinx_prolog = f"""
 """
 
 # add link to original notebook at the bottom
-notebook_url = (
-    f"https://github.com/sktime/sktime/tree/{github_tag}/{current_file}"  # noqa
-)
+notebook_url = f"https://github.com/aeon-toolkit/aeon/tree/{github_tag}/{current_file}"
 nbsphinx_epilog = f"""
 ----
 
