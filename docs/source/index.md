@@ -1,5 +1,3 @@
-.. _home:
-
 # Welcome to aeon
 
 - Framework for time series tasks such as forecasting and classification.
@@ -23,12 +21,15 @@ Get started with time series forecasting.
 
 +++
 
-::{button-ref} get_started
+```{button-ref} get_started
 :color: primary
 :click-parent:
 :expand:
 
 Forecasting
+```
+
+:::
 
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
@@ -42,12 +43,15 @@ Get started with time series classification.
 
 +++
 
-::{button-ref} users
+```{button-ref} users
 :color: primary
 :click-parent:
 :expand:
 
 Classification
+```
+
+:::
 
 :::{grid-item-card}
 :img-top: examples/img/tser.png
@@ -61,12 +65,15 @@ Get started with time series extrinsic regression.
 
 +++
 
-::{button-ref} installation
+```{button-ref} installation
 :color: primary
 :click-parent:
 :expand:
 
 Regression
+```
+
+:::
 
 :::{grid-item-card}
 :img-top: examples/img/tscl.png
@@ -80,12 +87,15 @@ Get started with time series clustering.
 
 +++
 
-::{button-ref} api_reference
+```{button-ref} api_reference
 :color: primary
 :click-parent:
 :expand:
 
 Clustering
+```
+
+:::
 
 :::{grid-item-card}
 :img-top: examples/img/wip.png
@@ -99,15 +109,19 @@ Get started with time series transformations.
 
 +++
 
-::button-ref:: get_involved
+```button-ref:: get_involved
 :color: primary
 :click-parent:
 :expand:
 
 Transformations
+```
 
-Community Channels
-------------------
+:::
+
+::::
+
+## Community Channels
 
 **GitHub**: `github.com/scikit-time/scikit-time`_
 

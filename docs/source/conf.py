@@ -187,7 +187,7 @@ html_theme_options = {
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
     "source_branch": "main",
-    "source_directory": "docs/",
+    "source_directory": "docs/source/",
     "light_css_variables": {
         "color-brand-primary": "#C8001E",
         "color-brand-content": "green",
