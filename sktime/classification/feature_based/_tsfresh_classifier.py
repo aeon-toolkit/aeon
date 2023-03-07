@@ -69,7 +69,7 @@ class TSFreshClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "classifier_type": "feature",
+        "algorithm_type": "feature",
         "python_version": "<3.10",
         "python_dependencies": "tsfresh",
     }
