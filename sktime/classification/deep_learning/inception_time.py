@@ -87,7 +87,7 @@ class InceptionTimeClassifier(BaseClassifier):
         use_mini_batch_size : bool, default = False
             condition on using the mini batch size
             formula Wang et al.
-        nb_epochs           : int, default = 1500
+        n_epochs           : int, default = 1500
             the number of epochs to train the model.
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
@@ -144,7 +144,7 @@ class InceptionTimeClassifier(BaseClassifier):
         file_path="./",
         batch_size=64,
         use_mini_batch_size=False,
-        nb_epochs=1500,
+        n_epochs=1500,
         callbacks=None,
         random_state=None,
         verbose=False,
@@ -169,7 +169,7 @@ class InceptionTimeClassifier(BaseClassifier):
         self.depth = depth
         self.kernel_size = kernel_size
         self.batch_size = batch_size
-        self.nb_epochs = nb_epochs
+        self.n_epochs = n_epochs
 
         self.use_custom_filters = use_custom_filters
 
@@ -224,7 +224,7 @@ class InceptionTimeClassifier(BaseClassifier):
                 file_path=self.file_path,
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
-                nb_epochs=self.nb_epochs,
+                n_epochs=self.n_epochs,
                 callbacks=self.callbacks,
                 loss=self.loss,
                 metrics=self.metrics,
@@ -381,7 +381,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
             condition on using the mini batch size formula Wang et al.
-        nb_epochs           : int, default = 1500
+        n_epochs           : int, default = 1500
             the number of epochs to train the model.
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
@@ -432,7 +432,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         file_path="./",
         batch_size=64,
         use_mini_batch_size=False,
-        nb_epochs=1500,
+        n_epochs=1500,
         callbacks=None,
         random_state=None,
         verbose=False,
@@ -458,7 +458,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.depth = depth
         self.kernel_size = kernel_size
         self.batch_size = batch_size
-        self.nb_epochs = nb_epochs
+        self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
@@ -613,7 +613,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             X,
             y_onehot,
             batch_size=mini_batch_size,
-            epochs=self.nb_epochs,
+            epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks,
         )

@@ -51,7 +51,7 @@ class CNNClassifier(BaseDeepClassifier):
         if not a list, the same condition is used for all layers
     random_state    : int, default = 0
         seed to any needed random actions
-    nb_epochs       : int, default = 2000
+    n_epochs       : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
@@ -82,7 +82,7 @@ class CNNClassifier(BaseDeepClassifier):
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> cnn = CNNClassifier(nb_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> cnn = CNNClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
     CNNClassifier(...)
     """
@@ -99,7 +99,7 @@ class CNNClassifier(BaseDeepClassifier):
         padding="valid",
         strides=1,
         dilation_rate=1,
-        nb_epochs=2000,
+        n_epochs=2000,
         batch_size=16,
         callbacks=None,
         file_path="./",
@@ -124,7 +124,7 @@ class CNNClassifier(BaseDeepClassifier):
         self.use_bias = use_bias
         self.random_state = random_state
 
-        self.nb_epochs = nb_epochs
+        self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.callbacks = callbacks
         self.file_path = file_path
@@ -229,7 +229,7 @@ class CNNClassifier(BaseDeepClassifier):
             X,
             y_onehot,
             batch_size=self.batch_size,
-            epochs=self.nb_epochs,
+            epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
@@ -273,13 +273,13 @@ class CNNClassifier(BaseDeepClassifier):
         from sktime.utils.validation._dependencies import _check_soft_dependencies
 
         param1 = {
-            "nb_epochs": 10,
+            "n_epochs": 10,
             "batch_size": 4,
             "avg_pool_size": 4,
         }
 
         param2 = {
-            "nb_epochs": 12,
+            "n_epochs": 12,
             "batch_size": 6,
             "kernel_size": 2,
             "n_conv_layers": 1,
@@ -291,7 +291,7 @@ class CNNClassifier(BaseDeepClassifier):
 
             test_params.append(
                 {
-                    "nb_epochs": 2,
+                    "n_epochs": 2,
                     "callbacks": [LambdaCallback()],
                 }
             )
