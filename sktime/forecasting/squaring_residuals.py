@@ -316,7 +316,7 @@ class SquaringResiduals(BaseForecaster):
         for a, error in zip(alpha, errors):
             pred_quantiles[("Quantiles", a)] = y_pred + error
 
-        pred_quantiles.index = fh_abs
+        pred_quantiles.index = fh_abs.to_pandas()
 
         return pred_quantiles
 
