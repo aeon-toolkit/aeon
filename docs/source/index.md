@@ -1,4 +1,4 @@
-# Welcome to aeon
+# Welcome to <span style="color:#F00014">**aeon**</span>
 
 - Framework for time series tasks such as forecasting and classification.
 - Extends the scikit-learn interface, allowing for ease of use for familiar users.
@@ -123,9 +123,9 @@ Transformations
 
 ## Community Channels
 
-**GitHub**: [github.com/scikit-time/scikit-time](https://github.com/scikit-time/scikit-time)
+**GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [scikit-time Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
+**Slack**: [aeon Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
 
 **Twitter**: link
 
