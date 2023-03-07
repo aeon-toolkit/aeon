@@ -16,7 +16,6 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from sktime.classification.base import BaseClassifier
-from sktime.pipeline import make_pipeline
 from sktime.transformations.panel.dictionary_based import SFAFast
 
 # some constants on input parameters for WEASEL v2
@@ -185,17 +184,15 @@ class WEASEL_V2(BaseClassifier):
         words = self.transform.fit_transform(X, y)
 
         if not self.support_probabilities:
-            self.clf = make_pipeline(RidgeClassifierCV(alphas=np.logspace(-1, 5, 10)))
+            self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
         else:
-            self.clf = make_pipeline(
-                LogisticRegression(
-                    max_iter=5000,
-                    solver="liblinear",
-                    dual=True,
-                    penalty="l2",
-                    random_state=self.random_state,
-                    n_jobs=self.n_jobs,
-                )
+            self.clf = LogisticRegression(
+                max_iter=5000,
+                solver="liblinear",
+                dual=True,
+                penalty="l2",
+                random_state=self.random_state,
+                n_jobs=self.n_jobs,
             )
 
         self.clf.fit(words, y)
