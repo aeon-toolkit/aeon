@@ -184,7 +184,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        # super(InceptionTimeClassifier, self).__init__()
+        super(InceptionTimeClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
@@ -233,9 +233,6 @@ class InceptionTimeClassifier(BaseClassifier):
             )
             cls.fit(X, y)
             self.classifers_.append(cls)
-
-            self.classes_ = cls.classes_
-            self.n_classes_ = cls.n_classes_
 
         return self
 
