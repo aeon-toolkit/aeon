@@ -7,7 +7,7 @@ Time Series Classification.
 """
 
 __author__ = ["patrickzib"]
-__all__ = ["WEASEL_V2"]
+__all__ = ["WEASEL_V2", "WEASEL_V2_TRANSFORM"]
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -16,6 +16,7 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from sktime.classification.base import BaseClassifier
+from sktime.pipeline import make_pipeline
 from sktime.transformations.panel.dictionary_based import SFAFast
 
 # some constants on input parameters for WEASEL v2
@@ -134,38 +135,20 @@ class WEASEL_V2(BaseClassifier):
         support_probabilities=False,
         n_jobs=4,
     ):
-        self.alphabet_sizes = [2]
-        self.binning_strategies = ["equi-depth", "equi-width"]
-
-        self.anova = False
-        self.variance = True
-        self.bigrams = False
-        self.lower_bounding = True
-        self.remove_repeat_words = False
-
         self.norm_options = norm_options
         self.word_lengths = word_lengths
 
         self.random_state = random_state
 
         self.min_window = min_window
-        self.max_window = 84
-        self.ensemble_size = 150
+
         self.max_feature_count = max_feature_count
         self.use_first_differences = use_first_differences
         self.feature_selection = feature_selection
 
-        self.window_sizes = []
-        self.series_length_ = 0
-        self.n_instances_ = 0
-
-        self.SFA_transformers = []
-
         self.clf = None
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
-
-        # set_num_threads(n_jobs)
 
         super(WEASEL_V2, self).__init__()
 
@@ -183,6 +166,218 @@ class WEASEL_V2(BaseClassifier):
         -------
         self :
             Reference to self.
+        """
+        # Window length parameter space dependent on series length
+
+        ...
+
+        self.transform = WEASEL_V2_TRANSFORM(
+            min_window=self.min_window,
+            norm_options=self.norm_options,
+            word_lengths=self.word_lengths,
+            use_first_differences=self.use_first_differences,
+            feature_selection=self.feature_selection,
+            max_feature_count=self.max_feature_count,
+            random_state=self.random_state,
+            support_probabilities=self.support_probabilities,
+            n_jobs=self.n_jobs,
+        )
+        words = self.transform.fit_transform(X, y)
+
+        if not self.support_probabilities:
+            self.clf = make_pipeline(RidgeClassifierCV(alphas=np.logspace(-1, 5, 10)))
+        else:
+            self.clf = make_pipeline(
+                LogisticRegression(
+                    max_iter=5000,
+                    solver="liblinear",
+                    dual=True,
+                    penalty="l2",
+                    random_state=self.random_state,
+                    n_jobs=self.n_jobs,
+                )
+            )
+
+        self.clf.fit(words, y)
+
+        if hasattr(self.clf, "best_score_"):
+            self.cross_val_score = self.clf.best_score_
+
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances]
+            Predicted class labels.
+        """
+        bag = self.transform.transform(X)
+        return self.clf.predict(bag)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class probabilities for n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        bag = self.transform.transform(X)
+        if self.support_probabilities:
+            return self.clf.predict_proba(bag)
+        else:
+            raise ValueError(
+                "Error in WEASEL v2, please set support_probabilities=True, to"
+                + "allow for probabilities to be computed."
+            )
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
+        """
+        return {
+            "feature_selection": "none",
+            "support_probabilities": True,
+        }
+
+
+class WEASEL_V2_TRANSFORM:
+    """The Word Extraction for Time Series Classifier Transformation.
+
+    WEASEL 2.0 has three key parameters that are automcatically set based on the
+    length of the time series:
+    (1) Minimal window length: Typically defaulted to 4
+    (2) Maximal window length: Typically chosen from
+        24, 44 or 84 depending on the time series length.
+    (3) Ensemble size: Typically chosen from 50, 100, 150, to derive
+        a feature vector of roughly 20𝑘 up to 70𝑘 features (distinct words).
+
+    From the other parameters passed, WEASEL chosen random values for each set
+    of configurations. E.g. for each of 150 configurations, a random value is chosen
+    from the below options.
+
+    Parameters
+    ----------
+    min_window : int, default=4,
+        Minimal length of the subsequences to compute words from.
+    norm_options : array of bool, default=[False],
+        If the array contains True, words are computed over mean-normed TS
+        If the array contains False, words are computed over raw TS
+        If both are set, words are computed for both.
+        A value will be randomly chosen for each parameter-configuration.
+    word_lengths : array of int, default=[7, 8],
+        Length of the words to compute. A value will be randomly chosen for each
+        parameter-configuration.
+    use_first_differences: array of bool, default=[True, False],
+        If the array contains True, words are computed over first order differences.
+        If the array contains False, words are computed over the raw time series.
+        If both are set, words are computed for both.
+    feature_selection: {"chi2_top_k", "none", "random"}, default: chi2_top_k
+        Sets the feature selections strategy to be used. Large amounts of memory may be
+        needed depending on the setting of bigrams (true is more) or
+        alpha (larger is more).
+        'chi2_top_k' reduces the number of words to at most 'max_feature_count',
+        dropping values based on p-value.
+        'random' reduces the number to at most 'max_feature_count',
+        by randomly selecting features.
+        'none' does not apply any feature selection and yields large bag of words
+    max_feature_count : int, default=30_000
+       size of the dictionary - number of words to use - if feature_selection set to
+       "chi2" or "random". Else ignored.
+    random_state: int or None, default=None
+        Seed for random, integer
+    """
+
+    # _tags = {
+    #     "univariate-only": True,
+    #     "scitype:transform-input": "Series",
+    #     # what is the scitype of X: Series, or Panel
+    #     "scitype:transform-output": "Series",
+    #     # what scitype is returned: Primitives, Series, Panel
+    #     "scitype:instancewise": False,  # is this an instance-wise transform?
+    #     "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
+    #     "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
+    #     "requires_y": True,  # does y need to be passed in fit?
+    # }
+
+    def __init__(
+        self,
+        min_window=4,
+        norm_options=(False,),  # tuple
+        word_lengths=(7, 8),
+        use_first_differences=(True, False),
+        feature_selection="chi2_top_k",
+        max_feature_count=30_000,
+        random_state=None,
+        support_probabilities=False,
+        n_jobs=4,
+    ):
+        self.min_window = min_window
+        self.norm_options = norm_options
+        self.word_lengths = word_lengths
+        self.use_first_differences = use_first_differences
+        self.feature_selection = feature_selection
+        self.max_feature_count = max_feature_count
+        self.random_state = random_state
+        self.support_probabilities = support_probabilities
+        self.n_jobs = n_jobs
+
+        self.alphabet_sizes = [2]
+        self.binning_strategies = ["equi-depth", "equi-width"]
+
+        self.anova = False
+        self.variance = True
+        self.bigrams = False
+        self.lower_bounding = True
+        self.remove_repeat_words = False
+
+        self.max_window = MAX_WINDOW_LARGE
+        self.ensemble_size = ENSEMBLE_SIZE_LARGE
+        self.window_sizes = []
+        self.series_length_ = 0
+        self.n_instances_ = 0
+
+        self.SFA_transformers = []
+
+    def fit_transform(self, X, y=None):
+        """Build a WEASEL model from the training set (X, y).
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
+
+        Returns
+        -------
+        scipy csr_matrix, transformed features
         """
         # Window length parameter space dependent on series length
         self.n_instances_, self.series_length_ = X.shape[0], X.shape[-1]
@@ -251,62 +446,24 @@ class WEASEL_V2(BaseClassifier):
         else:
             all_words = hstack(sfa_words)
 
-        if not self.support_probabilities:
-            self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
-        else:
-            self.clf = LogisticRegression(
-                max_iter=5000,
-                solver="liblinear",
-                dual=True,
-                penalty="l2",
-                random_state=self.random_state,
-                n_jobs=self.n_jobs,
-            )
-
-        self.clf.fit(all_words, y)
         self.total_features_count = all_words.shape[1]
-        if hasattr(self.clf, "best_score_"):
-            self.cross_val_score = self.clf.best_score_
 
-        return self
+        return all_words
 
-    def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
+    def transform(self, X, y=None):
+        """Transform X into a WEASEL model.
 
         Parameters
         ----------
         X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+           The data to make predictions for.
+        y : ignored argument for interface compatibility
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        scipy csr_matrix, transformed features
         """
-        bag = self._transform_words(X)
-        return self.clf.predict(bag)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        bag = self._transform_words(X)
-        if self.support_probabilities:
-            return self.clf.predict_proba(bag)
-        else:
-            raise ValueError(
-                "Error in WEASEL v2, please set support_probabilities=True, to"
-                + "allow for probabilities to be computed."
-            )
+        return self._transform_words(X)
 
     def _transform_words(self, X):
         XX = X.squeeze(1)
@@ -325,29 +482,6 @@ class WEASEL_V2(BaseClassifier):
             all_words = hstack(all_words)
 
         return all_words
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
-        """
-        return {
-            "feature_selection": "none",
-            "support_probabilities": True,
-        }
 
 
 def _parallel_fit(
