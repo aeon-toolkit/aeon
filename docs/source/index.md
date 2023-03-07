@@ -10,7 +10,7 @@
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting.png
+:img-top: examples/img/forecasting2.png
 :text-align: center
 
 Forecasting
@@ -98,7 +98,7 @@ Clustering
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/wip.png
+:img-top: examples/img/transformation.png
 :text-align: center
 
 Transformations
@@ -109,7 +109,7 @@ Get started with time series transformations.
 
 +++
 
-```button-ref:: get_involved
+```{button-ref} get_involved
 :color: primary
 :click-parent:
 :expand:
@@ -123,16 +123,13 @@ Transformations
 
 ## Community Channels
 
-**GitHub**: `github.com/scikit-time/scikit-time`_
+**GitHub**: [github.com/scikit-time/scikit-time](https://github.com/scikit-time/scikit-time)
 
-**Slack**: `scikit-time Slack`_
+**Slack**: [scikit-time Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
 
 **Twitter**: link
 
-**LinkedIn**: link
-
-.. _github.com/scikit-time/scikit-time: https://github.com/scikit-time/scikit-time
-.. _scikit-time Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+**LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
 
 ```{toctree}
