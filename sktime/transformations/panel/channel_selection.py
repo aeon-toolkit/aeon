@@ -39,7 +39,8 @@ def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
     knee = values[knee_idx]
     best_dims = [idx for (elem, idx) in zip(values, indices) if elem > knee]
     if len(best_dims) == 0:
-        return [knee_idx], knee_idx
+        # return all dimensions if no elbow point is found
+        return indices
     return best_dims
 
 
@@ -52,6 +53,7 @@ def create_distance_matrix(
     assert prototype.shape[0] == len(
         class_vals
     ), "Prototype and class values must be of same length."
+    print(distance_)
 
     distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
     # create a dictionary of class values and their indexes
@@ -67,7 +69,20 @@ def create_distance_matrix(
                 prototype[class_vals == idx_class[cls_[1]]],
             )
         ):
-            dis = np.linalg.norm(q - t, axis=1)
+            if distance_ == "euclidean":
+                dis = np.linalg.norm(q - t, axis=1)
+                print("dis", dis)
+            else:
+
+                dis = np.apply_along_axis(
+                    lambda row: distance(
+                        q[: q.shape[1]], t[: t.shape[1]], metric="dtw"
+                    ),
+                    axis=1,
+                    arr=np.concatenate((q, t), axis=1),
+                )
+                print("dis", dis)
+
             dict_ = {f"Centroid_{idx_class[cls_[0]]}_{idx_class[cls_[1]]}": dis}
         distance_frame = pd.concat([distance_frame, pd.DataFrame(dict_)], axis=1)
     return distance_frame
@@ -128,7 +143,6 @@ class ClassPrototype:
 
         return np.mean(class_X, axis=0)
 
-    # FIXME: Fix this
     def create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
         """Create mad class prototype for each class."""
         classes_ = np.unique(y)
@@ -143,7 +157,7 @@ class ClassPrototype:
             class_median = self._mad_median(X[class_idx], class_median)
             channel_median.append(class_median)
 
-        return np.array(channel_median)
+        return np.vstack(channel_median)
 
     def create_mean_prototype(self, X: np.ndarray, y: np.array):
         """Create mean class prototype for each class."""
@@ -170,12 +184,10 @@ class ClassPrototype:
             channel_median.append(class_median)
         return np.vstack(channel_median)
 
-    # TODO: Fix this function
     def create_prototype(
         self, X: np.ndarray, y: np.array
     ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
-        # TODO: Add support for columns
 
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
@@ -314,7 +326,6 @@ class ElbowClassSum(BaseTransformer):
 
         # obj = DistanceMatrix(self.distance_)
 
-        # TODO: check if this is correct
         self.distance_frame = create_distance_matrix(
             self.prototype.copy(), labels, distance_=self.distance_
         )
