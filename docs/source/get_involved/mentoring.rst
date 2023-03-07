@@ -3,9 +3,9 @@
 Mentorship Program
 ==================
 
-Our goal, apart from improving sktime, is to onboard new contributors and we would really like you to stay around after your first visit to our project. Your help is extremely welcome!
+Our goal, apart from improving aeon, is to onboard new contributors and we would really like you to stay around after your first visit to our project. Your help is extremely welcome!
 
-For this reason, we have launched an informal mentorship programme over 2 - 3 months to onboard new contributors. The goal is to help new and/or anxious contributors to become more familiar with sktime, machine learning, and open-source software development.
+For this reason, we have launched an informal mentorship programme over 2 - 3 months to onboard new contributors. The goal is to help new and/or anxious contributors to become more familiar with aeon, machine learning, and open-source software development.
 
 We explicitly encourage students from underrepresented groups or who have experienced discrimination in the past to apply!
 

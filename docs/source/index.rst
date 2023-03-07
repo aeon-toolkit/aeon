@@ -1,7 +1,7 @@
 .. _home:
 
 =================
-Welcome to sktime
+Welcome to aeon
 =================
 
   A unified framework for machine learning with time series.
@@ -16,7 +16,7 @@ Mission
 Scope
 =====
 
-sktime features a unified interface for multiple time series learning tasks.
+aeon features a unified interface for multiple time series learning tasks.
 Currently, we support :ref:`forecasting <forecasting_ref>`, :ref:`time series classification <classification_ref>`, :ref:`time series regression <regression_ref>` and :ref:`time series clustering <clustering_ref>`.
 We have experimental support for time series annotation.
 
@@ -58,7 +58,7 @@ Contents
 
         ^^^
 
-        Get started using ``sktime`` quickly.
+        Get started using ``aeon`` quickly.
 
         +++
 
@@ -112,7 +112,7 @@ Contents
 
         ^^^
 
-        Understand sktime's API.
+        Understand aeon's API.
 
         +++
 
@@ -166,7 +166,7 @@ Contents
 
         ^^^
 
-        Learn more about ``sktime``.
+        Learn more about ``aeon``.
 
         +++
 
