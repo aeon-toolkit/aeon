@@ -66,7 +66,6 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
                     "specifiers. '%s' (type %s) doesn't." % (t, type(t))
                 )
 
-    # this check whether the chan input was a slice object or a tuple.
     def _validate_channel_callables(self, X):
         """Convert callable channel specifications."""
         channels = []
