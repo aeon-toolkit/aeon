@@ -41,6 +41,7 @@ from sktime.transformations.panel.random_intervals import RandomIntervals
 from sktime.transformations.panel.shapelet_transform import RandomShapeletTransform
 from sktime.transformations.panel.supervised_intervals import SupervisedIntervals
 from sktime.transformations.series.summarize import SummaryTransformer
+from sktime.utils.validation._dependencies import _check_soft_dependencies
 
 
 def _reproduce_classification_unit_test(estimator):
@@ -67,7 +68,7 @@ def _reproduce_early_classification_unit_test(estimator):
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train, y_train)
-    return estimator.predict_proba(X_test.iloc[indices])[0]
+    return estimator.predict_proba(X_test[indices])[0]
 
 
 def _reproduce_early_classification_basic_motions(estimator):
@@ -75,8 +76,8 @@ def _reproduce_early_classification_basic_motions(estimator):
     X_test, y_test = load_basic_motions(split="test")
     indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
-    estimator.fit(X_train.iloc[indices], y_train[indices])
-    return estimator.predict_proba(X_test.iloc[indices])[0]
+    estimator.fit(X_train[indices], y_train[indices])
+    return estimator.predict_proba(X_test[indices])[0]
 
 
 def _reproduce_transform_unit_test(estimator):
@@ -515,14 +516,15 @@ if __name__ == "__main__":
         "Catch22 - BasicMotions",
         _reproduce_transform_basic_motions(Catch22()),
     )
-    _print_array(
-        "Catch22Wrapper - UnitTest",
-        _reproduce_transform_unit_test(Catch22Wrapper(outlier_norm=True)),
-    )
-    _print_array(
-        "Catch22Wrapper - BasicMotions",
-        _reproduce_transform_basic_motions(Catch22Wrapper()),
-    )
+    if _check_soft_dependencies("pycatch22", severity="none"):
+        _print_array(
+            "Catch22Wrapper - UnitTest",
+            _reproduce_transform_unit_test(Catch22Wrapper(outlier_norm=True)),
+        )
+        _print_array(
+            "Catch22Wrapper - BasicMotions",
+            _reproduce_transform_basic_motions(Catch22Wrapper()),
+        )
     _print_array(
         "RandomIntervals - UnitTest",
         _reproduce_transform_unit_test(RandomIntervals(random_state=0, n_intervals=3)),
