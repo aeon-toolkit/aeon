@@ -7,7 +7,7 @@ Time Series Classification.
 """
 
 __author__ = ["patrickzib"]
-__all__ = ["WEASEL_V2", "WEASEL_V2_TRANSFORM"]
+__all__ = ["WEASEL_V2", "WEASELTransformerV2"]
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -170,7 +170,7 @@ class WEASEL_V2(BaseClassifier):
 
         ...
 
-        self.transform = WEASEL_V2_TRANSFORM(
+        self.transform = WEASELTransformerV2(
             min_window=self.min_window,
             norm_options=self.norm_options,
             word_lengths=self.word_lengths,
@@ -264,8 +264,8 @@ class WEASEL_V2(BaseClassifier):
         }
 
 
-class WEASEL_V2_TRANSFORM:
-    """The Word Extraction for Time Series Classifier Transformation.
+class WEASELTransformerV2:
+    """The Word Extraction for Time Series Classifier v2.0 Transformation.
 
     WEASEL 2.0 has three key parameters that are automcatically set based on the
     length of the time series:
@@ -524,24 +524,24 @@ def _parallel_fit(
     all_transformers = []
     all_words = []
     for first_difference in use_first_differences:
-        transformer = getSFAFast(
-            alphabet_size,
-            anova,
-            bigrams,
-            binning_strategy,
-            dilation,
-            ensemble_size,
-            feature_selection,
-            first_difference,
-            i,
-            lower_bounding,
-            max_feature_count,
-            n_jobs,
-            norm,
-            remove_repeat_words,
-            variance,
-            window_size,
-            word_length,
+        transformer = SFAFast(
+            variance=variance,
+            word_length=word_length,
+            alphabet_size=alphabet_size,
+            window_size=window_size,
+            norm=norm,
+            anova=anova,
+            binning_method=binning_strategy,
+            remove_repeat_words=remove_repeat_words,
+            bigrams=bigrams,
+            dilation=dilation,
+            lower_bounding=lower_bounding,
+            first_difference=first_difference,
+            feature_selection=feature_selection,
+            max_feature_count=max_feature_count // ensemble_size,
+            random_state=i,
+            return_sparse=False,
+            n_jobs=n_jobs,
         )
 
         # generate SFA words on sample
@@ -549,44 +549,3 @@ def _parallel_fit(
         all_words.append(words)
         all_transformers.append(transformer)
     return all_words, all_transformers
-
-
-def getSFAFast(
-    alphabet_size,
-    anova,
-    bigrams,
-    binning_strategy,
-    dilation,
-    ensemble_size,
-    feature_selection,
-    first_difference,
-    i,
-    lower_bounding,
-    max_feature_count,
-    n_jobs,
-    norm,
-    remove_repeat_words,
-    variance,
-    window_size,
-    word_length,
-):
-    transformer = SFAFast(
-        variance=variance,
-        word_length=word_length,
-        alphabet_size=alphabet_size,
-        window_size=window_size,
-        norm=norm,
-        anova=anova,
-        binning_method=binning_strategy,
-        remove_repeat_words=remove_repeat_words,
-        bigrams=bigrams,
-        dilation=dilation,
-        lower_bounding=lower_bounding,
-        first_difference=first_difference,
-        feature_selection=feature_selection,
-        max_feature_count=max_feature_count // ensemble_size,
-        random_state=i,
-        return_sparse=False,
-        n_jobs=n_jobs,
-    )
-    return transformer
