@@ -5,6 +5,8 @@ __author__ = ["KatieBuc"]
 
 import warnings
 
+import pandas as pd
+
 from sktime.forecasting.base.adapters import _StatsModelsAdapter
 
 
@@ -369,7 +371,11 @@ class VARMAX(_StatsModelsAdapter):
         # given with an integer index beginning at `start`...
         # but only when out-of-sample forecasting, i.e. when forecasting horizon is
         # greater than zero
-        if self._y.index.is_numeric() & any(fh.to_relative(self.cutoff) > 0):
+        if (type(self._y.index) == pd.core.indexes.numeric.Int64Index) & (
+            any(fh.to_relative(self.cutoff) > 0)
+        ):
+            # pandas==2.0.0
+            # if self._y.index.is_numeric() & any(fh.to_relative(self.cutoff) > 0):
             y_pred.index = y_pred.index + self._y.index[0]
 
         return y_pred.loc[fh.to_absolute(self.cutoff).to_pandas()]
