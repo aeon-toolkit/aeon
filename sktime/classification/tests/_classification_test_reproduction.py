@@ -7,6 +7,7 @@ from sktime.classification.convolution_based import Arsenal, RocketClassifier
 from sktime.classification.dictionary_based import (
     MUSE,
     WEASEL,
+    WEASEL_V2,
     BOSSEnsemble,
     ContractableBOSS,
     TemporalDictionaryEnsemble,
@@ -160,7 +161,12 @@ if __name__ == "__main__":
     _print_array(
         "MUSE - BasicMotions",
         _reproduce_classification_basic_motions(
-            MUSE(window_inc=4, use_first_order_differences=False, random_state=0)
+            MUSE(
+                window_inc=4,
+                use_first_order_differences=False,
+                support_probabilities=True,
+                random_state=0,
+            )
         ),
     )
     _print_array(
@@ -193,6 +199,16 @@ if __name__ == "__main__":
                 random_state=0,
                 support_probabilities=True,
                 bigrams=False,
+                feature_selection="none",
+            )
+        ),
+    )
+    _print_array(
+        "WEASEL v2 - UnitTest",
+        _reproduce_classification_unit_test(
+            WEASEL_V2(
+                random_state=0,
+                support_probabilities=True,
                 feature_selection="none",
             )
         ),
