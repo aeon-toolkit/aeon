@@ -189,11 +189,11 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/source/",
     "light_css_variables": {
-        "color-brand-primary": "#C8001E",
-        "color-brand-content": "#F00014",
+        "color-brand-primary": "#F00014",
+        "color-brand-content": "#FF2828",
     },
     "dark_css_variables": {
-        "color-brand-primary": "#C8001E",
+        "color-brand-primary": "#FF2828",
         "color-brand-content": "#F00014",
     },
     "footer_icons": [
