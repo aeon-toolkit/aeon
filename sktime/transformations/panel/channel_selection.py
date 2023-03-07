@@ -9,16 +9,14 @@ __author__ = ["haskarb"]
 __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
-from functools import partial
 import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from scipy.stats import median_abs_deviation
-from sklearn.metrics import accuracy_score
-from sklearn.neighbors import NearestCentroid
 from sklearn.preprocessing import LabelEncoder
+
 from sktime.distances import distance
 from sktime.transformations.base import BaseTransformer
 
@@ -53,36 +51,32 @@ def create_distance_matrix(
     assert prototype.shape[0] == len(
         class_vals
     ), "Prototype and class values must be of same length."
-    print(distance_)
 
     distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
     # create a dictionary of class values and their indexes
     idx_class = {i: class_vals[i] for i in range(0, len(class_vals))}
 
     distance_frame = pd.DataFrame()
-    ch_ = 0
     for cls_ in distance_pair:
         # calculate the distance of centroid here
-        for _, (q, t) in enumerate(
+        for _, (cls1_ch, cls2_ch) in enumerate(
             zip(
                 prototype[class_vals == idx_class[cls_[0]]],
                 prototype[class_vals == idx_class[cls_[1]]],
             )
         ):
             if distance_ == "euclidean":
-                dis = np.linalg.norm(q - t, axis=1)
-                print("dis", dis)
+                dis = np.linalg.norm(cls1_ch - cls2_ch, axis=1)
             else:
-
                 dis = np.apply_along_axis(
                     lambda row: distance(
-                        q[: q.shape[1]], t[: t.shape[1]], metric="dtw"
+                        cls1_ch[: cls1_ch.shape[1]],
+                        cls2_ch[: cls2_ch.shape[1]],
+                        metric="dtw",
                     ),
                     axis=1,
-                    arr=np.concatenate((q, t), axis=1),
+                    arr=np.concatenate((cls1_ch, cls2_ch), axis=1),
                 )
-                print("dis", dis)
-
             dict_ = {f"Centroid_{idx_class[cls_[0]]}_{idx_class[cls_[1]]}": dis}
         distance_frame = pd.concat([distance_frame, pd.DataFrame(dict_)], axis=1)
     return distance_frame
@@ -130,8 +124,7 @@ class ClassPrototype:
         ], "Class prototype not supported."
 
     def _mad_median(self, class_X, median=None):
-        """Helper method to calculate MAD prototype."""
-
+        """Calculate upper and lower bounds for median absolute deviation."""
         _mad = median_abs_deviation(class_X, axis=0)
 
         low_value = median - _mad * 0.50
@@ -188,7 +181,6 @@ class ClassPrototype:
         self, X: np.ndarray, y: np.array
     ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
-
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
 
@@ -457,7 +449,8 @@ class ElbowClassPairwise(BaseTransformer):
         return series.sort_values(ascending=False).index.tolist()
 
     def _fit(self, X, y):
-        """Fit ECP to a specified X and y.
+        """
+        Fit ECP to a specified X and y.
 
         Parameters
         ----------
@@ -469,10 +462,7 @@ class ElbowClassPairwise(BaseTransformer):
         Returns
         -------
         self : reference to self.
-
         """
-
-        n_samples, n_channels, ts_len = X.shape
         centroid_obj = ClassPrototype(
             prototype=self.class_prototype, mean_centering=self.mean_centering
         )
@@ -512,4 +502,3 @@ class ElbowClassPairwise(BaseTransformer):
         """
         assert self._is_fitted, "Transformer must be fitted before calling transform"
         return X[:, self.channels_selected_idx]
-
