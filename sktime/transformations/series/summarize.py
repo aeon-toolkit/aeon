@@ -208,7 +208,6 @@ class WindowSummarizer(BaseTransformer):
         target_cols=None,
         truncate=None,
     ):
-
         self.lag_feature = lag_feature
         self.n_jobs = n_jobs
         self.target_cols = target_cols
@@ -521,7 +520,6 @@ ALLOWED_SUM_FUNCS = [
     "kurt",
     "var",
     "std",
-    "mad",
     "sem",
     "nunique",
     "count",
@@ -536,7 +534,7 @@ def _check_summary_function(summary_function):
     summary_function : str, list or tuple
         Either a string or list/tuple of strings indicating the pandas summary
         functions ("mean", "min", "max", "median", "sum", "skew", "kurtosis",
-        "var", "std", "mad", "sem", "nunique", "count") that is used to summarize
+        "var", "std", "sem", "nunique", "count") that is used to summarize
         each column of the dataset.
 
     Returns

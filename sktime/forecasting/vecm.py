@@ -206,7 +206,7 @@ class VECM(_StatsModelsAdapter):
         index.name = self._y.index.name
         y_pred = pd.DataFrame(
             y_pred[fh.to_indexer(self.cutoff), :],
-            index=fh.to_absolute(self.cutoff),
+            index=index,
             columns=self._y.columns,
         )
 

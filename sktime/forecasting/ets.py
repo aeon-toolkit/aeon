@@ -459,7 +459,7 @@ class AutoETS(_StatsModelsAdapter):
 
         pred_int = pd.DataFrame(index=idx)
         for c in coverage:
-            pred_statsmodels = prediction_results.pred_int(1 - c)
+            pred_statsmodels = prediction_results.pred_int(1 - c).loc[idx]
             pred_statsmodels.columns = [(c, "lower"), (c, "upper")]
             pred_int = pd.concat([pred_int, pred_statsmodels], axis=1)
         index = pd.MultiIndex.from_product([["Coverage"], coverage, ["lower", "upper"]])
