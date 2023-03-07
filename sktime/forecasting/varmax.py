@@ -370,7 +370,7 @@ class VARMAX(_StatsModelsAdapter):
         # but only when out-of-sample forecasting, i.e. when forecasting horizon is
         # greater than zero
         if (self._y.index.is_numeric()) & (any(fh.to_relative(self.cutoff) > 0)):
-            y_pred.index = y_pred.index + self._y.index[0]
+            y_pred.index = y_pred.index.unnion([self._y.index[0]])
 
         return y_pred.loc[fh.to_absolute(self.cutoff).to_pandas()]
 
