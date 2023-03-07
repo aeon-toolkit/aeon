@@ -2,7 +2,7 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 
-from sktime.classification.compose import ColumnEnsembleClassifier
+from sktime.classification.compose import ChannelEnsembleClassifier
 from sktime.classification.convolution_based import Arsenal, RocketClassifier
 from sktime.classification.dictionary_based import (
     MUSE,
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     _print_array(
         "ColumnEnsembleClassifier - BasicMotions",
         _reproduce_classification_basic_motions(
-            ColumnEnsembleClassifier(
+            ChannelEnsembleClassifier(
                 estimators=[
                     (
                         "cBOSS",
