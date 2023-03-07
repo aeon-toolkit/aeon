@@ -70,8 +70,8 @@ def create_distance_matrix(
             else:
                 dis = np.apply_along_axis(
                     lambda row: distance(
-                        cls1_ch[: cls1_ch.shape[1]],
-                        cls2_ch[: cls2_ch.shape[1]],
+                        row[: row.shape[0] // 2],
+                        row[row.shape[0] // 2 :],
                         metric="dtw",
                     ),
                     axis=1,
