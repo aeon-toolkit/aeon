@@ -1,10 +1,14 @@
 # Welcome to <span style="color:#F00014">**aeon**</span>
 
+<br>
+
 - Framework for time series tasks such as forecasting and classification.
 - Extends the scikit-learn interface, allowing for ease of use for familiar users.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm comparison.
 - Uses a system of optional dependencies to allow easy installation of basic functionality.
+
+<br>
 
 ::::{grid} 1 2 2 2
 :gutter: 3
