@@ -418,7 +418,7 @@ nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
 
 # make sure Binder points to latest stable release, not main
-binder_url = f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{CURRENT_VERSION}?filepath={current_file}"  # noqa
+binder_url = f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{github_tag}?filepath={current_file}"  # noqa
 nbsphinx_prolog = f"""
 .. |binder| image:: https://mybinder.org/badge_logo.svg
 .. _Binder: {binder_url}
