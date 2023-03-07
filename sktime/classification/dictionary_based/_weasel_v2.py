@@ -18,6 +18,18 @@ from sklearn.utils import check_random_state
 from sktime.classification.base import BaseClassifier
 from sktime.transformations.panel.dictionary_based import SFAFast
 
+# some constants on input parameters for WEASEL v2
+SWITCH_SMALL_INSTANCES = 250
+SWITCH_MEDIUM_LENGTH = 100
+
+ENSEMBLE_SIZE_SMALL = 50
+ENSEMBLE_SIZE_MEDIUM = 100
+ENSEMBLE_SIZE_LARGE = 150
+
+MAX_WINDOW_SMALL = 24
+MAX_WINDOW_MEDIUM = 44
+MAX_WINDOW_LARGE = 84
+
 
 class WEASEL_V2(BaseClassifier):
     """Word Extraction for Time Series Classification (WEASEL) v2.0.
@@ -177,15 +189,15 @@ class WEASEL_V2(BaseClassifier):
         XX = X.squeeze(1)
 
         # avoid overfitting with too many features
-        if self.n_instances_ < 250:
-            self.max_window = 24
-            self.ensemble_size = 50
-        elif self.series_length_ < 100:
-            self.max_window = 44
-            self.ensemble_size = 100
+        if self.n_instances_ < SWITCH_SMALL_INSTANCES:
+            self.max_window = MAX_WINDOW_SMALL
+            self.ensemble_size = ENSEMBLE_SIZE_SMALL
+        elif self.series_length_ < SWITCH_MEDIUM_LENGTH:
+            self.max_window = MAX_WINDOW_MEDIUM
+            self.ensemble_size = ENSEMBLE_SIZE_MEDIUM
         else:
-            self.max_window = 84
-            self.ensemble_size = 150
+            self.max_window = MAX_WINDOW_LARGE
+            self.ensemble_size = ENSEMBLE_SIZE_LARGE
 
         self.max_window = int(min(self.series_length_, self.max_window))
         if self.min_window > self.max_window:
