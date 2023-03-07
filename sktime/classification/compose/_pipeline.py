@@ -88,8 +88,6 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     >>> y_pred = pipeline.predict(X_test)
     """
 
-    # no default tag values - these are set dynamically below
-
     def __init__(self, classifier, transformers):
         self.classifier = classifier
         self.classifier_ = classifier.clone()
