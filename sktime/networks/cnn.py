@@ -71,6 +71,7 @@ class CNNNetwork(BaseDeepNetwork):
         kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
+        n_conv_layers=None,
         activation="sigmoid",
         padding="valid",
         strides=1,
