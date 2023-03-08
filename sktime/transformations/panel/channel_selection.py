@@ -47,7 +47,7 @@ def create_distance_matrix(
     class_vals: np.array,
     distance_: str = "euclidean",
 ) -> pd.DataFrame:
-    """Create a distance matrix between class_prototypes.
+    """Create a distance matrix between class prototypes.
 
     Parameters
     ----------
