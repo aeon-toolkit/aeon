@@ -52,15 +52,14 @@ class BaseClassifier(BaseEstimator, ABC):
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _X_metadata         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers
-    0...``n_classes_``-1.
+        0...``n_classes_``-1.
     _threads_to_use     : number of threads to use in ``fit`` as determined by
-    ``n_jobs``.
     _estimator_type     : string required by sklearn, set to "classifier"
     """
 
     _tags = {
         "X_inner_mtype": "numpy3D",  # Currently, it should be "numpy3D". Unequal
-        # length support through "nested_univ" is no longer supported, will be
+        # length series through "nested_univ" is no longer supported, will be
         # reintroduced with lists of numpy.
         "capability:multivariate": False,
         "capability:unequal_length": False,
@@ -87,55 +86,15 @@ class BaseClassifier(BaseEstimator, ABC):
         super(BaseClassifier, self).__init__()
         _check_estimator_deps(self)
 
-    def __rmul__(self, other):
-        """Magic * method, return concatenated ClassifierPipeline, transformers on left.
-
-        Overloaded multiplication operation for classifiers. Implemented for `other`
-        being a transformer, otherwise returns `NotImplemented`.
-
-        Parameters
-        ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
-            otherwise, `NotImplemented` is returned
-
-        Returns
-        -------
-        ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
-        """
-        from sktime.classification.compose import ClassifierPipeline
-        from sktime.transformations.base import BaseTransformer
-        from sktime.transformations.compose import TransformerPipeline
-        from sktime.transformations.series.adapt import TabularToSeriesAdaptor
-
-        # behaviour is implemented only if other inherits from BaseTransformer
-        #  in that case, distinctions arise from whether self or other is a pipeline
-        #  todo: this can probably be simplified further with "zero length" pipelines
-        if isinstance(other, BaseTransformer):
-            # ClassifierPipeline already has the dunder method defined
-            if isinstance(self, ClassifierPipeline):
-                return other * self
-            # if other is a TransformerPipeline but self is not, first unwrap it
-            elif isinstance(other, TransformerPipeline):
-                return ClassifierPipeline(classifier=self, transformers=other.steps)
-            # if neither self nor other are a pipeline, construct a ClassifierPipeline
-            else:
-                return ClassifierPipeline(classifier=self, transformers=[other])
-        elif is_sklearn_transformer(other):
-            return TabularToSeriesAdaptor(other) * self
-        else:
-            return NotImplemented
-
     def fit(self, X, y):
         """Fit time series classifier to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -202,12 +161,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
+                (any number of channels, equal or unequal length series)
 
         Returns
         -------
@@ -231,12 +190,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
             or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
+                (any number of channels, equal or unequal length series)
 
         Returns
         -------
@@ -271,16 +230,11 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.ndarray of int, of shape [n_instances] - class labels (ground truth)
+        y : 1D np.ndarray of shape [n_instances] - class labels (ground truth)
             indices correspond to instance indices in X
 
         Returns
@@ -311,9 +265,6 @@ class BaseClassifier(BaseEstimator, ABC):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return super().get_test_params(parameter_set=parameter_set)
 
@@ -327,11 +278,7 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -343,10 +290,11 @@ class BaseClassifier(BaseEstimator, ABC):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
+        ending in "_".
         """
         ...
 
+    @abstractmethod
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
 
@@ -356,21 +304,14 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------
         y : 1D np.array of int, of shape [n_instances] - predicted class labels
             indices correspond to instance indices in X
         """
-        y_proba = self._predict_proba(X)
-        y_pred = y_proba.argmax(axis=1)
-
-        return y_pred
+        ...
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -383,11 +324,7 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------
@@ -485,16 +422,14 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         self : this classifier
-        X : pd.DataFrame or np.ndarray. Input time series.
+        X : np.ndarray. Input time series.
 
         Returns
         -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a pd.DataFrame (nested) or 3D np.ndarray
+        X : input X converted to type in "X_inner_mtype" (3D np.ndarray)
             Checked and possibly converted input data
         """
         inner_type = self.get_tag("X_inner_mtype")
-        # convert pd.DataFrame
         X = convert_to(
             X,
             to_type=inner_type,
@@ -530,9 +465,7 @@ class BaseClassifier(BaseEstimator, ABC):
         if not X_valid:
             raise TypeError(
                 f"X is not of a supported input data type."
-                f"X must be in a supported mtype format for Panel, found {type(X)}"
-                f"Use datatypes.check_is_mtype to check conformance "
-                "with specifications."
+                f"X must be in a supported data type, found {type(X)}."
             )
         n_cases = X_metadata["n_instances"]
         if n_cases < enforce_min_instances:
@@ -597,3 +530,41 @@ class BaseClassifier(BaseEstimator, ABC):
         if y is None:
             return X
         return X, y
+
+    def __rmul__(self, other):
+        """Magic * method, return concatenated ClassifierPipeline, transformers on left.
+
+        Overloaded multiplication operation for classifiers. Implemented for `other`
+        being a transformer, otherwise returns `NotImplemented`.
+
+        Parameters
+        ----------
+        other: `sktime` transformer, must inherit from BaseTransformer
+            otherwise, `NotImplemented` is returned
+
+        Returns
+        -------
+        ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
+        """
+        from sktime.classification.compose import ClassifierPipeline
+        from sktime.transformations.base import BaseTransformer
+        from sktime.transformations.compose import TransformerPipeline
+        from sktime.transformations.series.adapt import TabularToSeriesAdaptor
+
+        # behaviour is implemented only if other inherits from BaseTransformer
+        #  in that case, distinctions arise from whether self or other is a pipeline
+        #  todo: this can probably be simplified further with "zero length" pipelines
+        if isinstance(other, BaseTransformer):
+            # ClassifierPipeline already has the dunder method defined
+            if isinstance(self, ClassifierPipeline):
+                return other * self
+            # if other is a TransformerPipeline but self is not, first unwrap it
+            elif isinstance(other, TransformerPipeline):
+                return ClassifierPipeline(classifier=self, transformers=other.steps)
+            # if neither self nor other are a pipeline, construct a ClassifierPipeline
+            else:
+                return ClassifierPipeline(classifier=self, transformers=[other])
+        elif is_sklearn_transformer(other):
+            return TabularToSeriesAdaptor(other) * self
+        else:
+            return NotImplemented
