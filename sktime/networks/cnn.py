@@ -18,7 +18,7 @@ class CNNNetwork(BaseDeepNetwork):
     ----------
         n_layers        : int, default = 2,
             the number of convolution layers in the network
-        kernel_sizes    : int or list of int, default = 7,
+        kernel_size    : int or list of int, default = 7,
             kernel size of convolution layers, if not a list, the same kernel size
             is used for all layer, len(list) should be n_layers
         n_filters       : int or list of int, default = [6, 12],
@@ -68,7 +68,7 @@ class CNNNetwork(BaseDeepNetwork):
     def __init__(
         self,
         n_layers=2,
-        kernel_sizes=7,
+        kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
         activation="sigmoid",
@@ -83,7 +83,7 @@ class CNNNetwork(BaseDeepNetwork):
 
         self.n_filters = [6, 12] if n_filters is None else n_filters
 
-        self.kernel_sizes = kernel_sizes
+        self.kernel_size = kernel_size
         self.avg_pool_size = avg_pool_size
         self.activation = activation
         self.padding = padding
@@ -91,10 +91,10 @@ class CNNNetwork(BaseDeepNetwork):
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
 
-        if isinstance(self.kernel_sizes, list):
-            self.kernel_sizes = self.kernel_sizes
+        if isinstance(self.kernel_size, list):
+            self.kernel_size = self.kernel_size
         else:
-            self.kernel_sizes = [self.kernel_sizes] * n_layers
+            self.kernel_size = [self.kernel_size] * n_layers
 
         if isinstance(self.n_filters, list):
             self.n_filters = self.n_filters
@@ -133,7 +133,7 @@ class CNNNetwork(BaseDeepNetwork):
 
         self.n_layers = n_layers
 
-        assert len(self.kernel_sizes) == n_layers
+        assert len(self.kernel_size) == n_layers
         assert len(self.avg_pool_size) == n_layers
         assert len(self.strides) == n_layers
         assert len(self.dilation_rate) == n_layers
@@ -201,7 +201,7 @@ class CNNNetwork(BaseDeepNetwork):
         for i in range(self.n_layers):
             conv = tf.keras.layers.Conv1D(
                 filters=self.n_filters[i],
-                kernel_size=self.kernel_sizes[i],
+                kernel_size=self.kernel_size[i],
                 strides=self.strides[i],
                 padding=self.padding[i],
                 dilation_rate=self.dilation_rate[i],

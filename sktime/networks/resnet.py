@@ -23,7 +23,7 @@ class ResNetNetwork(BaseDeepNetwork):
             the number of convolution filters for all the convolution layers in the same
             residual block, if not a list, the same number of filters is used in all
             convolutions of all residual blocks.
-        kernel_sizes                    : int or list of int, default = [8, 5, 3],
+        kernel_size                    : int or list of int, default = [8, 5, 3],
             the kernel size of all the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         strides                         : int or list of int, default = 1,
@@ -74,7 +74,7 @@ class ResNetNetwork(BaseDeepNetwork):
         n_residual_blocks=3,
         n_conv_per_residual_block=3,
         n_filters=None,
-        kernel_sizes=None,
+        kernel_size=None,
         strides=1,
         dilation_rate=1,
         padding="same",
@@ -86,7 +86,7 @@ class ResNetNetwork(BaseDeepNetwork):
         super(ResNetNetwork, self).__init__()
 
         self.n_filters = [64, 128, 128] if n_filters is None else n_filters
-        self.kernel_sizes = [8, 5, 3] if kernel_sizes is None else kernel_sizes
+        self.kernel_size = [8, 5, 3] if kernel_size is None else kernel_size
         self.activation = activation
         self.padding = padding
         self.strides = strides
@@ -101,10 +101,10 @@ class ResNetNetwork(BaseDeepNetwork):
         else:
             self.n_filters = [self.n_filters] * self.n_residual_blocks
 
-        if isinstance(self.kernel_sizes, list):
-            self.kernel_sizes = self.kernel_sizes
+        if isinstance(self.kernel_size, list):
+            self.kernel_size = self.kernel_size
         else:
-            self.kernel_sizes = [self.kernel_sizes] * self.n_conv_per_residual_block
+            self.kernel_size = [self.kernel_size] * self.n_conv_per_residual_block
 
         if isinstance(self.strides, list):
             self.strides = self.strides
@@ -132,7 +132,7 @@ class ResNetNetwork(BaseDeepNetwork):
             self.use_bias = [self.use_bias] * self.n_conv_per_residual_block
 
         assert len(self.n_filters) == self.n_residual_blocks
-        assert len(self.kernel_sizes) == self.n_conv_per_residual_block
+        assert len(self.kernel_size) == self.n_conv_per_residual_block
         assert len(self.strides) == self.n_conv_per_residual_block
         assert len(self.padding) == self.n_conv_per_residual_block
         assert len(self.dilation_rate) == self.n_conv_per_residual_block
@@ -183,8 +183,8 @@ class ResNetNetwork(BaseDeepNetwork):
             for c in range(self.n_conv_per_residual_block):
                 conv = tf.keras.layers.Conv1D(
                     filters=self.n_filters[d],
-                    kernel_size=self.kernel_sizes[c],
-                    strides=self.kernel_sizes[c],
+                    kernel_size=self.kernel_size[c],
+                    strides=self.kernel_size[c],
                     padding=self.padding[c],
                     dilation_rate=self.dilation_rate[c],
                 )(x)

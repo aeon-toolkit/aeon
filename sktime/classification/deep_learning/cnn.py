@@ -22,7 +22,7 @@ class CNNClassifier(BaseDeepClassifier):
     ----------
     n_layers        : int, default = 2,
         the number of convolution layers in the network
-    kernel_sizes    : int or list of int, default = 7,
+    kernel_size    : int or list of int, default = 7,
         kernel size of convolution layers, if not a list, the same kernel size
         is used for all layer, len(list) should be n_layers
     n_filters       : int or list of int, default = [6, 12],
@@ -92,7 +92,7 @@ class CNNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers=2,
-        kernel_sizes=7,
+        kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
         activation="sigmoid",
@@ -114,7 +114,7 @@ class CNNClassifier(BaseDeepClassifier):
         super(CNNClassifier, self).__init__()
 
         self.n_layers = n_layers
-        self.kernel_sizes = kernel_sizes
+        self.kernel_size = kernel_size
         self.n_filters = n_filters
         self.padding = padding
         self.strides = strides
@@ -135,7 +135,7 @@ class CNNClassifier(BaseDeepClassifier):
         self.history = None
         self._network = CNNNetwork(
             n_layers=self.n_layers,
-            kernel_sizes=self.kernel_sizes,
+            kernel_size=self.kernel_size,
             n_filters=self.n_filters,
             avg_pool_size=self.avg_pool_size,
             activation=self.activation,

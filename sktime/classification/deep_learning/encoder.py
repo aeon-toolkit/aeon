@@ -23,11 +23,11 @@ class EncoderClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    kernel_sizes    : array of int, default = [5, 11, 21]
+    kernel_size    : array of int, default = [5, 11, 21]
         specifying the length of the 1D convolution windows
     n_filters       : array of int, default = [128, 256, 512]
         specifying the number of 1D convolution filters used for each layer,
-        the shape of this array should be the same as kernel_sizes
+        the shape of this array should be the same as kernel_size
     max_pool_size   : int, default = 2
         size of the max pooling windows
     activation      : string, default = sigmoid
@@ -64,7 +64,7 @@ class EncoderClassifier(BaseDeepClassifier):
         self,
         n_epochs=100,
         batch_size=12,
-        kernel_sizes=None,
+        kernel_size=None,
         n_filters=None,
         dropout_proba=0.2,
         activation="sigmoid",
@@ -86,7 +86,7 @@ class EncoderClassifier(BaseDeepClassifier):
 
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
-        self.kernel_sizes = kernel_sizes
+        self.kernel_size = kernel_size
         self.strides = strides
         self.activation = activation
         self.padding = padding
@@ -106,7 +106,7 @@ class EncoderClassifier(BaseDeepClassifier):
         self.history = None
 
         self._network = EncoderNetwork(
-            kernel_sizes=self.kernel_sizes,
+            kernel_size=self.kernel_size,
             max_pool_size=self.max_pool_size,
             n_filters=self.n_filters,
             fc_units=self.fc_units,

@@ -69,7 +69,7 @@ class FCNClassifier(BaseDeepClassifier):
         self,
         n_layers=3,
         n_filters=None,
-        kernel_sizes=None,
+        kernel_size=None,
         dilation_rate=1,
         strides=1,
         padding="same",
@@ -90,7 +90,7 @@ class FCNClassifier(BaseDeepClassifier):
         super(FCNClassifier, self).__init__()
 
         self.n_layers = n_layers
-        self.kernel_sizes = kernel_sizes
+        self.kernel_size = kernel_size
         self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
@@ -112,7 +112,7 @@ class FCNClassifier(BaseDeepClassifier):
         self._network = FCNNetwork(
             random_state=self.random_state,
             n_layers=self.n_layers,
-            kernel_sizes=self.kernel_sizes,
+            kernel_size=self.kernel_size,
             n_filters=self.n_filters,
             strides=self.strides,
             padding=self.padding,

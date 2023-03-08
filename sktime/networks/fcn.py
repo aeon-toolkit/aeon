@@ -46,7 +46,7 @@ class FCNNetwork(BaseDeepNetwork):
         self,
         n_layers=3,
         n_filters=None,
-        kernel_sizes=None,
+        kernel_size=None,
         dilation_rate=1,
         strides=1,
         padding="same",
@@ -58,7 +58,7 @@ class FCNNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
 
         self.n_filters = [128, 256, 128] if n_filters is None else n_filters
-        self.kernel_sizes = [8, 5, 3] if kernel_sizes is None else kernel_sizes
+        self.kernel_size = [8, 5, 3] if kernel_size is None else kernel_size
         self.activation = activation
         self.padding = padding
         self.strides = strides
@@ -72,10 +72,10 @@ class FCNNetwork(BaseDeepNetwork):
         else:
             self.n_filters = [self.n_filters] * self.n_layers
 
-        if isinstance(self.kernel_sizes, list):
-            self.kernel_sizes = self.kernel_sizes
+        if isinstance(self.kernel_size, list):
+            self.kernel_size = self.kernel_size
         else:
-            self.kernel_sizes = [self.kernel_sizes] * self.n_layers
+            self.kernel_size = [self.kernel_size] * self.n_layers
 
         if isinstance(self.dilation_rate, list):
             self.dilation_rate = self.dilation_rate
@@ -104,7 +104,7 @@ class FCNNetwork(BaseDeepNetwork):
 
         self.random_state = random_state
 
-        assert len(self.kernel_sizes) == self.n_layers
+        assert len(self.kernel_size) == self.n_layers
         assert len(self.n_filters) == self.n_layers
         assert len(self.padding) == self.n_layers
         assert len(self.strides) == self.n_layers
@@ -134,7 +134,7 @@ class FCNNetwork(BaseDeepNetwork):
         for i in range(self.n_layers):
             conv = tf.keras.layers.Conv1D(
                 filters=self.n_filters[i],
-                kernel_size=self.kernel_sizes[i],
+                kernel_size=self.kernel_size[i],
                 strides=self.strides[i],
                 dilation_rate=self.dilation_rate[i],
                 padding=self.padding[i],
