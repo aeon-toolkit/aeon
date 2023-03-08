@@ -17,7 +17,7 @@ import pandas as pd
 from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
-from sktime.distances import distance
+from sktime.distances import distance as sktime_distance
 from sktime.transformations.base import BaseTransformer
 
 
@@ -45,17 +45,17 @@ def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
 def create_distance_matrix(
     prototype: Union[pd.DataFrame, np.ndarray],
     class_vals: np.array,
-    distance_: str = "euclidean",
+    distance: str = "euclidean",
 ) -> pd.DataFrame:
     """Create a distance matrix between class prototypes.
 
     Parameters
     ----------
     prototype : pd.DataFrame or np.ndarray
-        Prototype for each class.
+        A multivatiate time series representation for entire dataset.
     class_vals : np.array
         Class values.
-    distance_ : str, default="euclidean"
+    distance : str, default="euclidean"
         Distance metric to be used for calculating distance between class prototypes.
 
     Returns
@@ -65,7 +65,10 @@ def create_distance_matrix(
 
     """
     if prototype.shape[0] != len(class_vals):
-        raise ValueError(f"Prototype {prototype.shape[0]} and class values {len(class_vals)} must be of same length.")
+        raise ValueError(
+            f"Prototype {prototype.shape[0]} and \
+            class values {len(class_vals)} must be of same length."
+        )
 
     distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
     # create a dictionary of class values and their indexes
@@ -80,11 +83,11 @@ def create_distance_matrix(
                 prototype[class_vals == idx_class[cls_[1]]],
             )
         ):
-            if distance_ == "euclidean":
+            if distance == "euclidean":
                 dis = np.linalg.norm(cls1_ch - cls2_ch, axis=1)
             else:
                 dis = np.apply_along_axis(
-                    lambda row: distance(
+                    lambda row: sktime_distance(
                         row[: row.shape[0] // 2],
                         row[row.shape[0] // 2 :],
                         metric="dtw",
@@ -97,13 +100,9 @@ def create_distance_matrix(
     return distance_frame
 
 
-def _clip(x: np.array, low_value: float, high_value: float):
-    return np.clip(x, low_value, high_value)
-
-
 class ClassPrototype:
     """
-    Class prototype for each class.
+    Representation for each class from the dataset.
 
     Parameters
     ----------
@@ -118,6 +117,17 @@ class ClassPrototype:
     prototype : str
         Class prototype to be used for class prototype creation.
 
+    Notes
+    -----
+    For more information on the prototype types and class prototype, see [1] and [2].
+
+    References
+    ----------
+    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
+    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
+
     """
 
     def __init__(
@@ -128,11 +138,11 @@ class ClassPrototype:
         self.prototype_type = prototype_type
         self.mean_centering = mean_centering
 
-        assert self.prototype_type in [
-            "mean",
-            "median",
-            "mad",
-        ], "Class prototype not supported."
+        if self.prototype_type not in ["mean", "median", "mad"]:
+            raise ValueError(
+                f"Prototype type {self.prototype_type} not supported. "
+                "Available options are 'mean', 'median', 'mad'."
+            )
 
     def _mad_median(self, class_X, median=None):
         """Calculate upper and lower bounds for median absolute deviation."""
@@ -142,7 +152,9 @@ class ClassPrototype:
         high_value = median + _mad * 0.50
         # clip = lambda x: np.clip(x, low_value, high_value)
         class_X = np.apply_along_axis(
-            _clip, axis=1, arr=class_X, low_value=low_value, high_value=high_value
+            lambda x: np.clip(x, a_min=low_value, a_max=high_value),
+            axis=1,
+            arr=class_X,
         )
 
         return np.mean(class_X, axis=0)
@@ -228,20 +240,20 @@ class ElbowClassSum(BaseTransformer):
 
     Parameters
     ----------
-    distance_ : str
+    distance : str
         Distance metric to use for creating the class prototype.
         Default: 'euclidean'
     prototype_type : str
         Type of class prototype to use for representing a class.
         Default: 'mean'
-    mean_centering : bool
+    mean_center : bool
         If True, mean centering is applied to the class prototype.
         Default: False
 
     Attributes
     ----------
     prototype : DataFrame
-        Class prototype for each class.
+        A multivariate time series representation for entire dataset.
     distance_frame : DataFrame
         Distance matrix for each class pair.
         ``shape = [n_channels, n_class_pairs]``
@@ -252,6 +264,7 @@ class ElbowClassSum(BaseTransformer):
 
     Notes
     -----
+    More details on class prototype can be found in [1] and [2].
     Original repository:
     1. https://github.com/mlgig/Channel-Selection-MTSC
     2. https://github.com/mlgig/ChannelSelectionMTSC
@@ -292,12 +305,12 @@ class ElbowClassSum(BaseTransformer):
 
     def __init__(
         self,
-        distance_: str = "euclidean",
+        distance: str = "euclidean",
         prototype_type: str = "mean",
-        mean_centering: bool = False,
+        mean_center: bool = False,
     ):
-        self.distance_ = distance_
-        self.mean_centering = mean_centering
+        self.distance = distance
+        self.mean_center = mean_center
         self.prototype_type = prototype_type
         self._is_fitted = False
 
@@ -317,14 +330,14 @@ class ElbowClassSum(BaseTransformer):
         -------
         self : reference to self.
         """
-        centroid_obj = ClassPrototype(
+        cp = ClassPrototype(
             prototype_type=self.prototype_type,
-            mean_centering=self.mean_centering,
+            mean_centering=self.mean_center,
         )
-        self.prototype, labels = centroid_obj.create_prototype(X.copy(), y)
+        self.prototype, labels = cp.create_prototype(X.copy(), y)
 
         self.distance_frame = create_distance_matrix(
-            self.prototype.copy(), labels, distance_=self.distance_
+            self.prototype.copy(), labels, distance=self.distance
         )
         self.channels_selected_idx = []
         distance = self.distance_frame.sum(axis=1).sort_values(ascending=False).values
@@ -350,7 +363,8 @@ class ElbowClassSum(BaseTransformer):
         output : pandas DataFrame
             X with a subset of channels
         """
-        assert self._is_fitted, "fit() must be called before transform()"
+        if not self._is_fitted:
+            raise RuntimeError("fit() must be called before transform()")
         return X[:, self.channels_selected_idx]
 
 
@@ -373,7 +387,7 @@ class ElbowClassPairwise(BaseTransformer):
     prototype_type : str
         Type of class prototype to use for representing a class.
         Default: 'mean', Options: ['mean', 'median', 'mad']
-    mean_centering : bool
+    mean_center : bool
         If True, mean centering is applied to the class prototype.
         Default: False, Options: [True, False]
 
@@ -387,10 +401,12 @@ class ElbowClassPairwise(BaseTransformer):
     rank: list
         Rank of channels based on the distance between class prototypes.
     prototype : DataFrame
-        Class prototype for each class.
+        A multivariate time series representation for entire dataset.
 
     Notes
     -----
+    More details on class prototype can be found in [1] and [2].
+
     Original repository:
     1. https://github.com/mlgig/Channel-Selection-MTSC
     2. https://github.com/mlgig/ChannelSelectionMTSC
@@ -431,11 +447,11 @@ class ElbowClassPairwise(BaseTransformer):
 
     def __init__(
         self,
-        distance_: str = "euclidean",
+        distance: str = "euclidean",
         prototype_type: str = "mad",
         mean_center: bool = False,
     ):
-        self.distance_ = distance_
+        self.distance = distance
         self.prototype_type = prototype_type
         self.mean_center = mean_center
         self._is_fitted = False
@@ -464,7 +480,7 @@ class ElbowClassPairwise(BaseTransformer):
             X.copy(), y
         )  # Centroid created here
         self.distance_frame = create_distance_matrix(
-            self.prototype.copy(), labels, self.distance_
+            self.prototype.copy(), labels, self.distance
         )  # Distance matrix created here
 
         self.channels_selected_idx = []
@@ -493,7 +509,8 @@ class ElbowClassPairwise(BaseTransformer):
         output : pandas DataFrame
             X with a subset of channels
         """
-        assert self._is_fitted, "Transformer must be fitted before calling transform"
+        if not self._is_fitted:
+            raise RuntimeError("fit() must be called before transform()")
         return X[:, self.channels_selected_idx]
 
     def _rank(self) -> List[int]:
