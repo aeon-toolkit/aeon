@@ -20,7 +20,7 @@ Composition
     :template: class.rst
 
     ClassifierPipeline
-    ColumnEnsembleClassifier
+    ChannelEnsembleClassifier
     ComposableTimeSeriesForestClassifier
     SklearnClassifierPipeline
     WeightedEnsembleClassifier
