@@ -20,7 +20,7 @@ Composition
     :template: class.rst
 
     ClassifierPipeline
-    ColumnEnsembleClassifier
+    ChannelEnsembleClassifier
     ComposableTimeSeriesForestClassifier
     SklearnClassifierPipeline
     WeightedEnsembleClassifier
@@ -55,6 +55,7 @@ Dictionary-based
     MUSE
     TemporalDictionaryEnsemble
     WEASEL
+    WEASEL_V2
 
 Distance-based
 --------------
