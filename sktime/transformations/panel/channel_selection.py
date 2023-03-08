@@ -47,7 +47,23 @@ def create_distance_matrix(
     class_vals: np.array,
     distance_: str = "euclidean",
 ) -> pd.DataFrame:
-    """Create a distance matrix between class_prototypes."""
+    """Create a distance matrix between class_prototypes.
+
+    Parameters
+    ----------
+    prototype : pd.DataFrame or np.ndarray
+        Prototype for each class.
+    class_vals : np.array
+        Class values.
+    distance_ : str, default="euclidean"
+        Distance metric to be used for calculating distance between class prototypes.
+
+    Returns
+    -------
+    distance_frame : pd.DataFrame
+        Distance matrix between class prototypes.
+
+    """
     assert prototype.shape[0] == len(
         class_vals
     ), "Prototype and class values must be of same length."
@@ -82,7 +98,7 @@ def create_distance_matrix(
     return distance_frame
 
 
-def _clip(x, low_value, high_value):
+def _clip(x: np.array, low_value: float, high_value: float):
     return np.clip(x, low_value, high_value)
 
 
@@ -92,7 +108,7 @@ class ClassPrototype:
 
     Parameters
     ----------
-    prototype : str, default="mean"
+    prototype_type : str, default="mean"
         Class prototype to be used for class prototype creation.
         Available options are "mean", "median", "mad".
     mean_centering : bool, default=False
@@ -107,13 +123,13 @@ class ClassPrototype:
 
     def __init__(
         self,
-        prototype: str = "mean",
+        prototype_type: str = "mean",
         mean_centering: bool = False,
     ):
-        self.prototype = prototype
+        self.prototype_type = prototype_type
         self.mean_centering = mean_centering
 
-        assert self.prototype in [
+        assert self.prototype_type in [
             "mean",
             "median",
             "mad",
@@ -188,7 +204,7 @@ class ClassPrototype:
         prototypes = []
         for channel in range(X.shape[1]):  # iterating over channels
             train = X[:, channel, :]
-            _prototype = prototype_funcs[self.prototype](train, y_ind)
+            _prototype = prototype_funcs[self.prototype_type](train, y_ind)
             prototypes.append(_prototype)
 
         prototypes = np.stack(prototypes, axis=1)
@@ -213,10 +229,10 @@ class ElbowClassSum(BaseTransformer):
 
     Parameters
     ----------
-    distance : str
+    distance_ : str
         Distance metric to use for creating the class prototype.
         Default: 'euclidean'
-    prototype : str
+    prototype_type : str
         Type of class prototype to use for representing a class.
         Default: 'mean'
     mean_centering : bool
@@ -225,9 +241,9 @@ class ElbowClassSum(BaseTransformer):
 
     Attributes
     ----------
-    prototype_ : DataFrame
+    prototype : DataFrame
         Class prototype for each class.
-    distance_frame_ : DataFrame
+    distance_frame : DataFrame
         Distance matrix for each class pair.
         ``shape = [n_channels, n_class_pairs]``
     channels_selected_idx : list
@@ -278,12 +294,12 @@ class ElbowClassSum(BaseTransformer):
     def __init__(
         self,
         distance_: str = "euclidean",
-        prototype: str = "mean",
+        prototype_type: str = "mean",
         mean_centering: bool = False,
     ):
         self.distance_ = distance_
         self.mean_centering = mean_centering
-        self.prototype = prototype
+        self.prototype_type = prototype_type
         self._is_fitted = False
 
         super(ElbowClassSum, self).__init__()
@@ -303,15 +319,13 @@ class ElbowClassSum(BaseTransformer):
         self : reference to self.
         """
         centroid_obj = ClassPrototype(
-            prototype=self.prototype,
+            prototype_type=self.prototype_type,
             mean_centering=self.mean_centering,
         )
-        self.prototype_, labels = centroid_obj.create_prototype(X.copy(), y)
-
-        # obj = DistanceMatrix(self.distance_)
+        self.prototype, labels = centroid_obj.create_prototype(X.copy(), y)
 
         self.distance_frame = create_distance_matrix(
-            self.prototype_.copy(), labels, distance_=self.distance_
+            self.prototype.copy(), labels, distance_=self.distance_
         )
         self.channels_selected_idx = []
         distance = self.distance_frame.sum(axis=1).sort_values(ascending=False).values
@@ -357,12 +371,12 @@ class ElbowClassPairwise(BaseTransformer):
     distance : str
         Distance metric to use for creating the class prototype.
         Default: 'euclidean'
-    prototype : str
+    prototype_type : str
         Type of class prototype to use for representing a class.
-        Default: 'mean'
+        Default: 'mean', Options: ['mean', 'median', 'mad']
     mean_centering : bool
         If True, mean centering is applied to the class prototype.
-        Default: False
+        Default: False, Options: [True, False]
 
 
     Attributes
@@ -373,7 +387,7 @@ class ElbowClassPairwise(BaseTransformer):
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
-    prototype_ : DataFrame
+    prototype : DataFrame
         Class prototype for each class.
 
     Notes
@@ -418,24 +432,16 @@ class ElbowClassPairwise(BaseTransformer):
 
     def __init__(
         self,
-        distance: str = "euclidean",
-        prototype: str = "mad",
-        mean_centering: bool = False,
+        distance_: str = "euclidean",
+        prototype_type: str = "mad",
+        mean_center: bool = False,
     ):
-        self.distance = distance
-        self.prototype = prototype
-        self.mean_centering = mean_centering
+        self.distance_ = distance_
+        self.prototype_type = prototype_type
+        self.mean_center = mean_center
         self._is_fitted = False
 
         super(ElbowClassPairwise, self).__init__()
-
-    def _rank(self) -> List[int]:
-        all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
-        series = self.distance_frame.sum(axis=1)
-        series.drop(
-            index=list(set(all_index) - set(self.channels_selected_idx)), inplace=True
-        )
-        return series.sort_values(ascending=False).index.tolist()
 
     def _fit(self, X, y):
         """
@@ -452,22 +458,21 @@ class ElbowClassPairwise(BaseTransformer):
         -------
         self : reference to self.
         """
-        centroid_obj = ClassPrototype(
-            prototype=self.prototype, mean_centering=self.mean_centering
+        cp = ClassPrototype(
+            prototype_type=self.prototype_type, mean_centering=self.mean_center
         )
-        self.prototype_, labels = centroid_obj.create_prototype(
+        self.prototype, labels = cp.create_prototype(
             X.copy(), y
         )  # Centroid created here
-        # obj = DistanceMatrix(distance=self.distance)
         self.distance_frame = create_distance_matrix(
-            self.prototype_.copy(), labels, self.distance
+            self.prototype.copy(), labels, self.distance_
         )  # Distance matrix created here
 
         self.channels_selected_idx = []
         for pairdistance in self.distance_frame.items():
-            distance_ = pairdistance[1].sort_values(ascending=False).values
+            distances = pairdistance[1].sort_values(ascending=False).values
             indices = pairdistance[1].sort_values(ascending=False).index
-            chs_dis = _detect_knee_point(distance_, indices)
+            chs_dis = _detect_knee_point(distances, indices)
             self.channels_selected_idx.extend(chs_dis)
 
         self.rank = self._rank()
@@ -491,3 +496,12 @@ class ElbowClassPairwise(BaseTransformer):
         """
         assert self._is_fitted, "Transformer must be fitted before calling transform"
         return X[:, self.channels_selected_idx]
+
+    def _rank(self) -> List[int]:
+        """Return the rank of channels for ECP."""
+        all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
+        series = self.distance_frame.sum(axis=1)
+        series.drop(
+            index=list(set(all_index) - set(self.channels_selected_idx)), inplace=True
+        )
+        return series.sort_values(ascending=False).index.tolist()
