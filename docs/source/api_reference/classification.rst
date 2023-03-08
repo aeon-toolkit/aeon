@@ -55,6 +55,7 @@ Dictionary-based
     MUSE
     TemporalDictionaryEnsemble
     WEASEL
+    WEASEL_V2
 
 Distance-based
 --------------
