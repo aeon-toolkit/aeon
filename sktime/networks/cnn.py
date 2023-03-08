@@ -84,7 +84,6 @@ class CNNNetwork(BaseDeepNetwork):
         self.n_filters = [6, 12] if n_filters is None else n_filters
 
         self.kernel_sizes = kernel_sizes
-        self.n_filters = n_filters
         self.avg_pool_size = avg_pool_size
         self.activation = activation
         self.padding = padding
@@ -219,3 +218,8 @@ class CNNNetwork(BaseDeepNetwork):
         flatten_layer = tf.keras.layers.Flatten()(conv)
 
         return input_layer, flatten_layer
+
+
+if __name__ == "__main__":
+    cnn = CNNNetwork()
+    cnn.build_network(input_shape=(100, 1))
