@@ -15,7 +15,7 @@ sktime/classification/dictionary_based/_tde.py @patrickzib @MatthewMiddlehurst @
 sktime/classification/dictionary_based/_weasel.py @patrickzib @MatthewMiddlehurst @TonyBagnall
 sktime/classification/dictionary_based/_weasel_v2.py @patrickzib
 sktime/classification/distance_based/ @jasonlines @goaster @TonyBagnall
-sktime/classification/dummy/ @ZiyaoWei
+sktime/classification/dummy.py @ZiyaoWei
 sktime/classification/early_classification/_probability_threshold.py @MatthewMiddlehurst
 sktime/classification/early_classification/_teaser.py @patrickzib @MatthewMiddlehurst
 sktime/classification/feature_based/_catch22_classifier.py @MatthewMiddlehurst @TonyBagnall
