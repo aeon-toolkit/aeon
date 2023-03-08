@@ -5,7 +5,7 @@ About
 =====
 
 
-Learn more about the sktime project and its community.
+Learn more about the aeon project and its community.
 
 .. toctree::
    :maxdepth: 1

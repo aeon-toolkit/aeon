@@ -4,10 +4,10 @@
 Funding
 =======
 
-sktime is a community-driven project, however institutional and private
+aeon is a community-driven project, however institutional and private
 grants help to assure its sustainability.
 
-If you would like to sponsor sktime, please visit our `page <https://opencollective.com/sktime>`_ on Open Collective.
+If you would like to sponsor aeon, please visit our `page <https://opencollective.com/aeon>`_ on Open Collective.
 
 We would like to thank the following sponsors.
 
