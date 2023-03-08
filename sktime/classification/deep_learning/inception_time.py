@@ -119,17 +119,6 @@ class InceptionTimeClassifier(BaseClassifier):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
-    Examples
-    --------
-    >>> from sktime.classification.deep_learning.inception_time
-    >>> import InceptionTimeClassifier
-    >>> from sktime.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> x_test, y_test = load_unit_test(split="test")
-    >>> inception_time = InceptionTimeClassifier(n_classifiers=2, n_epochs=20)
-    >>> inception_time.fit(X_train, y_train)
-    InceptionTimeClassifier(...)
-    >>> y_pred = inception_time.predict(X_test)
     """
 
     _tags = {"python_dependencies": "tensorflow", "capability:multivariate": True}
