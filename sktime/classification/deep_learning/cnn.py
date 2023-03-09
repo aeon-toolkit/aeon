@@ -92,7 +92,6 @@ class CNNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers=2,
-        n_conv_layers=None,
         kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
@@ -114,7 +113,6 @@ class CNNClassifier(BaseDeepClassifier):
         _check_dl_dependencies(severity="error")
         super(CNNClassifier, self).__init__()
 
-        self.n_conv_layers = n_conv_layers
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.n_filters = n_filters
@@ -284,7 +282,7 @@ class CNNClassifier(BaseDeepClassifier):
             "n_epochs": 12,
             "batch_size": 6,
             "kernel_size": 2,
-            "n_conv_layers": 1,
+            "n_layers": 1,
         }
         test_params = [param1, param2]
 

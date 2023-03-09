@@ -64,7 +64,6 @@ class CNNRegressor(BaseDeepRegressor):
         batch_size=16,
         kernel_size=7,
         avg_pool_size=3,
-        n_conv_layers=2,
         callbacks=None,
         verbose=False,
         loss="mean_squared_error",
@@ -78,7 +77,6 @@ class CNNRegressor(BaseDeepRegressor):
         super(CNNRegressor, self).__init__(
             batch_size=batch_size,
         )
-        self.n_conv_layers = n_conv_layers
         self.avg_pool_size = avg_pool_size
         self.kernel_size = kernel_size
         self.callbacks = callbacks
@@ -95,7 +93,7 @@ class CNNRegressor(BaseDeepRegressor):
         self._network = CNNNetwork(
             kernel_size=self.kernel_size,
             avg_pool_size=self.avg_pool_size,
-            n_conv_layers=self.n_conv_layers,
+            n_layers=self.n_conv_layers,
             activation=self.activation,
             random_state=self.random_state,
         )

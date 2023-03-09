@@ -77,7 +77,10 @@ EXCLUDED_TESTS = {
         "test_fit_idempotent",
     ],
     "InceptionTimeClassifier": [
-        "test_fid_idempotent",
+        "test_fit_idempotent",
+    ],
+    "IndividualInceptionClassifier": [
+        "test_fit_idempotent",
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370

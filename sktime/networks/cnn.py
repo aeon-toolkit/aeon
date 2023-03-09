@@ -71,7 +71,6 @@ class CNNNetwork(BaseDeepNetwork):
         kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
-        n_conv_layers=None,
         activation="sigmoid",
         padding="valid",
         strides=1,
@@ -81,7 +80,6 @@ class CNNNetwork(BaseDeepNetwork):
     ):
         _check_dl_dependencies(severity="error")
         self.random_state = random_state
-        self.n_conv_layers = n_conv_layers
         self.n_filters = [6, 12] if n_filters is None else n_filters
 
         self.kernel_size = kernel_size
