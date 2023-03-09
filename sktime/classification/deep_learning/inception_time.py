@@ -535,6 +535,18 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         # if user hasn't provided a custom ReduceLROnPlateau via init already,
         # add the default from literature
+        self.callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=self.file_path + "best_model.hdf5",
+                monitor="loss",
+                save_best_only=True,
+            ),
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+            )
+            if self.callbacks is None
+            else self.callbacks,
+        ]
 
         # if not any(
         #     isinstance(callback, keras.callbacks.ReduceLROnPlateau)
@@ -607,7 +619,19 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         #        self.save_trained_model()
         #        self._is_fitted = True
 
-        return self
+        try:
+            import os
+
+            import tensorflow as tf
+
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + "best_model.hdf5", compile=False
+            )
+            os.remove(self.file_path + "best_model.hdf5")
+
+            return self
+        except FileNotFoundError:
+            return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
