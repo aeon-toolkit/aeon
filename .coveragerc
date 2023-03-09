@@ -2,8 +2,6 @@
 show_missing = True
 
 [run]
+branch = True
 source = sktime
-omit =
-    */setup.py
-    */sktime/__init__.py
-    */sktime/setup.py
+parallel = True
