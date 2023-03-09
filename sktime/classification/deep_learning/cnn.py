@@ -192,16 +192,6 @@ class CNNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        self.callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(
-                filepath=self.file_path + "best_model.hdf5",
-                monitor="loss",
-                save_best_only=True,
-            )
-            if self.callbacks is None
-            else self.callbacks
-        ]
-
         return model
 
     def _fit(self, X, y):
@@ -236,19 +226,7 @@ class CNNClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
-        try:
-            import os
-
-            import tensorflow as tf
-
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + "best_model.hdf5", compile=False
-            )
-            os.remove(self.file_path + "best_model.hdf5")
-
-            return self
-        except FileNotFoundError:
-            return self
+        return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
