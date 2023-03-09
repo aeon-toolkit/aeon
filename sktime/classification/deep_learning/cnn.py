@@ -92,6 +92,7 @@ class CNNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers=2,
+        n_conv_layers=None,
         kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
