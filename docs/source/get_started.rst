@@ -4,12 +4,12 @@
 Get Started
 ===========
 
-The following information is designed to get users up and running with ``sktime`` quickly. For more detailed information, see the links in each of the subsections.
+The following information is designed to get users up and running with ``aeon`` quickly. For more detailed information, see the links in each of the subsections.
 
 Installation
 ------------
 
-``sktime`` currently supports:
+``aeon`` currently supports:
 
 * environments with python version 3.7, 3.8, or 3.9.
 * operating systems Mac OS X, Unix-like OS, Windows 8.1 and higher
@@ -20,17 +20,17 @@ Please see the :ref:`installation <installation>` guide for step-by-step instruc
 Key Concepts
 ------------
 
-``sktime`` seeks to provide a unified framework for multiple time series machine learning tasks. This (hopefully) makes ``sktime's`` functionality intuitive for users
+``aeon`` seeks to provide a unified framework for multiple time series machine learning tasks. This (hopefully) makes ``aeon's`` functionality intuitive for users
 and lets developers extend the framework more easily. But time series data and the related scientific use cases each can take multiple forms.
 Therefore, a key set of common concepts and terminology is important.
 
 Data Types
 ~~~~~~~~~~
 
-``sktime`` is designed for time series machine learning. Time series data refers to data where the variables are ordered over time or
+``aeon`` is designed for time series machine learning. Time series data refers to data where the variables are ordered over time or
 an index indicating the position of an observation in the sequence of values.
 
-In ``sktime`` time series data can refer to data that is univariate, multivariate or panel, with the difference relating to the number and interrelation
+In ``aeon`` time series data can refer to data that is univariate, multivariate or panel, with the difference relating to the number and interrelation
 between time series :term:`variables <variable>`, as well as the number of :term:`instances <instance>` for which each variable is observed.
 
 - :term:`Univariate time series` data refers to data where a single :term:`variable` is tracked over time.
@@ -40,11 +40,11 @@ between time series :term:`variables <variable>`, as well as the number of :term
 Learning Tasks
 ~~~~~~~~~~~~~~
 
-``sktime's`` functionality for each learning tasks is centered around providing a set of code artifacts that match a common interface to a given
-scientific purpose (i.e. :term:`scientific type` or :term:`scitype`). For example, ``sktime`` includes a common interface for "forecaster" classes designed to predict future values
+``aeon's`` functionality for each learning tasks is centered around providing a set of code artifacts that match a common interface to a given
+scientific purpose (i.e. :term:`scientific type` or :term:`scitype`). For example, ``aeon`` includes a common interface for "forecaster" classes designed to predict future values
 of a time series.
 
-``sktime's`` interface currently supports:
+``aeon's`` interface currently supports:
 
 - :term:`Time series classification` where the time series data for a given instance are used to predict a categorical target class.
 - :term:`Time series regression` where the time series data for a given instance are used to predict a continuous target value.
@@ -59,14 +59,14 @@ While the list above presents each learning task separately, in many cases it is
 one approach to forecasting would be to use a regression model that explicitly accounts for the data's time dimension. However, another approach is to reduce the forecasting problem
 to cross-sectional regression, where the input data are tabularized and lags of the data are treated as independent features in `scikit-learn` style
 tabular regression algorithms. Likewise one approach to the time series annotation task like anomaly detection is to reduce the problem to using forecaster to predict future values and flag
-observations that are too far from these predictions as anomalies. ``sktime`` typically incorporates these type of :term:`reductions <reduction>` through the use of composable classes that
+observations that are too far from these predictions as anomalies. ``aeon`` typically incorporates these type of :term:`reductions <reduction>` through the use of composable classes that
 let users adapt one learning task to solve another related one.
 
-For more information on ``sktime's`` terminology and functionality see the :ref:`glossary` and the :ref:`user guide <user_guide>`.
+For more information on ``aeon's`` terminology and functionality see the :ref:`glossary` and the :ref:`user guide <user_guide>`.
 
 Quickstart
 ----------
-The code snippets below are designed to introduce ``sktime's`` functionality so you can start using its functionality quickly. For more detailed information see the :ref:`tutorials`,  :ref:`user_guide` and :ref:`api_reference` in ``sktime's`` :ref:`user_documentation`.
+The code snippets below are designed to introduce ``aeon's`` functionality so you can start using its functionality quickly. For more detailed information see the :ref:`tutorials`,  :ref:`user_guide` and :ref:`api_reference` in ``aeon's`` :ref:`user_documentation`.
 
 Forecasting
 ~~~~~~~~~~~

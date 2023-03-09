@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import sparse
 from sklearn.compose import ColumnTransformer as _ColumnTransformer
 
-from sktime.transformations.base import BaseTransformer, _PanelToPanelTransformer
+from sktime.transformations.base import BaseTransformer
 from sktime.utils.multiindex import flatten_multiindex
 from sktime.utils.validation.panel import check_X
 
@@ -17,7 +17,7 @@ __author__ = ["mloning", "sajaysurya", "fkiraly"]
 __all__ = ["ColumnTransformer", "ColumnConcatenator"]
 
 
-class ColumnTransformer(_ColumnTransformer, _PanelToPanelTransformer):
+class ColumnTransformer(_ColumnTransformer, BaseTransformer):
     """Column-wise application of transformers.
 
     Applies transformations to columns of an array or pandas DataFrame. Simply
@@ -105,6 +105,16 @@ class ColumnTransformer(_ColumnTransformer, _PanelToPanelTransformer):
         sparse matrix or a dense numpy array, which depends on the output
         of the individual transformations and the `sparse_threshold` keyword.
     """
+
+    _tags = {
+        "scitype:transform-input": "Series",
+        # what is the scitype of X: Series, or Panel
+        "scitype:transform-output": "Series",
+        # what scitype is returned: Primitives, Series, Panel
+        "scitype:instancewise": False,  # is this an instance-wise transform?
+        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "y_inner_mtype": "pd.Series",  # which mtypes do _fit/_predict support for X?
+    }
 
     def __init__(
         self,

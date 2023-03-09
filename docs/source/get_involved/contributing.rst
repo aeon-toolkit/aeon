@@ -14,7 +14,7 @@ How to contribute
    contributing/reporting_bugs
    contributing/reviewer_guide
 
-Welcome to sktime's contributing guide!
+Welcome to aeon's contributing guide!
 
 We value all kinds of contributions - not just code.
 For a detailed overview of current and future work, check out our :ref:`roadmap`.
@@ -25,11 +25,11 @@ and people who are looking to learn and develop their skills.
 Recommended steps for first time contributors, or to get started with regular contributions:
 
 1. Say hello (in the contributors channel on `Slack`_)!
-2. Get set up for development, see `instructions in the developer guide <https://www.sktime.org/en/stable/developer_guide.html>`_.
+2. Get set up for development, see `instructions in the developer guide <https://www.aeon-toolkit.org/en/stable/developer_guide.html>`_.
 3. Pick a good first issue to work on, see a collection `in this summary issue <https://github.com/sktime/sktime/issues/1147>`_ , or from `this list <https://github.com/sktime/sktime/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
    suggestion: pick something small with simple content to learn the “process”
 4. Feel free to attend the regular community collab sessions or one of the topic specific stand-ups and tech sessions (see schedule on `Slack`_)
-5. Once your first PR is merged and you’ve seen how things work, you could consider contributing more regularly: optionally, continue attending the Friday community collaboration sessions and stand-ups; or, optionally, `apply for mentoring <https://www.sktime.org/en/stable/get_involved/mentoring.html#mentoring>`_
+5. Once your first PR is merged and you’ve seen how things work, you could consider contributing more regularly: optionally, continue attending the Friday community collaboration sessions and stand-ups; or, optionally, `apply for mentoring <https://www.aeon-toolkit.org/en/stable/get_involved/mentoring.html#mentoring>`_
 
 .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
 
@@ -47,7 +47,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
         ^^^
 
-        ``sktime`` developer guide.
+        ``aeon`` developer guide.
 
         +++
 
@@ -65,7 +65,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
         ^^^
 
-        ``sktime`` developer installation guide.
+        ``aeon`` developer installation guide.
 
         +++
 
@@ -101,7 +101,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
         ^^^
 
-        ``sktime`` reporting bugs.
+        ``aeon`` reporting bugs.
 
         +++
 
