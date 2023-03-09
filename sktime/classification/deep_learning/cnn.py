@@ -114,6 +114,7 @@ class CNNClassifier(BaseDeepClassifier):
         _check_dl_dependencies(severity="error")
         super(CNNClassifier, self).__init__()
 
+        self.n_conv_layers = n_conv_layers
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.n_filters = n_filters
