@@ -117,16 +117,16 @@ class EncoderNetwork(BaseDeepNetwork):
             conv = tf.keras.layers.PReLU(shared_axes=[1])(conv)
             conv = tf.keras.layers.Dropout(self.dropout_proba)(conv)
 
-            if i < len(self.kernel_size) - 1:
+            if i < len(self._kernel_size) - 1:
                 conv = tf.keras.layers.MaxPool1D(pool_size=self.max_pool_size)(conv)
 
             x = conv
 
         # split attention
 
-        split_index = self.n_filters[-1] // 2
+        split_index = self._n_filters[-1] // 2
 
-        attention_multiplier_1 = tf.keras.layers.Softmax(
+        attention_multiplier_1 = tf.keras.layers.Softmax()(
             tf.keras.layers.Lambda(lambda x: x[:, :, :split_index])(conv)
         )
         attention_multiplier_2 = tf.keras.layers.Lambda(
