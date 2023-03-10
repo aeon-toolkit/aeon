@@ -28,7 +28,6 @@ jobs:
         shell: bash
 
   run-notebook-examples:
-    needs: code-quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -45,7 +44,6 @@ jobs:
         shell: bash
 
   test-nosoftdeps:
-    needs: code-quality
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
