@@ -135,75 +135,11 @@ class InceptionNetwork(BaseDeepNetwork):
         self.use_bias = use_bias
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
-
-        if isinstance(self.nb_filters, list):
-            self.nb_filters = self.nb_filters
-        else:
-            self.nb_filters = [self.nb_filters] * depth
-
-        if isinstance(self.kernel_size, list):
-            self.kernel_size = self.kernel_size
-        else:
-            self.kernel_size = [self.kernel_size] * depth
-
-        if isinstance(self.nb_conv_per_layer, list):
-            self.nb_conv_per_layer = self.nb_conv_per_layer
-        else:
-            self.nb_conv_per_layer = [self.nb_conv_per_layer] * depth
-
-        if isinstance(self.strides, list):
-            self.strides = self.strides
-        else:
-            self.strides = [self.strides] * depth
-
-        if isinstance(self.dilation_rate, list):
-            self.dilation_rate = self.dilation_rate
-        else:
-            self.dilation_rate = [self.dilation_rate] * depth
-
-        if isinstance(self.padding, list):
-            self.padding = self.padding
-        else:
-            self.padding = [self.padding] * depth
-
-        if isinstance(self.activation, list):
-            self.activation = self.activation
-        else:
-            self.activation = [self.activation] * depth
-
-        if isinstance(self.use_max_pooling, list):
-            self.use_max_pooling = self.use_max_pooling
-        else:
-            self.use_max_pooling = [self.use_max_pooling] * depth
-
-        if isinstance(self.max_pool_size, list):
-            self.max_pool_size = self.max_pool_size
-        else:
-            self.max_pool_size = [self.max_pool_size] * depth
-
-        if isinstance(self.use_bias, list):
-            self.use_bias = self.use_bias
-        else:
-            self.use_bias = [self.use_bias] * depth
-
-        assert len(self.nb_filters) == depth
-        assert len(self.kernel_size) == depth
-        assert len(self.nb_conv_per_layer) == depth
-        assert len(self.strides) == depth
-        assert len(self.dilation_rate) == depth
-        assert len(self.padding) == depth
-        assert len(self.activation) == depth
-        assert len(self.use_max_pooling) == depth
-        assert len(self.max_pool_size) == depth
-        assert len(self.use_bias) == depth
-
         self.use_residual = use_residual
         self.use_bottleneck = use_bottleneck
         self.depth = depth
         self.bottleneck_size = bottleneck_size
-
         self.use_custom_filters = use_custom_filters
-
         self.random_state = random_state
 
         super(InceptionNetwork, self).__init__()
@@ -459,34 +395,84 @@ class InceptionNetwork(BaseDeepNetwork):
 
         import tensorflow as tf
 
+        if isinstance(self.nb_filters, list):
+            self._nb_filters = self.nb_filters
+        else:
+            self._nb_filters = [self.nb_filters] * self.depth
+
+        if isinstance(self.kernel_size, list):
+            self._kernel_size = self.kernel_size
+        else:
+            self._kernel_size = [self.kernel_size] * self.depth
+
+        if isinstance(self.nb_conv_per_layer, list):
+            self._nb_conv_per_layer = self.nb_conv_per_layer
+        else:
+            self._nb_conv_per_layer = [self.nb_conv_per_layer] * self.depth
+
+        if isinstance(self.strides, list):
+            self._strides = self.strides
+        else:
+            self._strides = [self.strides] * self.depth
+
+        if isinstance(self.dilation_rate, list):
+            self._dilation_rate = self.dilation_rate
+        else:
+            self._dilation_rate = [self.dilation_rate] * self.depth
+
+        if isinstance(self.padding, list):
+            self._padding = self.padding
+        else:
+            self._padding = [self.padding] * self.depth
+
+        if isinstance(self.activation, list):
+            self._activation = self.activation
+        else:
+            self._activation = [self.activation] * self.depth
+
+        if isinstance(self.use_max_pooling, list):
+            self._use_max_pooling = self.use_max_pooling
+        else:
+            self._use_max_pooling = [self.use_max_pooling] * self.depth
+
+        if isinstance(self.max_pool_size, list):
+            self._max_pool_size = self.max_pool_size
+        else:
+            self._max_pool_size = [self.max_pool_size] * self.depth
+
+        if isinstance(self.use_bias, list):
+            self._use_bias = self.use_bias
+        else:
+            self._use_bias = [self.use_bias] * self.depth
+
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer
         input_res = input_layer
 
-        use_custom_filters = self.use_custom_filters
+        _use_custom_filters = self.use_custom_filters
 
         for d in range(self.depth):
             if d > 0:
-                use_custom_filters = False
+                _use_custom_filters = False
 
             x = self._inception_module(
                 x,
-                nb_filters=self.nb_filters[d],
-                dilation_rate=self.dilation_rate[d],
-                kernel_size=self.kernel_size[d],
-                padding=self.padding[d],
-                strides=self.strides[d],
-                activation=self.activation[d],
-                use_bias=self.use_bias[d],
-                use_max_pooling=self.use_max_pooling[d],
-                max_pool_size=self.max_pool_size[d],
-                nb_conv_per_layer=self.nb_conv_per_layer[d],
-                use_custom_filters=use_custom_filters,
+                nb_filters=self._nb_filters[d],
+                dilation_rate=self._dilation_rate[d],
+                kernel_size=self._kernel_size[d],
+                padding=self._padding[d],
+                strides=self._strides[d],
+                activation=self._activation[d],
+                use_bias=self._use_bias[d],
+                use_max_pooling=self._use_max_pooling[d],
+                max_pool_size=self._max_pool_size[d],
+                nb_conv_per_layer=self._nb_conv_per_layer[d],
+                use_custom_filters=_use_custom_filters,
             )
 
             if self.use_residual and d % 3 == 2:
-                x = self._shortcut_layer(input_res, x, padding=self.padding[d])
+                x = self._shortcut_layer(input_res, x, padding=self._padding[d])
                 input_res = x
 
         gap_layer = tf.keras.layers.GlobalAveragePooling1D()(x)
