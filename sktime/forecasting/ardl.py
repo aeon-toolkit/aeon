@@ -4,6 +4,7 @@
 import warnings
 
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from sktime.forecasting.base._base import BaseForecaster
 from sktime.forecasting.base.adapters import _StatsModelsAdapter
@@ -230,7 +231,6 @@ class ARDL(_StatsModelsAdapter):
         X_oos=None,
         dynamic=False,
     ):
-
         # Model Params
         self.lags = lags
         self.order = order
@@ -321,7 +321,7 @@ class ARDL(_StatsModelsAdapter):
 
         # statsmodels does not support the pd.Int64Index as required,
         # so we coerce them here to pd.RangeIndex
-        if isinstance(y, pd.Series) and y.index.is_integer():
+        if isinstance(y, pd.Series) and is_integer_dtype(y.index):
             y, X = _coerce_int_to_range_index(y, X)
 
         # validity check of passed params

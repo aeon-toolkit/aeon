@@ -100,12 +100,6 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "symmetric",
-        ["transformer-pairwise", "transformer-pairwise-panel"],
-        "bool",
-        "is the transformer symmetric, i.e., t(x,y)=t(y,x) always?",
-    ),
-    (
         "scitype:X",
         "param_est",
         "str",
@@ -136,7 +130,7 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_mtype",
-        ["forecaster", "transformer", "transformer-pairwise-panel", "param_est"],
+        ["forecaster", "param_est"],
         (
             "list",
             [
@@ -207,8 +201,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "param_est",
             "regressor",
-            "transformer-pairwise",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the classifier classify time series with 2 or more variables?",
@@ -220,7 +212,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "regressor",
             "transformer",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the estimator handle unequal length time series?",
@@ -235,8 +226,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "param_est",
             "regressor",
-            "transformer-pairwise",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the classifier handle missing data (NA, np.nan) in inputs?",

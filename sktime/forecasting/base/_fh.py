@@ -7,7 +7,7 @@ __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
 __all__ = ["ForecastingHorizon"]
 
 from functools import lru_cache
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -71,7 +71,7 @@ def _delegator(method):
     return delegated
 
 
-def _check_values(values: Union[VALID_FORECASTING_HORIZON_TYPES]) -> pd.Index:
+def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
     """Validate forecasting horizon values.
 
     Validation checks validity and also converts forecasting horizon values
@@ -259,7 +259,7 @@ class ForecastingHorizon:
 
     def __new__(
         cls,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: bool = None,
         freq=None,
     ):
@@ -276,7 +276,7 @@ class ForecastingHorizon:
 
     def __init__(
         self,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: Optional[bool] = True,
         freq=None,
     ):
@@ -319,7 +319,7 @@ class ForecastingHorizon:
 
     def _new(
         self,
-        values: Union[VALID_FORECASTING_HORIZON_TYPES] = None,
+        values: VALID_FORECASTING_HORIZON_TYPES = None,
         is_relative: bool = None,
         freq: str = None,
     ):
@@ -738,18 +738,25 @@ def _to_absolute(fh: ForecastingHorizon, cutoff) -> ForecastingHorizon:
     else:
         relative = fh.to_pandas()
         _check_cutoff(cutoff, relative)
-        is_timestamp = isinstance(cutoff, pd.Timestamp)
 
-        if is_timestamp:
+        if isinstance(cutoff, pd.Period):
+            # workaround for pandas>=2.0.0 as "absolute = cutoff + relative"
+            # is not working anymore as expected
+            absolute = pd.PeriodIndex(
+                [pd.PeriodIndex([cutoff]).shift(x)[0] for x in relative]
+            )
+        elif isinstance(cutoff, pd.Timestamp):
             # coerce to pd.Period for reliable arithmetic operations and
-            # computations of time deltas
             cutoff = _coerce_to_period(cutoff, freq=fh.freq)
-
-        absolute = cutoff + relative
-
-        if is_timestamp:
+            # workaround for pandas>=2.0.0 as "absolute = cutoff + relative"
+            # is not working anymore as expected
+            absolute = pd.PeriodIndex(
+                [pd.PeriodIndex([cutoff]).shift(x)[0] for x in relative]
+            )
             # coerce back to DatetimeIndex after operation
             absolute = absolute.to_timestamp(fh.freq)
+        else:
+            absolute = cutoff + relative
 
         return fh._new(absolute, is_relative=False, freq=fh.freq)
 

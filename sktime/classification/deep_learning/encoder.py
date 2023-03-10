@@ -1,106 +1,123 @@
 # -*- coding: utf-8 -*-
-"""Time Convolutional Neural Network (CNN) for regression."""
+"""Encoder Classifier."""
 
-__author__ = ["AurumnPegasus", "achieveordie"]
-__all__ = ["CNNRegressor"]
+__author__ = ["hadifawaz1999"]
+__all__ = ["EncoderClassifier"]
 
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from sktime.networks.cnn import CNNNetwork
-from sktime.regression.deep_learning.base import BaseDeepRegressor
+from sktime.classification.deep_learning.base import BaseDeepClassifier
+from sktime.networks.encoder import EncoderNetwork
 from sktime.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 
 
-class CNNRegressor(BaseDeepRegressor):
-    """Time Series Convolutional Neural Network (CNN), as described in [1].
+class EncoderClassifier(BaseDeepClassifier):
+    """
+    Establish the network structure for an Encoder.
+
+    Adapted from the implementation used in [1]
 
     Parameters
     ----------
-    should inherited fields be listed here?
-    n_epochs       : int, default = 2000
-        the number of epochs to train the model
-    batch_size      : int, default = 16
-        the number of samples per gradient update.
-    kernel_size     : int, default = 7
-        the length of the 1D convolution window
-    avg_pool_size   : int, default = 3
-        size of the average pooling windows
-    n_conv_layers   : int, default = 2
-        the number of convolutional plus average pooling layers
-    filter_sizes    : array of shape (n_conv_layers) default = [6, 12]
-    random_state    : int or None, default=None
-        Seed for random number generation.
-    verbose         : boolean, default = False
-        whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    activation      : keras.activations or string, default `linear`
-        function to use in the output layer.
-    optimizer       : keras.optimizers or string, default `None`.
-        when `None`, internally uses `keras.optimizers.Adam(0.01)`
-    use_bias        : bool, default=True
-        whether to use bias in the output layer.
-    metrics         : list of strings, default=["accuracy"],
-
-    References
-    ----------
-    .. [1] Zhao et. al, Convolutional neural networks for
-    time series classification, Journal of
-    Systems Engineering and Electronics, 28(1):2017.
+    kernel_size    : array of int, default = [5, 11, 21]
+        specifying the length of the 1D convolution windows
+    n_filters       : array of int, default = [128, 256, 512]
+        specifying the number of 1D convolution filters used for each layer,
+        the shape of this array should be the same as kernel_size
+    max_pool_size   : int, default = 2
+        size of the max pooling windows
+    activation      : string, default = sigmoid
+        keras activation function
+    dropout_proba   : float, default = 0.2
+        specifying the dropout layer probability
+    padding         : string, default = same
+        specifying the type of padding used for the 1D convolution
+    strides         : int, default = 1
+        specifying the sliding rate of the 1D convolution filter
+    fc_units        : int, default = 256
+        specifying the number of units in the hiddent fully
+        connected layer used in the EncoderNetwork
+    random_state    : int, default = 0
+        seed to any needed random actions
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+    Adapted from source code
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
+
+    References
+    ----------
+    .. [1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
+    In proceedings International Conference of the Catalan Association
+    for Artificial Intelligence, 120--129 2018.
+
+
     """
+
+    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
-        kernel_size=7,
-        avg_pool_size=3,
-        n_conv_layers=2,
+        n_epochs=100,
+        batch_size=12,
+        kernel_size=None,
+        n_filters=None,
+        dropout_proba=0.2,
+        activation="sigmoid",
+        max_pool_size=2,
+        padding="same",
+        strides=1,
+        fc_units=256,
         callbacks=None,
+        file_path="./",
         verbose=False,
-        loss="mean_squared_error",
+        loss="categorical_crossentropy",
         metrics=None,
-        random_state=0,
-        activation="linear",
+        random_state=None,
         use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(CNNRegressor, self).__init__(
-            batch_size=batch_size,
-        )
-        self.n_conv_layers = n_conv_layers
-        self.avg_pool_size = avg_pool_size
+        super(EncoderClassifier, self).__init__()
+
+        self.n_filters = n_filters
+        self.max_pool_size = max_pool_size
         self.kernel_size = kernel_size
+        self.strides = strides
+        self.activation = activation
+        self.padding = padding
+        self.dropout_proba = dropout_proba
+        self.fc_units = fc_units
+
         self.callbacks = callbacks
+        self.file_path = file_path
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.random_state = random_state
-        self.activation = activation
         self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
-        self._network = CNNNetwork(
+
+        self._network = EncoderNetwork(
             kernel_size=self.kernel_size,
-            avg_pool_size=self.avg_pool_size,
-            n_layers=self.n_conv_layers,
+            max_pool_size=self.max_pool_size,
+            n_filters=self.n_filters,
+            fc_units=self.fc_units,
+            strides=self.strides,
+            padding=self.padding,
+            dropout_proba=self.dropout_proba,
             activation=self.activation,
             random_state=self.random_state,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In sktime, time series are stored in numpy arrays of shape (d,m), where d
@@ -112,13 +129,14 @@ class CNNRegressor(BaseDeepRegressor):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer, should be (m,d)
+        n_classes: int
+            The number of classes, which becomes the size of the output layer
 
         Returns
         -------
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -126,28 +144,35 @@ class CNNRegressor(BaseDeepRegressor):
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
-
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=1,
-            activation=self.activation,
-            use_bias=self.use_bias,
+        output_layer = tf.keras.layers.Dense(
+            units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
+            tf.keras.optimizers.Adam(learning_rate=0.00001)
             if self.optimizer is None
             else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
-
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
+        # self.callbacks = [
+        #     tf.keras.callbacks.ModelCheckpoint(
+        #         filepath=self.file_path + "best_model.hdf5",
+        #         monitor="loss",
+        #         save_best_only=True,
+        #     )
+        #     if self.callbacks is None
+        #     else self.callbacks
+        # ]
+
         return model
 
     def _fit(self, X, y):
@@ -164,24 +189,39 @@ class CNNRegressor(BaseDeepRegressor):
         -------
         self : object
         """
+        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape)
+        self.model_ = self.build_model(self.input_shape, self.n_classes_)
         if self.verbose:
-            self.model.summary()
-
+            self.model_.summary()
         self.history = self.model_.fit(
             X,
-            y,
+            y_onehot,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
+
         return self
+
+        # try:
+        #     import os
+
+        #     import tensorflow as tf
+
+        #     self.model_ = tf.keras.models.load_model(
+        #         self.file_path + "best_model.hdf5", compile=False
+        #     )
+        #     os.remove(self.file_path + "best_model.hdf5")
+
+        #     return self
+        # except FileNotFoundError:
+        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -205,30 +245,16 @@ class CNNRegressor(BaseDeepRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from sktime.utils.validation._dependencies import _check_soft_dependencies
-
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "avg_pool_size": 4,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "kernel_size": 2,
-            "n_conv_layers": 1,
-        }
-        test_params = [param1, param2]
-
-        if _check_soft_dependencies("keras", severity="none"):
-            from keras.callbacks import LambdaCallback
-
-            test_params.append(
-                {
-                    "n_epochs": 2,
-                    "callbacks": [LambdaCallback()],
-                }
-            )
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "max_pool_size": 1,
+        # }
+        test_params = [param1]
 
         return test_params
