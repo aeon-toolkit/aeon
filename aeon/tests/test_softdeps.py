@@ -24,15 +24,15 @@ from aeon.utils.validation._dependencies import _check_python_version
 # list of soft dependencies used
 # excludes estimators, only for soft dependencies used in non-estimator modules
 SOFT_DEPENDENCIES = {
-    "sktime.benchmarking.evaluation": ["matplotlib"],
-    "sktime.benchmarking.experiments": ["tsfresh", "esig"],
-    "sktime.classification.deep_learning": ["tensorflow"],
-    "sktime.regression.deep_learning": ["tensorflow"],
-    "sktime.networks": ["tensorflow"],
-    "sktime.clustering.evaluation._plot_clustering": ["matplotlib"],
+    "aeon.benchmarking.evaluation": ["matplotlib"],
+    "aeon.benchmarking.experiments": ["tsfresh", "esig"],
+    "aeon.classification.deep_learning": ["tensorflow"],
+    "aeon.regression.deep_learning": ["tensorflow"],
+    "aeon.networks": ["tensorflow"],
+    "aeon.clustering.evaluation._plot_clustering": ["matplotlib"],
 }
 
-MODULES_TO_IGNORE = ("sktime._contrib", "sktime.utils._testing")
+MODULES_TO_IGNORE = ("aeon.utils._testing")
 
 # estimators excepted from checking that they raise no import exception when constructed
 # for the reason that they are composites which have soft dependencies in examples
@@ -73,7 +73,7 @@ def _extract_dependency_from_error_msg(msg):
 
 
 # collect all modules
-modules = pkgutil.walk_packages(path=["./sktime/"], prefix="sktime.")
+modules = pkgutil.walk_packages(path=["./aeon/"], prefix="aeon.")
 modules = [x[1] for x in modules]
 modules = [x for x in modules if not _is_test(x) and not _is_ignored(x)]
 

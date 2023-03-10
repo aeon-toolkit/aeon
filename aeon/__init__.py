@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""sktime."""
+"""aeon."""
 
 __version__ = "0.16.0"
 

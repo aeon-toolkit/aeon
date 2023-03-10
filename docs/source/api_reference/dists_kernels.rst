@@ -3,20 +3,20 @@
 Time series distances/kernels
 =============================
 
-The :mod:`sktime.dists_kernels` module contains pairwise transformers, such as
+The :mod:`aeon.dists_kernels` module contains pairwise transformers, such as
 distances and kernel functions on time series data. It also contains some distances/kernel functions for tabular data.
 
 Distances and kernel functions are treated the same, as they have the same formal signature - that of a "pairwise transformer".
 
 Below, we list separately pairwise transformers for time series, and pairwise transformers for tabular data.
 
-.. automodule:: sktime.dists_kernels
+.. automodule:: aeon.dists_kernels
    :no-members:
    :no-inherited-members:
 
-All time series distances and kernels in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All time series distances and kernels in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="transformer-pairwise-panel"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 Distances and kernels for vector-valued features can be listed using ``estimator_types="transformer-pairwise"``.
 

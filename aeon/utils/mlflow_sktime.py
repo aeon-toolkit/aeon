@@ -267,7 +267,7 @@ def save_model(
 
     pyfunc.add_to_model(
         mlflow_model,
-        loader_module="sktime.utils.mlflow_sktime",
+        loader_module="aeon.utils.mlflow_sktime",
         model_path=model_data_subpath,
         conda_env=_CONDA_ENV_FILE_NAME,
         python_env=_PYTHON_ENV_FILE_NAME,

@@ -3,16 +3,16 @@
 Time series transformations
 ===========================
 
-The :mod:`sktime.transformations` module contains classes for data
+The :mod:`aeon.transformations` module contains classes for data
 transformations.
 
-.. automodule:: sktime.transformations
+.. automodule:: aeon.transformations
    :no-members:
    :no-inherited-members:
 
-All (simple) transformers in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All (simple) transformers in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 For pairwise transformers (time series distances, kernels), instead see :ref:`_transformations_pairwise_ref`.
 
@@ -49,7 +49,7 @@ Composition
 Pipeline building
 ~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.compose
+.. currentmodule:: aeon.transformations.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -65,7 +65,7 @@ Pipeline building
     Id
     YtoX
 
-.. currentmodule:: sktime.transformations.panel.compose
+.. currentmodule:: aeon.transformations.panel.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -73,7 +73,7 @@ Pipeline building
 
     ColumnTransformer
 
-.. currentmodule:: sktime.transformations.series.func_transform
+.. currentmodule:: aeon.transformations.series.func_transform
 
 .. autosummary::
     :toctree: auto_generated/
@@ -84,7 +84,7 @@ Pipeline building
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.reduce
+.. currentmodule:: aeon.transformations.panel.reduce
 
 .. autosummary::
     :toctree: auto_generated/
@@ -93,7 +93,7 @@ Sklearn and pandas adapters
     Tabularizer
     TimeBinner
 
-.. currentmodule:: sktime.transformations.series.adapt
+.. currentmodule:: aeon.transformations.series.adapt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -115,7 +115,7 @@ Summarization
 
 These transformers extract simple summary features.
 
-.. currentmodule:: sktime.transformations.series.summarize
+.. currentmodule:: aeon.transformations.series.summarize
 
 .. autosummary::
     :toctree: auto_generated/
@@ -124,7 +124,7 @@ These transformers extract simple summary features.
     SummaryTransformer
     WindowSummarizer
 
-.. currentmodule:: sktime.transformations.panel.summarize
+.. currentmodule:: aeon.transformations.panel.summarize
 
 .. autosummary::
     :toctree: auto_generated/
@@ -138,7 +138,7 @@ These transformers extract simple summary features.
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.shapelet_transform
+.. currentmodule:: aeon.transformations.panel.shapelet_transform
 
 .. autosummary::
     :toctree: auto_generated/
@@ -147,7 +147,7 @@ Shapelets, wavelets, and convolution
     ShapeletTransform
     RandomShapeletTransform
 
-.. currentmodule:: sktime.transformations.panel.rocket
+.. currentmodule:: aeon.transformations.panel.rocket
 
 .. autosummary::
     :toctree: auto_generated/
@@ -158,7 +158,7 @@ Shapelets, wavelets, and convolution
     MiniRocketMultivariate
     MiniRocketMultivariateVariable
 
-.. currentmodule:: sktime.transformations.panel.dwt
+.. currentmodule:: aeon.transformations.panel.dwt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -169,7 +169,7 @@ Shapelets, wavelets, and convolution
 Distance-based features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.matrix_profile
+.. currentmodule:: aeon.transformations.panel.matrix_profile
 
 .. autosummary::
     :toctree: auto_generated/
@@ -180,7 +180,7 @@ Distance-based features
 Dictionary-based features
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.dictionary_based
+.. currentmodule:: aeon.transformations.panel.dictionary_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -193,7 +193,7 @@ Dictionary-based features
 Moment-based features
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.signature_based
+.. currentmodule:: aeon.transformations.panel.signature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -206,7 +206,7 @@ Feature collections
 
 These transformers extract larger collections of features.
 
-.. currentmodule:: sktime.transformations.panel.tsfresh
+.. currentmodule:: aeon.transformations.panel.tsfresh
 
 .. autosummary::
     :toctree: auto_generated/
@@ -215,7 +215,7 @@ These transformers extract larger collections of features.
     TSFreshRelevantFeatureExtractor
     TSFreshFeatureExtractor
 
-.. currentmodule:: sktime.transformations.panel.catch22
+.. currentmodule:: aeon.transformations.panel.catch22
 
 .. autosummary::
     :toctree: auto_generated/
@@ -233,7 +233,7 @@ When applied to panels or hierarchical data, individual series are transformed.
 Lagging
 ~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.lag
+.. currentmodule:: aeon.transformations.series.lag
 
 .. autosummary::
     :toctree: auto_generated/
@@ -248,7 +248,7 @@ These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: sktime.transformations.series.boxcox
+.. currentmodule:: aeon.transformations.series.boxcox
 
 .. autosummary::
     :toctree: auto_generated/

@@ -3,16 +3,16 @@
 Time series regression
 ======================
 
-The :mod:`sktime.regression` module contains algorithms and composition tools for time series regression.
+The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
 
-All regressors in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All regressors in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 Composition
 -----------
 
-.. currentmodule:: sktime.regression.compose
+.. currentmodule:: aeon.regression.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -23,7 +23,7 @@ Composition
 Deep learning
 -------------
 
-.. currentmodule:: sktime.regression.deep_learning
+.. currentmodule:: aeon.regression.deep_learning
 
 .. autosummary::
     :toctree: auto_generated/
@@ -35,7 +35,7 @@ Deep learning
 Distance-based
 --------------
 
-.. currentmodule:: sktime.regression.distance_based
+.. currentmodule:: aeon.regression.distance_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -46,7 +46,7 @@ Distance-based
 Dummy
 -----
 
-.. currentmodule:: sktime.regression.dummy
+.. currentmodule:: aeon.regression.dummy
 
 .. autosummary::
     :toctree: auto_generated/
@@ -57,7 +57,7 @@ Dummy
 Interval-based
 --------------
 
-.. currentmodule:: sktime.regression.interval_based
+.. currentmodule:: aeon.regression.interval_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -68,7 +68,7 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.regression.convolution_based
+.. currentmodule:: aeon.regression.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -79,7 +79,7 @@ Kernel-based
 Base
 ----
 
-.. currentmodule:: sktime.regression.base
+.. currentmodule:: aeon.regression.base
 
 .. autosummary::
     :toctree: auto_generated/
@@ -87,7 +87,7 @@ Base
 
     BaseRegressor
 
-.. currentmodule:: sktime.regression.deep_learning.base
+.. currentmodule:: aeon.regression.deep_learning.base
 
 .. autosummary::
     :toctree: auto_generated/
