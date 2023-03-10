@@ -67,20 +67,14 @@ class EncoderNetwork(BaseDeepNetwork):
     ):
         _check_dl_dependencies(severity="error")
 
-        kernel_size = [5, 11, 21] if kernel_size is None else kernel_size
-        n_filters = [128, 256, 512] if n_filters is None else n_filters
-
-        self.random_state = random_state
-
-        self.n_filters = n_filters
         self.kernel_size = kernel_size
+        self.n_filters = n_filters
+        self.random_state = random_state
         self.padding = padding
         self.strides = strides
-
         self.max_pool_size = max_pool_size
         self.activation = activation
         self.dropout_proba = dropout_proba
-
         self.fc_units = fc_units
 
         super(EncoderNetwork, self).__init__()
@@ -102,16 +96,19 @@ class EncoderNetwork(BaseDeepNetwork):
         import tensorflow as tf
         import tensorflow_addons as tfa
 
-        # iunput layer
+        self._kernel_size = (
+            [5, 11, 21] if self.kernel_size is None else self.kernel_size
+        )
+        self._n_filters = [128, 256, 512] if self.n_filters is None else self.n_filters
 
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer
 
-        for i, kernel_size in enumerate(self.kernel_size):
+        for i in range(len(self._kernel_size)):
             conv = tf.keras.layers.Conv1D(
-                filters=self.n_filters[i],
-                kernel_size=kernel_size,
+                filters=self._n_filters[i],
+                kernel_size=self._kernel_size[i],
                 padding=self.padding,
                 strides=self.strides,
             )(x)
