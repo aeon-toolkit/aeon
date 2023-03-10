@@ -20,28 +20,40 @@ class FCNClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    should inherited fields be listed here?
-    n_epochs       : int, default = 2000
+    n_layers        : int, default = 3
+        number of convolution layers
+    n_filters       : int or list of int, default = [128,256,128]
+        number of filters used in convolution layers
+    kernel_size     : int or list of int, default = [8,5,3]
+        size of convolution kernel
+    dilation_rate   : int or list of int, default = 1
+        the dilation rate for convolution
+    strides         : int or list of int, default = 1
+        the strides of the convolution filter
+    padding         : str or list of str, default = "same"
+        the type of padding used for convolution
+    activation      : str or list of str, default = "relu"
+        activation used after the convolution
+    use_bias        : bool or list of bool, default = True
+        whether or not ot use bias in convolution
+    n_epochs        : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
+    use_mini_batch_size : bool, default = True,
+        whether or not to use the mini batch size formula
     random_state    : int or None, default=None
         Seed for random number generation.
     verbose         : boolean, default = False
         whether to output extra information
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
     metrics         : list of strings, default=["accuracy"],
-    activation      : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias        : boolean, default = True
-        whether the layer uses a bias vector.
     optimizer       : keras.optimizers object, default = Adam(lr=0.01)
         specify the optimizer and the learning rate to be used.
-
+    file_path       : str, default = "./"
+        file path to save best model
+    callbacks       : keras.callbacks, default = None
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
