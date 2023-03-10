@@ -63,6 +63,8 @@ class MLPClassifier(BaseDeepClassifier):
     MLPClassifier(...)
     """
 
+    _tags = {"python_dependencies": "tensorflow"}
+
     def __init__(
         self,
         n_epochs=2000,
@@ -196,29 +198,17 @@ class MLPClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from sktime.utils.validation._dependencies import _check_soft_dependencies
-
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "use_bias": True,
-        }
-        test_params = [param1, param2]
-
-        if _check_soft_dependencies("keras", severity="none"):
-            from keras.callbacks import LambdaCallback
-
-            test_params.append(
-                {
-                    "n_epochs": 2,
-                    "callbacks": [LambdaCallback()],
-                }
-            )
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "use_bias": True,
+        # }
+        test_params = [param1]
 
         return test_params

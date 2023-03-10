@@ -176,10 +176,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
     Information Sciences, 239:2013.
     """
 
-    _tags = {
-        "X_inner_mtype": "nested_univ",  # nested pd.DataFrame
-    }
-
     def __init__(
         self,
         estimator=None,
@@ -607,7 +603,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from sktime.classification.dummy import DummyClassifier
+    >>> from sktime.classification import DummyClassifier
     >>> from sktime.classification.convolution_based import RocketClassifier
     >>> from sktime.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
@@ -620,17 +616,6 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
     WeightedEnsembleClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
-
-    _tags = {
-        "capability:multivariate": True,
-        "capability:missing_values": True,
-        "X_inner_mtype": [
-            "pd-multiindex",
-            "df-list",
-            "nested_univ",
-            "numpy3D",
-        ],
-    }
 
     # for default get_params/set_params from _HeterogenousMetaEstimator
     # _steps_attr points to the attribute of self
@@ -704,13 +689,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 

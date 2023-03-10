@@ -8,6 +8,7 @@ __author__ = ["fkiraly"]
 
 import pandas as pd
 import pytest
+from pandas.api.types import is_integer_dtype
 
 from sktime.forecasting.fbprophet import Prophet
 from sktime.utils.validation._dependencies import _check_soft_dependencies
@@ -37,7 +38,7 @@ def test_prophet_nonnative_index(indextype):
     y_pred = f.predict(fh=fh, X=X_test)
 
     if indextype == "range":
-        assert y_pred.index.is_integer()
+        assert is_integer_dtype(y_pred.index)
     if indextype == "period":
         assert isinstance(y_pred.index, pd.PeriodIndex)
 

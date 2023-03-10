@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""ColumnEnsembleClassifier: For Multivariate Time Series Classification.
+"""ChannelEnsembleClassifier: For Multivariate Time Series Classification.
 
-Builds classifiers on each dimension (column) independently.
+Builds classifiers on each channel (dimension) independently.
 """
 
-__author__ = ["abostrom"]
-__all__ = ["ColumnEnsembleClassifier"]
+__author__ = ["abostrom", "TonyBagnall"]
+__all__ = ["ChannelEnsembleClassifier"]
 
 from itertools import chain
 
@@ -17,19 +17,18 @@ from sktime.base import _HeterogenousMetaEstimator
 from sktime.classification.base import BaseClassifier
 
 
-class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
-    """Base Class for column ensemble."""
+class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
+    """Base Class for channel ensemble."""
 
     _tags = {
         "capability:multivariate": True,
-        "X_inner_mtype": ["nested_univ", "pd-multiindex"],
     }
 
     def __init__(self, estimators, verbose=False):
         self.verbose = verbose
         self.estimators = estimators
         self.remainder = "drop"
-        super(BaseColumnEnsembleClassifier, self).__init__()
+        super(_BaseChannelEnsembleClassifier, self).__init__()
         self._anytagis_then_set(
             "capability:unequal_length", False, True, self._estimators
         )
@@ -67,15 +66,14 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
                     "specifiers. '%s' (type %s) doesn't." % (t, type(t))
                 )
 
-    # this check whether the column input was a slice object or a tuple.
-    def _validate_column_callables(self, X):
-        """Convert callable column specifications."""
-        columns = []
-        for _, _, column in self.estimators:
-            if callable(column):
-                column = column(X)
-            columns.append(column)
-        self._columns = columns
+    def _validate_channel_callables(self, X):
+        """Convert callable channel specifications."""
+        channels = []
+        for _, _, channel in self.estimators:
+            if callable(channel):
+                channel = channel(X)
+            channels.append(channel)
+        self._channels = channels
 
     def _validate_remainder(self, X):
         """Validate ``remainder`` and defines ``_remainder``."""
@@ -88,43 +86,45 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
                 "instead" % self.remainder
             )
 
-        n_columns = X.shape[1]
+        n_channels = X.shape[1]
         cols = []
-        for columns in self._columns:
-            cols.extend(_get_column_indices(X, columns))
-        remaining_idx = sorted(list(set(range(n_columns)) - set(cols))) or None
+        for channels in self._channels:
+            cols.extend(_get_channel_indices(X, channels))
+        remaining_idx = sorted(list(set(range(n_channels)) - set(cols))) or None
 
         self._remainder = ("remainder", self.remainder, remaining_idx)
 
     def _iter(self, replace_strings=False):
-        """Generate (name, estimator, column) tuples.
+        """Generate (name, estimator, channel) tuples.
 
         If fitted=True, use the fitted transformations, else use the
-        user specified transformations updated with converted column names
+        user specified transformations updated with converted channel names
         and potentially appended with transformer for remainder.
         """
         if self.is_fitted:
             estimators = self.estimators_
         else:
-            # interleave the validated column specifiers
+            # interleave the validated channel specifiers
             estimators = [
-                (name, estimator, column)
-                for (name, estimator, _), column in zip(self.estimators, self._columns)
+                (name, estimator, channel)
+                for (name, estimator, _), channel in zip(
+                    self.estimators, self._channels
+                )
             ]
 
         # add transformer tuple for remainder
         if self._remainder[2] is not None:
             estimators = chain(estimators, [self._remainder])
 
-        for name, estimator, column in estimators:
+        for name, estimator, channel in estimators:
             if replace_strings:
                 # skip in case of 'drop'
                 if estimator == "drop":
                     continue
-                elif _is_empty_column_selection(column):
+                elif _is_empty_channel_selection(channel):
                     continue
 
-            yield name, estimator, column
+            yield name, estimator, channel
 
     def _fit(self, X, y):
         # the data passed in could be an array of dataframes?
@@ -132,7 +132,7 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : array-like or DataFrame of shape [n_samples, n_dimensions,
+        X : array-like or DataFrame of shape [n_samples, n_channels,
         n_length]
             Input data, of which specified subsets are used to fit the
             transformations.
@@ -148,9 +148,8 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
                 " tuples"
             )
 
-        # X = _check_X(X)
         self._validate_estimators()
-        self._validate_column_callables(X)
+        self._validate_channel_callables(X)
         self._validate_remainder(X)
 
         self.le_ = LabelEncoder().fit(y)
@@ -158,10 +157,10 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         transformed_y = self.le_.transform(y)
 
         estimators_ = []
-        for name, estimator, column in self._iter(replace_strings=True):
+        for name, estimator, channel in self._iter(replace_strings=True):
             estimator = estimator.clone()
-            estimator.fit(_get_column(X, column), transformed_y)
-            estimators_.append((name, estimator, column))
+            estimator.fit(_get_channel(X, channel), transformed_y)
+            estimators_.append((name, estimator, channel))
 
         self.estimators_ = estimators_
         return self
@@ -169,8 +168,8 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
     def _collect_probas(self, X):
         return np.asarray(
             [
-                estimator.predict_proba(_get_column(X, column))
-                for (name, estimator, column) in self._iter(replace_strings=True)
+                estimator.predict_proba(_get_channel(X, channel))
+                for (name, estimator, channel) in self._iter(replace_strings=True)
             ]
         )
 
@@ -184,17 +183,17 @@ class BaseColumnEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         return self.le_.inverse_transform(maj)
 
 
-class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
-    """Applies estimators to columns of an array or pandas DataFrame.
+class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
+    """Applies estimators to channels of an array.
 
-    This estimator allows different columns or column subsets of the input
+    This estimator allows different channels or channel subsets of the input
     to be transformed separately and the features generated by each
     transformer will be ensembled to form a single output.
 
     Parameters
     ----------
     estimators : list of tuples
-        List of (name, estimator, column(s)) tuples specifying the transformer
+        List of (name, estimator, channel(s)) tuples specifying the transformer
         objects to be applied to subsets of the data.
 
         name : string
@@ -204,19 +203,20 @@ class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
         estimator :  or {'drop'}
             Estimator must support `fit` and `predict_proba`. Special-cased
             strings 'drop' and 'passthrough' are accepted as well, to
-            indicate to drop the columns.
-        column(s) : array-like of string or int, slice, boolean mask array or callable.
+            indicate to drop the channels.
+        channels(s) : array-like of int, slice, boolean mask array. Integer channels
+        are indexed from 0
 
     remainder : {'drop', 'passthrough'} or estimator, default 'drop'
-        By default, only the specified columns in `transformations` are
+        By default, only the specified channels in `transformations` are
         transformed and combined in the output, and the non-specified
-        columns are dropped. (default of ``'drop'``).
-        By specifying ``remainder='passthrough'``, all remaining columns
+        channels are dropped. (default of ``'drop'``).
+        By specifying ``remainder='passthrough'``, all remaining channels
         that were not specified in `transformations` will be automatically passed
-        through. This subset of columns is concatenated with the output of
+        through. This subset of channels is concatenated with the output of
         the transformations.
         By setting ``remainder`` to be an estimator, the remaining
-        non-specified columns will use the ``remainder`` estimator. The
+        non-specified channels will use the ``remainder`` estimator. The
         estimator must support `fit` and `transform`.
 
     Examples
@@ -233,10 +233,10 @@ class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
     ...     n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
     ... )
     >>> estimators = [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]
-    >>> col_ens = ColumnEnsembleClassifier(estimators=estimators)
-    >>> col_ens.fit(X_train, y_train)
-    ColumnEnsembleClassifier(...)
-    >>> y_pred = col_ens.predict(X_test)
+    >>> channel_ens = ChannelEnsembleClassifier(estimators=estimators)
+    >>> channel_ens.fit(X_train, y_train)
+    ChannelEnsembleClassifier(...)
+    >>> y_pred = channel_ens.predict(X_test)
     """
 
     # for default get_params/set_params from _HeterogenousMetaEstimator
@@ -252,7 +252,7 @@ class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
 
     def __init__(self, estimators, remainder="drop", verbose=False):
         self.remainder = remainder
-        super(ColumnEnsembleClassifier, self).__init__(estimators, verbose=verbose)
+        super(ChannelEnsembleClassifier, self).__init__(estimators, verbose=verbose)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -263,7 +263,7 @@ class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            ColumnEnsembleClassifier provides the following special sets:
+            ChannelEnsembleClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
@@ -299,11 +299,11 @@ class ColumnEnsembleClassifier(BaseColumnEnsembleClassifier):
             }
 
 
-def _get_column(X, key):
+def _get_channel(X, key):
     """
-    Get feature column(s) from input data X.
+    Get time series channel(s) from input data X.
 
-    Supported input types (X): numpy arrays and DataFrames
+    Supported input types (X): numpy arrays
 
     Supported key types (key):
     - scalar: output is 1D
@@ -313,24 +313,22 @@ def _get_column(X, key):
     Supported key data types:
 
     - integer or boolean mask (positional):
-        - supported for arrays, sparse matrices and dataframes
+        - supported for arrays and sparse matrices
     - string (key-based):
         - only supported for dataframes
         - So no keys other than strings are allowed (while in principle you
           can use any hashable object as key).
 
     """
-    # check whether we have string column names or integers
+    # check whether we have string channel names or integers
     if _check_key_type(key, int):
-        column_names = False
-    elif _check_key_type(key, str):
-        column_names = True
+        channel_names = False
     elif hasattr(key, "dtype") and np.issubdtype(key.dtype, np.bool_):
         # boolean mask
-        column_names = True
+        channel_names = True
     else:
         raise ValueError(
-            "No valid specification of the columns. Only a "
+            "No valid specification of the channels. Only a "
             "scalar, list or slice of all integers or all "
             "strings, or boolean mask is allowed"
         )
@@ -340,10 +338,10 @@ def _get_column(X, key):
     if isinstance(key, (int, str)):
         key = [key]
 
-    if column_names:
+    if channel_names:
         if not isinstance(X, pd.DataFrame):
             raise ValueError(
-                f"X must be a pd.DataFrame if column names are "
+                f"X must be a pd.DataFrame if channel names are "
                 f"specified, but found: {type(X)}"
             )
         return X.loc[:, key]
@@ -357,13 +355,13 @@ def _check_key_type(key, superclass):
     """
     Check that scalar, list or slice is of a certain type.
 
-    This is only used in _get_column and _get_column_indices to check
-    if the `key` (column specification) is fully integer or fully string-like.
+    This is only used in _get_channel and _get_channel_indices to check
+    if the `key` (channel specification) is fully integer or fully string-like.
 
     Parameters
     ----------
     key : scalar, list, slice, array-like
-        The column specification to check
+        The channel specification to check
     superclass : int or str
         The type for which to check the `key`
 
@@ -385,14 +383,14 @@ def _check_key_type(key, superclass):
     return False
 
 
-def _get_column_indices(X, key):
+def _get_channel_indices(X, key):
     """
-    Get feature column indices for input data X and key.
+    Get feature channel indices for input data X and key.
 
-    For accepted values of `key`, see the docstring of _get_column
+    For accepted values of `key`, see the docstring of _get_channel
 
     """
-    n_columns = X.shape[1]
+    n_channels = X.shape[1]
 
     if (
         _check_key_type(key, int)
@@ -400,7 +398,7 @@ def _get_column_indices(X, key):
         and np.issubdtype(key.dtype, np.bool_)
     ):
         # Convert key into positive indexes
-        idx = np.arange(n_columns)[key]
+        idx = np.arange(n_channels)[key]
         return np.atleast_1d(idx).tolist()
     elif _check_key_type(key, str):
         try:
@@ -420,8 +418,8 @@ def _get_column_indices(X, key):
                 # pandas indexing with strings is endpoint included
                 stop = all_columns.index(stop) + 1
             else:
-                stop = n_columns + 1
-            return list(range(n_columns)[slice(start, stop)])
+                stop = n_channels + 1
+            return list(range(n_channels)[slice(start, stop)])
         else:
             columns = list(key)
 
@@ -434,7 +432,7 @@ def _get_column_indices(X, key):
         )
 
 
-def _is_empty_column_selection(column):
+def _is_empty_channel_selection(column):
     """Check if column selection is empty.
 
     Both an empty list or all-False boolean array are considered empty.

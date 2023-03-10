@@ -100,12 +100,6 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "symmetric",
-        ["transformer-pairwise", "transformer-pairwise-panel"],
-        "bool",
-        "is the transformer symmetric, i.e., t(x,y)=t(y,x) always?",
-    ),
-    (
         "scitype:X",
         "param_est",
         "str",
@@ -132,11 +126,11 @@ ESTIMATOR_TAG_REGISTER = [
                 "df-list",
             ],
         ),
-        "which machine type(s) is the internal _fit/_predict able to deal with?",
+        "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
         "X_inner_mtype",
-        ["forecaster", "transformer", "transformer-pairwise-panel", "param_est"],
+        ["forecaster", "param_est"],
         (
             "list",
             [
@@ -147,9 +141,10 @@ ESTIMATOR_TAG_REGISTER = [
                 "pd-multiindex",
                 "numpy3D",
                 "df-list",
+                "numpy-list",
             ],
         ),
-        "which machine type(s) is the internal _fit/_predict able to deal with?",
+        "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
         "scitype:transform-input",
@@ -206,8 +201,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "param_est",
             "regressor",
-            "transformer-pairwise",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the classifier classify time series with 2 or more variables?",
@@ -219,7 +212,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "regressor",
             "transformer",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the estimator handle unequal length time series?",
@@ -234,8 +226,6 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "param_est",
             "regressor",
-            "transformer-pairwise",
-            "transformer-pairwise-panel",
         ],
         "bool",
         "can the classifier handle missing data (NA, np.nan) in inputs?",
@@ -271,8 +261,8 @@ ESTIMATOR_TAG_REGISTER = [
         "can the classifier set n_jobs to use multiple threads?",
     ),
     (
-        "classifier_type",
-        "classifier",
+        "algorithm_type",
+        ["classifier", "early_classifier", "regressor", "clusterer"],
         (
             "list",
             [
@@ -281,8 +271,9 @@ ESTIMATOR_TAG_REGISTER = [
                 "feature",
                 "hybrid",
                 "interval",
-                "kernel",
+                "convolution",
                 "shapelet",
+                "deeplearning",
             ],
         ),
         "which type the classifier falls under in the taxonomy of time series "

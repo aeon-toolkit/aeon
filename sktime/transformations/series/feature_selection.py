@@ -67,7 +67,7 @@ class FeatureSelection(BaseTransformer):
     >>> from sktime.datasets import load_longley
     >>> y, X = load_longley()
     >>> transformer = FeatureSelection(method="feature-importances", n_columns=3)
-    >>> Xt = transformer.fit_transform(X, y)
+    >>> X_hat = transformer.fit_transform(X, y)
     """
 
     _tags = {
@@ -119,6 +119,9 @@ class FeatureSelection(BaseTransformer):
         """
         self.n_columns_ = self.n_columns
         self.feature_importances_ = None
+
+        if self.method == "none":
+            self.set_tags(**{"scitype:transform-output": "Primitives"})
 
         # multivariate X
         if not isinstance(X, pd.Series):

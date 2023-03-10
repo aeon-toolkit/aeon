@@ -1939,6 +1939,8 @@ def distance_factory(
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined.
     """
+    global dist_callable
+
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1948,7 +1950,8 @@ def distance_factory(
 
     callable = _resolve_metric_to_factory(metric, _x, _y, _METRIC_INFOS, **kwargs)
 
-    @njit(cache=True)
+    # TODO Not sure why, but removing this @njit, avoids recompiling the closures
+    # @njit(cache=True)
     def dist_callable(x: np.ndarray, y: np.ndarray):
         _x = _numba_to_timeseries(x)
         _y = _numba_to_timeseries(y)

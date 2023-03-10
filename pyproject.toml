@@ -1,12 +1,12 @@
 [project]
-name = "scikit-time"
+name = "aeon"
 version = "0.0.1"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "scikit.time@gmail.com"},
 ]
 maintainers = [
-    {name = "scikit-time developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "scikit.time@gmail.com"},
 ]
 readme = "README.md"
 keywords = [
@@ -32,18 +32,17 @@ classifiers = [
     "Operating System :: POSIX",
     "Operating System :: Unix",
     "Operating System :: MacOS",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
 ]
-requires-python = ">=3.7,<3.11"
+requires-python = ">=3.8,<3.11"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55",
     "numpy>=1.21.0,<1.25",
     "pandas>=1.1.0,<1.6.0",
-    "scikit-learn>=0.24.0,<1.3.0",
+    "scikit-learn>=1.0.0,<1.3.0",
     "scipy<2.0.0,>=1.2.0",
 ]
 
@@ -55,7 +54,7 @@ all_extras = [
     "filterpy>=1.4.5",
     "h5py",
     "hmmlearn>=0.2.7",
-    "gluonts>=0.9.0",
+    "gluonts>=0.9.0",  # requires pandas<2.0.0
     "keras-self-attention",
     "matplotlib>=3.3.2",
     "mne",
@@ -116,12 +115,12 @@ dl = [
 ]
 
 [project.urls]
-Homepage = "https://www.scikit-time.org"
-Repository = "https://github.com/scikit-time/scikit-time"
-Documentation = "https://www.scikit-time.org"
-Download = "https://pypi.org/project/scikit-time/#files"
-"API Reference" = "https://www.scikit-time.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.scikit-time.org/en/stable/changelog.html"
+Homepage = "https://www.aeon-toolkit.org"
+Repository = "https://github.com/aeon-toolkit/aeon"
+Documentation = "https://www.aeon-toolkit.org"
+Download = "https://pypi.org/project/aeon/#files"
+"API Reference" = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
+"Release Notes" = "https://www.aeon-toolkit.org/en/stable/changelog.html"
 
 [project.license]
 file = "LICENSE"

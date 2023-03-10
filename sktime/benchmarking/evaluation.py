@@ -21,7 +21,6 @@ class Evaluator:
     """Analyze results of machine learning experiments."""
 
     def __init__(self, results):
-
         if not isinstance(results, BaseResults):
             raise ValueError("`results` must inherit from BaseResults")
         self.results = results
@@ -121,9 +120,11 @@ class Evaluator:
             metrics_by_strategy_dataset, how="outer"
         )
         # aggregate over cv folds and datasets
-        metrics_by_strategy = metrics_by_strategy_dataset.groupby(
-            ["strategy"], as_index=False
-        ).agg(np.mean)
+        metrics_by_strategy = (
+            metrics_by_strategy_dataset.drop(columns=["dataset"])
+            .groupby(by="strategy", as_index=False)
+            .agg(np.mean)
+        )
         self._metrics_by_strategy = self._metrics_by_strategy.merge(
             metrics_by_strategy, how="outer"
         )

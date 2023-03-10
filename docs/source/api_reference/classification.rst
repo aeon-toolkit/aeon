@@ -20,7 +20,7 @@ Composition
     :template: class.rst
 
     ClassifierPipeline
-    ColumnEnsembleClassifier
+    ChannelEnsembleClassifier
     ComposableTimeSeriesForestClassifier
     SklearnClassifierPipeline
     WeightedEnsembleClassifier
@@ -55,6 +55,7 @@ Dictionary-based
     MUSE
     TemporalDictionaryEnsemble
     WEASEL
+    WEASEL_V2
 
 Distance-based
 --------------
@@ -68,17 +69,6 @@ Distance-based
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
     ShapeDTW
-
-Dummy
------
-
-.. currentmodule:: sktime.classification.dummy
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DummyClassifier
 
 Early classification
 --------------------
@@ -181,6 +171,7 @@ Base
     :template: class.rst
 
     BaseClassifier
+    DummyClassifier
 
 .. currentmodule:: sktime.classification.deep_learning.base
 

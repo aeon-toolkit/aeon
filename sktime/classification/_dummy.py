@@ -13,8 +13,8 @@ from sktime.classification.base import BaseClassifier
 class DummyClassifier(BaseClassifier):
     """DummyClassifier makes predictions that ignore the input features.
 
-    This classifier serves as a simple baseline to compare against other more
-    complex classifiers.
+    This classifier is a wrapper for SklearnDummyClassifier that serves as a simple
+    baseline to compare against other more complex classifiers.
     The specific behavior of the baseline is selected with the `strategy` parameter.
 
     All strategies make predictions that ignore the input feature values passed
@@ -61,9 +61,7 @@ class DummyClassifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_mtype": "nested_univ",
         "capability:missing_values": True,
-        "capability:unequal_length": True,
         "capability:multivariate": True,
     }
 
@@ -91,7 +89,7 @@ class DummyClassifier(BaseClassifier):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_classifier.fit(np.zeros(X.shape), y)
+        self.sklearn_dummy_classifier.fit(None, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -99,13 +97,13 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe or array-like, shape (n, d)
+        X : np.array
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
-        return self.sklearn_dummy_classifier.predict(np.zeros(X.shape))
+        return self.sklearn_dummy_classifier.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -118,7 +116,7 @@ class DummyClassifier(BaseClassifier):
         -------
         y : predictions of probabilities for class values of X, np.ndarray
         """
-        return self.sklearn_dummy_classifier.predict_proba(np.zeros(X.shape))
+        return self.sklearn_dummy_classifier.predict_proba(X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

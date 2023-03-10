@@ -450,19 +450,18 @@ class AutoETS(_StatsModelsAdapter):
                 Upper/lower interval end forecasts are equivalent to
                 quantile forecasts at alpha = 0.5 - c/2, 0.5 + c/2 for c in coverage.
         """
-        valid_indices = fh.to_absolute(self.cutoff).to_pandas()
+        idx = fh.to_absolute(self.cutoff).to_pandas()
 
-        start, end = valid_indices[[0, -1]]
+        start, end = idx[[0, -1]]
         prediction_results = self._fitted_forecaster.get_prediction(
             start=start, end=end, random_state=self.random_state
         )
 
-        pred_int = pd.DataFrame()
+        pred_int = pd.DataFrame(index=idx)
         for c in coverage:
-            pred_statsmodels = prediction_results.pred_int(1 - c)
-            pred_statsmodels.columns = ["lower", "upper"]
-            pred_int[(c, "lower")] = pred_statsmodels["lower"].loc[valid_indices]
-            pred_int[(c, "upper")] = pred_statsmodels["upper"].loc[valid_indices]
+            pred_statsmodels = prediction_results.pred_int(1 - c).loc[idx]
+            pred_statsmodels.columns = [(c, "lower"), (c, "upper")]
+            pred_int = pd.concat([pred_int, pred_statsmodels], axis=1)
         index = pd.MultiIndex.from_product([["Coverage"], coverage, ["lower", "upper"]])
         pred_int.columns = index
         return pred_int

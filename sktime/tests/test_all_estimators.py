@@ -25,10 +25,6 @@ from sklearn.utils.estimator_checks import (
 
 from sktime.base import BaseEstimator, BaseObject, load
 from sktime.classification.deep_learning.base import BaseDeepClassifier
-from sktime.dists_kernels._base import (
-    BasePairwiseTransformer,
-    BasePairwiseTransformerPanel,
-)
 from sktime.exceptions import NotFittedError
 from sktime.forecasting.base import BaseForecaster
 from sktime.registry import all_estimators
@@ -41,8 +37,8 @@ from sktime.tests._config import (
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
     VALID_ESTIMATOR_TYPES,
-    VALID_TRANSFORMER_TYPES,
 )
+from sktime.transformations.base import BaseTransformer
 from sktime.utils._testing._conditional_fixtures import (
     create_conditional_fixtures_and_names,
 )
@@ -855,7 +851,7 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
         # If the estimator inherits from more than one base estimator type, we check if
         # one of them is a transformer base type
         if n_base_types > 1:
-            assert issubclass(estimator_class, VALID_TRANSFORMER_TYPES)
+            assert issubclass(estimator_class, BaseTransformer)
 
     def test_has_common_interface(self, estimator_class):
         """Check estimator implements the common interface."""
@@ -1116,12 +1112,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         ------
         Exception if NotFittedError is not raised by non-state changing method
         """
-        # pairwise transformers are exempted from this test, since they have no fitting
-        PWTRAFOS = (BasePairwiseTransformer, BasePairwiseTransformerPanel)
-        excepted = isinstance(estimator_instance, PWTRAFOS)
-        if excepted:
-            return None
-
         # call methods without prior fitting and check that they raise NotFittedError
         with pytest.raises(NotFittedError, match=r"has not been fitted"):
             scenario.run(estimator_instance, method_sequence=[method_nsc])
