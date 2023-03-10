@@ -13,7 +13,7 @@ by default, this is off, including for default local runs of pytest
 
 __author__ = ["fkiraly"]
 
-from sktime.tests import test_all_estimators
+from aeon.tests import test_all_estimators
 
 
 def pytest_addoption(parser):
