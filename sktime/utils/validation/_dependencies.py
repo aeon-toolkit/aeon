@@ -89,7 +89,6 @@ def _check_soft_dependencies(
         raise TypeError("obj must be a class, an object, a str, or None")
 
     for package in packages:
-
         try:
             req = Requirement(package)
         except InvalidRequirement:
@@ -167,7 +166,8 @@ def _check_soft_dependencies(
                 )
 
             # raise error/warning or return False if version is incompatible
-            if pkg_env_version not in package_version_req:
+            # also accept release candidates as it can be useful for testing
+            if not package_version_req.contains(pkg_env_version, prereleases=True):
                 if severity == "error":
                     raise ModuleNotFoundError(msg)
                 elif severity == "warning":
