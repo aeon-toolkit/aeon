@@ -85,60 +85,15 @@ class ResNetNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
         super(ResNetNetwork, self).__init__()
 
-        self.n_filters = [64, 128, 128] if n_filters is None else n_filters
-        self.kernel_size = [8, 5, 3] if kernel_size is None else kernel_size
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
         self.activation = activation
         self.padding = padding
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
-
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
-
-        if isinstance(self.n_filters, list):
-            self.n_filters = self.n_filters
-        else:
-            self.n_filters = [self.n_filters] * self.n_residual_blocks
-
-        if isinstance(self.kernel_size, list):
-            self.kernel_size = self.kernel_size
-        else:
-            self.kernel_size = [self.kernel_size] * self.n_conv_per_residual_block
-
-        if isinstance(self.strides, list):
-            self.strides = self.strides
-        else:
-            self.strides = [self.strides] * self.n_conv_per_residual_block
-
-        if isinstance(self.dilation_rate, list):
-            self.dilation_rate = self.dilation_rate
-        else:
-            self.dilation_rate = [self.dilation_rate] * self.n_conv_per_residual_block
-
-        if isinstance(self.padding, list):
-            self.padding = self.padding
-        else:
-            self.padding = [self.padding] * self.n_conv_per_residual_block
-
-        if isinstance(self.activation, list):
-            self.activation = self.activation
-        else:
-            self.activation = [self.activation] * self.n_conv_per_residual_block
-
-        if isinstance(self.use_bias, list):
-            self.use_bias = self.use_bias
-        else:
-            self.use_bias = [self.use_bias] * self.n_conv_per_residual_block
-
-        assert len(self.n_filters) == self.n_residual_blocks
-        assert len(self.kernel_size) == self.n_conv_per_residual_block
-        assert len(self.strides) == self.n_conv_per_residual_block
-        assert len(self.padding) == self.n_conv_per_residual_block
-        assert len(self.dilation_rate) == self.n_conv_per_residual_block
-        assert len(self.activation) == self.n_conv_per_residual_block
-        assert len(self.use_bias) == self.n_conv_per_residual_block
-
         self.random_state = random_state
 
     def _shortcut_layer(
@@ -173,6 +128,44 @@ class ResNetNetwork(BaseDeepNetwork):
         """
         import tensorflow as tf
 
+        self._n_filters_ = [64, 128, 128] if self.n_filters is None else self.n_filters
+        self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
+
+        if isinstance(self._n_filters_, list):
+            self._n_filters = self._n_filters_
+        else:
+            self._n_filters = [self._n_filters_] * self.n_residual_blocks
+
+        if isinstance(self._kernel_size_, list):
+            self._kernel_size = self._kernel_size_
+        else:
+            self._kernel_size = [self._kernel_size_] * self.n_conv_per_residual_block
+
+        if isinstance(self.strides, list):
+            self._strides = self.strides
+        else:
+            self._strides = [self.strides] * self.n_conv_per_residual_block
+
+        if isinstance(self.dilation_rate, list):
+            self._dilation_rate = self.dilation_rate
+        else:
+            self._dilation_rate = [self.dilation_rate] * self.n_conv_per_residual_block
+
+        if isinstance(self.padding, list):
+            self._padding = self.padding
+        else:
+            self._padding = [self.padding] * self.n_conv_per_residual_block
+
+        if isinstance(self.activation, list):
+            self._activation = self.activation
+        else:
+            self._activation = [self.activation] * self.n_conv_per_residual_block
+
+        if isinstance(self.use_bias, list):
+            self._use_bias = self.use_bias
+        else:
+            self._use_bias = [self.use_bias] * self.n_conv_per_residual_block
+
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer
@@ -182,11 +175,11 @@ class ResNetNetwork(BaseDeepNetwork):
 
             for c in range(self.n_conv_per_residual_block):
                 conv = tf.keras.layers.Conv1D(
-                    filters=self.n_filters[d],
-                    kernel_size=self.kernel_size[c],
-                    strides=self.kernel_size[c],
-                    padding=self.padding[c],
-                    dilation_rate=self.dilation_rate[c],
+                    filters=self._n_filters[d],
+                    kernel_size=self._kernel_size[c],
+                    strides=self._kernel_size[c],
+                    padding=self._padding[c],
+                    dilation_rate=self._dilation_rate[c],
                 )(x)
                 conv = tf.keras.layers.BatchNormalization()(conv)
 
@@ -195,7 +188,7 @@ class ResNetNetwork(BaseDeepNetwork):
                         input_tensor=input_block_tensor, output_tensor=conv
                     )
 
-                conv = tf.keras.layers.Activation(activation=self.activation[c])(conv)
+                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
 
                 x = conv
 
