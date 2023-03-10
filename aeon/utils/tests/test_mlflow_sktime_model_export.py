@@ -60,7 +60,7 @@ def sktime_custom_env(tmp_path):
     from mlflow.utils.environment import _mlflow_conda_env
 
     conda_env = tmp_path.joinpath("conda_env.yml")
-    _mlflow_conda_env(conda_env, additional_pip_deps=["sktime"])
+    _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
     return conda_env
 
 
@@ -542,21 +542,21 @@ def test_log_model_calls_register_model(auto_arima_model, tmp_path):
 
     from aeon.utils import mlflow_sktime
 
-    artifact_path = "sktime"
+    artifact_path = "aeon"
     register_model_patch = mock.patch("mlflow.register_model")
     with mlflow.start_run(), register_model_patch:
         conda_env = tmp_path.joinpath("conda_env.yaml")
-        _mlflow_conda_env(conda_env, additional_pip_deps=["sktime"])
+        _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
         mlflow_sktime.log_model(
             sktime_model=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
-            registered_model_name="SktimeModel",
+            registered_model_name="AeonModel",
         )
         model_uri = f"runs:/{mlflow.active_run().info.run_id}/{artifact_path}"
         mlflow.register_model.assert_called_once_with(
             model_uri,
-            "SktimeModel",
+            "AeonModel",
             await_registration_for=DEFAULT_AWAIT_MAX_SLEEP_SECONDS,
         )
 
@@ -572,11 +572,11 @@ def test_log_model_no_registered_model_name(auto_arima_model, tmp_path):
 
     from aeon.utils import mlflow_sktime
 
-    artifact_path = "sktime"
+    artifact_path = "aeon"
     register_model_patch = mock.patch("mlflow.register_model")
     with mlflow.start_run(), register_model_patch:
         conda_env = tmp_path.joinpath("conda_env.yaml")
-        _mlflow_conda_env(conda_env, additional_pip_deps=["sktime"])
+        _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
         mlflow_sktime.log_model(
             sktime_model=auto_arima_model,
             artifact_path=artifact_path,

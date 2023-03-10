@@ -48,7 +48,7 @@ def _get_deps_info():
         "pip",
         "setuptools",
         "sklearn",
-        "sktime",
+        "aeon",
         "statsmodels",
         "numpy",
         "scipy",
