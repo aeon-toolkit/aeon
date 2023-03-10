@@ -67,7 +67,7 @@ class FeatureSelection(BaseTransformer):
     >>> from aeon.datasets import load_longley
     >>> y, X = load_longley()
     >>> transformer = FeatureSelection(method="feature-importances", n_columns=3)
-    >>> Xt = transformer.fit_transform(X, y)
+    >>> X_hat = transformer.fit_transform(X, y)
     """
 
     _tags = {

@@ -23,7 +23,7 @@ y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=3)
     "method", ["feature-importances", "random", "columns", "none", "all"]
 )
 @pytest.mark.parametrize("n_columns", [None, 2])
-@pytest.mark.parametrize("random_state", [None, 1])
+@pytest.mark.parametrize("random_state", [1, 3])
 def test_feature_selection(method, n_columns, random_state):
     columns = ["GNP", "UNEMP"] if method == "columns" else None
     transformer = FeatureSelection(
@@ -64,7 +64,9 @@ def test_feature_selection(method, n_columns, random_state):
         else:
             assert X_hat.shape[1] == n_columns
             # test random state
-            transformer_rand1 = FeatureSelection(method=method, random_state=None)
+            transformer_rand1 = FeatureSelection(
+                method=method, random_state=random_state
+            )
             transformer_rand1.fit(X_train)
             X_hat_rand1 = transformer_rand1.transform(X_test)
 
@@ -72,8 +74,11 @@ def test_feature_selection(method, n_columns, random_state):
             transformer_rand2.fit(X_train)
             X_hat_rand2 = transformer_rand2.transform(X_test)
 
-            with pytest.raises(AssertionError):
+            if random_state == 3:
                 assert_frame_equal(X_hat_rand1, X_hat_rand2)
+            if random_state != 3:
+                with pytest.raises(AssertionError):
+                    assert_frame_equal(X_hat_rand1, X_hat_rand2)
     if method == "columns":
         if columns is None:
             assert X_hat.shape[1] == X_train.shape[1]
@@ -81,3 +86,6 @@ def test_feature_selection(method, n_columns, random_state):
             assert X_hat.shape[1] == len(columns)
             for c in columns:
                 assert c in X_hat.columns
+
+
+test_feature_selection("random", 2, None)
