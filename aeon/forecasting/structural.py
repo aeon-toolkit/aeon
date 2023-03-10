@@ -368,18 +368,17 @@ class UnobservedComponents(_StatsModelsAdapter):
 
         start, end = valid_indices[[0, -1]]
         prediction_results = self._fitted_forecaster.get_prediction(
-            start=start, end=end, exog=X
+            start=start, end=end, exog=X, random_state=self.random_state
         )
         pred_int = pd.DataFrame()
         for c in coverage:
             alpha = 1 - c
-            pred_statsmodels = prediction_results.summary_frame(alpha=alpha)
-            pred_int[(c, "lower")] = pred_statsmodels["mean_ci_lower"].loc[
-                valid_indices
-            ]
-            pred_int[(c, "upper")] = pred_statsmodels["mean_ci_upper"].loc[
-                valid_indices
-            ]
+            pred_statsmodels = prediction_results.summary_frame(alpha=alpha)[
+                ["mean_ci_lower", "mean_ci_upper"]
+            ].loc[valid_indices]
+            pred_statsmodels.columns = [(c, "lower"), (c, "upper")]
+            pred_int = pd.concat([pred_int, pred_statsmodels], axis=1)
+
         index = pd.MultiIndex.from_product([["Coverage"], coverage, ["lower", "upper"]])
         pred_int.columns = index
         return pred_int
@@ -401,7 +400,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         initial_state=None,
         anchor=None,
         repetitions=None,
-        **kwargs
+        **kwargs,
     ):
         r"""Simulate a new time series following the state space model.
 
@@ -475,7 +474,7 @@ class UnobservedComponents(_StatsModelsAdapter):
             anchor=anchor,
             repetitions=repetitions,
             exog=X,
-            **kwargs
+            **kwargs,
         )
 
     def plot_diagnostics(

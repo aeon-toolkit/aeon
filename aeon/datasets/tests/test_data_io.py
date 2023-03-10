@@ -12,7 +12,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from pandas._testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
@@ -462,7 +462,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -489,7 +488,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -515,7 +513,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -602,7 +599,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -696,7 +692,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -736,7 +731,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -763,7 +757,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -792,7 +785,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -872,7 +864,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (
@@ -960,7 +951,6 @@ def test_load_from_tsfile_to_dataframe():
     fd, path = tempfile.mkstemp()
     try:
         with os.fdopen(fd, "w") as tmp_file:
-
             # Write the contents of the file
 
             file_contents = (

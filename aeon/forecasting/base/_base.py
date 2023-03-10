@@ -1565,7 +1565,7 @@ class BaseForecaster(BaseEstimator):
         # Workaround for slicing with negative index
         y_pred["idx"] = [x for x in range(-len(y_in_sample), len(y_out_sample))]
         y_pred = y_pred.loc[y_pred["idx"].isin(self.fh.to_indexer(self.cutoff).values)]
-        y_pred.index = self.fh.to_absolute(self.cutoff)
+        y_pred.index = self.fh.to_absolute(self.cutoff).to_pandas()
         y_pred = y_pred["y_pred"].rename(None)
         return y_pred
 
@@ -1763,7 +1763,6 @@ class BaseForecaster(BaseEstimator):
         # predict-like methods: return as list, then run through reconstruct
         # to obtain a pandas based container in one of the pandas mtype formats
         elif methodname in PREDICT_METHODS:
-
             if methodname == "update_predict_single":
                 self._yvec = y
 
@@ -2043,7 +2042,6 @@ class BaseForecaster(BaseEstimator):
             )
 
         if implements_interval:
-
             pred_int = pd.DataFrame()
             for a in alpha:
                 # compute quantiles corresponding to prediction interval coverage

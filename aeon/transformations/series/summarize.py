@@ -208,7 +208,6 @@ class WindowSummarizer(BaseTransformer):
         target_cols=None,
         truncate=None,
     ):
-
         self.lag_feature = lag_feature
         self.n_jobs = n_jobs
         self.target_cols = target_cols
@@ -521,7 +520,6 @@ ALLOWED_SUM_FUNCS = [
     "kurt",
     "var",
     "std",
-    "mad",
     "sem",
     "nunique",
     "count",
@@ -536,7 +534,7 @@ def _check_summary_function(summary_function):
     summary_function : str, list or tuple
         Either a string or list/tuple of strings indicating the pandas summary
         functions ("mean", "min", "max", "median", "sum", "skew", "kurtosis",
-        "var", "std", "mad", "sem", "nunique", "count") that is used to summarize
+        "var", "std", "sem", "nunique", "count") that is used to summarize
         each column of the dataset.
 
     Returns
@@ -567,7 +565,7 @@ def _check_quantiles(quantiles):
     quantiles : str, list, tuple or None
         Either a string or list/tuple of strings indicating the pandas summary
         functions ("mean", "min", "max", "median", "sum", "skew", "kurtosis",
-        "var", "std", "mad", "sem", "nunique", "count") that is used to summarize
+        "var", "std", "sem", "nunique", "count") that is used to summarize
         each column of the dataset.
 
     Returns
@@ -606,7 +604,7 @@ class SummaryTransformer(BaseTransformer):
         If not None, a string, or list or tuple of strings indicating the pandas
         summary functions that are used to summarize each column of the dataset.
         Must be one of ("mean", "min", "max", "median", "sum", "skew", "kurt",
-        "var", "std", "mad", "sem", "nunique", "count").
+        "var", "std", "sem", "nunique", "count").
         If None, no summaries are calculated, and quantiles must be non-None.
     quantiles : str, list, tuple or None, default=(0.1, 0.25, 0.5, 0.75, 0.9)
         Optional list of series quantiles to calculate. If None, no quantiles

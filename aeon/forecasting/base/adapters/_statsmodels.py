@@ -11,6 +11,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -50,7 +51,7 @@ class _StatsModelsAdapter(BaseForecaster):
         """
         # statsmodels does not support the pd.Int64Index as required,
         # so we coerce them here to pd.RangeIndex
-        if isinstance(y, pd.Series) and y.index.is_integer():
+        if isinstance(y, pd.Series) and is_integer_dtype(y.index):
             y, X = _coerce_int_to_range_index(y, X)
         self._fit_forecaster(y, X)
         return self

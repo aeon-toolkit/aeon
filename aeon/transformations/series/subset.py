@@ -5,6 +5,7 @@
 __author__ = ["fkiraly"]
 
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from aeon.transformations.base import BaseTransformer
 
@@ -196,7 +197,7 @@ class ColumnSelect(BaseTransformer):
 
         columns = pd.Index(columns)
 
-        if integer_treatment == "col" and columns.is_integer():
+        if integer_treatment == "col" and is_integer_dtype(columns):
             columns = [x for x in columns if x < len(X.columns)]
             col_idx = X.columns[columns]
             return X[col_idx]
