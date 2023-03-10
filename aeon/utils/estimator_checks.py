@@ -118,10 +118,6 @@ def check_estimator(
         TestAllEarlyClassifiers,
     )
     from aeon.classification.tests.test_all_classifiers import TestAllClassifiers
-    from aeon.dists_kernels.tests.test_all_dist_kernels import (
-        TestAllPairwiseTransformers,
-        TestAllPanelTransformers,
-    )
     from aeon.forecasting.tests.test_all_forecasters import TestAllForecasters
     from aeon.registry import scitype
     from aeon.regression.tests.test_all_regressors import TestAllRegressors
@@ -150,8 +146,6 @@ def check_estimator(
     testclass_dict["forecaster"] = TestAllForecasters
     testclass_dict["regressor"] = TestAllRegressors
     testclass_dict["transformer"] = TestAllTransformers
-    testclass_dict["transformer-pairwise"] = TestAllPairwiseTransformers
-    testclass_dict["transformer-pairwise-panel"] = TestAllPanelTransformers
 
     results = TestAllObjects().run_tests(
         estimator=estimator,

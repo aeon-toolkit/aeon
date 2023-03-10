@@ -25,10 +25,6 @@ from sklearn.utils.estimator_checks import (
 
 from aeon.base import BaseEstimator, BaseObject, load
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.dists_kernels._base import (
-    BasePairwiseTransformer,
-    BasePairwiseTransformerPanel,
-)
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
@@ -1116,12 +1112,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         ------
         Exception if NotFittedError is not raised by non-state changing method
         """
-        # pairwise transformers are exempted from this test, since they have no fitting
-        PWTRAFOS = (BasePairwiseTransformer, BasePairwiseTransformerPanel)
-        excepted = isinstance(estimator_instance, PWTRAFOS)
-        if excepted:
-            return None
-
         # call methods without prior fitting and check that they raise NotFittedError
         with pytest.raises(NotFittedError, match=r"has not been fitted"):
             scenario.run(estimator_instance, method_sequence=[method_nsc])

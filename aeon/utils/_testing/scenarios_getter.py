@@ -19,10 +19,6 @@ from aeon.utils._testing.scenarios_clustering import scenarios_clustering
 from aeon.utils._testing.scenarios_forecasting import scenarios_forecasting
 from aeon.utils._testing.scenarios_param_est import scenarios_param_est
 from aeon.utils._testing.scenarios_transformers import scenarios_transformers
-from aeon.utils._testing.scenarios_transformers_pairwise import (
-    scenarios_transformers_pairwise,
-    scenarios_transformers_pairwise_panel,
-)
 
 scenarios = dict()
 scenarios["classifier"] = scenarios_classification
@@ -32,8 +28,6 @@ scenarios["forecaster"] = scenarios_forecasting
 scenarios["param_est"] = scenarios_param_est
 scenarios["regressor"] = scenarios_regression
 scenarios["transformer"] = scenarios_transformers
-scenarios["transformer-pairwise"] = scenarios_transformers_pairwise
-scenarios["transformer-pairwise-panel"] = scenarios_transformers_pairwise_panel
 
 
 def retrieve_scenarios(obj, filter_tags=None):

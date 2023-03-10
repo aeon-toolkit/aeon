@@ -38,10 +38,6 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
-from aeon.dists_kernels._base import (
-    BasePairwiseTransformer,
-    BasePairwiseTransformerPanel,
-)
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.networks.base import BaseDeepNetwork
@@ -64,16 +60,6 @@ BASE_CLASS_REGISTER = [
     ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
     ("splitter", BaseSplitter, "time series splitter"),
     ("transformer", BaseTransformer, "time series transformer"),
-    (
-        "transformer-pairwise",
-        BasePairwiseTransformer,
-        "pairwise transformer for tabular data, distance or kernel",
-    ),
-    (
-        "transformer-pairwise-panel",
-        BasePairwiseTransformerPanel,
-        "pairwise transformer for panel data, distance or kernel",
-    ),
 ]
 
 

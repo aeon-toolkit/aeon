@@ -18,7 +18,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
 from aeon.datatypes._panel._check import is_nested_dataframe
-from aeon.dists_kernels import BasePairwiseTransformer, BasePairwiseTransformerPanel
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.tests._config import VALID_ESTIMATOR_TYPES
@@ -50,11 +49,7 @@ def _list_required_methods(estimator):
         BaseForecaster,
     )
     # transformation base classes that must have transform
-    BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (
-        BaseTransformer,
-        BasePairwiseTransformer,
-        BasePairwiseTransformerPanel,
-    )
+    BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (BaseTransformer,)
 
     required_methods = []
 
