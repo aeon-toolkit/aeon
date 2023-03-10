@@ -108,7 +108,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-sktime-dev/
+aeon-dev/
 
 # mkdocs documentation
 /site

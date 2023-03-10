@@ -138,7 +138,7 @@ isort = "^docs/source/examples/"
 zip-safe = true
 
 [tool.setuptools.package-data]
-sktime = [
+aeon = [
     "*.csv",
     "*.csv.gz",
     "*.arff",

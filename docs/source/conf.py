@@ -177,7 +177,7 @@ def linkcode_resolve(domain, info):
     if domain != "py" or not info["module"]:
         return None
     try:
-        filename = "sktime/%s#L%d-L%d" % find_source()
+        filename = "aeon/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (

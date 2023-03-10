@@ -54,7 +54,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-      - name: Install sktime and dependencies
+      - name: Install aeon and dependencies
         run: |
           python -m pip install .[dev]
 
@@ -76,7 +76,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-      - name: Install sktime and dependencies
+      - name: Install aeon and dependencies
         run: |
           python -m pip install .[dev]
 
@@ -112,7 +112,7 @@ jobs:
       - name: Install conda libpython
         run: conda install -c anaconda libpython
 
-      - name: Install sktime and dependencies
+      - name: Install aeon and dependencies
         run: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
@@ -144,7 +144,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
 
-      - name: Install sktime and dependencies
+      - name: Install aeon and dependencies
         run: |
           python -m pip install .[all_extras,dev] --no-cache-dir
 
