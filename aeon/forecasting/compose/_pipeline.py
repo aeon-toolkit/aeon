@@ -99,7 +99,6 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
         return estimator_tuples
 
     def _iter_transformers(self, reverse=False, fc_idx=-1):
-
         # exclude final forecaster
         steps = self.steps_[:fc_idx]
 
@@ -1214,7 +1213,6 @@ class ForecastX(BaseForecaster):
     def __init__(
         self, forecaster_y, forecaster_X, fh_X=None, behaviour="update", columns=None
     ):
-
         if behaviour not in ["update", "refit"]:
             raise ValueError('behaviour must be one of "update", "refit"')
 
@@ -1641,7 +1639,6 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
         self.estimator_ = estimator.clone()
 
         if permutation is not None:
-
             inner_estimators = getattr(estimator, steps_arg)
             estimator_tuples = self._get_estimator_tuples(inner_estimators)
 

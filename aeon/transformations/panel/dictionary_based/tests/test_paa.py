@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.utils._testing.panel import _make_nested_from_array
 

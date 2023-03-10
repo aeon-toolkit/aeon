@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import math
+
 import numpy as np
 import pandas as pd
 import pytest
-import math
+
 from aeon.transformations.panel.slope import SlopeTransformer
 from aeon.utils._testing.panel import _make_nested_from_array
 
@@ -24,7 +26,6 @@ def test_bad_input_args(bad_num_intervals):
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
-
     X = _make_nested_from_array(
         np.array([4, 6, 10, 12, 8, 6, 5, 5]), n_instances=1, n_columns=1
     )
@@ -56,7 +57,6 @@ def test_output_of_transformer():
 
 @pytest.mark.parametrize("num_intervals,corr_series_length", [(2, 2), (5, 5), (8, 8)])
 def test_output_dimensions(num_intervals, corr_series_length):
-
     X = _make_nested_from_array(np.ones(13), n_instances=10, n_columns=1)
 
     s = SlopeTransformer(num_intervals=num_intervals).fit(X)
@@ -74,7 +74,6 @@ def test_output_dimensions(num_intervals, corr_series_length):
 
 # This is to check that Slope produces the same result along each dimension
 def test_slope_performs_correcly_along_each_dim():
-
     X = _make_nested_from_array(
         np.array([4, 6, 10, 12, 8, 6, 5, 5]), n_instances=1, n_columns=2
     )

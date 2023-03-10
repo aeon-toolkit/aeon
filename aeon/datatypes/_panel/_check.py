@@ -87,7 +87,6 @@ check_dict = dict()
 
 
 def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
-
     if not isinstance(obj, list):
         msg = f"{var_name} must be list of pd.DataFrame, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -128,7 +127,6 @@ check_dict[("df-list", "Panel")] = check_dflist_panel
 
 
 def check_numpy3d_panel(obj, return_metadata=False, var_name="obj"):
-
     if not isinstance(obj, np.ndarray):
         msg = f"{var_name} must be a numpy.ndarray, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -161,7 +159,6 @@ check_dict[("numpy3D", "Panel")] = check_numpy3d_panel
 
 
 def check_pdmultiindex_panel(obj, return_metadata=False, var_name="obj", panel=True):
-
     if not isinstance(obj, pd.DataFrame):
         msg = f"{var_name} must be a pd.DataFrame, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -399,7 +396,6 @@ check_dict[("nested_univ", "Panel")] = is_nested_dataframe
 
 
 def check_numpyflat_Panel(obj, return_metadata=False, var_name="obj"):
-
     if not isinstance(obj, np.ndarray):
         msg = f"{var_name} must be a numpy.ndarray, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -434,7 +430,6 @@ if _check_soft_dependencies("dask", severity="none"):
     from aeon.datatypes._adapter.dask_to_pd import check_dask_frame
 
     def check_dask_panel(obj, return_metadata=False, var_name="obj"):
-
         return check_dask_frame(
             obj=obj,
             return_metadata=return_metadata,

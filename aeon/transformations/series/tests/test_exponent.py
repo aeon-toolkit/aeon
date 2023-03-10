@@ -7,8 +7,8 @@ __all__ = []
 
 import pytest
 
-from aeon.utils._testing.series import _make_series
 from aeon.transformations.series.exponent import ExponentTransformer, SqrtTransformer
+from aeon.utils._testing.series import _make_series
 
 power_transformers = [ExponentTransformer, SqrtTransformer]
 

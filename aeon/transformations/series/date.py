@@ -142,7 +142,6 @@ class DateTimeFeatures(BaseTransformer):
         manual_selection=None,
         keep_original_columns=True,
     ):
-
         self.ts_freq = ts_freq
         self.feature_scope = feature_scope
         self.manual_selection = manual_selection

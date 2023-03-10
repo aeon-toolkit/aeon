@@ -384,7 +384,6 @@ class BaseForecastingErrorMetric(BaseMetric):
             RecursionError("Must implement one of _evaluate or _evaluate_by_index")
 
     def _check_consistent_input(self, y_true, y_pred, multioutput, multilevel):
-
         y_true_orig = y_true
         y_pred_orig = y_pred
 
@@ -466,7 +465,6 @@ class BaseForecastingErrorMetric(BaseMetric):
         return y_true_orig, y_pred_orig, multioutput, multilevel
 
     def _check_ys(self, y_true, y_pred, multioutput, multilevel, **kwargs):
-
         SCITYPES = ["Series", "Panel", "Hierarchical"]
         INNER_MTYPES = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
 
@@ -578,7 +576,6 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         """
 
         def custom_mape(y_true, y_pred) -> float:
-
             eps = np.finfo(np.float64).eps
 
             result = np.mean(np.abs(y_true - y_pred) / np.maximum(np.abs(y_true), eps))
@@ -805,7 +802,6 @@ class MedianAbsoluteScaledError(_ScaledMetricTags, BaseForecastingErrorMetricFun
         multilevel="uniform_average",
         sp=1,
     ):
-
         self.sp = sp
         super().__init__(multioutput=multioutput, multilevel=multilevel)
 

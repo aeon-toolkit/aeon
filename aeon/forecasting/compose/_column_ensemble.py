@@ -185,7 +185,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         self.forecasters_ = []
         self.y_columns = list(y.columns)
 
-        for (name, forecaster, index) in forecasters:
+        for name, forecaster, index in forecasters:
             forecaster_ = forecaster.clone()
 
             pd_index = self._coerce_to_pd_index(index)
@@ -410,7 +410,6 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
             return _get_index(y, idx)
 
     def _check_forecasters(self, y):
-
         # if a single estimator is passed, replicate across columns
         if isinstance(self.forecasters, BaseForecaster):
             ycols = [str(col) for col in y.columns]

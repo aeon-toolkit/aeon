@@ -13,9 +13,7 @@ from sklearn.ensemble._forest import ForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.classification.base import BaseClassifier
-from aeon.series_as_features.base.estimators.interval_based import (
-    BaseTimeSeriesForest,
-)
+from aeon.series_as_features.base.estimators.interval_based import BaseTimeSeriesForest
 from aeon.series_as_features.base.estimators.interval_based._tsf import _transform
 
 

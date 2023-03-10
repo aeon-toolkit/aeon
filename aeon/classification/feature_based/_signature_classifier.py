@@ -13,9 +13,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.signature_based._checks import (
-    _handle_sktime_signatures,
-)
+from aeon.transformations.panel.signature_based._checks import _handle_sktime_signatures
 from aeon.transformations.panel.signature_based._signature_method import (
     SignatureTransformer,
 )

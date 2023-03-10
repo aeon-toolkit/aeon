@@ -29,7 +29,6 @@ __all__ = ["infer_mtype_dict"]
 import numpy as np
 import pandas as pd
 
-
 #########################################################
 # methods to infer the machine type subject to a scitype
 #########################################################
@@ -38,7 +37,6 @@ infer_mtype_dict = dict()
 
 
 def infer_mtype_Series(obj):
-
     obj_type = type(obj)
 
     infer_dict = {

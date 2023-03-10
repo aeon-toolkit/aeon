@@ -205,7 +205,6 @@ class MultiRocket(BaseTransformer):
     cache=True,
 )
 def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
-
     num_examples, input_length = X.shape
 
     dilations, num_features_per_dilation, biases = parameters
@@ -488,7 +487,6 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
     n_features_per_transform = np.int64(features.shape[1] / 2)
 
     for example_index in prange(num_examples):
-
         _X = X[example_index]
 
         A = -_X  # A = alpha * X = -X
@@ -498,7 +496,6 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
         feature_index_start = 0
 
         for dilation_index in range(num_dilations):
-
             _padding0 = dilation_index % 2
 
             dilation = dilations[dilation_index]
@@ -528,7 +525,6 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
                 start += dilation
 
             for kernel_index in range(num_kernels):
-
                 feature_index_end = feature_index_start + num_features_this_dilation
 
                 _padding1 = (_padding0 + kernel_index) % 2
@@ -620,7 +616,6 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
         feature_index_start = 0
 
         for dilation_index in range(num_dilations1):
-
             _padding0 = dilation_index % 2
 
             dilation = dilations1[dilation_index]
@@ -650,7 +645,6 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
                 start += dilation
 
             for kernel_index in range(num_kernels):
-
                 feature_index_end = feature_index_start + num_features_this_dilation
 
                 _padding1 = (_padding0 + kernel_index) % 2
@@ -1022,14 +1016,12 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed):
     feature_index_start = 0
 
     for dilation_index in range(num_dilations):
-
         dilation = dilations[dilation_index]
         padding = ((9 - 1) * dilation) // 2
 
         num_features_this_dilation = num_features_per_dilation[dilation_index]
 
         for kernel_index in range(num_kernels):
-
             feature_index_end = feature_index_start + num_features_this_dilation
 
             _X = X[np.random.randint(num_examples)]

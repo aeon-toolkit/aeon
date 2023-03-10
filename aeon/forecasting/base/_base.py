@@ -1186,9 +1186,7 @@ class BaseForecaster(BaseEstimator):
         # no input checks needed here, they will be performed
         # in predict and loss function
         # symmetric=True is default for mean_absolute_percentage_error
-        from aeon.performance_metrics.forecasting import (
-            mean_absolute_percentage_error,
-        )
+        from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 
         return mean_absolute_percentage_error(y, self.predict(fh, X))
 

@@ -9,9 +9,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from aeon.classification.compose._ensemble import ComposableTimeSeriesForestClassifier
 from aeon.transformations.panel.segment import IntervalSegmenter
-from aeon.transformations.panel.summarize._extract import (
-    RandomIntervalFeatureExtractor,
-)
+from aeon.transformations.panel.summarize._extract import RandomIntervalFeatureExtractor
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 from aeon.utils._testing.panel import make_classification_problem
 

@@ -8,7 +8,4 @@ __all__ = [
     "PresplitFilesCV",
 ]
 
-from aeon.series_as_features.model_selection._split import (
-    PresplitFilesCV,
-    SingleSplit,
-)
+from aeon.series_as_features.model_selection._split import PresplitFilesCV, SingleSplit

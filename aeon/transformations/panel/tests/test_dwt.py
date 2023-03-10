@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import math
+
 import numpy as np
 import pandas as pd
 import pytest
-import math
+
 from aeon.transformations.panel.dwt import DWTTransformer
 from aeon.utils._testing.panel import _make_nested_from_array
 
@@ -24,7 +26,6 @@ def test_bad_input_args(bad_num_levels):
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
-
     X = _make_nested_from_array(
         np.array([4, 6, 10, 12, 8, 6, 5, 5]), n_instances=1, n_columns=1
     )
@@ -64,7 +65,6 @@ def test_output_of_transformer():
 
 # This is to test that if num_levels = 0 then no change occurs.
 def test_no_levels_does_no_change():
-
     X = _make_nested_from_array(
         np.array([1, 2, 3, 4, 5, 56]), n_instances=1, n_columns=1
     )
@@ -75,7 +75,6 @@ def test_no_levels_does_no_change():
 
 @pytest.mark.parametrize("num_levels,corr_series_length", [(2, 12), (3, 11), (4, 12)])
 def test_output_dimensions(num_levels, corr_series_length):
-
     X = _make_nested_from_array(np.ones(13), n_instances=10, n_columns=1)
 
     d = DWTTransformer(num_levels=num_levels).fit(X)
@@ -93,7 +92,6 @@ def test_output_dimensions(num_levels, corr_series_length):
 
 # This is to check that DWT produces the same result along each dimension
 def test_dwt_performs_correcly_along_each_dim():
-
     X = _make_nested_from_array(
         np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), n_instances=1, n_columns=2
     )

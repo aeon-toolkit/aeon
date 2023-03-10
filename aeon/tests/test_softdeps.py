@@ -32,7 +32,7 @@ SOFT_DEPENDENCIES = {
     "aeon.clustering.evaluation._plot_clustering": ["matplotlib"],
 }
 
-MODULES_TO_IGNORE = ("aeon.utils._testing")
+MODULES_TO_IGNORE = "aeon.utils._testing"
 
 # estimators excepted from checking that they raise no import exception when constructed
 # for the reason that they are composites which have soft dependencies in examples

@@ -210,9 +210,7 @@ def all_estimators(
         warnings.filterwarnings(
             "ignore", category=UserWarning, message=".*has been moved to.*"
         )
-        for module_name in _walk(
-            root=ROOT, exclude=MODULES_TO_IGNORE, prefix="aeon."
-        ):
+        for module_name in _walk(root=ROOT, exclude=MODULES_TO_IGNORE, prefix="aeon."):
             # Filter modules
             if _is_private_module(module_name):
                 continue

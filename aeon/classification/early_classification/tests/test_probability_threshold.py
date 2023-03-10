@@ -5,9 +5,7 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from aeon.classification.early_classification import (
-    ProbabilityThresholdEarlyClassifier,
-)
+from aeon.classification.early_classification import ProbabilityThresholdEarlyClassifier
 from aeon.classification.early_classification.tests.test_all_early_classifiers import (  # noqa: E501
     load_unit_data,
 )

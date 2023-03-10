@@ -54,7 +54,6 @@ def _ret(valid, msg, metadata, return_metadata):
 
 
 def check_pddataframe_table(obj, return_metadata=False, var_name="obj"):
-
     metadata = dict()
 
     if not isinstance(obj, pd.DataFrame):
@@ -84,7 +83,6 @@ check_dict[("pd_DataFrame_Table", "Table")] = check_pddataframe_table
 
 
 def check_pdseries_table(obj, return_metadata=False, var_name="obj"):
-
     metadata = dict()
 
     if not isinstance(obj, pd.Series):
@@ -114,7 +112,6 @@ check_dict[("pd_Series_Table", "Table")] = check_pdseries_table
 
 
 def check_numpy1d_table(obj, return_metadata=False, var_name="obj"):
-
     metadata = dict()
 
     if not isinstance(obj, np.ndarray):
@@ -141,7 +138,6 @@ check_dict[("numpy1D", "Table")] = check_numpy1d_table
 
 
 def check_numpy2d_table(obj, return_metadata=False, var_name="obj"):
-
     metadata = dict()
 
     if not isinstance(obj, np.ndarray):
@@ -167,7 +163,6 @@ check_dict[("numpy2D", "Table")] = check_numpy2d_table
 
 
 def check_list_of_dict_table(obj, return_metadata=False, var_name="obj"):
-
     metadata = dict()
 
     if not isinstance(obj, list):

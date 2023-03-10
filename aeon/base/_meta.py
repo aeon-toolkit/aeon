@@ -94,7 +94,6 @@ class _HeterogenousMetaEstimator:
         return True
 
     def _get_params(self, attr, deep=True, fitted=False):
-
         if fitted:
             method = "_get_fitted_params"
             deepkw = {}

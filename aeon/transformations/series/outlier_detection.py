@@ -68,7 +68,6 @@ class HampelFilter(BaseTransformer):
     }
 
     def __init__(self, window_length=10, n_sigma=3, k=1.4826, return_bool=False):
-
         self.window_length = window_length
         self.n_sigma = n_sigma
         self.k = k
@@ -176,7 +175,6 @@ def _hampel_filter(Z, cv, n_sigma, half_window_length, k):
             cv_window[0] <= half_window_length
             or cv_window[-1] >= len(Z) - half_window_length
         ) and (cv_window[0] in [0, len(Z) - cv.window_length - 1]):
-
             # first half of the first window
             if cv_window[0] <= half_window_length:
                 idx_range = range(cv_window[0], half_window_length + 1)

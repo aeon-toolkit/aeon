@@ -10,10 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.transformations.series.summarize import (
-    ALLOWED_SUM_FUNCS,
-    SummaryTransformer,
-)
+from aeon.transformations.series.summarize import ALLOWED_SUM_FUNCS, SummaryTransformer
 from aeon.utils._testing.series import _make_series
 
 # Test individual summary functions + lists and tuples of all summary functions
