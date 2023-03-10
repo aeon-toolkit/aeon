@@ -15,6 +15,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 # We currently support the following types for input data and time index types.
 VALID_DATA_TYPES = (pd.DataFrame, pd.Series, np.ndarray)
@@ -27,7 +28,7 @@ assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 
 def is_integer_index(x) -> bool:
     """Check that the input is an integer pd.Index."""
-    return isinstance(x, pd.Index) and x.is_integer()
+    return isinstance(x, pd.Index) and is_integer_dtype(x)
 
 
 def is_in_valid_index_types(x) -> bool:

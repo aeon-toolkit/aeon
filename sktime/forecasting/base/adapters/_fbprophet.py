@@ -9,6 +9,7 @@ __all__ = ["_ProphetAdapter"]
 import os
 
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from sktime.forecasting.base import BaseForecaster
 
@@ -41,7 +42,7 @@ class _ProphetAdapter(BaseForecaster):
         elif type(y.index) is pd.PeriodIndex:
             y = y.copy()
             y.index = y.index.to_timestamp()
-        elif y.index.is_integer():
+        elif is_integer_dtype(y.index):
             y = self._convert_int_to_date(y)
         # else y is pd.DatetimeIndex as prophet expects, and needs no conversion
         return y
@@ -49,7 +50,7 @@ class _ProphetAdapter(BaseForecaster):
     def _remember_y_input_index_type(self, y):
         """Remember input type of y by setting attributes, for use in _fit."""
         self.y_index_was_period_ = type(y.index) is pd.PeriodIndex
-        self.y_index_was_int_ = y.index.is_integer()
+        self.y_index_was_int_ = is_integer_dtype(y.index)
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -107,7 +108,6 @@ class _ProphetAdapter(BaseForecaster):
 
         # Add floor and bottom when growth is logistic
         if self.growth == "logistic":
-
             if self.growth_cap is None:
                 raise ValueError(
                     "Since `growth` param is set to 'logistic', expecting `growth_cap`"
@@ -144,7 +144,7 @@ class _ProphetAdapter(BaseForecaster):
             X = X.copy()
             X = X.loc[self.fh.to_absolute(self.cutoff).to_pandas()]
             X.index = X.index.to_timestamp()
-        elif X.index.is_integer():
+        elif is_integer_dtype(X.index):
             X = X.copy()
             X = X.loc[self.fh.to_absolute(self.cutoff).to_numpy()]
             X.index = fh
@@ -202,7 +202,7 @@ class _ProphetAdapter(BaseForecaster):
         y_pred.columns = self._y.columns
 
         if self.y_index_was_int_ or self.y_index_was_period_:
-            y_pred.index = self.fh.to_absolute(cutoff=self.cutoff)
+            y_pred.index = self.fh.to_absolute(cutoff=self.cutoff).to_pandas()
 
         return y_pred
 
@@ -353,7 +353,8 @@ class _suppress_stdout_stderr(object):
     A context manager for doing a "deep suppression" of stdout and stderr in
     Python, i.e. will suppress all print, even if the print originates in a
     compiled C/Fortran sub-function.
-       This will not suppress raised exceptions, since exceptions are printed
+
+    This will not suppress raised exceptions, since exceptions are printed
     to stderr just before a script exits, and after the context manager has
     exited (at least, I think that is why it lets exceptions through).
 

@@ -8,6 +8,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_integer_dtype
 
 from sktime.transformations.base import BaseTransformer
 from sktime.utils.multiindex import flatten_multiindex
@@ -138,7 +139,6 @@ class Lag(BaseTransformer):
         flatten_transform_index=True,
         keep_column_names=False,
     ):
-
         self.lags = lags
         self.freq = freq
         self.index_out = index_out
@@ -223,7 +223,7 @@ class Lag(BaseTransformer):
         for lag, freq in shift_params:
             # need to deal separately with RangeIndex
             # because shift always cuts off the end values
-            if isinstance(lag, int) and X.index.is_integer():
+            if isinstance(lag, int) and is_integer_dtype(X.index):
                 Xt = X.copy()
                 Xt.index = X.index + lag
                 X_orig_idx_shifted = X_orig_idx + lag
@@ -440,7 +440,6 @@ class ReducerTransform(BaseTransformer):
         transformers=None,
         impute_method="bfill",
     ):
-
         self.lags = lags
         self.freq = freq
         self.shifted_vars = shifted_vars
