@@ -546,11 +546,9 @@ class BaseTransformer(BaseEstimator):
 
         # convert to output mtype
         if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
+            Xt = self._convert_output(Xt, metadata=metadata)
 
-        return X_out
+        return Xt
 
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
