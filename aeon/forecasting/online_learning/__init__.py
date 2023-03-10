@@ -11,10 +11,8 @@ __all__ = [
     "OnlineEnsembleForecaster",
 ]
 
+from aeon.forecasting.online_learning._online_ensemble import OnlineEnsembleForecaster
 from aeon.forecasting.online_learning._prediction_weighted_ensembler import (
-    NormalHedgeEnsemble,
     NNLSEnsemble,
-)
-from aeon.forecasting.online_learning._online_ensemble import (
-    OnlineEnsembleForecaster,
+    NormalHedgeEnsemble,
 )

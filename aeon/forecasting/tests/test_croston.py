@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from aeon.forecasting.croston import Croston
-from aeon.datasets import load_PBS_dataset
-import pytest
 import numpy as np
+import pytest
+
+from aeon.datasets import load_PBS_dataset
+from aeon.forecasting.croston import Croston
 
 # test the Croston's Method against the R package
 

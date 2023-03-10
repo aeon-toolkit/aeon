@@ -182,7 +182,6 @@ class TapNetNetwork(BaseDeepNetwork):
         self.rp_group, self.rp_dim = self.rp_params
 
         if self.use_lstm:
-
             self.lstm_dim = 128
 
             x_lstm = keras.layers.LSTM(self.lstm_dim, return_sequences=True)(
@@ -202,7 +201,6 @@ class TapNetNetwork(BaseDeepNetwork):
                 self.conv_1_models = keras.Sequential()
 
                 for i in range(self.rp_group):
-
                     self.idx = np.random.permutation(input_shape[1])[0 : self.rp_dim]
                     channel = keras.layers.Lambda(
                         lambda x: tf.gather(x, indices=self.idx, axis=2)
@@ -257,7 +255,6 @@ class TapNetNetwork(BaseDeepNetwork):
                 x_conv = x_conv_sum
 
             else:
-
                 x_conv = keras.layers.Conv1D(
                     self.filter_sizes[0],
                     kernel_size=self.kernel_size[0],

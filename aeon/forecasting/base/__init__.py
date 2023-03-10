@@ -8,5 +8,5 @@ __all__ = [
     "BaseForecaster",
 ]
 
-from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.forecasting.base._base import BaseForecaster
+from aeon.forecasting.base._fh import ForecastingHorizon

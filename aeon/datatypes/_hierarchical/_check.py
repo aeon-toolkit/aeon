@@ -76,7 +76,6 @@ def _ret(valid, msg, metadata, return_metadata):
 
 
 def check_pdmultiindex_hierarchical(obj, return_metadata=False, var_name="obj"):
-
     ret = check_pdmultiindex_panel(
         obj, return_metadata=return_metadata, var_name=var_name, panel=False
     )
@@ -91,7 +90,6 @@ if _check_soft_dependencies("dask", severity="none"):
     from aeon.datatypes._adapter.dask_to_pd import check_dask_frame
 
     def check_dask_hierarchical(obj, return_metadata=False, var_name="obj"):
-
         return check_dask_frame(
             obj=obj,
             return_metadata=return_metadata,

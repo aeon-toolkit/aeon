@@ -596,7 +596,6 @@ class NaiveVariance(BaseForecaster):
     }
 
     def __init__(self, forecaster, initial_window=1, verbose=False):
-
         self.forecaster = forecaster
         self.initial_window = initial_window
         self.verbose = verbose
@@ -614,7 +613,6 @@ class NaiveVariance(BaseForecaster):
         self.clone_tags(self.forecaster, tags_to_clone)
 
     def _fit(self, y, X=None, fh=None):
-
         self.fh_early_ = fh is not None
         self.forecaster_ = self.forecaster.clone()
         self.forecaster_.fit(y=y, X=X, fh=fh)

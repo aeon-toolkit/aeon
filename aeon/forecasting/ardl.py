@@ -230,7 +230,6 @@ class ARDL(_StatsModelsAdapter):
         X_oos=None,
         dynamic=False,
     ):
-
         # Model Params
         self.lags = lags
         self.order = order

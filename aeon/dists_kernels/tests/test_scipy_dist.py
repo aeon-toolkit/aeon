@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from aeon.utils._testing.panel import make_transformer_problem
 from aeon.dists_kernels.scipy_dist import ScipyDist
+from aeon.utils._testing.panel import make_transformer_problem
 
 X1 = make_transformer_problem(
     n_instances=5,

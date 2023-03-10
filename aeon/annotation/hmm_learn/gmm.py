@@ -137,7 +137,6 @@ class GMMHMM(BaseHMMLearn):
         init_params: str = "stmcw",
         implementation: str = "log",
     ):
-
         self.n_components = n_components
         self.n_mix = n_mix
         self.min_covar = min_covar

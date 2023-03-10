@@ -112,7 +112,6 @@ class ConformalIntervals(BaseForecaster):
         verbose=False,
         n_jobs=None,
     ):
-
         if not isinstance(method, str):
             raise TypeError(f"method must be a str, one of {self.ALLOWED_METHODS}")
 
@@ -295,7 +294,6 @@ class ConformalIntervals(BaseForecaster):
         return pred_int
 
     def _parse_initial_window(self, y, initial_window=None):
-
         n_samples = len(y)
 
         if initial_window is None:

@@ -58,7 +58,6 @@ class VectorizedDF:
     def __init__(
         self, X, y=None, iterate_as="Series", is_scitype="Panel", iterate_cols=False
     ):
-
         self.X = X
 
         if is_scitype is None:

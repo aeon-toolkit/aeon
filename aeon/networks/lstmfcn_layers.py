@@ -182,7 +182,7 @@ def make_attention_lstm():
             recurrent_dropout=0.0,
             return_attention=False,
             implementation=1,
-            **kwargs
+            **kwargs,
         ):
             super(AttentionLSTMCell, self).__init__(**kwargs)
             self.input_spec = [InputSpec(ndim=2)]
@@ -634,7 +634,7 @@ def make_attention_lstm():
             go_backwards=False,
             stateful=False,
             unroll=False,
-            **kwargs
+            **kwargs,
         ):
             import warnings
 
@@ -690,7 +690,7 @@ def make_attention_lstm():
                 go_backwards=go_backwards,
                 stateful=stateful,
                 unroll=unroll,
-                **kwargs
+                **kwargs,
             )
             self.return_attention = return_attention
 
