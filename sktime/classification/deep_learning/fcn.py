@@ -177,18 +177,18 @@ class FCNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        self.callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(
-                filepath=self.file_path + "best_model.hdf5",
-                monitor="loss",
-                save_best_only=True,
-            ),
-            tf.keras.callbacks.ReduceLROnPlateau(
-                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-            )
-            if self.callbacks is None
-            else self.callbacks,
-        ]
+        # self.callbacks = [
+        #     tf.keras.callbacks.ModelCheckpoint(
+        #         filepath=self.file_path + "best_model.hdf5",
+        #         monitor="loss",
+        #         save_best_only=True,
+        #     ),
+        #     tf.keras.callbacks.ReduceLROnPlateau(
+        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+        #     )
+        #     if self.callbacks is None
+        #     else self.callbacks,
+        # ]
 
         return model
 
@@ -230,19 +230,21 @@ class FCNClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
-        try:
-            import os
+        return self
 
-            import tensorflow as tf
+        # try:
+        #     import os
 
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + "best_model.hdf5", compile=False
-            )
-            os.remove(self.file_path + "best_model.hdf5")
+        #     import tensorflow as tf
 
-            return self
-        except FileNotFoundError:
-            return self
+        #     self.model_ = tf.keras.models.load_model(
+        #         self.file_path + "best_model.hdf5", compile=False
+        #     )
+        #     os.remove(self.file_path + "best_model.hdf5")
+
+        #     return self
+        # except FileNotFoundError:
+        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
