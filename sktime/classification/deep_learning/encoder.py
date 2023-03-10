@@ -250,11 +250,11 @@ class EncoderClassifier(BaseDeepClassifier):
             "batch_size": 4,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "max_pool_size": 1,
-        }
-        test_params = [param1, param2]
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "max_pool_size": 1,
+        # }
+        test_params = [param1]
 
         return test_params

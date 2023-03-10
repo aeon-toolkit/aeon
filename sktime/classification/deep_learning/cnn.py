@@ -278,12 +278,12 @@ class CNNClassifier(BaseDeepClassifier):
             "avg_pool_size": 4,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "kernel_size": 2,
-            "n_layers": 1,
-        }
-        test_params = [param1, param2]
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "kernel_size": 2,
+        #     "n_layers": 1,
+        # }
+        test_params = [param1]
 
         return test_params

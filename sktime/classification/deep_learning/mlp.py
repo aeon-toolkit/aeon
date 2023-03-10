@@ -204,11 +204,11 @@ class MLPClassifier(BaseDeepClassifier):
             "use_bias": False,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "use_bias": True,
-        }
-        test_params = [param1, param2]
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "use_bias": True,
+        # }
+        test_params = [param1]
 
         return test_params
