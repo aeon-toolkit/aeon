@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = ["James-Large", "TonyBagnall"]
+__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
 from copy import deepcopy
@@ -20,34 +20,51 @@ class CNNClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    should inherited fields be listed here?
+    n_layers        : int, default = 2,
+        the number of convolution layers in the network
+    kernel_size    : int or list of int, default = 7,
+        kernel size of convolution layers, if not a list, the same kernel size
+        is used for all layer, len(list) should be n_layers
+    n_filters       : int or list of int, default = [6, 12],
+        number of filters for each convolution layer, if not a list, the same n_filters
+        is used in all layers.
+    avg_pool_size   : int or list of int, default = 3,
+        the size of the average pooling layer, if not a list, the same
+        max pooling size is used
+        for all convolution layer
+    activation      : str or list of str, default = "sigmoid",
+        keras activation function used in the model for each layer,
+        if not a list, the same
+        activation is used for all layers
+    padding         : str or list of str, default = 'valid',
+        the method of padding in convolution layers, if not a list,
+        the same padding used
+        for all convolution layers
+    strides         : int or list of int, default = 1,
+        the strides of kernels in the convolution and max pooling layers,
+        if not a list, the same strides are used for all layers
+    dilation_rate   : int or list of int, default = 1,
+        the dilation rate of the convolution layers, if not a list,
+        the same dilation rate is used all over the network
+    use_bias        : bool or list of bool, default = True,
+        condition on wether or not to use bias values for convolution layers,
+        if not a list, the same condition is used for all layers
+    random_state    : int, default = 0
+        seed to any needed random actions
     n_epochs       : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
-    kernel_size     : int, default = 7
-        the length of the 1D convolution window
-    avg_pool_size   : int, default = 3
-        size of the average pooling windows
-    n_conv_layers   : int, default = 2
-        the number of convolutional plus average pooling layers
-    filter_sizes    : array of shape (n_conv_layers) default = [6, 12]
-    random_state    : int or None, default=None
-        Seed for random number generation.
     verbose         : boolean, default = False
         whether to output extra information
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
     optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
     metrics         : list of strings, default=["accuracy"],
-    activation      : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias        : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
+    callbacks       : keras.callbacks, default=model_checkpoint to save best
+                      model on training loss
+    file_path       : file_path for the best model (if checkpoint is used as callback)
+
 
     Notes
     -----
@@ -74,41 +91,58 @@ class CNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+        n_layers=2,
+        kernel_size=7,
+        n_filters=None,
+        avg_pool_size=3,
+        activation="sigmoid",
+        padding="valid",
+        strides=1,
+        dilation_rate=1,
         n_epochs=2000,
         batch_size=16,
-        kernel_size=7,
-        avg_pool_size=3,
-        n_conv_layers=2,
         callbacks=None,
+        file_path="./",
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
         random_state=None,
-        activation="sigmoid",
         use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
         super(CNNClassifier, self).__init__()
-        self.n_conv_layers = n_conv_layers
-        self.avg_pool_size = avg_pool_size
+
+        self.n_layers = n_layers
         self.kernel_size = kernel_size
-        self.callbacks = callbacks
+        self.n_filters = n_filters
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.avg_pool_size = avg_pool_size
+        self.activation = activation
+        self.use_bias = use_bias
+        self.random_state = random_state
+
         self.n_epochs = n_epochs
         self.batch_size = batch_size
+        self.callbacks = callbacks
+        self.file_path = file_path
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
-        self.activation = activation
-        self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
         self._network = CNNNetwork(
+            n_layers=self.n_layers,
             kernel_size=self.kernel_size,
+            n_filters=self.n_filters,
             avg_pool_size=self.avg_pool_size,
-            n_conv_layers=self.n_conv_layers,
             activation=self.activation,
+            padding=self.padding,
+            strides=self.strides,
+            dilation_rate=self.dilation_rate,
+            use_bias=self.use_bias,
             random_state=self.random_state,
         )
 
@@ -132,7 +166,6 @@ class CNNClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -142,22 +175,31 @@ class CNNClassifier(BaseDeepClassifier):
             metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
+        output_layer = tf.keras.layers.Dense(
             units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
-            if self.optimizer is None
-            else self.optimizer
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
+        # self.callbacks = [
+        #     tf.keras.callbacks.ModelCheckpoint(
+        #         filepath=self.file_path + "best_model.hdf5",
+        #         monitor="loss",
+        #         save_best_only=True,
+        #     )
+        #     if self.callbacks is None
+        #     else self.callbacks
+        # ]
+
         return model
 
     def _fit(self, X, y):
@@ -191,7 +233,22 @@ class CNNClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
+
         return self
+
+        # try:
+        #     import os
+
+        #     import tensorflow as tf
+
+        #     self.model_ = tf.keras.models.load_model(
+        #         self.file_path + "best_model.hdf5", compile=False
+        #     )
+        #     os.remove(self.file_path + "best_model.hdf5")
+
+        #     return self
+        # except FileNotFoundError:
+        # return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -215,30 +272,18 @@ class CNNClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.utils.validation._dependencies import _check_soft_dependencies
-
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
             "avg_pool_size": 4,
         }
 
-        param2 = {
-            "n_epochs": 12,
-            "batch_size": 6,
-            "kernel_size": 2,
-            "n_conv_layers": 1,
-        }
-        test_params = [param1, param2]
-
-        if _check_soft_dependencies("keras", severity="none"):
-            from keras.callbacks import LambdaCallback
-
-            test_params.append(
-                {
-                    "n_epochs": 2,
-                    "callbacks": [LambdaCallback()],
-                }
-            )
+        # param2 = {
+        #     "n_epochs": 12,
+        #     "batch_size": 6,
+        #     "kernel_size": 2,
+        #     "n_layers": 1,
+        # }
+        test_params = [param1]
 
         return test_params

@@ -95,7 +95,7 @@ class CNNRegressor(BaseDeepRegressor):
         self._network = CNNNetwork(
             kernel_size=self.kernel_size,
             avg_pool_size=self.avg_pool_size,
-            n_conv_layers=self.n_conv_layers,
+            n_layers=self.n_conv_layers,
             activation=self.activation,
             random_state=self.random_state,
         )

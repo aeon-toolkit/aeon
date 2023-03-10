@@ -1,97 +1,118 @@
 # -*- coding: utf-8 -*-
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Encoder Classifier."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
-__all__ = ["MLPClassifier"]
+__author__ = ["hadifawaz1999"]
+__all__ = ["EncoderClassifier"]
 
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
-
-from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.mlp import MLPNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from sktime.classification.deep_learning import BaseDeepClassifier
+from sktime.networks.encoder import EncoderNetwork
+from sktime.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 
 
-class MLPClassifier(BaseDeepClassifier):
-    """Multi Layer Perceptron Network (MLP), as described in [1]_.
+class EncoderClassifier(BaseDeepClassifier):
+    """
+    Establish the network structure for an Encoder.
+
+    Adapted from the implementation used in [1]
 
     Parameters
     ----------
-    should inherited fields be listed here?
-    n_epochs       : int, default = 2000
-        the number of epochs to train the model
-    batch_size      : int, default = 16
-        the number of samples per gradient update.
-    random_state    : int or None, default=None
-        Seed for random number generation.
-    verbose         : boolean, default = False
-        whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : list of strings, default=["accuracy"],
-    activation      : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias        : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
+    kernel_size    : array of int, default = [5, 11, 21]
+        specifying the length of the 1D convolution windows
+    n_filters       : array of int, default = [128, 256, 512]
+        specifying the number of 1D convolution filters used for each layer,
+        the shape of this array should be the same as kernel_size
+    max_pool_size   : int, default = 2
+        size of the max pooling windows
+    activation      : string, default = sigmoid
+        keras activation function
+    dropout_proba   : float, default = 0.2
+        specifying the dropout layer probability
+    padding         : string, default = same
+        specifying the type of padding used for the 1D convolution
+    strides         : int, default = 1
+        specifying the sliding rate of the 1D convolution filter
+    fc_units        : int, default = 256
+        specifying the number of units in the hiddent fully
+        connected layer used in the EncoderNetwork
+    random_state    : int, default = 0
+        seed to any needed random actions
 
     Notes
     -----
-    Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/mlp.py
+    Adapted from source code
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
 
     References
     ----------
-    .. [1] Wang et. al, Time series classification from
-    scratch with deep neural networks: A strong baseline,
-    International joint conference on neural networks (IJCNN), 2017.
+    .. [1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
+    In proceedings International Conference of the Catalan Association
+    for Artificial Intelligence, 120--129 2018.
 
-    Examples
-    --------
-    >>> from aeon.classification.deep_learning.mlp import MLPClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> mlp = MLPClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
-    >>> mlp.fit(X_train, y_train)  # doctest: +SKIP
-    MLPClassifier(...)
+
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
+        n_epochs=100,
+        batch_size=12,
+        kernel_size=None,
+        n_filters=None,
+        dropout_proba=0.2,
+        activation="sigmoid",
+        max_pool_size=2,
+        padding="same",
+        strides=1,
+        fc_units=256,
         callbacks=None,
+        file_path="./",
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
         random_state=None,
-        activation="sigmoid",
         use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(MLPClassifier, self).__init__()
+        super(EncoderClassifier, self).__init__()
+
+        self.n_filters = n_filters
+        self.max_pool_size = max_pool_size
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.activation = activation
+        self.padding = padding
+        self.dropout_proba = dropout_proba
+        self.fc_units = fc_units
+
         self.callbacks = callbacks
+        self.file_path = file_path
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.random_state = random_state
-        self.activation = activation
         self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
-        self._network = MLPNetwork(
+
+        self._network = EncoderNetwork(
+            kernel_size=self.kernel_size,
+            max_pool_size=self.max_pool_size,
+            n_filters=self.n_filters,
+            fc_units=self.fc_units,
+            strides=self.strides,
+            padding=self.padding,
+            dropout_proba=self.dropout_proba,
+            activation=self.activation,
             random_state=self.random_state,
         )
 
@@ -115,7 +136,6 @@ class MLPClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
@@ -125,22 +145,33 @@ class MLPClassifier(BaseDeepClassifier):
             metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
+        output_layer = tf.keras.layers.Dense(
             units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
+            tf.keras.optimizers.Adam(learning_rate=0.00001)
             if self.optimizer is None
             else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
+        # self.callbacks = [
+        #     tf.keras.callbacks.ModelCheckpoint(
+        #         filepath=self.file_path + "best_model.hdf5",
+        #         monitor="loss",
+        #         save_best_only=True,
+        #     )
+        #     if self.callbacks is None
+        #     else self.callbacks
+        # ]
+
         return model
 
     def _fit(self, X, y):
@@ -174,7 +205,22 @@ class MLPClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
+
         return self
+
+        # try:
+        #     import os
+
+        #     import tensorflow as tf
+
+        #     self.model_ = tf.keras.models.load_model(
+        #         self.file_path + "best_model.hdf5", compile=False
+        #     )
+        #     os.remove(self.file_path + "best_model.hdf5")
+
+        #     return self
+        # except FileNotFoundError:
+        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -201,13 +247,12 @@ class MLPClassifier(BaseDeepClassifier):
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "use_bias": False,
         }
 
         # param2 = {
         #     "n_epochs": 12,
         #     "batch_size": 6,
-        #     "use_bias": True,
+        #     "max_pool_size": 1,
         # }
         test_params = [param1]
 

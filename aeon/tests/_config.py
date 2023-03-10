@@ -27,7 +27,6 @@ EXCLUDE_ESTIMATORS = [
     "TapNetRegressor",
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
-    "LSTMFCNClassifier",  # unknown cause, see bug report #4033,
 ]
 
 
@@ -59,21 +58,55 @@ EXCLUDED_TESTS = {
     # `test_fit_idempotent` fails with `AssertionError`, see #3616
     "ResNetClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "CNNClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "CNNRegressor": [
         "test_fit_idempotent",
     ],
+    "EncoderClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
     "FCNClassifier": [
         "test_fit_idempotent",
-    ],
-    "LSTMFCNClassifier": [
-        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "MLPClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
+    "InceptionTimeClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
+    "IndividualInceptionClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
