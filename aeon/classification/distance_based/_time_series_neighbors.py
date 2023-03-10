@@ -37,7 +37,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
             'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
-        this will substitute a hard-coded distance metric from sktime.distances
+        this will substitute a hard-coded distance metric from aeon.distances
         When mpdist is used, the subsequence length (parameter m) must be set
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 metric='mpdist', metric_params={'m':30})

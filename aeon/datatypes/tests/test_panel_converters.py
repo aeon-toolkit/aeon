@@ -256,7 +256,7 @@ def test_from_multiindex_to_listdataset(n_instances, n_columns, n_timepoints):
 
     from aeon.datatypes import convert_to
 
-    # from sktime.datatypes._adapters import convert_from_multiindex_to_listdataset
+    # from aeon.datatypes._adapters import convert_from_multiindex_to_listdataset
 
     def random_datetimes_or_dates(
         start, end, out_format="datetime", n=10, random_seed=42
@@ -287,7 +287,6 @@ def test_from_multiindex_to_listdataset(n_instances, n_columns, n_timepoints):
     def _make_example_multiindex(
         n_instances, n_columns, n_timepoints, random_seed=42
     ) -> pd.DataFrame:
-
         import numpy as np
 
         start = pd.to_datetime("1750-01-01")

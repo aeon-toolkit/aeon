@@ -7,9 +7,10 @@ __all__ = ["EncoderClassifier"]
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
-from sktime.classification.deep_learning import BaseDeepClassifier
-from sktime.networks.encoder import EncoderNetwork
-from sktime.utils.validation._dependencies import _check_dl_dependencies
+
+from aeon.classification.deep_learning import BaseDeepClassifier
+from aeon.networks.encoder import EncoderNetwork
+from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 

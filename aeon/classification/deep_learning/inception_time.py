@@ -6,10 +6,11 @@ __all__ = ["InceptionTimeClassifier"]
 
 import numpy as np
 from sklearn.utils import check_random_state
-from sktime.classification.base import BaseClassifier
-from sktime.classification.deep_learning import BaseDeepClassifier
-from sktime.networks.inception import InceptionNetwork
-from sktime.utils.validation._dependencies import _check_dl_dependencies
+
+from aeon.classification.base import BaseClassifier
+from aeon.classification.deep_learning import BaseDeepClassifier
+from aeon.networks.inception import InceptionNetwork
+from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 

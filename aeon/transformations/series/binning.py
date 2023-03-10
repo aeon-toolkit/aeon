@@ -45,8 +45,8 @@ class TimeBinAggregate(BaseTransformer):
 
     Example
     -------
-    from sktime.datatypes import get_examples
-    from sktime.transformations.series.binning import TimeBinAggregate
+    from aeon.datatypes import get_examples
+    from aeon.transformations.series.binning import TimeBinAggregate
 
     bins = [0, 2, 4]
     X = get_examples("pd.DataFrame")[0]
@@ -73,7 +73,6 @@ class TimeBinAggregate(BaseTransformer):
     }
 
     def __init__(self, bins, aggfunc=None, return_index="bin_start"):
-
         self.bins = bins
         self.aggfunc = aggfunc
         self.return_index = return_index

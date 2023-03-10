@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from sktime.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
