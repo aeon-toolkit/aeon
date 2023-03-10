@@ -24,7 +24,7 @@ Standalone, performant ``numba`` distance functions are available in the :mod:`s
 These are not wrapped in the ``sktime`` ``BaseObject`` interface and can therefore
 be used within other ``numba`` compiled functions for end-to-end compilation.
 
-.. automodule:: sktime.distances
+.. automodule:: aeon.distances
    :no-members:
    :no-inherited-members:
 
@@ -37,7 +37,7 @@ pairwise panel transformer interface of ``BasePairwiseTransformerPanel``.
 Composition
 ~~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels.compose
+.. currentmodule:: aeon.dists_kernels.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -45,7 +45,7 @@ Composition
 
     PwTrafoPanelPipeline
 
-.. currentmodule:: sktime.dists_kernels.algebra
+.. currentmodule:: aeon.dists_kernels.algebra
 
 .. autosummary::
     :toctree: auto_generated/
@@ -53,7 +53,7 @@ Composition
 
     CombinedDistance
 
-.. currentmodule:: sktime.dists_kernels.dist_to_kern
+.. currentmodule:: aeon.dists_kernels.dist_to_kern
 
 .. autosummary::
     :toctree: auto_generated/
@@ -69,7 +69,7 @@ Simple time series distance, including flat/vector distance, bag-of-value distan
 mean pairwise distance can be obtained by applying ``AggrDist`` or ``FlatDist``
 to pairwise distances in ``ScipyDist``. See docstring of ``AggrDist`` and ``FlatDist``.
 
-.. currentmodule:: sktime.dists_kernels.compose_tab_to_panel
+.. currentmodule:: aeon.dists_kernels.compose_tab_to_panel
 
 .. autosummary::
     :toctree: auto_generated/
@@ -81,7 +81,7 @@ to pairwise distances in ``ScipyDist``. See docstring of ``AggrDist`` and ``Flat
 Dynamic Time Warping Distances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels
+.. currentmodule:: aeon.dists_kernels
 
 .. autosummary::
     :toctree: auto_generated/
@@ -92,7 +92,7 @@ Dynamic Time Warping Distances
 Edit Distances
 ~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels.edit_dist
+.. currentmodule:: aeon.dists_kernels.edit_dist
 
 .. autosummary::
     :toctree: auto_generated/
@@ -108,7 +108,7 @@ mean pairwise kernels can be obtained by applying ``AggrDist`` or ``FlatDist``
 to kernels from ``sklearn.gaussian_process.kernels``.
 See docstring of ``AggrDist`` and ``FlatDist``.
 
-.. currentmodule:: sktime.dists_kernels.compose_tab_to_panel
+.. currentmodule:: aeon.dists_kernels.compose_tab_to_panel
 
 .. autosummary::
     :toctree: auto_generated/
@@ -119,7 +119,7 @@ See docstring of ``AggrDist`` and ``FlatDist``.
 
 Advanced time series kernels that cannot be expressed as aggrgates or flat applicates:
 
-.. currentmodule:: sktime.dists_kernels.signature_kernel
+.. currentmodule:: aeon.dists_kernels.signature_kernel
 
 .. autosummary::
     :toctree: auto_generated/
@@ -130,7 +130,7 @@ Advanced time series kernels that cannot be expressed as aggrgates or flat appli
 Base class
 ~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels
+.. currentmodule:: aeon.dists_kernels
 
 .. autosummary::
     :toctree: auto_generated/
@@ -147,7 +147,7 @@ pairwise transformer interface of ``BasePairwiseTransformer``.
 Distance metrics from ``scipy``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels.scipy_dist
+.. currentmodule:: aeon.dists_kernels.scipy_dist
 
 .. autosummary::
     :toctree: auto_generated/
@@ -158,7 +158,7 @@ Distance metrics from ``scipy``
 Base class
 ~~~~~~~~~~
 
-.. currentmodule:: sktime.dists_kernels
+.. currentmodule:: aeon.dists_kernels
 
 .. autosummary::
     :toctree: auto_generated/
@@ -172,7 +172,7 @@ Standalone ``numba`` distances
 Standalong functions not wrapped in the ``sktime`` ``BaseObject`` interface.
 Can be used within other ``numba`` compiled functions for end-to-end compilation.
 
-.. currentmodule:: sktime.distances
+.. currentmodule:: aeon.distances
 
 .. autosummary::
     :toctree: auto_generated/
