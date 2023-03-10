@@ -79,9 +79,10 @@ class CNNNetwork(BaseDeepNetwork):
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
-        self.random_state = random_state
-        self.n_filters = [6, 12] if n_filters is None else n_filters
 
+        self.n_layers = n_layers
+        self.random_state = random_state
+        self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.avg_pool_size = avg_pool_size
         self.activation = activation
@@ -89,55 +90,6 @@ class CNNNetwork(BaseDeepNetwork):
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
-
-        if isinstance(self.kernel_size, list):
-            self.kernel_size = self.kernel_size
-        else:
-            self.kernel_size = [self.kernel_size] * n_layers
-
-        if isinstance(self.n_filters, list):
-            self.n_filters = self.n_filters
-        else:
-            self.n_filters = [self.n_filters] * n_layers
-
-        if isinstance(self.avg_pool_size, list):
-            self.avg_pool_size = self.avg_pool_size
-        else:
-            self.avg_pool_size = [self.avg_pool_size] * n_layers
-
-        if isinstance(self.activation, list):
-            self.activation = self.activation
-        else:
-            self.activation = [self.activation] * n_layers
-
-        if isinstance(self.padding, list):
-            self.padding = self.padding
-        else:
-            self.padding = [self.padding] * n_layers
-
-        if isinstance(self.strides, list):
-            self.strides = self.strides
-        else:
-            self.strides = [self.strides] * n_layers
-
-        if isinstance(self.dilation_rate, list):
-            self.dilation_rate = self.dilation_rate
-        else:
-            self.dilation_rate = [self.dilation_rate] * n_layers
-
-        if isinstance(self.use_bias, list):
-            self.use_bias = self.use_bias
-        else:
-            self.use_bias = [self.use_bias] * n_layers
-
-        self.n_layers = n_layers
-
-        assert len(self.kernel_size) == n_layers
-        assert len(self.avg_pool_size) == n_layers
-        assert len(self.strides) == n_layers
-        assert len(self.dilation_rate) == n_layers
-        assert len(self.padding) == n_layers
-        assert len(self.activation) == n_layers
 
         super(CNNNetwork, self).__init__()
 
@@ -156,6 +108,48 @@ class CNNNetwork(BaseDeepNetwork):
         output_layer : a keras layer
         """
         import tensorflow as tf
+
+        self._n_filters_ = [6, 12] if self.n_filters is None else self.n_filters
+
+        if isinstance(self.kernel_size, list):
+            self._kernel_size = self.kernel_size
+        else:
+            self._kernel_size = [self.kernel_size] * self.n_layers
+
+        if isinstance(self._n_filters_, list):
+            self._n_filters = self._n_filters_
+        else:
+            self._n_filters = [self._n_filters_] * self.n_layers
+
+        if isinstance(self.avg_pool_size, list):
+            self._avg_pool_size = self.avg_pool_size
+        else:
+            self._avg_pool_size = [self.avg_pool_size] * self.n_layers
+
+        if isinstance(self.activation, list):
+            self._activation = self.activation
+        else:
+            self._activation = [self.activation] * self.n_layers
+
+        if isinstance(self.padding, list):
+            self._padding = self.padding
+        else:
+            self._padding = [self.padding] * self.n_layers
+
+        if isinstance(self.strides, list):
+            self._strides = self.strides
+        else:
+            self._strides = [self.strides] * self.n_layers
+
+        if isinstance(self.dilation_rate, list):
+            self._dilation_rate = self.dilation_rate
+        else:
+            self._dilation_rate = [self.dilation_rate] * self.n_layers
+
+        if isinstance(self.use_bias, list):
+            self._use_bias = self.use_bias
+        else:
+            self._use_bias = [self.use_bias] * self.n_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
         # sort this out, why hard coded to 60? [hadifawaz1999 answer:
@@ -199,16 +193,16 @@ class CNNNetwork(BaseDeepNetwork):
 
         for i in range(self.n_layers):
             conv = tf.keras.layers.Conv1D(
-                filters=self.n_filters[i],
-                kernel_size=self.kernel_size[i],
-                strides=self.strides[i],
-                padding=self.padding[i],
-                dilation_rate=self.dilation_rate[i],
-                activation=self.activation[i],
-                use_bias=self.use_bias[i],
+                filters=self._n_filters[i],
+                kernel_size=self._kernel_size[i],
+                strides=self._strides[i],
+                padding=self._padding[i],
+                dilation_rate=self._dilation_rate[i],
+                activation=self._activation[i],
+                use_bias=self._use_bias[i],
             )(x)
 
-            conv = tf.keras.layers.AveragePooling1D(pool_size=self.avg_pool_size[i])(
+            conv = tf.keras.layers.AveragePooling1D(pool_size=self._avg_pool_size[i])(
                 conv
             )
 
@@ -217,8 +211,3 @@ class CNNNetwork(BaseDeepNetwork):
         flatten_layer = tf.keras.layers.Flatten()(conv)
 
         return input_layer, flatten_layer
-
-
-if __name__ == "__main__":
-    cnn = CNNNetwork()
-    cnn.build_network(input_shape=(100, 1))
