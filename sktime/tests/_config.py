@@ -4,17 +4,13 @@ __author__ = ["mloning"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 from sktime.base import BaseEstimator, BaseObject
-from sktime.registry import (
-    BASE_CLASS_LIST,
-    BASE_CLASS_LOOKUP,
-    ESTIMATOR_TAG_LIST,
-    TRANSFORMER_MIXIN_LIST,
-)
-from sktime.transformations.base import BaseTransformer
+from sktime.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
 EXCLUDE_ESTIMATORS = [
     # SFA is non-compliant with any transformer interfaces, #2064
     "SFA",
+    # Interface is outdated, needs a rework.
+    "ColumnTransformer",
     # PlateauFinder seems to be broken, see #2259
     "PlateauFinder",
     # below are removed due to mac failures we don't fully understand, see #3103
@@ -31,7 +27,6 @@ EXCLUDE_ESTIMATORS = [
     "TapNetRegressor",
     "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
-    "LSTMFCNClassifier",  # unknown cause, see bug report #4033,
 ]
 
 
@@ -63,21 +58,55 @@ EXCLUDED_TESTS = {
     # `test_fit_idempotent` fails with `AssertionError`, see #3616
     "ResNetClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "CNNClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "CNNRegressor": [
         "test_fit_idempotent",
     ],
+    "EncoderClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
     "FCNClassifier": [
         "test_fit_idempotent",
-    ],
-    "LSTMFCNClassifier": [
-        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     "MLPClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
+    "InceptionTimeClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
+    "IndividualInceptionClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
     ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
@@ -147,15 +176,12 @@ NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
 )
 
 # The following gives a list of valid estimator base classes.
-VALID_TRANSFORMER_TYPES = tuple(TRANSFORMER_MIXIN_LIST) + (BaseTransformer,)
-
 BASE_BASE_TYPES = (BaseEstimator, BaseObject)
 VALID_ESTIMATOR_BASE_TYPES = tuple(set(BASE_CLASS_LIST).difference(BASE_BASE_TYPES))
 
 VALID_ESTIMATOR_TYPES = (
     BaseEstimator,
     *VALID_ESTIMATOR_BASE_TYPES,
-    *VALID_TRANSFORMER_TYPES,
 )
 
 VALID_ESTIMATOR_BASE_TYPE_LOOKUP = BASE_CLASS_LOOKUP

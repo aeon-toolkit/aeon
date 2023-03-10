@@ -8,16 +8,10 @@ import pytest
 
 from sktime.base import BaseObject
 from sktime.registry import all_estimators, all_tags, scitype
-from sktime.registry._base_classes import (
-    BASE_CLASS_LOOKUP,
-    BASE_CLASS_SCITYPE_LIST,
-    TRANSFORMER_MIXIN_SCITYPE_LIST,
-)
+from sktime.registry._base_classes import BASE_CLASS_LOOKUP, BASE_CLASS_SCITYPE_LIST
 from sktime.registry._lookup import _check_estimator_types
 
-VALID_SCITYPES_SET = set(
-    BASE_CLASS_SCITYPE_LIST + TRANSFORMER_MIXIN_SCITYPE_LIST + ["estimator"]
-)
+VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
 
 # some scitypes have no associated tags yet
 SCITYPES_WITHOUT_TAGS = [

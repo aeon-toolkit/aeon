@@ -13,7 +13,7 @@ Get Involved
    get_involved/code_of_conduct
    get_involved/governance
 
-sktime is a community-driven project and your help is extremely welcome.
+aeon is a community-driven project and your help is extremely welcome.
 If you get stuck, please don’t hesitate to chat with us or raise an issue.
 
 .. grid:: 1 2 2 2
@@ -26,7 +26,7 @@ If you get stuck, please don’t hesitate to chat with us or raise an issue.
 
         ^^^
 
-        New to sktime? Check out the contributing guide.
+        New to aeon? Check out the contributing guide.
 
         +++
 
@@ -62,11 +62,11 @@ If you get stuck, please don’t hesitate to chat with us or raise an issue.
 
         ^^^
 
-        Fund sktime maintenance and development.
+        Fund aeon maintenance and development.
 
         +++
 
-        .. button-link:: https://opencollective.com/sktime
+        .. button-link:: https://opencollective.com/aeon
             :color: primary
             :click-parent:
             :expand:

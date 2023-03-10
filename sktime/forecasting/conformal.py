@@ -112,7 +112,6 @@ class ConformalIntervals(BaseForecaster):
         verbose=False,
         n_jobs=None,
     ):
-
         if not isinstance(method, str):
             raise TypeError(f"method must be a str, one of {self.ALLOWED_METHODS}")
 
@@ -229,7 +228,7 @@ class ConformalIntervals(BaseForecaster):
         ABS_RESIDUAL_BASED = ["conformal", "conformal_bonferroni", "empirical_residual"]
 
         cols = pd.MultiIndex.from_product([["Coverage"], coverage, ["lower", "upper"]])
-        pred_int = pd.DataFrame(index=fh_absolute, columns=cols)
+        pred_int = pd.DataFrame(index=fh_absolute.to_pandas(), columns=cols)
         for fh_ind, offset in zip(fh_absolute, fh_relative):
             resids = np.diagonal(residuals_matrix, offset=offset)
             resids = resids[~np.isnan(resids)]
@@ -253,7 +252,7 @@ class ConformalIntervals(BaseForecaster):
 
         y_pred = self.predict(fh=fh, X=X)
         y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
-        y_pred.index = fh_absolute
+        y_pred.index = fh_absolute.to_pandas()
 
         for col in cols:
             if self.method in ABS_RESIDUAL_BASED:
@@ -295,7 +294,6 @@ class ConformalIntervals(BaseForecaster):
         return pred_int
 
     def _parse_initial_window(self, y, initial_window=None):
-
         n_samples = len(y)
 
         if initial_window is None:

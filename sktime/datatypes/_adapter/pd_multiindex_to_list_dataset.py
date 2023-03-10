@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from sktime.utils.validation._dependencies import _check_soft_dependencies
+
+
 def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     """
     Output a dataset in ListDataset format compatible with gluonts.
@@ -22,6 +25,8 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     A ListDataset mtype type to be used as input for gluonts models/estimators
 
     """
+    _check_soft_dependencies("gluonts", severity="error")
+
     import numpy as np
     import pandas as pd
 

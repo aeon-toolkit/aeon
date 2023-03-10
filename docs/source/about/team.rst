@@ -59,8 +59,8 @@ Core Developers
    * - Patrick Schäfer
      - :user:`patrickzib`
 
-Pre-fork `sktime` Core Developers
-----------------------------------
+Pre-fork Core Developers
+------------------------
 
 .. list-table::
    :header-rows: 1
