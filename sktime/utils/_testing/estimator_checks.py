@@ -18,7 +18,6 @@ from sktime.classification.base import BaseClassifier
 from sktime.classification.early_classification import BaseEarlyClassifier
 from sktime.clustering.base import BaseClusterer
 from sktime.datatypes._panel._check import is_nested_dataframe
-from sktime.dists_kernels import BasePairwiseTransformer, BasePairwiseTransformerPanel
 from sktime.forecasting.base import BaseForecaster
 from sktime.regression.base import BaseRegressor
 from sktime.tests._config import VALID_ESTIMATOR_TYPES
@@ -50,11 +49,7 @@ def _list_required_methods(estimator):
         BaseForecaster,
     )
     # transformation base classes that must have transform
-    BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (
-        BaseTransformer,
-        BasePairwiseTransformer,
-        BasePairwiseTransformerPanel,
-    )
+    BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (BaseTransformer,)
 
     required_methods = []
 
