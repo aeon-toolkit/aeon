@@ -187,7 +187,7 @@ class CNNNetwork(BaseDeepNetwork):
         """
 
         if input_shape[0] < 60:
-            self.padding = ["same"] * self.n_layers
+            self._padding = ["same"] * self.n_layers
 
         x = input_layer
 
