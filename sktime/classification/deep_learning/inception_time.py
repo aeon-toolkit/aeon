@@ -469,7 +469,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self._inception_network = InceptionNetwork(
+        self._network = InceptionNetwork(
             nb_filters=self.nb_filters,
             nb_conv_per_layer=self.nb_conv_per_layer,
             kernel_size=self.kernel_size,
@@ -506,9 +506,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        input_layer, output_layer = self._inception_network.build_network(
-            input_shape, **kwargs
-        )
+        input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
             output_layer
