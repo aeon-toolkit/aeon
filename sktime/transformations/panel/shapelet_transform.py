@@ -1057,7 +1057,7 @@ class RandomShapeletTransform(BaseTransformer):
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
-
+        # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
         shapelets = List(
             [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes)]
         )
