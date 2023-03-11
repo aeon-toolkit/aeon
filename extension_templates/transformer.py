@@ -43,7 +43,7 @@ Testing - implement if sktime transformer (not needed locally):
 
 # todo: add any necessary sktime external imports here
 
-from sktime.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer
 
 # todo: add any necessary sktime internal imports here
 

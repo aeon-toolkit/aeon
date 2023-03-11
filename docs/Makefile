@@ -8,10 +8,10 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = _build
-PROJECTDIR    = "../sktime/"
+PROJECTDIR    = "../aeon/"
 
 # exclude unit tests from API reference
-EXCLUDEPATHS = "../*tests* ../*test* ../*contrib* ../*setup* ../*all*"
+EXCLUDEPATHS = "../*tests* ../*test* ../*setup* ../*all*"
 
 # Put it first so that "make" without argument is like "make help".
 help:

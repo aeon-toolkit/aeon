@@ -28,11 +28,11 @@ can simply write:
 .. code-block:: python
 
     import numpy as np
-    from sktime.datasets import load_airline
-    from sktime.forecasting.compose import make_reduction
+    from aeon.datasets import load_airline
+    from aeon.forecasting.compose import make_reduction
     from sklearn.ensemble import RandomForestRegressor
-    from sktime.forecasting.model_selection import temporal_train_test_split
-    from sktime.performance_metrics.forecasting import MeanAbsolutePercentageError
+    from aeon.forecasting.model_selection import temporal_train_test_split
+    from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
 
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y)
