@@ -150,7 +150,7 @@ def _check_freq(obj):
 
     Returns
     -------
-    pd offset
+    pd.offset
 
     Raises
     ------
@@ -828,16 +828,26 @@ def _coerce_to_period(x, freq=None):
 def _index_range(relative, cutoff):
     """Return Index Range relative to cutoff."""
     _check_cutoff(cutoff, relative)
-    is_timestamp = isinstance(cutoff, pd.Timestamp)
+    # is_timestamp = isinstance(cutoff, pd.Timestamp)
 
-    if is_timestamp:
+    # if is_timestamp:
+    #     # coerce to pd.Period for reliable arithmetic operations and
+    #     # computations of time deltas
+    #     cutoff = _coerce_to_period(cutoff, freq=cutoff.freqstr)
+
+    # absolute = cutoff + relative
+
+    # if is_timestamp:
+    #     # coerce back to DatetimeIndex after operation
+    #     absolute = absolute.to_timestamp(cutoff.freqstr)
+    if isinstance(cutoff, pd.DatetimeIndex):
         # coerce to pd.Period for reliable arithmetic operations and
-        # computations of time deltas
-        cutoff = _coerce_to_period(cutoff, freq=cutoff.freqstr)
-
-    absolute = cutoff + relative
-
-    if is_timestamp:
+        cutoff = _coerce_to_period(cutoff, freq=cutoff.freq)
+        # workaround for pandas>=2.0.0 as "absolute = cutoff + relative"
+        # is not working anymore as expected
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
         # coerce back to DatetimeIndex after operation
-        absolute = absolute.to_timestamp(cutoff.freqstr)
+        absolute = absolute.to_timestamp(cutoff.freq)
+    else:
+        absolute = cutoff + relative
     return absolute
