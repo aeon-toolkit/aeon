@@ -381,7 +381,9 @@ class ShapeDTW(BaseClassifier):
             return PAA() if num_intervals is None else PAA(num_intervals)
         elif tName == "dwt":
             num_levels = parameters.get("num_levels_dwt")
-            return DWTTransformer() if num_levels is None else DWTTransformer(num_levels)
+            return (
+                DWTTransformer() if num_levels is None else DWTTransformer(num_levels)
+            )
         elif tName == "slope":
             num_intervals = parameters.get("num_intervals_slope")
             if num_intervals is None:
@@ -414,9 +416,7 @@ class ShapeDTW(BaseClassifier):
 
         # 1 parameter is None
         if num_intervals is None:
-            return HOG1DTransformer(
-                scaling_factor=scaling_factor, num_bins=num_bins
-            )
+            return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
         if scaling_factor is None:
             return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
         if num_bins is None:

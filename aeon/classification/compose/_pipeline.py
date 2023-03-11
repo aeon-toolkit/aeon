@@ -555,9 +555,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         self : returns an instance of self.
         """
-        if "classifier" in kwargs and not is_sklearn_classifier(
-            kwargs["classifier"]
-        ):
+        if "classifier" in kwargs and not is_sklearn_classifier(kwargs["classifier"]):
             raise TypeError('"classifier" arg must be an sklearn classifier')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         classif_keys = self.classifier.get_params(deep=True).keys()

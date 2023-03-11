@@ -256,8 +256,7 @@ class BOSSEnsemble(BaseClassifier):
                             compress(
                                 self.estimators_,
                                 [
-                                    classifier._accuracy
-                                    >= max_acc * self.threshold
+                                    classifier._accuracy >= max_acc * self.threshold
                                     for classifier in self.estimators_
                                 ],
                             )
@@ -369,7 +368,10 @@ class BOSSEnsemble(BaseClassifier):
                         n_jobs=self.n_jobs,
                     )
 
-                    preds = [clf._train_predict(i, distance_matrix) for i in range(n_instances)]
+                    preds = [
+                        clf._train_predict(i, distance_matrix)
+                        for i in range(n_instances)
+                    ]
                     for n, pred in enumerate(preds):
                         results[n][self._class_dictionary[pred]] += 1
                         divisors[n] += 1

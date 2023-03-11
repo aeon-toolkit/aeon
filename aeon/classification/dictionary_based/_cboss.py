@@ -383,11 +383,12 @@ class ContractableBOSS(BaseClassifier):
                     clf._transformed_data, n_jobs=self.n_jobs
                 )
 
-                preds = [clf._train_predict(j, distance_matrix) for j in range(len(subsample))]
+                preds = [
+                    clf._train_predict(j, distance_matrix)
+                    for j in range(len(subsample))
+                ]
             for n, pred in enumerate(preds):
-                results[subsample[n]][
-                    self._class_dictionary[pred]
-                ] += self.weights_[i]
+                results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
                 divisors[subsample[n]] += self.weights_[i]
 
         for i in range(n_instances):
