@@ -42,7 +42,7 @@ Testing - implement if sktime forecaster (not needed locally):
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
 
 
-from sktime.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster
 
 # todo: add any necessary imports here
 
@@ -112,7 +112,6 @@ class MyForecaster(BaseForecaster):
 
     # todo: add any hyper-parameters and components to constructor
     def __init__(self, parama, paramb="default", paramc=None):
-
         # todo: write any hyper-parameters to self
         self.parama = parama
         self.paramb = paramb

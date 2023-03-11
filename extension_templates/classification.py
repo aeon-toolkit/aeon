@@ -34,7 +34,7 @@ copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 import numpy as np
 
-from sktime.classification.base import BaseClassifier
+from aeon.classification.base import BaseClassifier
 
 # todo: add any necessary imports here
 

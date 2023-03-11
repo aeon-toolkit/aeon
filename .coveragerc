@@ -2,8 +2,8 @@
 show_missing = True
 
 [run]
-source = sktime
+source = aeon
 omit =
     */setup.py
-    */sktime/__init__.py
-    */sktime/setup.py
+    */aeon/__init__.py
+    */aeon/setup.py
