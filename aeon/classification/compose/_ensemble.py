@@ -492,7 +492,8 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
                 valid_presets = ("balanced", "balanced_subsample")
                 if self.class_weight not in valid_presets:
                     raise ValueError(
-                        f'Valid presets for class_weight include "balanced" and "balanced_subsample".Given "{self.class_weight}".'
+                        'Valid presets for class_weight include "balanced" and'
+                        f'"balanced_subsample".Given "{self.class_weight}".'
                     )
                 if self.warm_start:
                     warn(
