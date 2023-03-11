@@ -947,34 +947,37 @@ class RandomShapeletTransform(BaseTransformer):
     """Random Shapelet Transform.
 
     Implementation of the binary shapelet transform along the lines of [1]_[2]_, with
-    randomly extracted shapelets.
+    randomly extracted shapelets. A shapelet is a subsequence from the train set. The
+    transform finds a set of shapelets that are good at separating the classes based on
+    the distances between shapelets and whole series. The distance between a shapelet
+    and a series (called sDist in the literature) is defined as the minimum Euclidean
+    distance between shapelet and all windows the same length as the shapelet.
 
-    Overview: Input "n" series with "d" dimensions of length "m". Continuously extract
+    Overview: Input n series with d channels of length m. Continuously extract
     candidate shapelets and filter them in batches.
-        For each candidate shapelet
+        For each candidate shapelet:
             - Extract a shapelet from an instance with random length, position and
-              dimension
-            - Using its distance to train cases, calculate the shapelets information
-              gain
+              dimension and find its distance to each train case.
+            - Calculate the shapelet's information gain using the ordered list of
+              distances and train data class labels.
             - Abandon evaluating the shapelet if it is impossible to obtain a higher
-              information gain than the current worst
-        For each shapelet batch
+              information gain than the current worst.
+        For each shapelet batch:
             - Add each candidate to its classes shapelet heap, removing the lowest
-              information gain shapelet if the max number of shapelets has been met
-            - Remove self-similar shapelets from the heap
+              information gain shapelet if the max number of shapelets has been met.
+            - Remove self-similar shapelets from the heap.
     Using the final set of filtered shapelets, transform the data into a vector of
     of distances from a series to each shapelet.
 
     Parameters
     ----------
     n_shapelet_samples : int, default=10000
-        The number of candidate shapelets to be considered for the final transform.
-        Filtered down to <= max_shapelets, keeping the shapelets with the most
-        information gain.
+        The number of candidate shapelets to be evaluated. Filtered down to
+        <= max_shapelets, keeping the shapelets with the most information gain.
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
         have its own max, set to n_classes / max_shapelets. If None uses the min between
-        10 * n_instances and 1000
+        10 * n_instances and 1000.
     min_shapelet_length : int, default=3
         Lower bound on candidate shapelet lengths.
     max_shapelet_length : int or None, default= None
@@ -991,9 +994,9 @@ class RandomShapeletTransform(BaseTransformer):
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        value of "threads" is used by default. Valid options are "loky",
+        "multiprocessing", "threading" or a custom backend. See the joblib Parallel
+        documentation for more details.
     batch_size : int or None, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets.
@@ -1027,9 +1030,8 @@ class RandomShapeletTransform(BaseTransformer):
 
     Notes
     -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
-    java/tsml/transformers/ShapeletTransform.java>`_.
+    For the Java version, see 'TSML
+    <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
 
     References
     ----------
