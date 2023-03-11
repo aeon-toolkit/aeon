@@ -4,8 +4,8 @@
 A transformer from the time domain into the shapelet domain.
 """
 
-__author__ = ["MatthewMiddlehurst", "jasonlines", "dguijo"]
-__all__ = ["ShapeletTransform", "RandomShapeletTransform"]
+__author__ = ["MatthewMiddlehurst", "jasonlines", "dguijo", "TonyBagnall"]
+__all__ = ["RandomShapeletTransform", "ShapeletTransform"]
 
 import heapq
 import math
@@ -15,7 +15,6 @@ from itertools import zip_longest
 from operator import itemgetter
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
 from numba import njit
 from numba.typed.typedlist import List
@@ -28,7 +27,7 @@ from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
 
 
-class Shapelet:
+class _Shapelet:
     """A simple class to model a Shapelet with associated information.
 
     Parameters
@@ -60,7 +59,7 @@ class Shapelet:
         )
 
 
-class ShapeletPQ:
+class _ShapeletPQ:
     """Shapelet PQ."""
 
     def __init__(self):
@@ -92,48 +91,42 @@ class ShapeletPQ:
 class ShapeletTransform(BaseTransformer):
     """Shapelet Transform.
 
-    Original journal publication:
-    @article{hills2014classification,
-      title={Classification of time series by shapelet transformation},
-      author={Hills, Jon and Lines, Jason and Baranauskas, Edgaras and Mapp,
-      James and Bagnall, Anthony},
-      journal={Data Mining and Knowledge Discovery},
-      volume={28},
-      number={4},
-      pages={851--881},
-      year={2014},
-      publisher={Springer}
-    }
+    The original shapelet transform, as described in [1,2]. The transform performs a
+    full enumeration of the shapelet space, which is incredibly slow. Only use this for
+    the smallest problems. We recommend using the RandomShapeletTransform in all
+    instances, this transform is here for legacy reasons.
 
     Parameters
     ----------
-    min_shapelet_length                 : int, lower bound on candidate
-    shapelet lengths (default = 3)
-    max_shapelet_length                 : int, upper bound on candidate
-    shapelet lengths (default = inf or series length)
-    max_shapelets_to_store_per_class    : int, upper bound on number of
-    shapelets to retain from each distinct class (default = 200)
-    random_state                        : RandomState, int, or none: to
-    control random state objects for deterministic results (default = None)
-    verbose                             : int, level of output printed to
-    the console (for information only) (default = 0)
-    remove_self_similar                 : boolean, remove overlapping
-    "self-similar" shapelets from the final transform (default = True)
+    min_shapelet_length : int, default = 3
+        lower bound on candidate shapelet lengths.
+    max_shapelet_length : int, default = inf (equivalent to series length)
+        upper bound on candidate shapelet lengths.
+    max_shapelets_to_store_per_class : int, default = 200
+        upper bound on number of shapelets to retain from each distinct class.
+    random_state : RandomState, int, or none, default = None)
+    verbose : int, default 0
+        level of output printed to the console (for information only).
+    remove_self_similar : boolean, default = True
+        remove overlapping "self-similar" shapelets from the final transform.
 
     Attributes
     ----------
-    predefined_ig_rejection_level       : float, minimum information gain
-    required to keep a shapelet (default = 0.05)
-    self.shapelets                      : list of Shapelet objects,
-    the stored shapelets after a dataset has been processed
+    predefined_ig_rejection_level : float, default = 0.05
+        minimum information gain required to keep a shapelet.
+    shapelets  : list
+        the stored shapelets after a dataset has been processed
+
+    References
+    ----------
+    .. [1] Jason Lines et al., "A shapelet transform for time series classification",
+       Proceedings of the 18th ACM SIGKDD, 2012.
+    .. [2] Jon Hills et al., "Classification of time series by shapelet transformation",
+       Data Mining and Knowledge Discovery, 28(4), 851--881, 2014.
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "numpy1D",  # and for y?
         "requires_y": True,
@@ -158,28 +151,25 @@ class ShapeletTransform(BaseTransformer):
         self.remove_self_similar = remove_self_similar
         self.predefined_ig_rejection_level = 0.05
         self.shapelets = None
-        super(ShapeletTransform, self).__init__()
+        super(ShapeletTransform, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
 
         Parameters
         ----------
-        X: pandas DataFrame
+        X: np.ndarray shape (n_time_series, n_channels, series_length)
             The training input samples.
         y: array-like or list
-            The class values for X
+            The class values for X.
 
         Returns
         -------
         self : ShapeletTransform
             This estimator
         """
+        # note, assumes all dimensions of a case are the same length.
         X_lens = np.repeat(X.shape[-1], X.shape[0])
-        # note, assumes all dimensions of a case are the same
-        # length. A shapelet would not be well defined if indices do not match!
-        # may need to pad with nans here for uneq length,
-        # look at later
 
         num_ins = len(y)
         distinct_class_vals = class_distribution(np.asarray(y).reshape(-1, 1))[0][0]
@@ -188,7 +178,7 @@ class ShapeletTransform(BaseTransformer):
 
         num_series_to_visit = num_ins
 
-        shapelet_heaps_by_class = {i: ShapeletPQ() for i in distinct_class_vals}
+        shapelet_heaps_by_class = {i: _ShapeletPQ() for i in distinct_class_vals}
 
         self._random_state = check_random_state(self.random_state)
 
@@ -266,13 +256,7 @@ class ShapeletTransform(BaseTransformer):
             binary_ig_other_class_count = num_ins - binary_ig_this_class_count - 1
 
             if self.verbose:
-                print(  # noqa
-                    "visiting series: "
-                    + str(series_id)
-                    + " (#"
-                    + str(case_idx + 1)
-                    + ")"
-                )
+                print(f"visiting series: {series_id} ({case_idx + 1})")  # noqa
 
             this_series_len = len(X[series_id][0])
 
@@ -445,7 +429,7 @@ class ShapeletTransform(BaseTransformer):
 
                 candidates_evaluated += 1
                 if self.verbose > 3 and candidates_evaluated % 100 == 0:
-                    print("candidates evaluated: " + str(candidates_evaluated))  # noqa
+                    print(f"candidates evaluated: {candidates_evaluated}")  # noqa
 
                 # only do if candidate was not rejected
                 if candidate_rejected is False:
@@ -454,7 +438,7 @@ class ShapeletTransform(BaseTransformer):
                         binary_ig_this_class_count,
                         binary_ig_other_class_count,
                     )
-                    accepted_candidate = Shapelet(
+                    accepted_candidate = _Shapelet(
                         series_id, cand_start_pos, cand_len, final_ig, candidate
                     )
 
@@ -480,104 +464,16 @@ class ShapeletTransform(BaseTransformer):
                     if time_this_shapelet > max_time_calc_shapelet:
                         max_time_calc_shapelet = time_this_shapelet
                         if self.verbose > 0:
-                            print(max_time_calc_shapelet)  # noqa
+                            print(f"Max time{max_time_calc_shapelet}")  # noqa
                     time_last_shapelet = time_now
 
                     # add a little 1% leeway to the timing incase one run was
-                    # slightly faster than
-                    # another based on the CPU.
+                    # slightly faster than another based on the CPU.
                     time_in_seconds = self.time_contract_in_mins * 60
-                    max_shapelet_time_percentage = (
-                        max_time_calc_shapelet / 100.0
-                    ) * 0.75
-                    if (time_now + max_shapelet_time_percentage) > time_in_seconds:
-                        if self.verbose > 0:
-                            print(  # noqa
-                                "No more time available! It's been {0:02d}:{"
-                                "1:02}".format(
-                                    int(round(time_now / 60, 3)),
-                                    int(
-                                        (
-                                            round(time_now / 60, 3)
-                                            - int(round(time_now / 60, 3))
-                                        )
-                                        * 60
-                                    ),
-                                )
-                            )
+                    max_shapelet_time_percent = (max_time_calc_shapelet / 100.0) * 0.75
+                    if (time_now + max_shapelet_time_percent) > time_in_seconds:
                         time_finished = True
                         break
-                    else:
-                        if self.verbose > 0:
-                            if candidate_rejected is False:
-                                print(  # noqa
-                                    "Candidate finished. {0:02d}:{1:02} "
-                                    "remaining".format(
-                                        int(
-                                            round(
-                                                self.time_contract_in_mins
-                                                - time_now / 60,
-                                                3,
-                                            )
-                                        ),
-                                        int(
-                                            (
-                                                round(
-                                                    self.time_contract_in_mins
-                                                    - time_now / 60,
-                                                    3,
-                                                )
-                                                - int(
-                                                    round(
-                                                        (
-                                                            self.time_contract_in_mins
-                                                            - time_now
-                                                        )
-                                                        / 60,
-                                                        3,
-                                                    )
-                                                )
-                                            )
-                                            * 60
-                                        ),
-                                    )
-                                )
-                            else:
-                                print(  # noqa
-                                    "Candidate rejected. {0:02d}:{1:02} "
-                                    "remaining".format(
-                                        int(
-                                            round(
-                                                (self.time_contract_in_mins - time_now)
-                                                / 60,
-                                                3,
-                                            )
-                                        ),
-                                        int(
-                                            (
-                                                round(
-                                                    (
-                                                        self.time_contract_in_mins
-                                                        - time_now
-                                                    )
-                                                    / 60,
-                                                    3,
-                                                )
-                                                - int(
-                                                    round(
-                                                        (
-                                                            self.time_contract_in_mins
-                                                            - time_now
-                                                        )
-                                                        / 60,
-                                                        3,
-                                                    )
-                                                )
-                                            )
-                                            * 60
-                                        ),
-                                    )
-                                )
 
             # stopping condition: in case of iterative transform (i.e.
             # num_cases_to_sample have been visited)
@@ -632,11 +528,10 @@ class ShapeletTransform(BaseTransformer):
         # warn the user if fit did not produce any valid shapelets
         if len(self.shapelets) == 0:
             warnings.warn(
-                "No valid shapelets were extracted from this dataset and "
-                "calling the transform method "
-                "will raise an Exception. Please re-fit the transform with "
-                "other data and/or "
-                "parameter options."
+                "No valid shapelets were extracted from this dataset and calling the"
+                "transform method will raise an Exception. Please re-fit the transform"
+                "with other data and/or parameter options.",
+                stacklevel=2,
             )
 
         return self
@@ -647,7 +542,10 @@ class ShapeletTransform(BaseTransformer):
 
         Note: this method assumes that shapelets are pre-sorted in descending order
         of quality (i.e. if two candidates are self-similar, the one with the later
-        index will be removed)
+        index will be removed). IMPORTANT: it is assumed that shapelets are already in
+        descending order of quality. This is preferable in the fit method as removing
+        self-similar shapelets may be False so the sort needs to happen there in those
+        cases, and avoids a second redundant sort here if it is set to True
 
         Parameters
         ----------
@@ -664,17 +562,17 @@ class ShapeletTransform(BaseTransformer):
         cases, and avoids a second redundant sort here if it is set to True
         """
 
-        def is_self_similar(shapelet_one, shapelet_two):
+        def is_self_similar(s_one, s_two):
             # not self similar if from different series
-            if shapelet_one.series_id != shapelet_two.series_id:
+            if s_one.series_id != s_two.series_id:
                 return False
 
-            if (shapelet_one.start_pos >= shapelet_two.start_pos) and (
-                shapelet_one.start_pos <= shapelet_two.start_pos + shapelet_two.length
+            if (s_one.start_pos >= s_two.start_pos) and (
+                s_one.start_pos <= s_two.start_pos + s_two.length
             ):
                 return True
-            if (shapelet_two.start_pos >= shapelet_one.start_pos) and (
-                shapelet_two.start_pos <= shapelet_one.start_pos + shapelet_one.length
+            if (s_two.start_pos >= s_one.start_pos) and (
+                s_two.start_pos <= s_one.start_pos + s_one.length
             ):
                 return True
 
@@ -698,13 +596,13 @@ class ShapeletTransform(BaseTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame
-            The input dataframe to transform
+        X : 3D np.array of shape (n_instances, n_channels, series_length)
+            The input time series to transform
 
         Returns
         -------
-        output : pandas DataFrame
-            The transformed dataframe in tabular format.
+        output : 2D np.array of shape = (n_instances, n_shapelets)
+            The transformed data.
         """
         if len(self.shapelets) == 0:
             raise RuntimeError(
@@ -743,7 +641,7 @@ class ShapeletTransform(BaseTransformer):
 
                     output[i][s] = min_dist
 
-        return pd.DataFrame(output)
+        return output
 
     def get_shapelets(self):
         """Accessor method to return the extracted shapelets.
@@ -922,7 +820,6 @@ class ShapeletTransform(BaseTransformer):
         """
         zscored = np.empty(a.shape)
         for i, j in enumerate(a):
-            # j = np.asanyarray(j)
             sstd = j.std(axis=axis, ddof=ddof)
 
             # special case - if shapelet is a straight line (i.e. no
@@ -957,34 +854,37 @@ class RandomShapeletTransform(BaseTransformer):
     """Random Shapelet Transform.
 
     Implementation of the binary shapelet transform along the lines of [1]_[2]_, with
-    randomly extracted shapelets.
+    randomly extracted shapelets. A shapelet is a subsequence from the train set. The
+    transform finds a set of shapelets that are good at separating the classes based on
+    the distances between shapelets and whole series. The distance between a shapelet
+    and a series (called sDist in the literature) is defined as the minimum Euclidean
+    distance between shapelet and all windows the same length as the shapelet.
 
-    Overview: Input "n" series with "d" dimensions of length "m". Continuously extract
+    Overview: Input n series with d channels of length m. Continuously extract
     candidate shapelets and filter them in batches.
-        For each candidate shapelet
+        For each candidate shapelet:
             - Extract a shapelet from an instance with random length, position and
-              dimension
-            - Using its distance to train cases, calculate the shapelets information
-              gain
+              dimension and find its distance to each train case.
+            - Calculate the shapelet's information gain using the ordered list of
+              distances and train data class labels.
             - Abandon evaluating the shapelet if it is impossible to obtain a higher
-              information gain than the current worst
-        For each shapelet batch
+              information gain than the current worst.
+        For each shapelet batch:
             - Add each candidate to its classes shapelet heap, removing the lowest
-              information gain shapelet if the max number of shapelets has been met
-            - Remove self-similar shapelets from the heap
+              information gain shapelet if the max number of shapelets has been met.
+            - Remove self-similar shapelets from the heap.
     Using the final set of filtered shapelets, transform the data into a vector of
     of distances from a series to each shapelet.
 
     Parameters
     ----------
     n_shapelet_samples : int, default=10000
-        The number of candidate shapelets to be considered for the final transform.
-        Filtered down to <= max_shapelets, keeping the shapelets with the most
-        information gain.
+        The number of candidate shapelets to be evaluated. Filtered down to
+        <= max_shapelets, keeping the shapelets with the most information gain.
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
         have its own max, set to n_classes / max_shapelets. If None uses the min between
-        10 * n_instances and 1000
+        10 * n_instances and 1000.
     min_shapelet_length : int, default=3
         Lower bound on candidate shapelet lengths.
     max_shapelet_length : int or None, default= None
@@ -1001,9 +901,9 @@ class RandomShapeletTransform(BaseTransformer):
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        value of "threads" is used by default. Valid options are "loky",
+        "multiprocessing", "threading" or a custom backend. See the joblib Parallel
+        documentation for more details.
     batch_size : int or None, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets.
@@ -1037,9 +937,8 @@ class RandomShapeletTransform(BaseTransformer):
 
     Notes
     -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
-    java/tsml/transformers/ShapeletTransform.java>`_.
+    For the Java version, see 'TSML
+    <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
 
     References
     ----------
@@ -1067,15 +966,11 @@ class RandomShapeletTransform(BaseTransformer):
     """
 
     _tags = {
+        "scitype:transform-output": "Primitives",
         "fit_is_empty": False,
         "univariate-only": False,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # and for y?
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "numpy1D",
         "requires_y": True,
     }
 
@@ -1110,7 +1005,7 @@ class RandomShapeletTransform(BaseTransformer):
         # The following set in method fit
         self.n_classes = 0
         self.n_instances = 0
-        self.n_dims = 0
+        self.n_channels = 0
         self.series_length = 0
         self.classes_ = []
         self.shapelets = []
@@ -1124,14 +1019,14 @@ class RandomShapeletTransform(BaseTransformer):
         self._class_dictionary = {}
         self._sorted_indicies = []
 
-        super(RandomShapeletTransform, self).__init__()
+        super(RandomShapeletTransform, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X: np.ndarray shape (n_time_series, n_channels, series_length)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -1151,7 +1046,7 @@ class RandomShapeletTransform(BaseTransformer):
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
 
-        self.n_instances, self.n_dims, self.series_length = X.shape
+        self.n_instances, self.n_channels, self.series_length = X.shape
 
         if self.max_shapelets is None:
             self._max_shapelets = min(10 * self.n_instances, 1000)
@@ -1167,7 +1062,7 @@ class RandomShapeletTransform(BaseTransformer):
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
-
+        # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
         shapelets = List(
             [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes)]
         )
@@ -1277,13 +1172,13 @@ class RandomShapeletTransform(BaseTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or np.ndarray
+        X : np.ndarray shape (n_time_series, n_channels, series_length)
             The input data to transform.
 
         Returns
         -------
-        output : pandas DataFrame
-            The transformed dataframe in tabular format.
+        output : 2D np.array of shape = (n_instances, n_shapelets)
+            The transformed data.
         """
         output = np.zeros((len(X), len(self.shapelets)))
 
@@ -1303,7 +1198,7 @@ class RandomShapeletTransform(BaseTransformer):
 
             output[i] = dists
 
-        return pd.DataFrame(output)
+        return output
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -1347,7 +1242,7 @@ class RandomShapeletTransform(BaseTransformer):
             + self.min_shapelet_length
         )
         position = rng.randint(0, self.series_length - length)
-        dim = rng.randint(0, self.n_dims)
+        dim = rng.randint(0, self.n_channels)
 
         shapelet = z_normalise_series(X[inst_idx, dim, position : position + length])
         sabs = np.abs(shapelet)
@@ -1386,7 +1281,7 @@ class RandomShapeletTransform(BaseTransformer):
         other_cls_count,
         worst_quality,
     ):
-        # todo optimise this more, we spend 99% of time here
+        # This is slow and could be optimised, we spend 99% of time here
         orderline = []
         this_cls_traversed = 0
         other_cls_traversed = 0

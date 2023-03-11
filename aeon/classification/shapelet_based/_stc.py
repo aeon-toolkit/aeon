@@ -180,7 +180,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -233,7 +233,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        X_t = self._transformer.fit_transform(X, y).to_numpy()
+        X_t = self._transformer.fit_transform(X, y)
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
@@ -255,7 +255,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         y : array-like, shape = [n_instances]
             Predicted class labels.
         """
-        X_t = self._transformer.transform(X).to_numpy()
+        X_t = self._transformer.transform(X)
 
         return self._estimator.predict(X_t)
 
@@ -272,7 +272,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        X_t = self._transformer.transform(X).to_numpy()
+        X_t = self._transformer.transform(X)
 
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):
