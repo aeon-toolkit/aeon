@@ -689,13 +689,13 @@ class ShapeletTransform(BaseTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame
-            The input dataframe to transform
+        X : 3D np.array of shape (n_instances, n_channels, series_length)
+            The input time series to transform
 
         Returns
         -------
-        output : pandas DataFrame
-            The transformed dataframe in tabular format.
+        output : 2D np.array of shape = (n_instances, n_shapelets)
+            The transformed data.
         """
         if len(self.shapelets) == 0:
             raise RuntimeError(
@@ -1269,8 +1269,8 @@ class RandomShapeletTransform(BaseTransformer):
 
         Returns
         -------
-        output : pandas DataFrame
-            The transformed dataframe in tabular format.
+        output : 2D np.array of shape = (n_instances, n_shapelets)
+            The transformed data.
         """
         output = np.zeros((len(X), len(self.shapelets)))
 
