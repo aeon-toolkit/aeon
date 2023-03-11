@@ -1784,7 +1784,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         warn(
             "DirectReductionForecaster is experimental, and interfaces may change. "
             "user feedback is appreciated in issue #3224 here: "
-            "https://github.com/aeon/aeon/issues/3224"
+            "https://github.com/sktime/sktime/issues/3224"
         )
 
         if pooling == "local":
@@ -2118,7 +2118,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         warn(
             "RecursiveReductionForecaster is experimental, and interfaces may change. "
             "user feedback is appreciated in issue #3224 here: "
-            "https://github.com/alan-turing-institute/aeon/issues/3224"
+            "https://github.com/alan-turing-institute/sktime/issues/3224"
         )
 
         if pooling == "local":
