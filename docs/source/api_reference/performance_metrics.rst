@@ -4,16 +4,16 @@
 Performance metrics
 ===================
 
-The :mod:`sktime.performance_metrics` module contains metrics for evaluating and tuning time series models.
+The :mod:`aeon.performance_metrics` module contains metrics for evaluating and tuning time series models.
 
-.. automodule:: sktime.performance_metrics
+.. automodule:: aeon.performance_metrics
     :no-members:
     :no-inherited-members:
 
 Forecasting
 -----------
 
-.. currentmodule:: sktime.performance_metrics.forecasting
+.. currentmodule:: aeon.performance_metrics.forecasting
 
 Classes
 ~~~~~~~
@@ -78,7 +78,7 @@ Functions
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: sktime.performance_metrics.annotation.metrics
+.. currentmodule:: aeon.performance_metrics.annotation.metrics
 
 .. autosummary::
     :toctree: auto_generated/

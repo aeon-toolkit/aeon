@@ -45,7 +45,7 @@ Testing - implement if sktime forecaster (not needed locally):
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
 
 
-from sktime.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster
 
 # todo: add any necessary imports here
 
