@@ -5,22 +5,22 @@ Utility functions
 
 ``sktime`` has a number of modules dedicated to utilities:
 
-* :mod:`sktime.datatypes`, which contains utilities for data format checks and conversion.
-* :mod:`sktime.pipeline`, which contains generics for pipeline construction.
-* :mod:`sktime.registry`, which contains utilities for estimator and tag search.
-* :mod:`sktime.utils`, which contains generic utility functions.
+* :mod:`aeon.datatypes`, which contains utilities for data format checks and conversion.
+* :mod:`aeon.pipeline`, which contains generics for pipeline construction.
+* :mod:`aeon.registry`, which contains utilities for estimator and tag search.
+* :mod:`aeon.utils`, which contains generic utility functions.
 
 
 Data Format Checking and Conversion
 -----------------------------------
 
-:mod:`sktime.datatypes`
+:mod:`aeon.datatypes`
 
-.. automodule:: sktime.datatypes
+.. automodule:: aeon.datatypes
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.datatypes
+.. currentmodule:: aeon.datatypes
 
 .. autosummary::
     :toctree: auto_generated/
@@ -40,13 +40,13 @@ Data Format Checking and Conversion
 Pipeline construction generics
 ------------------------------
 
-:mod:`sktime.pipeline`
+:mod:`aeon.pipeline`
 
-.. automodule:: sktime.pipeline
+.. automodule:: aeon.pipeline
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.pipeline
+.. currentmodule:: aeon.pipeline
 
 .. autosummary::
     :toctree: auto_generated/
@@ -59,13 +59,13 @@ Pipeline construction generics
 Estimator Search and Retrieval, Estimator Tags
 ----------------------------------------------
 
-:mod:`sktime.registry`
+:mod:`aeon.registry`
 
-.. automodule:: sktime.registry
+.. automodule:: aeon.registry
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.registry
+.. currentmodule:: aeon.registry
 
 .. autosummary::
     :toctree: auto_generated/
@@ -78,13 +78,13 @@ Estimator Search and Retrieval, Estimator Tags
 Plotting
 --------
 
-:mod:`sktime.utils.plotting`
+:mod:`aeon.utils.plotting`
 
-.. automodule:: sktime.utils.plotting
+.. automodule:: aeon.utils.plotting
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.utils.plotting
+.. currentmodule:: aeon.utils.plotting
 
 .. autosummary::
     :toctree: auto_generated/
@@ -97,13 +97,13 @@ Plotting
 Estimator Validity Checking
 ---------------------------
 
-:mod:`sktime.utils.estimator_checks`
+:mod:`aeon.utils.estimator_checks`
 
-.. automodule:: sktime.utils.estimator_checks
+.. automodule:: aeon.utils.estimator_checks
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.utils.estimator_checks
+.. currentmodule:: aeon.utils.estimator_checks
 
 .. autosummary::
     :toctree: auto_generated/

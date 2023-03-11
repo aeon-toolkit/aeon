@@ -31,7 +31,7 @@ Testing - implement if sktime forecaster (not needed locally):
 copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 
-from sktime.annotation.base import BaseSeriesAnnotator
+from aeon.annotation.base import BaseSeriesAnnotator
 
 # todo: add any necessary imports here
 

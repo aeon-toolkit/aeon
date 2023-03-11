@@ -73,11 +73,11 @@ Forecasting
 
 .. code-block:: python
 
-    >>> from sktime.datasets import load_airline
-    >>> from sktime.forecasting.base import ForecastingHorizon
-    >>> from sktime.forecasting.model_selection import temporal_train_test_split
-    >>> from sktime.forecasting.theta import ThetaForecaster
-    >>> from sktime.performance_metrics.forecasting import mean_absolute_percentage_error
+    >>> from aeon.datasets import load_airline
+    >>> from aeon.forecasting.base import ForecastingHorizon
+    >>> from aeon.forecasting.model_selection import temporal_train_test_split
+    >>> from aeon.forecasting.theta import ThetaForecaster
+    >>> from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 
     >>> y = load_airline()
     >>> y_train, y_test = temporal_train_test_split(y)
@@ -93,8 +93,8 @@ Time Series Classification
 
 .. code-block:: python
 
-    >>> from sktime.classification.interval_based import TimeSeriesForestClassifier
-    >>> from sktime.datasets import load_arrow_head
+    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.datasets import load_arrow_head
     >>> from sklearn.model_selection import train_test_split
     >>> from sklearn.metrics import accuracy_score
 
@@ -115,7 +115,7 @@ Time Series Regression
 
 .. code-block:: python
 
-    >>> from sktime.regression.compose import ComposableTimeSeriesForestRegressor
+    >>> from aeon.regression.compose import ComposableTimeSeriesForestRegressor
 
 Time Series Clustering
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -123,9 +123,9 @@ Time Series Clustering
 .. code-block:: python
 
     >>> from sklearn.model_selection import train_test_split
-    >>> from sktime.clustering.k_means import TimeSeriesKMeans
-    >>> from sktime.clustering.utils.plotting._plot_partitions import plot_cluster_algorithm
-    >>> from sktime.datasets import load_arrow_head
+    >>> from aeon.clustering.k_means import TimeSeriesKMeans
+    >>> from aeon.clustering.utils.plotting._plot_partitions import plot_cluster_algorithm
+    >>> from aeon.datasets import load_arrow_head
 
     >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
@@ -144,9 +144,9 @@ Time Series Annotation
 
 .. code-block:: python
 
-    >>> from sktime.annotation.adapters import PyODAnnotator
+    >>> from aeon.annotation.adapters import PyODAnnotator
     >>> from pyod.models.iforest import IForest
-    >>> from sktime.datasets import load_airline
+    >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> pyod_model = IForest()
     >>> pyod_sktime_annotator = PyODAnnotator(pyod_model)
