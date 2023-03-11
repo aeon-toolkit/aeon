@@ -168,11 +168,8 @@ class ShapeletTransform(BaseTransformer):
         self : ShapeletTransform
             This estimator
         """
+        # note, assumes all dimensions of a case are the same length.
         X_lens = np.repeat(X.shape[-1], X.shape[0])
-        # note, assumes all dimensions of a case are the same
-        # length. A shapelet would not be well defined if indices do not match!
-        # may need to pad with nans here for uneq length,
-        # look at later
 
         num_ins = len(y)
         distinct_class_vals = class_distribution(np.asarray(y).reshape(-1, 1))[0][0]
@@ -259,13 +256,7 @@ class ShapeletTransform(BaseTransformer):
             binary_ig_other_class_count = num_ins - binary_ig_this_class_count - 1
 
             if self.verbose:
-                print(  # noqa
-                    "visiting series: "
-                    + str(series_id)
-                    + " (#"
-                    + str(case_idx + 1)
-                    + ")"
-                )
+                print(f"visiting series: {series_id} ({case_idx + 1})")  # noqa
 
             this_series_len = len(X[series_id][0])
 
@@ -438,7 +429,7 @@ class ShapeletTransform(BaseTransformer):
 
                 candidates_evaluated += 1
                 if self.verbose > 3 and candidates_evaluated % 100 == 0:
-                    print("candidates evaluated: " + str(candidates_evaluated))  # noqa
+                    print(f"candidates evaluated: {candidates_evaluated}")  # noqa
 
                 # only do if candidate was not rejected
                 if candidate_rejected is False:
@@ -473,104 +464,16 @@ class ShapeletTransform(BaseTransformer):
                     if time_this_shapelet > max_time_calc_shapelet:
                         max_time_calc_shapelet = time_this_shapelet
                         if self.verbose > 0:
-                            print(max_time_calc_shapelet)  # noqa
+                            print(f"Max time{max_time_calc_shapelet}")  # noqa
                     time_last_shapelet = time_now
 
                     # add a little 1% leeway to the timing incase one run was
-                    # slightly faster than
-                    # another based on the CPU.
+                    # slightly faster than another based on the CPU.
                     time_in_seconds = self.time_contract_in_mins * 60
-                    max_shapelet_time_percentage = (
-                        max_time_calc_shapelet / 100.0
-                    ) * 0.75
-                    if (time_now + max_shapelet_time_percentage) > time_in_seconds:
-                        if self.verbose > 0:
-                            print(  # noqa
-                                "No more time available! It's been {0:02d}:{"
-                                "1:02}".format(
-                                    int(round(time_now / 60, 3)),
-                                    int(
-                                        (
-                                            round(time_now / 60, 3)
-                                            - int(round(time_now / 60, 3))
-                                        )
-                                        * 60
-                                    ),
-                                )
-                            )
+                    max_shapelet_time_percent = (max_time_calc_shapelet / 100.0) * 0.75
+                    if (time_now + max_shapelet_time_percent) > time_in_seconds:
                         time_finished = True
                         break
-                    else:
-                        if self.verbose > 0:
-                            if candidate_rejected is False:
-                                print(  # noqa
-                                    "Candidate finished. {0:02d}:{1:02} "
-                                    "remaining".format(
-                                        int(
-                                            round(
-                                                self.time_contract_in_mins
-                                                - time_now / 60,
-                                                3,
-                                            )
-                                        ),
-                                        int(
-                                            (
-                                                round(
-                                                    self.time_contract_in_mins
-                                                    - time_now / 60,
-                                                    3,
-                                                )
-                                                - int(
-                                                    round(
-                                                        (
-                                                            self.time_contract_in_mins
-                                                            - time_now
-                                                        )
-                                                        / 60,
-                                                        3,
-                                                    )
-                                                )
-                                            )
-                                            * 60
-                                        ),
-                                    )
-                                )
-                            else:
-                                print(  # noqa
-                                    "Candidate rejected. {0:02d}:{1:02} "
-                                    "remaining".format(
-                                        int(
-                                            round(
-                                                (self.time_contract_in_mins - time_now)
-                                                / 60,
-                                                3,
-                                            )
-                                        ),
-                                        int(
-                                            (
-                                                round(
-                                                    (
-                                                        self.time_contract_in_mins
-                                                        - time_now
-                                                    )
-                                                    / 60,
-                                                    3,
-                                                )
-                                                - int(
-                                                    round(
-                                                        (
-                                                            self.time_contract_in_mins
-                                                            - time_now
-                                                        )
-                                                        / 60,
-                                                        3,
-                                                    )
-                                                )
-                                            )
-                                            * 60
-                                        ),
-                                    )
-                                )
 
             # stopping condition: in case of iterative transform (i.e.
             # num_cases_to_sample have been visited)
@@ -625,11 +528,9 @@ class ShapeletTransform(BaseTransformer):
         # warn the user if fit did not produce any valid shapelets
         if len(self.shapelets) == 0:
             warnings.warn(
-                "No valid shapelets were extracted from this dataset and "
-                "calling the transform method "
-                "will raise an Exception. Please re-fit the transform with "
-                "other data and/or "
-                "parameter options.",
+                "No valid shapelets were extracted from this dataset and calling the"
+                "transform method will raise an Exception. Please re-fit the transform"
+                "with other data and/or parameter options.",
                 stacklevel=2,
             )
 
@@ -655,17 +556,18 @@ class ShapeletTransform(BaseTransformer):
         shapelet_list: list of Shapelet objects
         """
 
-        def is_self_similar(shapelet_one, shapelet_two):
+        def is_self_similar(s_one, s_two):
+            """Input two shapelets, return true if self similar."""
             # not self similar if from different series
-            if shapelet_one.series_id != shapelet_two.series_id:
+            if s_one.series_id != s_two.series_id:
                 return False
 
-            if (shapelet_one.start_pos >= shapelet_two.start_pos) and (
-                shapelet_one.start_pos <= shapelet_two.start_pos + shapelet_two.length
+            if (s_one.start_pos >= s_two.start_pos) and (
+                s_one.start_pos <= s_two.start_pos + s_two.length
             ):
                 return True
-            if (shapelet_two.start_pos >= shapelet_one.start_pos) and (
-                shapelet_two.start_pos <= shapelet_one.start_pos + shapelet_one.length
+            if (s_two.start_pos >= s_one.start_pos) and (
+                s_two.start_pos <= s_one.start_pos + s_one.length
             ):
                 return True
 
