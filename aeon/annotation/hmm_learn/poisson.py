@@ -6,7 +6,7 @@ Hidden Markov Model with Poisson emissions.
 Please see the original library
 (https://github.com/hmmlearn/hmmlearn/blob/main/lib/hmmlearn/hmm.py)
 """
-
+from typing import Dict
 from aeon.annotation.hmm_learn import BaseHMMLearn
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -151,7 +151,7 @@ class PoissonHMM(BaseHMMLearn):
         return super(PoissonHMM, self)._fit(X, Y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -164,8 +164,6 @@ class PoissonHMM(BaseHMMLearn):
         -------
         params : dict or list of dict
         """
-        params = {
+        return {
             "n_components": 3,
         }
-
-        return params
