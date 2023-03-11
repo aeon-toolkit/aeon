@@ -325,6 +325,3 @@ def test_nofreq_pass():
     np.testing.assert_almost_equal(
         y_pred_global["c0"].values, y_pred_nofreq["c0"].values
     )
-
-
-test_nofreq_pass()

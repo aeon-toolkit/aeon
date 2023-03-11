@@ -12,7 +12,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base import BaseEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.forecasting.base._sktime import BaseForecaster
+from aeon.forecasting.base._aeon import BaseForecaster
 from aeon.regression.base import BaseRegressor
 
 # TODO implement task-strategy-estimator compatibility lookup registry using
