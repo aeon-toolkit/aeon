@@ -95,7 +95,9 @@ def _validate_param_shape(param_name, matrix_shape, actual_shape, time_steps=Non
 
 
 def _init_matrix(matrices, transform_func, default_val):
-    """Initialize default value if matrix is None, or transform input matrix to np.ndarray.
+    """Initialize default value if matrices.
+
+    If `matrices` is None, or transform input matrix to np.ndarray.
 
     Parameters
     ----------
@@ -801,7 +803,7 @@ class KalmanFilterTransformerPK(BaseKalmanFilter, BaseTransformer):
         return F, H, Q, R, transition_offsets, measurement_offsets, X0, P0
 
     def _get_estimate_matrices(self):
-        """Map parameters names to `pykalman` parameters names for use of `pykalman` `em`.
+        """Map parameters names to `pykalman` parameters names.
 
         Returns
         -------
@@ -846,7 +848,10 @@ class KalmanFilterTransformerPK(BaseKalmanFilter, BaseTransformer):
 
 
 class KalmanFilterTransformerFP(BaseKalmanFilter, BaseTransformer):
-    """Kalman Filter is used for denoising data or inferring the hidden state of data given.
+    """Kalman Filter Transformer.
+
+    Kalman Filter is used for denoising data or inferring the hidden
+    state of given data.
 
     The Kalman Filter is an unsupervised algorithm, consisting of
     several mathematical equations which are used to create

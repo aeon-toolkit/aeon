@@ -148,7 +148,7 @@ class _DdtwDistance(NumbaDistance):
         )
 
         if not is_no_python_compiled_callable(compute_derivative):
-            raise (
+            raise ValueError(
                 f"The derivative callable must be no_python compiled. The name"
                 f"of the callable that must be compiled is "
                 f"{compute_derivative.__name__}"
@@ -240,7 +240,7 @@ class _DdtwDistance(NumbaDistance):
         )
 
         if not is_no_python_compiled_callable(compute_derivative):
-            raise (
+            raise ValueError(
                 f"The derivative callable must be no_python compiled. The name"
                 f"of the callable that must be compiled is "
                 f"{compute_derivative.__name__}"

@@ -82,8 +82,8 @@ def dba(
         else:
             cost_prev = cost
 
-        if verbose is True:
-            print(f"[DBA sktime] epoch {i}, cost {cost}")  # noqa: T001
+        if verbose:
+            print(f"[DBA sktime] epoch {i}, cost {cost}")  # noqa: T001, T201
     return center
 
 

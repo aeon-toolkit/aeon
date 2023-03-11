@@ -165,13 +165,18 @@ def _bottom_hier_datagen(
         if no_levels >= 2:
             # create index from bottom up, sampling node names
             for i in range(2, no_levels + 1):
-                node_lookup["l" + str(i) + "_agg"] = node_lookup.groupby(
-                    ["l" + str(i - 1) + "_agg"]
-                )["l1_agg"].transform(
+                name = f"l{i}_agg"
+                name_groupby = f"l{i - 1}_agg"
+                node_lookup[name] = node_lookup.groupby([name_groupby])[
+                    "l1_agg"
+                ].transform(
+                    # TODO: the lambda function below should use `x`` but doesn't
                     lambda x: "l"
-                    + str(i)
+                    + str(i)  # noqa: B023
                     + "_node"
-                    + "{:02d}".format(_sample_node(node_lookup.index, i, rng))
+                    + "{:02d}".format(
+                        _sample_node(node_lookup.index, i, rng)  # noqa: B023
+                    )
                 )
 
         node_lookup = node_lookup.set_index("l1_agg", drop=True)

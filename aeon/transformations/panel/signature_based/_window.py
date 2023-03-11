@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-window.py
-======================================
+Window module.
+
 Introduces the Window module that is used when splitting the path over:
     - Global
     - Sliding
@@ -20,7 +20,9 @@ _Pair = co.namedtuple("Pair", ("start", "end"))
 def _window_getter(
     window_name, window_depth=None, window_length=None, window_step=None
 ):
-    """Gets the window method correspondent to the given string and initialises
+    """Window getter.
+
+    Gets the window method correspondent to the given string and initialises
     with specified parameters.
 
     Parameters
@@ -28,11 +30,11 @@ def _window_getter(
     window_name: str, String from ['global', 'sliding', 'expanding', 'dyadic']
         used to access the window method.
     window_depth: int, The depth of the dyadic window. (Active only if
-        `window_name == 'dyadic']`.
+        `window_name == 'dyadic']`).
     window_length: int, The length of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding'].
+        only if `window_name in ['sliding, 'expanding']`).
     window_step: int, The step of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding'].
+        only if `window_name in ['sliding, 'expanding']`).
 
     Returns
     -------
@@ -72,10 +74,12 @@ class _Window:
     """
 
     def num_windows(self, length):
-        """Method that returns the total number of windows in the set.
+        """Get the total number of windows in the set.
+
         Parameters
         ----------
         length: int, The length of the input path.
+
         Returns
         -------
         int: The number of windows.
@@ -92,7 +96,8 @@ class _Global(_Window):
 
 class _ExpandingSliding(_Window):
     def __init__(self, initial_length, start_step, end_step):
-        """
+        """Initilize the class.
+
         Parameters
         ----------
         initial_length: int, Initial length of the input window.
@@ -122,12 +127,15 @@ class _ExpandingSliding(_Window):
 
 
 class _Sliding(_ExpandingSliding):
-    """A window starting at zero and going to some point that increases
+    """Sliding expanding window.
+
+    A window starting at zero and going to some point that increases
     between windows.
     """
 
     def __init__(self, length, step):
-        """
+        """Initialize the class.
+
         Parameters
         ----------
         length: int, The length of the window.
@@ -142,7 +150,8 @@ class _Expanding(_ExpandingSliding):
     """A window of fixed length, slid along the dataset."""
 
     def __init__(self, length, step):
-        """
+        """Initialize the class.
+
         Parameters
         ----------
         length: int, The length of each window.

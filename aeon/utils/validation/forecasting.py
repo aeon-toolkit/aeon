@@ -428,7 +428,10 @@ def check_scoring(scoring, allow_y_pred_benchmark=False):
 
 
 def check_regressor(regressor=None, random_state=None):
-    """Check if a regressor is given and if it is valid, otherwise set default regressor.
+    """Check if a regressor.
+
+    Check if `regressor` is given and if it is valid,
+    otherwise set default regressor.
 
     Parameters
     ----------

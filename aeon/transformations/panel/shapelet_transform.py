@@ -656,13 +656,14 @@ class ShapeletTransform(BaseTransformer):
         Returns
         -------
         shapelet_list: list of Shapelet objects
+
+        IMPORTANT: it is assumed that shapelets are already in descending
+        order of quality. This is preferable in the fit method as removing
+        self-similar
+        shapelets may be False so the sort needs to happen there in those
+        cases, and avoids a second redundant sort here if it is set to True
         """
 
-        # IMPORTANT: it is assumed that shapelets are already in descending
-        # order of quality. This is preferable in the fit method as removing
-        # self-similar
-        # shapelets may be False so the sort needs to happen there in those
-        # cases, and avoids a second redundant sort here if it is set to True
         def is_self_similar(shapelet_one, shapelet_two):
             # not self similar if from different series
             if shapelet_one.series_id != shapelet_two.series_id:
