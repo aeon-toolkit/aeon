@@ -43,7 +43,7 @@ Testing - implement if sktime transformer (not needed locally):
 
 # todo: add any necessary sktime external imports here
 
-from sktime.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer
 
 # todo: add any necessary sktime internal imports here
 
@@ -177,7 +177,6 @@ class MyTransformer(BaseTransformer):
 
     # todo: add any hyper-parameters and components to constructor
     def __init__(self, parama, paramb="default", paramc=None):
-
         # todo: write any hyper-parameters to self
         self.parama = parama
         self.paramb = paramb

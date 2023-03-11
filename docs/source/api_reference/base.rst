@@ -3,16 +3,16 @@
 Base
 ====
 
-The :mod:`sktime.base` module contains abstract base classes.
+The :mod:`aeon.base` module contains abstract base classes.
 
-.. automodule:: sktime.base
+.. automodule:: aeon.base
     :no-members:
     :no-inherited-members:
 
 Base classes
 ------------
 
-.. currentmodule:: sktime.base
+.. currentmodule:: aeon.base
 
 .. autosummary::
     :toctree: auto_generated/

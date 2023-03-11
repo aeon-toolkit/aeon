@@ -3,11 +3,11 @@
 Datasets
 ========
 
-.. automodule:: sktime.datasets
+.. automodule:: aeon.datasets
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.datasets
+.. currentmodule:: aeon.datasets
 
 .. autosummary::
     :toctree: auto_generated/
