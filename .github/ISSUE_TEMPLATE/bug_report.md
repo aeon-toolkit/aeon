@@ -38,8 +38,8 @@ Add any other context about the problem here.
 
 <!--
 Please run the following code snippet and paste the output here:
- 
-from sktime import show_versions; show_versions()
+
+from aeon import show_versions; show_versions()
 -->
 
 </details>
