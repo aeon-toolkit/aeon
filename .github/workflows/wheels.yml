@@ -66,10 +66,10 @@ jobs:
 
       - if: matrix.os == 'windows-latest'
         name: Windows wheel filename
-        run: echo "WHEELNAME=$(ls ./dist/tsml_eval-*-none-any.whl)" >> $env:GITHUB_ENV
+        run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $env:GITHUB_ENV
       - if: matrix.os != 'windows-latest'
         name: Unix wheel filename
-        run: echo "WHEELNAME=$(ls ./dist/tsml_eval-*-none-any.whl)" >> $GITHUB_ENV
+        run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
 
       - if: matrix.os == 'windows-latest'
         name: Windows install
