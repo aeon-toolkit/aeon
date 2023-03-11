@@ -216,11 +216,11 @@ class ForecastingHorizon:
 
         List as ForecastingHorizon
     >>> ForecastingHorizon([1, 2, 3])
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         Numpy as ForecastingHorizon
     >>> ForecastingHorizon(np.arange(1, 7))
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
         Absolute ForecastingHorizon with a pandas Index
     >>> ForecastingHorizon(y_test.index, is_relative=False) # doctest: +SKIP
@@ -235,7 +235,7 @@ class ForecastingHorizon:
     >>> # to_relative
     >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
     >>> fh.to_relative(cutoff=cutoff)
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
     >>> # to_absolute
     >>> fh = ForecastingHorizon([1, 2, 3, 4, 5, 6], is_relative=True)
@@ -249,12 +249,12 @@ class ForecastingHorizon:
     NaiveForecaster(...)
     >>> y_pred = forecaster.predict(fh=[1,2,3])
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         This is identical to give an object of ForecastingHorizon
     >>> y_pred = forecaster.predict(fh=ForecastingHorizon([1,2,3]))
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
     """
 
     def __new__(
