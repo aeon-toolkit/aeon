@@ -913,7 +913,6 @@ class ShapeletTransform(BaseTransformer):
         """
         zscored = np.empty(a.shape)
         for i, j in enumerate(a):
-            # j = np.asanyarray(j)
             sstd = j.std(axis=axis, ddof=ddof)
 
             # special case - if shapelet is a straight line (i.e. no
