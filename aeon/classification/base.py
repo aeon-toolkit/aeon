@@ -368,9 +368,7 @@ class BaseClassifier(BaseEstimator, ABC):
             indices correspond to instance indices in X
         """
         y_proba = self._predict_proba(X)
-        y_pred = y_proba.argmax(axis=1)
-
-        return y_pred
+        return y_proba.argmax(axis=1)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -461,19 +459,16 @@ class BaseClassifier(BaseEstimator, ABC):
         if unequal and not allow_unequal:
             problems += ["unequal length series"]
 
-        # construct error message
-        problems_and = " and ".join(problems)
-        problems_or = " or ".join(problems)
-        msg = (
-            f"Data seen by {self_name} instance has {problems_and}, "
-            f"but this {self_name} instance cannot handle {problems_or}. "
-            f"Calls with {problems_or} may result in error or unreliable results."
-        )
+        if problems:
+            # construct error message
+            problems_and = " and ".join(problems)
+            problems_or = " or ".join(problems)
+            msg = (
+                f"Data seen by {self_name} instance has {problems_and}, "
+                f"but this {self_name} instance cannot handle {problems_or}. "
+                f"Calls with {problems_or} may result in error or unreliable results."
+            )
 
-        # raise exception or warning with message
-        # if self is composite, raise a warning, since passing could be fine
-        #   see discussion in PR 2366 why
-        if len(problems) > 0:
             if self.is_composite():
                 warn(msg)
             else:
@@ -555,12 +550,11 @@ class BaseClassifier(BaseEstimator, ABC):
                     f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
                     f"{n_labels}"
                 )
-            if isinstance(y, np.ndarray):
-                if y.ndim > 1:
-                    raise ValueError(
-                        f"np.ndarray y must be 1-dimensional, "
-                        f"but found {y.ndim} dimensions"
-                    )
+            if isinstance(y, np.ndarray) and y.ndim > 1:
+                raise ValueError(
+                    f"np.ndarray y must be 1-dimensional, "
+                    f"but found {y.ndim} dimensions"
+                )
             # warn if only a single class label is seen
             # this should not raise exception since this can occur by train subsampling
             if len(np.unique(y)) == 1:
@@ -587,10 +581,8 @@ class BaseClassifier(BaseEstimator, ABC):
         X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged
         y: np.ndarray
         """
-        if isinstance(X, np.ndarray):
-            # Force 2D numpy to be 3D numpy for interface consistency.
-            if X.ndim == 2:
-                X = X.reshape(X.shape[0], 1, X.shape[1])
+        if isinstance(X, np.ndarray) and X.ndim == 2:
+            X = X.reshape(X.shape[0], 1, X.shape[1])
         if y is not None and isinstance(y, pd.Series):
             # y should be a numpy array, although we allow Series for user convenience
             y = pd.Series.to_numpy(y)

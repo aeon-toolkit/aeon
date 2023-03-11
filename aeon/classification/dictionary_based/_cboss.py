@@ -207,8 +207,7 @@ class ContractableBOSS(BaseClassifier):
         max_window_searches = self.series_length_ / 4
         max_window = int(self.series_length_ * self.max_win_len_prop)
         win_inc = int((max_window - self.min_window) / max_window_searches)
-        if win_inc < 1:
-            win_inc = 1
+        win_inc = max(win_inc, 1)
         if self.min_window > max_window + 1:
             raise ValueError(
                 f"Error in ContractableBOSS, min_window ="
@@ -334,12 +333,10 @@ class ContractableBOSS(BaseClassifier):
 
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
-            for i in range(0, X.shape[0]):
+            for i in range(X.shape[0]):
                 sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
-        dists = sums / (np.ones(self.n_classes_) * self._weight_sum)
-
-        return dists
+        return sums / (np.ones(self.n_classes_) * self._weight_sum)
 
     def _worst_ensemble_acc(self):
         min_acc = 1.0
@@ -353,14 +350,12 @@ class ContractableBOSS(BaseClassifier):
         return min_acc, min_acc_idx
 
     def _unique_parameters(self, max_window, win_inc):
-        possible_parameters = [
+        return [
             [win_size, word_len, normalise]
             for n, normalise in enumerate(self._norm_options)
             for win_size in range(self.min_window, max_window + 1, win_inc)
             for g, word_len in enumerate(self._word_lengths)
         ]
-
-        return possible_parameters
 
     def _get_train_probs(self, X, y) -> np.ndarray:
         self.check_is_fitted()
@@ -378,33 +373,22 @@ class ContractableBOSS(BaseClassifier):
         results = np.zeros((n_instances, self.n_classes_))
         divisors = np.zeros(n_instances)
 
-        if self.save_train_predictions:
-            for i, clf in enumerate(self.estimators_):
-                subsample = clf._subsample
+        for i, clf in enumerate(self.estimators_):
+            subsample = clf._subsample
+            if self.save_train_predictions:
                 preds = clf._train_predictions
 
-                for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
-                    divisors[subsample[n]] += self.weights_[i]
-
-        else:
-            for i, clf in enumerate(self.estimators_):
-                subsample = clf._subsample
+            else:
                 distance_matrix = pairwise_distances(
                     clf._transformed_data, n_jobs=self.n_jobs
                 )
 
-                preds = []
-                for j in range(len(subsample)):
-                    preds.append(clf._train_predict(j, distance_matrix))
-
-                for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
-                    divisors[subsample[n]] += self.weights_[i]
+                preds = [clf._train_predict(j, distance_matrix) for j in range(len(subsample))]
+            for n, pred in enumerate(preds):
+                results[subsample[n]][
+                    self._class_dictionary[pred]
+                ] += self.weights_[i]
+                divisors[subsample[n]] += self.weights_[i]
 
         for i in range(n_instances):
             results[i] = (

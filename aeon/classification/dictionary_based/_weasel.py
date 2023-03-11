@@ -282,21 +282,15 @@ class WEASEL(BaseClassifier):
         parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
             delayed(transformer.transform)(X) for transformer in self.SFA_transformers
         )
-        all_words = []
-        for sfa_words in parallel_res:
-            all_words.append(sfa_words)
-        if type(all_words[0]) is np.ndarray:
-            all_words = np.concatenate(all_words, axis=1)
-        else:
-            all_words = hstack((all_words))
-
-        return all_words
+        all_words = list(parallel_res)
+        return (
+            np.concatenate(all_words, axis=1)
+            if type(all_words[0]) is np.ndarray
+            else hstack((all_words))
+        )
 
     def _compute_window_inc(self):
-        win_inc = self.window_inc
-        if self.series_length < 100:
-            win_inc = 1  # less than 100 is ok runtime-wise
-        return win_inc
+        return 1 if self.series_length < 100 else self.window_inc
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

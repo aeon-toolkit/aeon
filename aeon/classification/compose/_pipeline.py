@@ -153,12 +153,10 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if isinstance(other, BaseTransformer):
             # use the transformers dunder to get a TransformerPipeline
             trafo_pipeline = other * self.transformers_
-            # then stick the expanded pipeline in a ClassifierPipeline
-            new_pipeline = ClassifierPipeline(
+            return ClassifierPipeline(
                 classifier=self.classifier,
                 transformers=trafo_pipeline.steps,
             )
-            return new_pipeline
         else:
             return NotImplemented
 
@@ -233,7 +231,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         params : mapping of string to any
             Parameter names mapped to their values.
         """
-        params = dict()
+        params = {}
         trafo_params = self._get_params("_transformers", deep=deep)
         params.update(trafo_params)
 
@@ -248,9 +246,10 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         self : returns an instance of self.
         """
-        if "classifier" in kwargs.keys():
-            if not isinstance(kwargs["classifier"], BaseClassifier):
-                raise TypeError('"classifier" arg must be an sktime classifier')
+        if "classifier" in kwargs and not isinstance(
+            kwargs["classifier"], BaseClassifier
+        ):
+            raise TypeError('"classifier" arg must be an sktime classifier')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         classif_keys = self.classifier.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)
@@ -439,12 +438,10 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if isinstance(other, BaseTransformer):
             # use the transformers dunder to get a TransformerPipeline
             trafo_pipeline = other * self.transformers_
-            # then stick the expanded pipeline in a SklearnClassifierPipeline
-            new_pipeline = SklearnClassifierPipeline(
+            return SklearnClassifierPipeline(
                 classifier=self.classifier,
                 transformers=trafo_pipeline.steps,
             )
-            return new_pipeline
         else:
             return NotImplemented
 
@@ -523,12 +520,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of probabilities for class values of X, np.ndarray
         """
         Xt = self.transformers_.transform(X)
-        if hasattr(self.classifier_, "predict_proba"):
-            Xt_sklearn = self._convert_X_to_sklearn(Xt)
-            return self.classifier_.predict_proba(Xt_sklearn)
-        else:
+        if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
+        return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
         """Get parameters of estimator in `transformers`.
@@ -544,7 +540,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         params : mapping of string to any
             Parameter names mapped to their values.
         """
-        params = dict()
+        params = {}
         trafo_params = self._get_params("_transformers", deep=deep)
         params.update(trafo_params)
 
@@ -559,9 +555,10 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         self : returns an instance of self.
         """
-        if "classifier" in kwargs.keys():
-            if not is_sklearn_classifier(kwargs["classifier"]):
-                raise TypeError('"classifier" arg must be an sklearn classifier')
+        if "classifier" in kwargs and not is_sklearn_classifier(
+            kwargs["classifier"]
+        ):
+            raise TypeError('"classifier" arg must be an sklearn classifier')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         classif_keys = self.classifier.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)

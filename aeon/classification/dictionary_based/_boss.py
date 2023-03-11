@@ -256,18 +256,21 @@ class BOSSEnsemble(BaseClassifier):
                             compress(
                                 self.estimators_,
                                 [
-                                    classifier._accuracy >= max_acc * self.threshold
-                                    for c, classifier in enumerate(self.estimators_)
+                                    classifier._accuracy
+                                    >= max_acc * self.threshold
+                                    for classifier in self.estimators_
                                 ],
                             )
                         )
 
                     min_max_acc, min_acc_ind = self._worst_ensemble_acc()
 
-                    if len(self.estimators_) > self.max_ensemble_size:
-                        if min_acc_ind > -1:
-                            del self.estimators_[min_acc_ind]
-                            min_max_acc, min_acc_ind = self._worst_ensemble_acc()
+                    if (
+                        len(self.estimators_) > self.max_ensemble_size
+                        and min_acc_ind > -1
+                    ):
+                        del self.estimators_[min_acc_ind]
+                        min_max_acc, min_acc_ind = self._worst_ensemble_acc()
 
         self.n_estimators_ = len(self.estimators_)
 
@@ -311,11 +314,9 @@ class BOSSEnsemble(BaseClassifier):
 
         for clf in self.estimators_:
             preds = clf.predict(X)
-            for i in range(0, X.shape[0]):
+            for i in range(X.shape[0]):
                 sums[i, self._class_dictionary[preds[i]]] += 1
-        dists = sums / (np.ones(self.n_classes_) * self.n_estimators_)
-
-        return dists
+        return sums / (np.ones(self.n_classes_) * self.n_estimators_)
 
     def _include_in_ensemble(self, acc, max_acc, min_max_acc, size):
         if acc >= max_acc * self.threshold:
@@ -368,10 +369,7 @@ class BOSSEnsemble(BaseClassifier):
                         n_jobs=self.n_jobs,
                     )
 
-                    preds = []
-                    for i in range(n_instances):
-                        preds.append(clf._train_predict(i, distance_matrix))
-
+                    preds = [clf._train_predict(i, distance_matrix) for i in range(n_instances)]
                     for n, pred in enumerate(preds):
                         results[n][self._class_dictionary[pred]] += 1
                         divisors[n] += 1
@@ -622,7 +620,7 @@ class IndividualBOSS(BaseClassifier):
         """
         test_bags = self._transformer.transform(X)
         data_type = type(self._class_vals[0])
-        if data_type == np.str_ or data_type == str:
+        if data_type in [np.str_, str]:
             data_type = "object"
 
         classes = np.zeros(test_bags.shape[0], dtype=data_type)
