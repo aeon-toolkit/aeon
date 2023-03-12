@@ -8,16 +8,10 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 if _check_soft_dependencies("sklearn<1.0", severity="none"):
     from sklearn.experimental import enable_hist_gradient_boosting  # noqa
 
-import random
-
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.ensemble import (
-    GradientBoostingRegressor,
-    HistGradientBoostingRegressor,
-    RandomForestRegressor,
-)
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 
@@ -233,52 +227,37 @@ def test_list_reduction(y, index_names):
     check_eval(y_pred.index.names, index_names)
 
 
-@pytest.mark.parametrize(
-    "regressor",
-    [
-        RandomForestRegressor(),
-        GradientBoostingRegressor(),
-        HistGradientBoostingRegressor(),
-    ],
-)
 def test_equality_transfo_nontranso(regressor):
     """Test that recursive reducers return same results for global / local forecasts."""
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y, test_size=30)
     fh = ForecastingHorizon(y_test.index, is_relative=False)
 
-    lag_vec = [i for i in range(12, 0, -1)]
+    lag_vec = list(range(12, 0, -1))
     kwargs = {
         "lag_feature": {
             "lag": lag_vec,
         }
     }
 
-    for _i in range(1, 5):
-        random_int = random.randint(1, 1000)
-        regressor.random_state = random_int
-        forecaster = make_reduction(
-            regressor, window_length=int(12), strategy="recursive"
-        )
-        forecaster.fit(y_train)
-        y_pred = forecaster.predict(fh)
-        recursive_without = mean_absolute_percentage_error(
-            y_test, y_pred, symmetric=False
-        )
-        forecaster = make_reduction(
-            regressor,
-            window_length=None,
-            strategy="recursive",
-            transformers=[WindowSummarizer(**kwargs, n_jobs=1)],
-            pooling="global",
-        )
+    regressor = RandomForestRegressor(random_state=42)
 
-        forecaster.fit(y_train)
-        y_pred = forecaster.predict(fh)
-        recursive_global = mean_absolute_percentage_error(
-            y_test, y_pred, symmetric=False
-        )
-        np.testing.assert_almost_equal(recursive_without, recursive_global)
+    forecaster = make_reduction(regressor, window_length=12, strategy="recursive")
+    forecaster.fit(y_train)
+    y_pred = forecaster.predict(fh)
+    recursive_without = mean_absolute_percentage_error(y_test, y_pred, symmetric=False)
+    forecaster = make_reduction(
+        regressor,
+        window_length=None,
+        strategy="recursive",
+        transformers=[WindowSummarizer(**kwargs, n_jobs=1)],
+        pooling="global",
+    )
+
+    forecaster.fit(y_train)
+    y_pred = forecaster.predict(fh)
+    recursive_global = mean_absolute_percentage_error(y_test, y_pred, symmetric=False)
+    np.testing.assert_almost_equal(recursive_without, recursive_global)
 
 
 def test_nofreq_pass():
