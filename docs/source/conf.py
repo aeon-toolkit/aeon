@@ -15,8 +15,8 @@ project = "aeon"
 copyright = "The aeon developers (BSD-3 License)"
 author = "aeon developers"
 
-version = sktime.__version__
-release = sktime.__version__
+version = aeon.__version__
+release = aeon.__version__
 
 github_tag = f"v{version}"
 
@@ -203,11 +203,11 @@ html_theme_options = {
     "source_directory": "docs/source/",
     "light_css_variables": {
         "color-brand-primary": "#D71414",
-        "color-brand-content": "#D72828",
+        "color-brand-content": "#EB1414",
     },
     "dark_css_variables": {
         "color-brand-primary": "#FF1414",
-        "color-brand-content": "#FF2828",
+        "color-brand-content": "#EB3C3C",
     },
     "footer_icons": [
         {
