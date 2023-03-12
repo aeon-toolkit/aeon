@@ -850,6 +850,8 @@ def _index_range(relative, cutoff):
         absolute = absolute.to_timestamp(freq=cutoff.freq)
         # convert again to DateTimeIndex as pandas>=2.0.0 lost Timestam.freq
         absolute = pd.DatetimeIndex(absolute, freq=cutoff.freq)
+    elif isinstance(cutoff, pd.PeriodIndex):
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
     else:
         absolute = cutoff + relative
     return absolute
