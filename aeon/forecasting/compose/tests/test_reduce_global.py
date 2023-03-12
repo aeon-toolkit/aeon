@@ -227,7 +227,7 @@ def test_list_reduction(y, index_names):
     check_eval(y_pred.index.names, index_names)
 
 
-def test_equality_transfo_nontranso(regressor):
+def test_equality_transfo_nontranso():
     """Test that recursive reducers return same results for global / local forecasts."""
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y, test_size=30)
