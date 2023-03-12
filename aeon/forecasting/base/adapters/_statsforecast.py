@@ -10,6 +10,7 @@ import pandas as pd
 
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class _StatsForecastAdapter(BaseForecaster):
@@ -64,6 +65,12 @@ class _StatsForecastAdapter(BaseForecaster):
         -------
         self : reference to self
         """
+        # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
+        if _check_soft_dependencies("pandas<2.0.0"):
+            self.set_tags(
+                **{"capability:pred_var": False, "capability:pred_int": False}
+            )
+
         self._forecaster = self._instantiate_model()
         self._forecaster.fit(y.values, X.values if X is not None else X)
 
