@@ -7,7 +7,7 @@ import os
 import sys
 from importlib import import_module
 
-import sktime
+import aeon
 
 # -- Project information -----------------------------------------------------
 
@@ -25,13 +25,26 @@ github_tag = f"v{version}"
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-on_readthedocs = os.environ.get("READTHEDOCS") == "True"
-if not on_readthedocs:
-    sys.path.insert(0, os.path.abspath(".."))
-else:
-    rtd_version = os.environ.get("READTHEDOCS_VERSION")
-    if rtd_version == "latest":
-        github_tag = "main"
+
+ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
+if not ON_READTHEDOCS:
+    sys.path.insert(0, os.path.abspath("../.."))
+
+# -- Project information -----------------------------------------------------
+project = "aeon"
+copyright = "BSD-3-Clause License"
+author = "aeon developers"
+
+# The full version, including alpha/beta/rc tags
+CURRENT_VERSION = f"v{aeon.__version__}"
+
+# If on readthedocs, and we're building the latest version, update tag to generate
+# correct links in notebooks
+if ON_READTHEDOCS:
+    READTHEDOCS_VERSION = os.environ.get("READTHEDOCS_VERSION")
+    if READTHEDOCS_VERSION == "latest":
+        CURRENT_VERSION = "main"
+
 
 # -- General configuration ---------------------------------------------------
 
@@ -157,14 +170,14 @@ def linkcode_resolve(domain, info):
         import os
 
         fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(sktime.__file__))
+        fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
     if domain != "py" or not info["module"]:
         return None
     try:
-        filename = "sktime/%s#L%d-L%d" % find_source()
+        filename = "aeon/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (
@@ -317,7 +330,7 @@ def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
 
-    from sktime.registry import all_estimators
+    from aeon.registry import all_estimators
 
     def _process_author_info(author_info):
         """

@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+"""Tests for panel compositors."""
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
+
+from aeon.datasets import load_basic_motions
+from aeon.transformations.panel.compose import ColumnTransformer
+from aeon.transformations.panel.reduce import Tabularizer
+
+
+def test_ColumnTransformer_pipeline():
+    """Test pipeline with ColumnTransformer."""
+    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
+    X_test, y_test = load_basic_motions(split="test", return_type="nested_univ")
+
+    # using Identity function transformations (transform series to series)
+    def id_func(X):
+        return X
+
+    column_transformer = ColumnTransformer(
+        [
+            ("id0", FunctionTransformer(func=id_func, validate=False), ["dim_0"]),
+            ("id1", FunctionTransformer(func=id_func, validate=False), ["dim_1"]),
+        ]
+    )
+    steps = [
+        ("extract", column_transformer),
+        ("tabularise", Tabularizer()),
+        ("classify", RandomForestClassifier(n_estimators=2, random_state=1)),
+    ]
+    model = Pipeline(steps=steps)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    assert y_pred.shape[0] == y_test.shape[0]
+    np.testing.assert_array_equal(np.unique(y_pred), np.unique(y_test))

@@ -109,7 +109,7 @@ Deprecating tags
 To deprecate tags, it needs to be ensured that warnings are raised when the tag is used.
 There are two common scenarios: removing a tag, or renaming a tag.
 
-For either scenario, the helper class ``TagAliaserMixin`` (in ``sktime.base``) can be used.
+For either scenario, the helper class ``TagAliaserMixin`` (in ``aeon.base``) can be used.
 
 To deprecate tags, add the ``TagAliaserMixin`` to ``BaseEstimator``, or another ``BaseObject`` descendant.
 It is advised to select the youngest descendant that fully covers use of the deprecated tag.

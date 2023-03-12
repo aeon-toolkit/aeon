@@ -134,8 +134,8 @@ Example of running the full test suite for ``NaiveForecaster``:
 
 .. code-block:: python
 
-    from sktime.utils.estimator_checks import check_estimator
-    from sktime.forecasting.naive import NaiveForecaster
+    from aeon.utils.estimator_checks import check_estimator
+    from aeon.forecasting.naive import NaiveForecaster
     check_estimator(NaiveForecaster)
 
 The ``check_estimator`` utility will return, by default, a ``dict``, indexed by test/fixture combination strings,
