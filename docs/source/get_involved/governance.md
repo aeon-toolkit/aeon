@@ -26,7 +26,7 @@ CC membership is subject to a two-third majority vote of Core Developers. CC ter
 
 ### Code of Conduct Committee
 
-Code of Conduct Committee (CoCC) members are contributors which are tasked with maintaining the ``aeon`` Code of Conduct (CoC) and managing CoC reports. CoC members are expected to review reports of CoC violations, contact and discuss with involved individuals and make recommendations on actions to take.
+Code of Conduct Committee (CoCC) members are contributors which are tasked with maintaining the ``aeon`` Code of Conduct (CoC) and managing reports of breaking the CoC. CoC members are expected to review reports of CoC violations, contact and discuss with involved individuals and make recommendations on actions to take.
 
 Any CoCC members involved in a CoC report or CoCC members which have a conflict of interest regarding the report are expected to recuse themselves from the process. If no CoCC members are available to review a report in a timely manner, the responsibility will fall to the Community Council.
 
@@ -36,11 +36,11 @@ CoCC membership is subject to a two-third majority vote of Core Developers. CoCC
 
 Decisions about the future of the project are made publicly to allow discussion with all members of the community. All non-sensitive project management discussion takes place on the contributors channel on the project Slack and/or the issue tracker. Occasionally, sensitive discussion and votes such as appointments will occur in private Slack channels.
 
-For most decisions a consensus seeking process of all interested contributions is used. Contributors try to find a resolution that has no open objections among Core Developers. If a reasonable amount of time has passed since the last change to a proposed contribution, the proposal has at least one approval (+1) and no rejections (-1) from Core Developers, it can be approved by lazy consensus. If a change is rejected, it is expected that some form of explanation and description of conditions (if any) to withdraw the rejection is provided.
+For most decisions a consensus seeking process of all interested contributors is used. Contributors try to find a resolution that has no open objections among Core Developers. If a reasonable amount of time has passed since the last change to a proposed contribution, the proposal has at least one approval (+1) and no rejections (-1) from Core Developers, it can be approved by lazy consensus. If a change is rejected, it is expected that some form of explanation and description of conditions (if any) to withdraw the rejection is provided.
 
 At any point during the discussion, any Core Developer in favour of a change can call for a vote, which will conclude two weeks from the call for the vote. Any vote must be backed by an AEP (see following section). If no option can gather two-thirds of the votes cast, the decision is escalated to the Community Council, which in turn will use consensus seeking with the fallback option of a simple majority vote if no consensus can be found.
 
-All changes to the ``aeon`` code or documentation should be done via Pull Request. By default, push rights to the ``main`` GitHub branch are restricted for all developers. In emergencies, the Community Council may temporarily revoke the branch protection for council members and make direct commits, but this should happen sparingly and only in circumstances where harm will come to the project unless timely action is taken.
+All changes to the ``aeon`` code or documentation should be done via Pull Request. By default, push rights to the ``main`` GitHub branch are restricted for all developers. In emergencies, the Community Council may temporarily revoke the branch protection for council members and make direct commits, but this should happen only in emergencies where harm will come to the project unless timely action is taken.
 
 ### Enhancement Proposals
 
