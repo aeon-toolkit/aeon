@@ -26,7 +26,6 @@ class _StatsForecastAdapter(BaseForecaster):
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "capability:pred_int": True,  # does forecaster implement predict_quantiles?
-        "capability:pred_var": True,  # does forecaster implement predict_quantiles?
         "python_dependencies": "statsforecast",
     }
     # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
