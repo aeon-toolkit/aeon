@@ -10,7 +10,6 @@ import pandas as pd
 
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class _StatsForecastAdapter(BaseForecaster):
@@ -26,13 +25,13 @@ class _StatsForecastAdapter(BaseForecaster):
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         # "capability:pred_int": True,  # does forecaster implement predict_quantiles?
-        "python_dependencies": "statsforecast",
+        "python_dependencies": ["statsforecast", "pandas<2.0.0"],
     }
 
     def __init__(self):
         self._forecaster = None
         # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
-        if _check_soft_dependencies("pandas>=2.0.0", severity="warning"):
+        if pd.__version__ >= "2.0.0":
             pred_int = False
             pred_var = False
         else:

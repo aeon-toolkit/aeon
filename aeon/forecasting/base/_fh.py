@@ -828,18 +828,6 @@ def _coerce_to_period(x, freq=None):
 def _index_range(relative, cutoff):
     """Return Index Range relative to cutoff."""
     _check_cutoff(cutoff, relative)
-    # is_timestamp = isinstance(cutoff, pd.Timestamp)
-
-    # if is_timestamp:
-    #     # coerce to pd.Period for reliable arithmetic operations and
-    #     # computations of time deltas
-    #     cutoff = _coerce_to_period(cutoff, freq=cutoff.freqstr)
-
-    # absolute = cutoff + relative
-
-    # if is_timestamp:
-    #     # coerce back to DatetimeIndex after operation
-    #     absolute = absolute.to_timestamp(cutoff.freqstr)
     if isinstance(cutoff, pd.DatetimeIndex):
         # coerce to pd.Period for reliable arithmetic operations and
         cutoff = _coerce_to_period(cutoff, freq=cutoff.freq)
