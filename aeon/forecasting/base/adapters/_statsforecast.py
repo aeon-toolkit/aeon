@@ -33,7 +33,12 @@ class _StatsForecastAdapter(BaseForecaster):
     def __init__(self):
         self._forecaster = None
         if _check_soft_dependencies("pandas>=2.0.0", severity="warning"):
-            self.set_tags(**{"capability:pred_int": False})
+            self.set_tags(
+                **{
+                    "capability:pred_int": False,
+                    "capability:pred_var": False,
+                }
+            )
         super(_StatsForecastAdapter, self).__init__()
 
     def _instantiate_model(self):
