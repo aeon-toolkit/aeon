@@ -232,7 +232,6 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
         self.blambda = blambda
         self.biasadj = biasadj
         self.parallel = parallel
-
         super(StatsForecastAutoARIMA, self).__init__()
 
     def _instantiate_model(self):

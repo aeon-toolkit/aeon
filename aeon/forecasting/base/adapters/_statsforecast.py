@@ -25,20 +25,25 @@ class _StatsForecastAdapter(BaseForecaster):
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
-        "capability:pred_int": True,  # does forecaster implement predict_quantiles?
+        # "capability:pred_int": True,  # does forecaster implement predict_quantiles?
         "python_dependencies": "statsforecast",
     }
-    # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
 
     def __init__(self):
         self._forecaster = None
+        # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
         if _check_soft_dependencies("pandas>=2.0.0", severity="warning"):
-            self.set_tags(
-                **{
-                    "capability:pred_int": False,
-                    "capability:pred_var": False,
-                }
-            )
+            pred_int = False
+            pred_var = False
+        else:
+            pred_int = True
+            pred_var = True
+        self.set_tags(
+            **{
+                "capability:pred_int": pred_int,
+                "capability:pred_var": pred_var,
+            }
+        )
         super(_StatsForecastAdapter, self).__init__()
 
     def _instantiate_model(self):
