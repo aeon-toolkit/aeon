@@ -26,11 +26,17 @@ class _StatsForecastAdapter(BaseForecaster):
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "capability:pred_int": True,  # does forecaster implement predict_quantiles?
+        "capability:pred_var": True,  # does forecaster implement predict_quantiles?
         "python_dependencies": "statsforecast",
     }
+    # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
 
     def __init__(self):
         self._forecaster = None
+        if _check_soft_dependencies("pandas<2.0.0", severity="warning"):
+            self.set_tags(
+                **{"capability:pred_var": False, "capability:pred_int": False}
+            )
         super(_StatsForecastAdapter, self).__init__()
 
     def _instantiate_model(self):
@@ -65,12 +71,6 @@ class _StatsForecastAdapter(BaseForecaster):
         -------
         self : reference to self
         """
-        # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
-        if _check_soft_dependencies("pandas<2.0.0"):
-            self.set_tags(
-                **{"capability:pred_var": False, "capability:pred_int": False}
-            )
-
         self._forecaster = self._instantiate_model()
         self._forecaster.fit(y.values, X.values if X is not None else X)
 
