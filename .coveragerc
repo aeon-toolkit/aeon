@@ -3,5 +3,5 @@ show_missing = True
 
 [run]
 branch = True
-source = sktime
+source = aeon
 parallel = True

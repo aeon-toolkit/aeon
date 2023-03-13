@@ -4,16 +4,16 @@
 Time series clustering
 ======================
 
-The :mod:`sktime.clustering` module contains algorithms for time series clustering.
+The :mod:`aeon.clustering` module contains algorithms for time series clustering.
 
-All clusterers in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All clusterers in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="clusterer"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 Clustering models
 -----------------
 
-.. currentmodule:: sktime.clustering.k_means
+.. currentmodule:: aeon.clustering.k_means
 
 .. autosummary::
     :toctree: auto_generated/
@@ -21,7 +21,7 @@ Clustering models
 
     TimeSeriesKMeans
 
-.. currentmodule:: sktime.clustering.k_medoids
+.. currentmodule:: aeon.clustering.k_medoids
 
 .. autosummary::
     :toctree: auto_generated/
@@ -29,7 +29,7 @@ Clustering models
 
     TimeSeriesKMedoids
 
-.. currentmodule:: sktime.clustering.k_shapes
+.. currentmodule:: aeon.clustering.k_shapes
 
 .. autosummary::
     :toctree: auto_generated/
@@ -37,7 +37,7 @@ Clustering models
 
     TimeSeriesKShapes
 
-.. currentmodule:: sktime.clustering.kernel_k_means
+.. currentmodule:: aeon.clustering.kernel_k_means
 
 .. autosummary::
     :toctree: auto_generated/
@@ -48,7 +48,7 @@ Clustering models
 Base
 ----
 
-.. currentmodule:: sktime.clustering.base
+.. currentmodule:: aeon.clustering.base
 
 .. autosummary::
     :toctree: auto_generated/
@@ -56,7 +56,7 @@ Base
 
     BaseClusterer
 
-.. currentmodule:: sktime.clustering.partitioning
+.. currentmodule:: aeon.clustering.partitioning
 
 .. autosummary::
     :toctree: auto_generated/

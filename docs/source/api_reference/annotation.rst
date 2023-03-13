@@ -3,14 +3,14 @@
 Time series annotation
 ======================
 
-The :mod:`sktime.annotation` module contains algorithms and tools
+The :mod:`aeon.annotation` module contains algorithms and tools
 for time series annotation tasks, like anomaly/outlier detection,
 and time series segmentation.
 
 Time Series Segmentation
 ------------------------
 
-.. currentmodule:: sktime.annotation.clasp
+.. currentmodule:: aeon.annotation.clasp
 
 .. autosummary::
     :toctree: auto_generated/
@@ -18,7 +18,7 @@ Time Series Segmentation
 
     ClaSPSegmentation
 
-.. currentmodule:: sktime.annotation.eagglo
+.. currentmodule:: aeon.annotation.eagglo
 
 .. autosummary::
     :toctree: auto_generated/
@@ -26,7 +26,7 @@ Time Series Segmentation
 
     EAgglo
 
-.. currentmodule:: sktime.annotation.hmm_learn.gaussian
+.. currentmodule:: aeon.annotation.hmm_learn.gaussian
 
 .. autosummary::
     :toctree: auto_generated/
@@ -34,7 +34,7 @@ Time Series Segmentation
 
     GaussianHMM
 
-.. currentmodule:: sktime.annotation.hmm_learn.gmm
+.. currentmodule:: aeon.annotation.hmm_learn.gmm
 
 .. autosummary::
     :toctree: auto_generated/
@@ -42,7 +42,7 @@ Time Series Segmentation
 
     GMMHMM
 
-.. currentmodule:: sktime.annotation.ggs
+.. currentmodule:: aeon.annotation.ggs
 
 .. autosummary::
     :toctree: auto_generated/
@@ -50,7 +50,7 @@ Time Series Segmentation
 
     GreedyGaussianSegmentation
 
-.. currentmodule:: sktime.annotation.hmm
+.. currentmodule:: aeon.annotation.hmm
 
 .. autosummary::
     :toctree: auto_generated/
@@ -58,7 +58,7 @@ Time Series Segmentation
 
     HMM
 
-.. currentmodule:: sktime.annotation.igts
+.. currentmodule:: aeon.annotation.igts
 
 .. autosummary::
     :toctree: auto_generated/
@@ -66,7 +66,7 @@ Time Series Segmentation
 
     InformationGainSegmentation
 
-.. currentmodule:: sktime.annotation.hmm_learn.poisson
+.. currentmodule:: aeon.annotation.hmm_learn.poisson
 
 .. autosummary::
     :toctree: auto_generated/
@@ -74,7 +74,7 @@ Time Series Segmentation
 
     PoissonHMM
 
-.. currentmodule:: sktime.annotation.stray
+.. currentmodule:: aeon.annotation.stray
 
 .. autosummary::
     :toctree: auto_generated/
@@ -85,7 +85,7 @@ Time Series Segmentation
 Adapters
 --------
 
-.. currentmodule:: sktime.annotation.adapters
+.. currentmodule:: aeon.annotation.adapters
 
 .. autosummary::
     :toctree: auto_generated/
@@ -96,6 +96,6 @@ Adapters
 Data Generation
 ---------------
 
-.. automodule:: sktime.annotation.datagen
+.. automodule:: aeon.annotation.datagen
     :no-members:
     :no-inherited-members:

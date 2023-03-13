@@ -3,16 +3,16 @@
 Time series transformations
 ===========================
 
-The :mod:`sktime.transformations` module contains classes for data
+The :mod:`aeon.transformations` module contains classes for data
 transformations.
 
-.. automodule:: sktime.transformations
+.. automodule:: aeon.transformations
    :no-members:
    :no-inherited-members:
 
-All (simple) transformers in ``sktime``can be listed using the ``sktime.registry.all_estimators`` utility,
+All (simple) transformers in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 For pairwise transformers (time series distances, kernels), instead see :ref:`_transformations_pairwise_ref`.
 
@@ -49,7 +49,7 @@ Composition
 Pipeline building
 ~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.compose
+.. currentmodule:: aeon.transformations.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -65,7 +65,7 @@ Pipeline building
     Id
     YtoX
 
-.. currentmodule:: sktime.transformations.panel.compose
+.. currentmodule:: aeon.transformations.panel.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -73,7 +73,7 @@ Pipeline building
 
     ColumnTransformer
 
-.. currentmodule:: sktime.transformations.series.func_transform
+.. currentmodule:: aeon.transformations.series.func_transform
 
 .. autosummary::
     :toctree: auto_generated/
@@ -84,7 +84,7 @@ Pipeline building
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.reduce
+.. currentmodule:: aeon.transformations.panel.reduce
 
 .. autosummary::
     :toctree: auto_generated/
@@ -93,7 +93,7 @@ Sklearn and pandas adapters
     Tabularizer
     TimeBinner
 
-.. currentmodule:: sktime.transformations.series.adapt
+.. currentmodule:: aeon.transformations.series.adapt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -115,7 +115,7 @@ Summarization
 
 These transformers extract simple summary features.
 
-.. currentmodule:: sktime.transformations.series.summarize
+.. currentmodule:: aeon.transformations.series.summarize
 
 .. autosummary::
     :toctree: auto_generated/
@@ -124,7 +124,7 @@ These transformers extract simple summary features.
     SummaryTransformer
     WindowSummarizer
 
-.. currentmodule:: sktime.transformations.panel.summarize
+.. currentmodule:: aeon.transformations.panel.summarize
 
 .. autosummary::
     :toctree: auto_generated/
@@ -138,7 +138,7 @@ These transformers extract simple summary features.
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.shapelet_transform
+.. currentmodule:: aeon.transformations.panel.shapelet_transform
 
 .. autosummary::
     :toctree: auto_generated/
@@ -147,7 +147,7 @@ Shapelets, wavelets, and convolution
     ShapeletTransform
     RandomShapeletTransform
 
-.. currentmodule:: sktime.transformations.panel.rocket
+.. currentmodule:: aeon.transformations.panel.rocket
 
 .. autosummary::
     :toctree: auto_generated/
@@ -158,7 +158,7 @@ Shapelets, wavelets, and convolution
     MiniRocketMultivariate
     MiniRocketMultivariateVariable
 
-.. currentmodule:: sktime.transformations.panel.dwt
+.. currentmodule:: aeon.transformations.panel.dwt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -169,7 +169,7 @@ Shapelets, wavelets, and convolution
 Distance-based features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.matrix_profile
+.. currentmodule:: aeon.transformations.panel.matrix_profile
 
 .. autosummary::
     :toctree: auto_generated/
@@ -180,7 +180,7 @@ Distance-based features
 Dictionary-based features
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.dictionary_based
+.. currentmodule:: aeon.transformations.panel.dictionary_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -193,7 +193,7 @@ Dictionary-based features
 Moment-based features
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.panel.signature_based
+.. currentmodule:: aeon.transformations.panel.signature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -206,7 +206,7 @@ Feature collections
 
 These transformers extract larger collections of features.
 
-.. currentmodule:: sktime.transformations.panel.tsfresh
+.. currentmodule:: aeon.transformations.panel.tsfresh
 
 .. autosummary::
     :toctree: auto_generated/
@@ -215,7 +215,7 @@ These transformers extract larger collections of features.
     TSFreshRelevantFeatureExtractor
     TSFreshFeatureExtractor
 
-.. currentmodule:: sktime.transformations.panel.catch22
+.. currentmodule:: aeon.transformations.panel.catch22
 
 .. autosummary::
     :toctree: auto_generated/
@@ -233,7 +233,7 @@ When applied to panels or hierarchical data, individual series are transformed.
 Lagging
 ~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.lag
+.. currentmodule:: aeon.transformations.series.lag
 
 .. autosummary::
     :toctree: auto_generated/
@@ -248,7 +248,7 @@ These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: sktime.transformations.series.boxcox
+.. currentmodule:: aeon.transformations.series.boxcox
 
 .. autosummary::
     :toctree: auto_generated/
@@ -257,7 +257,7 @@ Depending on the transformer, the transformation parameters can be fitted.
     BoxCoxTransformer
     LogTransformer
 
-.. currentmodule:: sktime.transformations.series.scaledlogit
+.. currentmodule:: aeon.transformations.series.scaledlogit
 
 .. autosummary::
     :toctree: auto_generated/
@@ -265,7 +265,7 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     ScaledLogitTransformer
 
-.. currentmodule:: sktime.transformations.series.cos
+.. currentmodule:: aeon.transformations.series.cos
 
 .. autosummary::
     :toctree: auto_generated/
@@ -273,7 +273,7 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     CosineTransformer
 
-.. currentmodule:: sktime.transformations.series.exponent
+.. currentmodule:: aeon.transformations.series.exponent
 
 .. autosummary::
     :toctree: auto_generated/
@@ -285,7 +285,7 @@ Depending on the transformer, the transformation parameters can be fitted.
 Detrending
 ~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.detrend
+.. currentmodule:: aeon.transformations.series.detrend
 
 .. autosummary::
     :toctree: auto_generated/
@@ -296,7 +296,7 @@ Detrending
     ConditionalDeseasonalizer
     STLTransformer
 
-.. currentmodule:: sktime.transformations.series.clear_sky
+.. currentmodule:: aeon.transformations.series.clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
@@ -308,7 +308,7 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.bkfilter
+.. currentmodule:: aeon.transformations.series.bkfilter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -316,7 +316,7 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: sktime.transformations.series.filter
+.. currentmodule:: aeon.transformations.series.filter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -324,7 +324,7 @@ Filtering and denoising
 
     Filter
 
-.. currentmodule:: sktime.transformations.series.kalman_filter
+.. currentmodule:: aeon.transformations.series.kalman_filter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -333,7 +333,7 @@ Filtering and denoising
     KalmanFilterTransformerPK
     KalmanFilterTransformerFP
 
-.. currentmodule:: sktime.transformations.series.theta
+.. currentmodule:: aeon.transformations.series.theta
 
 .. autosummary::
     :toctree: auto_generated/
@@ -344,7 +344,7 @@ Filtering and denoising
 Differencing and slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.difference
+.. currentmodule:: aeon.transformations.series.difference
 
 .. autosummary::
     :toctree: auto_generated/
@@ -352,7 +352,7 @@ Differencing and slope
 
     Differencer
 
-.. currentmodule:: sktime.transformations.panel.slope
+.. currentmodule:: aeon.transformations.panel.slope
 
 .. autosummary::
     :toctree: auto_generated/
@@ -363,7 +363,7 @@ Differencing and slope
 Binning and segmentation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.binning
+.. currentmodule:: aeon.transformations.series.binning
 
 .. autosummary::
     :toctree: auto_generated/
@@ -371,7 +371,7 @@ Binning and segmentation
 
     TimeBinAggregate
 
-.. currentmodule:: sktime.transformations.panel.interpolate
+.. currentmodule:: aeon.transformations.panel.interpolate
 
 .. autosummary::
     :toctree: auto_generated/
@@ -379,7 +379,7 @@ Binning and segmentation
 
     TSInterpolator
 
-.. currentmodule:: sktime.transformations.panel.segment
+.. currentmodule:: aeon.transformations.panel.segment
 
 .. autosummary::
     :toctree: auto_generated/
@@ -391,7 +391,7 @@ Binning and segmentation
 Missing value imputation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.impute
+.. currentmodule:: aeon.transformations.series.impute
 
 .. autosummary::
     :toctree: auto_generated/
@@ -402,7 +402,7 @@ Missing value imputation
 Seasonality and Date-Time Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.date
+.. currentmodule:: aeon.transformations.series.date
 
 .. autosummary::
     :toctree: auto_generated/
@@ -410,7 +410,7 @@ Seasonality and Date-Time Features
 
     DateTimeFeatures
 
-.. currentmodule:: sktime.transformations.series.time_since
+.. currentmodule:: aeon.transformations.series.time_since
 
 .. autosummary::
     :toctree: auto_generated/
@@ -418,7 +418,7 @@ Seasonality and Date-Time Features
 
     TimeSince
 
-.. currentmodule:: sktime.transformations.series.fourier
+.. currentmodule:: aeon.transformations.series.fourier
 
 .. autosummary::
     :toctree: auto_generated/
@@ -429,7 +429,7 @@ Seasonality and Date-Time Features
 Auto-correlation series
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.acf
+.. currentmodule:: aeon.transformations.series.acf
 
 .. autosummary::
     :toctree: auto_generated/
@@ -443,7 +443,7 @@ Window-based series transforms
 
 These transformers create a series based on a sequence of sliding windows.
 
-.. currentmodule:: sktime.transformations.series.matrix_profile
+.. currentmodule:: aeon.transformations.series.matrix_profile
 
 .. autosummary::
     :toctree: auto_generated/
@@ -451,7 +451,7 @@ These transformers create a series based on a sequence of sliding windows.
 
     MatrixProfileTransformer
 
-.. currentmodule:: sktime.transformations.panel.hog1d
+.. currentmodule:: aeon.transformations.panel.hog1d
 
 .. autosummary::
     :toctree: auto_generated/
@@ -464,7 +464,7 @@ Multivariate-to-univariate
 
 These transformers convert multivariate series to univariate.
 
-.. currentmodule:: sktime.transformations.panel.compose
+.. currentmodule:: aeon.transformations.panel.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -475,7 +475,7 @@ These transformers convert multivariate series to univariate.
 Augmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.augmenter
+.. currentmodule:: aeon.transformations.series.augmenter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -491,7 +491,7 @@ FeatureSelection
 
 These transformers select features in `X` based on `y`.
 
-.. currentmodule:: sktime.transformations.series.feature_selection
+.. currentmodule:: aeon.transformations.series.feature_selection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -499,7 +499,7 @@ These transformers select features in `X` based on `y`.
 
     FeatureSelection
 
-.. currentmodule:: sktime.transformations.panel.channel_selection
+.. currentmodule:: aeon.transformations.panel.channel_selection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -513,7 +513,7 @@ Subsetting time points and variables
 
 These transformers subset `X` by time points (`pandas` index or index level) or variables (`pandas` columns).
 
-.. currentmodule:: sktime.transformations.series.subset
+.. currentmodule:: aeon.transformations.series.subset
 
 .. autosummary::
     :toctree: auto_generated/
@@ -534,7 +534,7 @@ Equal length transforms
 
 These transformations ensure all series in a panel have equal length
 
-.. currentmodule:: sktime.transformations.panel.padder
+.. currentmodule:: aeon.transformations.panel.padder
 
 .. autosummary::
     :toctree: auto_generated/
@@ -542,7 +542,7 @@ These transformations ensure all series in a panel have equal length
 
     PaddingTransformer
 
-.. currentmodule:: sktime.transformations.panel.truncation
+.. currentmodule:: aeon.transformations.panel.truncation
 
 .. autosummary::
     :toctree: auto_generated/
@@ -554,7 +554,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.series.pca
+.. currentmodule:: aeon.transformations.series.pca
 
 .. autosummary::
     :toctree: auto_generated/
@@ -570,7 +570,7 @@ These transformers create a panel from a single series.
 Bootstrap transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: sktime.transformations.bootstrap
+.. currentmodule:: aeon.transformations.bootstrap
 
 .. autosummary::
     :toctree: auto_generated/
@@ -582,7 +582,7 @@ Bootstrap transformations
 Outlier detection, changepoint detection
 ----------------------------------------
 
-.. currentmodule:: sktime.transformations.series.outlier_detection
+.. currentmodule:: aeon.transformations.series.outlier_detection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -590,7 +590,7 @@ Outlier detection, changepoint detection
 
     HampelFilter
 
-.. currentmodule:: sktime.transformations.series.clasp
+.. currentmodule:: aeon.transformations.series.clasp
 
 .. autosummary::
     :toctree: auto_generated/
@@ -605,7 +605,7 @@ These transformers are specifically for hierarchical data and panel data.
 
 The transformation depends on the specified hierarchy in a non-trivial way.
 
-.. currentmodule:: sktime.transformations.hierarchical.aggregate
+.. currentmodule:: aeon.transformations.hierarchical.aggregate
 
 .. autosummary::
     :toctree: auto_generated/
@@ -613,7 +613,7 @@ The transformation depends on the specified hierarchy in a non-trivial way.
 
     Aggregator
 
-.. currentmodule:: sktime.transformations.hierarchical.reconcile
+.. currentmodule:: aeon.transformations.hierarchical.reconcile
 
 .. autosummary::
     :toctree: auto_generated/
