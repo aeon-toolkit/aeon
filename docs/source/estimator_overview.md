@@ -1,6 +1,6 @@
 # Estimator Overview
 
-The table below gives an overview of all estimators in sktime.
+The table below gives an overview of all estimators in aeon.
 
 <p>
 <label for="myInput"></label><input type="text" id="myInput" placeholder="Search the table ..." />

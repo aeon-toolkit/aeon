@@ -36,7 +36,7 @@ copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 import numpy as np
 
-from sktime.classification.base import BaseClassifier
+from aeon.classification.base import BaseClassifier
 
 # todo: add any necessary imports here
 
@@ -262,8 +262,15 @@ class MyTimeSeriesClassifier(BaseClassifier):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
             Reserved values for classifiers:
-                "results_comparison" - used for identity testing in some classifiers
-                    should contain parameter settings comparable to "TSC bakeoff"
+                "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
+                "contracting" - used in classifiers that set the
+                    "capability:contractable" tag to True to test contacting
+                    functionality
+                "train_estimate" - used in some classifiers that set the
+                    "capability:train_estimate" tag to True to allow for more efficient
+                    testing when relevant parameters are available
 
         Returns
         -------

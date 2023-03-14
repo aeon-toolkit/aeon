@@ -43,7 +43,7 @@ Documentation
 
         ^^^
 
-        `sktime` tutorials.
+        `aeon` tutorials.
 
         +++
 
@@ -61,7 +61,7 @@ Documentation
 
         ^^^
 
-        `sktime` user guide.
+        `aeon` user guide.
 
         +++
 
@@ -79,7 +79,7 @@ Documentation
 
         ^^^
 
-        Overview of all estimators in `sktime`.
+        Overview of all estimators in `aeon`.
 
         +++
 
@@ -97,7 +97,7 @@ Documentation
 
         ^^^
 
-        Glossary of common terms and API elements in `sktime`.
+        Glossary of common terms and API elements in `aeon`.
 
         +++
 
@@ -133,7 +133,7 @@ Documentation
 
         ^^^
 
-        Software related to `sktime` and time series.
+        Software related to `aeon` and time series.
 
         +++
 

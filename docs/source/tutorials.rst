@@ -3,14 +3,14 @@
 Tutorials
 =========
 
-Below are introductory tutorials for ``sktime``.
+Below are introductory tutorials for ``aeon``.
 
 Each tutorial is located in its own repository, which contains notebooks and links to a youtube video walkthrough.
 
 .. note::
 
-    The tutorials and videos are based on snapshots of ``sktime`` at earlier versions.
-    They explain stable functionality which rarely changes, and most of the content is continuously tested in ``sktime`` CI.
+    The tutorials and videos are based on snapshots of ``aeon`` at earlier versions.
+    They explain stable functionality which rarely changes, and most of the content is continuously tested in ``aeon`` CI.
     Nonetheless, there may be outdated parts - in such a case, we would be very thankful for bug reports.
 
 For user guides specific to learning tasks, see our :ref:`user_guide` page.
@@ -26,7 +26,7 @@ The user guide notebooks are always functional with the most recent stable versi
 
         ^^^
 
-        A general introduction to ``sktime`` - for first time users.
+        A general introduction to ``aeon`` - for first time users.
 
         +++
 
@@ -35,7 +35,7 @@ The user guide notebooks are always functional with the most recent stable versi
             :click-parent:
             :expand:
 
-            Intro to sktime
+            Intro to aeon
 
     .. grid-item-card::
         :text-align: center
@@ -44,7 +44,7 @@ The user guide notebooks are always functional with the most recent stable versi
 
         ^^^
 
-        How to implement your own ``sktime`` compatible estimator and check its validity.
+        How to implement your own ``aeon`` compatible estimator and check its validity.
 
         +++
 
@@ -62,7 +62,7 @@ The user guide notebooks are always functional with the most recent stable versi
 
         ^^^
 
-        Probabilistic and hierarchical forecasting with ``sktime``.
+        Probabilistic and hierarchical forecasting with ``aeon``.
 
         +++
 

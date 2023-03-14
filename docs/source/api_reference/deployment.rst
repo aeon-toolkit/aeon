@@ -12,13 +12,13 @@ See ``examples/mlflow`` for a notebook tutorial.
 MLflow
 ------
 
-:mod:`sktime.utils.mlflow_sktime`
+:mod:`aeon.utils.mlflow_sktime`
 
-.. automodule:: sktime.utils.mlflow_sktime
+.. automodule:: aeon.utils.mlflow_sktime
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: sktime.utils.mlflow_sktime
+.. currentmodule:: aeon.utils.mlflow_sktime
 
 .. autosummary::
     :toctree: auto_generated/

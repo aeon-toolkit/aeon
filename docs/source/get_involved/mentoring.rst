@@ -3,9 +3,9 @@
 Mentorship Program
 ==================
 
-Our goal, apart from improving sktime, is to onboard new contributors and we would really like you to stay around after your first visit to our project. Your help is extremely welcome!
+Our goal, apart from improving aeon, is to onboard new contributors and we would really like you to stay around after your first visit to our project. Your help is extremely welcome!
 
-For this reason, we have launched an informal mentorship programme over 2 - 3 months to onboard new contributors. The goal is to help new and/or anxious contributors to become more familiar with sktime, machine learning, and open-source software development.
+For this reason, we have launched an informal mentorship programme over 2 - 3 months to onboard new contributors. The goal is to help new and/or anxious contributors to become more familiar with aeon, machine learning, and open-source software development.
 
 We explicitly encourage students from underrepresented groups or who have experienced discrimination in the past to apply!
 
@@ -43,4 +43,4 @@ How to apply
 
 We accept applications on a rolling basis and we will be in touch with you shortly!
 
-If you have any questions or get stuck, please don't hesitate to `chat with us on slack <https://join.slack.com/t/sktime-group/shared_invite/zt-1cghagwee-sqLJ~eHWGYgzWbqUX937ig>`_, join on of our collaborative community sessions on `discord <https://discord.com/invite/gqSab2K>`_, or email us at info@sktime.org.
+If you have any questions or get stuck, please don't hesitate to `chat with us on slack <https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA>`_.
