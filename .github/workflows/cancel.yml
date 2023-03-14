@@ -1,13 +1,16 @@
-name: Cancel Workflows on Push
+name: Cancel
+
 on:
   workflow_run:
-    workflows: ["Install and test"]
+    workflows: ["Tests"]
     types:
       - requested
+
 jobs:
   cancel:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        workflow_id: ${{ github.event.workflow.id }}
+      - uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          workflow_id: ${{ github.event.workflow.id }}

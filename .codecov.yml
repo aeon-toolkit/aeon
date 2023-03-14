@@ -1,24 +1,17 @@
-# paths to ignore
-ignore:
-  - "docs/**/*"
-  - "build_tools/**/*"
-  - "examples/*"
-  - ".github/*"
-  - ".binder/*"
-  - "extension_templates/*"
-  - "*.md"
-  - "*.yml"
-  - "*.yaml"
-
 # PR status check
 coverage:
   status:
     project:
       default:
-        # treshold: 1%
+        target: auto
+        threshold: 1%
+        # If true PRs will always pass and reports are just for information
         informational: true
     patch:
       default:
+        target: auto
+        threshold: 1%
+        # If true PRs will always pass and reports are just for information
         informational: true
 
 # post coverage report as comment on PR
@@ -27,3 +20,12 @@ comment: false
 # enable codecov to report to GitHub status checks
 github_checks:
   annotations: false
+
+# paths to ignore
+ignore:
+  - ".github/"
+  - ".binder/"
+  - "build_tools/"
+  - "docs/"
+  - "examples/"
+  - "extension_templates/"
