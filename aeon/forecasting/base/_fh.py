@@ -150,7 +150,7 @@ def _check_freq(obj):
 
     Returns
     -------
-    pd offset
+    pd.offset
 
     Raises
     ------
@@ -216,11 +216,11 @@ class ForecastingHorizon:
 
         List as ForecastingHorizon
     >>> ForecastingHorizon([1, 2, 3])
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         Numpy as ForecastingHorizon
     >>> ForecastingHorizon(np.arange(1, 7))
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
         Absolute ForecastingHorizon with a pandas Index
     >>> ForecastingHorizon(y_test.index, is_relative=False) # doctest: +SKIP
@@ -235,7 +235,7 @@ class ForecastingHorizon:
     >>> # to_relative
     >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
     >>> fh.to_relative(cutoff=cutoff)
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
     >>> # to_absolute
     >>> fh = ForecastingHorizon([1, 2, 3, 4, 5, 6], is_relative=True)
@@ -249,12 +249,12 @@ class ForecastingHorizon:
     NaiveForecaster(...)
     >>> y_pred = forecaster.predict(fh=[1,2,3])
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         This is identical to give an object of ForecastingHorizon
     >>> y_pred = forecaster.predict(fh=ForecastingHorizon([1,2,3]))
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
     """
 
     def __new__(
@@ -828,16 +828,18 @@ def _coerce_to_period(x, freq=None):
 def _index_range(relative, cutoff):
     """Return Index Range relative to cutoff."""
     _check_cutoff(cutoff, relative)
-    is_timestamp = isinstance(cutoff, pd.Timestamp)
-
-    if is_timestamp:
+    if isinstance(cutoff, pd.DatetimeIndex):
         # coerce to pd.Period for reliable arithmetic operations and
-        # computations of time deltas
-        cutoff = _coerce_to_period(cutoff, freq=cutoff.freqstr)
-
-    absolute = cutoff + relative
-
-    if is_timestamp:
+        cutoff = _coerce_to_period(cutoff, freq=cutoff.freq)
+        # workaround for pandas>=2.0.0 as "absolute = cutoff + relative"
+        # is not working anymore as expected
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
         # coerce back to DatetimeIndex after operation
-        absolute = absolute.to_timestamp(cutoff.freqstr)
+        absolute = absolute.to_timestamp(freq=cutoff.freq)
+        # convert again to DateTimeIndex as pandas>=2.0.0 lost Timestam.freq
+        absolute = pd.DatetimeIndex(absolute, freq=cutoff.freq)
+    elif isinstance(cutoff, pd.PeriodIndex):
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
+    else:
+        absolute = cutoff + relative
     return absolute

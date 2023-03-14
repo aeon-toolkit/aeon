@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 """Composition functionality for reduction approaches to forecasting."""
 
@@ -35,9 +35,9 @@ from sklearn.multioutput import MultiOutputRegressor
 
 from aeon.datatypes._utilities import get_time_index
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
-from aeon.forecasting.base._sktime import _BaseWindowForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
 from aeon.transformations.series.summarize import WindowSummarizer
@@ -217,7 +217,7 @@ class _Reducer(_BaseWindowForecaster):
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
-        # therefore this is commented out until sktime and sklearn are better aligned
+        # therefore this is commented out until aeon and sklearn are better aligned
         # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
 
     def _is_predictable(self, last_window):
@@ -262,7 +262,7 @@ class _Reducer(_BaseWindowForecaster):
 
         # naming convention is as follows:
         #   reducers with Tabular take an sklearn estimator, e.g., LinearRegressor
-        #   reducers with TimeSeries take an sktime supervised estimator
+        #   reducers with TimeSeries take an aeon supervised estimator
         #       e.g., pipeline of Tabularizer and Linear Regression
         # which of these is the case, we check by checking substring in the class name
         est = LinearRegression()
@@ -336,7 +336,7 @@ class _Reducer(_BaseWindowForecaster):
                 cutoff_with_freq = self._cutoff
         else:
             cutoff_with_freq = self._cutoff
-        cutoff = _shift(cutoff_with_freq, by=shift)
+        cutoff = _shift(cutoff_with_freq, by=shift, return_index=True)
 
         relative_int = pd.Index(list(map(int, range(-self.window_length_ + 1, 2))))
         # relative _int will give the integer indices of the window. Also contains the
@@ -868,7 +868,7 @@ class _RecursiveReducer(_Reducer):
         if self.pooling == "global":
             fh_max = fh.to_relative(self.cutoff)[-1]
             relative = pd.Index(list(map(int, range(1, fh_max + 1))))
-            index_range = _index_range(relative, self.cutoff[0])
+            index_range = _index_range(relative, self.cutoff)
 
             y_pred = _create_fcst_df(index_range, self._y)
 
@@ -1230,7 +1230,7 @@ class DirectTimeSeriesRegressionForecaster(_DirectReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
+        A time-series regression estimator as provided by aeon.
     window_length : int, optional (default=10)
         The length of the sliding window used to transform the series into
         a tabular matrix.
@@ -1248,7 +1248,7 @@ class MultioutputTimeSeriesRegressionForecaster(_MultioutputReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
+        A time-series regression estimator as provided by aeon.
     window_length : int, optional (default=10)
         The length of the sliding window used to transform the series into
         a tabular matrix.
@@ -1266,7 +1266,7 @@ class RecursiveTimeSeriesRegressionForecaster(_RecursiveReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
+        A time-series regression estimator as provided by aeon.
     window_length : int, optional (default=10)
         The length of the sliding window used to transform the series into
         a tabular matrix.
@@ -1290,7 +1290,7 @@ class DirRecTimeSeriesRegressionForecaster(_DirRecReducer):
 
     Parameters
     ----------
-    estimator : sktime estimator object
+    estimator : aeon estimator object
         Time-series regressor.
     window_length : int, optional (default=10)
         The length of the sliding window used to transform the series into
@@ -1320,7 +1320,7 @@ def make_reduction(
     ----------
     estimator : an estimator instance
         Either a tabular regressor from scikit-learn or a time series regressor from
-        sktime.
+        aeon.
     strategy : str, optional (default="recursive")
         The strategy to generate forecasts. Must be one of "direct", "recursive" or
         "multioutput".
@@ -1465,7 +1465,7 @@ def _check_scitype(scitype):
 
 def _infer_scitype(estimator):
     # We can check if estimator is an instance of scikit-learn's RegressorMixin or
-    # of sktime's BaseRegressor, otherwise we raise an error. Note that some time-series
+    # of aeon's BaseRegressor, otherwise we raise an error. Note that some time-series
     # regressor also inherit from scikit-learn classes, hence the order in which we
     # check matters and we first need to check for BaseRegressor.
     if isinstance(estimator, BaseRegressor):
@@ -1477,7 +1477,7 @@ def _infer_scitype(estimator):
             "The `scitype` of the given `estimator` cannot be inferred. "
             'Assuming "tabular-regressor" = scikit-learn regressor interface. '
             "If this warning is followed by an unexpected exception, "
-            "please consider report as a bug on the sktime issue tracker."
+            "please consider report as a bug on the aeon issue tracker."
         )
         return "tabular-regressor"
 
@@ -1583,7 +1583,7 @@ def _create_fcst_df(target_date, origin_df, fill=None):
         timeframe = pd.DataFrame(target_date, columns=[time_names])
         target_frame = idx.merge(timeframe, how="cross")
         if hasattr(target_date, "freq"):
-            freq_inferred = target_date[0].freq
+            freq_inferred = target_date.freq
             mi = (
                 target_frame.groupby(instance_names, as_index=True)
                 .apply(
@@ -1804,7 +1804,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
-        # therefore this is commented out until sktime and sklearn are better aligned
+        # therefore this is commented out until aeon and sklearn are better aligned
         # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
 
     def _fit(self, y, X=None, fh=None):
@@ -1978,7 +1978,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         lagger_y_to_X = self.lagger_y_to_X_
 
         fh_rel = fh.to_relative(self.cutoff)
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs = fh.to_absolute(self.cutoff).to_pandas()
         y_lags = list(fh_rel)
         y_abs = list(fh_abs)
 
@@ -2262,7 +2262,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         y_abs_no_gaps = ForecastingHorizon(
             list(y_lags_no_gaps), is_relative=True, freq=self._cutoff
         )
-        y_abs_no_gaps = y_abs_no_gaps.to_absolute(self._cutoff)
+        y_abs_no_gaps = y_abs_no_gaps.to_absolute(self._cutoff).to_pandas()
 
         # we will keep growing y_plus_preds recursively
         y_plus_preds = self._y
@@ -2321,7 +2321,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
         lagger_y_to_X = self.lagger_y_to_X_
 
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs = fh.to_absolute(self.cutoff).to_pandas()
         y = self._y
 
         Xt = lagger_y_to_X.transform(y)

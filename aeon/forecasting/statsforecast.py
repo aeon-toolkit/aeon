@@ -12,6 +12,7 @@ from aeon.forecasting.base.adapters._statsforecast import _StatsForecastAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("statsforecast", severity="warning")
+_check_soft_dependencies("pandas<2.0.0", severity="warning")
 
 
 class StatsForecastAutoARIMA(_StatsForecastAdapter):
@@ -163,6 +164,10 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """
 
+    _tags = {
+        "python_dependencies": ["statsforecast", "pandas<2.0.0"],
+    }
+
     def __init__(
         self,
         start_p: int = 2,
@@ -232,7 +237,6 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
         self.blambda = blambda
         self.biasadj = biasadj
         self.parallel = parallel
-
         super(StatsForecastAutoARIMA, self).__init__()
 
     def _instantiate_model(self):
