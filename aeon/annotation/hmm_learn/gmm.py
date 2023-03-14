@@ -6,6 +6,7 @@ Hidden Markov Model with Gaussian mixture emissions.
 Please see the original library
 (https://github.com/hmmlearn/hmmlearn/blob/main/lib/hmmlearn/hmm.py)
 """
+from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -186,7 +187,7 @@ class GMMHMM(BaseHMMLearn):
         return super(GMMHMM, self)._fit(X, Y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -199,11 +200,9 @@ class GMMHMM(BaseHMMLearn):
         -------
         params : dict or list of dict
         """
-        params = {
+        return {
             "n_components": 3,
             "covariance_type": "diag",
             "min_covar": 1e-3,
             "random_state": 7,
         }
-
-        return params

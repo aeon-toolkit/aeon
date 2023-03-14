@@ -1,6 +1,4 @@
-#!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Utility class for ploting functionality."""
 
 import numpy as np
@@ -60,7 +58,7 @@ def plot_time_series_with_change_points(ts_name, ts, true_cps, font_size=16):
 
     ax = plt.gca()
     for i, idx in enumerate(true_cps):
-        ax.vlines(idx, lim1, lim2, linestyles="--", label=str(i) + "-th-CPT")
+        ax.vlines(idx, lim1, lim2, linestyles="--", label=f"{i}-th-CPT")
 
     plt.legend(loc="best")
     plt.title(ts_name, fontsize=font_size)
@@ -134,7 +132,7 @@ def plot_time_series_with_profiles(
 
     for i, profile in enumerate(profiles):
         ax[i + 1].plot(np.arange(len(profile)), profile, color="b")
-        ax[i + 1].set_ylabel(score_name + " " + str(i) + ". Split", fontsize=font_size)
+        ax[i + 1].set_ylabel(f"{score_name} {i}. Split", fontsize=font_size)
 
     ax[-1].set_xlabel("split point $s$", fontsize=font_size)
     ax[0].set_title(ts_name, fontsize=font_size)

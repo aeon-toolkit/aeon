@@ -128,5 +128,4 @@ class PyODAnnotator(BaseSeriesAnnotator):
 
         from pyod.models.knn import KNN
 
-        params = {"estimator": KNN()}
-        return params
+        return {"estimator": KNN()}

@@ -223,7 +223,7 @@ class ShapeDTW(BaseClassifier):
             sl = self.subsequence_length
             sdf = self.shape_descriptor_function
             sdfs = self._shape_descriptor_functions
-            if sdfs is None or not (len(sdfs) == 2):
+            if sdfs is None or len(sdfs) != 2:
                 raise ValueError(
                     "When using 'compound', "
                     + "shape_descriptor_functions must be a "
@@ -310,9 +310,10 @@ class ShapeDTW(BaseClassifier):
             self.transformer = [self._get_transformer(self.shape_descriptor_function)]
         else:
             self.transformer = []
-            for x in self._shape_descriptor_functions:
-                self.transformer.append(self._get_transformer(x))
-            if not (len(self.transformer) == 2):
+            self.transformer.extend(
+                self._get_transformer(x) for x in self._shape_descriptor_functions
+            )
+            if len(self.transformer) != 2:
                 raise ValueError(
                     "When using 'compound', "
                     + "shape_descriptor_functions must be a "
@@ -321,7 +322,7 @@ class ShapeDTW(BaseClassifier):
 
         # To hold the result of each transformer
         dataFrames = []
-        col_names = [x for x in range(len(data.columns))]
+        col_names = list(range(len(data.columns)))
 
         # Apply each transformer on the set of subsequences
         for t in self.transformer:
@@ -377,14 +378,12 @@ class ShapeDTW(BaseClassifier):
             return None
         elif tName == "paa":
             num_intervals = parameters.get("num_intervals_paa")
-            if num_intervals is None:
-                return PAA()
-            return PAA(num_intervals)
+            return PAA() if num_intervals is None else PAA(num_intervals)
         elif tName == "dwt":
             num_levels = parameters.get("num_levels_dwt")
-            if num_levels is None:
-                return DWTTransformer()
-            return DWTTransformer(num_levels)
+            return (
+                DWTTransformer() if num_levels is None else DWTTransformer(num_levels)
+            )
         elif tName == "slope":
             num_intervals = parameters.get("num_intervals_slope")
             if num_intervals is None:
@@ -393,42 +392,44 @@ class ShapeDTW(BaseClassifier):
         elif tName == "derivative":
             return DerivativeSlopeTransformer()
         elif tName == "hog1d":
-            num_intervals = parameters.get("num_intervals_hog1d")
-            num_bins = parameters.get("num_bins_hog1d")
-            scaling_factor = parameters.get("scaling_factor_hog1d")
-
-            # All 3 paramaters are None
-            if num_intervals is None and num_bins is None and scaling_factor is None:
-                return HOG1DTransformer()
-
-            # 2 parameters are None
-            if num_intervals is None and num_bins is None:
-                return HOG1DTransformer(scaling_factor=scaling_factor)
-            if num_intervals is None and scaling_factor is None:
-                return HOG1DTransformer(num_bins=num_bins)
-            if num_bins is None and scaling_factor is None:
-                return HOG1DTransformer(num_intervals=num_intervals)
-
-            # 1 parameter is None
-            if num_intervals is None:
-                return HOG1DTransformer(
-                    scaling_factor=scaling_factor, num_bins=num_bins
-                )
-            if scaling_factor is None:
-                return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
-            if num_bins is None:
-                return HOG1DTransformer(
-                    scaling_factor=scaling_factor, num_intervals=num_intervals
-                )
-
-            # All parameters are given
-            return HOG1DTransformer(
-                num_intervals=num_intervals,
-                num_bins=num_bins,
-                scaling_factor=scaling_factor,
-            )
+            return self._extracted_from__get_transformer_45(parameters)
         else:
             raise ValueError("Invalid shape desciptor function.")
+
+    # TODO Rename this here and in `_get_transformer`
+    def _extracted_from__get_transformer_45(self, parameters):
+        num_intervals = parameters.get("num_intervals_hog1d")
+        num_bins = parameters.get("num_bins_hog1d")
+        scaling_factor = parameters.get("scaling_factor_hog1d")
+
+        # All 3 paramaters are None
+        if num_intervals is None and num_bins is None and scaling_factor is None:
+            return HOG1DTransformer()
+
+        # 2 parameters are None
+        if num_intervals is None and num_bins is None:
+            return HOG1DTransformer(scaling_factor=scaling_factor)
+        if num_intervals is None and scaling_factor is None:
+            return HOG1DTransformer(num_bins=num_bins)
+        if num_bins is None and scaling_factor is None:
+            return HOG1DTransformer(num_intervals=num_intervals)
+
+        # 1 parameter is None
+        if num_intervals is None:
+            return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
+        if scaling_factor is None:
+            return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
+        if num_bins is None:
+            return HOG1DTransformer(
+                scaling_factor=scaling_factor, num_intervals=num_intervals
+            )
+
+        # All parameters are given
+        return HOG1DTransformer(
+            num_intervals=num_intervals,
+            num_bins=num_bins,
+            scaling_factor=scaling_factor,
+        )
 
     def _check_metric_params(self, parameters):
         """Check for an invalid metric_params."""
@@ -445,7 +446,7 @@ class ShapeDTW(BaseClassifier):
         names = list(parameters.keys())
 
         for x in names:
-            if not (x in valid_metric_params):
+            if x not in valid_metric_params:
                 raise ValueError(
                     x
                     + " is not a valid metric parameter."
