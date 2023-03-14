@@ -276,8 +276,8 @@ ESTIMATOR_TAG_REGISTER = [
                 "deeplearning",
             ],
         ),
-        "which type the classifier falls under in the taxonomy of time series "
-        "classification algorithms.",
+        "which type the estimator falls under in the taxonomy of time series "
+        "machine learning algorithms.",
     ),
     (
         "requires-y-train",
