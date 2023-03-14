@@ -174,8 +174,7 @@ class SFA(BaseTransformer):
         self.level_bits = 0
         self.level_max = 0
 
-        super(SFA, self).__init__()
-        self._output_convert = "false"
+        super(SFA, self).__init__(_output_convert=False)
 
     def fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
