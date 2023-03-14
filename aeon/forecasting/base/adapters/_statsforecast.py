@@ -30,19 +30,6 @@ class _StatsForecastAdapter(BaseForecaster):
 
     def __init__(self):
         self._forecaster = None
-        # TODO: remove this as soon as statsforecast is compliant with pandas>=2.0.0
-        if pd.__version__ >= "2.0.0":
-            pred_int = False
-            pred_var = False
-        else:
-            pred_int = True
-            pred_var = True
-        self.set_tags(
-            **{
-                "capability:pred_int": pred_int,
-                "capability:pred_var": pred_var,
-            }
-        )
         super(_StatsForecastAdapter, self).__init__()
 
     def _instantiate_model(self):

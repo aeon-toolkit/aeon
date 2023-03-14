@@ -12,6 +12,7 @@ from aeon.forecasting.base.adapters._statsforecast import _StatsForecastAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("statsforecast", severity="warning")
+_check_soft_dependencies("pandas<2.0.0", severity="warning")
 
 
 class StatsForecastAutoARIMA(_StatsForecastAdapter):
