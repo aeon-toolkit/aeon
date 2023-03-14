@@ -164,6 +164,10 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """
 
+    _tags = {
+        "python_dependencies": ["statsforecast", "pandas<2.0.0"],
+    }
+
     def __init__(
         self,
         start_p: int = 2,
