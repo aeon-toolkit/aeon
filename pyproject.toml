@@ -54,7 +54,6 @@ all_extras = [
     "filterpy>=1.4.5",
     "h5py",
     "hmmlearn>=0.2.7",
-    "gluonts>=0.9.0",  # requires pandas<2.0.0
     "keras-self-attention",
     "matplotlib>=3.3.2",
     "mne",
