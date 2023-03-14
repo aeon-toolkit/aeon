@@ -99,14 +99,11 @@ class SFA(BaseTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
-        "requires_y": True,  # does y need to be passed in fit?
+        "requires_y": False,
     }
 
     def __init__(
