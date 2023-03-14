@@ -12,7 +12,6 @@ import sys
 import warnings
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
 from numba import NumbaTypeSafetyWarning, njit, types
 from numba.typed import Dict
@@ -80,11 +79,6 @@ class SFA(BaseTransformer):
     save_words:          boolean, default = False
         whether to save the words generated for each series (default False)
 
-    return_pandas_data_series:          boolean, default = False
-        set to true to return Pandas Series as a result of transform.
-        setting to true reduces speed significantly but is required for
-        automatic test.
-
     n_jobs:              int, optional, default = 1
         The number of jobs to run in parallel for both `transform`.
         ``-1`` means using all processors.
@@ -130,7 +124,6 @@ class SFA(BaseTransformer):
         lower_bounding=True,
         save_words=False,
         keep_binning_dft=False,
-        return_pandas_data_series=False,
         use_fallback_dft=False,
         typed_dict=False,
         n_jobs=1,
@@ -169,7 +162,6 @@ class SFA(BaseTransformer):
         self.bigrams = bigrams
         self.skip_grams = skip_grams
 
-        self.return_pandas_data_series = return_pandas_data_series
         self.use_fallback_dft = use_fallback_dft
         self._use_fallback_dft = (
             use_fallback_dft if word_length < window_size - offset else True
@@ -188,16 +180,14 @@ class SFA(BaseTransformer):
         self.level_max = 0
 
         super(SFA, self).__init__()
-
-        if not return_pandas_data_series:
-            self._output_convert = "off"
+        self._output_convert = "false"
 
     def fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
 
         Parameters
         ----------
-        X : pandas DataFrame or 3d numpy array, input time series.
+        X : 3d numpy array, input time series.
         y : array_like, target values (optional, ignored).
 
         Returns
@@ -260,7 +250,7 @@ class SFA(BaseTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or 3d numpy array, input time series.
+        X : 3d numpy array, input time series.
         y : array_like, target values (optional, ignored).
 
         Returns
@@ -299,7 +289,7 @@ class SFA(BaseTransformer):
                 nl[i] = pdict
             dim = nl
 
-        bags = pd.DataFrame() if self.return_pandas_data_series else [None]
+        bags = [None]
         bags[0] = list(dim)
 
         return bags
@@ -395,7 +385,7 @@ class SFA(BaseTransformer):
             bag = pdict
 
         return [
-            pd.Series(bag) if self.return_pandas_data_series else bag,
+            bag,
             words if self.save_words else [],
         ]
 
@@ -733,7 +723,7 @@ class SFA(BaseTransformer):
                 nl[i] = pdict
             dim = nl
 
-        new_bags = pd.DataFrame() if self.return_pandas_data_series else [None]
+        new_bags = [None]
         new_bags[0] = list(dim)
 
         return new_bags
@@ -813,7 +803,7 @@ class SFA(BaseTransformer):
                 pdict[key] = val
             new_bag = pdict
 
-        return pd.Series(new_bag) if self.return_pandas_data_series else new_bag
+        return new_bag
 
     def _add_to_bag(self, bag, word, last_word):
         if self.remove_repeat_words and word == last_word:
@@ -1055,5 +1045,5 @@ class SFA(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         # small window size for testing
-        params = {"window_size": 4, "return_pandas_data_series": True}
+        params = {"window_size": 4}
         return params
