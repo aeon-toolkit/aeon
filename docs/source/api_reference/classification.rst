@@ -3,24 +3,24 @@
 Time series classification
 ==========================
 
-The :mod:`sktime.classification` module contains algorithms and composition tools for time series classification.
+The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
 
-All classifiers in ``scikit-time`` can be listed using the ``sktime.registry
+All classifiers in ``aeon`` can be listed using the ``aeon.registry
 .all_estimators`` utility,
 using ``estimator_types="classifier"``, optionally filtered by tags.
-Valid tags can be listed using ``sktime.registry.all_tags``.
+Valid tags can be listed using ``aeon.registry.all_tags``.
 
 Composition
 -----------
 
-.. currentmodule:: sktime.classification.compose
+.. currentmodule:: aeon.classification.compose
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     ClassifierPipeline
-    ColumnEnsembleClassifier
+    ChannelEnsembleClassifier
     ComposableTimeSeriesForestClassifier
     SklearnClassifierPipeline
     WeightedEnsembleClassifier
@@ -28,7 +28,7 @@ Composition
 Deep learning
 -------------
 
-.. currentmodule:: sktime.classification.deep_learning
+.. currentmodule:: aeon.classification.deep_learning
 
 .. autosummary::
     :toctree: auto_generated/
@@ -42,7 +42,7 @@ Deep learning
 Dictionary-based
 ----------------
 
-.. currentmodule:: sktime.classification.dictionary_based
+.. currentmodule:: aeon.classification.dictionary_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -60,7 +60,7 @@ Dictionary-based
 Distance-based
 --------------
 
-.. currentmodule:: sktime.classification.distance_based
+.. currentmodule:: aeon.classification.distance_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -70,21 +70,10 @@ Distance-based
     KNeighborsTimeSeriesClassifier
     ShapeDTW
 
-Dummy
------
-
-.. currentmodule:: sktime.classification.dummy
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DummyClassifier
-
 Early classification
 --------------------
 
-.. currentmodule:: sktime.classification.early_classification
+.. currentmodule:: aeon.classification.early_classification
 
 .. autosummary::
     :toctree: auto_generated/
@@ -96,7 +85,7 @@ Early classification
 Feature-based
 -------------
 
-.. currentmodule:: sktime.classification.feature_based
+.. currentmodule:: aeon.classification.feature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -113,7 +102,7 @@ Feature-based
 Hybrid
 ------
 
-.. currentmodule:: sktime.classification.hybrid
+.. currentmodule:: aeon.classification.hybrid
 
 .. autosummary::
     :toctree: auto_generated/
@@ -125,7 +114,7 @@ Hybrid
 Interval-based
 --------------
 
-.. currentmodule:: sktime.classification.interval_based
+.. currentmodule:: aeon.classification.interval_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -140,7 +129,7 @@ Interval-based
 Kernel-based
 ------------
 
-.. currentmodule:: sktime.classification.convolution_based
+.. currentmodule:: aeon.classification.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -152,7 +141,7 @@ Kernel-based
 Shapelet-based
 --------------
 
-.. currentmodule:: sktime.classification.shapelet_based
+.. currentmodule:: aeon.classification.shapelet_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -163,7 +152,7 @@ Shapelet-based
 sklearn
 -------
 
-.. currentmodule:: sktime.classification.sklearn
+.. currentmodule:: aeon.classification.sklearn
 
 .. autosummary::
     :toctree: auto_generated/
@@ -175,15 +164,16 @@ sklearn
 Base
 ----
 
-.. currentmodule:: sktime.classification
+.. currentmodule:: aeon.classification
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     BaseClassifier
+    DummyClassifier
 
-.. currentmodule:: sktime.classification.deep_learning.base
+.. currentmodule:: aeon.classification.deep_learning.base
 
 .. autosummary::
     :toctree: auto_generated/
@@ -191,7 +181,7 @@ Base
 
     BaseDeepClassifier
 
-.. currentmodule:: sktime.classification.early_classification.base
+.. currentmodule:: aeon.classification.early_classification.base
 
 .. autosummary::
     :toctree: auto_generated/
