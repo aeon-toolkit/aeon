@@ -17,7 +17,6 @@ __all__ = [
     "TEST_INITIAL_WINDOW",
     "VALID_INDEX_FH_COMBINATIONS",
     "INDEX_TYPE_LOOKUP",
-    "TEST_RANDOM_SEEDS",
     "TEST_N_ITERS",
 ]
 
@@ -91,7 +90,6 @@ TEST_FHS_TIMEDELTA = [*TEST_OOS_FHS_TIMEDELTA, *TEST_INS_FHS_TIMEDELTA]
 TEST_SPS = [3, 12]
 TEST_ALPHAS = [0.05, 0.1]
 TEST_YS = [_make_series(all_positive=True)]
-TEST_RANDOM_SEEDS = [1, 42]
 TEST_N_ITERS = [1, 4]
 
 # We currently support the following combinations of index and forecasting horizon types

@@ -23,7 +23,7 @@ def _make_series(
     data = rng.normal(size=(n_timepoints, n_columns))
     if add_nan:
         # add some nan values
-        data[int(len(data) / 2)] = np.nan
+        data[len(data) // 2] = np.nan
         data[0] = np.nan
         data[-1] = np.nan
     if all_positive:
