@@ -24,7 +24,7 @@ class _StatsForecastAdapter(BaseForecaster):
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
-        # "capability:pred_int": True,  # does forecaster implement predict_quantiles?
+        "capability:pred_int": True,  # does forecaster implement predict_quantiles?
         "python_dependencies": ["statsforecast", "pandas<2.0.0"],
     }
 
