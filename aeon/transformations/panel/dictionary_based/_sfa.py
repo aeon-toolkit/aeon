@@ -25,8 +25,6 @@ from aeon.utils.validation.panel import check_X
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {"equi-depth", "equi-width", "information-gain", "kmeans"}
 
-# TODO remove imag-part from dc-component component
-
 
 class SFA(BaseTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
