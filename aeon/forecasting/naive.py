@@ -25,8 +25,8 @@ from scipy.stats import norm
 from aeon.datatypes._convert import convert, convert_to
 from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import ForecastingHorizon
+from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA, BaseForecaster
-from aeon.forecasting.base._sktime import _BaseWindowForecaster
 from aeon.utils.validation import check_window_length
 from aeon.utils.validation.forecasting import check_sp
 
