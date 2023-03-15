@@ -98,10 +98,11 @@ class SFA(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "requires_y": False,
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "numpy1D",  # and for y?
+        "requires_y": True,
+        "fit_is_empty": False,
     }
 
     def __init__(
@@ -176,7 +177,7 @@ class SFA(BaseTransformer):
 
         super(SFA, self).__init__(_output_convert=False)
 
-    def fit(self, X, y=None):
+    def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
 
         Parameters

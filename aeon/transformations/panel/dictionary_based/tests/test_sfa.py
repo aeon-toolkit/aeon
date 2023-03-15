@@ -4,7 +4,6 @@ import sys
 import numpy as np
 import pytest
 
-from aeon.datasets import load_gunpoint
 from aeon.transformations.panel.dictionary_based._sfa import SFA
 
 
@@ -14,7 +13,8 @@ from aeon.transformations.panel.dictionary_based._sfa import SFA
 )
 def test_transformer(binning_method):
     # load training data
-    X, y = load_gunpoint(split="train")
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
 
     word_length = 6
     alphabet_size = 4
@@ -36,13 +36,15 @@ def test_transformer(binning_method):
 @pytest.mark.parametrize("norm", [True, False])
 def test_dft_mft(use_fallback_dft, norm):
     # load training data
-    X, y = load_gunpoint(split="train", return_type="numpy2d")
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
+    X_tab = X.squeeze()
 
     word_length = 6
     alphabet_size = 4
 
     # Single DFT transformation
-    window_size = np.shape(X)[1]
+    window_size = X_tab.shape[1]
 
     p = SFA(
         word_length=6,
@@ -53,11 +55,11 @@ def test_dft_mft(use_fallback_dft, norm):
     ).fit(X, y)
 
     if use_fallback_dft:
-        dft = p._discrete_fourier_transform(X[0], word_length, norm, 1, True)
+        dft = p._discrete_fourier_transform(X_tab[0], word_length, norm, 1, True)
     else:
-        dft = p._fast_fourier_transform(X[0])
+        dft = p._fast_fourier_transform(X_tab[0])
 
-    mft = p._mft(X[0])
+    mft = p._mft(X_tab[0])
 
     assert (mft - dft < 0.0001).all()
 
@@ -72,25 +74,29 @@ def test_dft_mft(use_fallback_dft, norm):
         use_fallback_dft=use_fallback_dft,
     ).fit(X, y)
 
-    mft = p._mft(X[0])
-    for i in range(len(X[0]) - window_size + 1):
+    mft = p._mft(X_tab[0])
+    for i in range(len(X_tab[0]) - window_size + 1):
         if use_fallback_dft:
             dft = p._discrete_fourier_transform(
-                X[0, i : window_size + i], word_length, norm, 1, True
+                X_tab[0, i : window_size + i], word_length, norm, 1, True
             )
         else:
-            dft = p._fast_fourier_transform(X[0, i : window_size + i])
+            dft = p._fast_fourier_transform(X_tab[0, i : window_size + i])
 
         assert (mft[i] - dft < 0.001).all()
 
-    assert len(mft) == len(X[0]) - window_size + 1
+    assert len(mft) == len(X_tab[0]) - window_size + 1
     assert len(mft[0]) == word_length
+
+
+test_dft_mft(True, True)
 
 
 @pytest.mark.parametrize("binning_method", ["equi-depth", "information-gain"])
 def test_sfa_anova(binning_method):
     # load training data
-    X, y = load_gunpoint(split="train")
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
 
     word_length = 6
     alphabet_size = 4
@@ -132,8 +138,9 @@ def test_sfa_anova(binning_method):
 def test_word_lengths(
     word_length, alphabet_size, window_size, bigrams, levels, use_fallback_dft
 ):
-    # load training data
-    X, y = load_gunpoint(split="train")
+    # training data
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
 
     p = SFA(
         word_length=word_length,
@@ -150,7 +157,8 @@ def test_word_lengths(
 
 def test_bit_size():
     # load training data
-    X, y = load_gunpoint(split="train")
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
 
     word_length = 40
     alphabet_size = 12
@@ -173,7 +181,8 @@ def test_bit_size():
 
 def test_typed_dict():
     # load training data
-    X, y = load_gunpoint(split="train")
+    X = np.random.rand(10, 1, 150)
+    y = np.random.randint(0, 2, 10)
 
     word_length = 6
     alphabet_size = 4
