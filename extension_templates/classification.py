@@ -4,7 +4,7 @@ Extension template for time series classifiers.
 
 Purpose of this implementation template:
     quick implementation of new estimators following the template. This is NOT a
-    concrete class to import nor is a base class or concrete class. This is to be used
+    concrete class to import nor is it a base class to inherit from. This is to be used
     as a "fill-in" coding template.
 
 How to use this implementation template to implement a new estimator:
@@ -78,8 +78,20 @@ class MyTimeSeriesClassifier(BaseClassifier):
     References
     ----------
     Optional, details of paper where algorithm described
-    """
 
+
+    Examples
+    --------
+    Add a simple use case example here
+    >>> from aeon.classification.deep_learning.cnn import CNNClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> cls = MyTimeSeriesClassifier()
+    >>> clf.fit(X_train, y_train)
+    MyTimeSeriesClassifier(...)
+    >>> y_pred = clf.predict(X_test)
+    """
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
@@ -133,7 +145,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         # implement here
         # IMPORTANT: avoid side effects to X, y, if changing X and y make local copies.
 
-    # todo: implement this,
+    # todo: implement this abstract function
     def _predict(self, X) -> np.ndarray:
         """Predict labels for sequences in X.
 
@@ -247,6 +259,6 @@ class MyTimeSeriesClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-
         # todo: set the testing parameters for the estimators
         # Testing parameters can be dictionary or list of dictionaries
+        return {"param_a": 42, "param_c": False}
