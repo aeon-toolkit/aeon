@@ -16,9 +16,10 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to sktime via PR
-- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to aeon via PR
+- more details:
+    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting                 - _fit(self, X, y)
@@ -29,10 +30,8 @@ Optional implements:
     fitted parameter inspection           - _get_fitted_params()
     predicting class probabilities        - _predict_proba(self, X)
 
-Testing - implement if sktime classifier (not needed locally):
+Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
-
-copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 import numpy as np
 
@@ -40,11 +39,11 @@ from aeon.classification.base import BaseClassifier
 
 # todo: add any necessary imports here
 
-# todo: if any imports are sktime soft dependencies:
+# todo: if any imports are aeon soft dependencies:
 #  * make sure to fill in the "python_dependencies" tag with the package import name
 #  * add a _check_soft_dependencies warning here, example:
 #
-# from sktime.utils.validation._dependencies import check_soft_dependencies
+# from aeon.utils.validation._dependencies import check_soft_dependencies
 # _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
@@ -65,7 +64,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
     Components
     ----------
-    est : sktime.estimator, BaseEstimator descendant
+    est : aeon.estimator, BaseEstimator descendant
         descriptive explanation of est
     est2: another estimator
         descriptive explanation of est2
@@ -286,7 +285,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         #
         # this can, if required, use:
         #   class properties (e.g., inherited); parent class test case
-        #   imported objects such as estimators from sktime or sklearn
+        #   imported objects such as estimators from aeon or sklearn
         # important: all such imports should be *inside get_test_params*, not at the top
         #            since imports are used only at testing time
         #
