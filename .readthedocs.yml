@@ -15,5 +15,5 @@ build:
     python: "3.9"
 
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: docs/conf.py
 #  fail_on_warning: True
