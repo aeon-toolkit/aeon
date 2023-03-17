@@ -1,23 +1,21 @@
 changelog:
-  exclude:
-    authors:
-      - octocat
-      - dependabot
   categories:
     - title: '🚀 Features'
       labels:
-        - 'feature'
         - 'enhancement'
+        - 'implementing algorithms'
+        - 'implementing framework'
+        - 'interfacing algorithms'
     - title: '🐛 Bug Fixes'
       labels:
-        - 'fix'
-        - 'bugfix'
         - 'bug'
     - title: '🧰 Maintenance'
       label:
-        - 'chore'
         - 'maintenance'
         - 'refactor'
+        - 'testing'
+    - title: '📖 Documentation'
+      label:
         - 'documentation'
     - title: Other Changes
       labels:
