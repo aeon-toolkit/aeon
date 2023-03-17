@@ -128,9 +128,9 @@ class Rocket(BaseTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        t = _apply_kernels(X.astype(np.float32), self.kernels)
+        X_ = _apply_kernels(X.astype(np.float32), self.kernels)
         set_num_threads(prev_threads)
-        return t
+        return X_
 
 
 @njit(
