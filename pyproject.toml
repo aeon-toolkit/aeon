@@ -85,6 +85,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "dash<=2.8.1", #https://github.com/plotly/dash/issues/2463 remove when fixed
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
