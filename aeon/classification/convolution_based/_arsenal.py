@@ -379,7 +379,7 @@ class Arsenal(BaseClassifier):
     def _predict_proba_for_estimator(self, X, classifier, idx):
         preds = classifier.predict(X)
         weights = np.zeros((X.shape[0], self.n_classes_))
-        for i in range(0, X.shape[0]):
+        for i in range(X.shape[0]):
             weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
         return weights
 
@@ -397,7 +397,7 @@ class Arsenal(BaseClassifier):
         oob = [n for n in indices if n not in subsample]
 
         results = np.zeros((self.n_instances_, self.n_classes_))
-        if len(oob) == 0:
+        if not oob:
             return results, 1, oob
 
         clf = make_pipeline(
