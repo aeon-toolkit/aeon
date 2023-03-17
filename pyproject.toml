@@ -83,7 +83,6 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-randomly",
-    "pytest-timeout",
     "pytest-xdist",
     "wheel",
     "packaging",
