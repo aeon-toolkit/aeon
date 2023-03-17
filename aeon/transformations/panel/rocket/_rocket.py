@@ -15,7 +15,12 @@ from aeon.transformations.base import BaseTransformer
 class Rocket(BaseTransformer):
     """RandOm Convolutional KErnel Transform (ROCKET).
 
-    ROCKET [1]_ generates random convolutional kernels, including random length and
+    A kernel (or convolution) is a subseries used to create features that can be used
+    in machine learning tasks. ROCKET [1]_  generates a large number of random
+    convolutional kernels in the fit method. The length and dilation of each kernel
+    are also randomly generated. The kernels are use in the transform stage to
+    generate a new set of features. A kernel is used to create an activation map for
+    each series by running it across a time series, including random length and
     dilation. It transforms the time series with two features per kernel. The first
     feature is global max pooling and the second is proportion of positive values.
 
