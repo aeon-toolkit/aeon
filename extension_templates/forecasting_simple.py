@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Extension template for forecasters, SIMPLE version.
 
@@ -21,19 +22,21 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to aeon via PR
-- more details:
-    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to sktime via PR
+- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting         - _fit(self, y, X=None, fh=None)
     forecasting     - _predict(self, fh=None, X=None)
 
-Testing - implement if aeon forecaster (not needed locally):
+Testing - implement if sktime forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
 # todo: write an informative docstring for the file or module, remove the above
+# todo: add an appropriate copyright notice for your estimator
+#       estimators contributed to sktime should have the copyright notice at the top
+#       estimators of your own do not need to have permissive or BSD-3 copyright
 
 # todo: uncomment the following line, enter authors' GitHub IDs
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
@@ -67,7 +70,7 @@ class MyForecaster(BaseForecaster):
     #   scitype:y - the expected input scitype of y - univariate or multivariate or both
     # tag values are "safe defaults" which can usually be left as-is
     _tags = {
-        # to list all valid tags with description, use aeon.registry.all_tags
+        # to list all valid tags with description, use sktime.registry.all_tags
         #   all_tags(estimator_types="forecaster", as_dataframe=True)
         #
         # behavioural tags: internal type
@@ -78,7 +81,7 @@ class MyForecaster(BaseForecaster):
         "y_inner_mtype": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   in that case, all inputs are converted to that one type
         # if list of str, must be a list of valid str specifiers
@@ -194,7 +197,7 @@ class MyForecaster(BaseForecaster):
         # implement here
         # IMPORTANT: avoid side effects to X, fh
 
-    # todo: implement this if this is an estimator contributed to aeon
+    # todo: implement this if this is an estimator contributed to sktime
     #   or to run local automated unit and integration testing of estimator
     #   method should return default parameters, so that a test instance can be created
     @classmethod
@@ -224,7 +227,7 @@ class MyForecaster(BaseForecaster):
         #
         # this method can, if required, use:
         #   class properties (e.g., inherited); parent class test case
-        #   imported objects such as estimators from aeon or sklearn
+        #   imported objects such as estimators from sktime or sklearn
         # important: all such imports should be *inside get_test_params*, not at the top
         #            since imports are used only at testing time
         #
