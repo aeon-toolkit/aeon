@@ -9,6 +9,20 @@ from importlib import import_module
 
 import aeon
 
+rst_prolog = """.. attention::
+    DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links
+    and documentation to reflect this. We do not recommend using this repository in any
+    production setting, but welcome any contributors willing to help us update the
+    project.
+
+    Links and buttons are likely to be broken in the current state.
+
+    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
+    contributions.
+
+    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
+"""  # noqa: E501
+
 # -- Project information -----------------------------------------------------
 
 project = "aeon"
