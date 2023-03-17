@@ -7,7 +7,6 @@ __all__ = ["Rocket"]
 import multiprocessing
 
 import numpy as np
-import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.base import BaseTransformer
@@ -75,7 +74,7 @@ class Rocket(BaseTransformer):
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state if isinstance(random_state, int) else None
-        super(Rocket, self).__init__()
+        super(Rocket, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
@@ -127,7 +126,7 @@ class Rocket(BaseTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        t = pd.DataFrame(_apply_kernels(X.astype(np.float32), self.kernels))
+        t = _apply_kernels(X.astype(np.float32), self.kernels)
         set_num_threads(prev_threads)
         return t
 
