@@ -2,6 +2,8 @@
 
 # Welcome to aeon
 
+Aeon pre-release: v0.1.0rc0
+
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **CI/CD**     | [![github-actions-main](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/test.yml?logo=github&branch=main&label=build%20%28main%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/test.yml) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/latest?logo=readthedocs&label=docs%20%28latest%29)](https://www.aeon-toolkit.org/en/latest/) [![!codecov](https://img.shields.io/codecov/c/github/aeon-toolkit/aeon?label=codecov&logo=codecov)](https://codecov.io/gh/aeon-toolkit/aeon) |
