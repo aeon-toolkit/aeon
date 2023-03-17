@@ -86,7 +86,7 @@ class Rocket(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -94,9 +94,9 @@ class Rocket(BaseTransformer):
         -------
         self
         """
-        _, self.n_columns, n_timepoints = X.shape
+        _, self.n_channels, n_timepoints = X.shape
         self.kernels = _generate_kernels(
-            n_timepoints, self.num_kernels, self.n_columns, self.random_state
+            n_timepoints, self.num_kernels, self.n_channels, self.random_state
         )
         return self
 
@@ -105,7 +105,7 @@ class Rocket(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -133,7 +133,7 @@ class Rocket(BaseTransformer):
     "int32[:]))(int32,int32,int32,optional(int32))",
     cache=True,
 )
-def _generate_kernels(n_timepoints, num_kernels, n_columns, seed):
+def _generate_kernels(n_timepoints, num_kernels, n_channels, seed):
     if seed is not None:
         np.random.seed(seed)
 
@@ -142,7 +142,7 @@ def _generate_kernels(n_timepoints, num_kernels, n_columns, seed):
 
     num_channel_indices = np.zeros(num_kernels, dtype=np.int32)
     for i in range(num_kernels):
-        limit = min(n_columns, lengths[i])
+        limit = min(n_channels, lengths[i])
         num_channel_indices[i] = 2 ** np.random.uniform(0, np.log2(limit + 1))
 
     channel_indices = np.zeros(num_channel_indices.sum(), dtype=np.int32)
@@ -180,7 +180,7 @@ def _generate_kernels(n_timepoints, num_kernels, n_columns, seed):
         weights[a1:b1] = _weights
 
         channel_indices[a2:b2] = np.random.choice(
-            np.arange(0, n_columns), _num_channel_indices, replace=False
+            np.arange(0, n_channels), _num_channel_indices, replace=False
         )
 
         biases[i] = np.random.uniform(-1, 1)

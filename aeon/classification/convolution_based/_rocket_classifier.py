@@ -97,8 +97,8 @@ class RocketClassifier(_DelegatedClassifier):
     --------
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RocketClassifier(num_kernels=500)
     >>> clf.fit(X_train, y_train)
     RocketClassifier(...)
