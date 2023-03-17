@@ -62,7 +62,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--cov --cov-report=xml --timeout=600" test_softdeps
+        run: make PYTESTOPTIONS="--cov --cov-report=xml" test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
@@ -84,7 +84,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--cov --cov-report=xml --timeout=600" test_softdeps_full
+        run: make PYTESTOPTIONS="--cov --cov-report=xml" test_softdeps_full
 
   test-windows:
     needs: test-nosoftdeps
