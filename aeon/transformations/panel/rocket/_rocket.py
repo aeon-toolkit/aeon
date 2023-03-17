@@ -38,6 +38,8 @@ class Rocket(BaseTransformer):
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
+    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
+    /classification/convolution_based.ipynb
 
     References
     ----------
@@ -141,7 +143,6 @@ class Rocket(BaseTransformer):
 def _generate_kernels(n_timepoints, num_kernels, n_channels, seed):
     if seed is not None:
         np.random.seed(seed)
-
     candidate_lengths = np.array((7, 9, 11), dtype=np.int32)
     lengths = np.random.choice(candidate_lengths, num_kernels).astype(np.int32)
 
