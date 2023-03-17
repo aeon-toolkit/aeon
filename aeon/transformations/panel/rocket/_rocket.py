@@ -94,6 +94,10 @@ class Rocket(BaseTransformer):
         -------
         self
         """
+        if isinstance(self.random_state, int):
+            self._random_state = self.random_state
+        else:
+            self._random_state = None
         _, self.n_channels, n_timepoints = X.shape
         self.kernels = _generate_kernels(
             n_timepoints, self.num_kernels, self.n_channels, self.random_state
