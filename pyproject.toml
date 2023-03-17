@@ -86,6 +86,7 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
     "wheel",
+    "packaging",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
     "moto",  # mlflow related
