@@ -137,7 +137,7 @@ class TestAllEarlyClassifiers(EarlyClassifierFixtureGenerator, QuickTester):
         indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
         # train classifier and predict probas
-        estimator_instance.fit(X_train.iloc[indices], y_train[indices])
+        estimator_instance.fit(X_train[indices], y_train[indices])
         y_proba, _ = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
