@@ -120,7 +120,7 @@ class MultiRocket(BaseTransformer):
         X = X.astype(np.float64)
         if X.shape[1] != 1:
             raise ValueError(
-                f"Passed data with {X.shape[1]} channels. USe "
+                f"Passed data with {X.shape[1]} channels. Use "
                 f"MultiRocketMultivariate Instead "
             )
         X = X.squeeze()
@@ -178,7 +178,10 @@ class MultiRocket(BaseTransformer):
         return X_
 
     def _get_parameter(self, X):
-        _, input_length = X.shape
+        if X.ndim == 1:
+            input_length = len(X)
+        else:
+            _, input_length = X.shape
 
         num_kernels = 84
 
