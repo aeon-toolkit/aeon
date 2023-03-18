@@ -111,8 +111,8 @@ class MultiRocket(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            panel of time series to transform
+        X : 3D np.ndarray of shape = [n_instances, 1 , series_length]
+            univariate collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
@@ -120,7 +120,7 @@ class MultiRocket(BaseTransformer):
         self
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
