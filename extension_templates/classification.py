@@ -64,8 +64,6 @@ class MyTimeSeriesClassifier(BaseClassifier):
     att_a_ : int
         attributes are not passed to the constructor. If set in fit use following
         underscore.
-    att_b_: boolean or None, default=None
-        there may not be any.
 
     See Also
     --------
@@ -88,9 +86,6 @@ class MyTimeSeriesClassifier(BaseClassifier):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> cls = MyTimeSeriesClassifier()
-    >>> clf.fit(X_train, y_train)
-    MyTimeSeriesClassifier(...)
-    >>> y_pred = clf.predict(X_test)
 
     """
 
