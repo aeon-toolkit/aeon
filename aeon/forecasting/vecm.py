@@ -271,10 +271,8 @@ class VECM(_StatsModelsAdapter):
             for v_idx in range(len(var_names)):
                 values.append(y_lower[0][v_idx])
                 values.append(y_upper[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "lower"), :] = (y_lower[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "upper"), :] = (y_upper[0][v_idx])
         pred_int = pd.DataFrame(
-            [values], index=fh.to_absolute(self.cutoff), columns=int_idx
+            [values], index=fh.to_absolute(self.cutoff).to_pandas(), columns=int_idx
         )
 
         return pred_int
