@@ -121,7 +121,11 @@ class InceptionTimeClassifier(BaseClassifier):
 
     """
 
-    _tags = {"python_dependencies": "tensorflow", "capability:multivariate": True}
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+    }
 
     def __init__(
         self,
