@@ -91,7 +91,9 @@ class MyTimeSeriesClassifier(BaseClassifier):
     >>> clf.fit(X_train, y_train)
     MyTimeSeriesClassifier(...)
     >>> y_pred = clf.predict(X_test)
+
     """
+
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
