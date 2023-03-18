@@ -24,7 +24,6 @@ class Rocket(BaseTransformer):
     dilation. It transforms the time series with two features per kernel. The first
     feature is global max pooling and the second is proportion of positive values.
 
-
     Parameters
     ----------
     num_kernels : int, default=10,000
@@ -39,6 +38,8 @@ class Rocket(BaseTransformer):
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
+    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
+    /classification/convolution_based.ipynb
 
     References
     ----------
@@ -66,32 +67,29 @@ class Rocket(BaseTransformer):
         "univariate-only": False,
         "fit_is_empty": False,
         "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs
-        self.random_state = random_state if isinstance(random_state, int) else None
+        self.random_state = random_state
         super(Rocket, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
 
-        Infers time series length and number of channels / dimensions (
-        for multivariate time series) from input pandas DataFrame,
+        Infers time series length and number of channels from input numpy array,
         and generates random kernels.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            panel of time series to transform
+            collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
@@ -102,9 +100,10 @@ class Rocket(BaseTransformer):
             self._random_state = self.random_state
         else:
             self._random_state = None
-        _, self.n_channels, n_timepoints = X.shape
+
+        _, n_channels, n_timepoints = X.shape
         self.kernels = _generate_kernels(
-            n_timepoints, self.num_kernels, self.n_channels, self.random_state
+            n_timepoints, self.num_kernels, n_channels, self._random_state
         )
         return self
 
@@ -114,12 +113,12 @@ class Rocket(BaseTransformer):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            panel of time series to transform
+            collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        pandas DataFrame, transformed features
+        np.ndarray [n_instances, num_kernels], transformed features
         """
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
@@ -131,9 +130,9 @@ class Rocket(BaseTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        t = _apply_kernels(X.astype(np.float32), self.kernels)
+        X_ = _apply_kernels(X.astype(np.float32), self.kernels)
         set_num_threads(prev_threads)
-        return t
+        return X_
 
 
 @njit(
@@ -144,7 +143,6 @@ class Rocket(BaseTransformer):
 def _generate_kernels(n_timepoints, num_kernels, n_channels, seed):
     if seed is not None:
         np.random.seed(seed)
-
     candidate_lengths = np.array((7, 9, 11), dtype=np.int32)
     lengths = np.random.choice(candidate_lengths, num_kernels).astype(np.int32)
 
@@ -299,7 +297,7 @@ def _apply_kernels(X, kernels):
         channel_indices,
     ) = kernels
 
-    n_instances, n_columns, _ = X.shape
+    n_instances, n_channels, _ = X.shape
     num_kernels = len(lengths)
 
     _X = np.zeros(
