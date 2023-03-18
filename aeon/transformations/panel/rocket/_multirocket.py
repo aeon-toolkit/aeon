@@ -178,7 +178,10 @@ class MultiRocket(BaseTransformer):
         return pd.DataFrame(X)
 
     def _get_parameter(self, X):
-        _, input_length = X.shape
+        if X.ndim == 1:
+            input_length = len(X)
+        else:
+            _, input_length = X.shape
 
         num_kernels = 84
 
