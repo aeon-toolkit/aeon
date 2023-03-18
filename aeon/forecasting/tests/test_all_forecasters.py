@@ -14,17 +14,12 @@ from aeon.datatypes import check_is_mtype
 from aeon.datatypes._utilities import get_cutoff
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
-from aeon.forecasting.model_selection import (
-    ExpandingWindowSplitter,
-    SlidingWindowSplitter,
-    temporal_train_test_split,
-)
+from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.tests._config import (
     TEST_ALPHAS,
     TEST_FHS,
     TEST_OOS_FHS,
     TEST_STEP_LENGTHS_INT,
-    TEST_WINDOW_LENGTHS_INT,
     VALID_INDEX_FH_COMBINATIONS,
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
@@ -32,7 +27,6 @@ from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
-    _get_expected_index_for_update_predict,
     _get_n_columns,
     _make_fh,
     make_forecasting_problem,
@@ -157,9 +151,9 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         with pytest.raises(NotFittedError):
             estimator_instance.update(y_test, update_params=False)
 
-        with pytest.raises(NotFittedError):
-            cv = SlidingWindowSplitter(fh=1, window_length=1, start_with_window=False)
-            estimator_instance.update_predict(y_test, cv=cv)
+        # with pytest.raises(NotFittedError):
+        #     cv = SlidingWindowSplitter(fh=1, window_length=1, start_with_window=False)
+        #     estimator_instance.update_predict(y_test, cv=cv)
 
         try:
             with pytest.raises(NotFittedError):
@@ -496,37 +490,39 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         _assert_correct_pred_time_index(y_pred.index, cutoff, fh_int_oos)
         _assert_correct_columns(y_pred, y_train)
 
-    @pytest.mark.parametrize(
-        "fh_int_oos", TEST_OOS_FHS, ids=[f"fh={fh}" for fh in TEST_OOS_FHS]
-    )
-    @pytest.mark.parametrize("initial_window", TEST_WINDOW_LENGTHS_INT)
-    def test_update_predict_predicted_index(
-        self,
-        estimator_instance,
-        n_columns,
-        fh_int_oos,
-        step_length,
-        initial_window,
-        update_params,
-    ):
-        """Check predicted index in update_predict."""
-        y = _make_series(n_columns=n_columns, all_positive=True, index_type="datetime")
-        y_train, y_test = temporal_train_test_split(y)
-        cv = ExpandingWindowSplitter(
-            fh=fh_int_oos,
-            initial_window=initial_window,
-            step_length=step_length,
-        )
-        estimator_instance.fit(y_train, fh=fh_int_oos)
-        y_pred = estimator_instance.update_predict(
-            y_test, cv=cv, update_params=update_params
-        )
-        assert isinstance(y_pred, (pd.Series, pd.DataFrame))
-        expected = _get_expected_index_for_update_predict(
-            y_test, fh_int_oos, step_length, initial_window
-        )
-        actual = y_pred.index
-        np.testing.assert_array_equal(actual, expected)
+    # @pytest.mark.parametrize(
+    #     "fh_int_oos", TEST_OOS_FHS, ids=[f"fh={fh}" for fh in TEST_OOS_FHS]
+    # )
+    # @pytest.mark.parametrize("initial_window", TEST_WINDOW_LENGTHS_INT)
+    # def test_update_predict_predicted_index(
+    #     self,
+    #     estimator_instance,
+    #     n_columns,
+    #     fh_int_oos,
+    #     step_length,
+    #     initial_window,
+    #     update_params,
+    # ):
+    #     """Check predicted index in update_predict."""
+    #     y = _make_series(
+    #         n_columns=n_columns, all_positive=True, index_type="datetime"
+    #     )
+    #     y_train, y_test = temporal_train_test_split(y)
+    #     cv = ExpandingWindowSplitter(
+    #         fh=fh_int_oos,
+    #         initial_window=initial_window,
+    #         step_length=step_length,
+    #     )
+    #     estimator_instance.fit(y_train, fh=fh_int_oos)
+    #     y_pred = estimator_instance.update_predict(
+    #         y_test, cv=cv, update_params=update_params
+    #     )
+    #     assert isinstance(y_pred, (pd.Series, pd.DataFrame))
+    #     expected = _get_expected_index_for_update_predict(
+    #         y_test, fh_int_oos, step_length, initial_window
+    #     )
+    #     actual = y_pred.index
+    #     np.testing.assert_array_equal(actual, expected)
 
     def test__y_and_cutoff(self, estimator_instance, n_columns):
         """Check cutoff and _y."""

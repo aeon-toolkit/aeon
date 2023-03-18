@@ -61,7 +61,7 @@ from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
     _check_estimator_deps,
 )
-from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
+from aeon.utils.validation.forecasting import check_alpha, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
 
 DEFAULT_ALPHA = 0.05
@@ -859,109 +859,109 @@ class BaseForecaster(BaseEstimator):
 
         return self
 
-    def update_predict(
-        self,
-        y,
-        cv=None,
-        X=None,
-        update_params=True,
-        reset_forecaster=True,
-    ):
-        """Make predictions and update model iteratively over the test set.
+    # def update_predict(
+    #     self,
+    #     y,
+    #     cv=None,
+    #     X=None,
+    #     update_params=True,
+    #     reset_forecaster=True,
+    # ):
+    #     """Make predictions and update model iteratively over the test set.
 
-        State required:
-            Requires state to be "fitted".
+    #     State required:
+    #         Requires state to be "fitted".
 
-        Accesses in self:
-            Fitted model attributes ending in "_".
-            Pointers to seen data, self._y and self.X
-            self.cutoff, self._is_fitted
-            If update_params=True, model attributes ending in "_".
+    #     Accesses in self:
+    #         Fitted model attributes ending in "_".
+    #         Pointers to seen data, self._y and self.X
+    #         self.cutoff, self._is_fitted
+    #         If update_params=True, model attributes ending in "_".
 
-        Writes to self, if reset_forecaster=False:
-            Update self._y and self._X with `y` and `X`, by appending rows.
-            Updates self.cutoff and self._cutoff to last index seen in `y`.
-            If update_params=True,
-                updates fitted model attributes ending in "_".
+    #     Writes to self, if reset_forecaster=False:
+    #         Update self._y and self._X with `y` and `X`, by appending rows.
+    #         Updates self.cutoff and self._cutoff to last index seen in `y`.
+    #         If update_params=True,
+    #             updates fitted model attributes ending in "_".
 
-        Does not update state if reset_forecaster=True.
+    #     Does not update state if reset_forecaster=True.
 
-        Parameters
-        ----------
-        y : time series in aeon compatible data container format
-                Time series to which to fit the forecaster in the update.
-            y can be in one of the following formats, must be same scitype as in fit:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                for vanilla forecasting, one time series
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
-                3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-                for global or panel forecasting
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-                for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
-                    y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
-                    y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
-        cv : temporal cross-validation generator inheriting from BaseSplitter, optional
-            for example, SlidingWindowSplitter or ExpandingWindowSplitter
-            default = ExpandingWindowSplitter with `initial_window=1` and defaults
-                = individual data points in y/X are added and forecast one-by-one,
-                `initial_window = 1`, `step_length = 1` and `fh = 1`
-        X : time series in aeon compatible format, optional (default=None)
-            Exogeneous time series for updating and forecasting
-            Should be of same scitype (Series, Panel, or Hierarchical) as y
-            if self.get_tag("X-y-must-have-same-index"),
-                X.index must contain y.index and fh.index both
-            there are no restrictions on number of columns (unlike for y)
-        update_params : bool, optional (default=True)
-            whether model parameters should be updated in each update step
-        reset_forecaster : bool, optional (default=True)
-            if True, will not change the state of the forecaster,
-                i.e., update/predict sequence is run with a copy,
-                and cutoff, model parameters, data memory of self do not change
-            if False, will update self when the update/predict sequence is run
-                as if update/predict were called directly
+    #     Parameters
+    #     ----------
+    #     y : time series in sktime compatible data container format
+    #             Time series to which to fit the forecaster in the update.
+    #         y can be in one of the following formats, must be same scitype as in fit:
+    #         Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+    #             for vanilla forecasting, one time series
+    #         Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+    #             3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
+    #             for global or panel forecasting
+    #         Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+    #             for hierarchical forecasting
+    #         Number of columns admissible depend on the "scitype:y" tag:
+    #             if self.get_tag("scitype:y")=="univariate":
+    #                 y must have a single column/variable
+    #             if self.get_tag("scitype:y")=="multivariate":
+    #                 y must have 2 or more columns
+    #             if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+    #         For further details:
+    #             on usage, see forecasting tutorial examples/01_forecasting.ipynb
+    #             on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+    #     cv : temporal cross-validation generator inheriting from BaseSplitter, optiona
+    #         for example, SlidingWindowSplitter or ExpandingWindowSplitter
+    #         default = ExpandingWindowSplitter with `initial_window=1` and defaults
+    #             = individual data points in y/X are added and forecast one-by-one,
+    #             `initial_window = 1`, `step_length = 1` and `fh = 1`
+    #     X : time series in sktime compatible format, optional (default=None)
+    #         Exogeneous time series for updating and forecasting
+    #         Should be of same scitype (Series, Panel, or Hierarchical) as y
+    #         if self.get_tag("X-y-must-have-same-index"),
+    #             X.index must contain y.index and fh.index both
+    #         there are no restrictions on number of columns (unlike for y)
+    #     update_params : bool, optional (default=True)
+    #         whether model parameters should be updated in each update step
+    #     reset_forecaster : bool, optional (default=True)
+    #         if True, will not change the state of the forecaster,
+    #             i.e., update/predict sequence is run with a copy,
+    #             and cutoff, model parameters, data memory of self do not change
+    #         if False, will update self when the update/predict sequence is run
+    #             as if update/predict were called directly
 
-        Returns
-        -------
-        y_pred : object that tabulates point forecasts from multiple split batches
-            format depends on pairs (cutoff, absolute horizon) forecast overall
-            if collection of absolute horizon points is unique:
-                type is time series in aeon compatible data container format
-                cutoff is suppressed in output
-                has same type as the y that has been passed most recently:
-                Series, Panel, Hierarchical scitype, same format (see above)
-            if collection of absolute horizon points is not unique:
-                type is a pandas DataFrame, with row and col index being time stamps
-                row index corresponds to cutoffs that are predicted from
-                column index corresponds to absolut horizons that are predicted
-                entry is the point prediction of col index predicted from row index
-                entry is nan if no prediction is made at that (cutoff, horizon) pair
-        """
-        from aeon.forecasting.model_selection import ExpandingWindowSplitter
+    #     Returns
+    #     -------
+    #     y_pred : object that tabulates point forecasts from multiple split batches
+    #         format depends on pairs (cutoff, absolute horizon) forecast overall
+    #         if collection of absolute horizon points is unique:
+    #             type is time series in sktime compatible data container format
+    #             cutoff is suppressed in output
+    #             has same type as the y that has been passed most recently:
+    #             Series, Panel, Hierarchical scitype, same format (see above)
+    #         if collection of absolute horizon points is not unique:
+    #             type is a pandas DataFrame, with row and col index being time stamps
+    #             row index corresponds to cutoffs that are predicted from
+    #             column index corresponds to absolut horizons that are predicted
+    #             entry is the point prediction of col index predicted from row index
+    #             entry is nan if no prediction is made at that (cutoff, horizon) pair
+    #     """
+    #     from aeon.forecasting.model_selection import ExpandingWindowSplitter
 
-        if cv is None:
-            cv = ExpandingWindowSplitter(initial_window=1)
+    #     if cv is None:
+    #         cv = ExpandingWindowSplitter(initial_window=1)
 
-        self.check_is_fitted()
+    #     self.check_is_fitted()
 
-        # input checks and minor coercions on X, y
-        X_inner, y_inner = self._check_X_y(X=X, y=y)
+    #     # input checks and minor coercions on X, y
+    #     X_inner, y_inner = self._check_X_y(X=X, y=y)
 
-        cv = check_cv(cv)
+    #     cv = check_cv(cv)
 
-        return self._predict_moving_cutoff(
-            y=y_inner,
-            cv=cv,
-            X=X_inner,
-            update_params=update_params,
-            reset_forecaster=reset_forecaster,
-        )
+    #     return self._predict_moving_cutoff(
+    #         y=y_inner,
+    #         cv=cv,
+    #         X=X_inner,
+    #         update_params=update_params,
+    #         reset_forecaster=reset_forecaster,
+    #     )
 
     def update_predict_single(
         self,
