@@ -80,13 +80,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
     Examples
     --------
-    Add a simple use case example here
-    >>> from aeon.classification.deep_learning.cnn import CNNClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> cls = MyTimeSeriesClassifier()
-
+    todo: Add a simple use case example here
     """
 
     # optional todo: override base class estimator default tags here if necessary
