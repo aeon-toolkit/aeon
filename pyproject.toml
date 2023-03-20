@@ -52,6 +52,7 @@ all_extras = [
     "dask",
     "esig==0.9.7; python_version < '3.10'",
     "filterpy>=1.4.5",
+    "gluonts>=0.12.4"
     "h5py",
     "hmmlearn>=0.2.7",
     "keras-self-attention",
