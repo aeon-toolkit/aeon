@@ -60,13 +60,14 @@ def find_dominant_window_sizes(X, offset=0.05):
     window_sizes = np.asarray(window_sizes, dtype=np.int64)
 
     idx = np.argsort(coefs)[::-1]
-    for window_size in window_sizes[idx]:
-        if window_size not in range(20, int(X.shape[0] * offset)):
-            continue
-
-        return int(window_size / 2)
-
-    return window_sizes[idx[0]]
+    return next(
+        (
+            int(window_size / 2)
+            for window_size in window_sizes[idx]
+            if window_size in range(20, int(X.shape[0] * offset))
+        ),
+        window_sizes[idx[0]],
+    )
 
 
 def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0.05):

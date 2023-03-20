@@ -469,16 +469,12 @@ class WEASELTransformerV2:
             delayed(transformer.transform)(XX) for transformer in self.SFA_transformers
         )
 
-        all_words = []
-        for words in parallel_res:
-            all_words.append(words)
-
-        if type(all_words[0]) is np.ndarray:
-            all_words = np.concatenate(all_words, axis=1)
-        else:
-            all_words = hstack(all_words)
-
-        return all_words
+        all_words = list(parallel_res)
+        return (
+            np.concatenate(all_words, axis=1)
+            if type(all_words[0]) is np.ndarray
+            else hstack(all_words)
+        )
 
 
 def _parallel_fit(
