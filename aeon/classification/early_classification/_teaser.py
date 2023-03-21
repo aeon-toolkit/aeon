@@ -42,8 +42,8 @@ class TEASER(BaseEarlyClassifier):
 
     Parameters
     ----------
-    estimator: sktime classifier, default=None
-        An sktime estimator to be built at each of the classification_points time
+    estimator: aeon classifier, default=None
+        An aeon estimator to be built at each of the classification_points time
         stamps. Defaults to a WEASEL classifier.
     one_class_classifier: one-class sklearn classifier, default=None
         An sklearn one-class classifier used to determine whether an early decision is

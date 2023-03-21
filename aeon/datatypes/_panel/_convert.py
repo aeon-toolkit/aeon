@@ -342,7 +342,7 @@ def convert_from_dictionary(ts_dict):
             "Series2": [3.0,2.0,1.0,3.0,2.0],
         }
     or multivariate, e.g.
-    to sktime pandas format
+    to aeon pandas format
     TODO: Adapt for multivariate
     """
     panda = pd.DataFrame(ts_dict)

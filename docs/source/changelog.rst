@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. We keep tra
 .. note::
 
     To stay up-to-date with aeon releases, subscribe to aeon `here
-    <https://libraries.io/pypi/aeon>`_ or follow us on `Twitter <https://twitter.com/sktime_toolbox>`_.
+    <https://libraries.io/pypi/aeon>`_ or follow us on `Twitter <https://twitter.com/aeon_toolbox>`_.
 
 For upcoming changes and next releases, see our `milestones <https://github.com/sktime/sktime/milestones?direction=asc&sort=due_date&state=open>`_.
 For our long-term plan, see our :ref:`roadmap`.
@@ -55,8 +55,8 @@ Deprecations and removals
 Dependencies
 ^^^^^^^^^^^^
 
-* ``statsmodels`` has changed from core dependency to soft dependency in ``sktime 0.16.0``.
-  To ensure functioning of setups of ``sktime`` code dependent on ``statsmodels`` based estimators
+* ``statsmodels`` has changed from core dependency to soft dependency in ``aeon 0.16.0``.
+  To ensure functioning of setups of ``aeon`` code dependent on ``statsmodels`` based estimators
   going forward, ensure to install ``statsmodels`` in the environment explicitly,
   or install the ``all_extras`` soft dependency set which will continue to contain ``statsmodels``.
 
@@ -102,7 +102,7 @@ Forecasting
 
 * [ENH] ``HierarchyEnsembleForecaster`` for level- or node-wise application of forecasters on panel/hierarchical data (:pr:`3905`) :user:`VyomkeshVyas`
 * [ENH] second set of test parameters for ``ARIMA`` (:pr:`4099`) :user:`fkiraly`
-* [ENH] Refactor/simplify ``sktime.forecasting.model_selection._split.BaseSplitter._split_vectorized`` (:pr:`4108`) :user:`mateuja`
+* [ENH] Refactor/simplify ``aeon.forecasting.model_selection._split.BaseSplitter._split_vectorized`` (:pr:`4108`) :user:`mateuja`
 
 Time series annotation
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -203,7 +203,7 @@ Highlights
 * dunders for time series distances and kernels, for arithmetic composition and pipelining (:pr:`3949`) :user:`fkiraly`
 * pipelines and dunders for time series clustering (:pr:`3967`) :user:`fkiraly`
 * new estimators: DBSCAN clustering for time series; kernel support vector classifier for time series kernels (:pr:`3950`, :pr:`4003`) :user:`fkiraly`, :user:`josuedavalos`
-* notes and troubleshooting guide for installing ``sktime`` under macOS with ARM processors (:pr:`4010`) :user:`dainelli98`
+* notes and troubleshooting guide for installing ``aeon`` under macOS with ARM processors (:pr:`4010`) :user:`dainelli98`
 
 Core interface changes
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -275,7 +275,7 @@ Forecasting
 Pipelines
 ^^^^^^^^^
 
-* [ENH] ``sklearn`` to ``sktime`` pipeline adapter (:pr:`3970`) :user:`fkiraly`
+* [ENH] ``sklearn`` to ``aeon`` pipeline adapter (:pr:`3970`) :user:`fkiraly`
 
 Time series classification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -338,7 +338,7 @@ Documentation
 * [DOC] add some missing entries in API reference (:pr:`3998`) :user:`fkiraly`
 * [DOC] API ref for ``pipeline`` module (:pr:`3970`) :user:`fkiraly`
 * [DOC] fix the build tag in README (:pr:`4007`) :user:`badrmarani`
-* [DOC] warning, notes, and troubleshooting for installing ``sktime`` with macOS ARM (:pr:`4010`) :user:`dainelli98`
+* [DOC] warning, notes, and troubleshooting for installing ``aeon`` with macOS ARM (:pr:`4010`) :user:`dainelli98`
 * [DOC] ``all_estimators`` reference on all estimator pages (:pr:`4027`) :user:`fkiraly`, :user:`MatthewMiddlehurst`
 * [DOC] remove ``make_reduction`` scitype arg in examples (:pr:`4020`) :user:`fkiraly`
 * [DOC] more details on code quality and linting (:pr:`4063`) :user:`miraep8`
@@ -435,21 +435,21 @@ Version 0.15.0 - 2022-12-22
 Highlights
 ~~~~~~~~~~~~
 
-* ``MLflow`` custom flavor for ``sktime`` forecasting (:pr:`3912`, :pr:`3915`) :user:`benjaminbluhm`
-* compatibility with most recent versions of core dependencies ``sktime 1.2.0``and ``numpy 1.24`` (:pr:`3922`) :user:`fkiraly`
+* ``MLflow`` custom flavor for ``aeon`` forecasting (:pr:`3912`, :pr:`3915`) :user:`benjaminbluhm`
+* compatibility with most recent versions of core dependencies ``aeon 1.2.0``and ``numpy 1.24`` (:pr:`3922`) :user:`fkiraly`
 * ``TimeBinner`` transformation for temporal bin aggregation (:pr:`3745`) :user:`kcc-lion`
 * E-Agglo estimator for hierarchical agglomerative cluster estimation (:pr:`3430`) :user:`KatieBuc`
 * week-end dummy ``is_weekend`` in ``DateTimeFeatures`` transformation (:pr:`3844`) :user:`KishManani`
-* deep learning classifiers migrated from ``sktime-dl`` to ``sktime``: ResNet, LSTM-FCN (:pr:`3714`, :pr:`3881`) :user:`nilesh05apr`, :user:`solen0id`
+* deep learning classifiers migrated from ``aeon-dl`` to ``aeon``: ResNet, LSTM-FCN (:pr:`3714`, :pr:`3881`) :user:`nilesh05apr`, :user:`solen0id`
 
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
 
-* ``sktime`` is now compatible with ``numpy 1.24``, bound is relaxed to ``<1.25``
-* ``sktime`` is now compatible with ``sklearn 1.2.0``, bound is relaxed to ``<1.3.0``
-* ``pycatch22`` is no longer a soft dependency of ``sktime``, due to installation issues.
+* ``aeon`` is now compatible with ``numpy 1.24``, bound is relaxed to ``<1.25``
+* ``aeon`` is now compatible with ``sklearn 1.2.0``, bound is relaxed to ``<1.3.0``
+* ``pycatch22`` is no longer a soft dependency of ``aeon``, due to installation issues.
   ``pycatch22`` based transformers are still functional if the dependency is installed in the python environment.
-* ``statsmodels`` will change from core dependency to soft dependency in ``sktime 0.16.0``
+* ``statsmodels`` will change from core dependency to soft dependency in ``aeon 0.16.0``
 
 Core interface changes
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -457,7 +457,7 @@ Core interface changes
 BaseObject
 ^^^^^^^^^^
 
-Comparison by equality for any ``sktime`` object now compares identity of parameters,
+Comparison by equality for any ``aeon`` object now compares identity of parameters,
 as obtained via ``get_params``, with recursive application if objects/estimators are nested.
 
 Deprecations and removals
@@ -466,8 +466,8 @@ Deprecations and removals
 Dependencies
 ^^^^^^^^^^^^
 
-* ``statsmodels`` will change from core dependency to soft dependency in ``sktime 0.16.0``.
-  To ensure functioning of setups of ``sktime`` code dependent on ``statsmodels`` based estimators
+* ``statsmodels`` will change from core dependency to soft dependency in ``aeon 0.16.0``.
+  To ensure functioning of setups of ``aeon`` code dependent on ``statsmodels`` based estimators
   after the deprecation period, ensure to install ``statsmodels`` in the environment explicitly,
   or install the ``all_extras`` soft dependency set which will continue to contain ``statsmodels``.
 
@@ -486,7 +486,7 @@ Forecasting
 
 * ``ExpandingWindowSplitter`` had ``start_with_window`` argument removed. From now on, ``initial_window=0`` should be used instead of ``start_with_window=False``.
 * the row transformers, ``SeriesToSeriesRowTransformer`` and ``SeriesToPrimitivesRowTransformer`` have been removed.
-  Row/instance vectorization functionality is natively supported by ``sktime`` since 0.11.0 and does not need to be added by these wrappers anymore.
+  Row/instance vectorization functionality is natively supported by ``aeon`` since 0.11.0 and does not need to be added by these wrappers anymore.
   Both transformers will be removed in 0.15.0. To migrate, simply remove the row transformer wrappers.
   In some rarer, ambiguous vectorization cases (e.g., using wrapped functions that are vectorized, such as ``np.mean``),
   ``FunctionTransformer`` may have to be used instead of ``SeriesToPrimitivesRowTransformer``.
@@ -518,7 +518,7 @@ Enhancements
 MLOps & Deployment
 ~~~~~~~~~~~~~~~~~~
 
-* [ENH] MLflow custom flavor for ``sktime`` forecasting (:pr:`3912`) :user:`benjaminbluhm`
+* [ENH] MLflow custom flavor for ``aeon`` forecasting (:pr:`3912`) :user:`benjaminbluhm`
 
 BaseObject
 ^^^^^^^^^^
@@ -539,8 +539,8 @@ Time series annotation
 Time series classification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* [ENH] Migrate LSTM-FCN classifier  from ``sktime-dl`` to ``sktime`` (:pr:`3714`) :user:`solen0id`
-* [ENH] Migrate ``ResNetClassifier`` from ``sktime-dl`` to ``sktime`` (:pr:`3881`) :user:`nilesh05apr`
+* [ENH] Migrate LSTM-FCN classifier  from ``aeon-dl`` to ``aeon`` (:pr:`3714`) :user:`solen0id`
+* [ENH] Migrate ``ResNetClassifier`` from ``aeon-dl`` to ``aeon`` (:pr:`3881`) :user:`nilesh05apr`
 
 Time series regression
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -810,7 +810,7 @@ Version 0.14.0 - 2022-11-05
 Highlights
 ~~~~~~~~~~
 
-* serialization and deserialization of all ``sktime`` objects via ``save`` method & ``base.load`` (:pr:`3336`, :pr:`3425`) :user:`achieveordie` :user:`fkiraly`
+* serialization and deserialization of all ``aeon`` objects via ``save`` method & ``base.load`` (:pr:`3336`, :pr:`3425`) :user:`achieveordie` :user:`fkiraly`
 * documented format specification for ``.ts`` files (:pr:`3380`) :user:`achieveordie`
 * new forecaster: modular/configurable Theta forecaster (:pr:`1300`) :user:`GuzalBulatova`
 * new probabilistic prediction adder for forecasters: squaring residuals (:pr:`3378`) :user:`kcc-lion`
@@ -828,7 +828,7 @@ BaseObject & BaseEstimator
   Interface contracts on ``save`` and ``load`` are now tested by the standard test suite (e.g., ``check_estimator``).
 * all fittable objects ("estimators", ``BaseEstimator`` descendants) now have a functioning default implementation of ``get_fitted_params``.
   Interface contracts on ``get_fitted_params`` are now tested by the standard test suite (e.g., ``check_estimator``).
-* the extender contract for ``get_fitted_params`` has changed. For new implementations of ``sktime`` estimators,
+* the extender contract for ``get_fitted_params`` has changed. For new implementations of ``aeon`` estimators,
   developers should implement ``_get_fitted_params`` rather than ``get_fitted_params`` directly, similar to ``fit`` and ``_fit``.
   The extension templates have been updated accordingly. Estimators following the old extension contract are still compatible
   for the time being and will remain compatible at least until 0.15.0.
@@ -935,7 +935,7 @@ Time series classification
 Time series regression
 ^^^^^^^^^^^^^^^^^^^^^^
 
-* [ENH] TapNet DL Model for regression from ``sktime-dl`` (:pr:`3481`) :user:`achieveordie`
+* [ENH] TapNet DL Model for regression from ``aeon-dl`` (:pr:`3481`) :user:`achieveordie`
 * [ENH] allow ``KNeighborsTimeSeriesRegressor`` to handle distances between unequal length series(:pr:`3654`) :user:`fkiraly`
 
 
@@ -1104,7 +1104,7 @@ Contributors
 Version 0.13.4 - 2022-09-27
 ---------------------------
 
-Maintenance release - moved ``sktime`` repository to ``sktime`` org from ``alan-turing-institute`` org (:pr:`2926`)
+Maintenance release - moved ``aeon`` repository to ``aeon`` org from ``alan-turing-institute`` org (:pr:`2926`)
 
 Forks and links should be redirected, governance remains unchanged.
 
@@ -1125,8 +1125,8 @@ Highlights
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
 
-* ``sktime`` is now compatible with ``pmdarima 2.0.0``, bound is relaxed to ``<3.0.0``
-* ``sktime`` is now compatible with ``pandas 1.5.0``, bound is relaxed to ``<1.6.0``
+* ``aeon`` is now compatible with ``pmdarima 2.0.0``, bound is relaxed to ``<3.0.0``
+* ``aeon`` is now compatible with ``pandas 1.5.0``, bound is relaxed to ``<1.6.0``
 
 Deprecations and removals
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1321,7 +1321,7 @@ Forecasting
 * dunder method for pipelining transformers to exogeneous data: ``my_trafo ** my_forecaster`` will create a ``ForecastingPipeline``
   Note: ``**`` has precedence over ``*`` (apply to endogeneous data)
 * the default value for the ``ignores-exogeneous-X`` tag is set to the safer value ``False``.
-  This does not affect ``sktime`` forecasters, but may affect ``sktime`` compatible forecasters
+  This does not affect ``aeon`` forecasters, but may affect ``aeon`` compatible forecasters
   in which an explicit setting of the tag has been omitted, in that ``X`` is now passed to all internal functions ``_fit``, ``predict``, etc.
   This is breaking only under the condition that (a) the tag has been erroneously omitted, (b) the internal functions are broken,
   i.e., will cause an exception only if the error (a) was masking a bug (b).
@@ -1347,7 +1347,7 @@ Transformations
 * deprecated: ``transformations.series.compose`` is deprecated in favour of ``transformations.compose``.
   All estimators in the former are moved to the latter, and will no longer be accessible in ``transformations.series.compose`` from 0.15.0.
 * deprecated: the row transformers, ``SeriesToSeriesRowTransformer`` and ``SeriesToPrimitivesRowTransformer`` have been deprecated.
-  Row/instance vectorization functionality is natively supported by ``sktime`` since 0.11.0 and does not need to be added by these wrappers anymore.
+  Row/instance vectorization functionality is natively supported by ``aeon`` since 0.11.0 and does not need to be added by these wrappers anymore.
   Both transformers will be removed in 0.15.0. To migrate, simply remove the row transformer wrappers.
   In some rarer, ambiguous vectorization cases (e.g., using wrapped functions that are vectorized, such as ``np.mean``),
   ``FunctionTransformer`` may have to be used instead of ``SeriesToPrimitivesRowTransformer``.
@@ -1412,7 +1412,7 @@ Testing framework
 Governance
 ^^^^^^^^^^
 
-* [GOV] ``sktime`` as a "library", not a "curated selection" (:pr:`3155`) :user:`fkiraly`
+* [GOV] ``aeon`` as a "library", not a "curated selection" (:pr:`3155`) :user:`fkiraly`
 
 
 Fixes
@@ -1544,7 +1544,7 @@ BaseObject
 Data sets and data loaders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* [ENH] ensure unique instance index in ``sktime`` datasets (:pr:`3029`) :user:`fkiraly`
+* [ENH] ensure unique instance index in ``aeon`` datasets (:pr:`3029`) :user:`fkiraly`
 * [ENH] Rework of data loaders (:pr:`3109`) :user:`achieveordie`
 
 Data types, checks, conversions
@@ -1622,7 +1622,7 @@ Transformations
 * [BUG] fixes ``RandomIntervalFeatureExtractor`` to have unique column names (:pr:`3001`) :user:`fkiraly`
 * [BUG] fix for ``Differencer.inverse_transform`` not having access to data index ``freq`` (:pr:`3007`) :user:`fkiraly`
 * [ENH] Refactor transformers in ``_deseasonalize`` module (:pr:`3040`) :user:`fkiraly`
-* [ENH] ``Filter`` transformer from ``sktime-neuro`` (:pr:`3067`) :user:`fkiraly`
+* [ENH] ``Filter`` transformer from ``aeon-neuro`` (:pr:`3067`) :user:`fkiraly`
 * [ENH] increase stateless scope of ``FunctionTransformer`` and ``TabularToSeriesAdaptor`` (:pr:`3087`) :user:`fkiraly`
 * [ENH] ``ClearSky`` transformer for solar irradiance time series (:pr:`3130`) :user:`ciaran-g`
 * [ENH] move simple ``ShapeletTransform`` from ``_contrib`` to ``transformations`` module (:pr:`3136`) :user:`fkiraly`
@@ -1643,7 +1643,7 @@ Documentation
 ~~~~~~~~~~~~~
 
 * [DOC] expanding content in testing section of "adding estimator" developer docs (:pr:`2544`) :user:`aiwalter`
-* [DOC] add multivariate CNN example from ``sktime-dl`` (:pr:`3002`) :user:`tobiasweede`
+* [DOC] add multivariate CNN example from ``aeon-dl`` (:pr:`3002`) :user:`tobiasweede`
 * [DOC] parameter checking and move of ``super.__init__`` in extension templates (:pr:`3010`) :user:`fkiraly`
 * [DOC] proba forecasting notebook from pydata Berlin 2022 (:pr:`3016`) :user:`ciaran-g`, :user:`eenticott-shell`, :user:`fkiraly`
 * [DOC] added docstring example for ``make_reduction`` (:pr:`3054`) :user:`aiwalter`
@@ -1653,7 +1653,7 @@ Documentation
 * [DOC] added NumFOCUS to sponsors website (:pr:`3093`) :user:`aiwalter`
 * [DOC] added Python 3.10 reference to installation docs (:pr:`3098`) :user:`aiwalter`
 * [DOC] improvements on local linting/precommit setup developer documentation (:pr:`3111`) :user:`C-mmon`
-* [DOC] changed sktime logo on README (:pr:`3143`) :user:`aiwalter`
+* [DOC] changed aeon logo on README (:pr:`3143`) :user:`aiwalter`
 * [DOC] clarifications in the ``Deseasonalizer`` docstring (:pr:`3157`) :user:`fkiraly`
 * [DOC] fix references (:pr:`3170`) :user:`aiwalter`
 * [DOC] added docstring examples and cleaning (:pr:`3174`) :user:`aiwalter`
@@ -1763,7 +1763,7 @@ Version 0.13.0 - 2022-07-14
 Highlights
 ~~~~~~~~~~
 
-* ``sktime`` is now ``python 3.10`` compatible, including the developer suite
+* ``aeon`` is now ``python 3.10`` compatible, including the developer suite
 * all forecasters and transformers can deal with multivariate data, by vectorization (:pr:`2864`, :pr:`2865`, :pr:`2867`, :pr:`2937`) :user:`fkiraly`
 * ``BaggingForecaster`` for adding forecast intervals via bagging (:pr:`2248`) :user:`ltsaprounis`
 * ``ReconcilerForecaster`` with more options for hierarchical reconciliation (:pr:`2940`) :user:`ciaran-g`
@@ -1774,7 +1774,7 @@ Dependency changes
 ~~~~~~~~~~~~~~~~~~
 
 * Python requirements and soft dependencies are now isolated to estimator classes where possible, see below.
-* ``sktime`` now allows ``numpy 1.22``.
+* ``aeon`` now allows ``numpy 1.22``.
 * ``prophet`` soft dependency now must be above 1.1, where it no longer depends on ``pystan``.
 * indirect soft dependency on ``pystan`` has been removed.
 * soft dependency on ``hcrystalball`` has been removed.
@@ -2059,7 +2059,7 @@ Version 0.12.0 - 2022-06-12
 Highlights
 ~~~~~~~~~~
 
-* Time series classification: deep learning based algorithms, port of ``sktime-dl`` into ``sktime`` (:pr:`2447`) :user:`TonyBagnall`
+* Time series classification: deep learning based algorithms, port of ``aeon-dl`` into ``aeon`` (:pr:`2447`) :user:`TonyBagnall`
 * forecasting data splitters now support hierarchical data (:pr:`2599`) :user:`fkiraly`
 * Updated forecasting and classification notebooks (:pr:`2620`, :pr:`2641`) :user:`fkiraly`
 * frequently requested algorithm: Kalman filter transformers (:pr:`2611`) :user:`NoaBenAmi` :user:`lielleravid`
@@ -2187,11 +2187,11 @@ Pipelines
 Time series classification and regression
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* [ENH] Transfer deep learning classifiers and regressors from ``sktime-dl`` (:pr:`2447`) :user:`TonyBagnall`
+* [ENH] Transfer deep learning classifiers and regressors from ``aeon-dl`` (:pr:`2447`) :user:`TonyBagnall`
 * [ENH] Proximity forest, removal of legacy conversion (:pr:`2518`) :user:`fkiraly`
 * [ENH] update TSR base class, kNN time series regression (:pr:`2647`) :user:`fkiraly`
 * [ENH] ``DummyClassifier``, naive classifier baseline (:pr:`2707`) :user:`ZiyaoWei`
-* [ENH] pipeline for time series classification from sktime transformers and sklearn classifiers (:pr:`2718`) :user:`fkiraly`
+* [ENH] pipeline for time series classification from aeon transformers and sklearn classifiers (:pr:`2718`) :user:`fkiraly`
 
 Transformations
 ^^^^^^^^^^^^^^^
@@ -2279,7 +2279,7 @@ Maintenance
 * [MNT] Add [MNT] tag to PR template (:pr:`2727`) :user:`khrapovs`
 * [MNT] Removed redundant ``todo`` from ``transformer_simple`` extension template (:pr:`2740`) :user:`NoaBenAmi`
 * [MNT] Address various future warnings from ``pandas`` and ``numpy`` (:pr:`2725`) :user:`khrapovs`
-* [MNT] testing ``sktime`` without softdeps (:pr:`2719`) :user:`fkiraly`
+* [MNT] testing ``aeon`` without softdeps (:pr:`2719`) :user:`fkiraly`
 * [MNT] remove accidental ``codecov`` overwrite from ``nosoftdeps`` (:pr:`2782`) :user:`fkiraly`
 * [MNT] deprecation actions scheduled for 0.12.0 release (:pr:`2747`) :user:`fkiraly`
 
@@ -2440,7 +2440,7 @@ Version 0.11.3 - 2022-04-29
 Highlights
 ~~~~~~~~~~
 
-* ``sktime`` is now compatible with ``scipy 1.8.X`` versions (:pr:`2468`, :pr:`2474`) :user:`fkiraly`
+* ``aeon`` is now compatible with ``scipy 1.8.X`` versions (:pr:`2468`, :pr:`2474`) :user:`fkiraly`
 * dunder method for forecasting pipelines: write ``trafo * forecaster * my_postproc`` for ``TransformedTargetForecaster`` pipeline (:pr:`2404`) :user:`fkiraly`
 * dunder method for multiplexing/autoML: write ``forecaster1 | forecaster2 | forecaster3`` for ``MultiplexForecaster``, used in tuning over forecasters (:pr:`2540`) :user:`miraep8`
 * dunders combine with existing transformer pipeline and feature union, e.g., ``trafo1 * trafo2 * forecaster`` or ``(trafo1 + trafo2) * forecaster``
@@ -2450,7 +2450,7 @@ Highlights
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
 
-* Upper bound on ``scipy`` relaxed to ``scipy<1.9.0``, ``sktime`` is now compatible with ``scipy 1.8.X`` versions.
+* Upper bound on ``scipy`` relaxed to ``scipy<1.9.0``, ``aeon`` is now compatible with ``scipy 1.8.X`` versions.
 
 Core interface changes
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -2625,7 +2625,7 @@ Documentation
 * [DOC] updated datatypes notebook (:pr:`2492`) :user:`fkiraly`
 * [DOC] Broken Links in Testing Framework Doc (:pr:`2450`) :user:`Tomiiwa`
 * [DOC] remove GSoC announcement from landing page after GSoC deadline (:pr:`2543`) :user:`GuzalBulatova`
-* [DOC] fix typo in sktime install instructions, causes "invalid requirement error" if followed verbatim (:pr:`2503`) :user:`Samuel-Oyeneye`
+* [DOC] fix typo in aeon install instructions, causes "invalid requirement error" if followed verbatim (:pr:`2503`) :user:`Samuel-Oyeneye`
 
 
 Contributors
@@ -2667,7 +2667,7 @@ Version 0.11.1 - 2022-04-10
 Highlights
 ~~~~~~~~~~
 
-* GSoC 2022 application instructions - apply by Apr 19 for GSoC with sktime! (:pr:`2373`) :user:`lmmentel` :user:`Lovkush-A` :user:`fkiraly`
+* GSoC 2022 application instructions - apply by Apr 19 for GSoC with aeon! (:pr:`2373`) :user:`lmmentel` :user:`Lovkush-A` :user:`fkiraly`
 * enhancements and bugfixes for probabilistic and hierarchical forecasting features introduced in 0.11.0
 * reconciliation transformers for hierarchical predictions (:pr:`2287`, :pr:`2292`) :user:`ciaran-g`
 * pipeline, tuning and evaluation compabitility for probabilistic forecasting (:pr:`2234`, :pr:`2318`) :user:`eenticott-shell` :user:`fkiraly`
@@ -2752,7 +2752,7 @@ Refactored
 * [ENH] Transformers module full refactor - part III, `panel` module (2nd batch) (:pr:`2253`) :user:`fkiraly`
 * [ENH] Transformers module full refactor - part IV, `panel` module (3rd batch) (:pr:`2369`) :user:`fkiraly`
 * [ENH] test parameter refactor: ``TSInterpolator`` (:pr:`2342`) :user:`NoaBenAmi`
-* [ENH] move "sktime forecaster tests" into ``TestAllForecasters`` class (:pr:`2311`) :user:`fkiraly`
+* [ENH] move "aeon forecaster tests" into ``TestAllForecasters`` class (:pr:`2311`) :user:`fkiraly`
 * [ENH] upgrade ``BasePairwiseTransformer`` to use `datatypes` input conversions and checks (:pr:`2363`) :user:`fkiraly`
 * [ENH] extend ``_HeterogeneousMetaEstimator`` estimator to allow mixed tuple/estimator list (:pr:`2406`) :user:`fkiraly`
 * [MNT] test parameter refactor: forecasting reducers and ``ColumnEnsembleClassifier`` (:pr:`2223`) :user:`fkiraly`
@@ -2822,13 +2822,13 @@ Highlights
 * probabilistic forecasting: ``predict_var`` (variance forecast) and ``predict_proba`` (full distribution forecast) interfaces; performance metrics for interval and quantile forecasts (:pr:`2100`, :pr:`2130`, :pr:`2232`) :user:`eenticott-shell` :user:`fkiraly` :user:`kejsitake`
 * dunder methods for transformer and classifier pipelines: write ``my_trafo1 * my_trafo2`` for pipeline, ``my_trafo1 + my_trafo2`` for ``FeatureUnion`` (:pr:`2090`, :pr:`2251`) :user:`fkiraly`
 * Frequently requested: ``AutoARIMA`` from ``statsforecast`` package available as ``StatsforecastAutoARIMA`` (:pr:`2251`) :user:`FedericoGarza`
-* for extenders: detailed `"creating sktime compatible estimator" guide <https://www.sktime.org/en/stable/developer_guide/add_estimators.html>`_
+* for extenders: detailed `"creating aeon compatible estimator" guide <https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html>`_
 * for extenders: simplified extension templates for forecasters and transformers (:pr:`2161`) :user:`fkiraly`
 
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
 
-* ``sktime`` has a new optional dependency set for deep learning, consisting of ``tensorflow`` and ``tensorflow-probability``
+* ``aeon`` has a new optional dependency set for deep learning, consisting of ``tensorflow`` and ``tensorflow-probability``
 * new soft dependency: ``tslearn`` (required for ``tslearn`` clusterers)
 * new soft dependency: ``statsforecast`` (required for ``StatsforecastAutoARIMA``)
 
@@ -2998,14 +2998,14 @@ Documentation
 *  [DOC] New estimator implementation guide (:pr:`2186`) :user:`fkiraly`
 *  [DOC] simplified extension templates for transformers and forecasters (:pr:`2161`) :user:`fkiraly`
 *  [DOC] contributing page: concrete initial steps (:pr:`2227`) :user:`fkiraly`
-*  [DOC] adding "troubleshooting" link in sktime installation instructions (:pr:`2121`) :user:`eenticott-shell`
+*  [DOC] adding "troubleshooting" link in aeon installation instructions (:pr:`2121`) :user:`eenticott-shell`
 *  [DOC] enhance distance doc strings (:pr:`2122`) :user:`TonyBagnall`
 *  [DOC] updated soft dependency docs with two tier check (:pr:`2182`) :user:`fkiraly`
 *  [DOC] replace gitter mentions by appropriate links, references (:pr:`2187`) :user:`TonyBagnall`
-*  [DOC] updated the environments doc with python version for sktime, added python 3.9 (:pr:`2199`) :user:`Vasudeva-bit`
+*  [DOC] updated the environments doc with python version for aeon, added python 3.9 (:pr:`2199`) :user:`Vasudeva-bit`
 *  [DOC] Replaced youtube link with recent PyData Global (:pr:`2191`) :user:`aiwalter`
 *  [DOC] extended & cleaned docs on dependency handling (:pr:`2189`) :user:`fkiraly`
-*  [DOC] migrating mentoring form to sktime google docs (:pr:`2222`) :user:`fkiraly`
+*  [DOC] migrating mentoring form to aeon google docs (:pr:`2222`) :user:`fkiraly`
 *  [DOC] add scitype/mtype register pointers to docstrings in datatypes (:pr:`2160`) :user:`fkiraly`
 *  [DOC] improved docstrings for HIVE-COTE v1.0 (:pr:`2239`) :user:`TonyBagnall`
 *  [DOC] typo fix and minor clarification in estimator implementation guide (:pr:`2241`) :user:`fkiraly`
@@ -3086,7 +3086,7 @@ Highlights
 ~~~~~~~~~~
 
 * This release is mainly a maintenance patch which upper bounds ``scipy<1.8.0`` to prevent bugs due to interface changes in ``scipy``.
-* Once ``sktime`` is compatible with ``scipy 1.8.0``, the upper bound will be relaxed
+* Once ``aeon`` is compatible with ``scipy 1.8.0``, the upper bound will be relaxed
 * New forecaster: ``STLForecaster`` (:pr:`1963`) :user:`aiwalter`
 * New transformer: lagged window summarizer transformation (:pr:`1924`) :user:`danbartl`
 * Loaders for ``.tsf`` data format (:pr:`1934`) :user:`rakshitha123`
@@ -3094,7 +3094,7 @@ Highlights
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
 * Introduction of bound ``scipy<1.8.0``, to prevent bugs due to interface changes in ``scipy``
-* Once ``sktime`` is compatible with ``scipy 1.8.0``, the upper bound will be relaxed
+* Once ``aeon`` is compatible with ``scipy 1.8.0``, the upper bound will be relaxed
 
 Added
 ~~~~~
@@ -3180,22 +3180,22 @@ Contributors
 Highlights
 ~~~~~~~~~~
 
-* ``sktime`` now supports python 3.7-3.9. Python 3.6 is no longer supported, due to end of life. Last ``sktime`` version to support python 3.6 was 0.9.0.
-* ``sktime`` now supports, and requires, ``numpy>=1.21.0`` and ``statsmodels>=0.12.1``
+* ``aeon`` now supports python 3.7-3.9. Python 3.6 is no longer supported, due to end of life. Last ``aeon`` version to support python 3.6 was 0.9.0.
+* ``aeon`` now supports, and requires, ``numpy>=1.21.0`` and ``statsmodels>=0.12.1``
 * overhaul of docs for installation and first-time developers (:pr:`1707`) :user:`amrith-shell`
 * all probabilistic forecasters now provide ``predict_interval`` and ``predict_quantiles`` interfaces
   (:pr:`1842`, :pr:`1874`, :pr:`1879`, :pr:`1910`, :pr:`1961`) :user:`fkiraly` :user:`k1m190r` :user:`kejsitake`
 * new transformation based pipeline classifiers (:pr:`1721`) :user:`MatthewMiddlehurst`
-* developer install for ``sktime`` no longer requires C compilers and ``cython`` (:pr:`1761`, :pr:`1847`, :pr:`1932`, :pr:`1927`) :user:`TonyBagnall`
+* developer install for ``aeon`` no longer requires C compilers and ``cython`` (:pr:`1761`, :pr:`1847`, :pr:`1932`, :pr:`1927`) :user:`TonyBagnall`
 * CI/CD moved completely to GitHub actions (:pr:`1620`, :pr:`1920`) :user:`lmmentel`
 
 
 Dependency changes
 ~~~~~~~~~~~~~~~~~~
-* ``sktime`` now supports ``python`` 3.7-3.9 on windows, mac, and unix-based systems
-* ``sktime`` now supports, and requires, ``numpy>=1.21.0`` and ``statsmodels>=0.12.1``
-* ``sktime`` ``Prophet`` interface now uses ``prophet`` instead of deprecated ``fbprophet``
-* developer install for ``sktime`` no longer requires C compilers and ``cython``
+* ``aeon`` now supports ``python`` 3.7-3.9 on windows, mac, and unix-based systems
+* ``aeon`` now supports, and requires, ``numpy>=1.21.0`` and ``statsmodels>=0.12.1``
+* ``aeon`` ``Prophet`` interface now uses ``prophet`` instead of deprecated ``fbprophet``
+* developer install for ``aeon`` no longer requires C compilers and ``cython``
 
 Core interface changes
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -3277,7 +3277,7 @@ Data types, checks, conversions
 * [ENH] experimental: hierarchical time series scitype	hierarchical_scitype (:pr:`1786`) :user:`fkiraly`
 * [ENH] upgraded ``mtype_to_scitype`` to list-like args (:pr:`1807`) :user:`fkiraly`
 * [ENH] ``check_is_mtype`` to return scitype (:pr:`1789`) :user:`fkiraly`
-* [ENH] vectorization/iteration utility for `sktime` time series formats (:pr:`1806`) :user:`fkiraly`
+* [ENH] vectorization/iteration utility for `aeon` time series formats (:pr:`1806`) :user:`fkiraly`
 
 Data sets and data loaders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3392,7 +3392,7 @@ Fixed
 * [BUG] fixes CIF breaking with CIT, added preventative test (:pr:`1709`) :user:`MatthewMiddlehurst`
 * [BUG] Correct the `examples/catch22.ipynb` call to ``transform_single_feature``	(:pr:`1793`) :user:`lmmentel`
 * [BUG] Fixes prophet bug concerning the internal change of exogenous X	 (:pr:`1711`) :user:`kejsitake`
-* [BUG] Fix DeprecationWarning of ``pd.Series`` in sktime/utils/tests/test_datetime.py:21	(:pr:`1743`) :user:`khrapovs`
+* [BUG] Fix DeprecationWarning of ``pd.Series`` in aeon/utils/tests/test_datetime.py:21	(:pr:`1743`) :user:`khrapovs`
 * [BUG] bugfixes in ``BaseClassifier``, updated base class docstrings (:pr:`1804`) :user:`fkiraly`
 
 Contributors
@@ -3484,7 +3484,7 @@ Added
 Documentation
 ^^^^^^^^^^^^^
 
-* [DOC] Windows installation guide for sktime development with Anaconda and PyCharm by (:pr:`1640`) :user:`jasonlines`
+* [DOC] Windows installation guide for aeon development with Anaconda and PyCharm by (:pr:`1640`) :user:`jasonlines`
 * [DOC] Update installation.rst (:pr:`1636`) :user:`MrPr3ntice`
 * [DOC] additions to forecaster extension template (:pr:`1535`) :user:`fkiraly`
 * [DOC] Add missing classes to API reference (:pr:`1571`) :user:`RNKuhns`
@@ -3751,7 +3751,7 @@ Fixed
 * [BUG] W-XXX frequency bug from :pr:`866` (:pr:`1409`) :user:`xiaobenbenecho`
 * [BUG] Pandas.NA for unpredictible insample forecasts in AutoARIMA (:pr:`1442`) :user:`IlyasMoutawwakil`
 * [BUG] missing :code:`extract_path` in :code:`_data_io` (:pr:`1475`) :user:`yairbeer`
-* [BUG] Refactor sktime/.../_panels/_examples.py for tsai compatibility (:pr:`1453`) :user:`bobbys-dev`
+* [BUG] Refactor aeon/.../_panels/_examples.py for tsai compatibility (:pr:`1453`) :user:`bobbys-dev`
 * [BUG] Grid/random search tag fix (:pr:`1455`) :user:`fkiraly`
 * [BUG] model_selection/split passed the entire DataFrame as index if DataFrame was provided (:pr:`1456`) :user:`fkiraly`
 * [BUG] multivariate :code:`NaiveForecaster` was missing :code:`update` (:pr:`1457`) :user:`fkiraly`
@@ -3774,11 +3774,11 @@ Highlights
 ~~~~~~~~~~
 
 * Python 3.9 support for linux/osx (:pr:`1255`) :user:`freddyaboulton`
-* :code:`conda-forge` metapackage for installing `sktime` with all extras :user:`freddyaboulton`
+* :code:`conda-forge` metapackage for installing `aeon` with all extras :user:`freddyaboulton`
 * framework support for multivariate forecasting (:pr:`980` :pr:`1195` :pr:`1286` :pr:`1301` :pr:`1306` :pr:`1311` :pr:`1401` :pr:`1410`) :user:`aiwalter` :user:`fkiraly` :user:`thayeylolu`
 * consolidated lookup of estimators and tags using :code:`registry.all_estimators` and :code:`registry.all_tags` (:pr:`1196`) :user:`fkiraly`
-* [DOC] major overhaul of :code:`sktime`'s `online documentation <https://www.sktime.org/en/latest/>`_
-* [DOC] `searchable, auto-updating estimators register <https://www.sktime.org/en/latest/estimator_overview.html>`_ in online documentation (:pr:`930` :pr:`1138`) :user:`afzal442` :user:`mloning`
+* [DOC] major overhaul of :code:`aeon`'s `online documentation <https://www.aeon-toolkit.org/en/latest/>`_
+* [DOC] `searchable, auto-updating estimators register <https://www.aeon-toolkit.org/en/latest/estimator_overview.html>`_ in online documentation (:pr:`930` :pr:`1138`) :user:`afzal442` :user:`mloning`
 * [MNT] working Binder in-browser notebook showcase (:pr:`1266`) :user:`corvusrabus`
 * [DOC] tutorial notebook for in-memory data format conventions, validation, and conversion (:pr:`1232`) :user:`fkiraly`
 * easy conversion functionality for estimator inputs, series and panel data (:pr:`1061` :pr:`1187` :pr:`1201` :pr:`1225`) :user:`fkiraly`
@@ -3805,7 +3805,7 @@ Forecasting
 ^^^^^^^^^^^
 
 * Forecasters can now be passed :code:`pd.DataFrame`, :code:`pd.Series`, :code:`np.ndarray` as :code:`X` or :code:`y`, and return forecasts of the same type as passed for :code:`y`
-* :code:`sktime` now supports multivariate forecasters, with all core interface methods returning sensible return types in that case
+* :code:`aeon` now supports multivariate forecasters, with all core interface methods returning sensible return types in that case
 * whether forecaster can deal with multivariate series can be inspected via :code:`get_tag("scitype:y")`, which can return :code:`"univariate"`, :code:`"multivariate"`, or :code:`"both"`
 * further tags have been introduced, see :code:`registry/all_tags`
 
@@ -3970,7 +3970,7 @@ Added
 * New Forecaster: ForecastingPipeline for pipelining with exog data (:pr:`967`) :user:`aiwalter`
 * New Transformer: Multivariate Detrending (:pr:`1042`) :user:`SveaMeyer13`
 * New Transformer: ThetaLines transformer (:pr:`923`) :user:`GuzalBulatova`
-* sktime registry (:pr:`1067`) :user:`fkiraly`
+* aeon registry (:pr:`1067`) :user:`fkiraly`
 * Feature/information criteria get_fitted_params (:pr:`942`) :user:`ltsaprounis`
 * Add plot_correlations() to plot series and acf/pacf (:pr:`850`) :user:`RNKuhns`
 * Add doc-quality tests on changed files (:pr:`752`) :user:`mloning`
@@ -3998,7 +3998,7 @@ Changed
 * Forecasting refactor: Prophet (:pr:`1005`) :user:`thayeylolu`
 * Forecasting refactor: CrystallBall Forecaster (:pr:`1004`) :user:`thayeylolu`
 * Forecasting refactor: default tags in BaseForecaster; added some new tags (:pr:`1013`) :user:`fkiraly`
-* Forecasting refactor: removing _SktimeForecaster and horizon mixins (:pr:`1088`) :user:`fkiraly`
+* Forecasting refactor: removing _aeonForecaster and horizon mixins (:pr:`1088`) :user:`fkiraly`
 * Forecasting tutorial rework (:pr:`972`) :user:`fkiraly`
 * Added tuning tutorial to forecasting example notebook - fkiraly suggestions on top of :pr:`1047` (:pr:`1053`) :user:`fkiraly`
 * Classification: Kernel based refactor (:pr:`875`) :user:`MatthewMiddlehurst`
@@ -4160,7 +4160,7 @@ Fixed
 * Fix ModuleNotFoundError issue (:pr:`613`) :user:`Hephaest`
 * Fixes _fit(X) in KNN (:pr:`610`) :user:`TonyBagnall`
 * UEA TSC module improvements 2 (:pr:`599`) :user:`TonyBagnall`
-* Fix sktime.classification.frequency_based not found error (:pr:`606`) :user:`Hephaest`
+* Fix aeon.classification.frequency_based not found error (:pr:`606`) :user:`Hephaest`
 * UEA TSC module improvements 1 (:pr:`579`) :user:`TonyBagnall`
 * Relax numba pinning (:pr:`593`) :user:`dhirschfeld`
 * Fix fh.to_relative() bug for DatetimeIndex (:pr:`582`) :user:`aiwalter`
@@ -4301,10 +4301,10 @@ All contributors: :user:`HYang1996`, :user:`SebasKoel`, :user:`fkiraly`, :user:`
 
 Added
 ~~~~~
-- New sktime logo :user:`mloning`
+- New aeon logo :user:`mloning`
 - TemporalDictionaryEnsemble (:pr:`292`) :user:`MatthewMiddlehurst`
 - ShapeDTW (:pr:`287`) :user:`Multivin12`
-- Updated sktime artwork (logo) :user:`mloning`
+- Updated aeon artwork (logo) :user:`mloning`
 - Truncation transformer (:pr:`315`) :user:`ABostrom`
 - Padding transformer (:pr:`316`) :user:`ABostrom`
 - Example notebook with feature importance graph for time series forest (:pr:`319`) :user:`HYang1996`

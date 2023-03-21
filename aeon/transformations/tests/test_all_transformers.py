@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests common to all transformers."""
 
 __author__ = ["mloning", "fkiraly"]
@@ -34,7 +34,7 @@ class TransformerFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
-    """Module level tests for all sktime transformers."""
+    """Module level tests for all aeon transformers."""
 
     def test_capability_inverse_tag_is_correct(self, estimator_instance):
         """Test that the capability:inverse_transform tag is set correctly."""

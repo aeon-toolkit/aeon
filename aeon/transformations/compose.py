@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Meta-transformers for building composite transformers."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 from warnings import warn
 
@@ -48,11 +48,11 @@ CORE_MTYPES = [
 ]
 
 
-def _coerce_to_sktime(other):
+def _coerce_to_aeon(other):
     """Check and format inputs to dunders for compose."""
     from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 
-    # if sklearn transformer, adapt to sktime transformer first
+    # if sklearn transformer, adapt to aeon transformer first
     if is_sklearn_transformer(other):
         return TabularToSeriesAdaptor(other)
 
@@ -63,7 +63,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     """Pipeline of transformers compositor.
 
     The `TransformerPipeline` compositor allows to chain transformers.
-    The pipeline is constructed with a list of sktime transformers, i.e.
+    The pipeline is constructed with a list of aeon transformers, i.e.
     estimators following the BaseTransformer interface. The list can be
     unnamed (a simple list of transformers) or string named (a list of
     pairs of string, estimator).
@@ -106,13 +106,13 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     Parameters
     ----------
-    steps : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    steps : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
-    steps_ : list of tuples (str, transformer) of sktime transformers
+    steps_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `steps` which are fitted in the pipeline
         is always in (str, transformer) format, even if `steps` is just a list
         strings not passed in `steps` are replaced by unique generated strings
@@ -241,18 +241,18 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.classification.compose import SklearnClassifierPipeline
         from aeon.regression.compose import SklearnRegressorPipeline
 
-        other = _coerce_to_sktime(other)
+        other = _coerce_to_aeon(other)
 
         # if sklearn classifier, use sklearn classifier pipeline
         if is_sklearn_classifier(other):
@@ -277,15 +277,15 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` steps
+            not nested, contains only non-TransformerPipeline `aeon` steps
         """
-        other = _coerce_to_sktime(other)
+        other = _coerce_to_aeon(other)
         return self._dunder_concat(
             other=other,
             base_class=BaseTransformer,
@@ -545,13 +545,13 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-FeatureUnion `sktime` transformers
+            not nested, contains only non-FeatureUnion `aeon` transformers
         """
         return self._dunder_concat(
             other=other,
@@ -568,13 +568,13 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `self` (last) with `other` (first).
-            not nested, contains only non-FeatureUnion `sktime` transformers
+            not nested, contains only non-FeatureUnion `aeon` transformers
         """
         return self._dunder_concat(
             other=other,
@@ -683,7 +683,7 @@ class FitInTransform(BaseTransformer):
     Parameters
     ----------
     transformer : Estimator
-        scikit-learn-like or sktime-like transformer to fit and apply to series.
+        scikit-learn-like or aeon-like transformer to fit and apply to series.
     skip_inverse_transform : bool
         The FitInTransform will skip inverse_transform by default, of the param
         skip_inverse_transform=False, then the inverse_transform is calculated
@@ -821,8 +821,8 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
 
     Parameters
     ----------
-    transformers : list of sktime transformers, or
-        list of tuples (str, estimator) of named sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, estimator) of named aeon transformers
         MultiplexTransformer can switch ("multiplex") between these transformers.
         Note - all the transformers passed in "transformers" should be thought of as
         blueprints.  Calling transformation functions on MultiplexTransformer will not
@@ -840,7 +840,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
 
     Attributes
     ----------
-    transformer_ : sktime transformer
+    transformer_ : aeon transformer
         clone of the transformer named by selected_transformer to which all the
         transformation functionality is delegated to.
     _transformers : list of (name, est) tuples, where est are direct references to
@@ -997,20 +997,20 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         MultiplexTransformer object, concatenation of `self` (first) with `other`
-            (last).not nested, contains only non-MultiplexTransformer `sktime`
+            (last).not nested, contains only non-MultiplexTransformer `aeon`
             transformers
 
         Raises
         ------
         ValueError if other is not of type MultiplexTransformer or BaseTransformer.
         """
-        other = _coerce_to_sktime(other)
+        other = _coerce_to_aeon(other)
         return self._dunder_concat(
             other=other,
             base_class=BaseTransformer,
@@ -1026,16 +1026,16 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         MultiplexTransformer object, concatenation of `self` (last) with `other`
-            (first). not nested, contains only non-MultiplexTransformer `sktime`
+            (first). not nested, contains only non-MultiplexTransformer `aeon`
             transformers
         """
-        other = _coerce_to_sktime(other)
+        other = _coerce_to_aeon(other)
         return self._dunder_concat(
             other=other,
             base_class=BaseTransformer,
@@ -1052,7 +1052,7 @@ class InvertTransform(_DelegatedTransformer):
 
     Parameters
     ----------
-    transformer : sktime transformer, must transform Series input to Series output
+    transformer : aeon transformer, must transform Series input to Series output
         this is a "blueprint" transformer, state does not change when `fit` is called
 
     Attributes
@@ -1137,14 +1137,14 @@ class InvertTransform(_DelegatedTransformer):
 
         Parameters
         ----------
-        X : sktime compatible time series container
+        X : aeon compatible time series container
             Data to be transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : sktime compatible time series container
+        Xt : aeon compatible time series container
             transformed version of X
         """
         return self.transformer_.inverse_transform(X=X, y=y)
@@ -1159,14 +1159,14 @@ class InvertTransform(_DelegatedTransformer):
 
         Parameters
         ----------
-        X : sktime compatible time series container
+        X : aeon compatible time series container
             Data to be inverse transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : sktime compatible time series container
+        Xt : aeon compatible time series container
             inverse transformed version of X
         """
         return self.transformer_.transform(X=X, y=y)
@@ -1222,7 +1222,7 @@ class Id(BaseTransformer):
 
         Parameters
         ----------
-        X : any sktime compatible data, Series, Panel, or Hierarchical
+        X : any aeon compatible data, Series, Panel, or Hierarchical
         y : optional, default=None
             ignored, argument present for interface conformance
 
@@ -1239,7 +1239,7 @@ class Id(BaseTransformer):
 
         Parameters
         ----------
-        X : any sktime compatible data, Series, Panel, or Hierarchical
+        X : any aeon compatible data, Series, Panel, or Hierarchical
         y : optional, default=None
             ignored, argument present for interface conformance
 
@@ -1275,7 +1275,7 @@ class OptionalPassthrough(_DelegatedTransformer):
     Parameters
     ----------
     transformer : Estimator
-        scikit-learn-like or sktime-like transformer to fit and apply to series.
+        scikit-learn-like or aeon-like transformer to fit and apply to series.
         this is a "blueprint" transformer, state does not change when `fit` is called
     passthrough : bool, default=False
        Whether to apply the given transformer or to just
@@ -1406,7 +1406,7 @@ class ColumnwiseTransformer(BaseTransformer):
     Parameters
     ----------
     transformer : Estimator
-        scikit-learn-like or sktime-like transformer to fit and apply to series.
+        scikit-learn-like or aeon-like transformer to fit and apply to series.
     columns : list of str or None
             Names of columns that are supposed to be transformed.
             If None, all columns are transformed.

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements the scaled logit transformation."""
 
 __author__ = ["ltsaprounis"]
@@ -22,7 +22,7 @@ class ScaledLogitTransformer(BaseTransformer):
     accordingly. The transform is applied to all scalar elements of the input array
     individually.
 
-    Combined with an sktime.forecasting.compose.TransformedTargetForecaster, it ensures
+    Combined with an aeon.forecasting.compose.TransformedTargetForecaster, it ensures
     that the forecast stays between the specified bounds (lower_bound, upper_bound).
 
     Default is lower_bound = upper_bound = None, i.e., the identity transform.
@@ -38,16 +38,16 @@ class ScaledLogitTransformer(BaseTransformer):
 
     See Also
     --------
-    sktime.transformations.series.boxcox.LogTransformer :
+    aeon.transformations.series.boxcox.LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.boxcox.BoxCoxTransformer :
+    aeon.transformations.series.boxcox.BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.series.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    sktime.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.series.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 

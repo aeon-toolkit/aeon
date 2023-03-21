@@ -78,7 +78,7 @@ def _download_and_extract(url, extract_path=None):
         Url pointing to file to download
     extract_path : string, optional (default: None)
         path to extract downloaded zip to, None defaults
-        to sktime/datasets/data
+        to aeon/datasets/data
 
     Returns
     -------
@@ -120,7 +120,7 @@ def _list_available_datasets(extract_path):
     Parameters
     ----------
     extract_path: string
-        root directory where to look for files, if None defaults to sktime/datasets/data
+        root directory where to look for files, if None defaults to aeon/datasets/data
 
     Returns
     -------
@@ -228,7 +228,7 @@ def _load_provided_dataset(
 ):
     """Load baked in time series classification datasets (helper function).
 
-    Loads data from the provided files from sktime/datasets/data only.
+    Loads data from the provided files from aeon/datasets/data only.
 
     Parameters
     ----------
@@ -412,7 +412,7 @@ def load_from_tsfile(
 
     Returns
     -------
-    X : sktime compatible in-memory container of return_data_type
+    X : aeon compatible in-memory container of return_data_type
     y : returned only if return_y=True, np.ndarray
 
     Raises
@@ -435,7 +435,7 @@ def load_from_tsfile(
     if return_data_type not in MTYPE_LIST_PANEL:
         raise ValueError(
             f"return_data_type must be one of the following identifier strings for "
-            f"sktime panel time series data format specifications: {MTYPE_LIST_PANEL}, "
+            f"aeon panel time series data format specifications: {MTYPE_LIST_PANEL}, "
             f"but found {return_data_type}"
         )
 
@@ -1195,7 +1195,7 @@ def load_from_long_to_dataframe(full_file_path_and_name, separator=","):
     Returns
     -------
     DataFrame
-        A dataframe with sktime-formatted data
+        A dataframe with aeon-formatted data
     """
     data = pd.read_csv(full_file_path_and_name, sep=separator, header=0)
     # ensure there are 4 columns in the long_format table
@@ -1296,7 +1296,7 @@ def write_results_to_uea_format(
     second_line="No Parameter Info",
     third_line="N/A",
 ):
-    """Write the predictions for an experiment in the standard format used by sktime.
+    """Write the predictions for an experiment in the standard format used by aeon.
 
     Parameters
     ----------
@@ -1777,10 +1777,10 @@ def load_tsf_to_dataframe(
     value_column_name: str, default="series_value"
         Any name that is preferred to have as the name of the column containing series
         values in the returning dataframe.
-    return_type : str - "pd_multiindex_hier" (default), "tsf_default", or valid sktime
+    return_type : str - "pd_multiindex_hier" (default), "tsf_default", or valid aeon
         mtype string for in-memory data container format specification of the
         return type:
-        - "pd_multiindex_hier" = pd.DataFrame of sktime type `pd_multiindex_hier`
+        - "pd_multiindex_hier" = pd.DataFrame of aeon type `pd_multiindex_hier`
         - "tsf_default" = container that faithfully mirrors tsf format from the original
             implementation in: https://github.com/rakshitha123/TSForecasting/
             blob/master/utils/data_loader.py.
@@ -2002,7 +2002,7 @@ def _convert_tsf_to_hierarchical(
     Returns
     -------
     pd.DataFrame
-        sktime pd_multiindex_hier mtype
+        aeon pd_multiindex_hier mtype
     """
     df = data.copy()
 
@@ -2048,16 +2048,16 @@ def _convert_tsf_to_hierarchical(
 def write_panel_to_tsfile(
     data, path, target=None, problem_name="sample_data", header=None
 ):
-    """Write an sktime multi-instance dataset to text file in .ts format.
+    """Write an aeon multi-instance dataset to text file in .ts format.
 
-    Write metadata and data stored in sktime compatible data set to file.
+    Write metadata and data stored in aeon compatible data set to file.
     A description of the ts format is in docs/source/api_reference/data_format.rst
 
     Parameters
     ----------
     data : Panel.
         dataset containing multiple time series instances, referred to as a Panel in
-        sktime.
+        aeon.
         Series can univariate, multivariate, equal or unequal length
     path : String.
         Location of the directory to write file

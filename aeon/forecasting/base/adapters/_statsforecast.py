@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for StatsForecast forecasters to be used in sktime framework."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implements adapter for StatsForecast forecasters to be used in aeon framework."""
 
 __author__ = ["FedericoGarza"]
 __all__ = ["_StatsForecastAdapter"]

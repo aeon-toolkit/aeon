@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Metrics functions to assess performance on forecasting task.
 
 Functions named as ``*_score`` return a value to maximize: the higher the better.
@@ -2454,7 +2454,7 @@ def relative_loss(
 
     relative_loss_function : function, default=mean_absolute_error
         Function to use in calculation relative loss. The function must comply
-        with API interface of sktime forecasting performance metrics. Metrics
+        with API interface of aeon forecasting performance metrics. Metrics
         requiring y_train or y_pred_benchmark are not supported.
 
     horizon_weight : array-like of shape (fh,), default=None

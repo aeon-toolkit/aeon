@@ -3,22 +3,22 @@
 Deployment and MLOps
 ====================
 
-This reference lists ``sktime`` integrations with deployment and MLOps solutions.
+This reference lists ``aeon`` integrations with deployment and MLOps solutions.
 
-Currently, ``sktime`` natively supports integration with ``mlflow``.
+Currently, ``aeon`` natively supports integration with ``mlflow``.
 
 See ``examples/mlflow`` for a notebook tutorial.
 
 MLflow
 ------
 
-:mod:`aeon.utils.mlflow_sktime`
+:mod:`aeon.utils.mlflow_aeon`
 
-.. automodule:: aeon.utils.mlflow_sktime
+.. automodule:: aeon.utils.mlflow_aeon
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: aeon.utils.mlflow_sktime
+.. currentmodule:: aeon.utils.mlflow_aeon
 
 .. autosummary::
     :toctree: auto_generated/

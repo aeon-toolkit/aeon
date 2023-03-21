@@ -67,7 +67,7 @@ class DrCIF(BaseClassifier):
         string for suggested options.
         "DTC" uses the sklearn DecisionTreeClassifier using entropy as a splitting
         measure.
-        "CIT" uses the sktime ContinuousIntervalTree, an implementation of the original
+        "CIT" uses the aeon ContinuousIntervalTree, an implementation of the original
         tree used with embedded attribute processing for faster predictions.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_estimators.

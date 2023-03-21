@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements trend based forecasters."""
 
 __author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
@@ -371,15 +371,15 @@ class STLForecaster(BaseForecaster):
     outer_iter: int or None, optional, default=None. Passed to `statsmodels` `STL`.
         Number of iterations to perform in the outer loop. If not provided uses 15 if
         robust is True, or 0 if not. This param goes into STL.fit() from statsmodels.
-    forecaster_trend : sktime forecaster, optional
+    forecaster_trend : aeon forecaster, optional
         Forecaster to be fitted on trend_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="drift") is used.
-    forecaster_seasonal : sktime forecaster, optional
+    forecaster_seasonal : aeon forecaster, optional
         Forecaster to be fitted on seasonal_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="last") is used.
-    forecaster_resid : sktime forecaster, optional
+    forecaster_resid : aeon forecaster, optional
         Forecaster to be fitted on resid_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="mean") is used.
@@ -392,11 +392,11 @@ class STLForecaster(BaseForecaster):
         Seasonal component.
     resid_ : pd.Series
         Residuals component.
-    forecaster_trend_ : sktime forecaster
+    forecaster_trend_ : aeon forecaster
         Fitted trend forecaster.
-    forecaster_seasonal_ : sktime forecaster
+    forecaster_seasonal_ : aeon forecaster
         Fitted seasonal forecaster.
-    forecaster_resid_ : sktime forecaster
+    forecaster_resid_ : aeon forecaster
         Fitted residual forecaster.
 
     Examples

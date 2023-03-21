@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements compositors for performing forecasting by group."""
 
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES, mtype_to_scitype
@@ -23,7 +23,7 @@ class ForecastByLevel(_DelegatedForecaster):
 
     Parameters
     ----------
-    forecaster : sktime forecaster used in ForecastByLevel
+    forecaster : aeon forecaster used in ForecastByLevel
         A "blueprint" forecaster, state does not change when `fit` is called.
     groupby : str, one of ["local", "global", "panel"], optional, default="local"
         level on which data are grouped to fit clones of `forecaster`
@@ -35,9 +35,9 @@ class ForecastByLevel(_DelegatedForecaster):
 
     Attributes
     ----------
-    forecaster_ : sktime forecaster, present only if `groupby` is "global"
+    forecaster_ : aeon forecaster, present only if `groupby` is "global"
         clone of `forecaster` used for fitting and forecasting
-    forecasters_ : pd.DataFrame of sktime forecaster, present otherwise
+    forecasters_ : pd.DataFrame of aeon forecaster, present otherwise
         entries are clones of `forecaster` used for fitting and forecasting
 
     Examples

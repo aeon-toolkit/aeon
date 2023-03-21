@@ -588,7 +588,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Attributes
     ----------
-    classifiers_ : list of tuples (str, classifier) of sktime classifiers
+    classifiers_ : list of tuples (str, classifier) of aeon classifiers
         clones of classifies in `classifiers` which are fitted in the ensemble
         is always in (str, classifier) format, even if `classifiers` is just a list
         strings not passed in `classifiers` are replaced by unique generated strings

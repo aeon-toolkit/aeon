@@ -26,7 +26,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
 1. Say hello (in the contributors channel on `Slack`_)!
 2. Get set up for development, see `instructions in the developer guide <https://www.aeon-toolkit.org/en/stable/developer_guide.html>`_.
-3. Pick a good first issue to work on, see a collection `in this summary issue <https://github.com/sktime/sktime/issues/1147>`_ , or from `this list <https://github.com/sktime/sktime/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
+3. Pick a good first issue to work on, see a collection `in this summary issue <https://github.com/aeon-toolkit/aeon/issues/1147>`_ , or from `this list <https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
    suggestion: pick something small with simple content to learn the “process”
 4. Feel free to attend the regular community collab sessions or one of the topic specific stand-ups and tech sessions (see schedule on `Slack`_)
 5. Once your first PR is merged and you’ve seen how things work, you could consider contributing more regularly: optionally, continue attending the Friday community collaboration sessions and stand-ups; or, optionally, `apply for mentoring <https://www.aeon-toolkit.org/en/stable/get_involved/mentoring.html#mentoring>`_
@@ -83,7 +83,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
         ^^^
 
-        ``sktime`` enhancement proposals.
+        ``aeon`` enhancement proposals.
 
         +++
 
@@ -119,7 +119,7 @@ Recommended steps for first time contributors, or to get started with regular co
 
         ^^^
 
-        ``sktime`` reviewer guide.
+        ``aeon`` reviewer guide.
 
         +++
 
@@ -137,13 +137,13 @@ We follow the `all-contributors
 specification <https://allcontributors.org>`_ and recognize various
 types of contributions.
 Take a look at our past and current
-`contributors <https://github.com/sktime/sktime/blob/main/CONTRIBUTORS.md>`_!
+`contributors <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTORS.md>`_!
 
 If you are a new contributor, make sure we add you to our list of
 contributors.
 All contributions are recorded in
-`.all-contributorsrc <https://github.com/sktime/sktime/blob/main/.all-contributorsrc>`_.
+`.all-contributorsrc <https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc>`_.
 
 .. note::
 
-   If we have missed anything, please `raise an issue <https://github.com/sktime/sktime/issues/new/choose>`_ or chat with us on `Slack`_.
+   If we have missed anything, please `raise an issue <https://github.com/aeon-toolkit/aeon/issues/new/choose>`_ or chat with us on `Slack`_.

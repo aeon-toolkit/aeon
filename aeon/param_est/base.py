@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for parameter estimator scitype.
 
@@ -80,7 +80,7 @@ class BaseParamFitter(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -123,7 +123,7 @@ class BaseParamFitter(BaseEstimator):
 
         Parameters
         ----------
-        X : time series in sktime compatible data container format
+        X : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -180,7 +180,7 @@ class BaseParamFitter(BaseEstimator):
 
         Parameters
         ----------
-        X : time series in sktime compatible data container format
+        X : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -217,7 +217,7 @@ class BaseParamFitter(BaseEstimator):
 
         Parameters
         ----------
-        X : time series in sktime compatible data container format
+        X : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -260,13 +260,13 @@ class BaseParamFitter(BaseEstimator):
             X, scitype=ALLOWED_SCITYPES, return_metadata=True, var_name="X"
         )
         msg = (
-            "X must be in an sktime compatible format, "
+            "X must be in an aeon compatible format, "
             f"of scitypes {ALLOWED_SCITYPES}, "
-            "for instance a pandas.DataFrame with sktime compatible time indices, "
-            "or with MultiIndex and last(-1) level an sktime compatible time index."
+            "for instance a pandas.DataFrame with aeon compatible time indices, "
+            "or with MultiIndex and last(-1) level an aeon compatible time index."
             " See data format tutorial examples/AA_datatypes_and_datasets.ipynb,"
-            "If you think X is already in an sktime supported input format, "
-            "run sktime.datatypes.check_raise(X, mtype) to diagnose the error, "
+            "If you think X is already in an aeon supported input format, "
+            "run aeon.datatypes.check_raise(X, mtype) to diagnose the error, "
             "where mtype is the string of the type specification you want for y. "
             "Possible mtype specification strings are as follows. "
         )
@@ -301,7 +301,7 @@ class BaseParamFitter(BaseEstimator):
 
         Parameters
         ----------
-        X : time series in sktime compatible data container format
+        X : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Abstract base class for early time series classifiers.
 
@@ -619,7 +619,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : check whether conformant with any sktime Panel mtype specification
+        X : check whether conformant with any aeon Panel mtype specification
         y : check whether a pd.Series or np.array
         enforce_min_instances : int, optional (default=1)
             check there are a minimum number of instances.

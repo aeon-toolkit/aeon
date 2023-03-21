@@ -39,7 +39,7 @@ class EarlyClassifierFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllEarlyClassifiers(EarlyClassifierFixtureGenerator, QuickTester):
-    """Module level tests for all sktime classifiers."""
+    """Module level tests for all aeon classifiers."""
 
     def test_multivariate_input_exception(self, estimator_instance):
         """Test univariate early classifiers raise exception on multivariate X."""

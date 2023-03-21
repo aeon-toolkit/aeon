@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 from logging import warning
 
 import numpy as np
@@ -15,9 +15,9 @@ from aeon.performance_metrics.forecasting._classes import BaseForecastingErrorMe
 
 
 class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
-    """Base class for probabilistic forecasting error metrics in sktime.
+    """Base class for probabilistic forecasting error metrics in aeon.
 
-    Extends sktime's BaseMetric to the forecasting interface. Forecasting error
+    Extends aeon's BaseMetric to the forecasting interface. Forecasting error
     metrics measure the error (loss) between forecasts and true values. Lower
     values are better.
 
