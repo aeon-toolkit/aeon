@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Statistical functionality used throughout sktime."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Statistical functionality used throughout aeon."""
 
 import numpy as np
 from sklearn.utils.stats import _weighted_percentile

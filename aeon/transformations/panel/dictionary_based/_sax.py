@@ -10,7 +10,7 @@ import scipy.stats
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
 
-#    TO DO: verify this returned pandas is consistent with sktime
+#    TO DO: verify this returned pandas is consistent with aeon
 #    definition. Timestamps?
 
 # from numba import types

@@ -5,7 +5,7 @@ Time series regression
 
 The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
 
-All regressors in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
+All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="regressor"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 

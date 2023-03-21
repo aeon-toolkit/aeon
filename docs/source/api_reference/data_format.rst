@@ -4,7 +4,7 @@ File Format Specifications
 ==========================
 
 The File Format Specifications provides a technical manual for understanding and writing
-different file formats found in ``sktime``.
+different file formats found in ``aeon``.
 
 .. toctree::
     :maxdepth: 1

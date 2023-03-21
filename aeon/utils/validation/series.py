@@ -235,7 +235,7 @@ def check_equal_time_index(*ys, mode="equal"):
 
     Parameters
     ----------
-    *ys : tuple of sktime compatible time series data containers
+    *ys : tuple of aeon compatible time series data containers
         must be pd.Series, pd.DataFrame or 1/2D np.ndarray, or None
         can be Series, Panel, Hierarchical, but must be pandas or numpy
         note: this assumption is not checked by the function itself

@@ -4,18 +4,18 @@
 Deprecation
 ===========
 
-Before we can make changes to sktime's user interface, we need to make sure that users have time to make the necessary adjustments in their code.
+Before we can make changes to aeon's user interface, we need to make sure that users have time to make the necessary adjustments in their code.
 For this reason, we first need to deprecate functionality and change it only in a next release.
 
 .. note::
 
-    For upcoming changes and next releases, see our `Milestones <https://github.com/sktime/sktime/milestones?direction=asc&sort=due_date&state=open>`_.
+    For upcoming changes and next releases, see our `Milestones <https://github.com/aeon-toolkit/aeon/milestones?direction=asc&sort=due_date&state=open>`_.
     For our long-term plan, see our :ref:`roadmap`.
 
 Deprecation policy
 ==================
 
-sktime `releases <https://github.com/sktime/sktime/releases>`_ follow `semantic versioning <https://semver.org>`_.
+aeon `releases <https://github.com/aeon-toolkit/aeon/releases>`_ follow `semantic versioning <https://semver.org>`_.
 A release number denotes <major>.<minor>.<patch> versions.
 
 Our current deprecation policy is as follows:

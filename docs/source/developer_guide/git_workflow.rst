@@ -3,26 +3,26 @@
 Git and GitHub workflow
 =======================
 
-The preferred workflow for contributing to sktime’s repository is to
+The preferred workflow for contributing to aeon’s repository is to
 fork the `main
-repository <https://github.com/sktime/sktime/>`__ on
+repository <https://github.com/aeon-toolkit/aeon/>`__ on
 GitHub, clone, and develop on a new branch.
 
 1.  Fork the `project
-    repository <https://github.com/sktime/sktime>`__ by
+    repository <https://github.com/aeon-toolkit/aeon>`__ by
     clicking on the 'Fork' button near the top right of the page. This
     creates a copy of the code under your GitHub user account. For more
     details on how to fork a repository see `this
     guide <https://help.github.com/articles/fork-a-repo/>`__.
 
 2.  `Clone <https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository>`__
-    your fork of the sktime repo from your GitHub account to your local
+    your fork of the aeon repo from your GitHub account to your local
     disk:
 
     .. code:: bash
 
-       git clone git@github.com:<username>/sktime.git
-       cd sktime
+       git clone git@github.com:<username>/aeon.git
+       cd aeon
 
     where :code:`<username>` is your GitHub username.
 
@@ -32,17 +32,17 @@ GitHub, clone, and develop on a new branch.
     .. code:: bash
 
        git remote -v
-       git remote add upstream https://github.com/sktime/sktime.git
+       git remote add upstream https://github.com/aeon-toolkit/aeon.git
 
 4.  Verify the new upstream repository you've specified for your fork:
 
     .. code:: bash
 
        git remote -v
-       > origin    https://github.com/<username>/sktime.git (fetch)
-       > origin    https://github.com/<username>/sktime.git (push)
-       > upstream  https://github.com/sktime/sktime.git (fetch)
-       > upstream  https://github.com/sktime/sktime.git (push)
+       > origin    https://github.com/<username>/aeon.git (fetch)
+       > origin    https://github.com/<username>/aeon.git (push)
+       > upstream  https://github.com/aeon-toolkit/aeon.git (fetch)
+       > upstream  https://github.com/aeon-toolkit/aeon.git (push)
 
 5.  `Sync <https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork>`_
     the ``main`` branch of your fork with the upstream repository:

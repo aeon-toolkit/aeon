@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Composition involving parameter estimators."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.param_est.base import BaseParamFitter
 from aeon.transformations.base import BaseTransformer
@@ -18,7 +18,7 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
     """Pipeline of transformers and a parameter estimator.
 
     The `ParamFitterPipeline` compositor chains transformers and a single estimator.
-    The pipeline is constructed with a list of sktime transformers, plus an estimator,
+    The pipeline is constructed with a list of aeon transformers, plus an estimator,
         i.e., estimators following the BaseTransformer, ParamFitterPipeline interfaces.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
@@ -53,15 +53,15 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
     ----------
     param_est : parameter estimator, i.e., estimator inheriting from BaseParamFitter
         this is a "blueprint" estimator, state does not change when `fit` is called
-    transformers : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
-    param_est_ : sktime estimator, clone of estimator in `param_est`
+    param_est_ : aeon estimator, clone of estimator in `param_est`
         this clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
@@ -139,7 +139,7 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -251,7 +251,7 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
         """
         if "param_est" in kwargs.keys():
             if not isinstance(kwargs["param_est"], BaseParamFitter):
-                raise TypeError('"param_est" arg must be an sktime parameter fitter')
+                raise TypeError('"param_est" arg must be an aeon parameter fitter')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         parest_keys = self.param_est.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements the probabilistic Squaring Residuals forecaster."""
 
 __all__ = ["SquaringResiduals"]
@@ -49,9 +49,9 @@ class SquaringResiduals(BaseForecaster):
 
     Parameters
     ----------
-    forecaster : sktime forecaster, BaseForecaster descendant, optional
+    forecaster : aeon forecaster, BaseForecaster descendant, optional
         Estimator to which probabilistic forecasts are being added
-    residual_forecaster : sktime forecaster, BaseForecaster descendant, optional
+    residual_forecaster : aeon forecaster, BaseForecaster descendant, optional
         Estimator which is fitted to the residuals of forecaster
     initial_window : int, optional, default=2
         Size of initial_window to which forecaster is fitted

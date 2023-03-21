@@ -68,7 +68,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe with shape(n,d),
+        X : aeon-format pandas dataframe with shape(n,d),
         or numpy ndarray with shape(n,d,m)
         y : array-like, shape = [n_instances] - the target values
 
@@ -84,7 +84,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe or array-like, shape (n, d)
+        X : aeon-format pandas dataframe or array-like, shape (n, d)
 
         Returns
         -------

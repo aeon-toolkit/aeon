@@ -100,7 +100,7 @@ def _scitype_from_class(obj):
     if not isclass(obj):
         obj = type(obj)
     if not isinstance(obj, tuple(BASE_CLASS_LIST)):
-        raise TypeError("obj must be instance of an sktime base class, or a base class")
+        raise TypeError("obj must be instance of an aeon base class, or a base class")
 
     for i in range(len(BASE_CLASS_SCITYPE_LIST)):
         if isinstance(obj, BASE_CLASS_LIST[i]):
@@ -112,7 +112,7 @@ def _check_tag_cond(obj, filter_tags=None):
 
     Parameters
     ----------
-    obj: object inheriting from sktime BaseObject
+    obj: object inheriting from aeon BaseObject
     filter_tags: dict of (str or list of str), default=None
         subsets the returned objectss as follows:
             each key/value pair is statement in "and"/conjunction

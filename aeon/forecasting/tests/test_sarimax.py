@@ -17,12 +17,12 @@ df = make_forecasting_problem()
     reason="skip test if required soft dependency not available",
 )
 def test_SARIMAX_against_statsmodels():
-    """Compares Sktime's and Statsmodel's SARIMAX."""
+    """Compares aeon's and Statsmodel's SARIMAX."""
     from statsmodels.tsa.api import SARIMAX as _SARIMAX
 
-    sktime_model = SARIMAX(order=(1, 0, 0), trend="t", seasonal_order=(1, 0, 0, 6))
-    sktime_model.fit(df)
-    y_pred = sktime_model.predict(df.index)
+    aeon_model = SARIMAX(order=(1, 0, 0), trend="t", seasonal_order=(1, 0, 0, 6))
+    aeon_model.fit(df)
+    y_pred = aeon_model.predict(df.index)
 
     stats = _SARIMAX(endog=df, order=(1, 0, 0), trend="t", seasonal_order=(1, 0, 0, 6))
     stats_fit = stats.fit()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecaster for applying different univariates on hierarchical data."""
 
 __author__ = ["VyomkeshVyas"]
@@ -37,7 +37,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     Parameters
     ----------
-    forecasters : sktime forecaster, or list of tuples
+    forecasters : aeon forecaster, or list of tuples
                 (str, estimator, int or list of tuple/s)
         if forecaster, clones of forecaster are applied to all aggregated levels.
         if list of tuples, with name = str, estimator is forecaster, level/node
@@ -51,7 +51,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         if 'node', applies separate univariate forecaster for each
         hierarchical node.
 
-    default : sktime forecaster {default = None}
+    default : aeon forecaster {default = None}
         if passed, applies 'default' forecaster on the nodes/levels
         not mentioned in the 'forecaster' argument.
 

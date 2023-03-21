@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Tests for BaseObject universal base class that require sktime or sklearn imports."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Tests for BaseObject universal base class that require aeon or sklearn imports."""
 
 __author__ = ["fkiraly"]
 
@@ -11,7 +11,7 @@ def test_get_fitted_params_sklearn():
     Raises
     ------
     AssertionError if logic behind get_fitted_params is incorrect, logic tested:
-        calling get_fitted_params on obj sktime component returns expected nested params
+        calling get_fitted_params on obj aeon component returns expected nested params
     """
     from aeon.datasets import load_airline
     from aeon.forecasting.trend import TrendForecaster
@@ -32,7 +32,7 @@ def test_get_fitted_params_sklearn_nested():
     Raises
     ------
     AssertionError if logic behind get_fitted_params is incorrect, logic tested:
-        calling get_fitted_params on obj sktime component returns expected nested params
+        calling get_fitted_params on obj aeon component returns expected nested params
     """
     from sklearn.linear_model import LinearRegression
     from sklearn.pipeline import make_pipeline

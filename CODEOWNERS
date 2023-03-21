@@ -4,96 +4,96 @@
 * @aiwalter @guzalbulatova
 
 
-sktime/regression/dummy/ @badrmarani
+aeon/regression/dummy/ @badrmarani
 
-sktime/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_boss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_cboss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_muse.py @patrickzib @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_tde.py @patrickzib @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_weasel.py @patrickzib @MatthewMiddlehurst @TonyBagnall
-sktime/classification/dictionary_based/_weasel_v2.py @patrickzib
-sktime/classification/distance_based/ @jasonlines @goaster @TonyBagnall
-sktime/classification/dummy.py @ZiyaoWei
-sktime/classification/early_classification/_probability_threshold.py @MatthewMiddlehurst
-sktime/classification/early_classification/_teaser.py @patrickzib @MatthewMiddlehurst
-sktime/classification/feature_based/_catch22_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/feature_based/_fresh_prince.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/feature_based/_matrix_profile_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/feature_based/_random_interval_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/feature_based/_signature_classifier.py @jambo6
-sktime/classification/feature_based/_summary_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/feature_based/_tsfresh_classifier.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/hybrid/_hivecote_v1.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/hybrid/_hivecote_v2.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/interval_based/_cif.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/interval_based/_drcif.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/interval_based/_rise.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/interval_based/_stsf.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/interval_based/_tsf.py @MatthewMiddlehurst @TonyBagnall
-sktime/classification/shapelet_based/_stc.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
-sktime/classification/sklearn/_continuous_interval_tree.py @MatthewMiddlehurst
-sktime/classification/sklearn/_rotation_forest.py @MatthewMiddlehurst
+aeon/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_boss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_cboss.py @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_muse.py @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_tde.py @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_weasel.py @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/_weasel_v2.py @patrickzib
+aeon/classification/distance_based/ @jasonlines @goaster @TonyBagnall
+aeon/classification/dummy.py @ZiyaoWei
+aeon/classification/early_classification/_probability_threshold.py @MatthewMiddlehurst
+aeon/classification/early_classification/_teaser.py @patrickzib @MatthewMiddlehurst
+aeon/classification/feature_based/_catch22_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_fresh_prince.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_matrix_profile_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_random_interval_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_signature_classifier.py @jambo6
+aeon/classification/feature_based/_summary_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_tsfresh_classifier.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/hybrid/_hivecote_v1.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/hybrid/_hivecote_v2.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/interval_based/_cif.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/interval_based/_drcif.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/interval_based/_rise.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/interval_based/_stsf.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/interval_based/_tsf.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/shapelet_based/_stc.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
+aeon/classification/sklearn/_continuous_interval_tree.py @MatthewMiddlehurst
+aeon/classification/sklearn/_rotation_forest.py @MatthewMiddlehurst
 
-sktime/transformations/panel/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
-sktime/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst
-sktime/transformations/panel/dictionary_based/_sfa.py @patrickzib @MatthewMiddlehurst
-sktime/transformations/panel/dictionary_based/_sfa_fast.py @patrickzib @MatthewMiddlehurst
-sktime/transformations/panel/catch22.py @MatthewMiddlehurst
-sktime/transformations/panel/catch22wrapper.py @MatthewMiddlehurst
-sktime/transformations/panel/random_intervals.py @MatthewMiddlehurst
-sktime/transformations/panel/shapelet_transform.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
-sktime/transformations/panel/supervised_intervals.py @MatthewMiddlehurst
-sktime/transformations/panel/rocket/ @angus924
-sktime/transformations/panel/rocket/_multirocket.py @ChangWeiTan @fstinner @angus924
-sktime/transformations/panel/rocket/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
-sktime/transformations/series/impute.py @aiwalter
-sktime/transformations/series/outlier_detection.py @aiwalter
-sktime/transformations/series/compose.py @aiwalter
-sktime/transformations/series/feature_selection.py @aiwalter
-sktime/transformations/panel/signature_based/ @jambo6
-sktime/transformations/series/theta.py @GuzalBulatova
-sktime/transformations/series/difference.py @rnkuhns
-sktime/transformations/series/exponent.py @rnkuhns
-sktime/transformations/series/scaledlogit.py @ltsaprounis
-sktime/transformations/series/kalman_filter.py @NoaBenAmi
-sktime/transformations/panel/augmenter.py @MrPr3ntice @iljamaurer
-sktime/transformations/multiplex.py @miraep8
-sktime/transformations/tests/test_multiplexer.py @miraep8
-sktime/transformations/panel/channel_selection.py @haskarb @a-pasos-ruiz @TonyBagnall
-sktime/transformations/series/time_since.py @KishManani
-sktime/transformations/series/pca.py @aiwalter
+aeon/transformations/panel/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/dictionary_based/_sfa.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/dictionary_based/_sfa_fast.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/catch22.py @MatthewMiddlehurst
+aeon/transformations/panel/catch22wrapper.py @MatthewMiddlehurst
+aeon/transformations/panel/random_intervals.py @MatthewMiddlehurst
+aeon/transformations/panel/shapelet_transform.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
+aeon/transformations/panel/supervised_intervals.py @MatthewMiddlehurst
+aeon/transformations/panel/rocket/ @angus924
+aeon/transformations/panel/rocket/_multirocket.py @ChangWeiTan @fstinner @angus924
+aeon/transformations/panel/rocket/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
+aeon/transformations/series/impute.py @aiwalter
+aeon/transformations/series/outlier_detection.py @aiwalter
+aeon/transformations/series/compose.py @aiwalter
+aeon/transformations/series/feature_selection.py @aiwalter
+aeon/transformations/panel/signature_based/ @jambo6
+aeon/transformations/series/theta.py @GuzalBulatova
+aeon/transformations/series/difference.py @rnkuhns
+aeon/transformations/series/exponent.py @rnkuhns
+aeon/transformations/series/scaledlogit.py @ltsaprounis
+aeon/transformations/series/kalman_filter.py @NoaBenAmi
+aeon/transformations/panel/augmenter.py @MrPr3ntice @iljamaurer
+aeon/transformations/multiplex.py @miraep8
+aeon/transformations/tests/test_multiplexer.py @miraep8
+aeon/transformations/panel/channel_selection.py @haskarb @a-pasos-ruiz @TonyBagnall
+aeon/transformations/series/time_since.py @KishManani
+aeon/transformations/series/pca.py @aiwalter
 
-sktime/forecasting/base/ @mloning @aiwalter
-sktime/forecasting/base/adapters/_statsforecast.py @FedericoGarza
-sktime/forecasting/naive.py @Flix6x
-sktime/forecasting/ets.py @HYang1996
-sktime/forecasting/tests/test_ets.py @HYang1996
-sktime/forecasting/fbprophet.py @aiwalter
-sktime/forecasting/bats.py @aiwalter
-sktime/forecasting/tbats.py @aiwalter
-sktime/forecasting/arima.py @HYang1996
-sktime/forecasting/statsforecast.py @FedericoGarza
-sktime/forecasting/structural.py @juanitorduz
-sktime/forecasting/model_selection/_split @koralturkk
-sktime/forecasting/compose/_column_ensemble.py @GuzalBulatova
-sktime/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
-sktime/forecasting/compose/_pipeline.py @aiwalter
-sktime/forecasting/compose/_ensemble.py @aiwalter
-sktime/forecasting/online_learning/ @magittan
-sktime/forecasting/sarimax.py @TNTran92
+aeon/forecasting/base/ @mloning @aiwalter
+aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
+aeon/forecasting/naive.py @Flix6x
+aeon/forecasting/ets.py @HYang1996
+aeon/forecasting/tests/test_ets.py @HYang1996
+aeon/forecasting/fbprophet.py @aiwalter
+aeon/forecasting/bats.py @aiwalter
+aeon/forecasting/tbats.py @aiwalter
+aeon/forecasting/arima.py @HYang1996
+aeon/forecasting/statsforecast.py @FedericoGarza
+aeon/forecasting/structural.py @juanitorduz
+aeon/forecasting/model_selection/_split @koralturkk
+aeon/forecasting/compose/_column_ensemble.py @GuzalBulatova
+aeon/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
+aeon/forecasting/compose/_pipeline.py @aiwalter
+aeon/forecasting/compose/_ensemble.py @aiwalter
+aeon/forecasting/online_learning/ @magittan
+aeon/forecasting/sarimax.py @TNTran92
 
-sktime/performance_metrics/forecasting/_functions.py @aiwalter @rnkuhns
-sktime/performance_metrics/forecasting/_classes.py @rnkuhns
-sktime/performance_metrics/annotation @lmmentel
+aeon/performance_metrics/forecasting/_functions.py @aiwalter @rnkuhns
+aeon/performance_metrics/forecasting/_classes.py @rnkuhns
+aeon/performance_metrics/annotation @lmmentel
 
-sktime/annotation/clasp.py @patrickzib @ermshaua
-sktime/annotation/igts.py @lmmentel
-sktime/annotation/ggs.py @lmmentel
-sktime/annotation/datagen.py @lmmentel
-sktime/transformations/series/clasp.py @patrickzib @ermshaua
+aeon/annotation/clasp.py @patrickzib @ermshaua
+aeon/annotation/igts.py @lmmentel
+aeon/annotation/ggs.py @lmmentel
+aeon/annotation/datagen.py @lmmentel
+aeon/transformations/series/clasp.py @patrickzib @ermshaua
 
 .github/workflows/* @lmmentel @freddyaboulton
 
-sktime/utils/mlflow_sktime.py @benjaminbluhm
+aeon/utils/mlflow_aeon.py @benjaminbluhm
