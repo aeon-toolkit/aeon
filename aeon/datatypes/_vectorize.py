@@ -284,7 +284,10 @@ class VectorizedDF:
         elif row_ind is None:
             res = X[col_ind]
         else:
-            res = X[col_ind].loc[row_ind]
+            # fix pandas==2.0.0rc1 issue with MultiIndex loc subset:
+            # X[col_ind].loc[row_ind] returns index dtype object intead of int
+            idx_names = X[col_ind].loc[row_ind].index.names
+            res = X[col_ind].loc[row_ind].reset_index().set_index(idx_names)
         res = _enforce_index_freq(res)
         return res
 
