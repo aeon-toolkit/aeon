@@ -8,7 +8,7 @@ Introduction
     The user guide is under development. We have created a basic
     structure and are looking for contributions to develop the user guide
     further. For more details, please go to issue `#361 <https://github
-    .com/sktime/sktime/issues/361>`_ on GitHub.
+    .com/aeon/aeon/issues/361>`_ on GitHub.
 
 aeon is a unified toolbox for machine learning with time series. Time
 series give rise to multiple learning tasks (e.g.
@@ -50,7 +50,7 @@ can simply write:
     >>> 0.1261192310833735
 
 For more details, check out our `paper
-<http://learningsys.org/neurips19/assets/papers/sktime_ml_systems_neurips2019.pdf>`__.
+<http://learningsys.org/neurips19/assets/papers/aeon_ml_systems_neurips2019.pdf>`__.
 
 Currently, aeon provides:
 
@@ -62,4 +62,4 @@ Currently, aeon provides:
 
 For a list of implemented methods, see our `estimator overview <https://github.com/aeon-toolkit/aeon/blob/main/ESTIMATOR_OVERVIEW.md>`_.
 
-In addition, sktime includes an experimental high-level API that unifies multiple learning tasks, partially inspired by the APIs of `mlr <https://mlr.mlr-org.com>`__ and `openML <https://www.openml.org>`__.
+In addition, aeon includes an experimental high-level API that unifies multiple learning tasks, partially inspired by the APIs of `mlr <https://mlr.mlr-org.com>`__ and `openML <https://www.openml.org>`__.

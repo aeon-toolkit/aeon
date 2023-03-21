@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Registry lookup methods.
 
@@ -46,10 +46,10 @@ def all_estimators(
     return_tags=None,
     suppress_import_stdout=True,
 ):
-    """Get a list of all estimators from sktime.
+    """Get a list of all estimators from aeon.
 
     This function crawls the module and gets all classes that inherit
-    from sktime's and sklearn's base classes.
+    from aeon's and sklearn's base classes.
 
     Not included are: the base classes themselves, classes defined in test
     modules.
@@ -140,7 +140,7 @@ def all_estimators(
     MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
 
     all_estimators = []
-    ROOT = str(Path(__file__).parent.parent)  # sktime package root directory
+    ROOT = str(Path(__file__).parent.parent)  # aeon package root directory
 
     def _is_abstract(klass):
         if not (hasattr(klass, "__abstractmethods__")):
@@ -348,7 +348,7 @@ def _get_return_tags(estimator, return_tags):
 
     Parameters
     ----------
-    estimator:  BaseEstimator, an sktime estimator
+    estimator:  BaseEstimator, an aeon estimator
     return_tags: list of str,
         names of tags to get values for the estimator
 
@@ -366,7 +366,7 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
 
     Parameters
     ----------
-    estimator: BaseEstimator, an sktime estimator
+    estimator: BaseEstimator, an aeon estimator
     filter_tags: dict of (str or list of str), default=None
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
@@ -399,7 +399,7 @@ def all_tags(
     estimator_types=None,
     as_dataframe=False,
 ):
-    """Get a list of all tags from sktime.
+    """Get a list of all tags from aeon.
 
     Retrieves tags directly from `_tags`, offers filtering functionality.
 

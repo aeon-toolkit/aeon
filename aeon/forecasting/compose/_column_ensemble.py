@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements forecaster for applying different univariates by column."""
 
 __author__ = ["GuzalBulatova", "mloning", "fkiraly"]
@@ -33,7 +33,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     Parameters
     ----------
-    forecasters : sktime forecaster, or list of tuples (str, estimator, int or pd.index)
+    forecasters : aeon forecaster, or list of tuples (str, estimator, int or pd.index)
         if tuples, with name = str, estimator is forecaster, index as int or index
         if last element is index, it must be int, str, or pd.Index coercable
         if last element is int x, and is not in columns, is interpreted as x-th column

@@ -24,14 +24,14 @@ df = pd.DataFrame(
     reason="skip test if required soft dependency not available",
 )
 def test_VAR_against_statsmodels():
-    """Compares Sktime's and Statsmodel's VECM."""
+    """Compares aeon's and Statsmodel's VECM."""
     from statsmodels.tsa.api import VECM as _VECM
 
     train, test = temporal_train_test_split(df)
-    sktime_model = VECM()
+    aeon_model = VECM()
     fh = ForecastingHorizon([1, 3, 4, 5, 7, 9])
-    _ = sktime_model.fit(train)
-    y_pred = sktime_model.predict(fh=fh)
+    _ = aeon_model.fit(train)
+    y_pred = aeon_model.predict(fh=fh)
 
     stats = _VECM(train)
     stats_fit = stats.fit()

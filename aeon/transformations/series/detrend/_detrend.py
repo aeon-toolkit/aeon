@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformations to detrend a time series."""
 
 __all__ = ["Detrender"]
@@ -37,7 +37,7 @@ class Detrender(BaseTransformer):
 
     Parameters
     ----------
-    forecaster : sktime forecaster, follows BaseForecaster, default = None.
+    forecaster : aeon forecaster, follows BaseForecaster, default = None.
         The forecasting model to remove the trend with
             (e.g. PolynomialTrendForecaster).
         If forecaster is None, PolynomialTrendForecaster(degree=1) is used.

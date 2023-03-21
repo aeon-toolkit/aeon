@@ -13,7 +13,7 @@ def scitype(obj, force_single_scitype=True, coerce_to_list=False):
 
     Parameters
     ----------
-    obj : class or object inheriting from sktime BaseObject
+    obj : class or object inheriting from aeon BaseObject
     force_single_scitype : bool, optional, default = True
         whether only a single scitype is returned
         if True, only the *first* scitype found will be returned
@@ -23,8 +23,8 @@ def scitype(obj, force_single_scitype=True, coerce_to_list=False):
 
     Returns
     -------
-    scitype : str, or list of str of sktime scitype strings from BASE_CLASS_REGISTER
-        str, sktime scitype string, if exactly one scitype can be determined for obj
+    scitype : str, or list of str of aeon scitype strings from BASE_CLASS_REGISTER
+        str, aeon scitype string, if exactly one scitype can be determined for obj
             or force_single_scitype is True, and if coerce_to_list is False
         list of str, of scitype strings, if more than one scitype are determined,
             or if coerce_to_list is True

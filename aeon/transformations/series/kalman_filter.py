@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Kalman Filter Transformers.
 
 Series based transformers, based on Kalman Filter algorithm. Contains Base class
@@ -400,7 +400,7 @@ class KalmanFilterTransformerPK(BaseKalmanFilter, BaseTransformer):
     an estimate of the state of a process.
 
 
-    This class is the adapter for the `pykalman` package into `sktime`.
+    This class is the adapter for the `pykalman` package into `aeon`.
     `KalmanFilterTransformerPK` implements hidden inferred states and
     denoising, depending on the boolean input parameter `denoising`.
     In addition, `KalmanFilterTransformerPK` provides parameter
@@ -461,7 +461,7 @@ class KalmanFilterTransformerPK(BaseKalmanFilter, BaseTransformer):
     See Also
     --------
     KalmanFilterTransformerFP :
-        Kalman Filter transformer, adapter for the `FilterPy` package into `sktime`.
+        Kalman Filter transformer, adapter for the `FilterPy` package into `aeon`.
 
     Notes
     -----
@@ -857,7 +857,7 @@ class KalmanFilterTransformerFP(BaseKalmanFilter, BaseTransformer):
     several mathematical equations which are used to create
     an estimate of the state of a process.
 
-    This class is the adapter for the `FilterPy` package into `sktime`.
+    This class is the adapter for the `FilterPy` package into `aeon`.
     `KalmanFilterTransformerFP` implements hidden inferred states and
     denoising, depending on the boolean input parameter `denoising`.
     In addition, `KalmanFilterTransformerFP` provides parameter
@@ -918,7 +918,7 @@ class KalmanFilterTransformerFP(BaseKalmanFilter, BaseTransformer):
     See Also
     --------
     KalmanFilterTransformerPK :
-        Kalman Filter transformer, adapter for the `pykalman` package into `sktime`.
+        Kalman Filter transformer, adapter for the `pykalman` package into `aeon`.
 
     Notes
     -----

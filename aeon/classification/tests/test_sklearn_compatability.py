@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Unit tests for sktime classifier compatability with sklearn interfaces."""
+"""Unit tests for aeon classifier compatability with sklearn interfaces."""
 
 __author__ = ["MatthewMiddlehurst"]
 __all__ = [
@@ -86,7 +86,7 @@ COMPOSITE_ESTIMATORS = [
 
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 def test_sklearn_cross_validation(data_args):
-    """Test sklearn cross-validation works with sktime panel data and classifiers."""
+    """Test sklearn cross-validation works with aeon panel data and classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
     fit_args = make_classification_problem(**data_args)
 
@@ -97,7 +97,7 @@ def test_sklearn_cross_validation(data_args):
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("cross_validation_method", CROSS_VALIDATION_METHODS)
 def test_sklearn_cross_validation_iterators(data_args, cross_validation_method):
-    """Test if sklearn cross-validation iterators can handle sktime panel data."""
+    """Test if sklearn cross-validation iterators can handle aeon panel data."""
     fit_args = make_classification_problem(**data_args)
     groups = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 
@@ -108,7 +108,7 @@ def test_sklearn_cross_validation_iterators(data_args, cross_validation_method):
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("parameter_tuning_method", PARAMETER_TUNING_METHODS)
 def test_sklearn_parameter_tuning(data_args, parameter_tuning_method):
-    """Test if sklearn parameter tuners can handle sktime panel data and classifiers."""
+    """Test if sklearn parameter tuners can handle aeon panel data and classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
     fit_args = make_classification_problem(**data_args)
@@ -123,7 +123,7 @@ def test_sklearn_parameter_tuning(data_args, parameter_tuning_method):
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("composite_classifier", COMPOSITE_ESTIMATORS)
 def test_sklearn_composite_classifiers(data_args, composite_classifier):
-    """Test if sklearn composite classifiers can handle sktime data and classifiers."""
+    """Test if sklearn composite classifiers can handle aeon data and classifiers."""
     fit_args = make_classification_problem(**data_args)
     composite_classifier.fit(*fit_args)
 

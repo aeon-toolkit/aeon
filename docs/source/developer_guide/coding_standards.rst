@@ -27,16 +27,16 @@ We adhere to the following code formatting standards:
 
 * ``isort`` with default settings
 
-* ``numpydoc`` to enforce numpy `docstring standard <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_ , along with sktime specific conventions described in our :ref:`developer_guide`'s :ref:`documentation section <developer_guide_documentation>`.
+* ``numpydoc`` to enforce numpy `docstring standard <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_ , along with aeon specific conventions described in our :ref:`developer_guide`'s :ref:`documentation section <developer_guide_documentation>`.
 
 This is enforced through our CI/CD workflows via `pre-commit <https://pre-commit.com/>`_.
 
 The full pre-commit configuration can be found in
-`.pre-commit-config.yaml <https://github.com/sktime/sktime/blob/main/.pre-commit-config.yaml>`_.
+`.pre-commit-config.yaml <https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml>`_.
 Additional configurations can be found in
-`setup.cfg <https://github.com/sktime/sktime/blob/main/setup.cfg>`_.
+`setup.cfg <https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>`_.
 
-``sktime`` specific code formatting conventions
+``aeon`` specific code formatting conventions
 -----------------------------------------------
 
 -  Check out our :ref:`glossary`.
@@ -48,7 +48,7 @@ Additional configurations can be found in
    (here, this is the ``scikit-learn`` adjacenet ecosystem)
 -  Avoid multiple statements on one line. Prefer a line return after a
    control flow statement (``if``/``for``).
--  Use absolute imports for references inside sktime.
+-  Use absolute imports for references inside aeon.
 -  Don’t use ``import *`` in the source code. It is considered
    harmful by the official Python recommendations. It makes the code
    harder to read as the origin of symbols is no longer explicitly
@@ -67,11 +67,11 @@ Using pre-commit
 ^^^^^^^^^^^^^^^^
 
 To set up pre-commit, follow these steps in a python environment
-with the ``sktime`` ``dev`` dependencies installed.
+with the ``aeon`` ``dev`` dependencies installed.
 
 Type the below in your python environment, and in the root of your local repository clone:
 
-1. If not already done, ensure ``sktime`` with ``dev`` dependencies is installed, this includes ``pre-commit``:
+1. If not already done, ensure ``aeon`` with ``dev`` dependencies is installed, this includes ``pre-commit``:
 
 .. code:: bash
 
@@ -83,13 +83,13 @@ Type the below in your python environment, and in the root of your local reposit
 
    pre-commit install
 
-Once installed, pre-commit will automatically run all ``sktime`` code quality
+Once installed, pre-commit will automatically run all ``aeon`` code quality
 checks on the files you changed whenever you make a new commit.
 
 You can find our pre-commit configuration in
-`.pre-commit-config.yaml <https://github.com/sktime/sktime/blob/main/.pre-commit-config.yaml>`_.
+`.pre-commit-config.yaml <https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml>`_.
 Additional configurations can be found in
-`setup.cfg <https://github.com/sktime/sktime/blob/main/setup.cfg>`_.
+`setup.cfg <https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>`_.
 
 .. note::
    If you want to exclude some line of code from being checked, you can add a ``# noqa`` (no quality assurance) comment at the end of that line.
@@ -101,7 +101,7 @@ Local developer IDEs will usually integrate with common code quality checks, but
 
 For Visual Studio Code, ``black``, ``flake8``, ``isort`` and/or ``numpydoc`` will need to be activated individually in the preferences
 (e.g., search for ``black`` and check the box). The packages ``black`` etc will need to be installed in the python environment used by the IDE,
-this can be achieved by an install of ``sktime`` with ``dev`` dependencies.
+this can be achieved by an install of ``aeon`` with ``dev`` dependencies.
 
 Visual Studio Code preferences also allow setting of parameters such as ``max_line_length=88`` for ``flake8``.
 
@@ -110,7 +110,7 @@ In Visual Studio Code, we also recommend to add ``"editor.ruler": 88`` to your l
 API design
 ============
 
-The general design approach of sktime is described in the
+The general design approach of aeon is described in the
 paper `“Designing Machine Learning Toolboxes: Concepts, Principles and
 Patterns” <https://arxiv.org/abs/2101.04938>`__.
 

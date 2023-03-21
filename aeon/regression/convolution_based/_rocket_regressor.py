@@ -42,7 +42,7 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
         | "multirocket"    | "yes"              | MultiRocketMultivariate |
         | "multirocket"    | "no"               | MultiRocket             |
 
-    classes are sktime classes, other parameters are passed on to the rocket class.
+    classes are aeon classes, other parameters are passed on to the rocket class.
 
     To build other regressors with rocket transformers, use `make_pipeline` or the
     pipeline dunder `*`, and different transformers/regressors in combination.

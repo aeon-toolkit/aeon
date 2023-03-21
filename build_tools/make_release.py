@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Do-nothing script for making a release
 
@@ -23,14 +23,14 @@ import webbrowser
 import colorama
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__)).replace("build_tools", "")
-PACKAGE_NAME = "sktime"
+PACKAGE_NAME = "aeon"
 
 
 class URLs:
     DOCS_LOCAL = "file://" + os.path.realpath(
         os.path.join(ROOT_DIR, "docs/_build/html/index.html")
     )
-    DOCS_ONLINE = "https://www.sktime.org"
+    DOCS_ONLINE = "https://www.aeon-toolkit.org"
     PYPI = f"https://pypi.org/simple/{PACKAGE_NAME}/"
 
 

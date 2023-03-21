@@ -64,7 +64,7 @@ def make_mock_estimator(
     Parameters
     ----------
     estimator_class : BaseEstimator
-        any sktime estimator
+        any aeon estimator
     method_regex : str, optional
         regex to filter methods on, by default ".*"
         Useful regex examples:

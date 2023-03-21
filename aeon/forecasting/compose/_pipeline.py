@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements pipelines for forecasting."""
 
 __author__ = ["mloning", "aiwalter"]
@@ -133,7 +133,7 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
             Inverse transformed y
         """
         for _, transformer in reversed(transformers):
-            # skip sktime transformers where inverse transform
+            # skip aeon transformers where inverse transform
             # is not wanted ur meaningful (e.g. Imputer, HampelFilter)
             skip_trafo = transformer.get_tag("skip-inverse-transform", False)
             if not skip_trafo:
@@ -278,7 +278,7 @@ class ForecastingPipeline(_Pipeline):
     transformers to transform y.
 
     For a list `t1`, `t2`, ..., `tN`, `f`
-        where `t[i]` are transformers, and `f` is an sktime forecaster,
+        where `t[i]` are transformers, and `f` is an aeon forecaster,
         the pipeline behaves as follows:
 
     `fit(y, X, fh)` - changes state by running `t1.fit_transform` with `X=X`, `y=y`
@@ -313,15 +313,15 @@ class ForecastingPipeline(_Pipeline):
 
     Parameters
     ----------
-    steps : list of sktime transformers and forecasters, or
-        list of tuples (str, estimator) of sktime transformers or forecasters
+    steps : list of aeon transformers and forecasters, or
+        list of tuples (str, estimator) of aeon transformers or forecasters
             the list must contain exactly one forecaster
         these are "blueprint" transformers resp forecasters,
             forecaster/transformer states do not change when `fit` is called
 
     Attributes
     ----------
-    steps_ : list of tuples (str, estimator) of sktime transformers or forecasters
+    steps_ : list of tuples (str, estimator) of aeon transformers or forecasters
         clones of estimators in `steps` which are fitted in the pipeline
         is always in (str, estimator) format, even if `steps` is just a list
         strings not passed in `steps` are replaced by unique generated strings
@@ -407,14 +407,14 @@ class ForecastingPipeline(_Pipeline):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         ForecastingPipeline object,
             concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` steps
+            not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
@@ -690,7 +690,7 @@ class TransformedTargetForecaster(_Pipeline):
 
     For a list `t1`, `t2`, ..., `tN`, `f`, `tp1`, `tp2`, ..., `tpM`
         where `t[i]` and `tp[i]` are transformers (`t` to pre-, `tp` to post-process),
-        and `f` is an sktime forecaster,
+        and `f` is an aeon forecaster,
         the pipeline behaves as follows:
     `fit(y, X, fh)` - changes state by running `t1.fit_transform` with `X=y`, `y=X`
         then `t2.fit_transform` on `X=` the output of `t1.fit_transform`, `y=X`, etc
@@ -728,23 +728,23 @@ class TransformedTargetForecaster(_Pipeline):
 
     Parameters
     ----------
-    steps : list of sktime transformers and forecasters, or
-        list of tuples (str, estimator) of sktime transformers or forecasters
+    steps : list of aeon transformers and forecasters, or
+        list of tuples (str, estimator) of aeon transformers or forecasters
             the list must contain exactly one forecaster
         these are "blueprint" transformers resp forecasters,
             forecaster/transformer states do not change when `fit` is called
 
     Attributes
     ----------
-    steps_ : list of tuples (str, estimator) of sktime transformers or forecasters
+    steps_ : list of tuples (str, estimator) of aeon transformers or forecasters
         clones of estimators in `steps` which are fitted in the pipeline
         is always in (str, estimator) format, even if `steps` is just a list
         strings not passed in `steps` are replaced by unique generated strings
         i-th transformer in `steps_` is clone of i-th in `steps`
     forecaster_ : estimator, reference to the unique forecaster in steps_
-    transformers_pre_ : list of tuples (str, transformer) of sktime transformers
+    transformers_pre_ : list of tuples (str, transformer) of aeon transformers
         reference to pairs in steps_ that precede forecaster_
-    transformers_ost_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ost_ : list of tuples (str, transformer) of aeon transformers
         reference to pairs in steps_ that succeed forecaster_
 
     Examples
@@ -815,7 +815,7 @@ class TransformedTargetForecaster(_Pipeline):
 
         Returns
         -------
-        sktime forecaster
+        aeon forecaster
             reference to unique forecaster in steps_ (without the name)
         """
         return self.steps_[self._get_forecaster_index(self.steps_)][1]
@@ -826,7 +826,7 @@ class TransformedTargetForecaster(_Pipeline):
 
         Returns
         -------
-        list of tuples (str, estimator) of sktime transformers
+        list of tuples (str, estimator) of aeon transformers
             reference to tuples that come before the unique (str, forecaster) in steps_
         """
         return self.steps_[: self._get_forecaster_index(self.steps_)]
@@ -837,7 +837,7 @@ class TransformedTargetForecaster(_Pipeline):
 
         Returns
         -------
-        list of tuples (str, estimator) of sktime transformers
+        list of tuples (str, estimator) of aeon transformers
             reference to tuples that come after the unique (str, forecaster) in steps_
         """
         return self.steps_[(1 + self._get_forecaster_index(self.steps_)) :]
@@ -849,14 +849,14 @@ class TransformedTargetForecaster(_Pipeline):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformedTargetForecaster object,
             concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
@@ -894,14 +894,14 @@ class TransformedTargetForecaster(_Pipeline):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformedTargetForecaster object,
             concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` steps
+            not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
@@ -1157,9 +1157,9 @@ class ForecastX(BaseForecaster):
     Parameters
     ----------
     forecaster_y : BaseForecaster
-        sktime forecaster to use for endogeneous data `y`
+        aeon forecaster to use for endogeneous data `y`
     forecaster_X : BaseForecaster, optional, default = forecaster_y
-        sktime forecaster to use for exogeneous data `X`
+        aeon forecaster to use for exogeneous data `X`
     fh_X : None, ForecastingHorizon, or valid input to construct ForecastingHorizon
         optional, default = None = same as used for `y` in any instance.
         valid inputs to construct ForecastingHorizon are:
@@ -1242,11 +1242,11 @@ class ForecastX(BaseForecaster):
 
         Parameters
         ----------
-        y : time series in sktime compatible format
+        y : time series in aeon compatible format
             Target time series to which to fit the forecaster
         fh : int, list or np.array, optional (default=None)
             The forecasters horizon with the steps ahead to to predict.
-        X : time series in sktime compatible format, optional, default=None
+        X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
 
         Returns
@@ -1295,7 +1295,7 @@ class ForecastX(BaseForecaster):
 
         Returns
         -------
-        X : sktime time series container
+        X : aeon time series container
             a forecast obtained using a clone of forecaster_X, state as above
         """
         if self.X_was_None_:
@@ -1325,12 +1325,12 @@ class ForecastX(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : time series in sktime compatible format, optional, default=None
+        X : time series in aeon compatible format, optional, default=None
             Exogenous time series to use in prediction
 
         Returns
         -------
-        y_pred : time series in sktime compatible format
+        y_pred : time series in aeon compatible format
             Point forecasts
         """
         X = self._get_forecaster_X_prediction(fh=fh, X=X)
@@ -1342,9 +1342,9 @@ class ForecastX(BaseForecaster):
 
         Parameters
         ----------
-        y : time series in sktime compatible format
+        y : time series in aeon compatible format
             Target time series to which to fit the forecaster
-        X : time series in sktime compatible format, optional, default=None
+        X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
         update_params : bool, optional (default=True)
 
@@ -1542,7 +1542,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
 
     Parameters
     ----------
-    estimator : sktime forecaster, inheriting from BaseForecaster
+    estimator : aeon forecaster, inheriting from BaseForecaster
         must have parameter with name `steps_arg`
         estimator whose steps are being permuted
     permutation : list of str, or None, optional, default = None

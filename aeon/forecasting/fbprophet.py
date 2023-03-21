@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements Prophet forecaster by wrapping fbprophet."""
 
 __author__ = ["aiwalter"]
@@ -17,10 +17,10 @@ _check_soft_dependencies("prophet", severity="warning")
 class Prophet(_ProphetAdapter):
     """Prophet forecaster by wrapping Facebook's prophet algorithm [1]_.
 
-    Direct interface to Facebook prophet, using the sktime interface.
+    Direct interface to Facebook prophet, using the aeon interface.
     All hyper-parameters are exposed via the constructor.
 
-    Data can be passed in one of the sktime compatible formats,
+    Data can be passed in one of the aeon compatible formats,
     naming a column `ds` such as in the prophet package is not necessary.
 
     Unlike vanilla `prophet`, also supports integer/range and period index:
