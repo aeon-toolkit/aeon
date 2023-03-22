@@ -149,30 +149,30 @@ class RocketClassifier(BaseClassifier):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
         if self.rocket_transform == "rocket":
-            transformer = Rocket(num_kernels=self.num_kernels)
+            self._transformer = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
             if self.n_dims_ > 1:
-                transformer = MiniRocketMultivariate(
+                self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_jobs=self.n_jobs,
                 )
             else:
-                transformer = MiniRocket(
+                self._transformer = MiniRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_jobs=self.n_jobs,
                 )
         elif self.rocket_transform == "multirocket":
             if self.n_dims_ > 1:
-                transformer = MultiRocketMultivariate(
+                self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
                     n_jobs=self.n_jobs,
                 )
             else:
-                transformer = MultiRocket(
+                self._transformer = MultiRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
@@ -180,16 +180,17 @@ class RocketClassifier(BaseClassifier):
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
-        estimator = _clone_estimator(
+        self._scaler = StandardScaler(with_mean=False)
+        self._estimator = _clone_estimator(
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             if self.estimator is None
             else self.estimator,
             self.random_state,
         )
         self.pipeline_ = make_pipeline(
-            transformer,
-            StandardScaler(with_mean=False),
-            estimator,
+            self._transformer,
+            self._scaler,
+            self._estimator,
         )
         self.pipeline_.fit(X, y)
         return self
@@ -208,6 +209,31 @@ class RocketClassifier(BaseClassifier):
             Predicted class labels.
         """
         return self.pipeline_.predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predicts labels probabilities for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        X_new = self._transformer.transform(X)
+        X_new = self._scaler.transform(X_new)
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(X_new)
+        else:
+            dists = np.zeros((X.shape[0], self.n_classes_))
+            preds = self._estimator.predict(X_new)
+            for i in range(0, X.shape[0]):
+                dists[i, np.where(self.classes_ == preds[i])] = 1
+            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
