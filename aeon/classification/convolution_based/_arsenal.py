@@ -103,8 +103,8 @@ class Arsenal(BaseClassifier):
     --------
     >>> from aeon.classification.convolution_based import Arsenal
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test =load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test =load_unit_test(split="test")
     >>> clf = Arsenal(num_kernels=100, n_estimators=5)
     >>> clf.fit(X_train, y_train)
     Arsenal(...)
@@ -137,7 +137,6 @@ class Arsenal(BaseClassifier):
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
         self.save_transformed_data = save_transformed_data
