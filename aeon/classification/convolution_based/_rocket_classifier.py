@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket).
 
-Pipeline classifier using the ROCKET transformer and RidgeClassifierCV estimator.
+Pipeline classifier using the ROCKET transformer and an sklearn classifier.
 """
 
-__author__ = ["MatthewMiddlehurst", "victordremov", "fkiraly"]
+__author__ = ["MatthewMiddlehurst", "victordremov", "TonyBagnall"]
 __all__ = ["RocketClassifier"]
 
 import numpy as np
@@ -26,9 +26,9 @@ from aeon.transformations.panel.rocket import (
 class RocketClassifier(BaseClassifier):
     """Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
 
-    This classifier simply transforms the input data using the Rocket [1]_
+    This classifier simply transforms the input data using a Rocket [1,2,3]_
     transformer, performs a Standard scaling and fits a sklearn classifier,
-    using the transformed data (default is a RidgeClassifierCV estimator).
+    using the transformed data (default classifier is RidgeClassifierCV).
 
     The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
     MultiRocket [3].
