@@ -9,6 +9,8 @@ __all__ = ["RocketClassifier"]
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
@@ -25,25 +27,11 @@ class RocketClassifier(BaseClassifier):
     """Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
 
     This classifier simply transforms the input data using the Rocket [1]_
-    transformer and builds a RidgeClassifierCV estimator using the transformed data.
+    transformer, performs a Standard scaling and fits a sklearn classifier,
+    using the transformed data (default is a RidgeClassifierCV estimator).
 
-    Shorthand for the pipeline
-    `rocket * StandardScaler(with_mean=False) * RidgeClassifierCV(alphas)`
-    where `alphas = np.logspace(-3, 3, 10)`, and
-    where `rocket` depends on params `rocket_transform`, `use_multivariate` as follows:
-
-        | rocket_transform | `use_multivariate` | rocket (class)          |
-        |------------------|--------------------|-------------------------|
-        | "rocket"         | any                | Rocket                  |
-        | "minirocket"     | "yes               | MiniRocketMultivariate  |
-        | "minirocket"     | "no"               | MiniRocket              |
-        | "multirocket"    | "yes"              | MultiRocketMultivariate |
-        | "multirocket"    | "no"               | MultiRocket             |
-
-    classes are aeon classes, other parameters are passed on to the rocket class.
-
-    To build other classifiers with rocket transformers, use `make_pipeline` or the
-    pipeline dunder `*`, and different transformers/classifiers in combination.
+    The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
+    MultiRocket [3].
 
     Parameters
     ----------
@@ -56,16 +44,10 @@ class RocketClassifier(BaseClassifier):
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, optional, default=4
         MultiRocket only. The number of features per kernel.
-    use_multivariate : str, ["auto", "yes", "no"], optional, default="auto"
-        whether to use multivariate rocket transforms or univariate ones
-        "auto" = multivariate iff data seen in fit is multivariate, otherwise univariate
-        "yes" = always uses multivariate transformers, native multi/univariate
-        "no" = always univariate transformers, multivariate by framework vectorization
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random number generation.
+    estimator : sklearn compatible classifier or None, default=None
+        if none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used
 
     Attributes
     ----------
@@ -73,8 +55,6 @@ class RocketClassifier(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
-    estimator_ : ClassifierPipeline
-        RocketClassifier as a ClassifierPipeline, fitted to data internally
 
     See Also
     --------
@@ -106,7 +86,6 @@ class RocketClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:multithreading": True,
         "algorithm_type": "convolution",
     }
     # valid rocket strings for input validity checking
@@ -161,18 +140,18 @@ class RocketClassifier(BaseClassifier):
             self.transformer_ = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
             if self.n_dims_ > 1:
-                self._transformer = MiniRocketMultivariate(
+                transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                 )
             else:
-                self._transformer = MiniRocket(
+                transformer = MiniRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                 )
         elif self.rocket_transform == "multirocket":
             if self.n_dims_ > 1:
-                self._transformer = MultiRocketMultivariate(
+                transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
@@ -185,14 +164,18 @@ class RocketClassifier(BaseClassifier):
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
-        self._estimator = _clone_estimator(
+        estimator = _clone_estimator(
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             if self.estimator is None
             else self.estimator,
             self.random_state,
         )
-        X_trans = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_trans, y)
+        self.pipeline_ = make_pipeline(
+            transformer,
+            StandardScaler(with_mean=False),
+            estimator,
+        )
+        self.pipeline_.fit(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -200,7 +183,7 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -208,33 +191,7 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = [n_instances]
             Predicted class labels.
         """
-        X_trans = self._transformer.transform(X)
-        return self._estimator.predict(X_trans)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        X_trans = self._transformer.transform(X)
-
-        m = getattr(self._estimator, "predict_proba", None)
-        if callable(m):
-            return self._estimator.predict_proba(X_trans)
-        else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(X_trans)
-            for i in range(0, X.shape[0]):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
-            return dists
+        return self.pipeline_.predict(X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
