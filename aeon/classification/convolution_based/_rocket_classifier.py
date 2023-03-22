@@ -97,8 +97,6 @@ class RocketClassifier(BaseClassifier):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        use_multivariate="auto",
-        n_jobs=1,
         random_state=None,
         estimator=None,
     ):
@@ -106,7 +104,6 @@ class RocketClassifier(BaseClassifier):
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-        self.n_jobs = n_jobs
         self.random_state = random_state
         self.estimator = estimator
         self.n_instances_ = 0
