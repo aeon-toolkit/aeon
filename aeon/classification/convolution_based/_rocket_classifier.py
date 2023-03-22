@@ -134,7 +134,7 @@ class RocketClassifier(BaseClassifier):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
         if self.rocket_transform == "rocket":
-            self.transformer_ = Rocket(num_kernels=self.num_kernels)
+            transformer = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
             if self.n_dims_ > 1:
                 transformer = MiniRocketMultivariate(
@@ -154,7 +154,7 @@ class RocketClassifier(BaseClassifier):
                     n_features_per_kernel=self.n_features_per_kernel,
                 )
             else:
-                self._transformer = MultiRocket(
+                transformer = MultiRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
