@@ -24,6 +24,7 @@ class Rocket(BaseTransformer):
     dilation. It transforms the time series with two features per kernel. The first
     feature is global max pooling and the second is proportion of positive values.
 
+
     Parameters
     ----------
     num_kernels : int, default=10,000
@@ -38,8 +39,6 @@ class Rocket(BaseTransformer):
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
 
     References
     ----------
