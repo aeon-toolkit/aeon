@@ -686,7 +686,7 @@ def test_pyfunc_predict_proba_raises_invalid_attribute_type(
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing a "
+        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing a "
         f"dictionary.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
@@ -710,7 +710,7 @@ def test_pyfunc_predict_proba_raises_invalid_dict_value(auto_arima_model, model_
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing "
+        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing "
         f"quantile values.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
