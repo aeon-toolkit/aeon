@@ -96,7 +96,7 @@ test_dft_mft(True, True)
 def test_sfa_anova(binning_method):
     # load training data
     X = np.random.rand(10, 1, 150)
-    y = np.random.randint(0, 2, 10)
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
     word_length = 6
     alphabet_size = 4
@@ -140,7 +140,7 @@ def test_word_lengths(
 ):
     # training data
     X = np.random.rand(10, 1, 150)
-    y = np.random.randint(0, 2, 10)
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
     p = SFA(
         word_length=word_length,
@@ -158,7 +158,7 @@ def test_word_lengths(
 def test_bit_size():
     # load training data
     X = np.random.rand(10, 1, 150)
-    y = np.random.randint(0, 2, 10)
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
     word_length = 40
     alphabet_size = 12
@@ -182,7 +182,7 @@ def test_bit_size():
 def test_typed_dict():
     # load training data
     X = np.random.rand(10, 1, 150)
-    y = np.random.randint(0, 2, 10)
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
 
     word_length = 6
     alphabet_size = 4
