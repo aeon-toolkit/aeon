@@ -48,6 +48,8 @@ class RocketClassifier(BaseClassifier):
         Seed for random number generation.
     estimator : sklearn compatible classifier or None, default=None
         if none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used
+    n_jobs : int, default 1
+        number of threads to use for the convolutional transform
 
     Attributes
     ----------
@@ -71,6 +73,16 @@ class RocketClassifier(BaseClassifier):
     .. [1] Dempster, Angus, François Petitjean, and Geoffrey I. Webb. "Rocket:
        exceptionally fast and accurate time series classification using random
        convolutional kernels." Data Mining and Knowledge Discovery 34.5 (2020)
+    .. [2] Dempster, Angus and Schmidt, Daniel F and Webb, Geoffrey I,
+        "MINIROCKET: A Very Fast (Almost) Deterministic Transform for Time Series
+        Classification",2020,
+        https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
+        https://arxiv.org/abs/2012.08791
+    .. [3] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph and Webb,
+        Geoffrey I, "MultiRocket: Multiple pooling operators and transformations
+        for fast and effective time series classification",2022,
+        https://link.springer.com/article/10.1007/s10618-022-00844-1
+        https://arxiv.org/abs/2102.00457
 
     Examples
     --------
@@ -85,6 +97,7 @@ class RocketClassifier(BaseClassifier):
     """
 
     _tags = {
+        "capability:multithreading": True,
         "capability:multivariate": True,
         "algorithm_type": "convolution",
     }
@@ -99,6 +112,7 @@ class RocketClassifier(BaseClassifier):
         n_features_per_kernel=4,
         random_state=None,
         estimator=None,
+        n_jobs=1,
     ):
         self.num_kernels = num_kernels
         self.rocket_transform = rocket_transform
@@ -109,6 +123,7 @@ class RocketClassifier(BaseClassifier):
         self.n_instances_ = 0
         self.n_dims_ = 0
         self.series_length_ = 0
+        self.n_jobs = n_jobs
         super(RocketClassifier, self).__init__()
 
     def _fit(self, X, y):
@@ -140,11 +155,13 @@ class RocketClassifier(BaseClassifier):
                 transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
+                    n_jobs=self.n_jobs,
                 )
             else:
                 transformer = MiniRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
+                    n_jobs=self.n_jobs,
                 )
         elif self.rocket_transform == "multirocket":
             if self.n_dims_ > 1:
@@ -152,12 +169,14 @@ class RocketClassifier(BaseClassifier):
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
+                    n_jobs=self.n_jobs,
                 )
             else:
                 transformer = MultiRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
+                    n_jobs=self.n_jobs,
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
