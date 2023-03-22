@@ -1,9 +1,9 @@
 .. _testing_framework:
 
-``Sktime`` testing framework overview
+``aeon`` testing framework overview
 =====================================
 
-``sktime`` uses ``pytest`` for testing interface compliance of estimators, and correctness of code.
+``aeon`` uses ``pytest`` for testing interface compliance of estimators, and correctness of code.
 This page gives an overview over the tests, and introductions on how to add tests, or how to extend the testing framework.
 
 .. contents::
@@ -12,7 +12,7 @@ This page gives an overview over the tests, and introductions on how to add test
 Test module architecture
 ------------------------
 
-``sktime`` testing happens on three layers, roughly corresponding to the inheritance layers of estimators.
+``aeon`` testing happens on three layers, roughly corresponding to the inheritance layers of estimators.
 
 * "package level": testing interface compliance with the ``BaseObject`` and ``BaseEstimator`` specifications, in ``tests/test_all_estimators.py``
 
@@ -34,12 +34,12 @@ Module conventions are as follows:
 Test code architecture
 ----------------------
 
-``sktime`` test files should use best ``pytest`` practice such as fixtures or test parameterization where possible,
+``aeon`` test files should use best ``pytest`` practice such as fixtures or test parameterization where possible,
 instead of custom logic, see `pytest documentation`_.
 
 .. _pytest documentation: https://docs.pytest.org/en/6.2.x/example/index.html
 
-Estimator tests use ``sktime``'s framework plug-in to ``pytest_generate_tests``,
+Estimator tests use ``aeon``'s framework plug-in to ``pytest_generate_tests``,
 which parameterizes estimator fixtures and data input scenarios.
 
 An illustrative example
@@ -65,14 +65,14 @@ See below for more details, or the `pytest documentation on the topic`_.
 
 .. _pytest documentation on the topic: https://docs.pytest.org/en/6.2.x/parametrize.html#basic-pytest-generate-tests-example
 
-The ``sktime`` plug-in for ``pytest`` generates the tuples of fixture values for this.
+The ``aeon`` plug-in for ``pytest`` generates the tuples of fixture values for this.
 In the above example, we loop over the following fixtures lists:
 
-* ``estimator_instance`` over estimator instances, obtained from all ``sktime`` estimators via ``create_test_instances_and_names``
+* ``estimator_instance`` over estimator instances, obtained from all ``aeon`` estimators via ``create_test_instances_and_names``
 
 * ``scenario`` objects, which encodes data inputs and method call sequences to ``estimator_instance`` (explained in further detail below).
 
-The ``sktime`` plug-in ensures that only those ``scenarios`` are retrieved that are
+The ``aeon`` plug-in ensures that only those ``scenarios`` are retrieved that are
 applicable to the ``estimator_instance``.
 
 In the example, the ``scenario.run`` command is equivalent to calling ``estimator_instance.fit(**scenario_kwargs)``,
@@ -87,7 +87,7 @@ since inputs to ``fit`` of a classifier will differ to an input to ``fit`` of a 
 Parameterized fixtures
 ~~~~~~~~~~~~~~~~~~~~~~
 
-``sktime`` uses ``pytest`` fixture parameterization to execute tests in a loop over fixtures,
+``aeon`` uses ``pytest`` fixture parameterization to execute tests in a loop over fixtures,
 for instance running all interface compatibility tests for all estimators.
 See the `pytest documentation on fixture parameterization`_ in general for an explanation of fixture parameterization.
 
@@ -101,12 +101,12 @@ documentation on `advanced fixture parameterization`_ using ``pytest_generate_te
 
 .. _advanced fixture parameterization: https://docs.pytest.org/en/6.2.x/parametrize.html#basic-pytest-generate-tests-example
 
-Currently, the ``sktime`` testing framework provides automated fixture parameterization
+Currently, the ``aeon`` testing framework provides automated fixture parameterization
 via ``mark.parameterize`` for the following fixtures, in module level tests:
 
 * ``estimator``: all estimator classes, inheriting from the base class of the given module.
 * In the package level tests ``test_all_estimators``, that base class is ``BaseEstimator``.
-* ``estimator_instance``: all estimator test instances, obtained from all ``sktime`` estimators via ``create_test_instances_and_names``
+* ``estimator_instance``: all estimator test instances, obtained from all ``aeon`` estimators via ``create_test_instances_and_names``
 * ``scenario``: test scenarios, applicable to ``estimator`` or ``estimator_instance``.
 *  The scenarios are specified in ``utils/_testing/scenarios_[estimator_scitype]``.
 
@@ -149,9 +149,9 @@ Scenarios also provide a method ``scenario.is_applicable(estimator)``, which ret
 ``scenario`` is applicable to ``estimator``. For instance, scenarios with univariate data are not applicable
 to multivariate forecasters, and will cause exceptions in a ``fit`` method call.
 Non-applicable scenarios can be filtered out in positive tests, and filtered in in negative tests.
-As a default, the ``sktime`` implemented ``pytest_generate_tests`` only pass applicable scenarios.
+As a default, the ``aeon`` implemented ``pytest_generate_tests`` only pass applicable scenarios.
 
-Further, scenarios inherit from ``BaseObject``, which allows to use the ``sktime`` tag system with scenarios.
+Further, scenarios inherit from ``BaseObject``, which allows to use the ``aeon`` tag system with scenarios.
 
 For further details on scenarios, inspect the docstring of ``BaseScenario``.
 
@@ -285,7 +285,7 @@ Scenarios should usually define:
   For instance, comparing whether both scenario and estimator are multivariate.
 
 For further details and expected signature, consult the docstring of ``TestScenario``
-(`link <https://github.com/sktime/sktime/blob/main/sktime/utils/_testing/scenarios.py>`_),
+(`link <https://github.com/aeon-toolkit/aeon/blob/main/aeon/utils/_testing/scenarios.py>`_),
 and/or inspect any of the scenarios base classes, e.g., ``ForecasterTestScenario``.
 
 Creating tests for a new estimator type

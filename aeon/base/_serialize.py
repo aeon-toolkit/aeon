@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Utilities for serializing and deserializing objects.
 
 IMPORTANT CAVEAT FOR DEVELOPERS:
@@ -101,8 +101,8 @@ def load(serial):
         return cls.load_from_path(path)
     else:
         raise TypeError(
-            "serial must either be a serialized in-memory sktime object, "
-            "a str, Path or ZipFile pointing to a file which is a serialized sktime "
-            "object, created by save of an sktime object; but found serial "
+            "serial must either be a serialized in-memory aeon object, "
+            "a str, Path or ZipFile pointing to a file which is a serialized aeon "
+            "object, created by save of an aeon object; but found serial "
             f"of type {serial}"
         )

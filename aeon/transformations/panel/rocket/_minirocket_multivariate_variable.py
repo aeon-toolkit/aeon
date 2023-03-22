@@ -24,7 +24,7 @@ class MiniRocketMultivariateVariable(BaseTransformer):
 
     A provisional and naive extension of MINIROCKET to multivariate input
     with unequal length provided by the authors [2]_ .  For better
-    performance, use the sktime class MiniRocket for univariate input,
+    performance, use the aeon class MiniRocket for univariate input,
     and MiniRocketMultivariate to equal length multivariate input.
 
     Parameters

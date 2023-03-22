@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implemenents Box-Cox and Log Transformations."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["mloning", "aiwalter", "fkiraly"]
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
@@ -85,10 +85,10 @@ class BoxCoxTransformer(BaseTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.series.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    sktime.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.series.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -228,10 +228,10 @@ class LogTransformer(BaseTransformer):
     BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.series.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    sktime.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.series.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 

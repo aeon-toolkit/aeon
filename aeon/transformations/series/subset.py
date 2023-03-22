@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Transformers for index and column subsetting."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["fkiraly"]
 
@@ -18,7 +18,7 @@ class IndexSubset(BaseTransformer):
     numpy-based `X` are interpreted as having a RangeIndex starting at n,
     where n is the number of numpy rows seen so far through `fit` and `update`.
     Non-pandas types are interpreted as having index as after conversion to pandas,
-    via `datatypes.convert_to`, to the `"pd.DataFrame"` sktime type.
+    via `datatypes.convert_to`, to the `"pd.DataFrame"` aeon type.
 
     Parameters
     ----------

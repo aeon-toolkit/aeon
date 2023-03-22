@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements Bagging Forecaster."""
 
 __author__ = ["ltsaprounis"]
@@ -40,13 +40,13 @@ class BaggingForecaster(BaseForecaster):
     Parameters
     ----------
     bootstrap_transformer : BaseTransformer
-        (sktime.transformations.bootstrap.STLBootstrapTransformer)
+        (aeon.transformations.bootstrap.STLBootstrapTransformer)
         Bootstrapping Transformer that takes a series (with tag
         scitype:transform-input=Series) as input and returns a panel (with tag
         scitype:transform-input=Panel) of bootstrapped time series if not specified
-        sktime.transformations.bootstrap.STLBootstrapTransformer is used.
-    forecaster : BaseForecaster (sktime.forecating.ets.AutoETS)
-        A valid sktime Forecaster. If not specified sktime.forecating.ets.AutoETS is
+        aeon.transformations.bootstrap.STLBootstrapTransformer is used.
+    forecaster : BaseForecaster (aeon.forecating.ets.AutoETS)
+        A valid aeon Forecaster. If not specified aeon.forecating.ets.AutoETS is
         used.
     sp: int (default=2)
         Seasonal period for default Forecaster and Transformer. Must be 2 or greater.
@@ -56,11 +56,11 @@ class BaggingForecaster(BaseForecaster):
 
     See Also
     --------
-    sktime.transformations.bootstrap.MovingBlockBootstrapTransformer :
+    aeon.transformations.bootstrap.MovingBlockBootstrapTransformer :
         Transformer that applies the Moving Block Bootstrapping method to create
         a panel of synthetic time series.
 
-    sktime.transformations.bootstrap.STLBootstrapTransformer :
+    aeon.transformations.bootstrap.STLBootstrapTransformer :
         Transformer that utilises BoxCox, STL and Moving Block Bootstrapping to create
         a panel of similar time series.
 
@@ -114,7 +114,7 @@ class BaggingForecaster(BaseForecaster):
 
         if bootstrap_transformer is None:
             # if the transformer is None, this uses the statsmodels dependent
-            # sktime.transformations.bootstrap.STLBootstrapTransformer
+            # aeon.transformations.bootstrap.STLBootstrapTransformer
             #
             # done before the super call to trigger exceptions
             self.set_tags(**{"python_dependencies": "statsmodels"})
@@ -186,7 +186,7 @@ class BaggingForecaster(BaseForecaster):
 
         if not isinstance(self.forecaster_, BaseForecaster):
             raise TypeError(
-                "forecaster in BaggingForecaster should be an sktime Forecaster"
+                "forecaster in BaggingForecaster should be an aeon Forecaster"
             )
 
         # random state handling passed into input estimators

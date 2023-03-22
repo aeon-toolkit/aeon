@@ -1,6 +1,6 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look
-at our contribution guide: https://github.com/sktime/sktime/blob/main/CONTRIBUTING.md
+at our contribution guide: https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md
 -->
 
 #### Reference Issues/PRs
@@ -21,7 +21,7 @@ A clear and concise description of what you have implemented.
 #### Does your contribution introduce a new dependency? If yes, which one?
 
 <!--
-If your contribution does add a new hard dependency, we may suggest to initially develop your contribution in a separate companion package in https://github.com/sktime/ to keep external dependencies of the core sktime package to a minimum.
+If your contribution does add a new hard dependency, we may suggest to initially develop your contribution in a separate companion package in https://github.com/aeon/ to keep external dependencies of the core aeon package to a minimum.
 -->
 
 #### What should a reviewer concentrate their feedback on?
@@ -44,8 +44,8 @@ Please go through the checklist below. Please feel free to remove points if they
 -->
 
 ##### For all contributions
-- [ ] I've added myself to the [list of contributors](https://github.com/sktime/sktime/blob/main/.all-contributorsrc).
-- [ ] Optionally, I've updated sktime's [CODEOWNERS](https://github.com/sktime/sktime/blob/main/CODEOWNERS) to receive notifications about future changes to these files.
+- [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc).
+- [ ] Optionally, I've updated aeon's [CODEOWNERS](https://github.com/aeon-toolkit/aeon/blob/main/CODEOWNERS) to receive notifications about future changes to these files.
 - [ ] The PR title starts with either [ENH], [MNT], [DOC], or [BUG] indicating whether the PR topic is related to enhancement, maintenance, documentation, or bug.
 
 ##### For new estimators

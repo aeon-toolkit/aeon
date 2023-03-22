@@ -16,16 +16,16 @@ What we offer
 * We will help you find an interesting topic to work on; or you can propose your own topic;
 * We pair you with one a more experienced contributor; you can expect to have weekly calls with your mentor, in which you receive feedback on your work, can ask questions, and discuss the next steps.
 
-We have an active community of researchers and students who work on sktime. We will onboard you and you will have time to socialize with other contributors and mentees in the community.
+We have an active community of researchers and students who work on aeon. We will onboard you and you will have time to socialize with other contributors and mentees in the community.
 
-You can find our mentors in our `list of contributors <https://github.com/sktime/sktime/blob/main/CONTRIBUTORS.md>`_ by looking for the mentorship emoji: 🧑‍🏫.
+You can find our mentors in our `list of contributors <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTORS.md>`_ by looking for the mentorship emoji: 🧑‍🏫.
 
-To find out what current mentees are working, take a look at their `projects <https://github.com/sktime/mentoring/issues?q=is%3Aopen+is%3Aissue+label%3Amentoring>`__.
+To find out what current mentees are working, take a look at their `projects <https://github.com/aeon/mentoring/issues?q=is%3Aopen+is%3Aissue+label%3Amentoring>`__.
 
 What we expect
 --------------
 
-We expect you to choose and work on sktime for a significant amount of time. Typically, we expect students to work 1 - 2 days per week for 2 - 3 months.
+We expect you to choose and work on aeon for a significant amount of time. Typically, we expect students to work 1 - 2 days per week for 2 - 3 months.
 
 In addition to the individual project work, all students are be expected to:
 
@@ -33,12 +33,12 @@ In addition to the individual project work, all students are be expected to:
 * Discuss proposed changes online on GitHub issues,
 * Write a final blog post about your contribution.
 
-Please also read our `Code of Conduct <https://github.com/sktime/sktime/blob/main/docs/source/get_involved/code_of_conduct.rst>`_.
+Please also read our `Code of Conduct <https://github.com/aeon-toolkit/aeon/blob/main/docs/source/get_involved/code_of_conduct.rst>`_.
 
 How to apply
 ------------
 
-#. Make PR on `our main repo <https://github.com/sktime/sktime>`_ or contribute to sktime in any other way. Check out our `contributing guide <https://github.com/sktime/sktime/blob/main/CONTRIBUTING.md>`_ to get started! If you've contributed to sktime previously, you can go straight to step 2.
+#. Make PR on `our main repo <https://github.com/aeon-toolkit/aeon>`_ or contribute to aeon in any other way. Check out our `contributing guide <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md>`_ to get started! If you've contributed to aeon previously, you can go straight to step 2.
 #. Submit an application through our `online form <https://forms.gle/WyXVMWzwzwLon47YA>`_.
 
 We accept applications on a rolling basis and we will be in touch with you shortly!

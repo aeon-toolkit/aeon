@@ -13,10 +13,11 @@ from aeon.classification.compose import ComposableTimeSeriesForestClassifier
 from aeon.datasets import load_unit_test
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-from aeon.utils._testing.panel import make_classification_problem
 from aeon.utils.slope_and_trend import _slope
 
-X, y = make_classification_problem()
+rng = np.random.RandomState(42)
+X = rng.rand(10, 1, 20)
+y = rng.randint(0, 2, 10)
 n_classes = len(np.unique(y))
 
 mean_transformer = TabularToSeriesAdaptor(
@@ -38,10 +39,10 @@ def test_tsf_predict_proba():
     np.testing.assert_array_equal(np.ones(X.shape[0]), np.sum(proba, axis=1))
 
     # test single row input
-    y_proba = clf.predict_proba(X.iloc[[0], :])
+    y_proba = clf.predict_proba(X[[0], :])
     assert y_proba.shape == (1, n_classes)
 
-    y_pred = clf.predict(X.iloc[[0], :])
+    y_pred = clf.predict(X[[0], :])
     assert y_pred.shape == (1,)
 
 

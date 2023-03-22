@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Converter utilities between dask and pandas, with multiindex convention.
 
 Converts between:
@@ -127,7 +127,7 @@ def convert_pandas_to_dask(obj, npartitions=1, chunksize=None, sort=True):
 def check_dask_frame(
     obj, return_metadata=False, var_name="obj", freq_set_check=False, scitype="Series"
 ):
-    """Check dask frame, generic for sktime check format."""
+    """Check dask frame, generic for aeon check format."""
     import dask
 
     metadata = {}

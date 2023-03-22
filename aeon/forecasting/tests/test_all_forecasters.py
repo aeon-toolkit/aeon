@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for BaseForecaster API points.
 
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 
 __author__ = ["mloning", "kejsitake", "fkiraly"]
@@ -138,7 +138,7 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
-    """Module level tests for all sktime forecasters."""
+    """Module level tests for all aeon forecasters."""
 
     def test_get_fitted_params(self, estimator_instance, scenario):
         """Test get_fitted_params."""
