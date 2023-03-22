@@ -4,24 +4,24 @@
 Pipeline classifier using the Catch22 transformer and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst", "RavenRudi", "fkiraly"]
+__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
 __all__ = ["Catch22Classifier"]
 
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import make_pipeline
 
 from aeon.base._base import _clone_estimator
-from aeon.classification._delegate import _DelegatedClassifier
-from aeon.pipeline import make_pipeline
+from aeon.classification import BaseClassifier
 from aeon.transformations.panel.catch22 import Catch22
 
 
-class Catch22Classifier(_DelegatedClassifier):
+class Catch22Classifier(BaseClassifier):
     """Canonical Time-series Characteristics (catch22) classifier.
 
     This classifier simply transforms the input data using the Catch22 [1]
     transformer and builds a provided estimator using the transformed data.
 
-    Shorthand for the pipeline `Catch22(outlier_norm, replace_nans) * estimator`
 
     Parameters
     ----------
@@ -38,15 +38,6 @@ class Catch22Classifier(_DelegatedClassifier):
         ``-1`` means using all processors.
     random_state : int or None, optional, default=None
         Seed for random, integer.
-
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
-    estimator_ : ClassifierPipeline
-        Catch22Classifier as a ClassifierPipeline, fitted to data internally
 
     See Also
     --------
@@ -70,8 +61,8 @@ class Catch22Classifier(_DelegatedClassifier):
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = Catch22Classifier(
     ...     estimator=RandomForestClassifier(n_estimators=5),
     ...     outlier_norm=True,
@@ -98,26 +89,53 @@ class Catch22Classifier(_DelegatedClassifier):
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
         self.estimator = estimator
-
         self.n_jobs = n_jobs
         self.random_state = random_state
-
         super(Catch22Classifier, self).__init__()
 
-        transformer = Catch22(
-            outlier_norm=self.outlier_norm, replace_nans=self.replace_nans
-        )
+        def _fit(self, X, y):
+            """Fit ShapeletTransformClassifier to training data.
 
-        if estimator is None:
-            estimator = RandomForestClassifier(n_estimators=200)
+            Parameters
+            ----------
+            X : 3D np.array of shape = [n_instances, n_channels, series_length]
+                The training data.
+            y : array-like, shape = [n_instances]
+                The class labels.
 
-        estimator = _clone_estimator(estimator, random_state)
+            Returns
+            -------
+            self :
+                Reference to self.
+            """
+            _transformer = Catch22(
+                outlier_norm=self.outlier_norm, replace_nans=self.replace_nans
+            )
+            if self.estimator is None:
+                _estimator = RandomForestClassifier(n_estimators=200)
 
-        m = getattr(estimator, "n_jobs", None)
-        if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            _estimator = _clone_estimator(_estimator, random_state)
+            m = getattr(_estimator, "n_jobs", None)
+            if m is not None:
+                estimator.n_jobs = self.n_jobs
+            self._pipeline = make_pipeline(_transformer, _estimator)
+            self._pipeline.fit(X, y)
+            return self
 
-        self.estimator_ = make_pipeline(transformer, estimator)
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances]
+            Predicted class labels.
+        """
+        return self._pipeline.predict(X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
