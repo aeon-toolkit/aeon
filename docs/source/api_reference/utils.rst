@@ -3,7 +3,7 @@
 Utility functions
 =================
 
-``sktime`` has a number of modules dedicated to utilities:
+``aeon`` has a number of modules dedicated to utilities:
 
 * :mod:`aeon.datatypes`, which contains utilities for data format checks and conversion.
 * :mod:`aeon.pipeline`, which contains generics for pipeline construction.
@@ -53,7 +53,7 @@ Pipeline construction generics
     :template: function.rst
 
     make_pipeline
-    sklearn_to_sktime
+    sklearn_to_aeon
 
 
 Estimator Search and Retrieval, Estimator Tags

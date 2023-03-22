@@ -166,7 +166,7 @@ class BaseStrategy(BaseEstimator):
         Returns
         -------
         strategy:
-            sktime strategy
+            aeon strategy
         """
         return load(path)
 

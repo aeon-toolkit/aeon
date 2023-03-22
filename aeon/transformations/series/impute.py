@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Transformer to impute missing values in series."""
 
 __author__ = ["aiwalter"]
@@ -26,7 +26,7 @@ class Imputer(BaseTransformer):
     method : str, default="drift"
         Method to fill the missing values values.
 
-        * "drift" : drift/trend values by sktime.PolynomialTrendForecaster(degree=1)
+        * "drift" : drift/trend values by aeon.PolynomialTrendForecaster(degree=1)
             first, X in transform() is filled with ffill then bfill
             then PolynomialTrendForecaster(degree=1) is fitted to filled X, and
             predict values are queried at indices which had missing values
@@ -42,7 +42,7 @@ class Imputer(BaseTransformer):
         * "random" : random values between pd.Series.min() and .max() of *fit* data
             if pd.Series dtype is int, sample is uniform discrete
             if pd.Series dtype is float, sample is uniform continuous
-        * "forecaster" : use an sktime Forecaster, given in param forecaster.
+        * "forecaster" : use an aeon Forecaster, given in param forecaster.
             First, X in *fit* is filled with ffill then bfill
             then forecaster is fitted to filled X, and *predict* values are queried
             at indices of X data in *transform* which had missing values
@@ -57,7 +57,7 @@ class Imputer(BaseTransformer):
     value : int/float, default=0
         Value to use to fill missing values when method="constant" or
         for other methods in case a column of X contains only NaN values.
-    forecaster : Any Forecaster based on sktime.BaseForecaster, default=None
+    forecaster : Any Forecaster based on aeon.BaseForecaster, default=None
         Use a given Forecaster to impute by insample predictions when
         method="forecaster". Before fitting, missing data is imputed with
         method="ffill" or "bfill" as heuristic. in case of multivariate X,

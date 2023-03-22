@@ -149,6 +149,6 @@ Time Series Annotation
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> pyod_model = IForest()
-    >>> pyod_sktime_annotator = PyODAnnotator(pyod_model)
-    >>> pyod_sktime_annotator.fit(y)
-    >>> annotated_series = pyod_sktime_annotator.predict(y)
+    >>> pyod_aeon_annotator = PyODAnnotator(pyod_model)
+    >>> pyod_aeon_annotator.fit(y)
+    >>> annotated_series = pyod_aeon_annotator.predict(y)

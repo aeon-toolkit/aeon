@@ -3,7 +3,7 @@
 Releases
 ========
 
-This section is for core developers releasing a new version of ``sktime``.
+This section is for core developers releasing a new version of ``aeon``.
 
 Core developers making a release should be release managers (appointed by CC) and have write access to the repository.
 
@@ -24,7 +24,7 @@ Details follow below.
 Release cycle process
 ^^^^^^^^^^^^^^^^^^^^^
 
-``sktime`` aims for a release every two weeks.
+``aeon`` aims for a release every two weeks.
 
 The release cycle process is as follows:
 
@@ -67,9 +67,9 @@ The release process is as follows, on high-level:
   Common possibilities are core devs not respecting the feature freeze period,
   new releases of dependencies that happen in the ca one day period between release PR and release.
 
-7. once release CI/CD has passed, check ``sktime`` version on ``pypi``, this should be the new version.
-  It should be checked that all wheels have been uploaded, `here <https://pypi.org/simple/sktime/>`__.
-  A validatory install of ``sktime`` in a new ``python`` environment should be carried out (one arbitrary version/OS),
+7. once release CI/CD has passed, check ``aeon`` version on ``pypi``, this should be the new version.
+  It should be checked that all wheels have been uploaded, `here <https://pypi.org/simple/aeon/>`__.
+  A validatory install of ``aeon`` in a new ``python`` environment should be carried out (one arbitrary version/OS),
   according to the install instructions.
   If the install does not succeed or wheels have not been uploaded, urgent action to diagnose and remedy must be taken.
   All core developers should be urgently informed of such a situation through mail-all in the core developer channel on slack.
@@ -81,7 +81,7 @@ The release process is as follows, on high-level:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 8. If the release on ``pypi`` has succeeded, there should be an automated release PR created
-  against the sktime conda-forge repo: https://github.com/conda-forge/sktime-feedstock.
+  against the aeon conda-forge repo: https://github.com/conda-forge/aeon-feedstock.
 
   .. note:: Manual creation of release pull request
      In cases where the release PR is not created automatically it can be created and submitted manually. For general
@@ -93,7 +93,7 @@ The release process is as follows, on high-level:
      - paste the sha256 sum of the source archive from github in the ``source/sha256`` section
      - submit PR and ask for review
 
-9. The conda release PR need to be reviewed and in dependencies should be checked against any changes in the main sktime repo.
+9. The conda release PR need to be reviewed and in dependencies should be checked against any changes in the main aeon repo.
   In case the dependencies (or python version support) have changes, the ``meta.yml`` file in the conda recipe need to updated to reflect those changes.
 
 10. Once reviewed, the conda release PR should merged, and it will automatically trigger a release of the conda package.
@@ -145,7 +145,7 @@ To run the legacy release workflow, e.g., for development purposes, run
    make release
 
 This calls
-`build_tools/make_release.py <https://github.com/sktime/sktime/blob/main/build_tools/make_release.py>`__
+`build_tools/make_release.py <https://github.com/aeon-toolkit/aeon/blob/main/build_tools/make_release.py>`__
 that will guide you through the release process.
 
-IMPORTANT: when running the legacy build tools, ensure to not accidentally push a release tag to the ``sktime`` repo.
+IMPORTANT: when running the legacy build tools, ensure to not accidentally push a release tag to the ``aeon`` repo.

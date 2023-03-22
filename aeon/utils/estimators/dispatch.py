@@ -15,7 +15,7 @@ def construct_dispatch(cls, params=None):
 
     Parameters
     ----------
-    cls : sktime estimator, inheriting from `BaseObject`
+    cls : aeon estimator, inheriting from `BaseObject`
     params : dict with str keys, optional, default = None = {}
 
     Examples

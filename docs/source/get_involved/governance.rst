@@ -6,9 +6,9 @@ Governance
 Overview
 --------
 
-sktime is a consensus-based community project. Anyone with an interest in the project can join the community, contribute to the project, and participate in the governance process. This document describes how that participation takes place, which roles we have in our community, how we make decisions, and how we acknowledge contributions.
+aeon is a consensus-based community project. Anyone with an interest in the project can join the community, contribute to the project, and participate in the governance process. This document describes how that participation takes place, which roles we have in our community, how we make decisions, and how we acknowledge contributions.
 
-We are particularly motivated to support new and/or anxious contributors, people who are looking to learn and develop their skills, and members of groups underrepresented in the tech sector. Go to our `contributing guide <https://github.com/sktime/sktime/blob/main/CONTRIBUTING.rst>`__ for more details.
+We are particularly motivated to support new and/or anxious contributors, people who are looking to learn and develop their skills, and members of groups underrepresented in the tech sector. Go to our `contributing guide <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.rst>`__ for more details.
 
 .. list-table::
    :header-rows: 1
@@ -16,9 +16,9 @@ We are particularly motivated to support new and/or anxious contributors, people
    * - Section
      - Purpose
    * - :ref:`code-of-conduct`
-     - How we expect all members of the sktime community to interact
+     - How we expect all members of the aeon community to interact
    * - :ref:`roles`
-     - What roles we have in sktime's community and what rights and responsibilities they have
+     - What roles we have in aeon's community and what rights and responsibilities they have
    * - :ref:`decision-making`
      - How and by whom decisions are made
    * - :ref:`acknowledging-contributions`
@@ -33,12 +33,12 @@ Code of Conduct
 
 We value the participation of every member of our community and want to
 ensure an that every contributor has an enjoyable and fulfilling
-experience. Accordingly, everyone who participates in the sktime project
+experience. Accordingly, everyone who participates in the aeon project
 is expected to show respect and courtesy to other community members at
 all times.
 
 We ask all members of the community to conform to our `Code of
-Conduct <https://github.com/sktime/sktime/blob/main/CODE_OF_CONDUCT.rst>`__.
+Conduct <https://github.com/aeon-toolkit/aeon/blob/main/CODE_OF_CONDUCT.rst>`__.
 
 .. _roles:
 
@@ -79,11 +79,11 @@ Contributors
 Contributors are community members who have contributed in concrete ways
 to the project. Anyone can become a contributor, and contributions can
 take many forms – not only code – as detailed in the `contributing
-guide <https://github.com/sktime/sktime/blob/main/CONTRIBUTING.rst>`__.
+guide <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.rst>`__.
 
 For more details on how we acknowledge contributions, see :ref:`acknowledging-contributions` below.
 
-All contributors are listed in `CONTRIBUTORS.md <https://github.com/sktime/sktime/blob/main/CONTRIBUTORS.md>`__.
+All contributors are listed in `CONTRIBUTORS.md <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTORS.md>`__.
 
 .. _algorithm-maintainers:
 
@@ -94,7 +94,7 @@ Algorithm maintainers are contributors who have contributed an
 algorithm. They have the same voting rights as core developers with
 regard to their algorithm.
 
-In sktime, algorithms are encapsulated in classes with specific
+In aeon, algorithms are encapsulated in classes with specific
 interface requirements and are called estimators. To faciliate
 maintainership questions, we try to write algorithms in separate files
 when possible.
@@ -158,7 +158,7 @@ The contributor who contributes an algorithm is automatically appointed
 as its first maintainer.
 
 Algorithm maintainers are listed in the `CODEOWNERS <https://github
-.com/alan-turing-institute/sktime/blob/main/CODEOWNERS>`__ file.
+.com/alan-turing-institute/aeon/blob/main/CODEOWNERS>`__ file.
 
 When an algorithm maintainer resigns, they can appoint another contributor as the
 new algorithm maintainer. No vote is required. This change should be reflected in the ``CODEOWNERS`` file.
@@ -188,8 +188,8 @@ to the continued development of the project through ongoing engagement
 with the community.
 
 Current core developers are listed in the `core-developers
-team <https://www.sktime.org/en/stable/about/team.html>`__
-within the sktime organisation on GitHub.
+team <https://www.aeon-toolkit.org/en/stable/about/team.html>`__
+within the aeon organisation on GitHub.
 
 .. _rights-and-responsibilities-1:
 
@@ -259,7 +259,7 @@ CoC committee members
 
 CoC members are contributors with special rights and responsibilities.
 The current members of the CoC committee are listed in the
-`CoC <https://www.sktime.org/en/stable/about/team.html>`__.
+`CoC <https://www.aeon-toolkit.org/en/stable/about/team.html>`__.
 
 .. _rights-and-responsibilities-2:
 
@@ -313,8 +313,8 @@ responsibilities to avoid deadlocks and ensure a smooth progress of the
 project.
 
 Current CC members are listed in the `community-council
-team <https://www.sktime.org/en/stable/about/team.html>`__
-within the sktime organisation on GitHub.
+team <https://www.aeon-toolkit.org/en/stable/about/team.html>`__
+within the aeon organisation on GitHub.
 
 .. _rights-and-responsibilities-3:
 
@@ -376,9 +376,9 @@ Communications
 
 The CC has regular public meetings that the full community is welcome to attend.
 
-For more details about our meetings, please go to our `community-council repository <https://github.com/sktime/community-council/>`__.
+For more details about our meetings, please go to our `community-council repository <https://github.com/aeon/community-council/>`__.
 
-To contact the CC directly, please send an email to info@sktime.org.
+To contact the CC directly, please send an email to info@aeon-toolkit.org.
 
 
 .. _decision-making:
@@ -387,19 +387,19 @@ Decision making
 ---------------
 
 The purpose of this section is to formalize the decision-making process
-used by the sktime project. We clarify:
+used by the aeon project. We clarify:
 
 * what types of changes we make decision on,
 * how decisions are made, and
 * who participates in the decision making.
 
-sktime’s decision-making process is designed to take into account
+aeon’s decision-making process is designed to take into account
 feedback from all community members and strives to find consensus, while
 avoiding deadlocks when no consensus can be found.
 
 All discussion and votes takes place on the project’s `issue
-tracker <https://github.com/sktime/sktime/issues>`__,
-`pull requests <https://github.com/sktime/sktime/pulls>`__ or an :ref:`steps`. Some
+tracker <https://github.com/aeon-toolkit/aeon/issues>`__,
+`pull requests <https://github.com/aeon-toolkit/aeon/pulls>`__ or an :ref:`steps`. Some
 sensitive discussions and appointment votes occur on private chats.
 
 The CC reserves the right to overrule decisions.
@@ -420,7 +420,7 @@ corresponding decision making process is described in more detail below.
      - Lazy consensus
    * - Changes to the API design, hard dependencies, or supported versions
      - Lazy consensus, requires a :ref:`steps`
-   * - Changes to sktime's governance (this document and the CoC)
+   * - Changes to aeon's governance (this document and the CoC)
      - Lazy consensus, requires a :ref:`steps`
    * - Appointment
      - Directly starts with voting (stage 2)
@@ -430,7 +430,7 @@ corresponding decision making process is described in more detail below.
 Stage 1: lazy consensus with veto right
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-sktime uses a “consensus seeking” process for making decisions. The
+aeon uses a “consensus seeking” process for making decisions. The
 community tries to find a resolution that has no open objections among
 core developers.
 
@@ -510,10 +510,10 @@ the CC tries to resolve the deadlock.
 
 .. _steps:
 
-sktime enhancement proposal
+aeon enhancement proposal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-sktime enhancement proposals (STEPs) are required for:
+aeon enhancement proposals (STEPs) are required for:
 
 * certain types of proposed changes, by default, see `decision making process <#Decision-making>`__
 * for all stage 3 decisions
@@ -523,13 +523,13 @@ If a STEP is required by a vote, it must have been made public at least 7 days b
 A STEP is a consolidated document, with a concise
 problem statement, a clear description of the proposed solution and a
 comparison with alternative solutions, as outlined in our
-`template <https://github.com/sktime/enhancement-proposals/blob/master/TEMPLATE.md>`__.
+`template <https://github.com/aeon/enhancement-proposals/blob/master/TEMPLATE.md>`__.
 
 A complete STEP must always include at least a high-level design for the proposed change,
 not just a wishlist of features.
 
-Usually, we collect and discuss proposals in sktime’s `repository for
-enhancement-proposals <https://github.com/sktime/enhancement-proposals>`__.
+Usually, we collect and discuss proposals in aeon’s `repository for
+enhancement-proposals <https://github.com/aeon/enhancement-proposals>`__.
 
 For smaller changes, such as punctual changes to the API or governance documents,
 the STEP can also be be part of an issue or pull request.
@@ -545,7 +545,7 @@ deprecate and remove contributions.
 
 We have the following guidelines:
 
--  ``sktime`` aims to provide a repository for algorithms to enhance reproducible research,
+-  ``aeon`` aims to provide a repository for algorithms to enhance reproducible research,
    putting no lower bounds on number of citations, algorithmic performance, or frequency of use.
 -  For inclusion, a scientific reference must be available and linked to the python estimator.
    A scientific reference is a formal description of the algorithm which
@@ -571,49 +571,49 @@ We have the following guidelines:
    is primarily guided by relevance, e.g., as a reference in an important study,
    relevance in the scientific discourse, or as an important algorithmic baseline.
 -  From the algorithms or techniques that meet the above criteria, only
-   those which fit well within the current framework of sktime are accepted.
+   those which fit well within the current framework of aeon are accepted.
    For algorithms that do not fit well into one of the current API definitions, the API
    will have to be extended first. For extending current API, see the
    `decision making process <#Decision-making>`__ for major changes.
 
-Note that your implementation need not be in sktime to be used together
-with sktime tools. You can implement your favorite algorithm in a sktime
+Note that your implementation need not be in aeon to be used together
+with aeon tools. You can implement your favorite algorithm in a aeon
 compatible way in one of `our companion
-repositories <https://github.com/sktime>`__ on GitHub. We will be happy
+repositories <https://github.com/aeon>`__ on GitHub. We will be happy
 to list it under `related
-software <https://github.com/sktime/sktime/wiki/related-software>`__.
+software <https://github.com/aeon-toolkit/aeon/wiki/related-software>`__.
 
 If algorithms require major dependencies, we encourage to create a
 separate companion repository. For smaller
 dependencies which are limited to a few files, we encourage to use soft
 dependencies, which are only required for particular modules, but not
-for most of sktime’s functionality and not for installing sktime.
+for most of aeon’s functionality and not for installing aeon.
 
 .. _acknowledging-contributions:
 
 Acknowledging contributions
 ---------------------------
 
-sktime is collaboratively developed by its diverse community of
+aeon is collaboratively developed by its diverse community of
 developers, users, educators, and other stakeholders. We value all kinds
 of contributions and are committed to recognising each of them fairly.
 
 We follow the `all-contributors <https://allcontributors.org>`__
 specification to recognise all contributors, including those that don’t
 contribute code. Please see `our list of all
-contributors <https://github.com/sktime/sktime/blob/main/CONTRIBUTORS.md>`__.
+contributors <https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTORS.md>`__.
 
 If you think, we’ve missed anything, please let us know or open a PR
 with the appropriate changes to
-`sktime/.all-contributorsrc <https://github.com/sktime/sktime/blob/main/.all-contributorsrc>`__.
+`aeon/.all-contributorsrc <https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc>`__.
 
-Note that contributors do not own their contributions. sktime is an
+Note that contributors do not own their contributions. aeon is an
 open-source project, and all code is contributed under `our open-source
-license <https://github.com/sktime/sktime/blob/main/LICENSE>`__.
+license <https://github.com/aeon-toolkit/aeon/blob/main/LICENSE>`__.
 All contributors acknowledge that they have all the rights to the code
 they contribute to make it available under this license.
 
-The project belongs to the sktime community, and all parts of it are
+The project belongs to the aeon community, and all parts of it are
 always considered “work in progress” so that they can evolve over time
 with newer contributions.
 
@@ -623,7 +623,7 @@ Outlook
 -------
 
 We are open to improvement suggestions for our governance model. Once
-the community grows more and sktime’s code base becomes more
+the community grows more and aeon’s code base becomes more
 consolidated, we will consider the following changes:
 
 -  Allow for more time to discuss changes, and more time to cast vote
@@ -646,7 +646,7 @@ References
 Our governance model is inspired by various existing governance
 structures. In particular, we’d like to acknowledge:
 
-* scikit-learn’s `governance model <https://www.sktime.org/en/latest/governance.html>`__
+* scikit-learn’s `governance model <https://www.aeon-toolkit.org/en/latest/governance.html>`__
 * `The Turing Way <https://github.com/alan-turing-institute/the-turing-way>`__ project
 * `The Art of Community <https://www.jonobacon.com/books/artofcommunity/>`__ by Jono Bacon
 * The `astropy <https://www.astropy.org>`__ project

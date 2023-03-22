@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformers for detecting outliers in a time series."""
 
 __author__ = ["aiwalter"]
@@ -18,7 +18,7 @@ from aeon.transformations.base import BaseTransformer
 class HampelFilter(BaseTransformer):
     """Use HampelFilter to detect outliers based on a sliding window.
 
-    Correction of outliers is recommended by means of the sktime.Imputer,
+    Correction of outliers is recommended by means of the aeon.Imputer,
     so both can be tuned separately.
 
     Parameters

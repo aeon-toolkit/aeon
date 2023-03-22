@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for sklearn typing utilities in utils.sktime."""
+"""Tests for sklearn typing utilities in utils.aeon."""
 
 __author__ = ["fkiraly"]
 
@@ -21,7 +21,7 @@ CORRECT_SCITYPES = {
 }
 
 sklearn_estimators = list(CORRECT_SCITYPES.keys())
-sktime_estimators = [SummaryClassifier, NaiveForecaster]
+aeon_estimators = [SummaryClassifier, NaiveForecaster]
 
 
 @pytest.mark.parametrize("estimator", sklearn_estimators)
@@ -34,7 +34,7 @@ def test_is_sklearn_estimator_positive(estimator):
     assert is_sklearn_estimator(estimator), msg
 
 
-@pytest.mark.parametrize("estimator", sktime_estimators)
+@pytest.mark.parametrize("estimator", aeon_estimators)
 def test_is_sklearn_estimator_negative(estimator):
     """Test that is_sklearn_estimator recognizes negative examples correctly."""
     msg = (

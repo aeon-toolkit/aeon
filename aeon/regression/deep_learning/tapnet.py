@@ -152,7 +152,7 @@ class TapNetRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a complied, un-trained, keras model that is ready for training.
 
-        In sktime, time series are stored in numpy arrays of shape (d,m), where d
+        In aeon, time series are stored in numpy arrays of shape (d,m), where d
         is the number of dimensions, m is the series length. Keras/tensorflow assume
         data is in shape (m,d). This method also assumes (m,d). Transpose should
         happen in fit.

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implements registry for sktime estimator base classes and tags."""
+"""Implements registry for aeon estimator base classes and tags."""
 
 from aeon.registry._base_classes import (
     BASE_CLASS_LIST,

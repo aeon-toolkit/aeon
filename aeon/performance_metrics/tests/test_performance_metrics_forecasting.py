@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["Tomasz Chodakowski", "Ryan Kuhns"]
 
@@ -194,9 +194,9 @@ Y_TEST_CASES = {
     },
 }
 
-# Dictionary mapping functions to the true loss values to verify the sktime
+# Dictionary mapping functions to the true loss values to verify the aeon
 # metrics are performing as expected. True loss values were calculated
-# manually outside of sktime in Excel.
+# manually outside of aeon in Excel.
 LOSS_RESULTS = {
     "mean_absolute_scaled_error": {
         "test_case_1": 1.044427857,

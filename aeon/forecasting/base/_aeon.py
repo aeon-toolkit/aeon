@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""sktime window forecaster base class."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""aeon window forecaster base class."""
 
 __author__ = ["@mloning", "@big-o", "fkiraly"]
 __all__ = ["_BaseWindowForecaster"]

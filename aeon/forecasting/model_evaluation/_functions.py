@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements functions to be used in evaluating forecasting models."""
 
 __author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
@@ -226,20 +226,20 @@ def evaluate(
 
     Parameters
     ----------
-    forecaster : sktime BaseForecaster descendant
-        sktime forecaster (concrete BaseForecaster descendant)
-    cv : sktime BaseSplitter descendant
+    forecaster : aeon BaseForecaster descendant
+        aeon forecaster (concrete BaseForecaster descendant)
+    cv : aeon BaseSplitter descendant
         Splitter of how to split the data into test data and train data
-    y : sktime time series container
+    y : aeon time series container
         Target (endogeneous) time series used in the evaluation experiment
-    X : sktime time series container, of same mtype as y
+    X : aeon time series container, of same mtype as y
         Exogenous time series used in the evaluation experiment
     strategy : {"refit", "update", "no-update_params"}, optional, default="refit"
         defines the ingestion mode when the forecaster sees new data when window expands
         "refit" = forecaster is refitted to each training window
         "update" = forecaster is updated with training window data, in sequence provided
         "no-update_params" = fit to first training window, re-used without fit or update
-    scoring : subclass of sktime.performance_metrics.BaseMetric or list of same,
+    scoring : subclass of aeon.performance_metrics.BaseMetric or list of same,
         default=None. Used to get a score function that takes y_pred and y_test
         arguments and accept y_train as keyword argument.
         If None, then uses scoring = MeanAbsolutePercentageError().
@@ -304,7 +304,7 @@ def evaluate(
         Optionally, users may select other metrics that can be supplied
         by `scoring` argument. These can be forecast metrics of any kind,
         i.e., point forecast metrics, interval metrics, quantile foreast metrics.
-        https://www.sktime.org/en/stable/api_reference/performance_metrics.html?highlight=metrics
+        https://www.aeon-toolkit.org/en/stable/api_reference/performance_metrics.html?highlight=metrics
         To evaluate estimators using a specific metric, provide them to the scoring arg.
     >>> from aeon.performance_metrics.forecasting import MeanAbsoluteError
     >>> loss = MeanAbsoluteError()

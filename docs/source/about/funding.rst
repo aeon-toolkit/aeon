@@ -14,7 +14,7 @@ We would like to thank the following sponsors.
 Industry sponsorship
 --------------------
 
-* Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of sktime in 2021, as part of their `FOSS program <https://opensource.mercedes-benz.com>`_.
+* Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of aeon in 2021, as part of their `FOSS program <https://opensource.mercedes-benz.com>`_.
 
 Research grants
 ---------------
@@ -47,9 +47,9 @@ Markus Löning’s contributions between 2019 and 2021 were supported by:
 Institutional sponsorship
 -------------------------
 
-The 2019 joint sktime MLJ development sprint was kindly hosted by `UCL <https://www.ucl.ac.uk>`_ and `The Alan Turing Institute <https://turing.ac.uk>`_. Some participants could attend thanks to the initial funding of the `The Alan Turing Institute <https://turing.ac.uk>`_.
+The 2019 joint aeon MLJ development sprint was kindly hosted by `UCL <https://www.ucl.ac.uk>`_ and `The Alan Turing Institute <https://turing.ac.uk>`_. Some participants could attend thanks to the initial funding of the `The Alan Turing Institute <https://turing.ac.uk>`_.
 
-Since 2022, `sktime` is an officially affiliated project of the `NumFOCUS <https://numfocus.org/>`_ organization.
+Since 2022, `aeon` is an officially affiliated project of the `NumFOCUS <https://numfocus.org/>`_ organization.
 
 .. image:: ../images/numfocus.png
   :width: 32 %
@@ -68,9 +68,9 @@ their servers.
 Internships
 -----------
 
-`Google Summer of Code (GSoC) <https://summerofcode.withgoogle.com>`_, `Major League Hacking <https://mlh.io>`_ and `Outreachy <https://www.outreachy.org>`_ have all sponsored sktime internships.
+`Google Summer of Code (GSoC) <https://summerofcode.withgoogle.com>`_, `Major League Hacking <https://mlh.io>`_ and `Outreachy <https://www.outreachy.org>`_ have all sponsored aeon internships.
 
-The `Wellcome Trust <https://wellcome.org>`_ sponsored one sktime internship as part of Outreachy.
+The `Wellcome Trust <https://wellcome.org>`_ sponsored one aeon internship as part of Outreachy.
 
 .. image:: ../images/gsoc.png
   :width: 32 %

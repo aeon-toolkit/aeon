@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Wrapper for easy vectorization/iteration of time series data.
 
 Contains VectorizedDF class.
@@ -17,12 +17,12 @@ class VectorizedDF:
     """Wrapper for easy vectorization/iteration over instances.
 
     VectorizedDF is an iterable that returns pandas.DataFrame
-        in sktime Series or Panel format.
+        in aeon Series or Panel format.
     Elements are all Series or Panels in X, these are iterated over.
 
     Parameters
     ----------
-    X : object in sktime compatible Panel or Hierarchical format
+    X : object in aeon compatible Panel or Hierarchical format
         the data container to vectorize over
     y : placeholder argument, not used currently
     is_scitype : str ("Panel", "Hierarchical") or None, default = "Panel"
@@ -43,7 +43,7 @@ class VectorizedDF:
     -------
     self[i] or self.__getitem__(i)
         Returns i-th Series/Panel (depending on iterate_as) in X
-        as pandas.DataFrame with Index or MultiIndex (in sktime pandas format)
+        as pandas.DataFrame with Index or MultiIndex (in aeon pandas format)
     len(self) or self.__len__
         returns number of Series/Panel in X
     get_iter_indices()
@@ -207,7 +207,7 @@ class VectorizedDF:
         Parameters
         ----------
         X : `None`, `VectorizedDF`, or pd.DataFrame; optional, default=self
-          must be in one of the `sktime` time series formats, with last column time
+          must be in one of the `aeon` time series formats, with last column time
           if not `self`, the highest levels of row or column index in `X`
           must agree with those indices of `self` that are non-trivially vectorized
 
@@ -262,7 +262,7 @@ class VectorizedDF:
         row_ind : `None`, or `pd.Index` coercible; optional, default=None
         col_ind : `None`, or `pd.Index` coercible; optional, default=None
         X : `None`, `VectorizedDF`, or pd.DataFrame; optional, default=self
-          must be in one of the `sktime` time series formats, with last column time
+          must be in one of the `aeon` time series formats, with last column time
 
         Returns
         -------
@@ -294,7 +294,7 @@ class VectorizedDF:
         Parameters
         ----------
         X : `None`, `VectorizedDF`, or pd.DataFrame; optional, default=self
-          must be in one of the `sktime` time series formats, with last column time
+          must be in one of the `aeon` time series formats, with last column time
           if not `self`, the highest levels of row or column index in `X`
           must agree with those indices of `self` that are non-trivially vectorized
 
@@ -353,7 +353,7 @@ class VectorizedDF:
         -------
         X_reconstructed_orig_format : row-concatenation of df-list,
             with keys and additional level from self.get_iter_indices
-            if convert_back=False, always a pd.DataFrame in an sktime MultiIndex format
+            if convert_back=False, always a pd.DataFrame in an aeon MultiIndex format
                 (pd-muliindex mtype for Panel, or pd_multiindex_hier for Hierarchical)
             if convert_back=True, will have same format and mtype as X input to __init__
         """
@@ -477,7 +477,7 @@ class VectorizedDF:
 
         This function:
 
-        1. takes a single `sktime` estimator or a `pd.DataFrame` with estimator entries
+        1. takes a single `aeon` estimator or a `pd.DataFrame` with estimator entries
         2. calls `method` of estimator, with arguments as per `args`, `args_rowvec`
         3. returns the result, a list or pd.DataFrame with estimator values
 
@@ -505,9 +505,9 @@ class VectorizedDF:
         Parameters
         ----------
         estimator : one of
-            a. an sktime estimator object, instance of descendant of BaseEstimator
+            a. an aeon estimator object, instance of descendant of BaseEstimator
             b. pd.DataFrame with row/col indices being `self.get_iter_indices()`,
-               entries sktime estimator objects, inst. of descendants of BaseEstimator
+               entries aeon estimator objects, inst. of descendants of BaseEstimator
         method : str, optional, default="clone"
             method of estimator to call with arguments in `args`, `args_rowvec`
         args : dict, optional, default=empty dict

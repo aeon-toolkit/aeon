@@ -17,7 +17,7 @@ import pandas as pd
 from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
-from aeon.distances import distance as sktime_distance
+from aeon.distances import distance as aeon_distance
 from aeon.transformations.base import BaseTransformer
 
 
@@ -87,7 +87,7 @@ def create_distance_matrix(
                 dis = np.linalg.norm(cls1_ch - cls2_ch, axis=1)
             else:
                 dis = np.apply_along_axis(
-                    lambda row: sktime_distance(
+                    lambda row: aeon_distance(
                         row[: row.shape[0] // 2],
                         row[row.shape[0] // 2 :],
                         metric="dtw",

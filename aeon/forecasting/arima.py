@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements autoregressive integrated moving average (ARIMA) models."""
 
 __author__ = ["mloning", "hyang1996", "fkiraly", "ilkersigirci"]
@@ -17,7 +17,7 @@ class AutoARIMA(_PmdArimaAdapter):
 
     Includes automated fitting of (S)ARIMA(X) hyper-parameters (p, d, q, P, D, Q).
 
-    Exposes `pmdarima.arima.AutoARIMA` [1]_ under the `sktime` interface.
+    Exposes `pmdarima.arima.AutoARIMA` [1]_ under the `aeon` interface.
     Seasonal ARIMA models and exogeneous input is supported, hence this estimator is
     capable of fitting auto-SARIMA, auto-ARIMAX, and auto-SARIMAX.
 
@@ -484,7 +484,7 @@ class AutoARIMA(_PmdArimaAdapter):
 class ARIMA(_PmdArimaAdapter):
     """Wrapper of the pmdarima implementation of fitting (S)ARIMA(X) models.
 
-    Exposes `pmdarima.arima.ARIMA` [1]_ under the `sktime` interface.
+    Exposes `pmdarima.arima.ARIMA` [1]_ under the `aeon` interface.
     Seasonal ARIMA models and exogeneous input is supported, hence this estimator is
     capable of fitting SARIMA, ARIMAX, and SARIMAX.
     To additionally fit (S)ARIMA(X) hyper-parameters, use the `AutoARIMA` estimator.

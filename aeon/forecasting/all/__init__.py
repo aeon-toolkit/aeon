@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Import all time series forecasting functionality available in sktime."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Import all time series forecasting functionality available in aeon."""
 
 __author__ = ["mloning", "fkiraly"]
 
