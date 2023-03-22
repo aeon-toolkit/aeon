@@ -65,7 +65,6 @@ class Rocket(BaseTransformer):
     _tags = {
         "univariate-only": False,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": False,
         "X_inner_mtype": "numpy3D",
