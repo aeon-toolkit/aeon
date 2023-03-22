@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Catch22 Classifier.
 
-Pipeline classifier using the Catch22 transformer and an estimator.
+Pipeline classifier using the Catch22 transformer and an estimator (default
+RandomForest).
 """
 
 __author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
@@ -93,34 +94,35 @@ class Catch22Classifier(BaseClassifier):
         self.random_state = random_state
         super(Catch22Classifier, self).__init__()
 
-        def _fit(self, X, y):
-            """Fit ShapeletTransformClassifier to training data.
+    def _fit(self, X, y):
+        """Fit Catch22Classifier to training data.
 
-            Parameters
-            ----------
-            X : 3D np.array of shape = [n_instances, n_channels, series_length]
-                The training data.
-            y : array-like, shape = [n_instances]
-                The class labels.
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
 
-            Returns
-            -------
-            self :
-                Reference to self.
-            """
-            _transformer = Catch22(
-                outlier_norm=self.outlier_norm, replace_nans=self.replace_nans
-            )
-            if self.estimator is None:
-                _estimator = RandomForestClassifier(n_estimators=200)
-
-            _estimator = _clone_estimator(_estimator, random_state)
-            m = getattr(_estimator, "n_jobs", None)
-            if m is not None:
-                estimator.n_jobs = self.n_jobs
-            self._pipeline = make_pipeline(_transformer, _estimator)
-            self._pipeline.fit(X, y)
-            return self
+        Returns
+        -------
+        self :
+            Reference to self.
+        """
+        self._transformer = Catch22(
+            outlier_norm=self.outlier_norm, replace_nans=self.replace_nans
+        )
+        if self.estimator is None:
+            self._estimator = RandomForestClassifier(n_estimators=200)
+        else:
+            self._estimator = self.estimator
+        self._estimator = _clone_estimator(self._estimator, self.random_state)
+        m = getattr(self._estimator, "n_jobs", None)
+        if m is not None:
+            self.estimator.n_jobs = self.n_jobs
+        self._pipeline = make_pipeline(self._transformer, self._estimator)
+        self._pipeline.fit(X, y)
+        return self
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
@@ -136,6 +138,30 @@ class Catch22Classifier(BaseClassifier):
             Predicted class labels.
         """
         return self._pipeline.predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predicts labels probabilities for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        X_new = self._transformer.transform(X)
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(X_new)
+        else:
+            dists = np.zeros((X.shape[0], self.n_classes_))
+            preds = self._estimator.predict(X_new)
+            for i in range(0, X.shape[0]):
+                dists[i, np.where(self.classes_ == preds[i])] = 1
+            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
