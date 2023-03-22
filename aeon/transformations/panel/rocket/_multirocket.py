@@ -2,6 +2,7 @@
 import multiprocessing
 
 import numpy as np
+import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.datatypes import convert
@@ -48,8 +49,6 @@ class MultiRocket(BaseTransformer):
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
 
     References
     ----------
@@ -75,10 +74,13 @@ class MultiRocket(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "fit_is_empty": False,
+        "scitype:transform-input": "Series",
+        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        # what is the scitype of y: None (not needed), Primitives, Series, Panel
+        "scitype:instancewise": False,  # is this an instance-wise transform?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
+        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
     }
 
     def __init__(
@@ -102,14 +104,14 @@ class MultiRocket(BaseTransformer):
         self.parameter = None
         self.parameter1 = None
 
-        super(MultiRocket, self).__init__(_output_convert=False)
+        super(MultiRocket, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit dilations and biases to input time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, 1, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -118,16 +120,12 @@ class MultiRocket(BaseTransformer):
         self
         """
         X = X.astype(np.float64)
-        if X.shape[1] != 1:
-            raise ValueError(
-                f"Passed data with {X.shape[1]} channels. USe "
-                f"MultiRocketMultivariate Instead "
-            )
-        X = X.squeeze()
+        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
+
         self.parameter = self._get_parameter(X)
 
         _X1 = np.diff(X, 1)
@@ -165,17 +163,19 @@ class MultiRocket(BaseTransformer):
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
 
-        X_ = _transform(
+        X = _transform(
             X,
             X1,
             self.parameter,
             self.parameter1,
             self.n_features_per_kernel,
         )
-        X_ = np.nan_to_num(X_)
+        X = np.nan_to_num(X)
 
         set_num_threads(prev_threads)
-        return X_
+        # # from_2d_array_to_3d_numpy
+        # _X = np.reshape(_X, (_X.shape[0], 1, _X.shape[1])).astype(np.float64)
+        return pd.DataFrame(X)
 
     def _get_parameter(self, X):
         _, input_length = X.shape
