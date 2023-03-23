@@ -23,13 +23,14 @@ class MiniRocketMultivariate(BaseTransformer):
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels.
+        Number of random convolutional kernels.
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     See Also
     --------

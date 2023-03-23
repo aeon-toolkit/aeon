@@ -35,6 +35,7 @@ class MultiRocket(BaseTransformer):
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     Attributes
     ----------
