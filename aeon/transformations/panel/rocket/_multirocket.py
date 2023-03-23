@@ -54,9 +54,7 @@ class MultiRocket(BaseTransformer):
     ----------
     .. [1] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph and
     Webb, Geoffrey I, "MultiRocket: Multiple pooling operators and transformations
-    for fast and effective time series classification",2022,
-    https://link.springer.com/article/10.1007/s10618-022-00844-1
-    https://arxiv.org/abs/2102.00457
+    for fast and effective time series classification",2022
 
     Examples
     --------
