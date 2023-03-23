@@ -36,8 +36,6 @@ class MiniRocket(BaseTransformer):
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
 
     References
     ----------
