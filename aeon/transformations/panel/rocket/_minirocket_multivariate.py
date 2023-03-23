@@ -53,7 +53,7 @@ class MiniRocketMultivariate(BaseTransformer):
      >>> X_test, y_test = load_basic_motions(split="test")
      >>> trf = MiniRocketMultivariate(num_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocketMultivariate(...)
+     MiniRocketMultivariate(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """
