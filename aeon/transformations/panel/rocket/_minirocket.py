@@ -42,7 +42,9 @@ class MiniRocket(BaseTransformer):
     ----------
     .. [1] Dempster, Angus and Schmidt, Daniel F and Webb, Geoffrey I,
         "MINIROCKET: A Very Fast (Almost) Deterministic Transform for Time Series
-        Classification",2020
+        Classification",2020,
+        https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
+        https://arxiv.org/abs/2012.08791
 
     Examples
     --------

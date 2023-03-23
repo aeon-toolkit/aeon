@@ -45,7 +45,9 @@ class Rocket(BaseTransformer):
     .. [1] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph
         and Webb, Geoffrey I,
         "ROCKET: Exceptionally fast and accurate time series
-      classification using random convolutional kernels",2020
+      classification using random convolutional kernels",2020,
+      https://link.springer.com/article/10.1007/s10618-020-00701-z,
+      https://arxiv.org/abs/1910.13051
 
     Examples
     --------
