@@ -57,7 +57,7 @@ class Rocket(BaseTransformer):
     >>> X_test, y_test = load_unit_test(split="test")
     >>> trf = Rocket(num_kernels=512)
     >>> trf.fit(X_train)
-    Rocket(...)
+    Rocket(num_kernels=512)
     >>> X_train = trf.transform(X_train)
     >>> X_test = trf.transform(X_test)
     """
