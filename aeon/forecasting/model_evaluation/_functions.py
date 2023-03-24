@@ -8,14 +8,15 @@ __all__ = ["evaluate"]
 
 import time
 import warnings
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
 
 from aeon.datatypes import check_is_scitype, convert_to
 from aeon.exceptions import FitFailedWarning
-from aeon.forecasting.base import ForecastingHorizon
+from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+from aeon.forecasting.model_selection import BaseSplitter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -480,3 +481,11 @@ def evaluate(
     results = results.astype({"len_train_window": int}).reset_index(drop=True)
 
     return results
+
+
+def cv_predict(
+    forecaster: BaseForecaster,
+    cv: BaseSplitter,
+    strategy: Literal["refit", "update", "no-update_params"],
+) -> pd.DataFrame:
+    """Placeholders docstring."""
