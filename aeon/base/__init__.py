@@ -10,8 +10,10 @@ __all__ = [
     "BaseEstimator",
     "_HeterogenousMetaEstimator",
     "load",
+    "cache",
 ]
 
 from aeon.base._base import BaseEstimator, BaseObject
+from aeon.base._cache import cache
 from aeon.base._meta import _HeterogenousMetaEstimator
 from aeon.base._serialize import load

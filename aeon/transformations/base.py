@@ -51,7 +51,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseEstimator, cache
 from aeon.datatypes import (
     VectorizedDF,
     check_is_mtype,
@@ -399,6 +399,7 @@ class BaseTransformer(BaseEstimator):
 
         return self
 
+    @cache  # noqa: B019
     def transform(self, X, y=None):
         """Transform X and return a transformed version.
 
