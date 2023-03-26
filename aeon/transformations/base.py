@@ -474,6 +474,7 @@ class BaseTransformer(BaseEstimator):
 
         return X_out
 
+    @cache  # noqa: B019
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it.
 
