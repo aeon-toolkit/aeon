@@ -5,7 +5,7 @@ from contextlib import contextmanager as contextmanager
 
 _global_config = {
     "cache": False,
-    "_cache": {},
+    "_cache": None,
 }
 _threadlocal = threading.local()
 

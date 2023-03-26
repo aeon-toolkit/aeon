@@ -9,10 +9,10 @@ from aeon import get_config, set_config
 
 def cache(func):
     """Decorate functions to cache return."""
-    if get_config()["cache"]:
 
-        @wraps(func)
-        def cached_func(*args, **kwargs):
+    @wraps(func)
+    def cached_func(*args, **kwargs):
+        if get_config()["cache"]:
             # Convert unhashable objects to hashable ones
             key = joblib.hash((args, kwargs))
             if get_config()["_cache"] is None:
@@ -28,7 +28,7 @@ def cache(func):
                 set_config(_cache=_cache)
 
                 return result
+        else:
+            return func(*args, **kwargs)
 
-        return cached_func
-    else:
-        return func
+    return cached_func
