@@ -16,7 +16,8 @@ def cache(func):
             # Convert unhashable objects to hashable ones
             key = joblib.hash((args, kwargs))
             if get_config()["_cache"] is None:
-                _cache = LRUCache(maxsize=5)
+                _cache = LRUCache(maxsize=1)
+                # _cache = {}
             else:
                 _cache = get_config()["_cache"]
             if key in _cache:

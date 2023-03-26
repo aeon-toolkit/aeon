@@ -346,6 +346,7 @@ class BaseTransformer(BaseEstimator):
         else:
             return ColumnSelect(key) * self
 
+    @cache  # noqa: B019
     def fit(self, X, y=None):
         """Fit transformer to X, optionally to y.
 
