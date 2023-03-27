@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Tests for sktime annotators."""
+"""Tests for aeon annotators."""
 
 __author__ = ["miraep8", "fkiraly", "klam-data", "pyyim", "mgorlin"]
 __all__ = []

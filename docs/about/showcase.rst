@@ -3,6 +3,8 @@
 Community Showcase
 ==================
 
+The following community showcases refer also to the legacy project `sktime` on which `aeon` is based on. If you replace the imports e.g. `from sktime import sth` to `from aeon import sth` the code can be run with `aeon.`
+
 .. list-table::
    :widths: 25 50 25
    :header-rows: 1

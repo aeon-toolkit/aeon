@@ -4,17 +4,17 @@
 Roadmap
 =======
 
-Welcome to sktime's roadmap.
+Welcome to aeon's roadmap.
 
 Contributors: :user:`mloning`, :user:`fkiraly`, :user:`sveameyer13`, :user:`lovkush-a`, :user:`bilal-196`, :user:`GuzalBulatova`, :user:`chrisholder`, :user:`satya-pattnaik`, :user:`aiwalter`
 
-Created during the 2021 sktime dev days, 25/06/2021.
+Created during the 2021 `sktime` dev days, 25/06/2021 and adapted to the `aeon` project.
 
 ----
 
 Project aims
 ------------
-The aim of sktime is to:
+The aim of aeon is to:
 
 * Develop a unified framework for machine learning with time series in Python
 * Advance research on algorithm development and software design for machine learning toolboxes

@@ -29,7 +29,7 @@ def profile_classifier(
 
     Parameters
     ----------
-    est : sktime classifier, BaseClassifier descendant, object or class
+    est : aeon classifier, BaseClassifier descendant, object or class
     n_instances_grid : list of int, default = None = [20, 40, 60, 80]
         list of instance sizes (n_instances) in classification X/y to test
     n_timepoints_grid : list of int, default = None = [20, 40, 60, 80]

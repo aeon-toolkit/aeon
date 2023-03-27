@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Sklearn to sktime coercion utility."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+"""Sklearn to aeon coercion utility."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["fkiraly"]
 
 from aeon.pipeline._make_pipeline import make_pipeline
 
 
-def sklearn_to_sktime(estimator):
-    """Coerces an sklearn estimator to the sktime pipeline interface.
+def sklearn_to_aeon(estimator):
+    """Coerces an sklearn estimator to the aeon pipeline interface.
 
     Creates a pipeline of two elements, the identity transformer and the estimator.
-    The identity transformer acts as adapter and holds sktime base class logic.
+    The identity transformer acts as adapter and holds aeon base class logic.
 
     Developer note:
     Type dispatch logic is in the transformer base class, in the `__mul__` dunder.
@@ -23,7 +23,7 @@ def sklearn_to_sktime(estimator):
 
     Returns
     -------
-    pipe : sktime estimator of corresponding time series type
+    pipe : aeon estimator of corresponding time series type
         classifiers, regressors, clusterers are converted to time series counterparts
         by flattening time series. Assumes equal length time series.
         transformers are converted to time series transformer by application per series

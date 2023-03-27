@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for mlflow-sktime custom model flavor."""
+"""Tests for mlflow-aeon custom model flavor."""
 
 __author__ = ["benjaminbluhm"]
 
@@ -55,7 +55,7 @@ def mock_s3_bucket():
     reason="skip test if required soft dependency not available",
 )
 @pytest.fixture
-def sktime_custom_env(tmp_path):
+def aeon_custom_env(tmp_path):
     """Create a conda environment and returns path to conda environment yml file."""
     from mlflow.utils.environment import _mlflow_conda_env
 
@@ -102,15 +102,15 @@ def naive_forecaster_model_with_regressor(test_data_longley):
 def test_auto_arima_model_save_and_load(
     auto_arima_model, model_path, serialization_format
 ):
-    """Test saving and loading of native sktime auto_arima_model."""
-    from aeon.utils import mlflow_sktime
+    """Test saving and loading of native aeon auto_arima_model."""
+    from aeon.utils import mlflow_aeon
 
-    mlflow_sktime.save_model(
-        sktime_model=auto_arima_model,
+    mlflow_aeon.save_model(
+        aeon_model=auto_arima_model,
         path=model_path,
         serialization_format=serialization_format,
     )
-    loaded_model = mlflow_sktime.load_model(
+    loaded_model = mlflow_aeon.load_model(
         model_uri=model_path,
     )
 
@@ -126,7 +126,7 @@ def test_auto_arima_model_pyfunc_output(
     auto_arima_model, model_path, serialization_format
 ):
     """Test auto arima prediction of loaded pyfunc model."""
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {
         "predict_method": [
@@ -136,12 +136,12 @@ def test_auto_arima_model_pyfunc_output(
             "predict_var",
         ]
     }
-    mlflow_sktime.save_model(
-        sktime_model=auto_arima_model,
+    mlflow_aeon.save_model(
+        aeon_model=auto_arima_model,
         path=model_path,
         serialization_format=serialization_format,
     )
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval()
@@ -175,7 +175,7 @@ def test_auto_arima_model_pyfunc_output(
 )
 def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path):
     """Test auto arima prediction of loaded pyfunc model with parameters."""
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {
         "predict_method": {
@@ -186,11 +186,11 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
             "predict_var": {"cov": True},
         }
     }
-    mlflow_sktime.save_model(
-        sktime_model=auto_arima_model,
+    mlflow_aeon.save_model(
+        aeon_model=auto_arima_model,
         path=model_path,
     )
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval(coverage=[0.1, 0.9])
@@ -229,7 +229,7 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
 )
 def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_path):
     """Test auto arima prediction of loaded pyfunc model without parameters."""
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {
         "predict_method": {
@@ -240,11 +240,11 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
             "predict_var": {},
         }
     }
-    mlflow_sktime.save_model(
-        sktime_model=auto_arima_model,
+    mlflow_aeon.save_model(
+        aeon_model=auto_arima_model,
         path=model_path,
     )
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval()
@@ -283,16 +283,16 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
 )
 def test_auto_arima_model_pyfunc_without_conf_output(auto_arima_model, model_path):
     """Test auto arima prediction of loaded pyfunc model without config."""
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     delattr(auto_arima_model, "pyfunc_predict_conf") if hasattr(
         auto_arima_model, "pyfunc_predict_conf"
     ) else None
-    mlflow_sktime.save_model(
-        sktime_model=auto_arima_model,
+    mlflow_aeon.save_model(
+        aeon_model=auto_arima_model,
         path=model_path,
     )
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     model_predict = auto_arima_model.predict()
 
@@ -308,7 +308,7 @@ def test_naive_forecaster_model_with_regressor_pyfunc_output(
     naive_forecaster_model_with_regressor, model_path, test_data_longley
 ):
     """Test naive forecaster prediction of loaded pyfunc model."""
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     _, _, _, X_test = test_data_longley
 
@@ -320,10 +320,10 @@ def test_naive_forecaster_model_with_regressor_pyfunc_output(
             "predict_var",
         ]
     }
-    mlflow_sktime.save_model(
-        sktime_model=naive_forecaster_model_with_regressor, path=model_path
+    mlflow_aeon.save_model(
+        aeon_model=naive_forecaster_model_with_regressor, path=model_path
     )
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     model_predict = naive_forecaster_model_with_regressor.predict(X=X_test)
     model_predict_interval = naive_forecaster_model_with_regressor.predict_interval(
@@ -364,11 +364,11 @@ def test_naive_forecaster_model_with_regressor_pyfunc_output(
 def test_signature_and_examples_saved_correctly(
     auto_arima_model, test_data_airline, model_path, use_signature, use_example
 ):
-    """Test saving of mlflow signature and example for native sktime predict method."""
+    """Test saving of mlflow signature and example for native aeon predict method."""
     from mlflow.models import Model, infer_signature
     from mlflow.models.utils import _read_example
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     # Note: Signature inference fails on native model predict_interval/predict_quantiles
     prediction = auto_arima_model.predict()
@@ -378,7 +378,7 @@ def test_signature_and_examples_saved_correctly(
     example = (
         pd.DataFrame(test_data_airline[0:5].copy(deep=False)) if use_example else None
     )
-    mlflow_sktime.save_model(
+    mlflow_aeon.save_model(
         auto_arima_model, path=model_path, signature=signature, input_example=example
     )
     mlflow_model = Model.load(model_path)
@@ -398,17 +398,17 @@ def test_signature_and_examples_saved_correctly(
 def test_predict_var_signature_saved_correctly(
     auto_arima_model, test_data_airline, model_path, use_signature
 ):
-    """Test saving of mlflow signature for native sktime predict_var method."""
+    """Test saving of mlflow signature for native aeon predict_var method."""
     from mlflow.models import Model, infer_signature
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     # Note: Signature inference fails on native model predict_interval/predict_quantiles
     prediction = auto_arima_model.predict_var()
     signature = (
         infer_signature(test_data_airline, prediction) if use_signature else None
     )
-    mlflow_sktime.save_model(auto_arima_model, path=model_path, signature=signature)
+    mlflow_aeon.save_model(auto_arima_model, path=model_path, signature=signature)
     mlflow_model = Model.load(model_path)
     assert signature == mlflow_model.signature
 
@@ -426,7 +426,7 @@ def test_signature_and_example_for_pyfunc_predict(
     from mlflow.models import Model, infer_signature
     from mlflow.models.utils import _read_example
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     model_path_primary = model_path.joinpath("primary")
     model_path_secondary = model_path.joinpath("secondary")
@@ -438,15 +438,15 @@ def test_signature_and_example_for_pyfunc_predict(
             "predict_var": {"cov": False},
         }
     }
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path_primary)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path_primary)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path_primary)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path_primary)
 
     forecast = loaded_pyfunc.predict(pd.DataFrame())
     signature = infer_signature(test_data_airline, forecast) if use_signature else None
     example = (
         pd.DataFrame(test_data_airline[0:5].copy(deep=False)) if use_example else None
     )
-    mlflow_sktime.save_model(
+    mlflow_aeon.save_model(
         auto_arima_model,
         path=model_path_secondary,
         signature=signature,
@@ -466,12 +466,12 @@ def test_signature_and_example_for_pyfunc_predict(
     reason="skip test if required soft dependency not available",
 )
 def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_bucket):
-    """Test loading native sktime model from mock S3 bucket."""
+    """Test loading native aeon model from mock S3 bucket."""
     from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
 
     artifact_root = f"s3://{mock_s3_bucket}"
     artifact_path = "model"
@@ -479,11 +479,11 @@ def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_buc
     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
 
     model_uri = os.path.join(artifact_root, artifact_path)
-    reloaded_sktime_model = mlflow_sktime.load_model(model_uri=model_uri)
+    reloaded_aeon_model = mlflow_aeon.load_model(model_uri=model_uri)
 
     np.testing.assert_array_equal(
         auto_arima_model.predict(),
-        reloaded_sktime_model.predict(),
+        reloaded_aeon_model.predict(),
     )
 
 
@@ -494,30 +494,30 @@ def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_buc
 @pytest.mark.parametrize("should_start_run", [True, False])
 @pytest.mark.parametrize("serialization_format", ["pickle", "cloudpickle"])
 def test_log_model(auto_arima_model, tmp_path, should_start_run, serialization_format):
-    """Test logging and reloading sktime model."""
+    """Test logging and reloading aeon model."""
     import mlflow
     from mlflow import pyfunc
     from mlflow.models import Model
     from mlflow.tracking.artifact_utils import _download_artifact_from_uri
     from mlflow.utils.environment import _mlflow_conda_env
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     try:
         if should_start_run:
             mlflow.start_run()
-        artifact_path = "sktime"
+        artifact_path = "aeon"
         conda_env = tmp_path.joinpath("conda_env.yaml")
-        _mlflow_conda_env(conda_env, additional_pip_deps=["sktime"])
-        model_info = mlflow_sktime.log_model(
-            sktime_model=auto_arima_model,
+        _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
+        model_info = mlflow_aeon.log_model(
+            aeon_model=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
             serialization_format=serialization_format,
         )
         model_uri = f"runs:/{mlflow.active_run().info.run_id}/{artifact_path}"
         assert model_info.model_uri == model_uri
-        reloaded_model = mlflow_sktime.load_model(
+        reloaded_model = mlflow_aeon.load_model(
             model_uri=model_uri,
         )
         np.testing.assert_array_equal(
@@ -540,15 +540,15 @@ def test_log_model_calls_register_model(auto_arima_model, tmp_path):
     from mlflow.tracking._model_registry import DEFAULT_AWAIT_MAX_SLEEP_SECONDS
     from mlflow.utils.environment import _mlflow_conda_env
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     artifact_path = "aeon"
     register_model_patch = mock.patch("mlflow.register_model")
     with mlflow.start_run(), register_model_patch:
         conda_env = tmp_path.joinpath("conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
-        mlflow_sktime.log_model(
-            sktime_model=auto_arima_model,
+        mlflow_aeon.log_model(
+            aeon_model=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
             registered_model_name="AeonModel",
@@ -570,15 +570,15 @@ def test_log_model_no_registered_model_name(auto_arima_model, tmp_path):
     import mlflow
     from mlflow.utils.environment import _mlflow_conda_env
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     artifact_path = "aeon"
     register_model_patch = mock.patch("mlflow.register_model")
     with mlflow.start_run(), register_model_patch:
         conda_env = tmp_path.joinpath("conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
-        mlflow_sktime.log_model(
-            sktime_model=auto_arima_model,
+        mlflow_aeon.log_model(
+            aeon_model=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
         )
@@ -593,15 +593,15 @@ def test_pyfunc_raises_invalid_attribute_type(auto_arima_model, model_path):
     """Test pyfunc raises exception with invalid attribute type."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = ["predict"]
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Attribute {mlflow_sktime.PYFUNC_PREDICT_CONF} must be of type dict.",
+        match=f"Attribute {mlflow_aeon.PYFUNC_PREDICT_CONF} must be of type dict.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
 
@@ -614,15 +614,15 @@ def test_pyfunc_raises_invalid_dict_key(auto_arima_model, model_path):
     """Test pyfunc raises exception with invalid dict key."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"prediction_method": ["predict"]}
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Attribute {mlflow_sktime.PYFUNC_PREDICT_CONF} must contain ",
+        match=f"Attribute {mlflow_aeon.PYFUNC_PREDICT_CONF} must contain ",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
 
@@ -635,11 +635,11 @@ def test_pyfunc_raises_invalid_dict_value_type(auto_arima_model, model_path):
     """Test pyfunc raises exception with invalid dict value type."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": "predict"}
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException, match="Dictionary value must be of type dict or list"
@@ -655,15 +655,15 @@ def test_pyfunc_raises_invalid_dict_value(auto_arima_model, model_path):
     """Test pyfunc raises exception with invalid dict value."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": ["forecast"]}
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"The provided {mlflow_sktime.PYFUNC_PREDICT_CONF_KEY} values must be ",
+        match=f"The provided {mlflow_aeon.PYFUNC_PREDICT_CONF_KEY} values must be ",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
 
@@ -678,15 +678,15 @@ def test_pyfunc_predict_proba_raises_invalid_attribute_type(
     """Test pyfunc predict_proba raises exception with invalid attribute type."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": ["predict_proba"]}
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_sktime.SKTIME_PREDICT_PROBA} requires passing a "
+        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing a "
         f"dictionary.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
@@ -700,17 +700,17 @@ def test_pyfunc_predict_proba_raises_invalid_dict_value(auto_arima_model, model_
     """Test pyfunc predict_proba raises exception with invalid dict value."""
     from mlflow.exceptions import MlflowException
 
-    from aeon.utils import mlflow_sktime
+    from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {
         "predict_method": {"predict_proba": {"marginal": True}}
     }
-    mlflow_sktime.save_model(sktime_model=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_sktime.pyfunc.load_model(model_uri=model_path)
+    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_sktime.SKTIME_PREDICT_PROBA} requires passing "
+        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing "
         f"quantile values.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())

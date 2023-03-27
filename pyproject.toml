@@ -1,6 +1,6 @@
 [project]
 name = "aeon"
-version = "0.0.1"
+version = "0.1.0rc0"
 description = "A unified framework for machine learning with time series"
 authors = [
     {name = "aeon developers", email = "scikit.time@gmail.com"},
@@ -85,6 +85,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "dash<=2.8.1", #https://github.com/plotly/dash/issues/2463 remove when fixed
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for Bagging Forecasters."""
 
 import pandas as pd
@@ -49,7 +49,7 @@ def test_bagging_forecaster_forecaster_type_error(forecaster):
             forecaster=forecaster,
         )
         f.fit(y)
-        msg = "forecaster in BaggingForecaster should be an sktime Forecaster"
+        msg = "forecaster in BaggingForecaster should be an aeon Forecaster"
         assert msg == ex.value
 
 

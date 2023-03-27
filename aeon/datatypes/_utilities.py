@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Eclectic utilities for the datatypes module."""
 
 import numpy as np
@@ -24,7 +24,7 @@ def get_time_index(X):
     Parameters
     ----------
     X : pd.DataFrame, pd.Series, np.ndarray, or VectorizedDF
-    in one of the following sktime mtype specifications for Series, Panel, Hierarchical:
+    in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
     pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
     assumes all time series have equal length and equal index set
     will *not* work for list-of-df, pd-wide, pd-long, numpyflat
@@ -39,7 +39,9 @@ def get_time_index(X):
     if isinstance(X, (pd.DataFrame, pd.Series)):
         # pd-multiindex or pd_multiindex_hier
         if isinstance(X.index, pd.MultiIndex):
-            return X.loc[tuple(list(X.index[0])[:-1])].index
+            index_tuple = tuple(list(X.index[0])[:-1])
+            index = X.loc[index_tuple].index
+            return index
         # nested_univ
         elif isinstance(X, pd.DataFrame) and isinstance(X.iloc[0, 0], pd.DataFrame):
             return _get_index(X.iloc[0, 0])
@@ -72,7 +74,7 @@ def get_index_for_series(obj, cutoff=0):
 
     Parameters
     ----------
-    obj : sktime data container
+    obj : aeon data container
         must be of one of the following mtypes:
             pd.Series, pd.DataFrame, np.ndarray, of Series scitype
     cutoff : int, or pd.datetime, optional, default=0
@@ -182,8 +184,8 @@ def get_cutoff(
 
     Parameters
     ----------
-    obj : sktime compatible time series data container or pandas.Index
-        if sktime time series, must be of Series, Panel, or Hierarchical scitype
+    obj : aeon compatible time series data container or pandas.Index
+        if aeon time series, must be of Series, Panel, or Hierarchical scitype
         all mtypes are supported via conversion to internally supported types
         to avoid conversions, pass data in one of GET_CUTOFF_SUPPORTED_MTYPES
         if pandas.Index, it is assumed that last level is time-like or integer,
@@ -326,10 +328,10 @@ def update_data(X, X_new=None):
 
     Parameters
     ----------
-    X : None, or sktime data container, in one of the following mtype formats
+    X : None, or aeon data container, in one of the following mtype formats
         pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, numpy3D,
         pd_multiindex_hier. If not of that format, coerced.
-    X_new : None, or sktime data container, should be same mtype as X,
+    X_new : None, or aeon data container, should be same mtype as X,
         or convert to same format when converting to format list via convert_to
 
     Returns
@@ -394,7 +396,7 @@ def get_window(obj, window_length=None, lag=None):
 
     Parameters
     ----------
-    obj : sktime compatible time series data container or None
+    obj : aeon compatible time series data container or None
         if not None, must be of Series, Panel, or Hierarchical scitype
         all mtypes are supported via conversion to internally supported types
         to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
@@ -491,7 +493,7 @@ def get_slice(obj, start=None, end=None):
 
     Parameters
     ----------
-    obj : sktime compatible time series data container or None
+    obj : aeon compatible time series data container or None
         if not None, must be of Series, Panel, or Hierarchical scitype
         all mtypes are supported via conversion to internally supported types
         to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES

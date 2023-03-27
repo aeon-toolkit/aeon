@@ -37,7 +37,7 @@ class TimeSeriesForestClassifier(
 
     This is an intentionally stripped down, non
     configurable version for use as a hive-cote component. For a configurable
-    tree based ensemble, see sktime.classifiers.ensemble.TimeSeriesForestClassifier
+    tree based ensemble, see aeon.classifiers.ensemble.TimeSeriesForestClassifier
 
     Parameters
     ----------
@@ -148,7 +148,7 @@ class TimeSeriesForestClassifier(
         ----------
         X : The training input samples. array-like or sparse matrix of shape
         = [n_test_instances, series_length]
-            If a Pandas data frame is passed (sktime format) a check is
+            If a Pandas data frame is passed (aeon format) a check is
             performed that it only has one column.
             If not, an exception is thrown, since this classifier does not
             yet have

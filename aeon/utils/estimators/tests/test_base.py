@@ -23,7 +23,7 @@ y_series = load_airline().iloc[:-5]
     "base", [BaseForecaster, BaseClassifier, BaseClusterer, BaseTransformer]
 )
 def test_mixin(base):
-    """Test _MockEstimatorMixin is valid for all sktime estimator base classes."""
+    """Test _MockEstimatorMixin is valid for all aeon estimator base classes."""
 
     class _DummyClass(base, _MockEstimatorMixin):
         def __init__(self):

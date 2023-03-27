@@ -81,7 +81,7 @@ class Filter(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D or 3D numpy array, sktime format np.darray or numpy3D
+        X : 2D or 3D numpy array, aeon format np.darray or numpy3D
         y : not used, passed only for interface conformance
 
         Returns
@@ -107,7 +107,7 @@ class Filter(BaseTransformer):
         # X is now of shape channels * timepoints or instance * channels * timepoints
         Xt = filter.filter_data(X, sfreq=sfreq, l_freq=l_freq, h_freq=h_freq, **kwargs)
 
-        # Series, 2D: transpose back to have sktime shape again (timepoints*channels)
+        # Series, 2D: transpose back to have aeon shape again (timepoints*channels)
         if X.ndim == 2:
             Xt = Xt.transpose()
         # Panel, 3D: Xt comes out as 2D from filter_data and needs to be reshaped

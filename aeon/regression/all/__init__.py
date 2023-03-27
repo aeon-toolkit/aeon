@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-"""Import all time series regression functionality available in sktime."""
+"""Import all time series regression functionality available in aeon."""
 
 __author__ = ["mloning"]
 __all__ = [

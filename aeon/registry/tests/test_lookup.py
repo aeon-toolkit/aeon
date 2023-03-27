@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Testing of registry lookup functionality."""
 
 __author__ = ["fkiraly"]
@@ -49,7 +49,7 @@ def _get_type_tuple(estimator_scitype):
 
     Returns
     -------
-    estimator_classes : tuple of sktime base classes,
+    estimator_classes : tuple of aeon base classes,
         corresponding to scitype strings in estimator_scitypes
     """
     if estimator_scitype is not None:

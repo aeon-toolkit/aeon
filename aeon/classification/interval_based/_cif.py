@@ -58,7 +58,7 @@ class CanonicalIntervalForest(BaseClassifier):
         string for suggested options.
         "DTC" uses the sklearn DecisionTreeClassifier using entropy as a splitting
         measure.
-        "CIT" uses the sktime ContinuousIntervalTree, an implementation of the original
+        "CIT" uses the aeon ContinuousIntervalTree, an implementation of the original
         tree used with embedded attribute processing for faster predictions.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.

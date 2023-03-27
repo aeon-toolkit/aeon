@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Suite of tests for all estimators.
 
 adapted from scikit-learn's estimator_checks
@@ -94,7 +94,7 @@ def subsample_by_version_os(x):
 
 
 class BaseFixtureGenerator:
-    """Fixture generator for base testing functionality in sktime.
+    """Fixture generator for base testing functionality in aeon.
 
     Test classes inheriting from this and not overriding pytest_generate_tests
         will have estimator and scenario fixtures parametrized out of the box.
@@ -727,7 +727,7 @@ class QuickTester:
 
 
 class TestAllObjects(BaseFixtureGenerator, QuickTester):
-    """Package level tests for all sktime objects."""
+    """Package level tests for all aeon objects."""
 
     estimator_type_filter = "object"
 
@@ -1060,7 +1060,7 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
 
 
 class TestAllEstimators(BaseFixtureGenerator, QuickTester):
-    """Package level tests for all sktime estimators, i.e., objects with fit."""
+    """Package level tests for all aeon estimators, i.e., objects with fit."""
 
     def test_fit_updates_state(self, estimator_instance, scenario):
         """Check fit/update state change."""

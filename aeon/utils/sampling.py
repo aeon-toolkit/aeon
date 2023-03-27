@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Functions to sample sktime datasets.
+"""Functions to sample aeon datasets.
 
 Used in experiments to get deterministic resamples.
 """
@@ -20,11 +20,11 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state):
     Parameters
     ----------
     X_train : pd.DataFrame
-        train data attributes in sktime pandas format.
+        train data attributes in aeon pandas format.
     y_train : np.array
         train data class labels.
     X_test : pd.DataFrame
-        test data attributes in sktime pandas format.
+        test data attributes in aeon pandas format.
     y_test : np.array
         test data class labels as np array.
     random_state : int
@@ -71,7 +71,7 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state):
         X_test = pd.concat([X_test, test_instances])
         y_train = np.concatenate([y_train, train_labels], axis=None)
         y_test = np.concatenate([y_test, test_labels], axis=None)
-    # reset indexes to conform to sktime format.
+    # reset indexes to conform to aeon format.
     X_train = X_train.reset_index(drop=True)
     X_test = X_test.reset_index(drop=True)
     return X_train, y_train, X_test, y_test
