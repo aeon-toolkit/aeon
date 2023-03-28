@@ -1,9 +1,14 @@
+---
+hide-toc: true
+---
+
 # Welcome to the documentation for **aeon**
 
 <br>
 
 - Framework for time series tasks such as forecasting and classification.
 - Extends the scikit-learn interface, allowing for ease of use for familiar users.
+- Provides a library of time series algorithms rather than a curated selection.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm comparison.
 - Uses a system of optional dependencies to allow easy installation of basic functionality.
@@ -135,9 +140,8 @@ Transformations
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
-
 ```{toctree}
-:maxdepth: 1
+:caption: Using aeon
 :hidden:
 
 installation
@@ -146,6 +150,19 @@ api_reference
 examples
 get_involved
 users
+```
+
+```{toctree}
+:caption: Developing aeon
+:hidden:
+
 developers
-about
+```
+
+```{toctree}
+:caption: The aeon team
+:hidden:
+
+contributors.md
+about_us.md
 ```
