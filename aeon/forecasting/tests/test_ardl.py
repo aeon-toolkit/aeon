@@ -16,7 +16,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="skip test if required soft dependency not available",
 )
 def test_against_statsmodels():
-    """Compare sktime's ARDL interface with statsmodels ARDL."""
+    """Compare aeon's ARDL interface with statsmodels ARDL."""
     from statsmodels.datasets import longley
     from statsmodels.tsa.ardl import ARDL as _ARDL
 
@@ -30,13 +30,13 @@ def test_against_statsmodels():
     # fit
     sm_ardl = _ARDL(y, 2, X, {"GNPDEFL": 1, "GNP": 2}, trend="c")
     res = sm_ardl.fit()
-    ardl_sktime = ARDL(lags=2, order={"GNPDEFL": 1, "GNP": 2}, trend="c")
-    ardl_sktime.fit(y=y, X=X, fh=None)
+    ardl_aeon = ARDL(lags=2, order={"GNPDEFL": 1, "GNP": 2}, trend="c")
+    ardl_aeon.fit(y=y, X=X, fh=None)
     # predict
     fh = ForecastingHorizon([1, 2, 3])
     start, end = X.shape[0] + fh[0] - 1, X.shape[0] + fh[-1] - 1
     y_pred_stats = sm_ardl.predict(res.params, start=start, end=end, exog_oos=X_oos)
-    y_pred = ardl_sktime.predict(fh=fh, X=X_oos)
+    y_pred = ardl_aeon.predict(fh=fh, X=X_oos)
     return assert_allclose(y_pred, y_pred_stats)
 
 
@@ -45,7 +45,7 @@ def test_against_statsmodels():
     reason="skip test if required soft dependency not available",
 )
 def test_against_statsmodels_2():
-    """Compare sktime's ARDL interface with statsmodels ARDL with different data."""
+    """Compare aeon's ARDL interface with statsmodels ARDL with different data."""
     from statsmodels.datasets import grunfeld
     from statsmodels.tsa.ardl import ARDL as _ARDL
 
@@ -62,13 +62,13 @@ def test_against_statsmodels_2():
     order = 2
     sm_ardl = _ARDL(y, lags, X, order=order, trend=trend)
     res = sm_ardl.fit()
-    ardl_sktime = ARDL(lags=lags, order=order, trend=trend)
-    ardl_sktime.fit(y=y, X=X, fh=None)
+    ardl_aeon = ARDL(lags=lags, order=order, trend=trend)
+    ardl_aeon.fit(y=y, X=X, fh=None)
     # predict
     fh = ForecastingHorizon([1, 2, 3])
     start, end = X.shape[0] + fh[0] - 1, X.shape[0] + fh[-1] - 1
     y_pred_stats = sm_ardl.predict(res.params, start=start, end=end, exog_oos=X_oos)
-    y_pred = ardl_sktime.predict(fh=fh, X=X_oos)
+    y_pred = ardl_aeon.predict(fh=fh, X=X_oos)
     return assert_allclose(y_pred, y_pred_stats)
 
 
@@ -77,7 +77,7 @@ def test_against_statsmodels_2():
     reason="skip test if required soft dependency not available",
 )
 def test_against_statsmodels_3():
-    """Compare sktime's ARDL interface with statsmodels ARDL with X=None."""
+    """Compare aeon's ARDL interface with statsmodels ARDL with X=None."""
     from statsmodels.datasets import longley
     from statsmodels.tsa.ardl import ARDL as _ARDL
 
@@ -90,13 +90,13 @@ def test_against_statsmodels_3():
     # fit
     sm_ardl = _ARDL(y, lags=2, exog=None, trend="c")
     res = sm_ardl.fit()
-    ardl_sktime = ARDL(lags=2, trend="c")
-    ardl_sktime.fit(y=y, X=X, fh=None)
+    ardl_aeon = ARDL(lags=2, trend="c")
+    ardl_aeon.fit(y=y, X=X, fh=None)
     # predict
     fh = ForecastingHorizon([1, 2, 3])
     start, end = y.shape[0] + fh[0] - 1, y.shape[0] + fh[-1] - 1
     y_pred_stats = sm_ardl.predict(res.params, start=start, end=end, exog_oos=X_oos)
-    y_pred = ardl_sktime.predict(fh=fh, X=X_oos)
+    y_pred = ardl_aeon.predict(fh=fh, X=X_oos)
     return assert_allclose(y_pred, y_pred_stats)
 
 
@@ -105,7 +105,7 @@ def test_against_statsmodels_3():
     reason="skip test if required soft dependency not available",
 )
 def test_against_statsmodels_4():
-    """Compare sktime's ARDL interface with statsmodels ARDL."""
+    """Compare aeon's ARDL interface with statsmodels ARDL."""
     from statsmodels.tsa.ardl import ARDL as _ARDL
 
     # data
@@ -117,13 +117,13 @@ def test_against_statsmodels_4():
     # fit
     sm_ardl = _ARDL(y, lags=2, exog=None, trend="c")
     res = sm_ardl.fit()
-    ardl_sktime = ARDL(lags=2, trend="c")
-    ardl_sktime.fit(y=y, X=X, fh=None)
+    ardl_aeon = ARDL(lags=2, trend="c")
+    ardl_aeon.fit(y=y, X=X, fh=None)
     # predict
     fh = ForecastingHorizon([1, 2, 3])
     start, end = y.shape[0] + fh[0] - 1, y.shape[0] + fh[-1] - 1
     y_pred_stats = sm_ardl.predict(res.params, start=start, end=end, exog_oos=X_oos)
-    y_pred = ardl_sktime.predict(fh=fh, X=X_oos)
+    y_pred = ardl_aeon.predict(fh=fh, X=X_oos)
     return assert_allclose(y_pred, y_pred_stats)
 
 
@@ -132,7 +132,7 @@ def test_against_statsmodels_4():
     reason="skip test if required soft dependency not available",
 )
 def test_auto_ardl():
-    """Compare sktime's ARDL interface with statsmodels ardl_select_order."""
+    """Compare aeon's ARDL interface with statsmodels ardl_select_order."""
     from statsmodels.datasets import longley
     from statsmodels.tsa.ardl import ardl_select_order as _ardl_select_order
 
@@ -151,13 +151,13 @@ def test_auto_ardl():
         endog=y, maxlag=maxlag, exog=X, maxorder=maxorder, trend=trend
     )
     res = sm_ardl.model.fit()
-    ardl_sktime = ARDL(auto_ardl=True, maxlag=maxlag, maxorder=maxorder, trend=trend)
-    ardl_sktime.fit(y=y, X=X, fh=None)
+    ardl_aeon = ARDL(auto_ardl=True, maxlag=maxlag, maxorder=maxorder, trend=trend)
+    ardl_aeon.fit(y=y, X=X, fh=None)
     # predict
     fh = ForecastingHorizon([0])
     start, end = X.shape[0] + fh[0] - 1, X.shape[0] + fh[-1] - 1
     y_pred_stats = res.predict(start=start, end=end, exog_oos=X_oos)
-    y_pred = ardl_sktime.predict(fh=fh, X=X_oos)
+    y_pred = ardl_aeon.predict(fh=fh, X=X_oos)
     return assert_allclose(y_pred, y_pred_stats)
 
 
@@ -166,7 +166,7 @@ def test_auto_ardl():
     reason="skip test if required soft dependency not available",
 )
 def test_against_statsmodels_5():
-    """Compare sktime's ARDL interface with statsmodels ARDL."""
+    """Compare aeon's ARDL interface with statsmodels ARDL."""
     from statsmodels.datasets import danish_data
     from statsmodels.tsa.ardl import ardl_select_order as _ardl_select_order
 
@@ -180,8 +180,8 @@ def test_against_statsmodels_5():
         data.lrm, 3, data[["lry", "ibo", "ide"]], 3, ic="aic", trend="c"
     )
     res = sel_res.model.fit()
-    ardl_sktime = ARDL(auto_ardl=True, maxlag=3, maxorder=3, trend="c", ic="aic")
-    ardl_sktime.fit(y=y, X=X, fh=None)
-    ardl_loglik = ardl_sktime.get_fitted_params()["loglike"]
+    ardl_aeon = ARDL(auto_ardl=True, maxlag=3, maxorder=3, trend="c", ic="aic")
+    ardl_aeon.fit(y=y, X=X, fh=None)
+    ardl_loglik = ardl_aeon.get_fitted_params()["loglike"]
     sm_loglik = sel_res.model.loglike(res.params)
     return assert_allclose(ardl_loglik, sm_loglik)

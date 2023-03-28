@@ -6,7 +6,7 @@ Forecasting
 
 The :mod:`aeon.forecasting` module contains algorithms and composition tools for forecasting.
 
-All clusterers in ``sktime``can be listed using the ``aeon.registry.all_estimators`` utility,
+All clusterers in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="forecaster"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
@@ -54,7 +54,7 @@ Pipelines can also be constructed using ``*``, ``+``, and ``|`` dunders.
 Reduction
 ---------
 
-Reduction forecasters that use ``sklearn`` regressors or ``sktime`` time series regressors to make forecasts.
+Reduction forecasters that use ``sklearn`` regressors or ``aeon`` time series regressors to make forecasts.
 Use ``make_reduction`` for easy specification.
 
 .. currentmodule:: aeon.forecasting.compose

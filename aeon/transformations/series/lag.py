@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Lagging transformer."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 
@@ -371,7 +371,7 @@ class ReducerTransform(BaseTransformer):
     shifted_vars : None
     shifted_vars_lag : 0
     shifted_vars_freq :
-    transformers : sktime series-to-series transformer, or list thereof
+    transformers : aeon series-to-series transformer, or list thereof
 
     impute_method : str or None, optional, method string passed to Imputer
         default="bfill", admissible strings are of Imputer.method parameter, see there

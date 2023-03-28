@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements adaptor for applying Scikit-learn-like transformers to time series."""
 
 __author__ = ["mloning", "fkiraly"]
@@ -222,7 +222,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
 
 
 class PandasTransformAdaptor(BaseTransformer):
-    """Adapt pandas transformations to sktime interface.
+    """Adapt pandas transformations to aeon interface.
 
     In `transform`, executes `pd.DataFrame` method of name `method` on data,
     optionally with keywords arguments passed, via `kwargs` hyper-parameter.

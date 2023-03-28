@@ -1125,7 +1125,7 @@ def test_load_from_long_to_dataframe(tmpdir):
     test_dataframe = generate_example_long_table()
     dataframe_path = tmpdir.join("data.csv")
     test_dataframe.to_csv(dataframe_path, index=False)
-    # load and convert the csv to sktime-formatted data
+    # load and convert the csv to aeon-formatted data
     nested_dataframe = load_from_long_to_dataframe(dataframe_path)
     assert isinstance(nested_dataframe, pd.DataFrame)
 

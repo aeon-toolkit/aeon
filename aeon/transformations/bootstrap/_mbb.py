@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Bootstrapping methods for time series."""
 
 __author__ = ["ltsaprounis"]
@@ -123,7 +123,7 @@ class STLBootstrapTransformer(BaseTransformer):
 
     See Also
     --------
-    sktime.transformations.bootstrap.MovingBlockBootstrapTransformer :
+    aeon.transformations.bootstrap.MovingBlockBootstrapTransformer :
         Transofrmer that applies the Moving Block Bootstrapping method to create
         a panel of synthetic time series.
 
@@ -438,7 +438,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
 
     See Also
     --------
-    sktime.transformations.bootstrap.STLBootstrapTransformer :
+    aeon.transformations.bootstrap.STLBootstrapTransformer :
         Transofrmer that utilises BoxCox, STL and Moving Block Bootstrapping to create
         a panel of similar time series.
 

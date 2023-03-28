@@ -24,12 +24,13 @@ class Rocket(BaseTransformer):
     dilation. It transforms the time series with two features per kernel. The first
     feature is global max pooling and the second is proportion of positive values.
 
+
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels.
-    normalise : boolean, default True
-       whether or not to normalise the input time series per instance.
+       Number of random convolutional kernels.
+    normalise : bool, default True
+       Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
        The number of jobs to run in parallel for `transform`. ``-1`` means use all
        processors.
@@ -37,9 +38,7 @@ class Rocket(BaseTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
+    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate
 
     References
     ----------
@@ -58,7 +57,7 @@ class Rocket(BaseTransformer):
     >>> X_test, y_test = load_unit_test(split="test")
     >>> trf = Rocket(num_kernels=512)
     >>> trf.fit(X_train)
-    Rocket(...)
+    Rocket(num_kernels=512)
     >>> X_train = trf.transform(X_train)
     >>> X_test = trf.transform(X_test)
     """
@@ -66,7 +65,6 @@ class Rocket(BaseTransformer):
     _tags = {
         "univariate-only": False,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": False,
         "X_inner_mtype": "numpy3D",

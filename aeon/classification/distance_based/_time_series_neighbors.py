@@ -2,8 +2,8 @@
 """KNN time series classification.
 
 This class is a KNN classifier which supports time series distance measures.
-The class has hardcoded string references to numba based distances in sktime.distances.
-It can also be used with callables, or sktime (pairwise transformer) estimators.
+The class has hardcoded string references to numba based distances in aeon.distances.
+It can also be used with callables, or aeon (pairwise transformer) estimators.
 """
 
 __author__ = ["TonyBagnall", "GuiArcencio"]
@@ -23,8 +23,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     An adapted K-Neighbors Classifier for time series data.
 
     This class is a KNN classifier which supports time series distance measures.
-    It has hardcoded string references to numba based distances in sktime.distances,
-    and can also be used with callables, or sktime (pairwise transformer) estimators.
+    It has hardcoded string references to numba based distances in aeon.distances,
+    and can also be used with callables, or aeon (pairwise transformer) estimators.
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : aeon-compatible Panel data format, with n_samples series
         y : {array-like, sparse matrix}
             Class labels of shape = [n_samples]
         """
@@ -116,7 +116,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : aeon-compatible Panel data format, with n_samples series
 
         Returns
         -------
@@ -142,7 +142,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : aeon-compatible Panel data format, with n_samples series
 
         Returns
         -------
@@ -170,7 +170,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible data format, Panel or Series, with n_samples series
+        X : aeon-compatible data format, Panel or Series, with n_samples series
 
         Returns
         -------

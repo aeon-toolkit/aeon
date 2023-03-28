@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for Facebook prophet to be used in sktime framework."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implements adapter for Facebook prophet to be used in aeon framework."""
 
 __author__ = ["mloning", "aiwalter", "fkiraly"]
 __all__ = ["_ProphetAdapter"]
@@ -319,7 +319,7 @@ def _merge_X(df, X):
 
     Parameters
     ----------
-    fh : sktime.ForecastingHorizon
+    fh : aeon.ForecastingHorizon
     X : pd.DataFrame
         Exogeneous data
     df : pd.DataFrame

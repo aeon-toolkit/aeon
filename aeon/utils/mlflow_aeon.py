@@ -1,26 +1,26 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-"""The ``mlflow_sktime`` module provides an MLflow API for ``sktime`` forecasters.
+"""The ``mlflow_aeon`` module provides an MLflow API for ``aeon`` forecasters.
 
-This module exports ``sktime`` models in the following formats:
+This module exports ``aeon`` models in the following formats:
 
-sktime (native) format
-    This is the main flavor that can be loaded back into sktime, which relies on pickle
+aeon (native) format
+    This is the main flavor that can be loaded back into aeon, which relies on pickle
     internally to serialize a model.
 mlflow.pyfunc
     Produced for use by generic pyfunc-based deployment tools and batch inference.
 
-    The `pyfunc` flavor of the model supports sktime predict methods `predict`,
+    The `pyfunc` flavor of the model supports aeon predict methods `predict`,
     `predict_interval`, `predict_proba`, `predict_quantiles`, `predict_var`.
 
-    The interface for utilizing a sktime model loaded as a `pyfunc` type for
+    The interface for utilizing a aeon model loaded as a `pyfunc` type for
     generating forecasts requires passing an exogenous regressor as Pandas
     DataFrame to the `pyfunc.predict()` method (an empty DataFrame must be
     passed if no exogenous regressor is used). The configuration of predict
     methods and parameter values passed to the predict methods is defined by
-    a dictionary to be saved as an attribute of the fitted sktime model
+    a dictionary to be saved as an attribute of the fitted aeon model
     instance. If no prediction configuration is defined `pyfunc.predict()`
-    will return output from sktime `predict` method. Note that for `pyfunc`
+    will return output from aeon `predict` method. Note that for `pyfunc`
     flavor the forecasting horizon `fh` must be passed to the fit method.
 
     Predict methods and parameter values for `pyfunc` flavor can be defined
@@ -31,7 +31,7 @@ mlflow.pyfunc
     `{"predict_method": ["predict", "predict_interval"}` (Note: when including
     `predict_proba` method the former appraoch must be followed as `quantiles`
     parameter has to be provided by the user). If no prediction config is defined
-    `pyfunc.predict()` will return output from sktime `predict()` method.
+    `pyfunc.predict()` will return output from aeon `predict()` method.
 """
 
 __author__ = ["benjaminbluhm"]
@@ -58,21 +58,21 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 if _check_soft_dependencies("mlflow", severity="warning"):
     from mlflow import pyfunc
 
-FLAVOR_NAME = "mlflow_sktime"
+FLAVOR_NAME = "mlflow_aeon"
 
 PYFUNC_PREDICT_CONF = "pyfunc_predict_conf"
 PYFUNC_PREDICT_CONF_KEY = "predict_method"
-SKTIME_PREDICT = "predict"
-SKTIME_PREDICT_INTERVAL = "predict_interval"
-SKTIME_PREDICT_PROBA = "predict_proba"
-SKTIME_PREDICT_QUANTILES = "predict_quantiles"
-SKTIME_PREDICT_VAR = "predict_var"
-SUPPORTED_SKTIME_PREDICT_METHODS = [
-    SKTIME_PREDICT,
-    SKTIME_PREDICT_INTERVAL,
-    SKTIME_PREDICT_PROBA,
-    SKTIME_PREDICT_QUANTILES,
-    SKTIME_PREDICT_VAR,
+aeon_PREDICT = "predict"
+aeon_PREDICT_INTERVAL = "predict_interval"
+aeon_PREDICT_PROBA = "predict_proba"
+aeon_PREDICT_QUANTILES = "predict_quantiles"
+aeon_PREDICT_VAR = "predict_var"
+SUPPORTED_aeon_PREDICT_METHODS = [
+    aeon_PREDICT,
+    aeon_PREDICT_INTERVAL,
+    aeon_PREDICT_PROBA,
+    aeon_PREDICT_QUANTILES,
+    aeon_PREDICT_VAR,
 ]
 
 SERIALIZATION_FORMAT_PICKLE = "pickle"
@@ -121,7 +121,7 @@ def get_default_conda_env(include_cloudpickle=False):
 
 
 def save_model(
-    sktime_model,
+    aeon_model,
     path,
     conda_env=None,
     code_paths=None,
@@ -131,13 +131,13 @@ def save_model(
     pip_requirements=None,
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
-):  # TODO: can we specify a type for fitted instance of sktime model below?
-    """Save a sktime model to a path on the local file system.
+):  # TODO: can we specify a type for fitted instance of aeon model below?
+    """Save a aeon model to a path on the local file system.
 
     Parameters
     ----------
-    sktime_model :
-        Fitted sktime model object.
+    aeon_model :
+        Fitted aeon model object.
     path : str
         Local path where the model is to be saved.
     conda_env : Union[dict, str], optional (default=None)
@@ -165,7 +165,7 @@ def save_model(
           signature = infer_signature(train, predictions)
 
         .. Warning:: if performing probabilistic forecasts (``predict_interval``,
-          ``predict_quantiles``) with a sktime model, the signature
+          ``predict_quantiles``) with a aeon model, the signature
           on the returned prediction object will not be correctly inferred due
           to the Pandas MultiIndex column type when using the these methods.
           ``infer_schema`` will function correctly if using the ``pyfunc`` flavor
@@ -177,7 +177,7 @@ def save_model(
         using the ``Pandas`` split-oriented format. Bytes are base64-encoded.
     pip_requirements : Union[Iterable, str], optional (default=None)
         Either an iterable of pip requirement strings
-        (e.g. ["sktime", "-r requirements.txt", "-c constraints.txt"]) or the string
+        (e.g. ["aeon", "-r requirements.txt", "-c constraints.txt"]) or the string
         path to a pip requirements file on the local filesystem
         (e.g. "requirements.txt")
     extra_pip_requirements : Union[Iterable, str], optional (default=None)
@@ -197,7 +197,7 @@ def save_model(
     --------
     >>> from aeon.datasets import load_airline  # doctest: +SKIP
     >>> from aeon.forecasting.arima import ARIMA  # doctest: +SKIP
-    >>> from aeon.utils import mlflow_sktime  # doctest: +SKIP
+    >>> from aeon.utils import mlflow_aeon  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> forecaster = ARIMA(  # doctest: +SKIP
     ...     order=(1, 1, 0),
@@ -206,10 +206,10 @@ def save_model(
     >>> forecaster.fit(y)  # doctest: +SKIP
     ARIMA(...)
     >>> model_path = "model"  # doctest: +SKIP
-    >>> mlflow_sktime.save_model(  # doctest: +SKIP
-    ...     sktime_model=forecaster,
+    >>> mlflow_aeon.save_model(  # doctest: +SKIP
+    ...     aeon_model=forecaster,
     ...     path=model_path)  # doctest: +SKIP
-    >>> loaded_model = mlflow_sktime.load_model(model_uri=model_path)  # doctest: +SKIP
+    >>> loaded_model = mlflow_aeon.load_model(model_uri=model_path)  # doctest: +SKIP
     >>> loaded_model.predict(fh=[1, 2, 3])  # doctest: +SKIP
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
@@ -261,13 +261,11 @@ def save_model(
 
     model_data_subpath = "model.pkl"
     model_data_path = os.path.join(path, model_data_subpath)
-    _save_model(
-        sktime_model, model_data_path, serialization_format=serialization_format
-    )
+    _save_model(aeon_model, model_data_path, serialization_format=serialization_format)
 
     pyfunc.add_to_model(
         mlflow_model,
-        loader_module="aeon.utils.mlflow_sktime",
+        loader_module="aeon.utils.mlflow_aeon",
         model_path=model_data_subpath,
         conda_env=_CONDA_ENV_FILE_NAME,
         python_env=_PYTHON_ENV_FILE_NAME,
@@ -277,7 +275,7 @@ def save_model(
     mlflow_model.add_flavor(
         FLAVOR_NAME,
         pickled_model=model_data_subpath,
-        sktime_version=aeon.__version__,
+        aeon_version=aeon.__version__,
         serialization_format=serialization_format,
         code=code_dir_subpath,
     )
@@ -310,7 +308,7 @@ def save_model(
 
 
 def log_model(
-    sktime_model,
+    aeon_model,
     artifact_path,
     conda_env=None,
     code_paths=None,
@@ -322,14 +320,14 @@ def log_model(
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
     **kwargs,
-):  # TODO: can we specify a type for fitted instance of sktime model below?
+):  # TODO: can we specify a type for fitted instance of aeon model below?
     """
-    Log a sktime model as an MLflow artifact for the current run.
+    Log a aeon model as an MLflow artifact for the current run.
 
     Parameters
     ----------
-    sktime_model : fitted sktime model
-        Fitted sktime model object.
+    aeon_model : fitted aeon model
+        Fitted aeon model object.
     artifact_path : str
         Run-relative artifact path to save the model to.
     conda_env : Union[dict, str], optional (default=None)
@@ -358,11 +356,11 @@ def log_model(
           signature = infer_signature(train, predictions)
 
         .. Warning:: if performing probabilistic forecasts (``predict_interval``,
-          ``predict_quantiles``) with a sktime model, the signature
+          ``predict_quantiles``) with a aeon model, the signature
           on the returned prediction object will not be correctly inferred due
           to the Pandas MultiIndex column type when using the these methods.
           ``infer_schema`` will function correctly if using the ``pyfunc`` flavor
-          of the model, though. The ``pyfunc`` flavor of the model supports sktime
+          of the model, though. The ``pyfunc`` flavor of the model supports aeon
           predict methods ``predict``, ``predict_interval``, ``predict_quantiles``
           and ``predict_var`` while ``predict_proba`` and ``predict_residuals`` are
           currently not supported.
@@ -377,7 +375,7 @@ def log_model(
         or None to skip waiting.
     pip_requirements : Union[Iterable, str], optional (default=None)
         Either an iterable of pip requirement strings
-        (e.g. ["sktime", "-r requirements.txt", "-c constraints.txt"]) or the string
+        (e.g. ["aeon", "-r requirements.txt", "-c constraints.txt"]) or the string
         path to a pip requirements file on the local filesystem
         (e.g. "requirements.txt")
     extra_pip_requirements : Union[Iterable, str], optional (default=None)
@@ -408,7 +406,7 @@ def log_model(
     >>> from mlflow.utils.environment import _mlflow_conda_env  # doctest: +SKIP
     >>> from aeon.datasets import load_airline  # doctest: +SKIP
     >>> from aeon.forecasting.arima import ARIMA  # doctest: +SKIP
-    >>> from aeon.utils import mlflow_sktime  # doctest: +SKIP
+    >>> from aeon.utils import mlflow_aeon  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> forecaster = ARIMA(  # doctest: +SKIP
     ...     order=(1, 1, 0),
@@ -418,8 +416,8 @@ def log_model(
     ARIMA(...)
     >>> mlflow.start_run()  # doctest: +SKIP
     >>> artifact_path = "model"  # doctest: +SKIP
-    >>> model_info = mlflow_sktime.log_model(
-    ...     sktime_model=forecaster,
+    >>> model_info = mlflow_aeon.log_model(
+    ...     aeon_model=forecaster,
     ...     artifact_path=artifact_path)  # doctest: +SKIP
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
@@ -432,9 +430,9 @@ def log_model(
 
     return Model.log(
         artifact_path=artifact_path,
-        flavor=utils.mlflow_sktime,
+        flavor=utils.mlflow_aeon,
         registered_model_name=registered_model_name,
-        sktime_model=sktime_model,
+        aeon_model=aeon_model,
         conda_env=conda_env,
         code_paths=code_paths,
         signature=signature,
@@ -449,7 +447,7 @@ def log_model(
 
 def load_model(model_uri, dst_path=None):
     """
-    Load a sktime model from a local file or a run.
+    Load a aeon model from a local file or a run.
 
     Parameters
     ----------
@@ -472,7 +470,7 @@ def load_model(model_uri, dst_path=None):
 
     Returns
     -------
-    A sktime model instance.
+    A aeon model instance.
 
     References
     ----------
@@ -482,7 +480,7 @@ def load_model(model_uri, dst_path=None):
     --------
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.arima import ARIMA
-    >>> from aeon.utils import mlflow_sktime  # doctest: +SKIP
+    >>> from aeon.utils import mlflow_aeon  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> forecaster = ARIMA(  # doctest: +SKIP
     ...     order=(1, 1, 0),
@@ -491,10 +489,10 @@ def load_model(model_uri, dst_path=None):
     >>> forecaster.fit(y)  # doctest: +SKIP
     ARIMA(...)
     >>> model_path = "model"  # doctest: +SKIP
-    >>> mlflow_sktime.save_model(  # doctest: +SKIP
-    ...     sktime_model=forecaster,
+    >>> mlflow_aeon.save_model(  # doctest: +SKIP
+    ...     aeon_model=forecaster,
     ...     path=model_path)
-    >>> loaded_model = mlflow_sktime.load_model(model_uri=model_path)  # doctest: +SKIP
+    >>> loaded_model = mlflow_aeon.load_model(model_uri=model_path)  # doctest: +SKIP
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
     from mlflow.tracking.artifact_utils import _download_artifact_from_uri
@@ -510,14 +508,12 @@ def load_model(model_uri, dst_path=None):
         model_path=local_model_path, flavor_name=FLAVOR_NAME
     )
     _add_code_from_conf_to_system_path(local_model_path, flavor_conf)
-    sktime_model_file_path = os.path.join(
-        local_model_path, flavor_conf["pickled_model"]
-    )
+    aeon_model_file_path = os.path.join(local_model_path, flavor_conf["pickled_model"])
     serialization_format = flavor_conf.get(
         "serialization_format", SERIALIZATION_FORMAT_PICKLE
     )
     return _load_model(
-        path=sktime_model_file_path, serialization_format=serialization_format
+        path=aeon_model_file_path, serialization_format=serialization_format
     )
 
 
@@ -578,7 +574,7 @@ def _load_pyfunc(path):
     Parameters
     ----------
     path : str
-        Local filesystem path to the MLflow Model with the sktime flavor.
+        Local filesystem path to the MLflow Model with the aeon flavor.
 
     See Also
     --------
@@ -599,15 +595,15 @@ def _load_pyfunc(path):
         )
     else:
         try:
-            sktime_flavor_conf = _get_flavor_configuration(
+            aeon_flavor_conf = _get_flavor_configuration(
                 model_path=path, flavor_name=FLAVOR_NAME
             )
-            serialization_format = sktime_flavor_conf.get(
+            serialization_format = aeon_flavor_conf.get(
                 "serialization_format", SERIALIZATION_FORMAT_PICKLE
             )
         except MlflowException:
             _logger.warning(
-                "Could not find sktime flavor configuration during model "
+                "Could not find aeon flavor configuration during model "
                 "loading process. Assuming 'pickle' serialization format."
             )
             serialization_format = SERIALIZATION_FORMAT_PICKLE
@@ -617,15 +613,15 @@ def _load_pyfunc(path):
         )
         path = os.path.join(path, pyfunc_flavor_conf["model_path"])
 
-    return _SktimeModelWrapper(
+    return _aeonModelWrapper(
         _load_model(path, serialization_format=serialization_format)
     )
 
 
-class _SktimeModelWrapper:
-    def __init__(self, sktime_model):
+class _aeonModelWrapper:
+    def __init__(self, aeon_model):
         _check_soft_dependencies("mlflow", severity="error")
-        self.sktime_model = sktime_model
+        self.aeon_model = aeon_model
 
     def predict(self, X):
         from mlflow.exceptions import MlflowException
@@ -634,17 +630,17 @@ class _SktimeModelWrapper:
         X = None if X.empty else X
         raw_predictions = {}
 
-        if not hasattr(self.sktime_model, "pyfunc_predict_conf"):
-            raw_predictions[SKTIME_PREDICT] = self.sktime_model.predict(X=X)
+        if not hasattr(self.aeon_model, "pyfunc_predict_conf"):
+            raw_predictions[aeon_PREDICT] = self.aeon_model.predict(X=X)
 
         else:
-            if not isinstance(self.sktime_model.pyfunc_predict_conf, dict):
+            if not isinstance(self.aeon_model.pyfunc_predict_conf, dict):
                 raise MlflowException(
                     f"Attribute {PYFUNC_PREDICT_CONF} must be of type dict.",
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if PYFUNC_PREDICT_CONF_KEY not in self.sktime_model.pyfunc_predict_conf:
+            if PYFUNC_PREDICT_CONF_KEY not in self.aeon_model.pyfunc_predict_conf:
                 raise MlflowException(
                     f"Attribute {PYFUNC_PREDICT_CONF} must contain "
                     f"a dictionary key {PYFUNC_PREDICT_CONF_KEY}.",
@@ -652,19 +648,17 @@ class _SktimeModelWrapper:
                 )
 
             if isinstance(
-                self.sktime_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], list
+                self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], list
             ):
-                predict_methods = self.sktime_model.pyfunc_predict_conf[
+                predict_methods = self.aeon_model.pyfunc_predict_conf[
                     PYFUNC_PREDICT_CONF_KEY
                 ]
                 predict_params = False
             elif isinstance(
-                self.sktime_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
+                self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
             ):
                 predict_methods = list(
-                    self.sktime_model.pyfunc_predict_conf[
-                        PYFUNC_PREDICT_CONF_KEY
-                    ].keys()
+                    self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY].keys()
                 )
                 predict_params = True
             else:
@@ -673,110 +667,110 @@ class _SktimeModelWrapper:
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if not set(predict_methods).issubset(set(SUPPORTED_SKTIME_PREDICT_METHODS)):
+            if not set(predict_methods).issubset(set(SUPPORTED_aeon_PREDICT_METHODS)):
                 raise MlflowException(
                     f"The provided {PYFUNC_PREDICT_CONF_KEY} values must be "
-                    f"a subset of {SUPPORTED_SKTIME_PREDICT_METHODS}",
+                    f"a subset of {SUPPORTED_aeon_PREDICT_METHODS}",
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if SKTIME_PREDICT in predict_methods:
-                raw_predictions[SKTIME_PREDICT] = self.sktime_model.predict(X=X)
+            if aeon_PREDICT in predict_methods:
+                raw_predictions[aeon_PREDICT] = self.aeon_model.predict(X=X)
 
-            if SKTIME_PREDICT_INTERVAL in predict_methods:
+            if aeon_PREDICT_INTERVAL in predict_methods:
                 if predict_params:
                     coverage = (
                         0.9
                         if "coverage"
-                        not in self.sktime_model.pyfunc_predict_conf[
+                        not in self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_INTERVAL]
-                        else self.sktime_model.pyfunc_predict_conf[
+                        ][aeon_PREDICT_INTERVAL]
+                        else self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_INTERVAL]["coverage"]
+                        ][aeon_PREDICT_INTERVAL]["coverage"]
                     )
                 else:
                     coverage = 0.9
 
                 raw_predictions[
-                    SKTIME_PREDICT_INTERVAL
-                ] = self.sktime_model.predict_interval(X=X, coverage=coverage)
+                    aeon_PREDICT_INTERVAL
+                ] = self.aeon_model.predict_interval(X=X, coverage=coverage)
 
-            if SKTIME_PREDICT_PROBA in predict_methods:
+            if aeon_PREDICT_PROBA in predict_methods:
                 if not isinstance(
-                    self.sktime_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
+                    self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
                 ):
                     raise MlflowException(
-                        f"Method {SKTIME_PREDICT_PROBA} requires passing a dictionary.",
+                        f"Method {aeon_PREDICT_PROBA} requires passing a dictionary.",
                         error_code=INVALID_PARAMETER_VALUE,
                     )
 
                 if (
                     "quantiles"
-                    not in self.sktime_model.pyfunc_predict_conf[
-                        PYFUNC_PREDICT_CONF_KEY
-                    ][SKTIME_PREDICT_PROBA]
+                    not in self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        aeon_PREDICT_PROBA
+                    ]
                 ):
                     raise MlflowException(
-                        f"Method {SKTIME_PREDICT_PROBA} requires passing "
+                        f"Method {aeon_PREDICT_PROBA} requires passing "
                         f"quantile values.",
                         error_code=INVALID_PARAMETER_VALUE,
                     )
 
-                quantiles = self.sktime_model.pyfunc_predict_conf[
+                quantiles = self.aeon_model.pyfunc_predict_conf[
                     PYFUNC_PREDICT_CONF_KEY
-                ][SKTIME_PREDICT_PROBA]["quantiles"]
+                ][aeon_PREDICT_PROBA]["quantiles"]
                 marginal = (
                     True
                     if "marginal"
-                    not in self.sktime_model.pyfunc_predict_conf[
-                        PYFUNC_PREDICT_CONF_KEY
-                    ][SKTIME_PREDICT_PROBA]
-                    else self.sktime_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
-                        SKTIME_PREDICT_PROBA
+                    not in self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        aeon_PREDICT_PROBA
+                    ]
+                    else self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        aeon_PREDICT_PROBA
                     ]["marginal"]
                 )
 
-                y_pred_dist = self.sktime_model.predict_proba(X=X, marginal=marginal)
+                y_pred_dist = self.aeon_model.predict_proba(X=X, marginal=marginal)
                 y_pred_dist_quantiles = pd.DataFrame(y_pred_dist.quantile(quantiles))
                 y_pred_dist_quantiles.columns = [f"Quantiles_{q}" for q in quantiles]
                 y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
 
-                raw_predictions[SKTIME_PREDICT_PROBA] = y_pred_dist_quantiles
+                raw_predictions[aeon_PREDICT_PROBA] = y_pred_dist_quantiles
 
-            if SKTIME_PREDICT_QUANTILES in predict_methods:
+            if aeon_PREDICT_QUANTILES in predict_methods:
                 if predict_params:
                     alpha = (
                         None
                         if "alpha"
-                        not in self.sktime_model.pyfunc_predict_conf[
+                        not in self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_QUANTILES]
-                        else self.sktime_model.pyfunc_predict_conf[
+                        ][aeon_PREDICT_QUANTILES]
+                        else self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_QUANTILES]["alpha"]
+                        ][aeon_PREDICT_QUANTILES]["alpha"]
                     )
                 else:
                     alpha = None
                 raw_predictions[
-                    SKTIME_PREDICT_QUANTILES
-                ] = self.sktime_model.predict_quantiles(X=X, alpha=alpha)
+                    aeon_PREDICT_QUANTILES
+                ] = self.aeon_model.predict_quantiles(X=X, alpha=alpha)
 
-            if SKTIME_PREDICT_VAR in predict_methods:
+            if aeon_PREDICT_VAR in predict_methods:
                 if predict_params:
                     cov = (
                         False
                         if "cov"
-                        not in self.sktime_model.pyfunc_predict_conf[
+                        not in self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_VAR]
-                        else self.sktime_model.pyfunc_predict_conf[
+                        ][aeon_PREDICT_VAR]
+                        else self.aeon_model.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][SKTIME_PREDICT_VAR]["cov"]
+                        ][aeon_PREDICT_VAR]["cov"]
                     )
                 else:
                     cov = False
-                raw_predictions[SKTIME_PREDICT_VAR] = self.sktime_model.predict_var(
+                raw_predictions[aeon_PREDICT_VAR] = self.aeon_model.predict_var(
                     X=X, cov=cov
                 )
 

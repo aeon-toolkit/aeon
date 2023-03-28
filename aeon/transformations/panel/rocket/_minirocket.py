@@ -31,12 +31,11 @@ class MiniRocket(BaseTransformer):
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
 
     References
     ----------
@@ -54,7 +53,7 @@ class MiniRocket(BaseTransformer):
      >>> X_test, y_test = load_unit_test(split="test")
      >>> trf = MiniRocket(num_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocket(...)
+     MiniRocket(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """

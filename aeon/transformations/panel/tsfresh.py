@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """tsfresh interface class."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
@@ -142,7 +142,7 @@ class _TSFreshFeatureExtractor(BaseTransformer):
 class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
-    Direct interface to `tsfresh.extract_features` [1] as an `sktime` transformer.
+    Direct interface to `tsfresh.extract_features` [1] as an `aeon` transformer.
 
     Parameters
     ----------
@@ -350,7 +350,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
     Direct interface to `tsfresh.extract_features` [1] followed by the tsfresh
-    FeatureSelector class as an `sktime` transformer.
+    FeatureSelector class as an `aeon` transformer.
 
     Parameters
     ----------
@@ -569,7 +569,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation

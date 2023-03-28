@@ -23,19 +23,18 @@ class MiniRocketMultivariate(BaseTransformer):
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels.
+        Number of random convolutional kernels.
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     See Also
     --------
     MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
-    aeon notebook: https://github.com/aeon-toolkit/aeon/blob/main/examples
-    /classification/convolution_based.ipynb
 
     References
     ----------
@@ -53,7 +52,7 @@ class MiniRocketMultivariate(BaseTransformer):
      >>> X_test, y_test = load_basic_motions(split="test")
      >>> trf = MiniRocketMultivariate(num_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocketMultivariate(...)
+     MiniRocketMultivariate(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """

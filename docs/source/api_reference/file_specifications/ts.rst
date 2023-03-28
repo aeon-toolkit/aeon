@@ -91,7 +91,7 @@ This section describes the components of a ``.ts`` file.
 Description Block
 ^^^^^^^^^^^^^^^^^
 
-This is an optional block that is present to provide context for the dataset. All lines are ignored by the ``sktime``
+This is an optional block that is present to provide context for the dataset. All lines are ignored by the ``aeon``
 loader functions. We recommend the user to add information that will give context about the dataset, like
 how the dataset was collected, the type of license associated with this dataset, citations etc.
 
@@ -101,7 +101,7 @@ Metadata Block
 ^^^^^^^^^^^^^^
 
 A metadata block consists of various string identifiers that serve the purpose of containing metadata for the dataset.
-``sktime``'s core loader/writer functions rely on their existence to correctly load data into memory.
+``aeon``'s core loader/writer functions rely on their existence to correctly load data into memory.
 This is also helpful to provide information about the dataset to a different user not familiar with the dataset.
 
 The format of individual string identifier is: ``@<identifier> [value]``,
@@ -122,7 +122,7 @@ String identifiers are to be written at the start of the line only and must be p
 .. note::
     Since these datasets are often from different sources (see `tsregression`_ and `timeseriesclassification.com`_)
     There may be minor conflict in their naming conventions (lowercase vs. camelCase).
-    ``sktime`` internally takes care of such inconsistencies.
+    ``aeon`` internally takes care of such inconsistencies.
 
     For this document, we will only use lowercase to represent the identifier.
 
@@ -200,10 +200,10 @@ Here is a short description of every column found in the table:
 Instructions
 ------------
 This section provides full set of instructions to create a format specification ``.ts`` file
-for your dataset that is compatible with ``sktime``.
+for your dataset that is compatible with ``aeon``.
 
 Remember that this begins with the assumption that you have the dataset readily available in
-expected `format <https://github.com/alan-turing-institute/sktime/blob/main/examples/loading_data.ipynb>`_.
+expected `format <https://github.com/aeon-toolkit/aeon/blob/main/examples/loading_data.ipynb>`_.
 
 Few points to keep in mind while creating the dataset:
 
@@ -338,14 +338,14 @@ The sample dataset that we will use for this is as shown
     (2004-08-11 21:00:00,992.5),(2004-08-11 22:00:00,905.76):(2004-08-11 18:00:00,903.35),(2004-08-11 19:00:00,941.0),
     (2004-08-11 20:00:00,1073.6666666667),(2004-08-11 21:00:00,1113.5),(2004-08-11 22:00:00,1100.6):3.2
 
-5. After saving it as ``sample.ts``, the file is ready to be loaded via sktime.
+5. After saving it as ``sample.ts``, the file is ready to be loaded via aeon.
 
-This concludes how to create string identifiers for ``.ts``  format. To learn more about ``sktime``, visit
+This concludes how to create string identifiers for ``.ts``  format. To learn more about ``aeon``, visit
 `tutorials`_ page.
 
-.. _loading data: https://github.com/alan-turing-institute/sktime/blob/main/examples/loading_data.ipynb
-.. _Basic Motion.ts: https://github.com/alan-turing-institute/sktime/blob/main/sktime/datasets/data/BasicMotions/BasicMotions_TEST.ts
-.. _issue: https://github.com/alan-turing-institute/sktime/issues
+.. _loading data: https://github.com/aeon-toolkit/aeon/blob/main/examples/loading_data.ipynb
+.. _Basic Motion.ts: https://github.com/aeon-toolkit/aeon/blob/main/aeon/datasets/data/BasicMotions/BasicMotions_TEST.ts
+.. _issue: https://github.com/aeon-toolkit/aeon/issues
 .. _tsregression: http://tseregression.org/
 .. _timeseriesclassification.com: http://www.timeseriesclassification.com/index.php
-.. _tutorials: https://www.sktime.org/en/stable/tutorials.html
+.. _tutorials: https://www.aeon-toolkit.org/en/stable/tutorials.html

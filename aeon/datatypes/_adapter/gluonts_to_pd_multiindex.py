@@ -2,10 +2,10 @@
 def convert_gluonts_result_to_multiindex(gluonts_result):
     """
 
-    Back Convert from Gluonts to sktime.
+    Back Convert from Gluonts to aeon.
 
     Convert the output of Gluonts's prediction to a multiindex
-    dataframe compatible with sktime.
+    dataframe compatible with aeon.
 
     Parameters
     ----------
@@ -17,7 +17,7 @@ def convert_gluonts_result_to_multiindex(gluonts_result):
 
     Returns
     -------
-    A MultiIndex DF mtype type compatible with sktime.
+    A MultiIndex DF mtype type compatible with aeon.
 
     """
     import pandas as pd

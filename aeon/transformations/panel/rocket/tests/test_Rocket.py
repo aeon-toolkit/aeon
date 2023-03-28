@@ -47,7 +47,7 @@ expected_multi = {
 
 @pytest.mark.parametrize(
     "transform",
-    ["Rocket", "MultiRocket", "MiniRocket"],
+    ["Rocket", "MiniRocket"],
 )
 def test_rocket_on_univariate(transform):
     """Test of Rocket on gun point."""

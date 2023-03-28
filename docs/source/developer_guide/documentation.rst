@@ -4,16 +4,16 @@
 Developing Documentation
 =============
 
-Providing instructive documentation is a key part of ``sktime's`` mission. In order to meet this,
-developers are expected to follow ``sktime's`` documentation standards.
+Providing instructive documentation is a key part of ``aeon's`` mission. In order to meet this,
+developers are expected to follow ``aeon's`` documentation standards.
 
 These include:
 
-* Documenting code using NumPy docstrings and sktime conventions
-* Following ``sktime's`` docstring convention for public code artifacts and modules
+* Documenting code using NumPy docstrings and aeon conventions
+* Following ``aeon's`` docstring convention for public code artifacts and modules
 * Adding new public functionality to the :ref:`api_reference` and :ref:`user guide <user_guide>`
 
-More detailed information on ``sktime's`` documentation format is provided below.
+More detailed information on ``aeon's`` documentation format is provided below.
 
 .. contents::
    :local:
@@ -21,19 +21,19 @@ More detailed information on ``sktime's`` documentation format is provided below
 Docstring Conventions
 ---------------------
 
-sktime uses the numpydoc_ Sphinx extension and follows
+aeon uses the numpydoc_ Sphinx extension and follows
 `NumPy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
 
-To ensure docstrings meet expectations, sktime uses a combination of validations built into numpydoc_,
+To ensure docstrings meet expectations, aeon uses a combination of validations built into numpydoc_,
 pydocstyle_ pre-commit checks (set to the NumPy convention) and automated testing of docstring examples to ensure
 the code runs without error. However, the automated docstring validation in pydocstyle_ only covers basic formatting.
-Passing these tests is necessary to meet the sktime docstring conventions, but is not sufficient for doing so.
+Passing these tests is necessary to meet the aeon docstring conventions, but is not sufficient for doing so.
 
-To ensure docstrings meet sktime's conventions, developers are expected to check their docstrings against numpydoc_
-and sktime conventions and :ref:`reviewer's <reviewer_guide_doc>` are expected to also focus feedback on docstring
+To ensure docstrings meet aeon's conventions, developers are expected to check their docstrings against numpydoc_
+and aeon conventions and :ref:`reviewer's <reviewer_guide_doc>` are expected to also focus feedback on docstring
 quality.
 
-sktime Specific Conventions
+aeon Specific Conventions
 ---------------------------
 
 Beyond basic NumPy docstring formatting conventions, developers should focus on:
@@ -41,17 +41,17 @@ Beyond basic NumPy docstring formatting conventions, developers should focus on:
 - Ensuring all parameters (classes, functions, methods) and attributes (classes) are documented completely and consistently
 - Including links to the relevant topics in the :ref:`glossary` or :ref:`user_guide` in the extended summary
 - Including an `Examples` section that demonstrates at least basic functionality in all public code artifacts
-- Adding a `See Also` section that references related sktime code artifacts as applicable
+- Adding a `See Also` section that references related aeon code artifacts as applicable
 - Including citations to relevant sources in a `References` section
 
 
 .. note::
 
-    In many cases a parameter, attribute return object, or error may be described in many docstrings across sktime. To avoid confusion, developers should
+    In many cases a parameter, attribute return object, or error may be described in many docstrings across aeon. To avoid confusion, developers should
     make sure their docstrings are as similar as possible to existing docstring descriptions of the the same parameter, attribute, return object
     or error.
 
-Accordingly, sktime estimators and most other public code artifcations should generally include the following NumPy docstring convention sections:
+Accordingly, aeon estimators and most other public code artifcations should generally include the following NumPy docstring convention sections:
 
 1. Summary
 2. Extended Summary
@@ -70,9 +70,9 @@ Summary and Extended Summary
 The summary should be a single line, followed by a (properly formatted) extended summary.
 The extended summary should include a user friendly explanation of the code artifacts functionality.
 
-For all sktime estimators and other code artifacts that implement an algorithm (e.g. performance metrics),
+For all aeon estimators and other code artifacts that implement an algorithm (e.g. performance metrics),
 the extended summary should include a short, user-friendly synopsis of the algorithm being implemented. When the algorithm is implemented
-using multiple sktime estimators, the synopsis should first provide a high-level summary of the estimator components (e.g. transformer1 is applied then a classifier).
+using multiple aeon estimators, the synopsis should first provide a high-level summary of the estimator components (e.g. transformer1 is applied then a classifier).
 Additional user-friendly details of the algorithm should follow (e.g. describe how the transformation and classifier work).
 
 The extended summary should also include links to relevant content in the :ref:`glossary` and :ref:`user guide <user_guide>`.
@@ -89,7 +89,7 @@ In other cases you'll want to use different phrasing but link to an existing glo
 
     :term:`the link text <the glossary term>`
 
-In the event a term is not already in the glossary, developers should add the term to the glossary (sktime/docs/source/glossary.rst) and include a reference (as shown above)
+In the event a term is not already in the glossary, developers should add the term to the glossary (aeon/docs/source/glossary.rst) and include a reference (as shown above)
 to the added term.
 
 Likewise, a developer can link to a particular area of the user guide by including an explicit cross-reference and following the steps for referencing in Sphinx
@@ -99,7 +99,7 @@ Again developers are encouraged to add important content to the user guide and l
 See Also
 ~~~~~~~~
 
-This section should reference other ``sktime`` code artifcats related to the code artifact being documented by the docstring. Developers should use
+This section should reference other ``aeon`` code artifcats related to the code artifact being documented by the docstring. Developers should use
 judgement in determining related code artifcats. For example, rather than listin all other performance metrics, a percentage error based performance metric
 might only list other percentage error based performance metrics.  Likewise, a distance based classifier might list other distance based classifiers but
 not include other types of time series classifiers.
@@ -110,15 +110,15 @@ Notes
 The notes section can include several types of information, including:
 
 - Mathematical details of a code object or other important implementation details (using ..math or :math:`` functionality)
-- Links to alternative implementations of the code artifact that are external to ``sktime`` (e.g. the Java implementation of an sktime time series classifier)
-- state changing methods (sktime estimator classes)
+- Links to alternative implementations of the code artifact that are external to ``aeon`` (e.g. the Java implementation of an aeon time series classifier)
+- state changing methods (aeon estimator classes)
 
 References
 ~~~~~~~~~~
 
-sktime estimators that implement a concrete algorithm should generally include citations to the original research article, textbook or other resource
+aeon estimators that implement a concrete algorithm should generally include citations to the original research article, textbook or other resource
 that describes the algorithm. Other code artifacts can include references as warranted (for example, references to relevant papers are included in
-sktime's performance metrics).
+aeon's performance metrics).
 
 This should be done by adding references into the references section of the docstring, and then typically linking to these in other parts of the docstring.
 
@@ -147,15 +147,15 @@ To list a reference but not link it elsewhere in the docstring, you can leave ou
 Examples
 ~~~~~~~~
 
-Most code artifacts in sktime should include an examples section. At a minimum this should include a single example that illustrates basic functionality.
-The examples should use either a built-in sktime dataset or other simple data (e.g. randomly generated data, etc) generated using an sktime dependency
-(e.g. NumPy, pandas, etc) and whereever possible only depend on sktime or its core dependencies. Examples should also be designed to run quickly where possible.
+Most code artifacts in aeon should include an examples section. At a minimum this should include a single example that illustrates basic functionality.
+The examples should use either a built-in aeon dataset or other simple data (e.g. randomly generated data, etc) generated using an aeon dependency
+(e.g. NumPy, pandas, etc) and whereever possible only depend on aeon or its core dependencies. Examples should also be designed to run quickly where possible.
 For quick running code artifacts, additional examples can be included to illustrate the affect of different parameter settings.
 
-Examples of Good sktime Docstrings
+Examples of Good aeon Docstrings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here are a few examples of sktime code artifacts with good documentation.
+Here are a few examples of aeon code artifacts with good documentation.
 
 Estimators
 ^^^^^^^^^^
@@ -171,31 +171,31 @@ MeanAbsoluteScaledError_
 
 .. _numpydoc: https://numpydoc.readthedocs.io/en/latest/index.html
 .. _pydocstyle: http://www.pydocstyle.org/en/stable/
-.. _BOSSEnsemble: https://www.sktime.org/en/latest/api_reference/auto_generated/sktime.classification.dictionary_based.BOSSEnsemble.html#sktime.classification.dictionary_based.BOSSEnsemble
-.. _ContractableBOSS: https://www.sktime.org/en/latest/api_reference/auto_generated/sktime.classification.dictionary_based.ContractableBOSS.html#sktime.classification.dictionary_based.ContractableBOSS
-.. _MeanAbsoluteScaledError: https://www.sktime.org/en/latest/api_reference/auto_generated/sktime.performance_metrics.forecasting.MeanAbsoluteScaledError.html
+.. _BOSSEnsemble: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble
+.. _ContractableBOSS: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.ContractableBOSS.html#aeon.classification.dictionary_based.ContractableBOSS
+.. _MeanAbsoluteScaledError: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.performance_metrics.forecasting.MeanAbsoluteScaledError.html
 
 .. _sphinx: https://www.sphinx-doc.org/
-.. _readthedocs: https://readthedocs.org/projects/sktime/
+.. _readthedocs: https://readthedocs.org/projects/aeon/
 
 Documentation Build
 -------------------
 
 We use `sphinx`_ to build our documentation and `readthedocs`_ to host it.
-You can find our latest documentation `here <https://www.sktime.org/en/latest/>`_.
+You can find our latest documentation `here <https://www.aeon-toolkit.org/en/latest/>`_.
 
 The source files can be found
-in `docs/source/ <https://github.com/sktime/sktime/tree/main/docs/source>`_.
+in `docs/source/ <https://github.com/aeon-toolkit/aeon/tree/main/docs/source>`_.
 The main configuration file for sphinx is
-`conf.py <https://github.com/sktime/sktime/blob/main/docs/source/conf.py>`__
+`conf.py <https://github.com/aeon-toolkit/aeon/blob/main/docs/source/conf.py>`__
 and the main page is
-`index.rst <https://github.com/sktime/sktime/blob/main/docs/source/index.rst>`__.
+`index.rst <https://github.com/aeon-toolkit/aeon/blob/main/docs/source/index.rst>`__.
 To add new pages, you need to add a new ``.rst`` file and include it in
 the ``index.rst`` file.
 
 To build the documentation locally, you need to install a few extra
 dependencies listed in
-`pyproject.toml <https://github.com/sktime/sktime/blob/main/pyproject.toml>`__.
+`pyproject.toml <https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml>`__.
 
 1. To install extra dependencies from the root directory, run:
 

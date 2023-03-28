@@ -24,7 +24,7 @@ class MiniRocketMultivariateVariable(BaseTransformer):
 
     A provisional and naive extension of MINIROCKET to multivariate input
     with unequal length provided by the authors [2]_ .  For better
-    performance, use the sktime class MiniRocket for univariate input,
+    performance, use the aeon class MiniRocket for univariate input,
     and MiniRocketMultivariate to equal length multivariate input.
 
     Parameters
@@ -50,11 +50,11 @@ class MiniRocketMultivariateVariable(BaseTransformer):
     >>> from aeon.transformations.panel.rocket import MiniRocketMultivariateVariable
     >>> from aeon.datasets import load_japanese_vowels
     >>> # load multivariate and unequal length dataset
-    >>> X_train, _ = load_japanese_vowels(split="train", return_X_y=True)
-    >>> X_test, _ = load_japanese_vowels(split="test", return_X_y=True)
+    >>> X_train, _ = load_japanese_vowels(split="train")
+    >>> X_test, _ = load_japanese_vowels(split="test")
     >>> pre_clf = MiniRocketMultivariateVariable(pad_value_short_series=0.0)
     >>> pre_clf.fit(X_train, y=None)
-    MiniRocketMultivariateVariable(...)
+    MiniRocketMultivariateVariable(pad_value_short_series=0.0)
     >>> X_transformed = pre_clf.transform(X_test)
     >>> X_transformed.shape
     (370, 9996)

@@ -54,7 +54,7 @@ class Catch22Classifier(_DelegatedClassifier):
 
     Notes
     -----
-    Authors `catch22ForestClassifier <https://github.com/chlubba/sktime-catch22>`_.
+    Authors `catch22ForestClassifier <https://github.com/chlubba/aeon-catch22>`_.
 
     For the Java version, see `tsml <https://github.com/uea-machine-learning/tsml/blob
     /master/src/main/java/tsml/classifiers/hybrids/Catch22Classifier.java>`_.

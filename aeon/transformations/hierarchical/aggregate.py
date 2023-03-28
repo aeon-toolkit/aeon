@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements a transfromer to generate hierarcical data from bottom level."""
 
 __author__ = ["ciaran-g"]
@@ -11,7 +11,7 @@ import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
 
-# todo: add any necessary sktime internal imports here
+# todo: add any necessary aeon internal imports here
 
 
 class Aggregator(BaseTransformer):
