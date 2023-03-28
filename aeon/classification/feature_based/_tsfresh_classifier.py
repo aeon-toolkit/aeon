@@ -70,7 +70,6 @@ class TSFreshClassifier(BaseClassifier):
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "feature",
-        "python_version": "<3.10",
         "python_dependencies": "tsfresh",
     }
 
