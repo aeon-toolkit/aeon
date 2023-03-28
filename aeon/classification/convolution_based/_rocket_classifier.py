@@ -101,8 +101,6 @@ class RocketClassifier(BaseClassifier):
         "capability:multivariate": True,
         "algorithm_type": "convolution",
     }
-    # valid rocket strings for input validity checking
-    VALID_ROCKET_STRINGS = ["rocket", "minirocket", "multirocket"]
 
     def __init__(
         self,
@@ -156,12 +154,14 @@ class RocketClassifier(BaseClassifier):
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_jobs=self.n_jobs,
+                    random_state=self.random_state,
                 )
             else:
                 self._transformer = MiniRocket(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_jobs=self.n_jobs,
+                    random_state=self.random_state,
                 )
         elif self.rocket_transform == "multirocket":
             if self.n_dims_ > 1:
@@ -170,6 +170,7 @@ class RocketClassifier(BaseClassifier):
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
                     n_jobs=self.n_jobs,
+                    random_state=self.random_state,
                 )
             else:
                 self._transformer = MultiRocket(
@@ -177,6 +178,7 @@ class RocketClassifier(BaseClassifier):
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                     n_features_per_kernel=self.n_features_per_kernel,
                     n_jobs=self.n_jobs,
+                    random_state=self.random_state,
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
@@ -223,14 +225,12 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        X_new = self._transformer.transform(X)
-        X_new = self._scaler.transform(X_new)
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(X_new)
+            return self.pipeline_.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(X_new)
+            preds = self.pipeline_.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
