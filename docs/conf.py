@@ -66,12 +66,10 @@ if ON_READTHEDOCS:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
-    "numpydoc",
+    # Temporary comment, do not merge "numpydoc",
     "nbsphinx",  # integrates example notebooks
     "sphinx_gallery.load_style",
     "sphinx_design",

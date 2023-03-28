@@ -164,5 +164,5 @@ developers
 :hidden:
 
 contributors.md
-about_us.md
+about.md
 ```
