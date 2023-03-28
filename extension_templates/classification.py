@@ -18,11 +18,11 @@ How to use this implementation template to implement a new estimator:
 - change docstrings for functions and the file
 - once complete: use as a local library, or contribute to aeon via PR
 
-Mandatory implements:
+Mandatory components:
     fitting                 - _fit(self, X, y)
     predicting classes      - _predict(self, X)
 
-Optional implements:
+Optional components:
     data conversion and capabilities tags - _tags
     fitted parameter inspection           - _get_fitted_params()
     predicting class probabilities        - _predict_proba(self, X)
@@ -30,7 +30,6 @@ Optional implements:
 Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 
-copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 import numpy as np
 
