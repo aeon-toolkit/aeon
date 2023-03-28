@@ -718,6 +718,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         return self
 
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X."""
+        y_proba = self._predict_proba(X)
+        y_pred = y_proba.argmax(axis=1)
+
+        return y_pred
+
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
