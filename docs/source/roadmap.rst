@@ -8,7 +8,7 @@ Welcome to aeon's roadmap.
 
 Contributors: :user:`mloning`, :user:`fkiraly`, :user:`sveameyer13`, :user:`lovkush-a`, :user:`bilal-196`, :user:`GuzalBulatova`, :user:`chrisholder`, :user:`satya-pattnaik`, :user:`aiwalter`
 
-Created during the 2021 aeon dev days, 25/06/2021.
+Created during the 2021 `sktime` dev days, 25/06/2021 and adapted to the `aeon` project.
 
 ----
 
