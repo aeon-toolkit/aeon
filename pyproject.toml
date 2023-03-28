@@ -131,9 +131,9 @@ requires = ["setuptools>61", "wheel", "toml", "build"]
 build-backend = "setuptools.build_meta"
 
 [tool.nbqa.exclude]
-black = "^docs/source/examples/"
-flake8 = "^docs/source/examples/"
-isort = "^docs/source/examples/"
+black = "^docs/examples/"
+flake8 = "^docs/examples/"
+isort = "^docs/examples/"
 
 [tool.setuptools]
 zip-safe = true
