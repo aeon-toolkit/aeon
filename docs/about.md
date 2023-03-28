@@ -78,7 +78,8 @@ The community council currently has no sitting members while we discuss governan
 
 ## History
 
-aeon was started in January 2023 as a fork of the `sktime` project by 8 core developers.
+aeon was started in January 2023 as a fork of the `sktime` project by 8
+core developers.
 
 ## Artwork
 
