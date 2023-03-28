@@ -4,8 +4,6 @@
 Coding standards
 ================
 
-.. contents::
-   :local:
 
 Coding style
 ============

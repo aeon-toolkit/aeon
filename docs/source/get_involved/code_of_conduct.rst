@@ -22,7 +22,6 @@ and anyone who has experienced discrimination in the past.
 To make clear what is expected, we ask all members of the community to
 conform to the following Code of Conduct.
 
-.. contents:: :local:
 
 1 Introduction
 --------------
