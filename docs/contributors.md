@@ -1,4 +1,2 @@
-# Contributors
-
-```{include} ../../CONTRIBUTORS.md
+```{include} ../CONTRIBUTORS.md
 ```
