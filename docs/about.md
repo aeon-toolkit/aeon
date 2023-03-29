@@ -72,9 +72,13 @@ aeon is a community-driven project, however institutional and private grants hel
 
 The project developers would like to thank the following funders.
 
-| Funder/Fundee                                                                                                                                                                                  | Funder logo                                                                                               |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [The UK Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst and Tony Bagnall since 2022 | ```{image} images/ukri-epsrc-logo.png :alt: fishy :class: bg-primary mb-1 :width: 200px :align: center``` |
+```{list-table}
+:widths: 50 50
+:header-rows: 0
+
+* - [The UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst and Tony Bagnall since 2022
+  - ![](../images/ukri-epsrc-logo.png)
+```
 
 #### Pre-fork funding
 
@@ -83,11 +87,11 @@ As a fork of the sktime project aeon has benefited from funding given to sktime 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
 
-### Industry sponsorship
+##### Industry sponsorship
 
 - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of `sktime` in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com>).
 
-### Research grants
+##### Research grants
 
 [The Alan Turing Institute](https://turing.ac.uk) funded three months of the initial development under the UKRI Strategic Priorities Fund (EPSRC grant no EP/T001569/1), particularly the [Tools, Practices and Systems](https://www.turing.ac.uk/events/tools-practices-and-systems-data-science-and-artificial-intelligence-scoping-workshop>) theme within that grant.
 
@@ -110,11 +114,11 @@ Markus Löning’s contributions between 2019 and 2021 were supported by:
   :width: 32 %
   :target: https://www.cdrc.ac.uk
 
-### Institutional sponsorship
+##### Institutional sponsorship
 
 The 2019 joint aeon MLJ development sprint was kindly hosted by `UCL <https://www.ucl.ac.uk>`_ and `The Alan Turing Institute <https://turing.ac.uk>`_. Some participants could attend thanks to the initial funding of the `The Alan Turing Institute <https://turing.ac.uk>`_.
 
-### Internships
+##### Internships
 
 `Google Summer of Code (GSoC) <https://summerofcode.withgoogle.com>`_, `Major League Hacking <https://mlh.io>`_ and `Outreachy <https://www.outreachy.org>`_ have all sponsored aeon internships.
 
@@ -125,7 +129,7 @@ The `Wellcome Trust <https://wellcome.org>`_ sponsored one aeon internship as pa
   :target: https://summerofcode.withgoogle.com
 
 
-.. list-table::
+```{list-table}
    :header-rows: 1
 
    * - Name
@@ -152,6 +156,7 @@ The `Wellcome Trust <https://wellcome.org>`_ sponsored one aeon internship as pa
      - :user:`SveaMeyer13`
      - Google Summer of Code via `INCF <https://www.incf.org>`_
      - 2021
+```
 
 </p>
 </details>
