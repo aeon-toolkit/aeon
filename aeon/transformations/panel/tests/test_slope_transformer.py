@@ -14,52 +14,43 @@ from aeon.utils._testing.panel import _make_nested_from_array
 # correct input is meant to be a positive integer of 1 or more.
 @pytest.mark.parametrize("bad_num_intervals", ["str", 1.2, -1.2, -1, {}, 0])
 def test_bad_input_args(bad_num_intervals):
-    X = _make_nested_from_array(np.ones(10), n_instances=10, n_columns=1)
-
+    X = np.ones(shape=(10, 1, 10))
     if not isinstance(bad_num_intervals, int):
         with pytest.raises(TypeError):
-            SlopeTransformer(num_intervals=bad_num_intervals).fit(X).transform(X)
+            SlopeTransformer(n_intervals=bad_num_intervals).fit_transform(X)
     else:
         with pytest.raises(ValueError):
-            SlopeTransformer(num_intervals=bad_num_intervals).fit(X).transform(X)
+            SlopeTransformer(n_intervals=bad_num_intervals).fit_transform(X)
 
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
-    X = _make_nested_from_array(
-        np.array([4, 6, 10, 12, 8, 6, 5, 5]), n_instances=1, n_columns=1
-    )
+    X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
 
-    s = SlopeTransformer(num_intervals=2).fit(X)
+    s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)
-    orig = convert_list_to_dataframe(
-        [[(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10]]
-    )
-    orig.columns = X.columns
-    assert check_if_dataframes_are_equal(res, orig)
-
-    X = _make_nested_from_array(
-        np.array([-5, 2.5, 1, 3, 10, -1.5, 6, 12, -3, 0.2]), n_instances=1, n_columns=1
-    )
-    s = s.fit(X)
-    res = s.transform(X)
-    orig = convert_list_to_dataframe(
+    orig = np.array([[[(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10]]])
+    np.testing.assert_almost_equal(res, orig)
+    X = np.array([[[-5, 2.5, 1, 3, 10, -1.5, 6, 12, -3, 0.2]]])
+    res = s.fit_transform(X)
+    orig = np.array(
         [
             [
-                (104.8 + math.sqrt(14704.04)) / 61,
-                (143.752 + math.sqrt(20790.0775)) / -11.2,
+                [
+                    (104.8 + math.sqrt(14704.04)) / 61,
+                    (143.752 + math.sqrt(20790.0775)) / -11.2,
+                ]
             ]
         ]
     )
-    orig.columns = X.columns
-    assert check_if_dataframes_are_equal(res, orig)
+    np.testing.assert_almost_equal(res, orig)
 
 
 @pytest.mark.parametrize("num_intervals,corr_series_length", [(2, 2), (5, 5), (8, 8)])
 def test_output_dimensions(num_intervals, corr_series_length):
     X = _make_nested_from_array(np.ones(13), n_instances=10, n_columns=1)
 
-    s = SlopeTransformer(num_intervals=num_intervals).fit(X)
+    s = SlopeTransformer(n_intervals=num_intervals).fit(X)
     res = s.transform(X)
 
     # get the dimension of the generated dataframe.
@@ -74,20 +65,17 @@ def test_output_dimensions(num_intervals, corr_series_length):
 
 # This is to check that Slope produces the same result along each dimension
 def test_slope_performs_correcly_along_each_dim():
-    X = _make_nested_from_array(
-        np.array([4, 6, 10, 12, 8, 6, 5, 5]), n_instances=1, n_columns=2
-    )
+    X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]], [[4, 6, 10, 12, 8, 6, 5, 5]]])
 
-    s = SlopeTransformer(num_intervals=2).fit(X)
+    s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)
-    orig = convert_list_to_dataframe(
+    orig = np.array(
         [
-            [(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10],
-            [(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10],
+            [[(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10]],
+            [[(5 + math.sqrt(41)) / 4, (1 + math.sqrt(101)) / -10]],
         ]
     )
-    orig.columns = X.columns
-    assert check_if_dataframes_are_equal(res, orig)
+    assert np.testing.assert_almost_equal(res, orig)
 
 
 def convert_list_to_dataframe(list_to_convert):

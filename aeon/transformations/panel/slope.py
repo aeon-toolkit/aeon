@@ -4,9 +4,7 @@ import math
 import statistics
 
 import numpy as np
-import pandas as pd
 
-from aeon.datatypes import convert
 from aeon.transformations.base import BaseTransformer
 
 __all__ = ["SlopeTransformer"]
@@ -14,34 +12,31 @@ __author__ = ["mloning"]
 
 
 class SlopeTransformer(BaseTransformer):
-    """Slope-by-segment transformation.
+    """Piecewise slope-by-segment transformation.
 
-    Class to perform the Slope transformation on a time series
-    dataframe. It splits a time series into num_intervals segments.
-    Then within each segment, it performs a total least
+    Class to perform a slope transformation on a collection of time series. It splits
+    each time series into n_intervals segments. Then within each segment,
+    it find s the gradient using a total least
     squares regression to extract the gradient of the segment.
 
     Parameters
     ----------
-    num_intervals : int, number of approx equal segments
+    n_intervals : int, number of approx equal segments
                     to split the time series into.
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
         "capability:unequal_length:removes": True,
         # is transform result always guaranteed to be equal length (and series)?
     }
 
-    def __init__(self, num_intervals=8):
-        self.num_intervals = num_intervals
+    def __init__(self, n_intervals=8):
+        self.n_intervals = n_intervals
         super(SlopeTransformer, self).__init__()
 
     def _transform(self, X, y=None):
@@ -51,54 +46,24 @@ class SlopeTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : numpy array of shape [n_instances, n_channels, series_length]
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
-            transformed version of X
+        Xt : numpy array of shape [n_instances, n_channels, n_intervals]
+            transformed version of X, each value is the slope over an interval
         """
         # Get information about the dataframe
-        n_timepoints = len(X.iloc[0, 0])
-        num_instances = X.shape[0]
-        col_names = X.columns
-
+        n_instances, n_channels, n_timepoints = X.shape
         self._check_parameters(n_timepoints)
 
-        Xt = pd.DataFrame()
-
-        for x in col_names:
-            # Convert one of the columns in the dataframe to numpy array
-            arr = convert(
-                pd.DataFrame(X[x]),
-                from_type="nested_univ",
-                to_type="numpyflat",
-                as_scitype="Panel",
-            )
-
-            # Calculate gradients
-            transformedData = []
-            for y in range(num_instances):
-                res = self._get_gradients_of_lines(arr[y])
-                transformedData.append(res)
-
-            # Convert to Numpy array
-            transformedData = np.asarray(transformedData)
-
-            # Add it to the dataframe
-            colToAdd = []
-            for i in range(len(transformedData)):
-                inst = transformedData[i]
-                colToAdd.append(pd.Series(inst))
-
-            Xt[x] = colToAdd
-
-        return Xt
+        x_trans = np.zeros(shape=(n_instances, n_channels, self.n_intervals))
+        for j in range(n_channels):
+            for i in range(n_instances):
+                x_trans[i][j] = self._get_gradients_of_lines(X[i][j])
+        return x_trans
 
     def _get_gradients_of_lines(self, X):
         """Get gradients of lines.
@@ -112,7 +77,7 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        gradients : a numpy array of shape = [num_intervals].
+        gradients : a numpy array of shape = [self.n_intervals].
                     It contains the gradients of the line of best fit
                     for each interval in a time series.
         """
@@ -187,9 +152,9 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        output : a numpy array of shape = [num_intervals,interval_size]
+        output : a numpy array of shape = [self.n_intervals,interval_size]
         """
-        avg = len(X) / float(self.num_intervals)
+        avg = len(X) / float(self.n_intervals)
         output = []
         beginning = 0.0
 
@@ -206,13 +171,13 @@ class SlopeTransformer(BaseTransformer):
         ------
         ValueError or TypeError if a parameters input is invalid.
         """
-        if isinstance(self.num_intervals, int):
-            if self.num_intervals <= 0:
+        if isinstance(self.n_intervals, int):
+            if self.n_intervals <= 0:
                 raise ValueError(
                     "num_intervals must have the value \
                                   of at least 1"
                 )
-            if self.num_intervals > n_timepoints:
+            if self.n_intervals > n_timepoints:
                 raise ValueError(
                     "num_intervals cannot be higher than \
                                   subsequence_length"
@@ -220,6 +185,6 @@ class SlopeTransformer(BaseTransformer):
         else:
             raise TypeError(
                 "num_intervals must be an 'int'. Found '"
-                + type(self.num_intervals).__name__
+                + type(self.n_intervals).__name__
                 + "'instead."
             )
