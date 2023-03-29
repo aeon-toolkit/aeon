@@ -2051,7 +2051,7 @@ def write_panel_to_tsfile(
     """Write an aeon multi-instance dataset to text file in .ts format.
 
     Write metadata and data stored in aeon compatible data set to file.
-    A description of the ts format is in docs/source/api_reference/data_format.rst
+    A description of the ts format is in docs/api_reference/data_format.rst
 
     Parameters
     ----------
