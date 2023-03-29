@@ -23,12 +23,10 @@ class DWTTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
     }
@@ -44,9 +42,7 @@ class DWTTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : 3D numpy array of shape e [n_instances, n_features]
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
