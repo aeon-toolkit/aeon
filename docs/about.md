@@ -74,10 +74,12 @@ The project developers would like to thank the following funders.
 
 ```{list-table}
 :widths: 50 50
-:header-rows: 0
+:header-rows: 1
 
-* - [The UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst and Tony Bagnall since 2022
-  - ![](../images/ukri-epsrc-logo.png)
+* -
+  -
+* - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst and Tony Bagnall since 2022
+  - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
 ```
 
 #### Pre-fork funding
@@ -87,75 +89,57 @@ As a fork of the sktime project aeon has benefited from funding given to sktime 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
 
-##### Industry sponsorship
+```{list-table}
+:widths: 50 50
+:header-rows: 1
 
-- Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of `sktime` in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com>).
+* -
+  -
+* - [The Alan Turing Institute](https://turing.ac.uk) funded three months of the initial development under the [UKRI Strategic Priorities Fund](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/T001569/1).
+  - ![https://turing.ac.uk/](images/funder_logos/the-alan-turing-institute.png)
+* - Markus Löning’s contributions between 2019 and 2021 were supported by the [UKRI Economic and Social Research Council (ESRC)](https://esrc.ukri.org), the [Consumer Data Research Centre (CDRC)](https://www.cdrc.ac.uk), the Enrichment Scheme at the [The Alan Turing Institute](https://turing.ac.uk), and the JROST Rapid Response Fund, a community effort of [Invest in Open Infrastructure](https://investinopen.org).
+  - ![https://esrc.ukri.org](images/funder_logos/ukri-esrc-logo.png) ![https://www.cdrc.ac.uk](images/funder_logos/cdrc-logo.png) ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
+* - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of sktime in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com).
+  - ![https://opensource.mercedes-benz.com](images/funder_logos/mercedes-benz-logo.png)
+```
 
-##### Research grants
+##### Sprints
 
-[The Alan Turing Institute](https://turing.ac.uk) funded three months of the initial development under the UKRI Strategic Priorities Fund (EPSRC grant no EP/T001569/1), particularly the [Tools, Practices and Systems](https://www.turing.ac.uk/events/tools-practices-and-systems-data-science-and-artificial-intelligence-scoping-workshop>) theme within that grant.
-
-.. image:: ../images/the-alan-turing-institute.png
-  :width: 32 %
-  :target: https://turing.ac.uk/
-
-Markus Löning’s contributions between 2019 and 2021 were supported by:
-
-* the `UK Economic and Social Research Council (ESRC) <https://esrc.ukri.org>`_,
-* the `Consumer Data Research Centre (CDRC) <https://www.cdrc.ac.uk>`_,
-* the Enrichment Scheme at the `The Alan Turing Institute <https://turing.ac.uk>`_,
-* the JROST Rapid Response Fund, a community effort of `Invest in Open Infrastructure <https://investinopen.org>`_.
-
-.. image:: ../images/esrc-ukri.png
-  :width: 32 %
-  :target: https://esrc.ukri.org
-
-.. image:: ../images/cdrc.jpg
-  :width: 32 %
-  :target: https://www.cdrc.ac.uk
-
-##### Institutional sponsorship
-
-The 2019 joint aeon MLJ development sprint was kindly hosted by `UCL <https://www.ucl.ac.uk>`_ and `The Alan Turing Institute <https://turing.ac.uk>`_. Some participants could attend thanks to the initial funding of the `The Alan Turing Institute <https://turing.ac.uk>`_.
+The 2019 joint sktime/MLJ development sprint was kindly hosted by [UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk). Some participants could attend thanks to the initial funding of the [The Alan Turing Institute](https://turing.ac.uk).
 
 ##### Internships
 
-`Google Summer of Code (GSoC) <https://summerofcode.withgoogle.com>`_, `Major League Hacking <https://mlh.io>`_ and `Outreachy <https://www.outreachy.org>`_ have all sponsored aeon internships.
+[Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com), [Major League Hacking](https://mlh.io) and [Outreachy](https://www.outreachy.org) have all sponsored sktime internships.
 
-The `Wellcome Trust <https://wellcome.org>`_ sponsored one aeon internship as part of Outreachy.
-
-.. image:: ../images/gsoc.png
-  :width: 32 %
-  :target: https://summerofcode.withgoogle.com
-
+The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as part of Outreachy.
 
 ```{list-table}
-   :header-rows: 1
+:header-rows: 1
 
-   * - Name
-     - GitHub ID
-     - Organization
-     - Year
-   * - Katie Buchhorn
-     - :user:`KatieBuc`
-     - Google Summer of Code
-     - 2022
-   * - Mirae Parker
-     - :user:`miraep8`
-     - Google Summer of Code
-     - 2022
-   * - Shivansh Subramanian
-     - :user:`AurumnPegasus`
-     - Google Summer of Code
-     - 2022
-   * - Guzal Bulatova
-     - :user:`GuzalBulatova`
-     - Outreachy
-     - 2021
-   * - Svea Marie Meyer
-     - :user:`SveaMeyer13`
-     - Google Summer of Code via `INCF <https://www.incf.org>`_
-     - 2021
+* - Name
+  - GitHub ID
+  - Organization
+  - Year
+* - Katie Buchhorn
+  - :user:`KatieBuc`
+  - Google Summer of Code
+  - 2022
+* - Mirae Parker
+  - :user:`miraep8`
+  - Google Summer of Code
+  - 2022
+* - Shivansh Subramanian
+  - :user:`AurumnPegasus`
+  - Google Summer of Code
+  - 2022
+* - Guzal Bulatova
+  - :user:`GuzalBulatova`
+  - Outreachy
+  - 2021
+* - Svea Marie Meyer
+  - :user:`SveaMeyer13`
+  - Google Summer of Code via [INCF](https://www.incf.org)
+  - 2021
 ```
 
 </p>
