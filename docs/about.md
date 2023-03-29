@@ -2,8 +2,8 @@
 
 ## Roles
 
-The roles are described in scikit-time's :ref:`governance` document.
-A list of all contributors can be found `here <contributors.md>`_.
+The roles are described in scikit-time's {ref}`governance` document.
+A list of all contributors can be found [here](contributors.md).
 
 ### Community Council
 
@@ -78,7 +78,7 @@ The project developers would like to thank the following funders.
 
 * -
   -
-* - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds [Matthew Middlehurst]({user}`matthewmiddlehurst`) and [Tony Bagnall]({user}`TonyBagnall`) since 2022
+* - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst ({user}`matthewmiddlehurst`) and Tony Bagnall ({user}`TonyBagnall`) since 2022
   - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
 ```
 
@@ -97,7 +97,7 @@ As a fork of the sktime project, aeon has benefited from funding given to sktime
   -
 * - [The Alan Turing Institute](https://turing.ac.uk) funded three months of the initial development under the [UKRI Strategic Priorities Fund](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/T001569/1).
   - ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
-* - [Markus Löning’s]({user}`mloning`) contributions between 2019 and 2021 were supported by the [UKRI Economic and Social Research Council (ESRC)](https://esrc.ukri.org), the [Consumer Data Research Centre (CDRC)](https://www.cdrc.ac.uk), the Enrichment Scheme at the [The Alan Turing Institute](https://turing.ac.uk), and the JROST Rapid Response Fund, a community effort of [Invest in Open Infrastructure](https://investinopen.org).
+* - Markus Löning’s ({user}`mloning`) contributions between 2019 and 2021 were supported by the [UKRI Economic and Social Research Council (ESRC)](https://esrc.ukri.org), the [Consumer Data Research Centre (CDRC)](https://www.cdrc.ac.uk), the Enrichment Scheme at the [The Alan Turing Institute](https://turing.ac.uk), and the JROST Rapid Response Fund, a community effort of [Invest in Open Infrastructure](https://investinopen.org).
   - ![https://esrc.ukri.org](images/funder_logos/ukri-esrc-logo.png) ![https://www.cdrc.ac.uk](images/funder_logos/cdrc-logo.png) ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
 * - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of sktime in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com).
   - ![https://opensource.mercedes-benz.com](images/funder_logos/mercedes-benz-logo.png)
