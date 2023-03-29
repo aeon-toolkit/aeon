@@ -11,21 +11,21 @@ The community council currently has no sitting members while we discuss governan
 
 ### Code of Conduct Committee
 
-- :user:`GuzalBulatova`
-- :user:`KatieBuc`
-- :user:`mattewmiddlehurst`
-- :user:`patrickzib`
+- {user}`GuzalBulatova`
+- {user}`KatieBuc`
+- {user}`mattewmiddlehurst`
+- {user}`patrickzib`
 
 ### Core Developers
 
-- :user:`TonyBagnall`
-- :user:`chrisholder`
-- :user:`GuzalBulatova`
-- :user:`ltsaprounis`
-- :user:`lmmentel`
-- :user:`aiwalter`
-- :user:`mattewmiddlehurst`
-- :user:`patrickzib`
+- {user}`TonyBagnall`
+- {user}`chrisholder`
+- {user}`GuzalBulatova`
+- {user}`ltsaprounis`
+- {user}`lmmentel`
+- {user}`aiwalter`
+- {user}`mattewmiddlehurst`
+- {user}`patrickzib`
 
 #### Pre-fork Core Developers
 
@@ -34,26 +34,26 @@ The following listed contributors were part of the sktime core developer team at
 <details><summary>sktime v0.16.0 core developers</summary>
 <p>
 
-- :user:`abostrom`
-- :user:`ayushmaanseth`
-- :user:`goastler`
-- :user:`hyang1996`
-- :user:`james-large`
-- :user:`jasonlines`
-- :user:`matteogales`
-- :user:`prockenschaub`
-- :user:`sajaysurya`
-- :user:`fkiraly`
-- :user:`mloning`
-- :user:`miraep8`
-- :user:`rnkuhns`
-- :user:`achieveordie`
-- :user:`khrapovs`
-- :user:`SveaMeyer13`
-- :user:`lovkush-a`
-- :user:`freddyaboulton`
-- :user:`danbartl`
-- :user:`big-o`
+- {user}`abostrom`
+- {user}`ayushmaanseth`
+- {user}`goastler`
+- {user}`hyang1996`
+- {user}`james-large`
+- {user}`jasonlines`
+- {user}`matteogales`
+- {user}`prockenschaub`
+- {user}`sajaysurya`
+- {user}`fkiraly`
+- {user}`mloning`
+- {user}`miraep8`
+- {user}`rnkuhns`
+- {user}`achieveordie`
+- {user}`khrapovs`
+- {user}`SveaMeyer13`
+- {user}`lovkush-a`
+- {user}`freddyaboulton`
+- {user}`danbartl`
+- {user}`big-o`
 
 </p>
 </details>
@@ -84,7 +84,7 @@ The project developers would like to thank the following funders.
 
 #### Pre-fork funding
 
-As a fork of the sktime project aeon has benefited from funding given to sktime prior to our split. We would like to thank the funders from before the split.
+As a fork of the sktime project, aeon has benefited from funding given to sktime prior to our split. We would like to thank the funders from before the split.
 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
@@ -96,7 +96,7 @@ As a fork of the sktime project aeon has benefited from funding given to sktime 
 * -
   -
 * - [The Alan Turing Institute](https://turing.ac.uk) funded three months of the initial development under the [UKRI Strategic Priorities Fund](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/T001569/1).
-  - ![https://turing.ac.uk/](images/funder_logos/the-alan-turing-institute.png)
+  - ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
 * - Markus Löning’s contributions between 2019 and 2021 were supported by the [UKRI Economic and Social Research Council (ESRC)](https://esrc.ukri.org), the [Consumer Data Research Centre (CDRC)](https://www.cdrc.ac.uk), the Enrichment Scheme at the [The Alan Turing Institute](https://turing.ac.uk), and the JROST Rapid Response Fund, a community effort of [Invest in Open Infrastructure](https://investinopen.org).
   - ![https://esrc.ukri.org](images/funder_logos/ukri-esrc-logo.png) ![https://www.cdrc.ac.uk](images/funder_logos/cdrc-logo.png) ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
 * - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of sktime in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com).
@@ -121,23 +121,23 @@ The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as pa
   - Organization
   - Year
 * - Katie Buchhorn
-  - :user:`KatieBuc`
+  - {user}`KatieBuc`
   - Google Summer of Code
   - 2022
 * - Mirae Parker
-  - :user:`miraep8`
+  - {user}`miraep8`
   - Google Summer of Code
   - 2022
 * - Shivansh Subramanian
-  - :user:`AurumnPegasus`
+  - {user}`AurumnPegasus`
   - Google Summer of Code
   - 2022
 * - Guzal Bulatova
-  - :user:`GuzalBulatova`
+  - {user}`GuzalBulatova`
   - Outreachy
   - 2021
 * - Svea Marie Meyer
-  - :user:`SveaMeyer13`
+  - {user}`SveaMeyer13`
   - Google Summer of Code via [INCF](https://www.incf.org)
   - 2021
 ```
@@ -148,4 +148,4 @@ The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as pa
 
 ## Infrastructure
 
-We would also like to thank [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions>) and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers and documentation hosting.
+We would also like to thank [GitHub Actions](https://github.com/features/actions) and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers and documentation hosting.
