@@ -12,12 +12,12 @@ __author__ = ["mloning"]
 
 
 class SlopeTransformer(BaseTransformer):
-    """Piecewise slope-by-segment transformation.
+    """Piecewise slope transformation.
 
-    Class to perform a slope transformation on a collection of time series. It splits
-    each time series into n_intervals segments. Then within each segment,
-    it find s the gradient using a total least
-    squares regression to extract the gradient of the segment.
+    Class to perform a slope transformation on a collection of time series. Numpy
+    array of shape numpy array of shape (n_instances, n_channels, series_length) is
+    transformed to numpy array of shape (n_instances, n_channels, n_intervals). The
+    new feature is the slope over that interval found using a least squares regression.
 
     Parameters
     ----------
