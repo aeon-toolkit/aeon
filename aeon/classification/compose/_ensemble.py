@@ -769,13 +769,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.classification.convolution_based import RocketClassifier
+        from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
         params1 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": [42, 1],
         }
@@ -783,7 +783,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         params2 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": 2,
             "cv": 3,
