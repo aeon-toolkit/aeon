@@ -5,7 +5,7 @@ An ensemble of elastic nearest neighbour classifiers.
 """
 
 __author__ = ["jasonlines", "TonyBagnall"]
-__all__ = ["ElasticEnsemble"]
+__all__ = ["ElasticEnsemble", "series_slope_derivative"]
 
 import time
 from itertools import product
@@ -29,7 +29,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
 
 
 @njit(fastmath=True, cache=True)
-def _der(x):
+def _der(x: np.ndarray):
     """Loop based Derivative Slope transform."""
     m = len(x)
     der = np.zeros(m)
@@ -41,7 +41,7 @@ def _der(x):
 
 
 @njit(fastmath=True, cache=True)
-def series_slope_derivative(X):
+def series_slope_derivative(X: np.ndarray):
     """Find the slope derivative of 3D time series.
 
     Parameters
@@ -50,7 +50,7 @@ def series_slope_derivative(X):
 
     Returns
     -------
-    X: np.ndarray shape (n_time_series, n_channels, series_length)
+    np.ndarray shape (n_time_series, n_channels, series_length)
     """
     shape = X.shape
     der = np.zeros(shape=shape)
