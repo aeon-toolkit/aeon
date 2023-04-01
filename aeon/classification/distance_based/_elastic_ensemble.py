@@ -12,6 +12,7 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
+from numba import njit
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import (
     GridSearchCV,
@@ -25,8 +26,38 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.datatypes._panel._convert import from_nested_to_3d_numpy
-from aeon.transformations.panel.summarize import DerivativeSlopeTransformer
+
+
+@njit(fastmath=True, cache=True)
+def _der(x):
+    """Loop based Derivative Slope transform."""
+    m = len(x)
+    der = np.zeros(m)
+    for i in range(1, m - 1):
+        der[i] = ((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2.0)) / 2.0
+    der[0] = der[1]
+    der[m - 1] = der[m - 2]
+    return der
+
+
+@njit(fastmath=True, cache=True)
+def series_slope_derivative(X):
+    """Find the slope derivative of 3D time series.
+
+    Parameters
+    ----------
+    X: np.ndarray shape (n_time_series, n_channels, series_length)
+
+    Returns
+    -------
+    X: np.ndarray shape (n_time_series, n_channels, series_length)
+    """
+    shape = X.shape
+    der = np.zeros(shape=shape)
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            der[i][j] = _der(X[i][j])
+    return der
 
 
 class ElasticEnsemble(BaseClassifier):
@@ -155,10 +186,7 @@ class ElasticEnsemble(BaseClassifier):
         if self.distance_measures.__contains__(
             "ddtw"
         ) or self.distance_measures.__contains__("wddtw"):
-            der_X = DerivativeSlopeTransformer().fit_transform(X)
-            # convert back to numpy: remove this and just create differences
-            if isinstance(der_X, pd.DataFrame):
-                der_X = from_nested_to_3d_numpy(der_X)
+            der_X = series_slope_derivative(X)
         else:
             der_X = None
 
@@ -365,11 +393,7 @@ class ElasticEnsemble(BaseClassifier):
         if self.distance_measures.__contains__(
             "ddtw"
         ) or self.distance_measures.__contains__("wddtw"):
-            der_X = DerivativeSlopeTransformer().fit_transform(X)
-            if isinstance(X, pd.DataFrame):
-                der_X = np.array(
-                    [np.asarray([x]).reshape(1, len(x)) for x in der_X.iloc[:, 0]]
-                )
+            der_X = series_slope_derivative(X)
         else:
             der_X = None
 
