@@ -30,7 +30,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
 
 @njit(fastmath=True, cache=True)
 def _der(x: np.ndarray):
-    """Loop based Derivative Slope transform."""
+    """Loop based derivative slope transform."""
     m = len(x)
     der = np.zeros(m)
     for i in range(1, m - 1):
@@ -40,7 +40,6 @@ def _der(x: np.ndarray):
     return der
 
 
-@njit(fastmath=True, cache=True)
 def series_slope_derivative(X: np.ndarray):
     """Find the slope derivative of 3D time series.
 
@@ -52,12 +51,7 @@ def series_slope_derivative(X: np.ndarray):
     -------
     np.ndarray shape (n_time_series, n_channels, series_length)
     """
-    shape = X.shape
-    der = np.zeros(shape=shape)
-    for i in range(shape[0]):
-        for j in range(shape[1]):
-            der[i][j] = _der(X[i][j])
-    return der
+    return np.apply_along_axis(_der, axis=-1, arr=X)
 
 
 class ElasticEnsemble(BaseClassifier):
