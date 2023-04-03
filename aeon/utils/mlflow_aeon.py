@@ -62,17 +62,17 @@ FLAVOR_NAME = "mlflow_aeon"
 
 PYFUNC_PREDICT_CONF = "pyfunc_predict_conf"
 PYFUNC_PREDICT_CONF_KEY = "predict_method"
-aeon_PREDICT = "predict"
-aeon_PREDICT_INTERVAL = "predict_interval"
-aeon_PREDICT_PROBA = "predict_proba"
-aeon_PREDICT_QUANTILES = "predict_quantiles"
-aeon_PREDICT_VAR = "predict_var"
-SUPPORTED_aeon_PREDICT_METHODS = [
-    aeon_PREDICT,
-    aeon_PREDICT_INTERVAL,
-    aeon_PREDICT_PROBA,
-    aeon_PREDICT_QUANTILES,
-    aeon_PREDICT_VAR,
+AEON_PREDICT = "predict"
+AEON_PREDICT_INTERVAL = "predict_interval"
+AEON_PREDICT_PROBA = "predict_proba"
+AEON_PREDICT_QUANTILES = "predict_quantiles"
+AEON_PREDICT_VAR = "predict_var"
+SUPPORTED_AEON_PREDICT_METHODS = [
+    AEON_PREDICT,
+    AEON_PREDICT_INTERVAL,
+    AEON_PREDICT_PROBA,
+    AEON_PREDICT_QUANTILES,
+    AEON_PREDICT_VAR,
 ]
 
 SERIALIZATION_FORMAT_PICKLE = "pickle"
@@ -121,7 +121,7 @@ def get_default_conda_env(include_cloudpickle=False):
 
 
 def save_model(
-    aeon_model,
+    estimator,
     path,
     conda_env=None,
     code_paths=None,
@@ -136,7 +136,7 @@ def save_model(
 
     Parameters
     ----------
-    aeon_model :
+    estimator :
         Fitted aeon model object.
     path : str
         Local path where the model is to be saved.
@@ -207,7 +207,7 @@ def save_model(
     ARIMA(...)
     >>> model_path = "model"  # doctest: +SKIP
     >>> mlflow_aeon.save_model(  # doctest: +SKIP
-    ...     aeon_model=forecaster,
+    ...     estimator=forecaster,
     ...     path=model_path)  # doctest: +SKIP
     >>> loaded_model = mlflow_aeon.load_model(model_uri=model_path)  # doctest: +SKIP
     >>> loaded_model.predict(fh=[1, 2, 3])  # doctest: +SKIP
@@ -261,7 +261,7 @@ def save_model(
 
     model_data_subpath = "model.pkl"
     model_data_path = os.path.join(path, model_data_subpath)
-    _save_model(aeon_model, model_data_path, serialization_format=serialization_format)
+    _save_model(estimator, model_data_path, serialization_format=serialization_format)
 
     pyfunc.add_to_model(
         mlflow_model,
@@ -308,7 +308,7 @@ def save_model(
 
 
 def log_model(
-    aeon_model,
+    estimator,
     artifact_path,
     conda_env=None,
     code_paths=None,
@@ -326,7 +326,7 @@ def log_model(
 
     Parameters
     ----------
-    aeon_model : fitted aeon model
+    estimator : fitted aeon model
         Fitted aeon model object.
     artifact_path : str
         Run-relative artifact path to save the model to.
@@ -417,7 +417,7 @@ def log_model(
     >>> mlflow.start_run()  # doctest: +SKIP
     >>> artifact_path = "model"  # doctest: +SKIP
     >>> model_info = mlflow_aeon.log_model(
-    ...     aeon_model=forecaster,
+    ...     estimator=forecaster,
     ...     artifact_path=artifact_path)  # doctest: +SKIP
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
@@ -432,7 +432,7 @@ def log_model(
         artifact_path=artifact_path,
         flavor=utils.mlflow_aeon,
         registered_model_name=registered_model_name,
-        aeon_model=aeon_model,
+        estimator=estimator,
         conda_env=conda_env,
         code_paths=code_paths,
         signature=signature,
@@ -490,7 +490,7 @@ def load_model(model_uri, dst_path=None):
     ARIMA(...)
     >>> model_path = "model"  # doctest: +SKIP
     >>> mlflow_aeon.save_model(  # doctest: +SKIP
-    ...     aeon_model=forecaster,
+    ...     estimator=forecaster,
     ...     path=model_path)
     >>> loaded_model = mlflow_aeon.load_model(model_uri=model_path)  # doctest: +SKIP
     """  # noqa: E501
@@ -508,12 +508,12 @@ def load_model(model_uri, dst_path=None):
         model_path=local_model_path, flavor_name=FLAVOR_NAME
     )
     _add_code_from_conf_to_system_path(local_model_path, flavor_conf)
-    aeon_model_file_path = os.path.join(local_model_path, flavor_conf["pickled_model"])
+    estimator_file_path = os.path.join(local_model_path, flavor_conf["pickled_model"])
     serialization_format = flavor_conf.get(
         "serialization_format", SERIALIZATION_FORMAT_PICKLE
     )
     return _load_model(
-        path=aeon_model_file_path, serialization_format=serialization_format
+        path=estimator_file_path, serialization_format=serialization_format
     )
 
 
@@ -619,9 +619,9 @@ def _load_pyfunc(path):
 
 
 class _aeonModelWrapper:
-    def __init__(self, aeon_model):
+    def __init__(self, estimator):
         _check_soft_dependencies("mlflow", severity="error")
-        self.aeon_model = aeon_model
+        self.estimator = estimator
 
     def predict(self, X):
         from mlflow.exceptions import MlflowException
@@ -630,17 +630,17 @@ class _aeonModelWrapper:
         X = None if X.empty else X
         raw_predictions = {}
 
-        if not hasattr(self.aeon_model, "pyfunc_predict_conf"):
-            raw_predictions[aeon_PREDICT] = self.aeon_model.predict(X=X)
+        if not hasattr(self.estimator, "pyfunc_predict_conf"):
+            raw_predictions[AEON_PREDICT] = self.estimator.predict(X=X)
 
         else:
-            if not isinstance(self.aeon_model.pyfunc_predict_conf, dict):
+            if not isinstance(self.estimator.pyfunc_predict_conf, dict):
                 raise MlflowException(
                     f"Attribute {PYFUNC_PREDICT_CONF} must be of type dict.",
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if PYFUNC_PREDICT_CONF_KEY not in self.aeon_model.pyfunc_predict_conf:
+            if PYFUNC_PREDICT_CONF_KEY not in self.estimator.pyfunc_predict_conf:
                 raise MlflowException(
                     f"Attribute {PYFUNC_PREDICT_CONF} must contain "
                     f"a dictionary key {PYFUNC_PREDICT_CONF_KEY}.",
@@ -648,17 +648,17 @@ class _aeonModelWrapper:
                 )
 
             if isinstance(
-                self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], list
+                self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], list
             ):
-                predict_methods = self.aeon_model.pyfunc_predict_conf[
+                predict_methods = self.estimator.pyfunc_predict_conf[
                     PYFUNC_PREDICT_CONF_KEY
                 ]
                 predict_params = False
             elif isinstance(
-                self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
+                self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
             ):
                 predict_methods = list(
-                    self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY].keys()
+                    self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY].keys()
                 )
                 predict_params = True
             else:
@@ -667,110 +667,110 @@ class _aeonModelWrapper:
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if not set(predict_methods).issubset(set(SUPPORTED_aeon_PREDICT_METHODS)):
+            if not set(predict_methods).issubset(set(SUPPORTED_AEON_PREDICT_METHODS)):
                 raise MlflowException(
                     f"The provided {PYFUNC_PREDICT_CONF_KEY} values must be "
-                    f"a subset of {SUPPORTED_aeon_PREDICT_METHODS}",
+                    f"a subset of {SUPPORTED_AEON_PREDICT_METHODS}",
                     error_code=INVALID_PARAMETER_VALUE,
                 )
 
-            if aeon_PREDICT in predict_methods:
-                raw_predictions[aeon_PREDICT] = self.aeon_model.predict(X=X)
+            if AEON_PREDICT in predict_methods:
+                raw_predictions[AEON_PREDICT] = self.estimator.predict(X=X)
 
-            if aeon_PREDICT_INTERVAL in predict_methods:
+            if AEON_PREDICT_INTERVAL in predict_methods:
                 if predict_params:
                     coverage = (
                         0.9
                         if "coverage"
-                        not in self.aeon_model.pyfunc_predict_conf[
+                        not in self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_INTERVAL]
-                        else self.aeon_model.pyfunc_predict_conf[
+                        ][AEON_PREDICT_INTERVAL]
+                        else self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_INTERVAL]["coverage"]
+                        ][AEON_PREDICT_INTERVAL]["coverage"]
                     )
                 else:
                     coverage = 0.9
 
                 raw_predictions[
-                    aeon_PREDICT_INTERVAL
-                ] = self.aeon_model.predict_interval(X=X, coverage=coverage)
+                    AEON_PREDICT_INTERVAL
+                ] = self.estimator.predict_interval(X=X, coverage=coverage)
 
-            if aeon_PREDICT_PROBA in predict_methods:
+            if AEON_PREDICT_PROBA in predict_methods:
                 if not isinstance(
-                    self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
+                    self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY], dict
                 ):
                     raise MlflowException(
-                        f"Method {aeon_PREDICT_PROBA} requires passing a dictionary.",
+                        f"Method {AEON_PREDICT_PROBA} requires passing a dictionary.",
                         error_code=INVALID_PARAMETER_VALUE,
                     )
 
                 if (
                     "quantiles"
-                    not in self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
-                        aeon_PREDICT_PROBA
+                    not in self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        AEON_PREDICT_PROBA
                     ]
                 ):
                     raise MlflowException(
-                        f"Method {aeon_PREDICT_PROBA} requires passing "
+                        f"Method {AEON_PREDICT_PROBA} requires passing "
                         f"quantile values.",
                         error_code=INVALID_PARAMETER_VALUE,
                     )
 
-                quantiles = self.aeon_model.pyfunc_predict_conf[
-                    PYFUNC_PREDICT_CONF_KEY
-                ][aeon_PREDICT_PROBA]["quantiles"]
+                quantiles = self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                    AEON_PREDICT_PROBA
+                ]["quantiles"]
                 marginal = (
                     True
                     if "marginal"
-                    not in self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
-                        aeon_PREDICT_PROBA
+                    not in self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        AEON_PREDICT_PROBA
                     ]
-                    else self.aeon_model.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
-                        aeon_PREDICT_PROBA
+                    else self.estimator.pyfunc_predict_conf[PYFUNC_PREDICT_CONF_KEY][
+                        AEON_PREDICT_PROBA
                     ]["marginal"]
                 )
 
-                y_pred_dist = self.aeon_model.predict_proba(X=X, marginal=marginal)
+                y_pred_dist = self.estimator.predict_proba(X=X, marginal=marginal)
                 y_pred_dist_quantiles = pd.DataFrame(y_pred_dist.quantile(quantiles))
                 y_pred_dist_quantiles.columns = [f"Quantiles_{q}" for q in quantiles]
                 y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
 
-                raw_predictions[aeon_PREDICT_PROBA] = y_pred_dist_quantiles
+                raw_predictions[AEON_PREDICT_PROBA] = y_pred_dist_quantiles
 
-            if aeon_PREDICT_QUANTILES in predict_methods:
+            if AEON_PREDICT_QUANTILES in predict_methods:
                 if predict_params:
                     alpha = (
                         None
                         if "alpha"
-                        not in self.aeon_model.pyfunc_predict_conf[
+                        not in self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_QUANTILES]
-                        else self.aeon_model.pyfunc_predict_conf[
+                        ][AEON_PREDICT_QUANTILES]
+                        else self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_QUANTILES]["alpha"]
+                        ][AEON_PREDICT_QUANTILES]["alpha"]
                     )
                 else:
                     alpha = None
                 raw_predictions[
-                    aeon_PREDICT_QUANTILES
-                ] = self.aeon_model.predict_quantiles(X=X, alpha=alpha)
+                    AEON_PREDICT_QUANTILES
+                ] = self.estimator.predict_quantiles(X=X, alpha=alpha)
 
-            if aeon_PREDICT_VAR in predict_methods:
+            if AEON_PREDICT_VAR in predict_methods:
                 if predict_params:
                     cov = (
                         False
                         if "cov"
-                        not in self.aeon_model.pyfunc_predict_conf[
+                        not in self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_VAR]
-                        else self.aeon_model.pyfunc_predict_conf[
+                        ][AEON_PREDICT_VAR]
+                        else self.estimator.pyfunc_predict_conf[
                             PYFUNC_PREDICT_CONF_KEY
-                        ][aeon_PREDICT_VAR]["cov"]
+                        ][AEON_PREDICT_VAR]["cov"]
                     )
                 else:
                     cov = False
-                raw_predictions[aeon_PREDICT_VAR] = self.aeon_model.predict_var(
+                raw_predictions[AEON_PREDICT_VAR] = self.estimator.predict_var(
                     X=X, cov=cov
                 )
 
