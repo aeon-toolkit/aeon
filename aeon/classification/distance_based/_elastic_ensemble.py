@@ -130,18 +130,7 @@ class ElasticEnsemble(BaseClassifier):
         verbose=0,
         majority_vote=False,
     ):
-        if distance_measures == "all":
-            self._distance_measures = [
-                "dtw",
-                "ddtw",
-                "wdtw",
-                "wddtw",
-                "lcss",
-                "erp",
-                "msm",
-            ]
-        else:
-            self._distance_measures = distance_measures
+        self.distance_measures = distance_measures
         self.proportion_train_in_param_finding = proportion_train_in_param_finding
         self.proportion_of_param_options = proportion_of_param_options
         self.proportion_train_for_test = proportion_train_for_test
@@ -168,6 +157,19 @@ class ElasticEnsemble(BaseClassifier):
         -------
         self : object
         """
+        if self.distance_measures == "all":
+            self._distance_measures = [
+                "dtw",
+                "ddtw",
+                "wdtw",
+                "wddtw",
+                "lcss",
+                "erp",
+                "msm",
+            ]
+        else:
+            self._distance_measures = self.distance_measures
+
         # Derivative DTW (DDTW) uses the regular DTW algorithm on data that
         # are transformed into derivatives.
         if self._distance_measures.__contains__(
