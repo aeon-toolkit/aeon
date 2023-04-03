@@ -6,9 +6,6 @@
 ``aeon`` uses ``pytest`` for testing interface compliance of estimators, and correctness of code.
 This page gives an overview over the tests, and introductions on how to add tests, or how to extend the testing framework.
 
-.. contents::
-   :local:
-
 Test module architecture
 ------------------------
 
