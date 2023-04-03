@@ -12,7 +12,6 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
-from numba import njit
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import (
     GridSearchCV,
@@ -28,20 +27,15 @@ from aeon.classification.distance_based._time_series_neighbors import (
 )
 
 
-@njit(fastmath=True, cache=True)
 def _der(x: np.ndarray):
-    """Loop based derivative slope transform."""
-    m = len(x)
-    der = np.zeros(m)
-    for i in range(1, m - 1):
-        der[i] = ((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2.0)) / 2.0
-    der[0] = der[1]
-    der[m - 1] = der[m - 2]
-    return der
+    """Perform derivative slope transform on single series."""
+    d = ((x[1:-1] - x[:-2]) + ((x[2:] - x[:-2]) / 2.0)) / 2.0
+    d = np.concatenate(([d[0]], d, [d[-1]]))
+    return d
 
 
 def series_slope_derivative(X: np.ndarray):
-    """Find the slope derivative of 3D time series.
+    """Find the slope derivative of collection of time series.
 
     Parameters
     ----------
