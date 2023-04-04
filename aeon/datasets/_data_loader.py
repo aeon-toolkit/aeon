@@ -22,7 +22,7 @@ def _load_header_info(file):
         "timestamps": False,
         "missing": False,
         "univariate": True,
-        "equalLength": True,
+        "equallength": True,
         "classlabel": True,
         "targetlabel": False,
         "class_values": [],
@@ -61,6 +61,7 @@ def _load_header_info(file):
                             "must be supplied"
                         )
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
+    return meta_data
 
 
 def _load_data(file, meta_data):
@@ -158,6 +159,7 @@ def load_from_tsfile(
                 return_separate_X_and_y=True,
                 replace_missing_vals_with=replace_missing_vals_with,
             )
+            meta_data = {}
     if return_meta_data:
         return data, y, meta_data
     return data, y
