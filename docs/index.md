@@ -25,7 +25,7 @@ Get started with time series forecasting.
 
 +++
 
-```{button-ref} get_started
+```{button-ref} /examples/01_forecasting.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -47,7 +47,7 @@ Get started with time series classification.
 
 +++
 
-```{button-ref} users
+```{button-ref} /examples/classification/classification.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -69,7 +69,7 @@ Get started with time series extrinsic regression.
 
 +++
 
-```{button-ref} installation
+```{button-ref} examples-regression
 :color: primary
 :click-parent:
 :expand:
@@ -91,7 +91,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} api_reference
+```{button-ref} examples-clustering
 :color: primary
 :click-parent:
 :expand:
@@ -105,7 +105,7 @@ Clustering
 :img-top: examples/img/transformation.png
 :text-align: center
 
-Transformations
+Transformation
 
 ^^^
 
@@ -113,12 +113,12 @@ Get started with time series transformations.
 
 +++
 
-```{button-ref} get_involved
+```{button-ref} examples-transformation
 :color: primary
 :click-parent:
 :expand:
 
-Transformations
+Transformation
 ```
 
 :::
@@ -143,7 +143,7 @@ Transformations
 installation
 get_started
 api_reference
-examples
+examples.md
 get_involved
 users
 developers

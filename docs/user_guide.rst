@@ -23,7 +23,50 @@ The notebook files can be found `here <https://github.com/aeon-toolkit/aeon/blob
 .. _scikit-learn: https://scikit-learn.org/stable/
 .. _getting-started guide: https://scikit-learn.org/stable/getting_started.html
 
-.. nbgallery::
-    :glob:
+.. grid:: 2 4 4 4
+    :gutter: 1
 
-    examples/*
+    .. grid-item-card::
+        :img-top: examples/img/forecasting2.png
+        :link: /examples/01_forecasting.ipynb
+        :link-type: ref
+        :text-align: center
+
+        Forecasting with sktime
+
+    .. grid-item-card::
+        :link: /examples/01a_forecasting_sklearn.ipynb
+        :link-type: ref
+        :text-align: center
+
+        Forecasting with sktime - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+
+
+    .. grid-item-card::
+        :link: /examples/01b_forecasting_proba.ipynb
+        :link-type: ref
+        :text-align: center
+
+        Probabilistic Forecasting with sktime
+
+    .. grid-item-card::
+        :img-top: examples/img/tsc.png
+        :link: /examples/classification/classification.ipynb
+        :link-type: ref
+        :text-align: center
+
+        Time Series Classification with aeon
+
+    .. grid-item-card::
+        :link: /examples/04_benchmarking.ipynb
+        :link-type: ref
+        :text-align: center
+
+        Benchmarking with sktime
+
+    .. grid-item-card::
+        :link: /examples/AA_datatypes_and_datasets.ipynb
+        :link-type: ref
+        :text-align: center
+
+        In-memory data representations and data loading
