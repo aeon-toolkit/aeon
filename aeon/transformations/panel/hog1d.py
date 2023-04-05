@@ -7,26 +7,11 @@ import numpy as np
 
 from aeon.transformations.base import BaseTransformer
 
-"""
-The HOG1D Transformer proposed by:
-
-@article{zhao2015classifying,
-  title={Classifying time series using local descriptors with hybrid sampling},
-  author={Zhao, Jiaping and Itti, Laurent},
-  journal={IEEE Transactions on Knowledge and Data Engineering},
-  volume={28},
-  number={3},
-  pages={623--637},
-  year={2015},
-  publisher={IEEE}
-}
-"""
-
 
 class HOG1DTransformer(BaseTransformer):
     """HOG1D transform.
 
-    This transformer calculates the HOG1D transform of a collection of time seriess.
+    This transformer calculates the HOG1D transform [1] of a collection of time seriess.
     HOG1D splits each time series num_intervals times, and finds a histogram of
     gradients within each interval.
 
@@ -36,6 +21,11 @@ class HOG1DTransformer(BaseTransformer):
         num_bins        : int, num bins in the histogram.
         scaling_factor  : float, a constant that is multiplied
                           to modify the distribution.
+
+    Notes
+    -----
+    [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
+    hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
     """
 
     _tags = {
@@ -54,8 +44,6 @@ class HOG1DTransformer(BaseTransformer):
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
-
-        private _transform containing core logic, called from transform
 
         Parameters
         ----------
