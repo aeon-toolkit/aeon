@@ -3,9 +3,6 @@
 Dependencies
 ============
 
-.. contents::
-   :local:
-
 Types of dependencies
 ---------------------
 

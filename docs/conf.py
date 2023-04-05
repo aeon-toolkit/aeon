@@ -59,14 +59,10 @@ extensions = [
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
     "numpydoc",
     "nbsphinx",  # integrates example notebooks
-    "sphinx_gallery.load_style",
     "sphinx_design",
     "sphinx_issues",
     "myst_parser",
 ]
-
-# Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence"]
 
 # Notebook thumbnails
 nbsphinx_thumbnails = {
@@ -135,6 +131,11 @@ autodoc_default_options = {
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
 
+# Link to GitHub repo for github_issues extension
+issues_github_path = "aeon-toolkit/aeon"
+
+# MyST Parser configuration
+
 # When building HTML using the sphinx.ext.mathjax (enabled by default),
 # Myst-Parser injects the tex2jax_ignore (MathJax v2) and mathjax_ignore (MathJax v3)
 # classes in to the top-level section of each MyST document, and adds some default
@@ -143,8 +144,10 @@ add_function_parentheses = False
 # the corresponding warning that this override happens.
 suppress_warnings = ["myst.mathjax"]
 
-# Link to GitHub repo for github_issues extension
-issues_github_path = "aeon-toolkit/aeon"
+# Recommended by sphinx_design when using the MyST Parser
+myst_enable_extensions = ["colon_fence"]
+
+myst_heading_anchors = 2
 
 
 def linkcode_resolve(domain, info):

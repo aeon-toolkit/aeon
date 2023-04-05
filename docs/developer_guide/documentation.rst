@@ -15,9 +15,6 @@ These include:
 
 More detailed information on ``aeon's`` documentation format is provided below.
 
-.. contents::
-   :local:
-
 Docstring Conventions
 ---------------------
 
