@@ -15,11 +15,11 @@ from joblib import Parallel, delayed
 from numba import njit
 
 from aeon.datatypes import convert_to
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BasePanelTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-class Catch22(BaseTransformer):
+class Catch22(BasePanelTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
     Overview: Input n series with d dimensions of length m

@@ -22,7 +22,7 @@ from sklearn import preprocessing
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import class_distribution
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BasePanelTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
 
@@ -88,7 +88,7 @@ class _ShapeletPQ:
         return self._queue
 
 
-class ShapeletTransform(BaseTransformer):
+class ShapeletTransform(BasePanelTransformer):
     """Shapelet Transform.
 
     The original shapelet transform, as described in [1,2]. The transform performs a
@@ -850,7 +850,7 @@ class ShapeletTransform(BaseTransformer):
         return sum_dist
 
 
-class RandomShapeletTransform(BaseTransformer):
+class RandomShapeletTransform(BasePanelTransformer):
     """Random Shapelet Transform.
 
     Implementation of the binary shapelet transform along the lines of [1]_[2]_, with

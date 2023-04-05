@@ -8,14 +8,14 @@ __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 from warnings import warn
 
 from aeon.datatypes._panel._convert import from_nested_to_long
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BasePanelTransformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("tsfresh", severity="warning")
 
 
-class _TSFreshFeatureExtractor(BaseTransformer):
+class _TSFreshFeatureExtractor(BasePanelTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
