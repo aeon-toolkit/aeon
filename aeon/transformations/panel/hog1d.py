@@ -75,14 +75,15 @@ class HOG1DTransformer(BaseTransformer):
             raise ValueError("HOG1D does not support multivariate time series.")
         # Check the parameters are appropriate
         self._check_parameters(series_length)
-        transformedData = []
+        transX = []
         for i in range(n_cases):
             # Get the HOG1Ds of each time series
             inst = self._calculate_hog1ds(X[i][0])
-            transformedData.append(inst)
+            transX.append(inst)
             # Convert to numpy array
-        transformedData = np.asarray(transformedData)
-        return transformedData
+        transX = np.asarray(transX)
+        transX = np.reshape(transX, [transX.shape[0], 1, transX.shape[1]])
+        return transX
 
     def _calculate_hog1ds(self, X):
         """Calculate the HOG1Ds given a time series.
