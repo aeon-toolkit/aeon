@@ -19,14 +19,11 @@ class _TSFreshFeatureExtractor(BasePanelTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": True,
+        "X_inner_mtype": "nested_univ",
+        "y_inner_mtype": "None",
+        "scitype:instancewise": True,
         "python_dependencies": "tsfresh",
     }
 
@@ -461,12 +458,10 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "requires_y": True,  # does y need to be passed in fit?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "requires_y": True,
         "y_inner_mtype": "pd_Series_Table",
-        # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": False,
     }
 
     def __init__(

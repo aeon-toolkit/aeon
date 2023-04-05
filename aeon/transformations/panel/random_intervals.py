@@ -47,7 +47,6 @@ class RandomIntervals(BasePanelTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": True,
         "X_inner_mtype": "numpy3D",

@@ -127,11 +127,11 @@ class ShapeletTransform(BasePanelTransformer):
 
     _tags = {
         "scitype:transform-output": "Primitives",
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # and for y?
-        "requires_y": True,
-        "univariate-only": True,
         "fit_is_empty": False,
+        "univariate-only": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(

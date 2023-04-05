@@ -81,7 +81,6 @@ class Catch22(BasePanelTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": True,
         "X_inner_mtype": "nested_univ",
