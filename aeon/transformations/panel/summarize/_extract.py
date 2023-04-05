@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
+from aeon.classification.distance_based._elastic_ensemble import series_slope_derivative
 from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
@@ -52,13 +53,11 @@ class PlateauFinder(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_samples, n_columns]
-            Nested dataframe with time-series in cells.
+        X : numpy3D array shape [n_cases, n_channels, series_length]
 
         Returns
         -------
-        Xt : pandas DataFrame
-          Transformed pandas DataFrame
+        X : numpy3D array shape [n_cases, n_channels, series_length]
         """
         # get column name
         column_name = X.columns[0]
@@ -113,38 +112,15 @@ class DerivativeSlopeTransformer(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
-    # TODO add docstrings
     def _transform(self, X, y=None):
         """Transform X."""
-        num_cases, num_dim = X.shape
-        output_df = pd.DataFrame()
-        for dim in range(num_dim):
-            dim_data = X.iloc[:, dim]
-            out = self.row_wise_get_der(dim_data)
-            output_df["der_dim_" + str(dim)] = pd.Series(out)
-
-        return output_df
-
-    @staticmethod
-    def row_wise_get_der(X):
-        """Get derivatives."""
-
-        def get_der(x):
-            der = []
-            for i in range(1, len(x) - 1):
-                der.append(((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2)) / 2)
-            return pd.Series([der[0]] + der + [der[-1]])
-
-        return [get_der(x) for x in X]
+        return series_slope_derivative(X)
 
 
 def _check_features(features):
