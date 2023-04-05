@@ -389,8 +389,7 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     Returns
     -------
-        df : pandas dataframe of shape
-             [n_instances, n_timepoints]
+        np.array [n_instances, n_timepoints, window_length]
 
     Proposed in the ShapeDTW algorithm.
     """
@@ -403,7 +402,7 @@ class SlidingWindowSegmenter(BaseTransformer):
         "scitype:transform-output": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
     }
 
@@ -416,17 +415,18 @@ class SlidingWindowSegmenter(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to be transformed
+        X : 3D np.ndarray of shape = [n_cases, 1, series_length]
+            collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        dims: a pandas data frame of shape = [n_instances, n_timepoints]
+        X : 3D np.ndarray of shape = [n_cases, series_length, window_length]
+            windowed series
         """
         # get the number of attributes and instances
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
+        if X.shape[1] > 1:
+            raise ValueError("Segmenter does not support multivariate")
         X = X.squeeze(1)
 
         n_timepoints = X.shape[1]
@@ -447,17 +447,7 @@ class SlidingWindowSegmenter(BaseTransformer):
         # Extract subsequences
         for i in range(n_instances):
             subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
-
-        # Convert this into a panda's data frame
-        df = pd.DataFrame()
-        for i in range(len(subsequences)):
-            inst = subsequences[i]
-            data = []
-            for j in range(len(inst)):
-                data.append(pd.Series(inst[j]))
-            df[i] = data
-
-        return df.transpose()
+        return np.array(subsequences)
 
     def _extract_subsequences(self, instance, n_timepoints):
         """Extract a set of subsequences from a list of instances.
