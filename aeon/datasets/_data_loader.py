@@ -34,11 +34,11 @@ def _load_header_info(file):
             tokens = line.split(" ")
             token_len = len(tokens)
             key = tokens[0][1:]
+            if key == "data":
+                if line != "@data":
+                    raise IOError("data tag should not have an associated value")
+                return meta_data
             if key in meta_data.keys():
-                if key == "data":
-                    if line != "@data":
-                        raise IOError("data tag should not have an associated value")
-                    return meta_data
                 if key in boolean_keys:
                     if token_len != 2:
                         raise IOError(f"{tokens[0]} tag requires a boolean value")
@@ -91,6 +91,7 @@ def _load_data(file, meta_data):
     y_values = []
     for line in file:
         line = line.strip().lower()
+        line = line.replace("?", "NaN")
         channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
@@ -131,6 +132,8 @@ def _load_data(file, meta_data):
         data.append(np_case)
         if meta_data["classlabel"] or meta_data["targetlabel"]:
             y_values.append(channels[n_channels])
+    if meta_data["equallength"]:
+        data = np.array(data)
     return data, np.asarray(y_values), meta_data
 
 
