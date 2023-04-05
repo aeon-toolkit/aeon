@@ -37,7 +37,6 @@ from aeon.datatypes import (
     mtype_to_scitype,
     update_data,
 )
-from aeon.datatypes._series_as_panel import convert_to_scitype
 from aeon.transformations.base import BaseTransformer, _coerce_to_list
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -178,7 +177,7 @@ class BasePanelTransformer(BaseTransformer):
         Xt = self._transform(X=X_inner, y=y_inner)
 
         # convert to output mtype
-        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+        if self._output_convert == "auto":
             Xt = self._convert_output(Xt, metadata=metadata)
 
         return Xt
@@ -247,7 +246,7 @@ class BasePanelTransformer(BaseTransformer):
         self._is_fitted = True
 
         # convert to output mtype
-        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+        if self._output_convert == "auto":
             Xt = self._convert_output(Xt, metadata=metadata)
 
         return Xt
@@ -515,7 +514,6 @@ class BasePanelTransformer(BaseTransformer):
         Xt = X
         X_input_mtype = metadata["_X_mtype_last_seen"]
         X_input_scitype = metadata["_X_input_scitype"]
-        case = metadata["_convert_case"]
         _converter_store_X = metadata["_converter_store_X"]
 
         if inverse:
@@ -523,18 +521,6 @@ class BasePanelTransformer(BaseTransformer):
             output_scitype = self.get_tag("scitype:transform-input")
         else:
             output_scitype = self.get_tag("scitype:transform-output")
-
-        # if we converted Series to "one-instance-Panel/Hierarchical",
-        #   or Panel to "one-instance-Hierarchical", then revert that
-        # remainder is as in case 1
-        #   skipped for output_scitype = "Primitives"
-        #       since then the output always is a pd.DataFrame
-        if case == "case 2: higher scitype supported" and output_scitype == "Series":
-            Xt = convert_to(
-                Xt,
-                to_type=["pd-multiindex", "numpy3D", "df-list", "pd_multiindex_hier"],
-            )
-            Xt = convert_to_scitype(Xt, to_scitype=X_input_scitype)
 
         # now, in all cases, Xt is in the right scitype,
         #   but not necessarily in the right mtype.
