@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Extension template for forecasters.
 
@@ -17,9 +16,10 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to sktime via PR
-- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to aeon via PR
+- more details:
+    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting         - _fit(self, y, X=None, fh=None)
@@ -33,13 +33,10 @@ Optional implements:
     distribution forecast       - _predict_proba(self, fh, X=None)
     fitted parameter inspection - _get_fitted_params()
 
-Testing - implement if sktime forecaster (not needed locally):
+Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
 # todo: write an informative docstring for the file or module, remove the above
-# todo: add an appropriate copyright notice for your estimator
-#       estimators contributed to sktime should have the copyright notice at the top
-#       estimators of your own do not need to have permissive or BSD-3 copyright
 
 # todo: uncomment the following line, enter authors' GitHub IDs
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
@@ -49,11 +46,11 @@ from aeon.forecasting.base import BaseForecaster
 
 # todo: add any necessary imports here
 
-# todo: if any imports are sktime soft dependencies:
+# todo: if any imports are aeon soft dependencies:
 #  * make sure to fill in the "python_dependencies" tag with the package import name
 #  * add a _check_soft_dependencies warning here, example:
 #
-# from sktime.utils.validation._dependencies import check_soft_dependencies
+# from aeon.utils.validation._dependencies import check_soft_dependencies
 # _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
@@ -71,7 +68,7 @@ class MyForecaster(BaseForecaster):
     paramc : boolean, optional (default= whether paramb is not the default)
         descriptive explanation of paramc
     and so on
-    est : sktime.estimator, BaseEstimator descendant
+    est : aeon.estimator, BaseEstimator descendant
         descriptive explanation of est
     est2: another estimator
         descriptive explanation of est2
@@ -87,7 +84,7 @@ class MyForecaster(BaseForecaster):
     #   y_inner_mtype should be changed to pd.DataFrame
     # other tags are "safe defaults" which can usually be left as-is
     _tags = {
-        # to list all valid tags with description, use sktime.registry.all_tags
+        # to list all valid tags with description, use aeon.registry.all_tags
         #   all_tags(estimator_types="forecaster", as_dataframe=True)
         #
         # behavioural tags: internal type
@@ -98,7 +95,7 @@ class MyForecaster(BaseForecaster):
         "y_inner_mtype": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   in that case, all inputs are converted to that one type
         # if list of str, must be a list of valid str specifiers
@@ -208,7 +205,7 @@ class MyForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : sktime time series object
+        y : aeon time series object
             guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
             Time series to which to fit the forecaster.
             if self.get_tag("scitype:y")=="univariate":
@@ -220,7 +217,7 @@ class MyForecaster(BaseForecaster):
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X :  sktime time series object, optional (default=None)
+        X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series to fit to.
 
@@ -261,13 +258,13 @@ class MyForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : sktime time series object, optional (default=None)
+        X : aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
 
         Returns
         -------
-        y_pred : sktime time series object
+        y_pred : aeon time series object
             should be of the same type as seen in _fit, as in "y_inner_mtype" tag
             Point predictions
         """
@@ -295,7 +292,7 @@ class MyForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : sktime time series object
+        y : aeon time series object
             guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
             Time series with which to update the forecaster.
             if self.get_tag("scitype:y")=="univariate":
@@ -303,7 +300,7 @@ class MyForecaster(BaseForecaster):
             if self.get_tag("scitype:y")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("scitype:y")=="both": no restrictions apply
-        X :  sktime time series object, optional (default=None)
+        X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
@@ -358,7 +355,7 @@ class MyForecaster(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X :  sktime time series object, optional (default=None)
+        X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -401,7 +398,7 @@ class MyForecaster(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X :  sktime time series object, optional (default=None)
+        X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -444,7 +441,7 @@ class MyForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X :  sktime time series object, optional (default=None)
+        X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
         cov : bool, optional (default=False)
@@ -490,7 +487,7 @@ class MyForecaster(BaseForecaster):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : sktime time series object, optional (default=None)
+        X : aeon time series object, optional (default=None)
                 Exogeneous time series for the forecast
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
@@ -566,7 +563,7 @@ class MyForecaster(BaseForecaster):
         #   separate component name from parameter name by double-underscore
         #   e.g., componentname__paramname
 
-    # todo: implement this if this is an estimator contributed to sktime
+    # todo: implement this if this is an estimator contributed to aeon
     #   or to run local automated unit and integration testing of estimator
     #   method should return default parameters, so that a test instance can be created
     @classmethod
@@ -595,7 +592,7 @@ class MyForecaster(BaseForecaster):
         #
         # this method can, if required, use:
         #   class properties (e.g., inherited); parent class test case
-        #   imported objects such as estimators from sktime or sklearn
+        #   imported objects such as estimators from aeon or sklearn
         # important: all such imports should be *inside get_test_params*, not at the top
         #            since imports are used only at testing time
         #

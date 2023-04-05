@@ -1,6 +1,6 @@
 {
-  "projectName": "sktime",
-  "projectOwner": "sktime",
+  "projectName": "aeon",
+  "projectOwner": "aeon",
   "repoType": "github",
   "repoHost": "https://github.com",
   "commitConvention": "none",

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test trend forecasters."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning", "fkiraly"]
 __all__ = ["get_expected_polynomial_coefs"]

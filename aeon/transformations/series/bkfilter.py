@@ -5,7 +5,7 @@ Implements Baxter-King bandpass filter transformation.
 Please see the original library
 (https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py)
 """
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["klam-data", "pyyim", "mgorlin"]
 __all__ = ["BKFilter"]

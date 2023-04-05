@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Pipeline with a classifier."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -18,7 +18,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
-    The pipeline is constructed with a list of sktime transformers, plus a classifier,
+    The pipeline is constructed with a list of aeon transformers, plus a classifier,
         i.e., estimators following the BaseTransformer resp BaseClassifier interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
@@ -56,17 +56,17 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Parameters
     ----------
-    classifier : sktime classifier, i.e., estimator inheriting from BaseClassifier
+    classifier : aeon classifier, i.e., estimator inheriting from BaseClassifier
         this is a "blueprint" classifier, state does not change when `fit` is called
-    transformers : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
-    classifier_ : sktime classifier, clone of classifier in `classifier`
+    classifier_ : aeon classifier, clone of classifier in `classifier`
         this clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
@@ -143,7 +143,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -153,12 +153,10 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if isinstance(other, BaseTransformer):
             # use the transformers dunder to get a TransformerPipeline
             trafo_pipeline = other * self.transformers_
-            # then stick the expanded pipeline in a ClassifierPipeline
-            new_pipeline = ClassifierPipeline(
+            return ClassifierPipeline(
                 classifier=self.classifier,
                 transformers=trafo_pipeline.steps,
             )
-            return new_pipeline
         else:
             return NotImplemented
 
@@ -233,7 +231,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         params : mapping of string to any
             Parameter names mapped to their values.
         """
-        params = dict()
+        params = {}
         trafo_params = self._get_params("_transformers", deep=deep)
         params.update(trafo_params)
 
@@ -248,9 +246,10 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         self : returns an instance of self.
         """
-        if "classifier" in kwargs.keys():
-            if not isinstance(kwargs["classifier"], BaseClassifier):
-                raise TypeError('"classifier" arg must be an sktime classifier')
+        if "classifier" in kwargs and not isinstance(
+            kwargs["classifier"], BaseClassifier
+        ):
+            raise TypeError('"classifier" arg must be an aeon classifier')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         classif_keys = self.classifier.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)
@@ -303,7 +302,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     The `SklearnClassifierPipeline` chains transformers and an single classifier.
         Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
-    The pipeline is constructed with a list of sktime transformers, plus a classifier,
+    The pipeline is constructed with a list of aeon transformers, plus a classifier,
         i.e., transformers following the BaseTransformer interface,
         classifier follows the `scikit-learn` classifier interface.
     The transformer list can be unnamed - a simple list of transformers -
@@ -336,7 +335,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             inside the list of names leading up to it (inclusive)
 
     `SklearnClassifierPipeline` can also be created by using the magic multiplication
-        between `sktime` transformers and `sklearn` classifiers,
+        between `aeon` transformers and `sklearn` classifiers,
             and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
             for instance, `my_trafo1 * my_trafo2 * my_clf`
             will result in the same object as  obtained from the constructor
@@ -348,15 +347,15 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     ----------
     classifier : sklearn classifier, i.e., inheriting from sklearn ClassifierMixin
         this is a "blueprint" classifier, state does not change when `fit` is called
-    transformers : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
     classifier_ : sklearn classifier, clone of classifier in `classifier`
         this clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
@@ -429,7 +428,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -439,12 +438,10 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if isinstance(other, BaseTransformer):
             # use the transformers dunder to get a TransformerPipeline
             trafo_pipeline = other * self.transformers_
-            # then stick the expanded pipeline in a SklearnClassifierPipeline
-            new_pipeline = SklearnClassifierPipeline(
+            return SklearnClassifierPipeline(
                 classifier=self.classifier,
                 transformers=trafo_pipeline.steps,
             )
-            return new_pipeline
         else:
             return NotImplemented
 
@@ -523,12 +520,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of probabilities for class values of X, np.ndarray
         """
         Xt = self.transformers_.transform(X)
-        if hasattr(self.classifier_, "predict_proba"):
-            Xt_sklearn = self._convert_X_to_sklearn(Xt)
-            return self.classifier_.predict_proba(Xt_sklearn)
-        else:
+        if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
+        return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
         """Get parameters of estimator in `transformers`.
@@ -544,7 +540,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         params : mapping of string to any
             Parameter names mapped to their values.
         """
-        params = dict()
+        params = {}
         trafo_params = self._get_params("_transformers", deep=deep)
         params.update(trafo_params)
 
@@ -559,9 +555,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         self : returns an instance of self.
         """
-        if "classifier" in kwargs.keys():
-            if not is_sklearn_classifier(kwargs["classifier"]):
-                raise TypeError('"classifier" arg must be an sklearn classifier')
+        if "classifier" in kwargs and not is_sklearn_classifier(kwargs["classifier"]):
+            raise TypeError('"classifier" arg must be an sklearn classifier')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         classif_keys = self.classifier.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)

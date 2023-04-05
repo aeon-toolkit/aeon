@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for base class conversion and vectorization functionality.
 
 Each test covers a "decision path" in the base class boilerplate,
     with a focus on frequently breaking paths in base class refactor and bugfixing.
 The path taken depends on tags of a given transformer, and input data type.
-Concrete transformer classes from sktime are imported to cover
+Concrete transformer classes from aeon are imported to cover
     different combinations of transformer tags.
 Transformer scenarios cover different combinations of input data types.
 """

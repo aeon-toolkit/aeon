@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests that soft dependencies are handled correctly.
 
-sktime supports a number of soft dependencies which are necessary for using
+aeon supports a number of soft dependencies which are necessary for using
 a certain module but otherwise not necessary.
 
 Adapted from code of mloning for the legacy Azure CI/CD build tools.
@@ -80,7 +80,7 @@ modules = [x for x in modules if not _is_test(x) and not _is_ignored(x)]
 
 @pytest.mark.parametrize("module", modules)
 def test_module_softdeps(module):
-    """Test soft dependency imports in sktime modules."""
+    """Test soft dependency imports in aeon modules."""
     # We try importing all modules and catch exceptions due to missing dependencies
     try:
         import_module(module)
@@ -90,7 +90,7 @@ def test_module_softdeps(module):
         # Check if appropriate exception with useful error message is raised as
         # defined in the `_check_soft_dependencies` function
         expected_error_msg = (
-            "is a soft dependency and not included in the base sktime installation"
+            "is a soft dependency and not included in the base aeon installation"
         )
         # message is different for deep learning deps tensorflow, tensorflow-proba
         error_msg_alt = "required for deep learning"
@@ -222,7 +222,7 @@ def test_softdep_error(estimator):
             # Check if appropriate exception with useful error message is raised as
             # defined in the `_check_soft_dependencies` function
             expected_error_msg = (
-                "is a soft dependency and not included in the base sktime installation"
+                "is a soft dependency and not included in the base aeon installation"
             )
             # message is different for deep learning deps tensorflow, tensorflow-proba
             error_msg_alt = "required for deep learning"
@@ -269,7 +269,7 @@ def test_est_get_params_without_modulenotfound(estimator):
         raise RuntimeError(
             f"Estimator {estimator.__name__} requires soft dependencies for parameters "
             f"returned by get_test_params. Test parameters should not require "
-            f"soft dependencies and use only sktime internal objects. "
+            f"soft dependencies and use only aeon internal objects. "
             f"Exception text: {error_msg}"
         ) from e
 

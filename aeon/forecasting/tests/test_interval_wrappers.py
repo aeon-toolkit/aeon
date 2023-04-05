@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests the conformal interval wrapper."""
 
 __author__ = ["fkiraly", "bethrice44"]
@@ -35,7 +35,7 @@ def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
     The wrappers require y to be pd.Series, and the internal estimator can have
     a different internal mtype.
 
-    We test all interval wrappers in sktime (wrapper).
+    We test all interval wrappers in aeon (wrapper).
 
     We test once with an internal forecaster that needs pd.DataFrame conversion,
     and one that accepts pd.Series.

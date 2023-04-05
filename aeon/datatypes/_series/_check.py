@@ -278,7 +278,7 @@ if _check_soft_dependencies("xarray", severity="none"):
             msg = f"{var_name} must have two or less dimension, found {type(obj.dims)}"
             return ret(False, msg, None, return_metadata)
 
-        # The first dimension is the index of the time series in sktimelen
+        # The first dimension is the index of the time series in aeonlen
         index = obj.indexes[obj.dims[0]]
 
         metadata["is_empty"] = len(index) < 1 or len(obj.values) < 1

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Utility functions for generating panel data and learning task scenarios."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning", "fkiraly"]
 __all__ = [
@@ -25,7 +25,7 @@ def _make_panel(
     random_state=None,
     return_mtype="pd-multiindex",
 ):
-    """Generate sktime compatible test data, Panel data formats.
+    """Generate aeon compatible test data, Panel data formats.
 
     Parameters
     ----------
@@ -41,14 +41,14 @@ def _make_panel(
         whether series contain only positive values when generated
     random_state : None (default) or int
         if int is passed, will be used in numpy RandomState for generation
-    return_mtype : str, sktime Panel mtype str, default="pd-multiindex"
-        see sktime.datatypes.MTYPE_LIST_PANEL for a full list of admissible strings
-        see sktime.datatypes.MTYPE_REGISTER for an short explanation of formats
+    return_mtype : str, aeon Panel mtype str, default="pd-multiindex"
+        see aeon.datatypes.MTYPE_LIST_PANEL for a full list of admissible strings
+        see aeon.datatypes.MTYPE_REGISTER for an short explanation of formats
         see examples/AA_datatypes_and_datasets.ipynb for a full specification
 
     Returns
     -------
-    X : an sktime time series data container of mtype return_mtype
+    X : an aeon time series data container of mtype return_mtype
         with n_instances instances, n_columns variables, n_timepoints time points
         generating distribution is all values i.i.d. normal with std 0.5
         if y is passed, i-th series values are additively shifted by y[i] * 100

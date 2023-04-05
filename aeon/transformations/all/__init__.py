@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""All transformers in sktime."""
+"""All transformers in aeon."""
 
 __author__ = ["fkiraly"]
 

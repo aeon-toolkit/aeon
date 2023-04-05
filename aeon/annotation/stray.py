@@ -193,7 +193,7 @@ class STRAY(BaseTransformer):
         outliers = self._find_outliers_kNN(X_dropna, n)
 
         # adjusted back to length r, for missing data
-        slice_ = [True if i in outliers["idx_outliers"] else False for i in range(n)]
+        slice_ = [i in outliers["idx_outliers"] for i in range(n)]
         idx_outliers = idx_dropna[slice_]  # index values from 1:r
         outlier_bool = np.array([1 if i in idx_outliers else 0 for i in range(r)])
 

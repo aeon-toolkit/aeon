@@ -1,6 +1,6 @@
 [project]
 name = "aeon"
-version = "0.0.1"
+version = "0.1.0rc0"
 description = "A unified framework for machine learning with time series"
 authors = [
     {name = "aeon developers", email = "scikit.time@gmail.com"},
@@ -70,7 +70,7 @@ all_extras = [
     "tbats>=1.1.0",
     "tensorflow-probability",
     "tensorflow",
-    "tsfresh>=0.17.0; python_version < '3.10'",
+    "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
     "mlflow",
@@ -85,6 +85,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "dash<=2.8.1", #https://github.com/plotly/dash/issues/2463 remove when fixed
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
@@ -100,7 +101,7 @@ docs = [
     "myst-parser",
     "nbsphinx>=0.8.12",
     "numpydoc",
-    "pydata-sphinx-theme",
+    "furo",
     "sphinx_issues>=3.0.1",
     "sphinx-gallery>=0.11.1",
     "sphinx-design>=0.3.0",
@@ -130,9 +131,9 @@ requires = ["setuptools>61", "wheel", "toml", "build"]
 build-backend = "setuptools.build_meta"
 
 [tool.nbqa.exclude]
-black = "^docs/source/examples/"
-flake8 = "^docs/source/examples/"
-isort = "^docs/source/examples/"
+black = "^docs/examples/"
+flake8 = "^docs/examples/"
+isort = "^docs/examples/"
 
 [tool.setuptools]
 zip-safe = true

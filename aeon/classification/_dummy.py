@@ -81,7 +81,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe with shape(n,d),
+        X : aeon-format pandas dataframe with shape(n,d),
         or numpy ndarray with shape(n,d,m)
         y : array-like, shape = [n_instances] - the class labels
 
@@ -110,7 +110,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-format pandas dataframe or array-like, shape (n, d)
+        X : aeon-format pandas dataframe or array-like, shape (n, d)
 
         Returns
         -------
