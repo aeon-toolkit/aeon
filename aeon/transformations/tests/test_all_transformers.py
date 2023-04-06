@@ -80,6 +80,10 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
             if X_scitype in ["Panel", "Hierarchical"]:
                 return "Hierarchical"
 
+        # todo, temp for split off panel transformers
+        if trafo_input == "Panel" and trafo_output == "Panel":
+            return X_scitype
+
     def test_fit_transform_output(self, estimator_instance, scenario):
         """Test that transform output is of expected scitype."""
         X = scenario.args["transform"]["X"]

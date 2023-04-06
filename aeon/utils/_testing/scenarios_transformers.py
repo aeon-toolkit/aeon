@@ -8,6 +8,7 @@ __author__ = ["fkiraly"]
 
 __all__ = ["scenarios_transformers"]
 
+import inspect
 from copy import deepcopy
 from inspect import isclass
 
@@ -16,6 +17,7 @@ import pandas as pd
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
+from aeon.transformations.panel.base import BasePanelTransformer
 from aeon.utils._testing.estimator_checks import _make_primitives, _make_tabular_X
 from aeon.utils._testing.forecasting import _make_series
 from aeon.utils._testing.hierarchical import _make_hierarchical
@@ -64,6 +66,12 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # pre-refactor classes can't deal with Series *and* Panel both
         X_scitype = self.get_tag("X_scitype")
         y_scitype = self.get_tag("y_scitype", None, raise_error=False)
+
+        if (
+            isinstance(obj, BasePanelTransformer)
+            or (inspect.isclass(obj) and issubclass(obj, BasePanelTransformer))
+        ) and X_scitype != "Panel":
+            return False
 
         # if transformer requires y, the scenario also must pass y
         has_y = self.get_tag("has_y")

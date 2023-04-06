@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License
 """
 Base class template for panel transformers.
 
@@ -26,7 +25,7 @@ __all__ = [
     "BasePanelTransformer",
 ]
 
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 
 import pandas as pd
 
@@ -41,7 +40,7 @@ from aeon.transformations.base import BaseTransformer, _coerce_to_list
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-class BasePanelTransformer(BaseTransformer):
+class BasePanelTransformer(BaseTransformer, metaclass=ABCMeta):
     """Transformer base class."""
 
     # default tag values - these typically make the "safest" assumption
@@ -65,7 +64,6 @@ class BasePanelTransformer(BaseTransformer):
     ]
 
     def __init__(self, _output_convert="auto"):
-        self._converter_store_X = dict()  # storage dictionary for in/output conversion
         self._output_convert = _output_convert
 
         super(BasePanelTransformer, self).__init__()
@@ -363,6 +361,36 @@ class BasePanelTransformer(BaseTransformer):
 
         return self
 
+    def _fit_checks(self, X, y, early_abandon=True, return_metadata=False):
+        """Input checks and conversions for fit and fit_transform."""
+        self.reset()
+
+        X_inner = None
+        y_inner = None
+        metadata = None
+
+        # skip everything if fit_is_empty is True and we do not need to remember data
+        if (
+            not early_abandon
+            or not self.get_tag("fit_is_empty")
+            or self.get_tag("remember_data", False)
+        ):
+            # if requires_y is set, y is required in fit and update
+            if self.get_tag("requires_y") and y is None:
+                raise ValueError(f"{self.__class__.__name__} requires `y` in `fit`.")
+
+            # check and convert X/y
+            X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+
+            # memorize X as self._X, if remember_data tag is set to True
+            if self.get_tag("remember_data", False):
+                self._X = update_data(None, X_new=X_inner)
+
+        if return_metadata:
+            return X_inner, y_inner, metadata
+        else:
+            return X_inner, y_inner
+
     def _check_X_y(self, X=None, y=None, return_metadata=False):
         """Check and coerce X/y for fit/transform functions.
 
@@ -435,6 +463,9 @@ class BasePanelTransformer(BaseTransformer):
             return_metadata=True,
             var_name="X",
         )
+
+        if not X_valid:
+            raise TypeError("invalid input type for X")
 
         X_scitype = X_metadata["scitype"]
         X_mtype = X_metadata["mtype"]
@@ -707,33 +738,3 @@ class BasePanelTransformer(BaseTransformer):
         """
         # standard behaviour: no update takes place, new data is ignored
         return self
-
-    def _fit_checks(self, X, y, early_abandon=True, return_metadata=False):
-        """Input checks and conversions for fit and fit_transform."""
-        self.reset()
-
-        X_inner = None
-        y_inner = None
-        metadata = None
-
-        # skip everything if fit_is_empty is True and we do not need to remember data
-        if (
-            not early_abandon
-            or not self.get_tag("fit_is_empty")
-            or self.get_tag("remember_data", False)
-        ):
-            # if requires_y is set, y is required in fit and update
-            if self.get_tag("requires_y") and y is None:
-                raise ValueError(f"{self.__class__.__name__} requires `y` in `fit`.")
-
-            # check and convert X/y
-            X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
-            # memorize X as self._X, if remember_data tag is set to True
-            if self.get_tag("remember_data", False):
-                self._X = update_data(None, X_new=X_inner)
-
-        if return_metadata:
-            return X_inner, y_inner, metadata
-        else:
-            return X_inner, y_inner
