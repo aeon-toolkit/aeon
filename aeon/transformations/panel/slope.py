@@ -23,6 +23,14 @@ class SlopeTransformer(BaseTransformer):
     ----------
     n_intervals : int, number of approx equal segments
                     to split the time series into.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.transformations.panel.slope import SlopeTransformer
+    >>> X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
+    >>> s = SlopeTransformer(n_intervals=2)
+    >>> res = s.fit_transform(X)
     """
 
     _tags = {
