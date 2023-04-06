@@ -410,24 +410,24 @@ class ShapeDTW(BaseClassifier):
         if num_intervals is None and num_bins is None:
             return HOG1DTransformer(scaling_factor=scaling_factor)
         if num_intervals is None and scaling_factor is None:
-            return HOG1DTransformer(num_bins=num_bins)
+            return HOG1DTransformer(n_bins=num_bins)
         if num_bins is None and scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals)
+            return HOG1DTransformer(n_intervals=num_intervals)
 
         # 1 parameter is None
         if num_intervals is None:
-            return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
+            return HOG1DTransformer(scaling_factor=scaling_factor, n_bins=num_bins)
         if scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
+            return HOG1DTransformer(n_intervals=num_intervals, n_bins=num_bins)
         if num_bins is None:
             return HOG1DTransformer(
-                scaling_factor=scaling_factor, num_intervals=num_intervals
+                scaling_factor=scaling_factor, n_intervals=num_intervals
             )
 
         # All parameters are given
         return HOG1DTransformer(
-            num_intervals=num_intervals,
-            num_bins=num_bins,
+            n_intervals=num_intervals,
+            n_bins=num_bins,
             scaling_factor=scaling_factor,
         )
 

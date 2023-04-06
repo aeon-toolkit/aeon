@@ -393,6 +393,14 @@ class SlidingWindowSegmenter(BaseTransformer):
              [n_instances, n_timepoints]
 
     Proposed in the ShapeDTW algorithm.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.transformations.panel.hog1d import HOG1DTransformer
+    >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
+    >>> seggy = HOG1DTransformer(n_intervals=4)
+    >>> data2 = seggy.fit_transform(data)
     """
 
     _tags = {

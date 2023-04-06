@@ -17,8 +17,8 @@ class HOG1DTransformer(BaseTransformer):
 
     Parameters
     ----------
-        num_intervals   : int, length of interval.
-        num_bins        : int, num bins in the histogram.
+        n_intervals   : int, length of interval.
+        n_bins        : int, num bins in the histogram.
         scaling_factor  : float, a constant that is multiplied
                           to modify the distribution.
 
@@ -26,6 +26,8 @@ class HOG1DTransformer(BaseTransformer):
     -----
     [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
     hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
+
+
     """
 
     _tags = {
@@ -36,9 +38,9 @@ class HOG1DTransformer(BaseTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, num_intervals=2, num_bins=8, scaling_factor=0.1):
-        self.num_intervals = num_intervals
-        self.num_bins = num_bins
+    def __init__(self, n_intervals=2, n_bins=8, scaling_factor=0.1):
+        self.n_intervals = n_intervals
+        self.n_bins = n_bins
         self.scaling_factor = scaling_factor
         super(HOG1DTransformer, self).__init__(_output_convert=False)
 
@@ -108,7 +110,7 @@ class HOG1DTransformer(BaseTransformer):
         # First step is to pad the portion on both ends once.
         gradients = [0.0] * (len(X))
         X = np.pad(X, 1, mode="edge")
-        histogram = [0.0] * self.num_bins
+        histogram = [0.0] * self.n_bins
 
         # Calculate the gradients of each element
         for i in range(1, len(X) - 1):
@@ -119,8 +121,8 @@ class HOG1DTransformer(BaseTransformer):
 
         # Calculate the boundaries of the histogram
         hisBoundaries = [
-            -90 + (180 / self.num_bins) + ((180 / self.num_bins) * x)
-            for x in range(self.num_bins)
+            -90 + (180 / self.n_bins) + ((180 / self.n_bins) * x)
+            for x in range(self.n_bins)
         ]
 
         # Construct the histogram
@@ -145,7 +147,7 @@ class HOG1DTransformer(BaseTransformer):
             into approx equal length intervals of shape
             [num_intervals,interval_length].
         """
-        avg = len(X) / float(self.num_intervals)
+        avg = len(X) / float(self.n_intervals)
         output = []
         beginning = 0.0
 
@@ -162,24 +164,24 @@ class HOG1DTransformer(BaseTransformer):
         ------
         ValueError or TypeError if a parameters input is invalid.
         """
-        if isinstance(self.num_intervals, int):
-            if self.num_intervals <= 0:
+        if isinstance(self.n_intervals, int):
+            if self.n_intervals <= 0:
                 raise ValueError("num_intervals must have the value of at least 1")
-            if self.num_intervals > series_length:
+            if self.n_intervals > series_length:
                 raise ValueError("num_intervals cannot be higher than serie_length")
         else:
             raise TypeError(
-                f"num_intervals must be an 'int' Found {type(self.num_intervals)} "
+                f"num_intervals must be an 'int' Found {type(self.n_intervals)} "
                 f"instead."
             )
 
-        if isinstance(self.num_bins, int):
-            if self.num_bins <= 0:
+        if isinstance(self.n_bins, int):
+            if self.n_bins <= 0:
                 raise ValueError("num_bins must have the value of at least 1")
         else:
             raise TypeError(
                 f"num_bins must be an 'int'. Found"
-                f" {type(self.num_bins).__name__}instead."
+                f" {type(self.n_bins).__name__}instead."
             )
 
         if not isinstance(self.scaling_factor, numbers.Number):

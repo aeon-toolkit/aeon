@@ -12,7 +12,7 @@ from aeon.transformations.panel.hog1d import HOG1DTransformer
 @pytest.mark.parametrize("num_bins,corr_series_length", [(4, 8), (8, 16), (12, 24)])
 def test_output_dimensions(num_bins, corr_series_length):
     X = np.ones(shape=(10, 1, 13))
-    h = HOG1DTransformer(num_bins=num_bins).fit(X)
+    h = HOG1DTransformer(n_bins=num_bins).fit(X)
     res = h.transform(X)
 
     # get the dimension of the generated numpy array.
@@ -33,10 +33,10 @@ def test_bad_num_intervals(bad_num_intervals):
 
     if not isinstance(bad_num_intervals, int):
         with pytest.raises(TypeError):
-            HOG1DTransformer(num_intervals=bad_num_intervals).fit(X).transform(X)
+            HOG1DTransformer(n_intervals=bad_num_intervals).fit(X).transform(X)
     else:
         with pytest.raises(ValueError):
-            HOG1DTransformer(num_intervals=bad_num_intervals).fit(X).transform(X)
+            HOG1DTransformer(n_intervals=bad_num_intervals).fit(X).transform(X)
 
 
 # Check that exception is raised for bad scaling factor.
