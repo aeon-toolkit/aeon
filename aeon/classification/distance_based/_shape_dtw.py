@@ -18,12 +18,15 @@ from aeon.classification.distance_based._time_series_neighbors import (
 from aeon.datatypes import convert
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
-from aeon.transformations.panel.hog1d import HOG1DTransformer
 
-# Transforms
+# Done
+from aeon.transformations.panel.hog1d import HOG1DTransformer
 from aeon.transformations.panel.segment import SlidingWindowSegmenter
 from aeon.transformations.panel.slope import SlopeTransformer
 from aeon.transformations.panel.summarize._extract import DerivativeSlopeTransformer
+
+# Transformers: To Do
+
 
 __author__ = ["vincent-nich12"]
 
