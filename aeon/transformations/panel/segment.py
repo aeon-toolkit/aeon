@@ -392,6 +392,14 @@ class SlidingWindowSegmenter(BaseTransformer):
         np.array [n_instances, n_timepoints, window_length]
 
     Proposed in the ShapeDTW algorithm.
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel.segment import SlidingWindowSegmenter
+    >>> import numpy as np
+    >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
+    >>> seggy = SlidingWindowSegmenter(window_length=4)
+    >>> data2 = seggy.fit_transform(data)
     """
 
     _tags = {
