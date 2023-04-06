@@ -204,7 +204,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.min_length = min_length
         self.max_length = max_length
         self.random_state = random_state
-        super(RandomIntervalSegmenter, self).__init__()
+        super(RandomIntervalSegmenter, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fit transformer, generating random interval indices.
