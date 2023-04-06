@@ -7,11 +7,37 @@ __author__ = ["mloning"]
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from numba import njit
 
-from aeon.classification.distance_based._elastic_ensemble import series_slope_derivative
 from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
+
+
+@njit(fastmath=True, cache=True)
+def _der(x: np.ndarray):
+    """Loop based Derivative Slope transform."""
+    m = len(x)
+    der = np.zeros(m)
+    for i in range(1, m - 1):
+        der[i] = ((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2.0)) / 2.0
+    der[0] = der[1]
+    der[m - 1] = der[m - 2]
+    return der
+
+
+def series_slope_derivative(X: np.ndarray) -> np.ndarray:
+    """Find the slope derivative of collection of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray shape (n_time_series, n_channels, series_length)
+
+    Returns
+    -------
+    np.ndarray shape (n_time_series, n_channels, series_length)
+    """
+    return np.apply_along_axis(_der, axis=-1, arr=X)
 
 
 class PlateauFinder(BaseTransformer):
