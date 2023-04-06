@@ -17,7 +17,7 @@ def test_bad_input_args(bad_num_intervals):
             PAA(n_intervals=bad_num_intervals).fit(X).transform(X)
     else:
         with pytest.raises(ValueError):
-            PAA(n_intervals=bad_num_intervals).fit(X).transform(X)
+            PAA(n_intervals=bad_num_intervals).fit_transform(X)
 
 
 # Check the transformer has changed the data correctly.
