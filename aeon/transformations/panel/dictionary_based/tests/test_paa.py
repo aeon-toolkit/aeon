@@ -14,16 +14,16 @@ def test_bad_input_args(bad_num_intervals):
     X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
     if not isinstance(bad_num_intervals, int):
         with pytest.raises(TypeError):
-            PAA(num_intervals=bad_num_intervals).fit(X).transform(X)
+            PAA(n_intervals=bad_num_intervals).fit(X).transform(X)
     else:
         with pytest.raises(ValueError):
-            PAA(num_intervals=bad_num_intervals).fit(X).transform(X)
+            PAA(n_intervals=bad_num_intervals).fit(X).transform(X)
 
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
     X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
-    p = PAA(num_intervals=3).fit(X)
+    p = PAA(n_intervals=3).fit(X)
     res = p.transform(X)
     orig = np.array([[[2.2, 5.5, 8.8]]])
     np.testing.assert_array_almost_equal(res, orig)
@@ -32,7 +32,7 @@ def test_output_of_transformer():
 def test_output_dimensions():
     # test with univariate
     X = np.random.rand(10, 1, 12)
-    p = PAA(num_intervals=5).fit(X)
+    p = PAA(n_intervals=5).fit(X)
     res = p.transform(X)
     assert res.shape[0] == 10 and res.shape[1] == 1 and res.shape[2] == 5
 
@@ -40,7 +40,7 @@ def test_output_dimensions():
 # This is to check that PAA produces the same result along each dimension
 def test_paa_performs_correcly_along_each_dim():
     X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
-    p = PAA(num_intervals=3).fit(X)
+    p = PAA(n_intervals=3).fit(X)
     res = p.transform(X)
     orig = [[[2.2, 5.5, 8.8], [2.2, 5.5, 8.8]]]
     np.testing.assert_array_almost_equal(res, orig)
