@@ -22,7 +22,7 @@ State:
 
 __author__ = ["mloning", "fkiraly", "miraep8", "MatthewMiddlehurst"]
 __all__ = [
-    "BasePanelTransformer",
+    "BaseCollectionTransformer",
 ]
 
 from abc import ABCMeta, abstractmethod
@@ -40,7 +40,7 @@ from aeon.transformations.base import BaseTransformer, _coerce_to_list
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-class BasePanelTransformer(BaseTransformer, metaclass=ABCMeta):
+class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     """Transformer base class."""
 
     # default tag values - these typically make the "safest" assumption
@@ -66,7 +66,7 @@ class BasePanelTransformer(BaseTransformer, metaclass=ABCMeta):
     def __init__(self, _output_convert="auto"):
         self._output_convert = _output_convert
 
-        super(BasePanelTransformer, self).__init__()
+        super(BaseCollectionTransformer, self).__init__()
         _check_estimator_deps(self)
 
     def fit(self, X, y=None):

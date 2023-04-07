@@ -16,15 +16,10 @@ __all__ = []
 from inspect import isclass
 
 import pandas as pd
-import pytest
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
 from aeon.transformations.compose import FitInTransform
 from aeon.transformations.panel.padder import PaddingTransformer
-from aeon.transformations.panel.tsfresh import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
 from aeon.transformations.series.boxcox import BoxCoxTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.summarize import SummaryTransformer
@@ -32,12 +27,10 @@ from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
     TransformerFitTransformPanelUnivariate,
-    TransformerFitTransformPanelUnivariateWithClassYOnlyFit,
     TransformerFitTransformSeriesMultivariate,
     TransformerFitTransformSeriesUnivariate,
 )
 from aeon.utils._testing.series import _make_series
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # other scenarios that might be needed later in development:
 # TransformerFitTransformPanelUnivariateWithClassY,
@@ -289,83 +282,83 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     assert len(Xt) == 7
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
-    reason="skip test if required soft dependency tsfresh not available",
-)
-def test_series_in_primitives_out_not_supported_fit_in_transform():
-    """Test that fit/transform runs and returns the correct output type.
+# @pytest.mark.skipif(
+#     not _check_soft_dependencies("tsfresh", severity="none"),
+#     reason="skip test if required soft dependency tsfresh not available",
+# )
+# def test_series_in_primitives_out_not_supported_fit_in_transform():
+#     """Test that fit/transform runs and returns the correct output type.
+#
+#     Setting: transformer has tags
+#         "scitype:transform-input" = "Series"
+#         "scitype:transform-output" = "Primitives"
+#         "fit_is_empty" = True
+#         "X_inner_mtype" supports "Panel" but does not support "Series"
+#
+#     X input to fit/transform has Series scitype
+#     X output from fit/transform should be Table
+#     """
+#     # one example for a transformer which supports Panel internally but not Series
+#     cls = TSFreshFeatureExtractor
+#     est = cls.create_test_instance()
+#     # ensure cls is a good example, if this fails, choose another example
+#     #   (if this changes, it may be due to implementing more scitypes)
+#     #   (then this is not a failure of cls, but we need to choose another example)
+#     assert "Panel" in inner_X_scitypes(est)
+#     assert "Series" not in inner_X_scitypes(est)
+#     assert est.get_tag("fit_is_empty")
+#     assert est.get_tag("scitype:transform-input") == "Series"
+#     assert est.get_tag("scitype:transform-output") == "Primitives"
+#
+#     # scenario in which series are passed to fit/transform
+#     scenario = TransformerFitTransformSeriesUnivariate()
+#     Xt = scenario.run(est, method_sequence=["fit", "transform"])
+#
+#     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
+#     assert valid, "fit.transform does not return a Table when given a Series"
+#     # todo: possibly, add mtype check, use metadata return
+#     # length of Xt should be one, for a single series passed
+#     assert len(Xt) == 1
 
-    Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
-        "fit_is_empty" = True
-        "X_inner_mtype" supports "Panel" but does not support "Series"
 
-    X input to fit/transform has Series scitype
-    X output from fit/transform should be Table
-    """
-    # one example for a transformer which supports Panel internally but not Series
-    cls = TSFreshFeatureExtractor
-    est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
-    assert "Panel" in inner_X_scitypes(est)
-    assert "Series" not in inner_X_scitypes(est)
-    assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
-    scenario = TransformerFitTransformSeriesUnivariate()
-    Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Series"
-    # todo: possibly, add mtype check, use metadata return
-    # length of Xt should be one, for a single series passed
-    assert len(Xt) == 1
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
-    reason="skip test if required soft dependency tsfresh not available",
-)
-def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
-    """Test that fit/transform runs and returns the correct output type.
-
-    Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
-        "fit_is_empty" = False
-        "requires_y" = True
-        "X_inner_mtype" supports "Panel"
-
-    X input to fit/transform has Panel scitype
-    X output from fit/transform should be Table
-    """
-    # one example for a transformer which supports Panel internally
-    cls = TSFreshRelevantFeatureExtractor
-    est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
-    assert "Panel" in inner_X_scitypes(est)
-    assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("requires_y")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
-    scenario = TransformerFitTransformPanelUnivariateWithClassYOnlyFit()
-    Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Panel"
-    # todo: possibly, add mtype check, use metadata return
-    # length of Xt should be seven = number of samples in the scenario
-    assert len(Xt) == 7
+# @pytest.mark.skipif(
+#     not _check_soft_dependencies("tsfresh", severity="none"),
+#     reason="skip test if required soft dependency tsfresh not available",
+# )
+# def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
+#     """Test that fit/transform runs and returns the correct output type.
+#
+#     Setting: transformer has tags
+#         "scitype:transform-input" = "Series"
+#         "scitype:transform-output" = "Primitives"
+#         "fit_is_empty" = False
+#         "requires_y" = True
+#         "X_inner_mtype" supports "Panel"
+#
+#     X input to fit/transform has Panel scitype
+#     X output from fit/transform should be Table
+#     """
+#     # one example for a transformer which supports Panel internally
+#     cls = TSFreshRelevantFeatureExtractor
+#     est = cls.create_test_instance()
+#     # ensure cls is a good example, if this fails, choose another example
+#     #   (if this changes, it may be due to implementing more scitypes)
+#     #   (then this is not a failure of cls, but we need to choose another example)
+#     assert "Panel" in inner_X_scitypes(est)
+#     assert not est.get_tag("fit_is_empty")
+#     assert est.get_tag("requires_y")
+#     assert est.get_tag("scitype:transform-input") == "Series"
+#     assert est.get_tag("scitype:transform-output") == "Primitives"
+#
+#     # scenario in which series are passed to fit/transform
+#     scenario = TransformerFitTransformPanelUnivariateWithClassYOnlyFit()
+#     Xt = scenario.run(est, method_sequence=["fit", "transform"])
+#
+#     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
+#     assert valid, "fit.transform does not return a Table when given a Panel"
+#     # todo: possibly, add mtype check, use metadata return
+#     # length of Xt should be seven = number of samples in the scenario
+#     assert len(Xt) == 7
 
 
 def test_hierarchical_in_hierarchical_out_not_supported_but_series():

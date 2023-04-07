@@ -18,7 +18,7 @@ from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import distance as aeon_distance
-from aeon.transformations.panel.base import BasePanelTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 
 
 def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
@@ -226,7 +226,7 @@ class ClassPrototype:
         return (prototypes, le.classes_)
 
 
-class ElbowClassSum(BasePanelTransformer):
+class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
     Overview: From the input of multivariate time series data, create a distance
@@ -364,7 +364,7 @@ class ElbowClassSum(BasePanelTransformer):
         return X[:, self.channels_selected_idx]
 
 
-class ElbowClassPairwise(BasePanelTransformer):
+class ElbowClassPairwise(BaseCollectionTransformer):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
     Overview: From the input of multivariate time series data, create a distance

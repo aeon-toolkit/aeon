@@ -17,7 +17,7 @@ import pandas as pd
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
-from aeon.transformations.panel.base import BasePanelTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.utils._testing.estimator_checks import _make_primitives, _make_tabular_X
 from aeon.utils._testing.forecasting import _make_series
 from aeon.utils._testing.hierarchical import _make_hierarchical
@@ -68,8 +68,8 @@ class TransformerTestScenario(TestScenario, BaseObject):
         y_scitype = self.get_tag("y_scitype", None, raise_error=False)
 
         if (
-            isinstance(obj, BasePanelTransformer)
-            or (inspect.isclass(obj) and issubclass(obj, BasePanelTransformer))
+            isinstance(obj, BaseCollectionTransformer)
+            or (inspect.isclass(obj) and issubclass(obj, BaseCollectionTransformer))
         ) and X_scitype != "Panel":
             return False
 
