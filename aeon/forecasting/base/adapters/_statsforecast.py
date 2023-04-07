@@ -25,7 +25,6 @@ class _StatsForecastAdapter(BaseForecaster):
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "capability:pred_int": True,  # does forecaster implement predict_quantiles?
-        "python_dependencies": "statsforecast",
     }
 
     def __init__(self):
@@ -100,22 +99,17 @@ class _StatsForecastAdapter(BaseForecaster):
 
         # all values are out-of-sample
         if fh.is_all_out_of_sample(self.cutoff):
-            y_pred = self._predict_fixed_cutoff(fh_oos, X=X)
+            return self._predict_fixed_cutoff(fh_oos, X=X)
 
         # all values are in-sample
         elif fh.is_all_in_sample(self.cutoff):
-            y_pred = self._predict_in_sample(fh_ins, X=X)
+            return self._predict_in_sample(fh_ins, X=X)
 
         # both in-sample and out-of-sample values
         else:
             y_ins = self._predict_in_sample(fh_ins, X=X)
             y_oos = self._predict_fixed_cutoff(fh_oos, X=X)
-            y_pred = pd.concat([y_ins, y_oos])
-
-        # ensure that name is not added nor removed
-        # otherwise this may upset conversion to pd.DataFrame
-        y_pred.name = self._y.name
-        return y_pred
+            return pd.concat([y_ins, y_oos])
 
     def _predict_in_sample(
         self, fh, X=None, return_pred_int=False, alpha=DEFAULT_ALPHA
@@ -145,9 +139,7 @@ class _StatsForecastAdapter(BaseForecaster):
         if return_pred_int:
             pred_ints = []
             for a in alpha:
-                pred_int = pd.DataFrame(
-                    index=fh_abs.to_pandas(), columns=["lower", "upper"]
-                )
+                pred_int = pd.DataFrame(index=fh_abs, columns=["lower", "upper"])
                 result = self._forecaster.predict_in_sample(level=int(100 * a))
                 pred_int.loc[fh_abs] = result.drop("mean", axis=1).values[fh_idx, :]
                 pred_ints.append(pred_int)
@@ -178,9 +170,9 @@ class _StatsForecastAdapter(BaseForecaster):
             X=X.values if X is not None else X,
         )
 
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs_idx = fh.to_absolute(self.cutoff).to_pandas()
         fh_idx = fh.to_indexer(self.cutoff)
-        mean = pd.Series(result["mean"].values[fh_idx], index=fh_abs.to_pandas())
+        mean = pd.Series(result["mean"].values[fh_idx], index=fh_abs_idx)
         if return_pred_int:
             pred_ints = []
             for a in alpha:
@@ -191,14 +183,12 @@ class _StatsForecastAdapter(BaseForecaster):
                 )
                 pred_int = result.drop("mean", axis=1).values
                 pred_int = pd.DataFrame(
-                    pred_int[fh_idx, :],
-                    index=fh_abs.to_pandas(),
-                    columns=["lower", "upper"],
+                    pred_int[fh_idx, :], index=fh_abs_idx, columns=["lower", "upper"]
                 )
                 pred_ints.append(pred_int)
             return mean, pred_ints
         else:
-            return pd.Series(mean, index=fh_abs.to_pandas())
+            return pd.Series(mean, index=fh_abs_idx)
 
     def _predict_interval(self, fh, X=None, coverage=0.90):
         """Compute/return prediction quantiles for a forecast.
