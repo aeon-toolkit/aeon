@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Pipeline making utility."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["fkiraly"]
 
@@ -10,12 +10,12 @@ def make_pipeline(*steps):
 
     Parameters
     ----------
-    steps : tuple of sktime estimators
+    steps : tuple of aeon estimators
         in same order as used for pipeline construction
 
     Returns
     -------
-    pipe : sktime pipeline containing steps, in order
+    pipe : aeon pipeline containing steps, in order
         always a descendant of BaseObject, precise object determined by scitype
         equivalent to result of step[0] * step[1] * ... * step[-1]
 

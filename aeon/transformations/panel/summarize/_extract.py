@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Sequence feature extraction transformers."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning"]
 
@@ -341,7 +341,7 @@ class FittedParamExtractor(BaseTransformer):
     Parameters
     ----------
     forecaster : estimator object
-        sktime estimator to extract features from
+        aeon estimator to extract features from
     param_names : str
         Name of parameters to extract from the forecaster.
     n_jobs : int, optional (default=None)

@@ -26,14 +26,14 @@ df = pd.DataFrame(
     reason="skip test if required soft dependency not available",
 )
 def test_VAR_against_statsmodels():
-    """Compares Sktime's and Statsmodel's VAR."""
+    """Compares aeon's and Statsmodel's VAR."""
     from statsmodels.tsa.api import VAR as _VAR
 
     train, test = temporal_train_test_split(df)
-    sktime_model = VAR()
+    aeon_model = VAR()
     fh = ForecastingHorizon([1, 3, 4, 5, 7, 9])
-    sktime_model.fit(train)
-    y_pred = sktime_model.predict(fh=fh)
+    aeon_model.fit(train)
+    y_pred = aeon_model.predict(fh=fh)
 
     stats = _VAR(train)
     stats_fit = stats.fit()

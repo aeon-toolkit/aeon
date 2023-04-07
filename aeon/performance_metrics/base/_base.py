@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Implements base class for defining performance metric in sktime."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+"""Implements base class for defining performance metric in aeon."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["rnkuhns", "fkiraly"]
 __all__ = ["BaseMetric"]
@@ -9,9 +9,9 @@ from aeon.base import BaseObject
 
 
 class BaseMetric(BaseObject):
-    """Base class for defining metrics in sktime.
+    """Base class for defining metrics in aeon.
 
-    Extends sktime BaseObject.
+    Extends aeon BaseObject.
     """
 
     def __init__(self):

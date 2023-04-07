@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-"""Implements sktime estimators for time series regression."""
+"""Implements aeon estimators for time series regression."""

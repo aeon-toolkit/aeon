@@ -35,6 +35,7 @@ class MultiRocket(BaseTransformer):
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     Attributes
     ----------
@@ -66,7 +67,7 @@ class MultiRocket(BaseTransformer):
      >>> X_test, y_test = load_unit_test(split="test")
      >>> trf = MultiRocket(num_kernels=512)
      >>> trf.fit(X_train)
-     MultiRocket(...)
+     MultiRocket(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """

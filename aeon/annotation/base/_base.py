@@ -1,6 +1,4 @@
-#!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for annotator base type for time series stream.
 
@@ -127,11 +125,7 @@ class BaseSeriesAnnotator(BaseEstimator):
 
         X = check_series(X)
 
-        # fkiraly: insert checks/conversions here, after PR #1012 I suggest
-
-        Y = self._predict(X=X)
-
-        return Y
+        return self._predict(X=X)
 
     def predict_scores(self, X):
         """Return scores for predicted annotations on test/deployment data.
@@ -205,9 +199,7 @@ class BaseSeriesAnnotator(BaseEstimator):
         X = check_series(X)
 
         self.update(X=X)
-        Y = self.predict(X=X)
-
-        return Y
+        return self.predict(X=X)
 
     def fit_predict(self, X, Y=None):
         """Fit to data, then predict it.

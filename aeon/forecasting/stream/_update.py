@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Compositors that control stream and refitting behaviour of update."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 
@@ -29,7 +29,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
     Parameters
     ----------
-    refit_interval : difference of sktime time indices (int or timedelta), optional
+    refit_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse after which the first update defaults to fit
         default = 0, i.e., always refits, never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -37,10 +37,10 @@ class UpdateRefitsEvery(_DelegatedForecaster):
         if index of y seen in fit is timestamp, must be int or pd.Timedelta
             if pd.Timedelta, will be interpreted as time since last refit elapsed
             if int, will be interpreted as number of time stamps seen since last refit
-    refit_window_size : difference of sktime time indices (int or timedelta), optional
+    refit_window_size : difference of aeon time indices (int or timedelta), optional
         length of the data window to refit to in case update calls fit
         default = inf, i.e., refits to entire training data seen so far
-    refit_window_lag : difference of sktime indices (int or timedelta), optional
+    refit_window_lag : difference of aeon indices (int or timedelta), optional
         lag of the data window to refit to, w.r.t. cutoff, in case update calls fit
         default = 0, i.e., refit window ends with and includes cutoff
     """
@@ -220,7 +220,7 @@ class UpdateEvery(_DelegatedForecaster):
 
     Parameters
     ----------
-    update_interval : difference of sktime time indices (int or timedelta), optional
+    update_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse until inner update call with update_params=True
         default = None = infinity, i.e., never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -379,7 +379,7 @@ class DontUpdate(_DelegatedForecaster):
 
     Parameters
     ----------
-    refit_interval : difference of sktime time indices (int or timedelta), optional
+    refit_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse after which the first update defaults to fit
         default = 0, i.e., always refits, never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -387,10 +387,10 @@ class DontUpdate(_DelegatedForecaster):
         if index of y seen in fit is timestamp, must be int or pd.Timedelta
             if pd.Timedelta, will be interpreted as time since last refit elapsed
             if int, will be interpreted as number of time stamps seen since last refit
-    refit_window_size : difference of sktime time indices (int or timedelta), optional
+    refit_window_size : difference of aeon time indices (int or timedelta), optional
         length of the data window to refit to in case update calls fit
         default = inf, i.e., refits to entire training data seen so far
-    refit_window_lag : difference of sktime indices (int or timedelta), optional
+    refit_window_lag : difference of aeon indices (int or timedelta), optional
         lag of the data window to refit to, w.r.t. cutoff, in case update calls fit
         default = 0, i.e., refit window ends with and includes cutoff
     """

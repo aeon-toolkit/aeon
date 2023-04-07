@@ -103,8 +103,8 @@ class Arsenal(BaseClassifier):
     --------
     >>> from aeon.classification.convolution_based import Arsenal
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test =load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test =load_unit_test(split="test")
     >>> clf = Arsenal(num_kernels=100, n_estimators=5)
     >>> clf.fit(X_train, y_train)
     Arsenal(...)
@@ -137,7 +137,6 @@ class Arsenal(BaseClassifier):
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
         self.save_transformed_data = save_transformed_data
@@ -379,7 +378,7 @@ class Arsenal(BaseClassifier):
     def _predict_proba_for_estimator(self, X, classifier, idx):
         preds = classifier.predict(X)
         weights = np.zeros((X.shape[0], self.n_classes_))
-        for i in range(0, X.shape[0]):
+        for i in range(X.shape[0]):
             weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
         return weights
 
@@ -397,15 +396,15 @@ class Arsenal(BaseClassifier):
         oob = [n for n in indices if n not in subsample]
 
         results = np.zeros((self.n_instances_, self.n_classes_))
-        if len(oob) == 0:
+        if not oob:
             return results, 1, oob
 
         clf = make_pipeline(
             StandardScaler(with_mean=False),
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
         )
-        clf.fit(self.transformed_data_[idx].iloc[subsample], y[subsample])
-        preds = clf.predict(self.transformed_data_[idx].iloc[oob])
+        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
+        preds = clf.predict(self.transformed_data_[idx][oob])
 
         weight = clf.steps[1][1].best_score_
 

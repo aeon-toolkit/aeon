@@ -262,7 +262,7 @@ def piecewise_multinomial(
     # error handling for inputs
     if len(lengths) != len(p_vals):
         raise ValueError("lengths and p_vals arguments must be same length")
-    elif not all(sum(p_val) == 1 for p_val in p_vals):
+    elif any(sum(p_val) != 1 for p_val in p_vals):
         raise ValueError("each set of probabilities in p_val must sum to 1")
     elif not (np.array([len(p_val) for p_val in p_vals]) == len(p_vals[0])).all():
         raise ValueError("each set of probabilities in p_val must be equal length")
@@ -319,8 +319,8 @@ def piecewise_poisson(
             rng.poisson(lam=lams, size=[length])
             for lams, length in zip(lambdas, lengths)
         ]
-    except ValueError:
-        raise Exception("Size mismatch")
+    except ValueError as e:
+        raise Exception("Size mismatch") from e
 
     return np.concatenate(tuple(segments_data))
 

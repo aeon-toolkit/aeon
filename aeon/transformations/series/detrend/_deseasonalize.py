@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformations to deseasonalize a timeseries."""
 
 __author__ = ["mloning", "eyalshafran", "aiwalter"]
@@ -364,7 +364,7 @@ class ConditionalDeseasonalizer(Deseasonalizer):
 class STLTransformer(BaseTransformer):
     """Remove seasonal components from a time-series using STL.
 
-    Interfaces STL from statsmodels as an sktime transformer.
+    Interfaces STL from statsmodels as an aeon transformer.
 
     The STLTransformer is a descriptive transformer to remove seasonality
     from a series and is based on statsmodels.STL. It returns deseasonalized

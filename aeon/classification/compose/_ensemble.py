@@ -335,18 +335,17 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         if self.n_outputs_ == 1:
             return self.classes_.take(np.argmax(proba, axis=1), axis=0)
 
-        else:
-            n_samples = proba[0].shape[0]
-            # all dtypes should be the same, so just take the first
-            class_type = self.classes_[0].dtype
-            predictions = np.empty((n_samples, self.n_outputs_), dtype=class_type)
+        n_samples = proba[0].shape[0]
+        # all dtypes should be the same, so just take the first
+        class_type = self.classes_[0].dtype
+        predictions = np.empty((n_samples, self.n_outputs_), dtype=class_type)
 
-            for k in range(self.n_outputs_):
-                predictions[:, k] = self.classes_[k].take(
-                    np.argmax(proba[k], axis=1), axis=0
-                )
+        for k in range(self.n_outputs_):
+            predictions[:, k] = self.classes_[k].take(
+                np.argmax(proba[k], axis=1), axis=0
+            )
 
-            return predictions
+        return predictions
 
     def predict_log_proba(self, X):
         """Predict class log-probabilities for X.
@@ -374,11 +373,10 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         if self.n_outputs_ == 1:
             return np.log(proba)
 
-        else:
-            for k in range(self.n_outputs_):
-                proba[k] = np.log(proba[k])
+        for k in range(self.n_outputs_):
+            proba[k] = np.log(proba[k])
 
-            return proba
+        return proba
 
     def _predict_proba(self, X):
         """Predict class probabilities for X.
@@ -473,8 +471,6 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
         check_classification_targets(y)
 
         y = np.copy(y)
-        expanded_class_weight = None
-
         if self.class_weight is not None:
             y_original = np.copy(y)
 
@@ -490,14 +486,14 @@ class ComposableTimeSeriesForestClassifier(BaseTimeSeriesForest, BaseClassifier)
             self.n_classes_.append(classes_k.shape[0])
         y = y_store_unique_indices
 
+        expanded_class_weight = None
         if self.class_weight is not None:
-            valid_presets = ("balanced", "balanced_subsample")
             if isinstance(self.class_weight, str):
+                valid_presets = ("balanced", "balanced_subsample")
                 if self.class_weight not in valid_presets:
                     raise ValueError(
-                        "Valid presets for class_weight include "
-                        '"balanced" and "balanced_subsample".'
-                        'Given "%s".' % self.class_weight
+                        'Valid presets for class_weight include "balanced" and'
+                        f'"balanced_subsample".Given "{self.class_weight}".'
                     )
                 if self.warm_start:
                     warn(
@@ -592,7 +588,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Attributes
     ----------
-    classifiers_ : list of tuples (str, classifier) of sktime classifiers
+    classifiers_ : list of tuples (str, classifier) of aeon classifiers
         clones of classifies in `classifiers` which are fitted in the ensemble
         is always in (str, classifier) format, even if `classifiers` is just a list
         strings not passed in `classifiers` are replaced by unique generated strings
@@ -658,7 +654,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         if weights is None:
             self.weights_ = {x[0]: 1 for x in self.classifiers_}
         elif isinstance(weights, (float, int)):
-            self.weights_ = dict()
+            self.weights_ = {}
         elif isinstance(weights, dict):
             self.weights_ = {x[0]: weights[x[0]] for x in self.classifiers_}
         else:
@@ -722,6 +718,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         return self
 
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X."""
+        y_proba = self._predict_proba(X)
+        y_pred = y_proba.argmax(axis=1)
+
+        return y_pred
+
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
@@ -766,13 +769,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.classification.convolution_based import RocketClassifier
+        from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
         params1 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": [42, 1],
         }
@@ -780,7 +783,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         params2 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": 2,
             "cv": 3,

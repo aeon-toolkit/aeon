@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Parameter estimators for seasonality."""
 
 __author__ = ["fkiraly"]
@@ -22,7 +22,7 @@ class PluginParamsForecaster(_DelegatedForecaster):
     ----------
     param_est : parameter estimator, i.e., estimator inheriting from BaseParamFitter
         this is a "blueprint" estimator, state does not change when `fit` is called
-    forecaster : sktime forecaster, i.e., estimator inheriting from BaseForecaster
+    forecaster : aeon forecaster, i.e., estimator inheriting from BaseForecaster
         this is a "blueprint" estimator, state does not change when `fit` is called
     params : None, str, list of str, dict with str values/keys, optional, default=None
         determines which parameters from param_est are plugged into forecaster and where
@@ -38,9 +38,9 @@ class PluginParamsForecaster(_DelegatedForecaster):
 
     Attributes
     ----------
-    param_est_ : sktime parameter estimator, clone of estimator in `param_est`
+    param_est_ : aeon parameter estimator, clone of estimator in `param_est`
         this clone is fitted in the pipeline when `fit` is called
-    forecaster_ : sktime forecaster, clone of forecaster in `forecaster`
+    forecaster_ : aeon forecaster, clone of forecaster in `forecaster`
         this clone is fitted in the pipeline when `fit` is called
 
     Examples
