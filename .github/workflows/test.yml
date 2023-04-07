@@ -9,8 +9,17 @@ on:
       - main
 
 jobs:
+  cancel:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          workflow_id: ${{ github.event.workflow.id }}
+
   code-quality:
-    runs-on: ubuntu-latest
+    needs: cancel
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -36,7 +45,7 @@ jobs:
 
   run-notebook-examples:
     needs: code-quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -55,7 +64,7 @@ jobs:
 
   test-nosoftdeps:
     needs: code-quality
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -75,7 +84,7 @@ jobs:
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
@@ -98,7 +107,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
         python-version: [ '3.8', '3.9', '3.10' ]
 
     steps:
@@ -117,7 +126,7 @@ jobs:
 
   codecov:
     needs: test-nosoftdeps
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
