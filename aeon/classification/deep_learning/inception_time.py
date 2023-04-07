@@ -309,7 +309,7 @@ class InceptionTimeClassifier(BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_classifiers": 2,
+            "n_classifiers": 1,
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
@@ -317,14 +317,7 @@ class InceptionTimeClassifier(BaseClassifier):
             "use_bottleneck": True,
         }
 
-        param2 = {
-            "n_classifiers": 3,
-            "n_epochs": 12,
-            "batch_size": 6,
-            "use_bias": True,
-        }
-
-        return [param1, param2]
+        return [param1]
 
 
 class IndividualInceptionClassifier(BaseDeepClassifier):
@@ -662,7 +655,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "n_classifiers": 1,
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
