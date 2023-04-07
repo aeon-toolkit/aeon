@@ -59,9 +59,7 @@ class BaseClassifier(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # Currently, it should be "numpy3D". Unequal
-        # length series through "nested_univ" is no longer supported, will be
-        # reintroduced with lists of numpy.
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,

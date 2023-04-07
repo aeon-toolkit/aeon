@@ -100,7 +100,7 @@ class _DummyConvertPandas(BaseClassifier):
     """Dummy classifier for testing base class fit/predict/predict_proba."""
 
     _tags = {
-        "X_inner_mtype": "nested_univ",  # which type do _fit/_predict, support for X?
+        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict, support for X?
     }
 
     def _fit(self, X, y):
@@ -214,9 +214,6 @@ def test_convert_input():
 
     1. Pass a 2D numpy X, get a 3D numpy X
     2. Pass a 3D numpy X, get a 3D numpy X
-    3. Pass a pandas numpy X, equal length, get a 3D numpy X
-    4. Pass a pd.Series y, get a pd.Series back
-    5. Pass a np.ndarray y, get a pd.Series back
     """
 
     def _internal_convert(X, y=None):
@@ -224,31 +221,15 @@ def test_convert_input():
 
     cases = 5
     length = 10
-    test_X1 = np.random.uniform(-1, 1, size=(cases, length))
-    test_X2 = np.random.uniform(-1, 1, size=(cases, 2, length))
+    channels = 4
+    test_X1 = np.ones(shape=(cases, length))
+    test_X2 = np.ones(shape=(cases, channels, length))
     tester = _DummyClassifier()
+
+    tempX = tester._convert_X(test_X1)
+    assert tempX.shape == (cases, 1, length)
     tempX = tester._convert_X(test_X2)
-    assert tempX.shape[0] == cases and tempX.shape[1] == 2 and tempX.shape[2] == length
-    instance_list = []
-    for _ in range(0, cases):
-        instance_list.append(pd.Series(np.random.randn(10)))
-    test_X3 = _create_example_dataframe(cases=cases, dimensions=1, length=length)
-    test_X4 = _create_example_dataframe(cases=cases, dimensions=3, length=length)
-    tempX = tester._convert_X(test_X3)
-    assert tempX.shape[0] == cases and tempX.shape[1] == 1 and tempX.shape[2] == length
-    tempX = tester._convert_X(test_X4)
-    assert tempX.shape[0] == cases and tempX.shape[1] == 3 and tempX.shape[2] == length
-    tester = _DummyConvertPandas()
-    tempX = tester._convert_X(test_X2)
-    assert isinstance(tempX, pd.DataFrame)
-    assert tempX.shape[0] == cases
-    assert tempX.shape[1] == 2
-    test_y1 = np.random.randint(0, 1, size=(cases))
-    test_y1 = pd.Series(test_y1)
-    tempX, tempY = _internal_convert(test_X1, test_y1)
-    assert isinstance(tempY, np.ndarray)
-    assert isinstance(tempX, np.ndarray)
-    assert tempX.ndim == 3
+    assert tempX.shape == (cases, channels, length)
 
 
 def test__check_classifier_input():
