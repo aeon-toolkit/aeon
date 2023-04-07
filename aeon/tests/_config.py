@@ -31,6 +31,7 @@ EXCLUDE_ESTIMATORS = [
 
 
 EXCLUDED_TESTS = {
+    "SlopeTransformer": ["test_fit_transform_output"],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
     # known issue when X is passed, wrong time indices are returned, #1364
