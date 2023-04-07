@@ -55,30 +55,6 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
         if fit_empty_tag and remember_data_tag:
             raise AssertionError(msg)
 
-    def _expected_trafo_output_scitype(self, X_scitype, trafo_input, trafo_output):
-        """Return expected output scitype, given X scitype and input/output.
-
-        Paramaters
-        ----------
-        X_scitype : str, scitype of the input to transform
-        trafo_input : str, scitype of "instance"
-        trafo_output : str, scitype that instance is being transformed to
-
-        Returns
-        -------
-        expected scitype of the output of transform
-        """
-        # if series-to-series: input scitype equals output scitype
-        if trafo_input == "Series" and trafo_output == "Series":
-            return X_scitype
-        if trafo_output == "Primitives":
-            return "Table"
-        if trafo_input == "Series" and trafo_output == "Panel":
-            if X_scitype == "Series":
-                return "Panel"
-            if X_scitype in ["Panel", "Hierarchical"]:
-                return "Hierarchical"
-
     def test_transform_inverse_transform_equivalent(self, estimator_instance, scenario):
         """Test that inverse_transform is indeed inverse to transform."""
         # skip this test if the estimator does not have inverse_transform
@@ -96,20 +72,3 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
             _assert_array_almost_equal(X, Xit)
         elif isinstance(X, pd.DataFrame):
             _assert_array_almost_equal(X.loc[Xit.index], Xit)
-
-
-# todo: add testing of inverse_transform
-# todo: refactor the below, equivalent index check
-
-# def check_transform_returns_same_time_index(Estimator):
-#     estimator = Estimator.create_test_instance()
-#     if estimator.get_tag("transform-returns-same-time-index"):
-#         assert issubclass(Estimator, (_SeriesToSeriesTransformer, BaseTransformer))
-#         estimator = Estimator.create_test_instance()
-#         fit_args = _make_args(estimator, "fit")
-#         estimator.fit(*fit_args)
-#         for method in ["transform", "inverse_transform"]:
-#             if _has_capability(estimator, method):
-#                 X = _make_args(estimator, method)[0]
-#                 Xt = estimator.transform(X)
-#                 np.testing.assert_array_equal(X.index, Xt.index)
