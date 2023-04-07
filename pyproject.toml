@@ -127,7 +127,7 @@ Download = "https://pypi.org/project/aeon/#files"
 file = "LICENSE"
 
 [build-system]
-requires = ["setuptools>61", "wheel", "toml", "build"]
+requires = ["setuptools>61", "wheel", "toml", "build", "numpy"]
 build-backend = "setuptools.build_meta"
 
 [tool.nbqa.exclude]
