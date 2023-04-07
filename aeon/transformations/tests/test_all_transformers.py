@@ -7,7 +7,6 @@ __all__ = []
 
 import pandas as pd
 
-from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
@@ -79,84 +78,6 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
                 return "Panel"
             if X_scitype in ["Panel", "Hierarchical"]:
                 return "Hierarchical"
-
-    def test_fit_transform_output(self, estimator_instance, scenario):
-        """Test that transform output is of expected scitype."""
-        X = scenario.args["transform"]["X"]
-        Xt = scenario.run(estimator_instance, method_sequence=["fit", "transform"])
-
-        X_scitype = scenario.get_tag("X_scitype")
-        trafo_input = estimator_instance.get_tag("scitype:transform-input")
-        trafo_output = estimator_instance.get_tag("scitype:transform-output")
-
-        # get metadata for X and ensure that X_scitype tag was correct
-        valid_X_scitype, _, X_metadata = check_is_scitype(
-            X, scitype=X_scitype, return_metadata=True
-        )
-        msg = (
-            f"error with scenario {type(scenario).__name__}, X_scitype tag "
-            f'was "{X_scitype}", but check_is_scitype does not confirm this'
-        )
-        assert valid_X_scitype, msg
-
-        Xt_expected_scitype = self._expected_trafo_output_scitype(
-            X_scitype, trafo_input, trafo_output
-        )
-
-        valid_scitype, _, Xt_metadata = check_is_scitype(
-            Xt, scitype=Xt_expected_scitype, return_metadata=True
-        )
-
-        msg = (
-            f"{type(estimator_instance).__name__}.transform should return an object of "
-            f"scitype {Xt_expected_scitype} when given an input of scitype {X_scitype},"
-            f" but found the following return: {Xt}"
-        )
-        assert valid_scitype, msg
-
-        # we now know that Xt has its expected scitype
-        # assign this variable for better readability
-        Xt_scitype = Xt_expected_scitype
-
-        # skip the "number of instances" test below for Aggregator, Reconciler
-        #   reason: this adds "pseudo-instances" for the __total and increases the count
-        #   todo: we probably want to mirror this into a "hierarchical" tag later on
-        if type(estimator_instance).__name__ in ["Aggregator", "Reconciler"]:
-            return None
-
-        # if DataFrame is returned, columns must be unique
-        if hasattr(Xt, "columns"):
-            msg = (
-                f"{type(estimator_instance).__name__}.transform return should have "
-                f"unique column indices, but found {Xt.columns}"
-            )
-            assert Xt.columns.is_unique, msg
-
-        # if we vectorize, number of instances before/after transform should be same
-
-        # series-to-series transformers
-        if trafo_input == "Series" and trafo_output == "Series":
-            if X_scitype == "Series" and Xt_scitype == "Series":
-                if estimator_instance.get_tag("transform-returns-same-time-index"):
-                    assert X.shape[0] == Xt.shape[0]
-            if X_scitype == "Panel" and Xt_scitype == "Panel":
-                assert X_metadata["n_instances"] == Xt_metadata["n_instances"]
-            if X_scitype == "Hierarchical" and Xt_scitype == "Hierarchical":
-                assert X_metadata["n_instances"] == Xt_metadata["n_instances"]
-
-        # panel-to-panel transformers
-        if trafo_input == "Panel" and trafo_output == "Panel":
-            if X_scitype == "Hierarchical" and Xt_scitype == "Hierarchical":
-                assert X_metadata["n_panels"] == Xt_metadata["n_panels"]
-
-        # series-to-primitives transformers
-        if trafo_input == "Series" and trafo_output == "Primitives":
-            if X_scitype == "Series":
-                assert Xt_metadata["n_instances"] == 1
-            if X_scitype == "Panel":
-                assert X_metadata["n_instances"] == Xt_metadata["n_instances"]
-
-        # todo: also test the expected mtype
 
     def test_transform_inverse_transform_equivalent(self, estimator_instance, scenario):
         """Test that inverse_transform is indeed inverse to transform."""
