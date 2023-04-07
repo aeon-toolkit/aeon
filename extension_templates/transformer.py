@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Extension template for transformers.
 
@@ -17,9 +16,10 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to sktime via PR
-- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to aeon via PR
+- more details:
+    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting         - _fit(self, X, y=None)
@@ -30,28 +30,25 @@ Optional implements:
     update                      - _update(self, X, y=None)
     fitted parameter inspection - _get_fitted_params()
 
-Testing - implement if sktime transformer (not needed locally):
+Testing - implement if aeon transformer (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
 # todo: write an informative docstring for the file or module, remove the above
-# todo: add an appropriate copyright notice for your estimator
-#       estimators contributed to sktime should have the copyright notice at the top
-#       estimators of your own do not need to have permissive or BSD-3 copyright
 
 # todo: uncomment the following line, enter authors' GitHub IDs
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
 
-# todo: add any necessary sktime external imports here
+# todo: add any necessary aeon external imports here
 
 from aeon.transformations.base import BaseTransformer
 
-# todo: add any necessary sktime internal imports here
+# todo: add any necessary aeon internal imports here
 
-# todo: if any imports are sktime soft dependencies:
+# todo: if any imports are aeon soft dependencies:
 #  * make sure to fill in the "python_dependencies" tag with the package import name
 #  * add a _check_soft_dependencies warning here, example:
 #
-# from sktime.utils.validation._dependencies import check_soft_dependencies
+# from aeon.utils.validation._dependencies import check_soft_dependencies
 # _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
@@ -71,7 +68,7 @@ class MyTransformer(BaseTransformer):
     paramc : boolean, optional (default= whether paramb is not the default)
         descriptive explanation of paramc
     and so on
-    est : sktime.estimator, BaseEstimator descendant
+    est : aeon.estimator, BaseEstimator descendant
         descriptive explanation of est
     est2: another estimator
         descriptive explanation of est2
@@ -94,12 +91,12 @@ class MyTransformer(BaseTransformer):
     #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
     #
     #  when scitype:transform-input is set to Panel:
-    #   X_inner_mtype must be changed to one or a list of sktime Panel mtypes
+    #   X_inner_mtype must be changed to one or a list of aeon Panel mtypes
     #  when scitype:transform-labels is set to Series or Panel:
-    #   y_inner_mtype must be changed to one or a list of compatible sktime mtypes
+    #   y_inner_mtype must be changed to one or a list of compatible aeon mtypes
     #  the other tags are "safe defaults" which can usually be left as-is
     _tags = {
-        # to list all valid tags with description, use sktime.registry.all_tags
+        # to list all valid tags with description, use aeon.registry.all_tags
         #   all_tags(estimator_types="transformer", as_dataframe=True)
         #
         #
@@ -140,7 +137,7 @@ class MyTransformer(BaseTransformer):
         "X_inner_mtype": "pd.DataFrame",
         "y_inner_mtype": "None",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   y_inner_mtype can also be of scitype Table (one row/instance per series)
         #   in that case, all inputs are converted to that one type
@@ -479,7 +476,7 @@ class MyTransformer(BaseTransformer):
         #
         # this method can, if required, use:
         #   class properties (e.g., inherited); parent class test case
-        #   imported objects such as estimators from sktime or sklearn
+        #   imported objects such as estimators from aeon or sklearn
         # important: all such imports should be *inside get_test_params*, not at the top
         #            since imports are used only at testing time
         #

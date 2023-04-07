@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecaster for selecting among different model classes."""
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -33,8 +33,8 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
 
     Parameters
     ----------
-    forecasters : list of sktime forecasters, or
-        list of tuples (str, estimator) of sktime forecasters
+    forecasters : list of aeon forecasters, or
+        list of tuples (str, estimator) of aeon forecasters
         MultiplexForecaster can switch ("multiplex") between these forecasters.
         These are "blueprint" forecasters, states do not change when `fit` is called.
     selected_forecaster: str or None, optional, Default=None.
@@ -46,7 +46,7 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
 
     Attributes
     ----------
-    forecaster_ : sktime forecaster
+    forecaster_ : aeon forecaster
         clone of the selected forecaster used for fitting and forecasting.
     _forecasters : list of (str, forecaster) tuples
         str are identical to those passed, if passed strings are unique
@@ -152,13 +152,13 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
 
         Parameters
         ----------
-        other: `sktime` forecaster, must inherit from BaseForecaster
+        other: `aeon` forecaster, must inherit from BaseForecaster
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         MultiplexForecaster object, concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-MultiplexForecaster `sktime` forecasters
+            not nested, contains only non-MultiplexForecaster `aeon` forecasters
 
         Raises
         ------
@@ -179,13 +179,13 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
 
         Parameters
         ----------
-        other: `sktime` forecaster, must inherit from BaseForecaster
+        other: `aeon` forecaster, must inherit from BaseForecaster
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         MultiplexForecaster object, concatenation of `self` (last) with `other` (first).
-            not nested, contains only non-MultiplexForecaster `sktime` forecasters
+            not nested, contains only non-MultiplexForecaster `aeon` forecasters
         """
         return self._dunder_concat(
             other=other,

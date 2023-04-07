@@ -67,7 +67,7 @@ def load_UCR_UEA_dataset(
     Downloads and extracts dataset if not already downloaded. Data is assumed to be
     in the standard .ts format: each row is a (possibly multivariate) time series.
     Each dimension is separated by a colon, each value in a series is comma
-    separated. For examples see sktime.datasets.data.tsc. ArrowHead is an example of
+    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
     a univariate equal length problem, BasicMotions an equal length multivariate
     problem.
 
@@ -86,7 +86,7 @@ def load_UCR_UEA_dataset(
         it returns two objects, if False, it appends the class labels to the dataframe.
     return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
         Memory data format specification to return X in, None = "nested_univ" type.
-        str can be any supported sktime Panel mtype,
+        str can be any supported aeon Panel mtype,
             for list of mtypes, see datatypes.MTYPE_REGISTER
             for specifications, see examples/AA_datatypes_and_datasets.ipynb
         commonly used specifications:
@@ -97,7 +97,7 @@ def load_UCR_UEA_dataset(
         Exception is raised if the data cannot be stored in the requested type.
     extract_path : str, optional (default=None)
         the path to look for the data. If no path is provided, the function
-        looks in `sktime/datasets/data/`. If a path is given, it can be absolute,
+        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
         e.g. C:/Temp or relative, e.g. Temp or ./Temp.
 
     Returns

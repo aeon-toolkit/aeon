@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for BaseParamFitter API points."""
 
 __author__ = ["fkiraly"]
@@ -25,7 +25,7 @@ class ParamFitterFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllParamFitters(ParamFitterFixtureGenerator, QuickTester):
-    """Module level tests for all sktime parameter fitters."""
+    """Module level tests for all aeon parameter fitters."""
 
     def test_get_fitted_params(self, estimator_instance, scenario):
         """Test get_fitted_params expected return."""
