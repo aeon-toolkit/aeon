@@ -252,7 +252,6 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        # X = convert(X, from_type="numpy3D", to_type="nested_univ")
         X = self.sw.transform(X)
         # Temporary until conversion complete
         X = from_3d_numpy_to_nested(X)
