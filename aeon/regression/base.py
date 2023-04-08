@@ -120,11 +120,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
             or of any other supported Panel mtype
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
             indices correspond to instance indices in X
 
@@ -174,11 +171,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
             or of any other supported Panel mtype
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -201,11 +195,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
+            or of any other supported type
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels (gnr truth)
             indices correspond to instance indices in X
 
