@@ -64,7 +64,7 @@ class MultiRocketMultivariate(BaseTransformer):
      >>> X_test, y_test = load_basic_motions(split="test")
      >>> trf = MultiRocketMultivariate(num_kernels=512)
      >>> trf.fit(X_train)
-     MultiRocketMultivariate(...)
+     MultiRocketMultivariate(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """
