@@ -3,10 +3,10 @@ name = "aeon"
 version = "0.1.0rc0"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "aeon developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
 maintainers = [
-    {name = "aeon developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
 readme = "README.md"
 keywords = [
