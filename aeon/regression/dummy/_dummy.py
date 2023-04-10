@@ -50,7 +50,7 @@ class DummyRegressor(BaseRegressor):
     _tags = {
         "X_inner_mtype": "numpy3D",
         "capability:missing_values": True,
-        "capability:unequal_length": True,
+        "capability:unequal_length": False,
         "capability:multivariate": True,
     }
 
