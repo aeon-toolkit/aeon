@@ -19,12 +19,11 @@ References
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from attrs import asdict, define, field
 
 from aeon.base import BaseEstimator
 
@@ -104,7 +103,6 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: List) -> npt.Array
         yield X[interval.left : interval.right, :]
 
 
-@define
 class IGTS:
     """
     Information Gain based Temporal Segmentation (IGTS).
@@ -170,12 +168,13 @@ class IGTS:
 
     """
 
-    # init attributes
-    k_max: int = 10
-    step: int = 5
+    def __init__(self, k_max: int = 10, step: int = 5):
+        # init attributes
+        self.k_max: int = k_max
+        self.step: int = step
 
-    # computed attributes
-    intermediate_results_: List = field(init=False, default=[])
+        # computed attributes
+        self.intermediate_results_: List = []
 
     def identity(self, X: npt.ArrayLike) -> List[int]:
         """Return identity segmentation, i.e. terminal indexes of the data."""
@@ -459,22 +458,6 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
             labels for each of the data points.
         """
         return self.fit(X=X, y=y).predict(X=X, y=y)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self._adaptee, filter=lambda attr, value: attr.init is True)
 
     def set_params(self, **parameters):
         """Set the parameters of this object.

@@ -36,11 +36,10 @@ References
 
 import logging
 import math
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from attrs import asdict, define, field
 from sklearn.utils.validation import check_random_state
 
 from aeon.base import BaseEstimator
@@ -48,7 +47,6 @@ from aeon.base import BaseEstimator
 logger = logging.getLogger(__name__)
 
 
-@define
 class GGS:
     """
     Greedy Gaussian Segmentation.
@@ -111,15 +109,23 @@ class GGS:
        https://doi.org/10.1007/s11634-018-0335-0
     """
 
-    k_max: int = 10
-    lamb: float = 1.0
-    max_shuffles: int = 250
-    verbose: bool = False
-    random_state: int = None
+    def __init__(
+        self,
+        k_max: int = 10,
+        lamb: float = 1.0,
+        max_shuffles: int = 250,
+        verbose: bool = False,
+        random_state: int = None,
+    ):
+        self.k_max: int = k_max
+        self.lamb: float = lamb
+        self.max_shuffles: int = max_shuffles
+        self.verbose: bool = verbose
+        self.random_state: int = random_state
 
-    change_points_: npt.ArrayLike = field(init=False, default=[])
-    _intermediate_change_points: List[List[int]] = field(init=False, default=[])
-    _intermediate_ll: List[float] = field(init=False, default=[])
+        self.change_points_: npt.ArrayLike = []
+        self._intermediate_change_points: List[List[int]] = []
+        self._intermediate_ll: List[float] = []
 
     def initialize_intermediates(self) -> None:
         """Initialize the state fo the estimator."""
@@ -517,22 +523,6 @@ class GreedyGaussianSegmentation(BaseEstimator):
             labels for each of the data points.
         """
         return self.fit(X, y).predict(X, y)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self._adaptee, filter=lambda attr, value: attr.init is True)
 
     def set_params(self, **parameters):
         """Set the parameters of this object.
