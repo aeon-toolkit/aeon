@@ -1,8 +1,6 @@
-## DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links and documentation to reflect this. We do not recommend using this repository in any production setting, but welcome any contributors willing to help us update the project.
-
 # Welcome to aeon
 
-Aeon pre-release: v0.1.0rc0
+Aeon release: v0.1.0
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
