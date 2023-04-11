@@ -38,6 +38,7 @@ classifiers = [
 ]
 requires-python = ">=3.8,<3.11"
 dependencies = [
+    "attrs",
     "deprecated>=1.2.13",
     "numba>=0.55",
     "numpy>=1.21.0,<1.25",
