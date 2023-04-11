@@ -2080,6 +2080,17 @@
         "contributions": [
           "bug"
         ]
+      },
+      {
+         "login": "hadifawaz1999",
+         "name": "Ali Ismail-Fawaz",
+         "avatar_url": "https://avatars.githubusercontent.com/u/54309336",
+         "profile": "https://github.com/hadifawaz1999",
+         "contributions": [
+          "code",
+          "bug",
+          "doc"
+         ]
       }
   ]
 }
