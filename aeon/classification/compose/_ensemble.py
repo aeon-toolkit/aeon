@@ -718,6 +718,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         return self
 
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X."""
+        y_proba = self._predict_proba(X)
+        y_pred = y_proba.argmax(axis=1)
+
+        return y_pred
+
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
@@ -762,13 +769,13 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.classification.convolution_based import RocketClassifier
+        from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
         params1 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": [42, 1],
         }
@@ -776,7 +783,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         params2 = {
             "classifiers": [
                 KNeighborsTimeSeriesClassifier.create_test_instance(),
-                RocketClassifier.create_test_instance(),
+                DummyClassifier.create_test_instance(),
             ],
             "weights": 2,
             "cv": 3,

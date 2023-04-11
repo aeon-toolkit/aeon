@@ -35,6 +35,19 @@ aeon/classification/interval_based/_tsf.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/shapelet_based/_stc.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
 aeon/classification/sklearn/_continuous_interval_tree.py @MatthewMiddlehurst
 aeon/classification/sklearn/_rotation_forest.py @MatthewMiddlehurst
+aeon/classification/deep_learning/cnn.py @hadifawaz1999
+aeon/classification/deep_learning/resnet.py @hadifawaz1999
+aeon/classification/deep_learning/encoder.py @hadifawaz1999
+aeon/classification/deep_learning/fcn.py @hadifawaz1999
+aeon/classification/deep_learning/inception_time.py @hadifawaz1999
+aeon/classification/deep_learning/mlp.py @hadifawaz1999
+
+aeon/networks/cnn.py @hadifawaz1999
+aeon/networks/encoder.py @hadifawaz1999
+aeon/networks/fcn.py @hadifawaz1999
+aeon/networks/resnet.py @hadifawaz1999
+aeon/networks/mlp.py @hadifawaz1999
+aeon/networks/inception.py @hadifawaz1999
 
 aeon/transformations/panel/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst

@@ -11,9 +11,6 @@ up your developer environment, and installed a
 `developement version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
  of aeon.
 
-.. contents::
-   :local:
-
 Code quality checks
 -------------------
 

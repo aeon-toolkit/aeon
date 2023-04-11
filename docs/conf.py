@@ -9,20 +9,6 @@ from importlib import import_module
 
 import aeon
 
-rst_prolog = """.. attention::
-    DISCLAIMER: This is a fork of the sktime repository. Work is ongoing to change links
-    and documentation to reflect this. We do not recommend using this repository in any
-    production setting, but welcome any contributors willing to help us update the
-    project.
-
-    Links and buttons are likely to be broken in the current state.
-
-    Join our `Slack`_ to discuss the projects goals, ask usage questions and discuss
-    contributions.
-
-    .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
-"""  # noqa: E501
-
 # -- Project information -----------------------------------------------------
 
 project = "aeon"
@@ -73,14 +59,10 @@ extensions = [
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
     "numpydoc",
     "nbsphinx",  # integrates example notebooks
-    "sphinx_gallery.load_style",
     "sphinx_design",
     "sphinx_issues",
     "myst_parser",
 ]
-
-# Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence"]
 
 # Notebook thumbnails
 nbsphinx_thumbnails = {
@@ -149,6 +131,11 @@ autodoc_default_options = {
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
 
+# Link to GitHub repo for github_issues extension
+issues_github_path = "aeon-toolkit/aeon"
+
+# MyST Parser configuration
+
 # When building HTML using the sphinx.ext.mathjax (enabled by default),
 # Myst-Parser injects the tex2jax_ignore (MathJax v2) and mathjax_ignore (MathJax v3)
 # classes in to the top-level section of each MyST document, and adds some default
@@ -157,8 +144,10 @@ add_function_parentheses = False
 # the corresponding warning that this override happens.
 suppress_warnings = ["myst.mathjax"]
 
-# Link to GitHub repo for github_issues extension
-issues_github_path = "aeon-toolkit/aeon"
+# Recommended by sphinx_design when using the MyST Parser
+myst_enable_extensions = ["colon_fence"]
+
+myst_heading_anchors = 2
 
 
 def linkcode_resolve(domain, info):
@@ -210,6 +199,18 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
+    "announcement": """
+        <b>DISCLAIMER</b>: This is a fork of the sktime repository. Work is ongoing to change links
+        and documentation to reflect this.
+
+        Join our
+        <a href="https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA">Slack</a>
+        to discuss the projects goals, ask usage questions and discuss contributions.
+
+        We do not recommend using this repository in any
+        production setting, but welcome any contributors willing to help us update the
+        project. Links and buttons are likely to be broken in the current state.
+    """,  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
