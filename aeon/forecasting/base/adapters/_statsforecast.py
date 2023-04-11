@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for StatsForecast forecasters to be used in sktime framework."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implements adapter for StatsForecast forecasters to be used in aeon framework."""
 
 __author__ = ["FedericoGarza"]
 __all__ = ["_StatsForecastAdapter"]
@@ -25,7 +25,6 @@ class _StatsForecastAdapter(BaseForecaster):
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "capability:pred_int": True,  # does forecaster implement predict_quantiles?
-        "python_dependencies": ["statsforecast", "pandas<2.0.0"],
     }
 
     def __init__(self):

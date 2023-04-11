@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformers raise time series to user provided exponent."""
 
 __author__ = ["Ryan Kuhns"]
@@ -53,7 +53,7 @@ class ExponentTransformer(BaseTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.series.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -221,7 +221,7 @@ class SqrtTransformer(ExponentTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    sktime.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.series.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
 

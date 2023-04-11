@@ -25,12 +25,12 @@ def test_GaussianHMM_wrapper():
         means=[2, 4, 1], lengths=[10, 35, 40], random_state=7
     ).reshape((-1, 1))
     hmmlearn_model = _GaussianHMM(n_components=3, random_state=7)
-    sktime_model = GaussianHMM(n_components=3, random_state=7)
+    aeon_model = GaussianHMM(n_components=3, random_state=7)
     hmmlearn_model.fit(X=data)
-    sktime_model.fit(X=data)
+    aeon_model.fit(X=data)
     hmmlearn_predict = hmmlearn_model.predict(X=data)
-    sktime_predict = sktime_model.predict(X=data)
-    assert array_equal(hmmlearn_predict, sktime_predict)
+    aeon_predict = aeon_model.predict(X=data)
+    assert array_equal(hmmlearn_predict, aeon_predict)
 
 
 @pytest.mark.skipif(
@@ -48,12 +48,12 @@ def test_GMMHMM_wrapper():
         means=[2, 4, 1], lengths=[10, 35, 40], random_state=7
     ).reshape((-1, 1))
     hmmlearn_model = _GMMHMM(n_components=3, random_state=7)
-    sktime_model = GMMHMM(n_components=3, random_state=7)
+    aeon_model = GMMHMM(n_components=3, random_state=7)
     hmmlearn_model.fit(X=data)
-    sktime_model.fit(X=data)
+    aeon_model.fit(X=data)
     hmmlearn_predict = hmmlearn_model.predict(X=data)
-    sktime_predict = sktime_model.predict(X=data)
-    assert array_equal(hmmlearn_predict, sktime_predict)
+    aeon_predict = aeon_model.predict(X=data)
+    assert array_equal(hmmlearn_predict, aeon_predict)
 
 
 @pytest.mark.skipif(
@@ -71,9 +71,9 @@ def test_PoissonHMM_wrapper():
         lambdas=[1, 2, 3], lengths=[2, 4, 8], random_state=42
     ).reshape((-1, 1))
     hmmlearn_model = _PoissonHMM(n_components=3, random_state=42)
-    sktime_model = PoissonHMM(n_components=3, random_state=42)
+    aeon_model = PoissonHMM(n_components=3, random_state=42)
     hmmlearn_model.fit(X=data)
-    sktime_model.fit(X=data)
+    aeon_model.fit(X=data)
     hmmlearn_predict = hmmlearn_model.predict(X=data)
-    sktime_predict = sktime_model.predict(X=data)
-    assert array_equal(hmmlearn_predict, sktime_predict)
+    aeon_predict = aeon_model.predict(X=data)
+    assert array_equal(hmmlearn_predict, aeon_predict)

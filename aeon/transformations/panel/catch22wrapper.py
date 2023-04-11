@@ -22,7 +22,7 @@ _check_soft_dependencies("pycatch22", severity="warning")
 class Catch22Wrapper(BaseTransformer):
     """Canonical Time-series Characteristics (Catch22) C Wrapper.
 
-    Wraps the pycatch22 implementation for sktime
+    Wraps the pycatch22 implementation for aeon
     (https://github.com/DynamicsAndNeuralSystems/pycatch22).
 
     Overview: Input n series with d dimensions of length m

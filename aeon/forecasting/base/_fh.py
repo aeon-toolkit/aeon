@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements functionality for specifying forecast horizons in sktime."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implements functionality for specifying forecast horizons in aeon."""
 
 __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
 __all__ = ["ForecastingHorizon"]
@@ -200,7 +200,7 @@ class ForecastingHorizon:
         - if None, the flag is determined automatically:
             relative, if values are of supported relative index type
             absolute, if not relative and values of supported absolute index type
-    freq : str, pd.Index, pandas offset, or sktime forecaster, optional (default=None)
+    freq : str, pd.Index, pandas offset, or aeon forecaster, optional (default=None)
         object carrying frequency information on values
         ignored unless values is without inferrable freq
 

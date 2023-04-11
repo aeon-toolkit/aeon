@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for using sklearn FeatureUnion with sktime."""
+"""Tests for using sklearn FeatureUnion with aeon."""
 
 import numpy as np
 from sklearn.model_selection import train_test_split

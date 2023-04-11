@@ -78,7 +78,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/source/api_reference/auto_generated/
+docs/api_reference/auto_generated/
 docs/estimator_overview_table.md
 
 # PyBuilder

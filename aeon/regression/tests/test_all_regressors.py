@@ -36,7 +36,7 @@ class RegressorFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
-    """Module level tests for all sktime regressors."""
+    """Module level tests for all aeon regressors."""
 
     def test_multivariate_input_exception(self, estimator_instance):
         """Test univariate regressors raise exception on multivariate X."""

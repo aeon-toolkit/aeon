@@ -342,7 +342,7 @@ def convert_from_dictionary(ts_dict):
             "Series2": [3.0,2.0,1.0,3.0,2.0],
         }
     or multivariate, e.g.
-    to sktime pandas format
+    to aeon pandas format
     TODO: Adapt for multivariate
     """
     panda = pd.DataFrame(ts_dict)
@@ -778,8 +778,9 @@ def from_nested_to_multi_index(X, instance_index=None, time_index=None):
 
         # create the right MultiIndex and assign to X_mi
         idx_df = X[[c]].applymap(lambda x: x.index).explode(c)
-        idx_df = idx_df.set_index(c, append=True)
-        X_col.index = idx_df.index.set_names([instance_index, time_index])
+        index = pd.MultiIndex.from_arrays([idx_df.index, idx_df[c].values])
+        index = index.set_names([instance_index, time_index])
+        X_col.index = index
 
         X_mi[[c]] = X_col
 

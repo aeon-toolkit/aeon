@@ -300,7 +300,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
     "n" and decompose with :class:`ThetaLinesTransformer
-    <sktime.transformations.series.theta>` by modifying the local curvature of
+    <aeon.transformations.series.theta>` by modifying the local curvature of
     the time series using Theta-coefficient values - `theta_values` parameter.
     Thansformation gives a pd.DataFrame of shape `len(input series) * len(theta)`.
 
@@ -322,7 +322,7 @@ class ThetaModularForecaster(BaseForecaster):
     aggfunc: str, default="mean"
         Must be one of ["mean", "median", "min", "max", "gmean"].
         Calls :func:`_aggregate` of
-        :class:`EnsembleForecaster<sktime.forecasting.compose._ensemble>` to
+        :class:`EnsembleForecaster<aeon.forecasting.compose._ensemble>` to
         apply to results of multivariate theta-lines predictions (pd.DataFrame)
         in order to get resulting univariate prediction (pd.Series).
         The aggregation takes place across different theta-lines (row-wise), for

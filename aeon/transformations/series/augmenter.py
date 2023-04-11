@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Series transformers for time series augmentation."""
 
 __author__ = ["MrPr3ntice", "MFehsenfeld", "iljamaurer"]

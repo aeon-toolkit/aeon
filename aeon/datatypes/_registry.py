@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Registry of mtypes and scitypes.
 
 Note for extenders: new mtypes for an existing scitypes
@@ -13,7 +13,7 @@ This module exports the following:
 SCITYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype tag, elements as follows:
-    0 : string - name of the scitype as used throughout sktime and in datatypes
+    0 : string - name of the scitype as used throughout aeon and in datatypes
     1 : string - plain English description of the scitype
 
 ---
@@ -21,7 +21,7 @@ each tuple corresponds to an mtype tag, elements as follows:
 MTYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype, elements as follows:
-    0 : string - name of the mtype as used throughout sktime and in datatypes
+    0 : string - name of the mtype as used throughout aeon and in datatypes
     1 : string - name of the scitype the mtype is for, must be in SCITYPE_REGISTER
     2 : string - plain English description of the scitype
 
