@@ -1,6 +1,6 @@
 ---
 name: "\u2728 Feature request"
-about: Suggest a new algorithm of idea for aeon
+about: Suggest a new algorithm or idea for aeon.
 title: "[ENH]"
 labels: enhancement
 ---

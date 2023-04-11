@@ -1,6 +1,6 @@
 ---
 name: "\U0001F41B Bug report"
-about: Report a bug currently impacting aeon
+about: Report a bug currently impacting aeon.
 title: "[BUG]"
 labels: bug
 ---
