@@ -4,13 +4,13 @@ from aeon.transformations.panel.channel_selection import ElbowClassPairwise
 from aeon.utils._testing.panel import make_classification_problem
 
 
-def test_cs_basic_motions():
+def test_channel_selection():
     """Test channel selection on random nested data frame."""
     X_train, y_train = make_classification_problem(
-        n_instances=10, n_timepoints=10, n_columns=3
+        n_instances=10, n_timepoints=10, n_columns=3, return_numpy=True
     )
     X_test, y_test = make_classification_problem(
-        n_instances=10, n_timepoints=10, n_columns=3
+        n_instances=10, n_timepoints=10, n_columns=3, return_numpy=True
     )
 
     ecp = ElbowClassPairwise()
