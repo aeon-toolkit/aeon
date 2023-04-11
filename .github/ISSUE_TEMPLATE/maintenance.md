@@ -1,11 +1,11 @@
 ---
-name: "\u2728 Feature request"
-about: Suggest a new algorithm of idea for aeon
-title: "[ENH]"
-labels: enhancement
+name: "\u1F527 Package maintenenace"
+about: Notify us of broken CI, dependencies or other package maintenance
+title: "[MNT]"
+labels: maintenance
 ---
 
-#### Is your feature request related to a problem? Please describe.
+#### Is there an issue with testing, CI or dependency management? Please describe.
 
 <!--
 A clear and concise description of what the problem is.
@@ -15,12 +15,6 @@ A clear and concise description of what the problem is.
 
 <!--
 A clear and concise description of what you want to happen, ideally taking into consideration the existing toolbox design, classes and methods.
--->
-
-#### Describe alternatives you've considered, if relevant
-
-<!--
-A clear and concise description of any alternative solutions or features you've considered.
 -->
 
 #### Additional context
