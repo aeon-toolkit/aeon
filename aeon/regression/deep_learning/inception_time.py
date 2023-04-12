@@ -18,7 +18,7 @@ _check_dl_dependencies(severity="warning")
 class InceptionTimeRegressor(BaseRegressor):
     """InceptionTime ensemble regressor.
 
-    Ensemble of IndividualInceptionTimeRegressors, as described in [1].
+    Ensemble of IndividualInceptionRegressor, as described in [1].
     This ensemble regressor is adapted from the classier InceptionTime
 
     Parameters
