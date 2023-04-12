@@ -5,6 +5,40 @@ import math
 
 @njit(cache=True, fastmath=True)
 def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
+    """Create a bounding matrix for a elastic distance.
+
+    Parameters
+    ----------
+    x_size: int
+        Size of the first time series.
+    y_size: int
+        Size of the second time series.
+    window: float, optional
+        Window size as a percentage of the smallest time series.
+        If None, the bounding matrix will be full.
+
+    Returns
+    -------
+    np.ndarray
+        Bounding matrix where values in bound are finite and values out of bounds are
+        infinite.
+
+    Examples
+    --------
+    >>> create_bounding_matrix(10, 10, window=0.5)
+    array(
+    [[ 1.  1.  1. inf inf inf inf inf inf inf]
+     [ 1.  1.  1.  1. inf inf inf inf inf inf]
+     [inf  1.  1.  1.  1. inf inf inf inf inf]
+     [inf inf  1.  1.  1.  1. inf inf inf inf]
+     [inf inf inf  1.  1.  1.  1. inf inf inf]
+     [inf inf inf inf  1.  1.  1.  1. inf inf]
+     [inf inf inf inf inf  1.  1.  1.  1. inf]
+     [inf inf inf inf inf inf  1.  1.  1.  1.]
+     [inf inf inf inf inf inf inf  1.  1.  1.]
+     [inf inf inf inf inf inf inf inf  1.  1.]]
+     )
+    """
     if window is None or window >= 1:
         return np.zeros((x_size, y_size))
     return _sakoe_chiba_bounding(x_size, y_size, window)

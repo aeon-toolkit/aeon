@@ -1,10 +1,11 @@
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
+from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def dtw_distance(x: np.ndarray, y: np.ndarray):
+def dtw_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
     """Compute the dtw distance between two time series.
 
     Parameters
@@ -13,19 +14,53 @@ def dtw_distance(x: np.ndarray, y: np.ndarray):
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
+    window: float, optional
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
 
     Returns
     -------
     float
         dtw distance between x and y.
     """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    return _dtw_distance(x, y, bounding_matrix)
 
 
-def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray):
-    return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1], y.shape[1]]
+@njit(cache=True, fastmath=True)
+def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
+    """Compute the dtw cost matrix between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, optional
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+
+    Returns
+    -------
+    np.ndarray (n_timepoints_x, n_timepoints_y)
+        dtw cost matrix between x and y.
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    return _dtw_cost_matrix(x, y, bounding_matrix)
 
 
-def _dtw_cost_matrix(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray):
+@njit(cache=True, fastmath=True)
+def _dtw_distance(
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+) -> float:
+    return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+
+
+@njit(cache=True, fastmath=True)
+def _dtw_cost_matrix(
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
