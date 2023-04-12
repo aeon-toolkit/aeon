@@ -3,7 +3,7 @@ from numba import njit
 from aeon.distance_rework._dtw import dtw_distance, dtw_cost_matrix
 
 
-@njit(fastmath=True, cache=True)
+#@njit(fastmath=True, cache=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window=None):
     """Compute the ddtw distance between two time series.
 
@@ -35,7 +35,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window=None):
     return dtw_distance(x, y, window)
 
 
-@njit(fastmath=True, cache=True)
+#@njit(fastmath=True, cache=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None):
     """Compute the ddtw cost matrix between two time series.
 
@@ -74,7 +74,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None):
     return dtw_cost_matrix(x, y, window)
 
 
-@njit(fastmath=True, cache=True)
+#@njit(fastmath=True, cache=True)
 def average_of_slope(q: np.ndarray) -> np.ndarray:
     r"""Compute the average of a slope between points.
     Computes the average of the slope of the line through the point in question and

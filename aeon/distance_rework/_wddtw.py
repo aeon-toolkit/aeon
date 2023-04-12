@@ -3,7 +3,7 @@ from numba import njit
 from aeon.distance_rework._wdtw import wdtw_distance, wdtw_cost_matrix
 from aeon.distance_rework._ddtw import average_of_slope
 
-@njit(fastmath=True, cache=True)
+#@njit(fastmath=True, cache=True)
 def wddtw_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
     """Compute the wddtw distance between two time series.
 
@@ -39,7 +39,7 @@ def wddtw_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
     return wdtw_distance(x, y, window, g)
 
 
-@njit(fastmath=True, cache=True)
+#@njit(fastmath=True, cache=True)
 def wddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
     """Compute the wddtw cost matrix between two time series.
 

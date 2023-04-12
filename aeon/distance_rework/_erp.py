@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
     """Compute the ERP distance between two time series.
 
@@ -34,11 +34,11 @@ def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
     >>> erp_distance(x, y)
     0.0
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, g)
-    return _erp_distance(x, y, bounding_matrix)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    return _erp_distance(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
@@ -77,18 +77,18 @@ def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarr
            [284., 252., 211., 165., 118.,  74.,  37.,  11.,   0.,  12.],
            [384., 348., 301., 247., 190., 134.,  83.,  41.,  12.,   0.]])
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, g)
-    return _erp_cost_matrix(x, y, bounding_matrix)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    return _erp_cost_matrix(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def _erp_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def _erp_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> np.ndarray:
@@ -116,7 +116,7 @@ def _erp_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def _precompute_g(x: np.ndarray, g: float):
     gx_distance = np.zeros(x.shape[1])
     g_arr = np.full(x.shape[0], g)

@@ -3,7 +3,7 @@ from numba import njit
 from aeon.distance_rework._squared import squared_distance
 
 
-@njit(cache=True, fastmath=True)
+#@njit(cache=True)
 def euclidean_distance(x: np.ndarray, y: np.ndarray):
     """Compute the euclidean distance between two time series.
 
