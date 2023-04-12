@@ -4,42 +4,6 @@ from aeon.distance_rework._dtw import dtw_distance, dtw_cost_matrix
 
 
 @njit(fastmath=True, cache=True)
-def average_of_slope(q: np.ndarray) -> np.ndarray:
-    r"""Compute the average of a slope between points.
-    Computes the average of the slope of the line through the point in question and
-    its left neighbour, and the slope of the line through the left neighbour and the
-    right neighbour. proposed in [1] for use in this context.
-    .. math::
-    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-    Where q is the original time series and q' is the derived time series.
-
-    Parameters
-    ----------
-    q: np.ndarray (n_dims, n_timepoints)
-        Time series to take derivative of.
-
-    Returns
-    -------
-    np.ndarray  (n_dims, n_timepoints - 2)
-        Array containing the derivative of q.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distance_rework._ddtw import average_of_slope
-    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> average_of_slope(q)
-    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
-    """
-    result = np.zeros((q.shape[0], q.shape[1] - 2))
-    for i in range(q.shape[0]):
-        for j in range(1, q.shape[1] - 1):
-            result[i, j - 1] = ((q[i, j] - q[i, j - 1])
-                                + (q[i, j + 1] - q[i, j - 1]) / 2.) / 2.
-    return result
-
-
-@njit(fastmath=True, cache=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window=None):
     """Compute the ddtw distance between two time series.
 
@@ -108,3 +72,39 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None):
     x = average_of_slope(x)
     y = average_of_slope(y)
     return dtw_cost_matrix(x, y, window)
+
+
+@njit(fastmath=True, cache=True)
+def average_of_slope(q: np.ndarray) -> np.ndarray:
+    r"""Compute the average of a slope between points.
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. proposed in [1] for use in this context.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
+
+    Parameters
+    ----------
+    q: np.ndarray (n_dims, n_timepoints)
+        Time series to take derivative of.
+
+    Returns
+    -------
+    np.ndarray  (n_dims, n_timepoints - 2)
+        Array containing the derivative of q.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework._ddtw import average_of_slope
+    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> average_of_slope(q)
+    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
+    """
+    result = np.zeros((q.shape[0], q.shape[1] - 2))
+    for i in range(q.shape[0]):
+        for j in range(1, q.shape[1] - 1):
+            result[i, j - 1] = ((q[i, j] - q[i, j - 1])
+                                + (q[i, j + 1] - q[i, j - 1]) / 2.) / 2.
+    return result

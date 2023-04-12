@@ -91,7 +91,7 @@ def edr_cost_matrix(
 def _edr_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=None
 ) -> float:
-    distance = _edr_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1] - 1, y.shape[1] - 1]
     return float(distance / max(x.shape[1], y.shape[1]))
 
 
