@@ -13,10 +13,10 @@ def wddtw_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, optional
+    g: float, defaults=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 
@@ -49,10 +49,10 @@ def wddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, optional
+    g: float, defaults=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 

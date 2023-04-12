@@ -5,27 +5,129 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def twe_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+def twe_distance(
+    x: np.ndarray,
+    y: np.ndarray,
+    window=None,
+    nu: float = 0.001,
+    lmbda: float = 1.
+) -> float:
+    """Compute the TWE distance between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: int, defaults = None
+        Window size. If None, the window size is set to the length of the
+        shortest time series.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    float
+        TWE distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> twe_distance(x, y)
+    0.0
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, nu, lmbda)
     return _twe_distance(x, y, bounding_matrix)
 
 
 @njit(cache=True, fastmath=True)
-def twe_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
+def twe_cost_matrix(
+    x: np.ndarray,
+    y: np.ndarray,
+    window=None,
+    nu: float = 0.001,
+    lmbda: float = 1.
+) -> np.ndarray:
+    """Compute the TWE cost matrix between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: int, defaults = None
+        Window size. If None, the window size is set to the length of the
+        shortest time series.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    np.ndarray (n_timepoints_x, n_timepoints_y)
+        TWE cost matrix between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_cost_matrix
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> twe_cost_matrix(x, y)
+    array([[ 0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006, 14.007,
+            16.008, 18.009],
+           [ 2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006,
+            14.007, 16.008],
+           [ 4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005,
+            12.006, 14.007],
+           [ 6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004,
+            10.005, 12.006],
+           [ 8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,
+             8.004, 10.005],
+           [10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,
+             6.003,  8.004],
+           [12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,
+             4.002,  6.003],
+           [14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,
+             2.001,  4.002],
+           [16.008, 14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,
+             0.   ,  2.001],
+           [18.009, 16.008, 14.007, 12.006, 10.005,  8.004,  6.003,  4.002,
+             2.001,  0.   ]])
+    """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-    return _twe_cost_matrix(x, y, bounding_matrix)
+    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)
 
 
 @njit(cache=True, fastmath=True)
 def _twe_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+    x: np.ndarray,
+    y: np.ndarray,
+    bounding_matrix: np.ndarray,
+    nu: float = 0.001,
+    lmbda: float = 1.
 ) -> float:
-    return _twe_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+    return _twe_cost_matrix(
+        x, y, bounding_matrix, nu, lmbda
+    )[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _twe_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float = 0.001,
+        x: np.ndarray,
+        y: np.ndarray,
+        bounding_matrix: np.ndarray,
+        nu: float = 0.001,
         lmbda: float = 1.
 ) -> np.ndarray:
     x = _pad_arrs(x)

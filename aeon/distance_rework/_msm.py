@@ -12,6 +12,37 @@ def msm_distance(
         independent: bool = True,
         c: float = 1.
 ) -> float:
+    """Compute the MSM distance between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: int or None
+        The window size to use for the bounding matrix. If None, the
+        bounding matrix is not used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    float
+        MSM distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> msm_distance(x, y)
+    0.0
+    """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _msm_distance(x, y, bounding_matrix, independent, c)
 
@@ -19,6 +50,46 @@ def msm_distance(
 @njit(cache=True, fastmath=True)
 def msm_cost_matrix(x: np.ndarray, y: np.ndarray, window=None,
                     independent: bool = True, c: float = 1.) -> np.ndarray:
+    """Compute the MSM cost matrix between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: int or None
+        The window size to use for the bounding matrix. If None, the
+        bounding matrix is not used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_timepoints_x, n_timepoints_y)
+        MSM cost matrix between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_cost_matrix
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> msm_cost_matrix(x, y)
+    array([[ 0.,  2.,  4.,  6.,  8., 10., 12., 14., 16., 18.],
+           [ 2.,  0.,  2.,  4.,  6.,  8., 10., 12., 14., 16.],
+           [ 4.,  2.,  0.,  2.,  4.,  6.,  8., 10., 12., 14.],
+           [ 6.,  4.,  2.,  0.,  2.,  4.,  6.,  8., 10., 12.],
+           [ 8.,  6.,  4.,  2.,  0.,  2.,  4.,  6.,  8., 10.],
+           [10.,  8.,  6.,  4.,  2.,  0.,  2.,  4.,  6.,  8.],
+           [12., 10.,  8.,  6.,  4.,  2.,  0.,  2.,  4.,  6.],
+           [14., 12., 10.,  8.,  6.,  4.,  2.,  0.,  2.,  4.],
+           [16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.,  2.],
+           [18., 16., 14., 12., 10.,  8.,  6.,  4.,  2.,  0.]])
+    """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     if independent:
         return _msm_independent_cost_matrix(x, y, bounding_matrix, c)

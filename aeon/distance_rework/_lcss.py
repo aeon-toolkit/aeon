@@ -14,10 +14,10 @@ def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=1.) -> floa
         First time series.
     y : np.ndarray
         Second time series.
-    window : float, optional
+    window : float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, optional
+    epsilon : float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
 
@@ -51,10 +51,10 @@ def lcss_cost_matrix(
         First time series.
     y : np.ndarray
         Second time series.
-    window : float, optional
+    window : float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, optional
+    epsilon : float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
 

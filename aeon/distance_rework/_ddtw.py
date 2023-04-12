@@ -13,7 +13,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window=None):
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     Returns
@@ -45,7 +45,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None):
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     Returns

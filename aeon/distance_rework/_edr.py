@@ -14,7 +14,7 @@ def edr_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=None) -> flo
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, defaults = None
@@ -52,7 +52,7 @@ def edr_cost_matrix(
         First time series.
     y: np.ndarray (n_dims, n_timepoints)
         Second time series.
-    window: float, optional
+    window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, defaults = None

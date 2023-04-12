@@ -13,7 +13,7 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
         Size of the first time series.
     y_size: int
         Size of the second time series.
-    window: float, optional
+    window: float, defaults=None
         Window size as a percentage of the smallest time series.
         If None, the bounding matrix will be full.
 
