@@ -38,7 +38,7 @@ def cost_matrix_matches_bounding_matrix(
     assert cost_matrix.shape == expected_shape
     for i in range(cost_matrix.shape[0]):
         for j in range(cost_matrix.shape[1]):
-            if not np.isfinite(bounding_matrix[i, j]):
+            if not bounding_matrix[i, j]:
                 assert cost_matrix[i, j] == out_of_bounds_value
 
 
@@ -103,7 +103,7 @@ def test_wddtw_distance():
 
 def test_edr_distance():
     assert almost_equal(edr_distance(x, y), 0.8)
-    assert almost_equal(edr_distance(x, y, window=0.1), 0.2)
+    assert almost_equal(edr_distance(x, y, window=0.1), 0.1)
     cost_matrix = edr_cost_matrix(x, y, window=0.2)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window=0.2)
     cost_matrix_matches_bounding_matrix(
@@ -113,7 +113,7 @@ def test_edr_distance():
 
 def test_erp_distance():
     assert almost_equal(erp_distance(x, y), 4408.25)
-    assert almost_equal(erp_distance(x, y, window=0.1), 1473.0)
+    assert almost_equal(erp_distance(x, y, window=0.1), 245.0)
     cost_matrix = erp_cost_matrix(x, y, window=0.2)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window=0.2)
     cost_matrix_matches_bounding_matrix(
@@ -133,9 +133,9 @@ def test_lcss_distance():
 
 def test_msm_distance():
     assert almost_equal(msm_distance(x, y), 164.5)
-    assert almost_equal(msm_distance(x, y, window=0.1), 5.0)
+    assert almost_equal(msm_distance(x, y, window=0.1), 3.0)
     assert almost_equal(msm_distance(x, y, independent=False), 164.0)
-    assert almost_equal(msm_distance(x, y, independent=False, window=0.1), 3.0)
+    assert almost_equal(msm_distance(x, y, independent=False, window=0.1), 1.0)
     cost_matrix = msm_cost_matrix(x, y, window=0.2)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window=0.2)
     cost_matrix_matches_bounding_matrix(
@@ -150,7 +150,7 @@ def test_msm_distance():
     )
 def test_lcss_distance():
     assert almost_equal(twe_distance(x, y), 8815.5)
-    assert almost_equal(twe_distance(x, y, window=0.1), 2008.252)
+    assert almost_equal(twe_distance(x, y, window=0.1), 1501.001)
     cost_matrix = twe_cost_matrix(x, y, window=0.2)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window=0.2)
     cost_matrix_matches_bounding_matrix(

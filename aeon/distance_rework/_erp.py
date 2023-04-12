@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
     """Compute the ERP distance between two time series.
 
@@ -38,7 +38,7 @@ def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
     return _erp_distance(x, y, bounding_matrix, g)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
@@ -81,14 +81,14 @@ def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarr
     return _erp_cost_matrix(x, y, bounding_matrix, g)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _erp_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _erp_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> np.ndarray:
@@ -105,7 +105,7 @@ def _erp_cost_matrix(
 
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
-            if np.isfinite(bounding_matrix[i - 1, j - 1]):
+            if bounding_matrix[i - 1, j - 1]:
                 cost_matrix[i, j] = min(
                     cost_matrix[i - 1, j - 1] +
                     univariate_squared_distance(x[:, i - 1], y[:, j - 1]),
@@ -116,7 +116,7 @@ def _erp_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _precompute_g(x: np.ndarray, g: float):
     gx_distance = np.zeros(x.shape[1])
     g_arr = np.full(x.shape[0], g)

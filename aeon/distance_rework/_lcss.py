@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=1.) -> float:
     """Returns the lcss distance between x and y.
 
@@ -39,7 +39,7 @@ def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=1.) -> floa
     return _lcss_distance(x, y, bounding_matrix, epsilon)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
         x: np.ndarray, y: np.ndarray, window=None, epsilon=1.
 ) -> np.ndarray:
@@ -85,7 +85,7 @@ def lcss_cost_matrix(
     return _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=1.
 ) -> float:
@@ -95,7 +95,7 @@ def _lcss_distance(
     return 1 - float(distance / min(x.shape[1], y.shape[1]))
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=1.
 ) -> np.ndarray:
@@ -106,7 +106,7 @@ def _lcss_cost_matrix(
 
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
-            if np.isfinite(bounding_matrix[i - 1, j - 1]):
+            if bounding_matrix[i - 1, j - 1]:
                 squared_distance = univariate_squared_distance(x[:, i - 1], y[:, j - 1])
                 if squared_distance <= epsilon:
                     cost_matrix[i, j] = 1 + cost_matrix[i - 1, j - 1]

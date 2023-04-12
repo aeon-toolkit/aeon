@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def edr_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=None) -> float:
     """Compute the edr distance between two time series.
 
@@ -40,7 +40,7 @@ def edr_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=None) -> flo
     return _edr_distance(x, y, bounding_matrix, epsilon)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def edr_cost_matrix(
         x: np.ndarray, y: np.ndarray, window=None, epsilon=None
 ) -> np.ndarray:
@@ -87,7 +87,7 @@ def edr_cost_matrix(
     return _edr_cost_matrix(x, y, bounding_matrix, epsilon)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _edr_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=None
 ) -> float:
@@ -95,7 +95,7 @@ def _edr_distance(
     return float(distance / max(x.shape[1], y.shape[1]))
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _edr_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=None
 ) -> np.ndarray:
@@ -108,7 +108,7 @@ def _edr_cost_matrix(
 
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
-            if np.isfinite(bounding_matrix[i - 1, j - 1]):
+            if bounding_matrix[i - 1, j - 1]:
                 squared_dist = univariate_squared_distance(x[:, i - 1], y[:, j - 1])
                 if squared_dist < epsilon:
                     cost = 0

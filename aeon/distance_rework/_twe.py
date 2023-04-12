@@ -4,26 +4,26 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def twe_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _twe_distance(x, y, bounding_matrix)
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def twe_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _twe_cost_matrix(x, y, bounding_matrix)
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def _twe_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> float:
     return _twe_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def _twe_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float = 0.001,
         lmbda: float = 1.
@@ -40,7 +40,7 @@ def _twe_cost_matrix(
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i - 1, j - 1]):
+            if bounding_matrix[i - 1, j - 1]:
                 # Deletion in x
                 del_x_squared_dist = univariate_squared_distance(x[:, i - 1], x[:, i])
                 del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
@@ -64,6 +64,7 @@ def _twe_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
+@njit(cache=True, fastmath=True)
 def _pad_arrs(x):
     padded_x = np.zeros((x.shape[0], x.shape[1] + 1))
     zero_arr = np.array([0.0])

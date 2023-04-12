@@ -9,14 +9,14 @@ def test_full_bounding():
 
 def test_window_bounding():
     matrix = create_bounding_matrix(10, 10, window=0.5)
-    num_finite = 0
-    num_infinite = 0
+    num_true = 0
+    num_false = 0
     for row in matrix:
         for val in row:
-            if np.isfinite(val):
-                num_finite += 1
+            if val:
+                num_true += 1
             else:
-                num_infinite += 1
+                num_false += 1
 
-    assert num_finite == 75
-    assert num_infinite == 25
+    assert num_true == 75
+    assert num_false == 25

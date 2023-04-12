@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
     """Compute the dtw distance between two time series.
 
@@ -36,7 +36,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
     return _dtw_distance(x, y, bounding_matrix)
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
     """Compute the dtw cost matrix between two time series.
 
@@ -77,14 +77,14 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
     return _dtw_cost_matrix(x, y, bounding_matrix)
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def _dtw_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-# #@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def _dtw_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
@@ -95,7 +95,7 @@ def _dtw_cost_matrix(
 
     for i in range(x_size):
         for j in range(y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 cost_matrix[i + 1, j + 1] = \
                     univariate_squared_distance(x[:, i], y[:, j]) + min(
                     cost_matrix[i, j + 1],

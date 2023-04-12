@@ -4,7 +4,7 @@ from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def msm_distance(
         x: np.ndarray,
         y: np.ndarray,
@@ -16,7 +16,7 @@ def msm_distance(
     return _msm_distance(x, y, bounding_matrix, independent, c)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def msm_cost_matrix(x: np.ndarray, y: np.ndarray, window=None,
                     independent: bool = True, c: float = 1.) -> np.ndarray:
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
@@ -25,7 +25,7 @@ def msm_cost_matrix(x: np.ndarray, y: np.ndarray, window=None,
     return _msm_dependent_cost_matrix(x, y, bounding_matrix, c)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _msm_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray,
         independent: bool = True, c: float = 1.
@@ -39,7 +39,7 @@ def _msm_distance(
     )[x.shape[1] - 1, y.shape[1] - 1]
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _msm_independent_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
 ) -> np.ndarray:
@@ -54,8 +54,7 @@ def _msm_independent_cost_matrix(
     return cost_matrix
 
 
-# Have to not use fastmath or it messes up the bounding matrix result
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _independent_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
 ) -> np.ndarray:
@@ -65,18 +64,18 @@ def _independent_cost_matrix(
     cost_matrix[0, 0] = np.abs(x[0] - y[0])
 
     for i in range(1, x_size):
-        if np.isfinite(bounding_matrix[i, 0]):
+        if bounding_matrix[i, 0]:
             cost = _cost_independent(x[i], x[i - 1], y[0], c)
             cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
 
     for i in range(1, y_size):
-        if np.isfinite(bounding_matrix[0, i]):
+        if bounding_matrix[0, i]:
             cost = _cost_independent(y[i], y[i - 1], x[0], c)
             cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 d1 = cost_matrix[i - 1][j - 1] + np.abs(x[i] - y[j])
                 d2 = cost_matrix[i - 1][j] + _cost_independent(
                     x[i], x[i - 1], y[j], c
@@ -89,7 +88,7 @@ def _independent_cost_matrix(
 
     return cost_matrix
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _msm_dependent_cost_matrix(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
 ) -> np.ndarray:
@@ -99,17 +98,17 @@ def _msm_dependent_cost_matrix(
     cost_matrix[0, 0] = np.sum(np.abs(x[:, 0] - y[:, 0]))
 
     for i in range(1, x_size):
-        if np.isfinite(bounding_matrix[i, 0]):
+        if bounding_matrix[i, 0]:
             cost = _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
             cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
     for i in range(1, y_size):
-        if np.isfinite(bounding_matrix[0, i]):
+        if bounding_matrix[0, i]:
             cost = _cost_dependent(y[:, i], y[:, i - 1], x[:, 0], c)
             cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 d1 = cost_matrix[i - 1][j - 1] + np.sum(np.abs(x[:, i] - y[:, j]))
                 d2 = cost_matrix[i - 1][j] + _cost_dependent(
                     x[:, i], x[:, i - 1], y[:, j], c
@@ -122,7 +121,7 @@ def _msm_dependent_cost_matrix(
     return cost_matrix
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> float:
     diameter = univariate_squared_distance(y, z)
     mid = (y + z) / 2
@@ -139,7 +138,7 @@ def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> fl
             return c + dist_to_c
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     if (y <= x <= z) or (y >= x >= z):
         return c

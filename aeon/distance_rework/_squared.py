@@ -6,7 +6,7 @@ from aeon.distance_rework._utils import (
 )
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def squared_distance(x: np.ndarray, y: np.ndarray):
     """Compute the squared distance between two time series.
 
@@ -28,7 +28,7 @@ def squared_distance(x: np.ndarray, y: np.ndarray):
     return distance
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def univariate_squared_distance(x: np.ndarray, y: np.ndarray):
     """Compute the squared distance between two time series.
 

@@ -3,7 +3,7 @@ from numba import njit
 import math
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     """Create a bounding matrix for a elastic distance.
 
@@ -20,36 +20,32 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     Returns
     -------
     np.ndarray
-        Bounding matrix where values in bound are finite and values out of bounds are
-        infinite.
+        Bounding matrix where values in bound are True and values out of bounds are
+        False.
 
     Examples
     --------
-    >>> create_bounding_matrix(10, 10, window=0.5)
-    array(
-    [[ 1.  1.  1. inf inf inf inf inf inf inf]
-     [ 1.  1.  1.  1. inf inf inf inf inf inf]
-     [inf  1.  1.  1.  1. inf inf inf inf inf]
-     [inf inf  1.  1.  1.  1. inf inf inf inf]
-     [inf inf inf  1.  1.  1.  1. inf inf inf]
-     [inf inf inf inf  1.  1.  1.  1. inf inf]
-     [inf inf inf inf inf  1.  1.  1.  1. inf]
-     [inf inf inf inf inf inf  1.  1.  1.  1.]
-     [inf inf inf inf inf inf inf  1.  1.  1.]
-     [inf inf inf inf inf inf inf inf  1.  1.]]
-     )
+    >>> create_bounding_matrix(8, 8, window=0.5)
+    array([[ True,  True,  True,  True,  True, False, False, False],
+           [ True,  True,  True,  True,  True,  True, False, False],
+           [ True,  True,  True,  True,  True,  True,  True, False],
+           [ True,  True,  True,  True,  True,  True,  True,  True],
+           [False,  True,  True,  True,  True,  True,  True,  True],
+           [False, False,  True,  True,  True,  True,  True,  True],
+           [False, False, False,  True,  True,  True,  True,  True],
+           [False, False, False, False,  True,  True,  True,  True]])
     """
     if window is None or window >= 1:
-        return np.zeros((x_size, y_size))
+        return np.full((x_size, y_size), True)
     return _sakoe_chiba_bounding(x_size, y_size, window)
 
 
-#@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _sakoe_chiba_bounding(x_size: int, y_size: int,
                           radius_percent: float) -> np.ndarray:
     one_percent = min(x_size, y_size) / 100
     radius = math.ceil(((radius_percent * one_percent) * 100))
-    bounding_matrix = np.full((x_size, y_size), np.inf)
+    bounding_matrix = np.full((x_size, y_size), False)
 
     smallest_size = min(x_size, y_size)
     largest_size = max(x_size, y_size)
@@ -59,6 +55,6 @@ def _sakoe_chiba_bounding(x_size: int, y_size: int,
         lower = max(0, i - radius)
         upper = min(largest_size, i + width)
         for j in range(lower, upper):
-            bounding_matrix[j, i] = 1.
+            bounding_matrix[j, i] = True
 
     return bounding_matrix
