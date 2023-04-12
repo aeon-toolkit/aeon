@@ -19,6 +19,8 @@ from aeon.distance_rework import (
     lcss_cost_matrix,
     msm_distance,
     msm_cost_matrix,
+    twe_distance,
+    twe_cost_matrix,
 )
 
 x = np.array(
@@ -146,3 +148,12 @@ def test_msm_distance():
     cost_matrix_matches_bounding_matrix(
         cost_matrix, (10, 10), bounding_matrix, out_of_bounds_value=0.0
     )
+def test_lcss_distance():
+    assert almost_equal(twe_distance(x, y), 8815.5)
+    assert almost_equal(twe_distance(x, y, window=0.1), 2008.252)
+    cost_matrix = twe_cost_matrix(x, y, window=0.2)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window=0.2)
+    cost_matrix_matches_bounding_matrix(
+        cost_matrix, (10, 10), bounding_matrix, out_of_bounds_value=0.0
+    )
+
