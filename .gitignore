@@ -32,7 +32,7 @@ results/
 MANIFEST
 
 #downloaded datasets
-sktime/datasets/local_data/
+aeon/datasets/local_data/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -78,7 +78,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/source/api_reference/auto_generated/
+docs/api_reference/auto_generated/
 docs/estimator_overview_table.md
 
 # PyBuilder
@@ -108,7 +108,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-sktime-dev/
+aeon-dev/
 
 # mkdocs documentation
 /site

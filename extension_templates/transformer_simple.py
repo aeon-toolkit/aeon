@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Extension template for transformers, SIMPLE version.
 
@@ -22,30 +21,28 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to sktime via PR
-- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to aeon via PR
+- more details:
+    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting         - _fit(self, X, y=None)
     transformation  - _transform(self, X, y=None)
 
-Testing - implement if sktime transformer (not needed locally):
+Testing - implement if aeon transformer (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
 # todo: write an informative docstring for the file or module, remove the above
-# todo: add an appropriate copyright notice for your estimator
-#       estimators contributed to sktime should have the copyright notice at the top
-#       estimators of your own do not need to have permissive or BSD-3 copyright
 
 # todo: uncomment the following line, enter authors' GitHub IDs
 # __author__ = [authorGitHubID, anotherAuthorGitHubID]
 
-# todo: add any necessary sktime external imports here
+# todo: add any necessary aeon external imports here
 
-from sktime.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer
 
-# todo: add any necessary sktime internal imports here
+# todo: add any necessary aeon internal imports here
 
 
 class MyTransformer(BaseTransformer):
@@ -82,12 +79,12 @@ class MyTransformer(BaseTransformer):
     #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
     #
     #  when scitype:transform-input is set to Panel:
-    #   X_inner_mtype must be changed to one or a list of sktime Panel mtypes
+    #   X_inner_mtype must be changed to one or a list of aeon Panel mtypes
     #  when scitype:transform-labels is set to Series or Panel:
-    #   y_inner_mtype must be changed to one or a list of compatible sktime mtypes
+    #   y_inner_mtype must be changed to one or a list of compatible aeon mtypes
     #  the other tags are "safe defaults" which can usually be left as-is
     _tags = {
-        # to list all valid tags with description, use sktime.registry.all_tags
+        # to list all valid tags with description, use aeon.registry.all_tags
         #   all_tags(estimator_types="transformer", as_dataframe=True)
         #
         #
@@ -128,7 +125,7 @@ class MyTransformer(BaseTransformer):
         "X_inner_mtype": "pd.DataFrame",
         "y_inner_mtype": "None",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in sktime.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   y_inner_mtype can also be of scitype Table (one row/instance per series)
         #   in that case, all inputs are converted to that one type
@@ -177,7 +174,6 @@ class MyTransformer(BaseTransformer):
 
     # todo: add any hyper-parameters and components to constructor
     def __init__(self, parama, paramb="default", paramc=None):
-
         # todo: write any hyper-parameters to self
         self.parama = parama
         self.paramb = paramb

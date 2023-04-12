@@ -1,6 +1,6 @@
 {
-  "projectName": "sktime",
-  "projectOwner": "sktime",
+  "projectName": "aeon",
+  "projectOwner": "aeon",
   "repoType": "github",
   "repoHost": "https://github.com",
   "commitConvention": "none",
@@ -2071,6 +2071,26 @@
         "contributions": [
           "code"
         ]
+      },
+    {
+        "login": "scorcism",
+        "name": "Abhishek Pathak",
+        "avatar_url": "https://avatars.githubusercontent.com/u/69761436",
+        "profile": "https://github.com/scorcism",
+        "contributions": [
+          "bug"
+        ]
+      },
+      {
+         "login": "hadifawaz1999",
+         "name": "Ali Ismail-Fawaz",
+         "avatar_url": "https://avatars.githubusercontent.com/u/54309336",
+         "profile": "https://github.com/hadifawaz1999",
+         "contributions": [
+          "code",
+          "bug",
+          "doc"
+         ]
       }
   ]
 }

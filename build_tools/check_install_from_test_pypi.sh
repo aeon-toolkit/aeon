@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Helper script to download and install sktime from test PyPI to check wheel
+# Helper script to download and install aeon from test PyPI to check wheel
 # and upload prior to new release
 
 set -e
@@ -18,18 +18,18 @@ echo "Creating test environment ..."
 
 # shellcheck disable=SC1091
 source "$(conda info --base)"/etc/profile.d/conda.sh  # set up conda
-conda create -n sktime_testenv python=3.7
-conda activate sktime_testenv
+conda create -n aeon_testenv python=3.9
+conda activate aeon_testenv
 
 # Install from test PyPI
-echo "Installing sktime from Test PyPI ..."
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple sktime=="$VERSION"
-echo "Successfully installed sktime from Test PyPI."
+echo "Installing aeon from Test PyPI ..."
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple aeon=="$VERSION"
+echo "Successfully installed aeon from Test PyPI."
 
 # Clean up test directory and environment
 echo "Cleaning up ..."
 conda deactivate
-conda remove -n sktime_testenv --all -y
+conda remove -n aeon_testenv --all -y
 rm -r "$HOME"/testdir
 
 echo "Done."

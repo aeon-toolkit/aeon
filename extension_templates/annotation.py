@@ -14,9 +14,10 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by sktime.utils.estimator_checks.check_estimator
-- once complete: use as a local library, or contribute to sktime via PR
-- more details: https://www.sktime.org/en/stable/developer_guide/add_estimators.html
+- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- once complete: use as a local library, or contribute to aeon via PR
+- more details:
+    https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
 
 Mandatory implements:
     fitting         - _fit(self, X, Y=None)
@@ -25,13 +26,11 @@ Mandatory implements:
 Optional implements:
     updating        - _update(self, X, Y=None)
 
-Testing - implement if sktime forecaster (not needed locally):
+Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
-
-copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 
-from sktime.annotation.base import BaseSeriesAnnotator
+from aeon.annotation.base import BaseSeriesAnnotator
 
 # todo: add any necessary imports here
 
@@ -63,7 +62,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
 
     Components
     ----------
-    est : sktime.estimator, BaseEstimator descendant
+    est : aeon.estimator, BaseEstimator descendant
         descriptive explanation of est
     est2: another estimator
         descriptive explanation of est2
@@ -209,7 +208,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
         #
         # this method can, if required, use:
         #   class properties (e.g., inherited); parent class test case
-        #   imported objects such as estimators from sktime or sklearn
+        #   imported objects such as estimators from aeon or sklearn
         # important: all such imports should be *inside get_test_params*, not at the top
         #            since imports are used only at testing time
         #

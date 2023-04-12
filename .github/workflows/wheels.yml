@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, macOS-11]
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10']
 
     steps:
       - uses: actions/checkout@v3
@@ -48,7 +48,7 @@ jobs:
           path: wheelhouse
 
       - name: Get wheel filename
-        run: echo "WHEELNAME=$(ls ./wheelhouse/sktime-*none-any.whl)" >> $GITHUB_ENV
+        run: echo "WHEELNAME=$(ls ./wheelhouse/aeon-*none-any.whl)" >> $GITHUB_ENV
 
       - name: Install wheel and extras
         run: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
@@ -64,11 +64,6 @@ jobs:
       matrix:
         include:
           # Window 64 bit
-          - os: windows-2019
-            python: 37
-            python-version: '3.7'
-            bitness: 64
-            platform_id: win_amd64
           - os: windows-2019
             python: 38
             python-version: '3.8'
@@ -114,7 +109,7 @@ jobs:
         run: ls -l wheelhouse
 
       - name: Get wheel filename
-        run: echo "WHEELNAME=$(ls ./wheelhouse/sktime-*none-any.whl)" >> $env:GITHUB_ENV
+        run: echo "WHEELNAME=$(ls ./wheelhouse/aeon-*none-any.whl)" >> $env:GITHUB_ENV
 
       - name: Activate conda env
         run: conda activate test
