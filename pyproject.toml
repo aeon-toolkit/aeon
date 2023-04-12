@@ -45,6 +45,7 @@ dependencies = [
     "scikit-learn>=1.0.0,<1.3.0",
     "scipy<2.0.0,>=1.2.0",
     "attrs>=19.2.0", # see #282
+    "packaging>=20.0",
 ]
 
 [project.optional-dependencies]
