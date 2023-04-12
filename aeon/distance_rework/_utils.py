@@ -1,8 +1,8 @@
 from typing import Callable
 import numpy as np
 
-DistanceFunction: Callable[[np.ndarray, np.ndarray], float]
-BoundingDistanceFunction: Callable[[np.ndarray, np.ndarray, np.ndarray], float]
+DistanceFunction = Callable[[np.ndarray, np.ndarray], float]
+BoundingDistanceFunction = Callable[[np.ndarray, np.ndarray, np.ndarray], float]
 
 def pairwise_distance(
         x: np.ndarray,

@@ -1,17 +1,19 @@
-from numba import njit
+import numpy as np
+from aeon.distance_rework import (
+    euclidean_distance,
+    squared_distance
+)
 
 
-@njit(cache=True)
-def numba_func_1(x, y):
-    return x + y
+def test_euclidean_distance():
+    x = np.array([[1, 2, 3]])
+    y = np.array([[4, 5, 6]])
+    assert euclidean_distance(x, y) == np.linalg.norm(x - y)
 
-@njit(cache=True)
-def numba_func2(x, y, test="joe"):
-    print(test)
-    return x - y
 
-def test_func_call(x, y, **kwargs):
-    return numba_func2(x, y, **kwargs)
+def test_squared_distance():
+    x = np.array([[1, 2, 3]])
+    y = np.array([[4, 5, 6]])
+    assert squared_distance(x, y) == np.linalg.norm(x - y) ** 2
 
-def test_joe():
-    test_func_call(1, 2, test="gabe")
+
