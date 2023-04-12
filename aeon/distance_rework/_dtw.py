@@ -22,6 +22,15 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window=None) -> float:
     -------
     float
         dtw distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import dtw_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> dtw_distance(x, y)
+    0.0
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _dtw_distance(x, y, bounding_matrix)
@@ -45,6 +54,24 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None) -> np.ndarray:
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
         dtw cost matrix between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import dtw_cost_matrix
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> dtw_cost_matrix(x, y)
+    array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
+           [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
+           [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
+           [ 14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91.],
+           [ 30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.],
+           [ 55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.],
+           [ 91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.],
+           [140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.],
+           [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
+           [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _dtw_cost_matrix(x, y, bounding_matrix)
@@ -69,8 +96,8 @@ def _dtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if np.isfinite(bounding_matrix[i, j]):
-                squared_distance = univariate_squared_distance(x[:, i], y[:, j])
-                cost_matrix[i + 1, j + 1] = squared_distance + min(
+                cost_matrix[i + 1, j + 1] = \
+                    univariate_squared_distance(x[:, i], y[:, j]) + min(
                     cost_matrix[i, j + 1],
                     cost_matrix[i + 1, j],
                     cost_matrix[i, j],

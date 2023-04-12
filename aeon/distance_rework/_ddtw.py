@@ -22,6 +22,14 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     -------
     np.ndarray  (n_dims, n_timepoints - 2)
         Array containing the derivative of q.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework._ddtw import average_of_slope
+    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> average_of_slope(q)
+    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
     """
     result = np.zeros((q.shape[0], q.shape[1] - 2))
     for i in range(q.shape[0]):
@@ -48,6 +56,15 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window=None):
     -------
     float
         ddtw distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import ddtw_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> ddtw_distance(x, y)
+    0.0
     """
     x = average_of_slope(x)
     y = average_of_slope(y)
@@ -71,6 +88,22 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None):
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
         ddtw cost matrix between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import ddtw_cost_matrix
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> ddtw_cost_matrix(x, y)
+    array([[0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0.]])
     """
     x = average_of_slope(x)
     y = average_of_slope(y)

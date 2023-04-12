@@ -4,6 +4,7 @@ from aeon.distance_rework import (
     squared_distance,
     dtw_distance,
     ddtw_distance,
+    wdtw_distance,
 )
 
 x = np.array(
@@ -12,6 +13,7 @@ x = np.array(
 y = np.array(
     [[8, 19, 10, 12, 68, 7.5, 60, 7, 10, 14], [15, 12, 4, 62, 17, 10, 3, 15, 48, 7]]
 )
+
 
 def almost_equal(first: float, second: float, less_than_val: float = 0.0001) -> bool:
     """On some hardware decimal place values are not the same (e.g. Apple Silicon).
@@ -31,6 +33,7 @@ def almost_equal(first: float, second: float, less_than_val: float = 0.0001) -> 
     """
     return abs(first - second) < less_than_val
 
+
 def test_euclidean_distance():
     assert euclidean_distance(x, y) == np.linalg.norm(x - y)
 
@@ -48,6 +51,7 @@ def test_ddtw_distance():
     assert almost_equal(ddtw_distance(x, y), 3833.84375)
     assert almost_equal(ddtw_distance(x, y, window=0.1), 3833.84375)
 
-def test_wdtw_distance():
-    pass
 
+def test_wdtw_distance():
+    assert almost_equal(wdtw_distance(x, y), 1930.035439970180)
+    assert almost_equal(wdtw_distance(x, y, window=0.1), 1930.035439970180)
