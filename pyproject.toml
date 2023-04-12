@@ -3,10 +3,10 @@ name = "aeon"
 version = "0.1.0rc0"
 description = "A unified framework for machine learning with time series"
 authors = [
-    {name = "aeon developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
 maintainers = [
-    {name = "aeon developers", email = "scikit.time@gmail.com"},
+    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
 readme = "README.md"
 keywords = [
@@ -44,6 +44,8 @@ dependencies = [
     "pandas==1.5.3",
     "scikit-learn>=1.0.0,<1.3.0",
     "scipy<2.0.0,>=1.2.0",
+    "attrs>=19.2.0", # see #282
+    "packaging>=20.0",
 ]
 
 [project.optional-dependencies]
