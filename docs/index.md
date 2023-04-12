@@ -134,9 +134,9 @@ Transformation
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [aeon Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
 
-**Twitter**: link
+**Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
