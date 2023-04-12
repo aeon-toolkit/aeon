@@ -73,6 +73,9 @@ EXCLUDED_TESTS = {
     "CNNRegressor": [
         "test_fit_idempotent",
     ],
+    "InceptionTimeRegressor": [
+        "test_fit_idempotent",
+    ],
     "EncoderClassifier": [
         "test_fit_idempotent",
         "test_persistence_via_pickle",
@@ -102,6 +105,13 @@ EXCLUDED_TESTS = {
         "test_methods_have_no_side_effects",
     ],
     "IndividualInceptionClassifier": [
+        "test_fit_idempotent",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+        "test_fit_does_not_overwrite_hyper_params",
+        "test_methods_have_no_side_effects",
+    ],
+    "IndividualInceptionRegressor": [
         "test_fit_idempotent",
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
