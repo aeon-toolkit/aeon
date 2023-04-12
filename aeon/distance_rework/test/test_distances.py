@@ -7,7 +7,8 @@ from aeon.distance_rework import (
     wdtw_distance,
     wddtw_distance,
     edr_distance,
-    erp_distance
+    erp_distance,
+    lcss_distance,
 )
 
 x = np.array(
@@ -70,3 +71,7 @@ def test_edr_distance():
 def test_erp_distance():
     assert almost_equal(erp_distance(x, y), 4408.25)
     assert almost_equal(erp_distance(x, y, window=0.1), 4408.25)
+
+def test_lcss_distance():
+    assert almost_equal(lcss_distance(x, y), 0.8)
+    assert almost_equal(lcss_distance(x, y, window=0.1), 0.8)

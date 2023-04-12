@@ -5,7 +5,7 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> float:
+def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
     """Compute the ERP distance between two time series.
 
     Parameters
@@ -18,7 +18,7 @@ def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> float:
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float, optional
-        The reference value to penalise gaps.
+        The reference value to penalise gaps. The default is 0..
 
     Returns
     -------
@@ -34,12 +34,12 @@ def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> float:
     >>> erp_distance(x, y)
     0.0
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, g)
     return _erp_distance(x, y, bounding_matrix)
 
 
 @njit(cache=True, fastmath=True)
-def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> np.ndarray:
+def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
     Parameters
@@ -52,7 +52,7 @@ def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> np.ndar
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float, optional
-        The reference value to penalise gaps.
+        The reference value to penalise gaps. The default is 0.
 
     Returns
     -------
@@ -77,20 +77,20 @@ def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.0) -> np.ndar
            [284., 252., 211., 165., 118.,  74.,  37.,  11.,   0.,  12.],
            [384., 348., 301., 247., 190., 134.,  83.,  41.,  12.,   0.]])
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, g)
     return _erp_cost_matrix(x, y, bounding_matrix)
 
 
 @njit(cache=True, fastmath=True)
 def _erp_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.0
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> float:
-    return _erp_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+    return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _erp_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.0
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
