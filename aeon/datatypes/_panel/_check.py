@@ -101,10 +101,12 @@ def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
 
     check_res = [check_pddataframe_series(s, return_metadata=True) for s in obj]
     bad_inds = [i for i in range(n) if not check_res[i][0]]
-    metadata = {}
+
     if len(bad_inds) > 0:
         msg = f"{var_name}[i] must be Series of mtype pd.DataFrame, not at i={bad_inds}"
         return _ret(False, msg, None, return_metadata)
+
+    metadata = dict()
     metadata["is_univariate"] = np.all([res[2]["is_univariate"] for res in check_res])
     metadata["is_equally_spaced"] = np.all(
         [res[2]["is_equally_spaced"] for res in check_res]
@@ -113,6 +115,9 @@ def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
     metadata["is_empty"] = np.any([res[2]["is_empty"] for res in check_res])
     metadata["has_nans"] = np.any([res[2]["has_nans"] for res in check_res])
     metadata["is_one_series"] = n == 1
+    metadata["n_panels"] = 1
+    metadata["is_one_panel"] = True
+
     metadata["n_instances"] = n
 
     return _ret(True, None, metadata, return_metadata)
