@@ -4,6 +4,6 @@ All notable changes to this project will be documented in this file. We keep tra
 
 To stay up-to-date with aeon releases, subscribe to aeon [here](https://libraries.io/pypi/aeon>) or follow us on [Twitter](https://twitter.com/aeon_toolbox>).
 
-For upcoming changes and next releases, see our [milestones](https://github.com/sktime/sktime/milestones?direction=asc&sort=due_date&state=open>). For our long-term plan, see our [roadmap](roadmap).
+For upcoming changes and next releases, see our [milestones](https://github.com/aeon-toolkit/aeon/milestones). For our long-term plan, see our [roadmap](roadmap).
 
-- [Version 0.1.0](changelogs/v0.1.md)
+- [Version 0.1.0](changelogs/v0.1)
