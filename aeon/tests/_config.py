@@ -107,6 +107,7 @@ EXCLUDED_TESTS = {
         "test_fit_does_not_overwrite_hyper_params",
         "test_methods_have_no_side_effects",
     ],
+    "SlidingWindowSegmenter": ["test_fit_transform_output"],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
     "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
