@@ -130,6 +130,35 @@ def _edr_cost_matrix(
 def edr_pairwise_distance(
         X: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
+    """Compute the pairwise edr distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        The time series to compute the pairwise distance between.
+    window: float, defaults=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon : float, defaults = None
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. If not specified as per the original paper
+        epsilon is set to a quarter of the maximum standard deviation.
+
+    Returns
+    -------
+    np.ndarray
+        The pairwise edr distance matrix.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import edr_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> edr_pairwise_distance(X)
+    array([[0.  , 0.75, 0.75],
+           [0.75, 0.  , 0.75],
+           [0.75, 0.75, 0.  ]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -146,6 +175,36 @@ def edr_pairwise_distance(
 def edr_from_single_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ):
+    """Compute the edr distance between a single time series and a set of time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        The time series to compute the distance from.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        The time series to compute the distance to.
+    window: float, defaults=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon : float, defaults = None
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. If not specified as per the original paper
+        epsilon is set to a quarter of the maximum standard deviation.
+
+    Returns
+    -------
+    np.ndarray
+        The edr distance between the single time series and the set of time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import edr_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 4]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> edr_from_single_to_multiple_distance(x, y)
+    array([0.  , 0.75, 0.75])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
@@ -160,6 +219,38 @@ def edr_from_single_to_multiple_distance(
 def edr_from_multiple_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ):
+    """Compute the edr distance between a set of time series and a set of time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        The time series to compute the distance from.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        The time series to compute the distance to.
+    window: float, defaults=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon : float, defaults = None
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. If not specified as per the original paper
+        epsilon is set to a quarter of the maximum standard deviation.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        The edr distance between two sets of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import edr_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> edr_from_multiple_to_multiple_distance(x, y)
+    array([[0.75, 0.75, 1.  ],
+           [1.  , 1.  , 1.  ],
+           [1.  , 1.  , 0.75]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
