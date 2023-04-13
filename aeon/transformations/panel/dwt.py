@@ -16,8 +16,17 @@ class DWTTransformer(BaseTransformer):
 
     Parameters
     ----------
-    num_levels : int, number of levels to perform the Haar wavelet
+    n_levels : int, number of levels to perform the Haar wavelet
                  transformation.
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel import DWTTransformer
+    >>> import numpy as np
+    >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
+    >>> dwt = DWTTransformer(n_levels=2)
+    >>> data2 = dwt.fit_transform(data)
+
     """
 
     _tags = {
@@ -28,8 +37,8 @@ class DWTTransformer(BaseTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, num_levels=3):
-        self.num_levels = num_levels
+    def __init__(self, n_levels=3):
+        self.n_levels = n_levels
         super(DWTTransformer, self).__init__()
 
     def _transform(self, X, y=None):
@@ -66,7 +75,7 @@ class DWTTransformer(BaseTransformer):
         from levels 1 to num_levels followed by the approximation
         coefficients of the highest level.
         """
-        num_levels = self.num_levels
+        num_levels = self.n_levels
         res = []
 
         for x in data:
@@ -96,14 +105,14 @@ class DWTTransformer(BaseTransformer):
         ------
         ValueError or TypeError if a parameters input is invalid.
         """
-        if isinstance(self.num_levels, int):
-            if self.num_levels <= -1:
+        if isinstance(self.n_levels, int):
+            if self.n_levels <= -1:
                 raise ValueError("num_levels must have the value" + "of at least 0")
         else:
             raise TypeError(
                 "num_levels must be an 'int'. Found"
                 + "'"
-                + type(self.num_levels).__name__
+                + type(self.n_levels).__name__
                 + "' instead."
             )
 
