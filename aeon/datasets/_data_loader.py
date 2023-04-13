@@ -11,11 +11,13 @@ def _load_header_info(file):
 
     Parameters
     ----------
-    file : input file
+    file : stream.
+        input file to read header from, assumed to be just opened
 
     Returns
     -------
-    meta_data : dictionary with the data characteristics stored in the header.
+    meta_data : dict.
+        dictionary with the data characteristics stored in the header.
     """
     meta_data = {
         "problemname": "none",
@@ -65,22 +67,25 @@ def _load_header_info(file):
 
 
 def _load_data(file, meta_data):
-    """Load data from a file  with no header.
+    """Load data from a file with no header.
 
     this assumes each time series has the same number of channels, but allows unequal
     length series between cases.
 
     Parameters
     ----------
-    file : input file
-    meta_data : hash table
-        with meta data in the file header
+    file : stream, input file to read data from, assume no comments or header info
+    meta_data : dict.
+        with meta data in the file header loaded with _load_header_info
 
     Returns
     -------
-    list of numpy arrays of floats: the time series
-    numpy array of strings: the class/target variable values
-    meta_data enhanced with number of channels and series length
+    data: list[np.ndarray].
+        list of numpy arrays of floats: the time series
+    y_values : np.ndarray.
+        numpy array of strings: the class/target variable values
+    meta_data :  dict.
+        dictionary of characteristics enhanced with number of channels and series length
 
     """
     data = []
@@ -143,6 +148,20 @@ def load_from_tsfile(
     return_meta_data=True,
 ):
     """Load time series .ts file into X and (optionally) y.
+
+    Parameters
+    ----------
+    full_file_path_and_name : string
+    replace_missing_vals_with : string, default="NaN"
+    return_meta_data : boolean, default=True
+
+    Returns
+    -------
+    data: Union[np.ndarray,pd.DataFrame].
+        time series data, np.ndarray if equal length, data frame if not.
+    y : target variable.
+    meta_data : dict.
+        dictionary of characteristics.
 
     Raises
     ------
