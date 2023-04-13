@@ -4,6 +4,7 @@
 __all__ = ["TSCStrategy", "TSRStrategy"]
 __author__ = ["mloning", "sajaysurya"]
 
+import numpy as np
 import pandas as pd
 from joblib import dump, load
 from sklearn.base import ClassifierMixin, RegressorMixin
@@ -141,7 +142,7 @@ class BaseStrategy(BaseEstimator):
     @staticmethod
     def _validate_data(data):
         """Validate input data."""
-        if not isinstance(data, pd.DataFrame):
+        if not isinstance(data, pd.DataFrame) and not isinstance(data, np.ndarray):
             raise ValueError(f"Data must be pandas DataFrame, but found: {type(data)}")
 
         # TODO add input checks for contents, ie all cells be pandas Series,
