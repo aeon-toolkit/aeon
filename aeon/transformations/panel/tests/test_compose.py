@@ -12,8 +12,8 @@ from aeon.transformations.panel.reduce import Tabularizer
 
 def test_ColumnTransformer_pipeline():
     """Test pipeline with ColumnTransformer."""
-    X_train, y_train = load_basic_motions(split="train")
-    X_test, y_test = load_basic_motions(split="test")
+    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
+    X_test, y_test = load_basic_motions(split="test", return_type="nested_univ")
 
     # using Identity function transformations (transform series to series)
     def id_func(X):
