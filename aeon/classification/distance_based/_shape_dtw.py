@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ShapeDTW classifier.
 
-Nearest neighbour classifier that extracts shapee features.
+Nearest neighbour classifier that extracts shape features.
 """
 
 import numpy as np
@@ -16,6 +16,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
 from aeon.datatypes import convert
+from aeon.datatypes._panel._convert import from_3d_numpy_to_nested
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
 from aeon.transformations.panel.hog1d import HOG1DTransformer
@@ -31,46 +32,37 @@ __author__ = ["vincent-nich12"]
 class ShapeDTW(BaseClassifier):
     """ShapeDTW classifier.
 
-    ShapeDTW [1] works by initially extracting a set of subsequences
-    describing local neighbourhoods around each data point in a time series.
-    These subsequences are then passed into a shape descriptor function that
-    transforms these local neighbourhoods into a new representation. This
-    new representation is then sent into DTW with 1-NN.
+    ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
+    each data point in a time series. These subseries are then passed into a
+    shape descriptor function that transforms these local neighbourhoods into a new
+    representation. This new representation is then used for nearest neighbour
+    classification with dynamic time warping.
 
     Parameters
     ----------
-    n_neighbours                : int, int, set k for knn (default =1).
-    subsequence_length          : int, defines the length of the
-                                  subsequences(default=sqrt(n_timepoints)).
-
-    shape_descriptor_function   : string, defines the function to describe
-                                  the set of subsequences
-                                  (default = 'raw').
-
-
-    The possible shape descriptor functions are as follows:
-
+    n_neighbours : int, default =1
+        number of neighbours, k, for the k-NN classifier.
+    subsequence_length : int, default=sqrt(n_timepoints)
+        length of the subseries to extract.
+    shape_descriptor_function : string, default = 'raw'
+        defines the function to describe the set of subsequences
+        The possible shape descriptor functions are as follows:
         - 'raw'                 : use the raw subsequence as the
                                   shape descriptor function.
                                 - params = None
-
         - 'paa'                 : use PAA as the shape descriptor function.
                                 - params = num_intervals_paa (default=8)
-
         - 'dwt'                 : use DWT (Discrete Wavelet Transform)
                                   as the shape descriptor function.
                                 - params = num_levels_dwt (default=3)
-
         - 'slope'               : use the gradient of each subsequence
                                   fitted by a total least squares
                                   regression as the shape descriptor
                                   function.
                                 - params = num_intervals_slope (default=8)
-
         - 'derivative'          : use the derivative of each subsequence
                                   as the shape descriptor function.
                                 - params = None
-
         - 'hog1d'               : use a histogram of gradients in one
                                   dimension as the shape desciptor
                                   function.
@@ -80,7 +72,6 @@ class ShapeDTW(BaseClassifier):
                                                     (default=8)
                                          = scaling_factor_hog1d
                                                     (default=0.1)
-
         - 'compound'            : use a combination of two shape
                                   descriptors simultaneously.
                                 - params = weighting_factor
@@ -92,17 +83,10 @@ class ShapeDTW(BaseClassifier):
                                            this value is tuned
                                            by 10-fold cross-validation
                                            on the training data.
-
-
-    shape_descriptor_functions  : string list, only applicable when the
-                                  shape_descriptor_function is
-                                  set to 'compound'.
-                                  Use a list of shape descriptor
-                                  functions at the same time.
-                                  (default = ['raw','derivative'])
-
-    metric_params               : dictionary for metric parameters
-                                  (default = None).
+    shape_descriptor_functions  : List of string, default = ['raw','derivative']
+        only applicable when the shape_descriptor_function is set to 'compound'. Use
+        a list of shape descriptor functions at the same time.
+    metric_params               : dictionary for metric parameters, default = None
 
     Notes
     -----
@@ -110,6 +94,16 @@ class ShapeDTW(BaseClassifier):
         Pattern Recognition, 74, pp 171-184, 2018
         http://www.sciencedirect.com/science/article/pii/S0031320317303710,
 
+    Example
+    -----
+    >>> from aeon.classification.distance_based import ShapeDTW
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> clf = ShapeDTW()
+    >>> clf.fit(X_train, y_train)
+    ShapeDTW(...)
+    >>> y_pred = clf.predict(X_test)
     """
 
     _tags = {
@@ -151,10 +145,8 @@ class ShapeDTW(BaseClassifier):
         # Perform preprocessing on params.
         if not (isinstance(self.shape_descriptor_function, str)):
             raise TypeError(
-                "shape_descriptor_function must be an 'str'. \
-                            Found '"
-                + type(self.shape_descriptor_function).__name__
-                + "' instead."
+                f"shape_descriptor_function must be an 'str'. Found "
+                f"{type(self.shape_descriptor_function).__name__} instead."
             )
 
         if self.metric_params is None:
@@ -253,9 +245,9 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        X = convert(X, from_type="numpy3D", to_type="nested_univ")
         X = self.sw.transform(X)
-
+        # Temporary until conversion complete
+        X = from_3d_numpy_to_nested(X)
         # Feed X into the appropriate shape descriptor function
         X = self._generate_shape_descriptors(X)
 
@@ -364,14 +356,10 @@ class ShapeDTW(BaseClassifier):
         throws : ValueError if a shape descriptor doesn't exist.
         """
         parameters = self.metric_params
-
         tName = tName.lower()
-
         if parameters is None:
             parameters = {}
-
         parameters = {k.lower(): v for k, v in parameters.items()}
-
         self._check_metric_params(parameters)
 
         if tName == "raw":
@@ -392,20 +380,17 @@ class ShapeDTW(BaseClassifier):
         elif tName == "derivative":
             return DerivativeSlopeTransformer()
         elif tName == "hog1d":
-            return self._extracted_from__get_transformer_45(parameters)
+            return self._get_hog_transformer(parameters)
         else:
-            raise ValueError("Invalid shape desciptor function.")
+            raise ValueError("Invalid shape descriptor function.")
 
-    # TODO Rename this here and in `_get_transformer`
-    def _extracted_from__get_transformer_45(self, parameters):
+    def _get_hog_transformer(self, parameters):
         num_intervals = parameters.get("num_intervals_hog1d")
         num_bins = parameters.get("num_bins_hog1d")
         scaling_factor = parameters.get("scaling_factor_hog1d")
-
         # All 3 paramaters are None
         if num_intervals is None and num_bins is None and scaling_factor is None:
             return HOG1DTransformer()
-
         # 2 parameters are None
         if num_intervals is None and num_bins is None:
             return HOG1DTransformer(scaling_factor=scaling_factor)
@@ -413,7 +398,6 @@ class ShapeDTW(BaseClassifier):
             return HOG1DTransformer(num_bins=num_bins)
         if num_bins is None and scaling_factor is None:
             return HOG1DTransformer(num_intervals=num_intervals)
-
         # 1 parameter is None
         if num_intervals is None:
             return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
@@ -423,7 +407,6 @@ class ShapeDTW(BaseClassifier):
             return HOG1DTransformer(
                 scaling_factor=scaling_factor, num_intervals=num_intervals
             )
-
         # All parameters are given
         return HOG1DTransformer(
             num_intervals=num_intervals,

@@ -106,7 +106,7 @@ def test_auto_arima_model_save_and_load(
     from aeon.utils import mlflow_aeon
 
     mlflow_aeon.save_model(
-        aeon_model=auto_arima_model,
+        estimator=auto_arima_model,
         path=model_path,
         serialization_format=serialization_format,
     )
@@ -137,7 +137,7 @@ def test_auto_arima_model_pyfunc_output(
         ]
     }
     mlflow_aeon.save_model(
-        aeon_model=auto_arima_model,
+        estimator=auto_arima_model,
         path=model_path,
         serialization_format=serialization_format,
     )
@@ -187,7 +187,7 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
         }
     }
     mlflow_aeon.save_model(
-        aeon_model=auto_arima_model,
+        estimator=auto_arima_model,
         path=model_path,
     )
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
@@ -241,7 +241,7 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
         }
     }
     mlflow_aeon.save_model(
-        aeon_model=auto_arima_model,
+        estimator=auto_arima_model,
         path=model_path,
     )
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
@@ -289,7 +289,7 @@ def test_auto_arima_model_pyfunc_without_conf_output(auto_arima_model, model_pat
         auto_arima_model, "pyfunc_predict_conf"
     ) else None
     mlflow_aeon.save_model(
-        aeon_model=auto_arima_model,
+        estimator=auto_arima_model,
         path=model_path,
     )
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
@@ -321,7 +321,7 @@ def test_naive_forecaster_model_with_regressor_pyfunc_output(
         ]
     }
     mlflow_aeon.save_model(
-        aeon_model=naive_forecaster_model_with_regressor, path=model_path
+        estimator=naive_forecaster_model_with_regressor, path=model_path
     )
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
@@ -438,7 +438,7 @@ def test_signature_and_example_for_pyfunc_predict(
             "predict_var": {"cov": False},
         }
     }
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path_primary)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path_primary)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path_primary)
 
     forecast = loaded_pyfunc.predict(pd.DataFrame())
@@ -471,7 +471,7 @@ def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_buc
 
     from aeon.utils import mlflow_aeon
 
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
 
     artifact_root = f"s3://{mock_s3_bucket}"
     artifact_path = "model"
@@ -479,11 +479,11 @@ def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_buc
     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
 
     model_uri = os.path.join(artifact_root, artifact_path)
-    reloaded_aeon_model = mlflow_aeon.load_model(model_uri=model_uri)
+    reloaded_estimator = mlflow_aeon.load_model(model_uri=model_uri)
 
     np.testing.assert_array_equal(
         auto_arima_model.predict(),
-        reloaded_aeon_model.predict(),
+        reloaded_estimator.predict(),
     )
 
 
@@ -510,7 +510,7 @@ def test_log_model(auto_arima_model, tmp_path, should_start_run, serialization_f
         conda_env = tmp_path.joinpath("conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
         model_info = mlflow_aeon.log_model(
-            aeon_model=auto_arima_model,
+            estimator=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
             serialization_format=serialization_format,
@@ -548,7 +548,7 @@ def test_log_model_calls_register_model(auto_arima_model, tmp_path):
         conda_env = tmp_path.joinpath("conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
         mlflow_aeon.log_model(
-            aeon_model=auto_arima_model,
+            estimator=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
             registered_model_name="AeonModel",
@@ -578,7 +578,7 @@ def test_log_model_no_registered_model_name(auto_arima_model, tmp_path):
         conda_env = tmp_path.joinpath("conda_env.yaml")
         _mlflow_conda_env(conda_env, additional_pip_deps=["aeon"])
         mlflow_aeon.log_model(
-            aeon_model=auto_arima_model,
+            estimator=auto_arima_model,
             artifact_path=artifact_path,
             conda_env=str(conda_env),
         )
@@ -596,7 +596,7 @@ def test_pyfunc_raises_invalid_attribute_type(auto_arima_model, model_path):
     from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = ["predict"]
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
@@ -617,7 +617,7 @@ def test_pyfunc_raises_invalid_dict_key(auto_arima_model, model_path):
     from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"prediction_method": ["predict"]}
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
@@ -638,7 +638,7 @@ def test_pyfunc_raises_invalid_dict_value_type(auto_arima_model, model_path):
     from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": "predict"}
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
@@ -658,7 +658,7 @@ def test_pyfunc_raises_invalid_dict_value(auto_arima_model, model_path):
     from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": ["forecast"]}
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
@@ -681,12 +681,12 @@ def test_pyfunc_predict_proba_raises_invalid_attribute_type(
     from aeon.utils import mlflow_aeon
 
     auto_arima_model.pyfunc_predict_conf = {"predict_method": ["predict_proba"]}
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing a "
+        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing a "
         f"dictionary.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
@@ -705,12 +705,12 @@ def test_pyfunc_predict_proba_raises_invalid_dict_value(auto_arima_model, model_
     auto_arima_model.pyfunc_predict_conf = {
         "predict_method": {"predict_proba": {"marginal": True}}
     }
-    mlflow_aeon.save_model(aeon_model=auto_arima_model, path=model_path)
+    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
     loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
 
     with pytest.raises(
         MlflowException,
-        match=f"Method {mlflow_aeon.aeon_PREDICT_PROBA} requires passing "
+        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing "
         f"quantile values.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
