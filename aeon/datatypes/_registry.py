@@ -76,7 +76,7 @@ MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_HIERARCHICAL)
 
 
 # mtypes to exclude in checking since they are ambiguous and rare
-AMBIGUOUS_MTYPES = ["numpyflat", "alignment_loc"]
+AMBIGUOUS_MTYPES = ["numpyflat", "alignment_loc", "np-list"]
 
 # all time series mtypes excluding ambiguous ones
 ALL_TIME_SERIES_MTYPES = (
@@ -100,7 +100,7 @@ __all__ = [
 
 SCITYPE_REGISTER = [
     ("Series", "uni- or multivariate time series"),
-    ("Panel", "panel of uni- or multivariate time series"),
+    ("Panel", "collection of uni- or multivariate time series"),
     ("Hierarchical", "hierarchical panel of time series with 3 or more levels"),
     ("Alignment", "series or sequence alignment"),
     ("Table", "data table with primitive column types"),

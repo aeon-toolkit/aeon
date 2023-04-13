@@ -39,9 +39,8 @@ MTYPE_REGISTER_PANEL = [
         "Panel",
         "dask frame with one instance and one time index, as per dask_to_pd convention",
     ),
-    ("np-list", "Panel", "list of 2D numpy arrays"),
     (
-        "dask_panel",
+        "np-list",
         "Panel",
         "list of n_cases, each case a 2D np.array of shape (n_channels, series_length)",
     ),
