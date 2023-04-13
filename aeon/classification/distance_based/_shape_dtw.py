@@ -16,6 +16,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
 from aeon.datatypes import convert
+from aeon.datatypes._panel._convert import from_3d_numpy_to_nested
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
 from aeon.transformations.panel.hog1d import HOG1DTransformer
@@ -144,10 +145,8 @@ class ShapeDTW(BaseClassifier):
         # Perform preprocessing on params.
         if not (isinstance(self.shape_descriptor_function, str)):
             raise TypeError(
-                "shape_descriptor_function must be an 'str'. \
-                            Found '"
-                + type(self.shape_descriptor_function).__name__
-                + "' instead."
+                f"shape_descriptor_function must be an 'str'. Found "
+                f"{type(self.shape_descriptor_function).__name__} instead."
             )
 
         if self.metric_params is None:
@@ -246,9 +245,9 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        X = convert(X, from_type="numpy3D", to_type="nested_univ")
         X = self.sw.transform(X)
-
+        # Temporary until conversion complete
+        X = from_3d_numpy_to_nested(X)
         # Feed X into the appropriate shape descriptor function
         X = self._generate_shape_descriptors(X)
 
