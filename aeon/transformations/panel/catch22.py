@@ -10,11 +10,9 @@ __all__ = ["Catch22"]
 import math
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
 from numba import njit
 
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_n_jobs
 
@@ -78,13 +76,21 @@ class Catch22(BaseTransformer):
     .. [2] Fulcher, B. D., Little, M. A., & Jones, N. S. (2013). Highly comparative
     time-series analysis: the empirical structure of time series and their methods.
     Journal of the Royal Society Interface, 10(83), 20130048.
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel.catch22 import Catch22
+    >>> import numpy as np
+    >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
+    >>> c22 = (replace_nans=True)
+    >>> data2 = c22.fit_transform(data)
     """
 
     _tags = {
         "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": True,
-        "X_inner_mtype": "nested_univ",
+        "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "fit_is_empty": True,
     }
@@ -144,13 +150,13 @@ class Catch22(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D numpy array of shape [n_instances, n_dimensions, n_features],
+        X : 3D numpy array of shape [n_instances, n_channels, n_features],
             input time series panel.
         y : ignored.
 
         Returns
         -------
-        c22 : Pandas DataFrame of shape [n_instances, c*n_dimensions] where c is the
+        c22 : Pandas DataFrame of shape [n_instances, c*n_channels] where c is the
              number of features requested, containing Catch22 features for X.
         """
         n_instances = X.shape[0]
@@ -161,7 +167,7 @@ class Catch22(BaseTransformer):
 
         c22_list = Parallel(n_jobs=threads_to_use, prefer="threads")(
             delayed(self._transform_case)(
-                X.iloc[i],
+                X[i],
                 f_idx,
             )
             for i in range(n_instances)
@@ -170,7 +176,7 @@ class Catch22(BaseTransformer):
         if self.replace_nans:
             c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
 
-        return pd.DataFrame(c22_list)
+        return c22_list
 
     def _transform_case(self, X, f_idx):
         c22 = np.zeros(len(f_idx) * len(X))
@@ -276,14 +282,10 @@ class Catch22(BaseTransformer):
                 raise ValueError("Invalid catch22 feature name")
         else:
             raise ValueError("catch22 feature name or ID required")
-
-        if isinstance(X, pd.DataFrame):
-            X = convert_to(X, "numpy3D")
-
         if len(X.shape) > 2:
-            n_instances, n_dims, series_length = X.shape
+            n_instances, n_channels, series_length = X.shape
 
-            if n_dims > 1:
+            if n_channels > 1:
                 raise ValueError(
                     "transform_single_feature can only handle univariate series "
                     "currently."
