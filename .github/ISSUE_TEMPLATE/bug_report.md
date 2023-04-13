@@ -1,18 +1,18 @@
 ---
 name: "\U0001F41B Bug report"
-about: Create a report to help us improve
+about: Report a bug currently impacting aeon.
 title: "[BUG]"
 labels: bug
-assignees: ''
-
 ---
 
-**Describe the bug**
+#### Describe the bug
+
 <!--
 A clear and concise description of what the bug is.
 -->
 
-**To Reproduce**
+#### To Reproduce
+
 <!--
 Add a Minimal, Complete, and Verifiable example (for more details, see e.g. https://stackoverflow.com/help/mcve
 
@@ -23,17 +23,19 @@ If the code is too long, feel free to put it in a public gist and link it in the
 <Paste your code here>
 ```
 
-**Expected behavior**
+#### Expected behavior
+
 <!--
 A clear and concise description of what you expected to happen.
 -->
 
-**Additional context**
+#### Additional context
+
 <!--
 Add any other context about the problem here.
 -->
 
-**Versions**
+#### Versions
 <details>
 
 <!--
