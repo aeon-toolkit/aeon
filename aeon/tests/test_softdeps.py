@@ -19,7 +19,10 @@ import pytest
 from aeon.registry import all_estimators
 from aeon.tests._config import EXCLUDE_ESTIMATORS
 from aeon.utils._testing.scenarios_getter import retrieve_scenarios
-from aeon.utils.validation._dependencies import _check_python_version
+from aeon.utils.validation._dependencies import (
+    _check_python_version,
+    _check_soft_dependencies,
+)
 
 # list of soft dependencies used
 # excludes estimators, only for soft dependencies used in non-estimator modules
@@ -153,7 +156,7 @@ def _is_in_env(modules):
     modules = _coerce_list_of_str(modules)
     try:
         for module in modules:
-            import_module(module)
+            _check_soft_dependencies(module, severity="error")
         return True
     except ModuleNotFoundError:
         return False
@@ -226,8 +229,9 @@ def test_softdep_error(estimator):
             )
             # message is different for deep learning deps tensorflow, tensorflow-proba
             error_msg_alt = "required for deep learning"
-
-            if expected_error_msg not in error_msg and error_msg_alt not in error_msg:
+            if "incompatible version" in error_msg:
+                pass
+            elif expected_error_msg not in error_msg and error_msg_alt not in error_msg:
                 raise RuntimeError(
                     f"Estimator {estimator.__name__} requires soft dependencies "
                     f"{softdeps} according to tags, but does not raise an appropriate "

@@ -12,12 +12,12 @@ __author__ = ["mloning"]
 
 
 class SlopeTransformer(BaseTransformer):
-    """Slope-by-segment transformation.
+    """Piecewise slope transformation.
 
-    Class to perform the Slope transformation on a collection of time series. It
-    splits a time series into num_intervals segments.
-    Then within each segment, it performs a total least
-    squares regression to extract the gradient of the segment.
+    Class to perform a slope transformation on a collection of time series. Numpy
+    array of shape numpy array of shape (n_instances, n_channels, series_length) is
+    transformed to numpy array of shape (n_instances, n_channels, n_intervals). The
+    new feature is the slope over that interval found using a least squares regression.
 
     Parameters
     ----------
@@ -87,7 +87,7 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        gradients : a numpy array of shape = [num_intervals].
+        gradients : a numpy array of shape = [self.n_intervals].
                     It contains the gradients of the line of best fit
                     for each interval in a time series.
         """
@@ -162,7 +162,7 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        output : a numpy array of shape = [num_intervals,interval_size]
+        output : a numpy array of shape = [self.n_intervals,interval_size]
         """
         avg = len(X) / float(self.n_intervals)
         output = []
