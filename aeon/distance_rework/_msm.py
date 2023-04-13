@@ -214,3 +214,58 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     if (y <= x <= z) or (y >= x >= z):
         return c
     return c + min(abs(x - y), abs(x - z))
+
+@njit(cache=True, fastmath=True)
+def msm_pairwise_distance(
+    X: np.ndarray,
+    window=None,
+    independent: bool = True,
+    c: float = 1.
+) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = _msm_distance(X[i], X[j], bounding_matrix, independent, c)
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def msm_from_single_to_multiple_distance(
+    x: np.ndarray,
+    y: np.ndarray,
+    window=None,
+    independent: bool = True,
+    c: float = 1.
+):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
+
+    for i in range(n_instances):
+        distances[i] = _msm_distance(x, y[i], bounding_matrix, independent, c)
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def msm_from_multiple_to_multiple_distance(
+    x: np.ndarray,
+    y: np.ndarray,
+    window=None,
+    independent: bool = True,
+    c: float = 1.
+):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _msm_distance(x[i], y[j], bounding_matrix, independent, c)
+    return distances

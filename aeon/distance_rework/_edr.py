@@ -5,7 +5,9 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def edr_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=None) -> float:
+def edr_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+) -> float:
     """Compute the edr distance between two time series.
 
     Parameters
@@ -42,7 +44,7 @@ def edr_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon=None) -> flo
 
 @njit(cache=True, fastmath=True)
 def edr_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window=None, epsilon=None
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
     """Compute the edr cost matrix between two time series.
 
@@ -89,15 +91,17 @@ def edr_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _edr_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=None
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> float:
-    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1] - 1, y.shape[1] - 1]
+    distance = _edr_cost_matrix(
+        x, y, bounding_matrix, epsilon
+    )[x.shape[1] - 1, y.shape[1] - 1]
     return float(distance / max(x.shape[1], y.shape[1]))
 
 
 @njit(cache=True, fastmath=True)
 def _edr_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon=None
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -120,3 +124,48 @@ def _edr_cost_matrix(
                     cost_matrix[i, j - 1] + 1,
                 )
     return cost_matrix[1:, 1:]
+
+
+@njit(cache=True, fastmath=True)
+def edr_pairwise_distance(
+        X: np.ndarray, window: float = None, epsilon: float = None
+) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = _edr_distance(X[i], X[j], bounding_matrix, epsilon)
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def edr_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
+
+    for i in range(n_instances):
+        distances[i] = _edr_distance(x, y[i], bounding_matrix, epsilon)
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def edr_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _edr_distance(x[i], y[j], bounding_matrix, epsilon)
+    return distances

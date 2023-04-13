@@ -1,9 +1,5 @@
 import numpy as np
 from numba import njit
-from aeon.distance_rework._utils import (
-    pairwise_distance, distance_from_single_to_multiple,
-    distance_from_multiple_to_multiple
-)
 
 
 @njit(cache=True, fastmath=True)
@@ -50,3 +46,39 @@ def univariate_squared_distance(x: np.ndarray, y: np.ndarray):
         difference = x[i] - y[i]
         distance += difference * difference
     return distance
+
+
+@njit(cache=True, fastmath=True)
+def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = squared_distance(X[i], X[j])
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def squared_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+
+    for i in range(n_instances):
+        distances[i] = squared_distance(x, y[i])
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def squared_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = squared_distance(x[i], y[j])
+    return distances

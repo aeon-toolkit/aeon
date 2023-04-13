@@ -98,9 +98,48 @@ def _dtw_cost_matrix(
             if bounding_matrix[i, j]:
                 cost_matrix[i + 1, j + 1] = \
                     univariate_squared_distance(x[:, i], y[:, j]) + min(
-                    cost_matrix[i, j + 1],
-                    cost_matrix[i + 1, j],
-                    cost_matrix[i, j],
-                )
+                        cost_matrix[i, j + 1],
+                        cost_matrix[i + 1, j],
+                        cost_matrix[i, j],
+                    )
 
     return cost_matrix[1:, 1:]
+
+
+@njit(cache=True, fastmath=True)
+def dtw_pairwise_distance(X: np.ndarray, window=None) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = _dtw_distance(X[i], X[j], bounding_matrix)
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def dtw_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=None):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
+
+    for i in range(n_instances):
+        distances[i] = _dtw_distance(x, y[i], bounding_matrix)
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def dtw_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=None):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _dtw_distance(x[i], y[j], bounding_matrix)
+    return distances

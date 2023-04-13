@@ -3,9 +3,8 @@ from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
-
 @njit(cache=True, fastmath=True)
-def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
+def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g: float = 0.) -> float:
     """Compute the ERP distance between two time series.
 
     Parameters
@@ -39,7 +38,7 @@ def erp_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> float:
 
 
 @njit(cache=True, fastmath=True)
-def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarray:
+def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g: float = 0.) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
     Parameters
@@ -83,14 +82,14 @@ def erp_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.) -> np.ndarr
 
 @njit(cache=True, fastmath=True)
 def _erp_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float = 0.
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _erp_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g=0.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float = 0.
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -127,3 +126,48 @@ def _precompute_g(x: np.ndarray, g: float):
         gx_distance[i] = temp
         x_sum += temp
     return gx_distance, x_sum
+
+
+@njit(cache=True, fastmath=True)
+def erp_pairwise_distance(
+        X: np.ndarray, window: float = None, g: float = 0.
+) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = _erp_distance(X[i], X[j], bounding_matrix, g)
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def erp_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.
+):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
+
+    for i in range(n_instances):
+        distances[i] = _erp_distance(x, y[i], bounding_matrix, g)
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def erp_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.
+):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _erp_distance(x[i], y[j], bounding_matrix, g)
+    return distances

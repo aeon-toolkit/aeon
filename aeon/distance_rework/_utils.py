@@ -4,7 +4,7 @@ import numpy as np
 DistanceFunction = Callable[[np.ndarray, np.ndarray], float]
 BoundingDistanceFunction = Callable[[np.ndarray, np.ndarray, np.ndarray], float]
 
-def pairwise_distance(
+def _pairwise_distance(
         x: np.ndarray,
         y: np.ndarray,
         distance_function: DistanceFunction,
@@ -22,8 +22,6 @@ def pairwise_distance(
     distance_function
         Distance function that takes two time series as parameters. It should take
         the form distance_function(x: np.ndarray, y: np.ndarray).
-    *args
-        Additional positional arguments to pass to the distance function.
     **kwargs
         Additional keyword arguments to pass to the distance function.
 
@@ -38,19 +36,19 @@ def pairwise_distance(
     >>> from aeon.distances import euclidean_distance
     >>> x = np.array([[[1, 2, 3], [4, 5, 6]]])
     >>> y = np.array([[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]])
-    >>> pairwise_distance(x, y, euclidean_distance)
+    >>> _pairwise_distance(x, y, euclidean_distance)
     """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
     for i in range(n_instances):
         for j in range(m_instances):
-            distances[i] = distance_function(x, y[i], *args, **kwargs)
+            distances[i] = distance_function(x, y[i], **kwargs)
             distances[j, i] = distances[i, j]
 
     return distances
 
-def distance_from_single_to_multiple(
+def _distance_from_single_to_multiple(
         x: np.ndarray,
         y: np.ndarray,
         distance_function: DistanceFunction,
@@ -69,8 +67,6 @@ def distance_from_single_to_multiple(
     distance_function
         Distance function that takes two time series as parameters. It should take
         the form distance_function(x: np.ndarray, y: np.ndarray).
-    *args
-        Additional positional arguments to pass to the distance function.
     **kwargs
         Additional keyword arguments to pass to the distance function.
 
@@ -86,15 +82,15 @@ def distance_from_single_to_multiple(
     >>> from aeon.distances import euclidean_distance
     >>> x = np.array([[1, 2, 3]])
     >>> y = np.array([[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]])
-    >>> distance_from_single_to_multiple(x, y, euclidean_distance)
+    >>> _distance_from_single_to_multiple(x, y, euclidean_distance)
     """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     for i in range(n_instances):
-        distances[i] = distance_function(x, y[i], *args, **kwargs)
+        distances[i] = distance_function(x, y[i], **kwargs)
     return distances
 
-def distance_from_multiple_to_multiple(
+def _distance_from_multiple_to_multiple(
         x: np.ndarray,
         y: np.ndarray,
         distance_function: DistanceFunction,
@@ -113,8 +109,6 @@ def distance_from_multiple_to_multiple(
     distance_function
         Distance function that takes two time series as parameters. It should take
         the form distance_function(x: np.ndarray, y: np.ndarray).
-    *args
-        Additional positional arguments to pass to the distance function.
     **kwargs
         Additional keyword arguments to pass to the distance function.
 
@@ -129,12 +123,12 @@ def distance_from_multiple_to_multiple(
     >>> from aeon.distances import euclidean_distance
     >>> x = np.array([[1, 2, 3]])
     >>> y = np.array([[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]])
-    >>> distance_from_single_to_multiple(x, y, euclidean_distance)
+    >>> _distance_from_single_to_multiple(x, y, euclidean_distance)
     """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
     for i in range(n_instances):
         for j in range(m_instances):
-            distances[i, j] = distance_function(x[i], y[j], *args, **kwargs)
+            distances[i, j] = distance_function(x[i], y[j], **kwargs)
     return distances

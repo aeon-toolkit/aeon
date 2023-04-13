@@ -6,11 +6,11 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 @njit(cache=True, fastmath=True)
 def twe_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window=None,
-    nu: float = 0.001,
-    lmbda: float = 1.
+        x: np.ndarray,
+        y: np.ndarray,
+        window=None,
+        nu: float = 0.001,
+        lmbda: float = 1.
 ) -> float:
     """Compute the TWE distance between two time series.
 
@@ -43,17 +43,20 @@ def twe_distance(
     >>> twe_distance(x, y)
     0.0
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window, nu, lmbda)
-    return _twe_distance(x, y, bounding_matrix)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x = _pad_arrs(x)
+    y = _pad_arrs(y)
+    return _twe_distance(x, y, bounding_matrix, nu, lmbda)
 
 
-@njit(cache=True, fastmath=True)
+#
+# @njit(cache=True, fastmath=True)
 def twe_cost_matrix(
-    x: np.ndarray,
-    y: np.ndarray,
-    window=None,
-    nu: float = 0.001,
-    lmbda: float = 1.
+        x: np.ndarray,
+        y: np.ndarray,
+        window=None,
+        nu: float = 0.001,
+        lmbda: float = 1.
 ) -> np.ndarray:
     """Compute the TWE cost matrix between two time series.
 
@@ -106,20 +109,22 @@ def twe_cost_matrix(
              2.001,  0.   ]])
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x = _pad_arrs(x)
+    y = _pad_arrs(y)
     return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)
 
 
 @njit(cache=True, fastmath=True)
 def _twe_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    bounding_matrix: np.ndarray,
-    nu: float = 0.001,
-    lmbda: float = 1.
+        x: np.ndarray,
+        y: np.ndarray,
+        bounding_matrix: np.ndarray,
+        nu: float = 0.001,
+        lmbda: float = 1.
 ) -> float:
     return _twe_cost_matrix(
         x, y, bounding_matrix, nu, lmbda
-    )[x.shape[1] - 1, y.shape[1] - 1]
+    )[x.shape[1] - 2, y.shape[1] - 2]
 
 
 @njit(cache=True, fastmath=True)
@@ -130,8 +135,6 @@ def _twe_cost_matrix(
         nu: float = 0.001,
         lmbda: float = 1.
 ) -> np.ndarray:
-    x = _pad_arrs(x)
-    y = _pad_arrs(y)
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.zeros((x_size, y_size))
@@ -167,9 +170,74 @@ def _twe_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def _pad_arrs(x):
+def _pad_arrs(x: np.ndarray):
     padded_x = np.zeros((x.shape[0], x.shape[1] + 1))
     zero_arr = np.array([0.0])
     for i in range(x.shape[0]):
         padded_x[i, :] = np.concatenate((zero_arr, x[i, :]))
     return padded_x
+
+
+@njit(cache=True, fastmath=True)
+def twe_pairwise_distance(
+        X: np.ndarray, window: float = None, epsilon: float = 1.
+) -> np.ndarray:
+    n_instances = X.shape[0]
+    distances = np.zeros((n_instances, n_instances))
+    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+
+    # Pad the arrays before so that we dont have to redo every iteration
+    padded_X = np.zeros((X.shape[0], X.shape[1], X.shape[2] + 1))
+    for i in range(X.shape[0]):
+        padded_X[i] = _pad_arrs(X[i])
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            distances[i, j] = _twe_distance(
+                padded_X[i], padded_X[j], bounding_matrix, epsilon
+            )
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def twe_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+):
+    n_instances = y.shape[0]
+    distances = np.zeros(n_instances)
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
+
+    padded_x = _pad_arrs(x)
+
+    for i in range(n_instances):
+        distances[i] = _twe_distance(padded_x, _pad_arrs(y[i]), bounding_matrix, epsilon)
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def twe_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+):
+    n_instances = x.shape[0]
+    m_instances = y.shape[0]
+    distances = np.zeros((n_instances, m_instances))
+    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+
+    # Pad the arrays before so that we dont have to redo every iteration
+    padded_x = np.zeros((x.shape[0], x.shape[1], x.shape[2] + 1))
+    for i in range(x.shape[0]):
+        padded_x[i] = _pad_arrs(x[i])
+
+    padded_y = np.zeros((y.shape[0], y.shape[1], y.shape[2] + 1))
+    for i in range(y.shape[0]):
+        padded_y[i] = _pad_arrs(y[i])
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            distances[i, j] = _twe_distance(
+                padded_x[i], padded_y[j], bounding_matrix, epsilon
+            )
+    return distances
