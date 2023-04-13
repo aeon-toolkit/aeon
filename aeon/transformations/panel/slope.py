@@ -23,21 +23,27 @@ class SlopeTransformer(BaseTransformer):
     ----------
     n_intervals : int, number of approx equal segments
                     to split the time series into.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.transformations.panel.slope import SlopeTransformer
+    >>> X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
+    >>> s = SlopeTransformer(n_intervals=2)
+    >>> res = s.fit_transform(X)
     """
 
     _tags = {
         "scitype:transform-output": "Series",
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
         "fit_is_empty": True,
-        "capability:unequal_length:removes": True,
-        # is transform result always guaranteed to be equal length (and series)?
     }
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super(SlopeTransformer, self).__init__()
+        super(SlopeTransformer, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -46,24 +52,28 @@ class SlopeTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : numpy array of shape [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        collection of time series to transform
         y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : numpy array of shape [n_instances, n_channels, n_intervals]
-            transformed version of X, each value is the slope over an interval
+        3D np.ndarray of shape = [n_instances, n_channels, series_length] collection
+        of time series to transform
         """
         # Get information about the dataframe
-        n_instances, n_channels, n_timepoints = X.shape
-        self._check_parameters(n_timepoints)
+        n_cases, n_channels, series_length = X.shape
+        self._check_parameters(series_length)
+        full_data = []
+        for i in range(n_cases):
+            case_data = []
+            for j in range(n_channels):
+                # Calculate gradients
+                res = self._get_gradients_of_lines(X[i][j])
+                case_data.append(res)
+            full_data.append(np.asarray(case_data))
 
-        x_trans = np.zeros(shape=(n_instances, n_channels, self.n_intervals))
-        for j in range(n_channels):
-            for i in range(n_instances):
-                x_trans[i][j] = self._get_gradients_of_lines(X[i][j])
-        return x_trans
+        return np.array(full_data)
 
     def _get_gradients_of_lines(self, X):
         """Get gradients of lines.
