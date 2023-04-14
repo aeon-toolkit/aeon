@@ -491,21 +491,14 @@ def from_nested_to_long_adp(obj, store=None):
 convert_dict[("nested_univ", "pd-long", "Panel")] = from_nested_to_long_adp
 
 
-def from_nested_to_nplist(obj, store=None):
-    """Convert from a nested pd.DataFrame to a list of numpy."""
-    # list = []
-    # n_columns = X.shape[1]
-    nested_col_mask = [*are_columns_nested(obj)]
-
-    # If all the columns are nested in structure
-    if nested_col_mask.count(True) == len(nested_col_mask):
-        X_3d = np.stack(
-            obj.applymap(_convert_series_cell_to_numpy)
-            .apply(lambda row: np.stack(row), axis=1)
-            .to_numpy()
-        )
-
-    return X_3d
+def from_nested_to_nplist(nested_df, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    list = []
+    n_cases = nested_df.shape[0]
+    for i in range(n_cases):
+        one_case = nested_df.iloc[i, :].values.tolist()
+        list.append(np.array(one_case))
+    return list
 
 
 convert_dict[("nested_univ", "np-list", "Panel")] = from_nested_to_nplist

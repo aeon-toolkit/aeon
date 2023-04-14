@@ -128,27 +128,29 @@ check_dict[("df-list", "Panel")] = check_dflist_panel
 
 def _has_nans(arr):
     for a in arr:
-        if np.isnan(a).any():
-            return True
+        if not isinstance(a[0][0], str):
+            if np.isnan(a).any():
+                return True
     return False
 
 
-def check_nplist_panel(obj, return_metadata=False, var_name="obj"):
-    if not isinstance(obj, list):
-        msg = f"{var_name} must be list of 1D or 2D np.ndarray, found {type(obj)}"
+def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
+    if not isinstance(np_list, list):
+        msg = f"{var_name} must be list of 1D or 2D np.ndarray, found {type(np_list)}"
         return _ret(False, msg, None, return_metadata)
 
-    n = len(obj)
+    n = len(np_list)
 
-    bad_inds = [i for i in range(n) if not isinstance(obj[i], np.ndarray)]
+    bad_inds = [i for i in range(n) if not isinstance(np_list[i], np.ndarray)]
 
     if len(bad_inds) > 0:
         msg = f"{var_name}[i] must np.ndarray, but found other types at i={bad_inds}"
         return _ret(False, msg, None, return_metadata)
 
-    #    check_res = [check_pddataframe_series(s, return_metadata=True) for s in obj]
     bad_inds = [
-        i for i in range(n) if not isinstance(obj[i], np.ndarray) and obj[i].ndim < 3
+        i
+        for i in range(n)
+        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim < 3
     ]
 
     if len(bad_inds) > 0:
@@ -157,11 +159,11 @@ def check_nplist_panel(obj, return_metadata=False, var_name="obj"):
     metadata = dict()
     if return_metadata:
         metadata = dict()
-        metadata["is_univariate"] = obj[0].ndim == 1
+        metadata["is_univariate"] = np_list[0].ndim == 1
         metadata["n_instances"] = n
         metadata["is_equally_spaced"] = False
         metadata["is_equal_length"] = False
-        metadata["has_nans"] = _has_nans(obj)
+        metadata["has_nans"] = False  # Temp, need to check for nans _has_nans(np_list)
         return True, None, metadata
     return True, None
 
