@@ -64,7 +64,9 @@ aeon was started in January 2023 as a fork of the [sktime project](https://pypi.
 
 ## Artwork
 
-Current placeholder logos while we start up at located in the [docs/images/](https://github.com/aeon-toolkit/aeon/tree/main/docs/images/) directory on GitHub.
+High quality PNG, JPG and EPS logos are available are located in the [docs/images/logo/](https://github.com/aeon-toolkit/aeon/tree/main/docs/images/logo/) directory on GitHub.
+
+The logo was designed by [Reni Rahayu](https://www.instagram.com/kojodesignandco/).
 
 ## Funding
 
