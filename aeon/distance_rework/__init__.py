@@ -52,7 +52,11 @@ __all__ = [
     "msm_from_single_to_multiple_distance",
     "twe_pairwise_distance",
     "twe_from_multiple_to_multiple_distance",
-    "twe_from_single_to_multiple_distance"
+    "twe_from_single_to_multiple_distance",
+    "distance",
+    "pairwise_distance",
+    "distance_from_single_to_multiple",
+    "distance_from_multiple_to_multiple",
 ]
 
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
@@ -99,4 +103,8 @@ from aeon.distance_rework._msm import (
 from aeon.distance_rework._twe import (
     twe_distance, twe_cost_matrix, twe_pairwise_distance,
     twe_from_multiple_to_multiple_distance, twe_from_single_to_multiple_distance
+)
+from aeon.distance_rework._distance import (
+    distance, pairwise_distance, distance_from_single_to_multiple,
+    distance_from_multiple_to_multiple
 )
