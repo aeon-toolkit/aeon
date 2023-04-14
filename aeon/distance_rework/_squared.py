@@ -3,7 +3,7 @@ from numba import njit
 
 
 @njit(cache=True, fastmath=True)
-def squared_distance(x: np.ndarray, y: np.ndarray):
+def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the squared distance between two time series.
 
     Parameters
@@ -25,7 +25,7 @@ def squared_distance(x: np.ndarray, y: np.ndarray):
 
 
 @njit(cache=True, fastmath=True)
-def univariate_squared_distance(x: np.ndarray, y: np.ndarray):
+def univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the squared distance between two time series.
 
     Parameters
@@ -50,6 +50,28 @@ def univariate_squared_distance(x: np.ndarray, y: np.ndarray):
 
 @njit(cache=True, fastmath=True)
 def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
+    """Compute the squared pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+
+    Returns
+    -------
+    np.ndarray (n_instances, n_instances)
+        squared pairwise matrix between the instances of X.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import squared_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> squared_pairwise_distance(X)
+    array([[  0.,  28., 109.],
+           [ 28.,   0.,  27.],
+           [109.,  27.,   0.]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
 
@@ -62,7 +84,33 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 
 @njit(cache=True, fastmath=True)
-def squared_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray):
+def squared_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray
+) -> np.ndarray:
+    """Compute the squared distance between a single time series and multiple.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        Single time series.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+
+    Returns
+    -------
+    np.ndarray (n_instances)
+        squared distance between the collection of instances in y and the time
+        series x.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import squared_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> squared_from_single_to_multiple_distance(x, y)
+    array([  4.,  36., 117.])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
 
@@ -73,7 +121,36 @@ def squared_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray):
 
 
 @njit(cache=True, fastmath=True)
-def squared_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray):
+def squared_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray
+) -> np.ndarray:
+    """Compute the squared distance between two sets of time series.
+
+    If x and y are the same then you should use squared_pairwise_distance.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        squared distance between two collections of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import squared_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> squared_from_multiple_to_multiple_distance(x, y)
+    array([[301., 511., 817.],
+           [196., 364., 508.],
+           [448., 588., 444.]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))

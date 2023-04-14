@@ -8,7 +8,7 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 def msm_distance(
         x: np.ndarray,
         y: np.ndarray,
-        window=None,
+        window: float = None,
         independent: bool = True,
         c: float = 1.
 ) -> float:
@@ -48,8 +48,13 @@ def msm_distance(
 
 
 @njit(cache=True, fastmath=True)
-def msm_cost_matrix(x: np.ndarray, y: np.ndarray, window=None,
-                    independent: bool = True, c: float = 1.) -> np.ndarray:
+def msm_cost_matrix(
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        independent: bool = True,
+        c: float = 1.
+) -> np.ndarray:
     """Compute the MSM cost matrix between two time series.
 
     Parameters
@@ -98,8 +103,11 @@ def msm_cost_matrix(x: np.ndarray, y: np.ndarray, window=None,
 
 @njit(cache=True, fastmath=True)
 def _msm_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray,
-        independent: bool = True, c: float = 1.
+        x: np.ndarray,
+        y: np.ndarray,
+        bounding_matrix: np.ndarray,
+        independent: bool,
+        c: float
 ) -> float:
     if independent:
         return _msm_independent_cost_matrix(
@@ -112,7 +120,7 @@ def _msm_distance(
 
 @njit(cache=True, fastmath=True)
 def _msm_independent_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -127,7 +135,7 @@ def _msm_independent_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _independent_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
     x_size = x.shape[0]
     y_size = y.shape[0]
@@ -159,9 +167,10 @@ def _independent_cost_matrix(
 
     return cost_matrix
 
+
 @njit(cache=True, fastmath=True)
 def _msm_dependent_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float = 1.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -215,13 +224,44 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
         return c
     return c + min(abs(x - y), abs(x - z))
 
+
 @njit(cache=True, fastmath=True)
 def msm_pairwise_distance(
-    X: np.ndarray,
-    window=None,
-    independent: bool = True,
-    c: float = 1.
+        X: np.ndarray,
+        window: float = None,
+        independent: bool = True,
+        c: float = 1.
 ) -> np.ndarray:
+    """Compute the msm pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances, n_instances)
+        msm pairwise matrix between the instances of X.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> msm_pairwise_distance(X)
+    array([[ 0.,  9., 13.],
+           [ 9.,  0.,  8.],
+           [13.,  8.,  0.]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -236,12 +276,43 @@ def msm_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def msm_from_single_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window=None,
-    independent: bool = True,
-    c: float = 1.
-):
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        independent: bool = True,
+        c: float = 1.
+) -> np.ndarray:
+    """Compute the msm distance between a single time series and multiple.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        Single time series.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances)
+        msm distance between the collection of instances in y and the time series x.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> msm_from_single_to_multiple_distance(x, y)
+    array([ 2., 10., 15.])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
@@ -254,12 +325,47 @@ def msm_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def msm_from_multiple_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window=None,
-    independent: bool = True,
-    c: float = 1.
-):
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        independent: bool = True,
+        c: float = 1.
+) -> np.ndarray:
+    """Compute the msm distance between two sets of time series.
+
+    If x and y are the same then you should use msm_pairwise_distance.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        msm distance between two collections of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> msm_from_multiple_to_multiple_distance(x, y)
+    array([[17., 21., 24.],
+           [20., 24., 20.],
+           [29., 33., 27.]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))

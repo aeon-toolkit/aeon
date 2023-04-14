@@ -121,7 +121,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        The pairwise dtw distance matrix.
+        dtw pairwise matrix between the instances of X.
 
     Examples
     --------
@@ -146,7 +146,9 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 
 @njit(cache=True, fastmath=True)
-def dtw_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=None):
+def dtw_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> np.ndarray:
     """Compute the dtw distance between a single time series and multiple.
 
     Parameters
@@ -154,7 +156,7 @@ def dtw_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=No
     x: np.ndarray (n_dims, n_timepoints)
         Single time series.
     y: np.ndarray (n_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -162,7 +164,7 @@ def dtw_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=No
     Returns
     -------
     np.ndarray (n_instances)
-        The dtw distance between the single time series and the set of time series.
+        dtw distance between the collection of instances in y and the time series x.
 
     Examples
     --------
@@ -184,7 +186,9 @@ def dtw_from_single_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=No
 
 
 @njit(cache=True, fastmath=True)
-def dtw_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=None):
+def dtw_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> np.ndarray:
     """Compute the dtw distance between two sets of time series.
 
     If x and y are the same then you should use dtw_pairwise_distance.
@@ -192,9 +196,9 @@ def dtw_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=
     Parameters
     ----------
     x: np.ndarray (n_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     y: np.ndarray (m_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -202,7 +206,7 @@ def dtw_from_multiple_to_multiple_distance(x: np.ndarray, y: np.ndarray, window=
     Returns
     -------
     np.ndarray (n_instances, m_instances)
-        The dtw distance between two sets of time series, x and y.
+        dtw distance between two collections of time series, x and y.
 
     Examples
     --------

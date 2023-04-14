@@ -135,7 +135,7 @@ def edr_pairwise_distance(
     Parameters
     ----------
     X: np.ndarray (n_instances, n_dims, n_timepoints)
-        The time series to compute the pairwise distance between.
+        A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -146,8 +146,8 @@ def edr_pairwise_distance(
 
     Returns
     -------
-    np.ndarray
-        The pairwise edr distance matrix.
+    np.ndarray (n_instances, n_instances)
+        edr pairwise matrix between the instances of X.
 
     Examples
     --------
@@ -174,15 +174,15 @@ def edr_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def edr_from_single_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
-):
+) -> np.ndarray:
     """Compute the edr distance between a single time series and a set of time series.
 
     Parameters
     ----------
     x: np.ndarray (n_dims, n_timepoints)
-        The time series to compute the distance from.
+        Single time series.
     y: np.ndarray (n_instances, n_dims, n_timepoints)
-        The time series to compute the distance to.
+        A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -193,8 +193,8 @@ def edr_from_single_to_multiple_distance(
 
     Returns
     -------
-    np.ndarray
-        The edr distance between the single time series and the set of time series.
+    np.ndarray (n_instances)
+        edr distance between the collection of instances in y and the time series x.
 
     Examples
     --------
@@ -218,15 +218,15 @@ def edr_from_single_to_multiple_distance(
 @njit(cache=True, fastmath=True)
 def edr_from_multiple_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
-):
+) -> np.ndarray:
     """Compute the edr distance between a set of time series and a set of time series.
 
     Parameters
     ----------
     x: np.ndarray (n_instances, n_dims, n_timepoints)
-        The time series to compute the distance from.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
-        The time series to compute the distance to.
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -238,7 +238,7 @@ def edr_from_multiple_to_multiple_distance(
     Returns
     -------
     np.ndarray (n_instances, m_instances)
-        The edr distance between two sets of time series, x and y.
+        edr distance between two collections of time series, x and y.
 
     Examples
     --------

@@ -5,7 +5,9 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon: float = 1.) -> float:
+def lcss_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+) -> float:
     """Returns the lcss distance between x and y.
 
     Parameters
@@ -17,7 +19,7 @@ def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon: float = 1.
     window : float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults=1.
+    epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
 
@@ -41,7 +43,7 @@ def lcss_distance(x: np.ndarray, y: np.ndarray, window=None, epsilon: float = 1.
 
 @njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window=None, epsilon: float = 1.
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
 ) -> np.ndarray:
     """Returns the lcss cost matrix between x and y.
 
@@ -54,7 +56,7 @@ def lcss_cost_matrix(
     window : float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults=1.
+    epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
 
@@ -87,7 +89,7 @@ def lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _lcss_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = 1.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
     distance = _lcss_cost_matrix(
         x, y, bounding_matrix, epsilon
@@ -97,7 +99,7 @@ def _lcss_distance(
 
 @njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = 1.
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -122,6 +124,34 @@ def _lcss_cost_matrix(
 def lcss_pairwise_distance(
         X: np.ndarray, window: float = None, epsilon: float = 1.
 ) -> np.ndarray:
+    """Compute the lcss pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon: float, defaults=1.
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. The default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances, n_instances)
+        lcss pairwise matrix between the instances of X.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import lcss_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> lcss_pairwise_distance(X)
+    array([[0.  , 0.5 , 0.75],
+           [0.5 , 0.  , 0.5 ],
+           [0.75, 0.5 , 0.  ]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -137,7 +167,36 @@ def lcss_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def lcss_from_single_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
-):
+) -> np.ndarray:
+    """Compute the lcss distance between a single time series and multiple.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        Single time series.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon: float, defaults=1.
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. The default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances)
+        lcss distance between the collection of instances in y and the time series x.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import lcss_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> lcss_from_single_to_multiple_distance(x, y)
+    array([0.25, 0.5 , 0.75])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
@@ -151,7 +210,40 @@ def lcss_from_single_to_multiple_distance(
 @njit(cache=True, fastmath=True)
 def lcss_from_multiple_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
-):
+) -> np.ndarray:
+    """Compute the lcss distance between two sets of time series.
+
+    If x and y are the same then you should use lcss_pairwise_distance.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon: float, defaults=1.
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. The default is 1.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        lcss distance between two collections of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import lcss_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> lcss_from_multiple_to_multiple_distance(x, y)
+    array([[0.75, 0.75, 1.  ],
+           [1.  , 1.  , 0.75],
+           [1.  , 1.  , 0.75]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))

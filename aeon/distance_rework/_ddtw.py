@@ -6,7 +6,7 @@ from aeon.distance_rework._dtw import (
 
 
 @njit(fastmath=True, cache=True)
-def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None):
+def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     """Compute the ddtw distance between two time series.
 
     Parameters
@@ -38,7 +38,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None):
 
 
 @njit(fastmath=True, cache=True)
-def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None):
+def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the ddtw cost matrix between two time series.
 
     Parameters
@@ -128,7 +128,7 @@ def ddtw_pairwise_distance(
     Parameters
     ----------
     X: np.ndarray (n_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -136,7 +136,7 @@ def ddtw_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        ddtw pairwise distance between the instances of X.
+        ddtw pairwise matrix between the instances of X.
 
     Examples
     --------
@@ -169,7 +169,7 @@ def ddtw_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def ddtw_from_single_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None
-):
+) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
     Parameters
@@ -177,7 +177,7 @@ def ddtw_from_single_to_multiple_distance(
     x: np.ndarray (n_dims, n_timepoints)
         Single time series.
     y: np.ndarray (n_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -185,7 +185,7 @@ def ddtw_from_single_to_multiple_distance(
     Returns
     -------
     np.ndarray (n_instances)
-        ddtw pairwise distance between the instances of X.
+        ddtw distance between the collection of instances in y and the time series x.
 
     Examples
     --------
@@ -210,7 +210,7 @@ def ddtw_from_single_to_multiple_distance(
 @njit(cache=True, fastmath=True)
 def ddtw_from_multiple_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None
-):
+) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
     If x and y are the same then you should use ddtw_pairwise_distance.
@@ -218,9 +218,9 @@ def ddtw_from_multiple_to_multiple_distance(
     Parameters
     ----------
     x: np.ndarray (n_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     y: np.ndarray (m_instances, n_dims, n_timepoints)
-        Set of time series.
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -228,7 +228,7 @@ def ddtw_from_multiple_to_multiple_distance(
     Returns
     -------
     np.ndarray (n_instances, m_instances)
-        ddtw distance between two sets of time series, x and y.
+        ddtw distance between two collections of time series, x and y.
 
     Examples
     --------

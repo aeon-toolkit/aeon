@@ -6,7 +6,9 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 
 
 @njit(cache=True, fastmath=True)
-def wddtw_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
+def wddtw_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> float:
     """Compute the wddtw distance between two time series.
 
     Parameters
@@ -42,7 +44,9 @@ def wddtw_distance(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
 
 
 @njit(cache=True, fastmath=True)
-def wddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
+def wddtw_cost_matrix(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> np.ndarray:
     """Compute the wddtw cost matrix between two time series.
 
     Parameters
@@ -85,7 +89,35 @@ def wddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window=None, g=0.05):
 
 
 @njit(cache=True, fastmath=True)
-def wddtw_pairwise_distance(X: np.ndarray, window=None, g: float = 0.05) -> np.ndarray:
+def wddtw_pairwise_distance(X: np.ndarray, window: float = None, g: float = 0.05) -> np.ndarray:
+    """Compute the wddtw pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    g: float, defaults=0.05
+        Constant that controls the level of penalisation for the points with larger
+        phase difference. Default is 0.05.
+
+    Returns
+    -------
+    np.ndarray (n_instances, n_instances)
+        wddtw pairwise matrix between the instances of X.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import wddtw_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> wddtw_pairwise_distance(X)
+    array([[0.        , 0.4875026 , 1.49297672],
+           [0.4875026 , 0.        , 0.27422021],
+           [1.49297672, 0.27422021, 0.        ]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2] - 2, X.shape[2] - 2, window)
@@ -106,8 +138,37 @@ def wddtw_pairwise_distance(X: np.ndarray, window=None, g: float = 0.05) -> np.n
 
 @njit(cache=True, fastmath=True)
 def wddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window=None, g: float = 0.05
-):
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> np.ndarray:
+    """Compute the wddtw distance between a single time series and multiple.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        Single time series.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    g: float, defaults=0.05
+        Constant that controls the level of penalisation for the points with larger
+        phase difference. Default is 0.05.
+
+    Returns
+    -------
+    np.ndarray (n_instances)
+        wddtw distance between the collection of instances in y and the time series x.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import wddtw_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> wddtw_from_single_to_multiple_distance(x, y)
+    array([0.12187565, 1.09688086, 2.46798193])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[2] - 2, window)
@@ -121,14 +182,47 @@ def wddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window=None, g: float = 0.05
-):
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> np.ndarray:
+    """Compute the wddtw distance between two sets of time series.
+
+    If x and y are the same then you should use wddtw_pairwise_distance.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    g: float, defaults=0.05
+        Constant that controls the level of penalisation for the points with larger
+        phase difference. Default is 0.05.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        wddtw distance between two collections of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import wddtw_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> wddtw_from_multiple_to_multiple_distance(x, y)
+    array([[ 3.68673844,  6.85550536,  2.46798193],
+           [ 5.97190689,  9.87192772,  4.38752343],
+           [17.55009373, 23.88762757, 14.74695376]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
     bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
 
-    # Derive the arrays before so that we dont have to redo every iteration
+    # Derive the arrays before so that we don't have to redo every iteration
     derive_x = np.zeros((x.shape[0], x.shape[1], x.shape[2] - 2))
     for i in range(x.shape[0]):
         derive_x[i] = average_of_slope(x[i])

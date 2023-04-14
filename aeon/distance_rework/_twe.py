@@ -8,7 +8,7 @@ from aeon.distance_rework._bounding_matrix import create_bounding_matrix
 def twe_distance(
         x: np.ndarray,
         y: np.ndarray,
-        window=None,
+        window: float = None,
         nu: float = 0.001,
         lmbda: float = 1.
 ) -> float:
@@ -54,7 +54,7 @@ def twe_distance(
 def twe_cost_matrix(
         x: np.ndarray,
         y: np.ndarray,
-        window=None,
+        window: float = None,
         nu: float = 0.001,
         lmbda: float = 1.
 ) -> np.ndarray:
@@ -119,8 +119,8 @@ def _twe_distance(
         x: np.ndarray,
         y: np.ndarray,
         bounding_matrix: np.ndarray,
-        nu: float = 0.001,
-        lmbda: float = 1.
+        nu: float,
+        lmbda: float
 ) -> float:
     return _twe_cost_matrix(
         x, y, bounding_matrix, nu, lmbda
@@ -132,8 +132,8 @@ def _twe_cost_matrix(
         x: np.ndarray,
         y: np.ndarray,
         bounding_matrix: np.ndarray,
-        nu: float = 0.001,
-        lmbda: float = 1.
+        nu: float,
+        lmbda: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -170,7 +170,7 @@ def _twe_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def _pad_arrs(x: np.ndarray):
+def _pad_arrs(x: np.ndarray) -> np.ndarray:
     padded_x = np.zeros((x.shape[0], x.shape[1] + 1))
     zero_arr = np.array([0.0])
     for i in range(x.shape[0]):
@@ -180,13 +180,43 @@ def _pad_arrs(x: np.ndarray):
 
 @njit(cache=True, fastmath=True)
 def twe_pairwise_distance(
-        X: np.ndarray, window: float = None, epsilon: float = 1.
+        X: np.ndarray, window: float = None, nu: float = 0.001, lmbda: float = 1.
 ) -> np.ndarray:
+    """Compute the twe pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    np.ndarray (n_instances, n_instances)
+        twe pairwise matrix between the instances of X.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_pairwise_distance
+    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> twe_pairwise_distance(X)
+    array([[ 0.   , 27.004, 81.004],
+           [27.004,  0.   , 26.004],
+           [81.004, 26.004,  0.   ]])
+    """
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
 
-    # Pad the arrays before so that we dont have to redo every iteration
+    # Pad the arrays before so that we don't have to redo every iteration
     padded_X = np.zeros((X.shape[0], X.shape[1], X.shape[2] + 1))
     for i in range(X.shape[0]):
         padded_X[i] = _pad_arrs(X[i])
@@ -194,7 +224,7 @@ def twe_pairwise_distance(
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
             distances[i, j] = _twe_distance(
-                padded_X[i], padded_X[j], bounding_matrix, epsilon
+                padded_X[i], padded_X[j], bounding_matrix, nu, lmbda
             )
             distances[j, i] = distances[i, j]
 
@@ -203,8 +233,43 @@ def twe_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def twe_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
-):
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        nu: float = 0.001,
+        lmbda: float = 1.
+) -> np.ndarray:
+    """Compute the twe distance between a single time series and multiple.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        Single time series.
+    y: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    np.ndarray (n_instances)
+        twe distance between the collection of instances in y and the time series x.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_from_single_to_multiple_distance
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> twe_from_single_to_multiple_distance(x, y)
+    array([ 4.   , 27.008, 89.004])
+    """
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
@@ -212,15 +277,56 @@ def twe_from_single_to_multiple_distance(
     padded_x = _pad_arrs(x)
 
     for i in range(n_instances):
-        distances[i] = _twe_distance(padded_x, _pad_arrs(y[i]), bounding_matrix, epsilon)
+        distances[i] = _twe_distance(
+            padded_x, _pad_arrs(y[i]), bounding_matrix, nu, lmbda
+        )
 
     return distances
 
 
 @njit(cache=True, fastmath=True)
 def twe_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
-):
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        nu: float = 0.001,
+        lmbda: float = 1.
+) -> np.ndarray:
+    """Compute the twe distance between two sets of time series.
+
+    If x and y are the same then you should use twe_pairwise_distance.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray (m_instances, n_dims, n_timepoints)
+        A collection of time series instances.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    np.ndarray (n_instances, m_instances)
+        twe distance between two collections of time series, x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_from_multiple_to_multiple_distance
+    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
+    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
+    >>> twe_from_multiple_to_multiple_distance(x, y)
+    array([[209.004, 350.004, 347.006],
+           [145.006, 262.006, 269.006],
+           [234.006, 353.006, 268.008]])
+    """
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
@@ -238,6 +344,6 @@ def twe_from_multiple_to_multiple_distance(
     for i in range(n_instances):
         for j in range(m_instances):
             distances[i, j] = _twe_distance(
-                padded_x[i], padded_y[j], bounding_matrix, epsilon
+                padded_x[i], padded_y[j], bounding_matrix, nu, lmbda
             )
     return distances
