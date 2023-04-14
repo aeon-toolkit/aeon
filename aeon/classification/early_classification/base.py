@@ -55,8 +55,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict, support for X?
-        #    it should be either "numpy3D" or "nested_univ" (nested pd.DataFrame)
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -88,16 +87,13 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -124,19 +120,18 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
+            indices correspond to instance indices in X
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         decisions : 1D bool array
             An array of booleans, containing the decision of whether a prediction is
@@ -166,19 +161,16 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         decisions : 1D bool array
             An array of booleans, containing the decision of whether a prediction is
@@ -207,19 +199,16 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
@@ -251,19 +240,16 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
@@ -287,16 +273,13 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_cases, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.ndarray of int, of shape [n_instances] - class labels (ground truth)
+                of shape [n_cases, series_length]
+            or of any other supported collection data type
+                for list of types, see datatypes.SCITYPE_REGISTER
+        y : 1D np.ndarray of int, of shape [n_cases] - class labels (ground truth)
             indices correspond to instance indices in X
 
         Returns
@@ -363,12 +346,9 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -398,15 +378,12 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         decisions : 1D bool array
             An array of booleans, containing the decision of whether a prediction is
@@ -431,15 +408,12 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         decisions : 1D bool array
             An array of booleans, containing the decision of whether a prediction is
@@ -464,15 +438,12 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
@@ -508,15 +479,12 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
@@ -545,12 +513,9 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_cases, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -612,7 +577,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         _convert_X = BaseClassifier._convert_X
         return _convert_X(self, X)
 
-    def _check_classifier_input(self, X, y=None, enforce_min_instances=1):
+    def _check_classifier_input(self, X, y=None, enforce_min_cases=1):
         """Check whether input X and y are valid formats with minimum data.
 
         Raises a ValueError if the input is not valid.
@@ -621,7 +586,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ----------
         X : check whether conformant with any aeon Panel mtype specification
         y : check whether a pd.Series or np.array
-        enforce_min_instances : int, optional (default=1)
+        enforce_min_cases : int, optional (default=1)
             check there are a minimum number of instances.
 
         Returns
@@ -634,7 +599,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
             If y or X is invalid input data type, or there is not enough data
         """
         _check_classifier_input = BaseClassifier._check_classifier_input
-        return _check_classifier_input(self, X, y, enforce_min_instances)
+        return _check_classifier_input(self, X, y, enforce_min_cases)
 
     def _internal_convert(self, X, y=None):
         """Convert X and y if necessary as a user convenience.

@@ -403,8 +403,8 @@ class Arsenal(BaseClassifier):
             StandardScaler(with_mean=False),
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
         )
-        clf.fit(self.transformed_data_[idx].iloc[subsample], y[subsample])
-        preds = clf.predict(self.transformed_data_[idx].iloc[oob])
+        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
+        preds = clf.predict(self.transformed_data_[idx][oob])
 
         weight = clf.steps[1][1].best_score_
 
