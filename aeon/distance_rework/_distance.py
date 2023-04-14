@@ -101,9 +101,9 @@ def distance(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
     >>> distance(x, y, "dtw", window = 0.2)
     125.0
     """
-    if metric not in distances:
+    if metric not in _distances:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return distances[metric](x, y, **kwargs)
+    return _distances[metric](x, y, **kwargs)
 
 
 def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
@@ -150,9 +150,9 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
            [ 28.,   0.,  27.],
            [109.,  27.,   0.]])
     """
-    if metric not in pairwise_distances:
+    if metric not in _pairwise_distances:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return pairwise_distances[metric](X, **kwargs)
+    return _pairwise_distances[metric](X, **kwargs)
 
 
 def distance_from_single_to_multiple(
@@ -202,9 +202,9 @@ def distance_from_single_to_multiple(
     >>> distance_from_single_to_multiple(x, y, "dtw", window=0.2)
     array([316., 532., 784.])
     """
-    if metric not in single_to_multiple_distances:
+    if metric not in _single_to_multiple_distances:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return single_to_multiple_distances[metric](x, y, **kwargs)
+    return _single_to_multiple_distances[metric](x, y, **kwargs)
 
 
 def distance_from_multiple_to_multiple(
@@ -258,9 +258,9 @@ def distance_from_multiple_to_multiple(
            [147., 300., 507.],
            [ 48., 147., 300.]])
     """
-    if metric not in multiple_to_multiple_distances:
+    if metric not in _multiple_to_multiple_distances:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return multiple_to_multiple_distances[metric](x, y, **kwargs)
+    return _multiple_to_multiple_distances[metric](x, y, **kwargs)
 
 
 def cost_matrix(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
@@ -309,12 +309,12 @@ def cost_matrix(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
            [ inf,  inf, 300., 301.],
            [ inf,  inf,  inf, 316.]])
     """
-    if metric not in cost_matrices:
+    if metric not in _cost_matrices:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return cost_matrices[metric](x, y, **kwargs)
+    return _cost_matrices[metric](x, y, **kwargs)
 
 
-distances = {
+_distances = {
     "euclidean": euclidean_distance,
     "squared": squared_distance,
     "dtw": dtw_distance,
@@ -328,7 +328,7 @@ distances = {
     "twe": twe_distance
 }
 
-pairwise_distances = {
+_pairwise_distances = {
     "euclidean": euclidean_pairwise_distance,
     "squared": squared_pairwise_distance,
     "dtw": dtw_pairwise_distance,
@@ -342,7 +342,7 @@ pairwise_distances = {
     "twe": twe_pairwise_distance
 }
 
-single_to_multiple_distances = {
+_single_to_multiple_distances = {
     "euclidean": euclidean_from_single_to_multiple_distance,
     "squared": squared_from_single_to_multiple_distance,
     "dtw": dtw_from_single_to_multiple_distance,
@@ -356,7 +356,7 @@ single_to_multiple_distances = {
     "twe": twe_from_single_to_multiple_distance
 }
 
-multiple_to_multiple_distances = {
+_multiple_to_multiple_distances = {
     "euclidean": euclidean_from_multiple_to_multiple_distance,
     "squared": squared_from_multiple_to_multiple_distance,
     "dtw": dtw_from_multiple_to_multiple_distance,
@@ -370,7 +370,7 @@ multiple_to_multiple_distances = {
     "twe": twe_from_multiple_to_multiple_distance
 }
 
-cost_matrices = {
+_cost_matrices = {
     "dtw": dtw_cost_matrix,
     "ddtw": ddtw_cost_matrix,
     "wdtw": wdtw_cost_matrix,
