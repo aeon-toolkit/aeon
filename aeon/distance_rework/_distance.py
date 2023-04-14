@@ -44,6 +44,15 @@ from aeon.distance_rework import (
     edr_from_multiple_to_multiple_distance,
     twe_from_single_to_multiple_distance,
     twe_from_multiple_to_multiple_distance,
+    dtw_cost_matrix,
+    ddtw_cost_matrix,
+    wdtw_cost_matrix,
+    wddtw_cost_matrix,
+    lcss_cost_matrix,
+    msm_cost_matrix,
+    erp_cost_matrix,
+    edr_cost_matrix,
+    twe_cost_matrix,
 )
 
 
@@ -89,8 +98,8 @@ def distance(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
     >>> from aeon.distance_rework import distance
     >>> x = np.array([[1, 2, 3, 4, 5]])
     >>> y = np.array([[6, 7, 8, 9, 10]])
-    >>> distance(x, y, "dtw")
-    108.0
+    >>> distance(x, y, "dtw", window = 0.2)
+    125.0
     """
     if metric not in distances:
         raise ValueError(f"Unknown distance metric: {metric}")
@@ -136,10 +145,10 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
     >>> import numpy as np
     >>> from aeon.distance_rework import pairwise_distance
     >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
-    >>> pairwise_distance(X, "dtw")
-    array([[  0.,  20., 109.],
-           [ 20.,   0.,  26.],
-           [109.,  26.,   0.]])
+    >>> pairwise_distance(X, "dtw", window = 0.2)
+    array([[  0.,  28., 109.],
+           [ 28.,   0.,  27.],
+           [109.,  27.,   0.]])
     """
     if metric not in pairwise_distances:
         raise ValueError(f"Unknown distance metric: {metric}")
@@ -190,7 +199,7 @@ def distance_from_single_to_multiple(
     >>> from aeon.distance_rework import distance_from_single_to_multiple
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
-    >>> distance_from_single_to_multiple(x, y, "dtw")
+    >>> distance_from_single_to_multiple(x, y, "dtw", window=0.2)
     array([316., 532., 784.])
     """
     if metric not in single_to_multiple_distances:
@@ -244,7 +253,7 @@ def distance_from_multiple_to_multiple(
     >>> from aeon.distance_rework import distance_from_multiple_to_multiple
     >>> x = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
-    >>> dtw_from_multiple_to_multiple_distance(x, y)
+    >>> dtw_from_multiple_to_multiple_distance(x, y, window=0.2)
     array([[300., 507., 768.],
            [147., 300., 507.],
            [ 48., 147., 300.]])
@@ -252,6 +261,57 @@ def distance_from_multiple_to_multiple(
     if metric not in multiple_to_multiple_distances:
         raise ValueError(f"Unknown distance metric: {metric}")
     return multiple_to_multiple_distances[metric](x, y, **kwargs)
+
+
+def cost_matrix(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
+    """Compute the cost matrix between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    metric : str
+        Distance metric to use. Must be one of the following:
+        - "dtw"
+        - "ddtw"
+        - "wdtw"
+        - "wddtw"
+        - "lcss"
+        - "msm"
+        - "erp"
+        - "edr"
+        - "twe"
+    **kwargs
+        Additional keyword arguments to pass to the distance function. See the distance
+        function documentation for more details on what to pass.
+
+    Returns
+    -------
+    np.ndarray (n_timepoints, m_timepoints)
+        Cost matrix between the two time series.
+
+    Raises
+    ------
+    ValueError
+        If the distance metric is not recognized.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import cost_matrix
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[11, 12, 13, 2]])
+    >>> cost_matrix(x, y, "dtw", window=0.2)
+    array([[100., 221.,  inf,  inf],
+           [ inf, 200., 321.,  inf],
+           [ inf,  inf, 300., 301.],
+           [ inf,  inf,  inf, 316.]])
+    """
+    if metric not in cost_matrices:
+        raise ValueError(f"Unknown distance metric: {metric}")
+    return cost_matrices[metric](x, y, **kwargs)
 
 
 distances = {
@@ -308,4 +368,16 @@ multiple_to_multiple_distances = {
     "erp": erp_from_multiple_to_multiple_distance,
     "edr": edr_from_multiple_to_multiple_distance,
     "twe": twe_from_multiple_to_multiple_distance
+}
+
+cost_matrices = {
+    "dtw": dtw_cost_matrix,
+    "ddtw": ddtw_cost_matrix,
+    "wdtw": wdtw_cost_matrix,
+    "wddtw": wddtw_cost_matrix,
+    "lcss": lcss_cost_matrix,
+    "msm": msm_cost_matrix,
+    "erp": erp_cost_matrix,
+    "edr": edr_cost_matrix,
+    "twe": twe_cost_matrix
 }
