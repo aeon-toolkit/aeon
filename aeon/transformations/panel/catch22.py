@@ -175,7 +175,7 @@ class Catch22(BaseTransformer):
         if self.replace_nans:
             c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
 
-        return c22_list
+        return np.array(c22_list)
 
     def _transform_case(self, X, f_idx):
         c22 = np.zeros(len(f_idx) * len(X))
