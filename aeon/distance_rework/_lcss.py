@@ -12,6 +12,14 @@ def lcss_distance(
 ) -> float:
     """Returns the lcss distance between x and y.
 
+    LCSS attempts to find the longest common sequence between two time series and
+    returns a value that is the percentage that longest common sequence assumes.
+    Originally present in [1]_, LCSS is computed by matching indexes that are
+    similar up until a defined threshold (epsilon).
+
+    The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
+    are exactly the same and 1.0 means they are complete opposites.
+
     Parameters
     ----------
     x : np.ndarray
@@ -38,6 +46,13 @@ def lcss_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> lcss_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
+        Similar Multidimensional Trajectories", In Proceedings of the
+        18th International Conference on Data Engineering (ICDE '02).
+        IEEE Computer Society, USA, 673.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _lcss_distance(x, y, bounding_matrix, epsilon)
@@ -130,7 +145,7 @@ def lcss_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -174,9 +189,9 @@ def lcss_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -219,9 +234,9 @@ def lcss_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -264,9 +279,9 @@ def lcss_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -282,6 +297,8 @@ def lcss_alignment_path(
         The alignment path between the two time series where each element is a tuple
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
+    float
+        The lcss distance between the two time series.
 
     Examples
     --------

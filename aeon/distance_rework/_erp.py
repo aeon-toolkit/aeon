@@ -14,11 +14,17 @@ def erp_distance(
 ) -> float:
     """Compute the ERP distance between two time series.
 
+    ERP, first proposed in [1]_, attempts align time series
+    by better considering how indexes are carried forward through the cost matrix.
+    Usually in the dtw cost matrix, if an alignment can't be found the previous value
+    is carried forward. Erp instead proposes the idea of gaps or sequences of points
+    that have no matches. These gaps are then punished based on their distance from 'g'.
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -39,6 +45,12 @@ def erp_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> erp_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
+    In Proceedings of the Thirtieth international conference on Very large data bases
+     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _erp_distance(x, y, bounding_matrix, g)
@@ -55,9 +67,9 @@ def erp_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -148,7 +160,7 @@ def erp_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -191,9 +203,9 @@ def erp_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -235,9 +247,9 @@ def erp_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -279,9 +291,9 @@ def erp_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

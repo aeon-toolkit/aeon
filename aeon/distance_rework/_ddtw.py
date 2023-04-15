@@ -12,11 +12,24 @@ from aeon.distance_rework._alignment_paths import compute_min_return_path
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     """Compute the ddtw distance between two time series.
 
+    DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
+    improve on dtw by better account for the 'shape' of the time series.
+    This is done by considering y axis data points as higher level features of 'shape'.
+    To do this the first derivative of the sequence is taken, and then using this
+    derived sequence a dtw computation is done.
+
+    The default derivative used is:
+
+    .. math::
+        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+
+    Where q is the original time series and d_q is the derived time series.
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -35,6 +48,12 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> ddtw_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
     """
     x = average_of_slope(x)
     y = average_of_slope(y)
@@ -47,9 +66,9 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -92,12 +111,12 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    q: np.ndarray (n_dims, n_timepoints)
+    q: np.ndarray (n_channels, n_timepoints)
         Time series to take derivative of.
 
     Returns
     -------
-    np.ndarray  (n_dims, n_timepoints - 2)
+    np.ndarray  (n_channels, n_timepoints - 2)
         Array containing the derivative of q.
 
     Raises
@@ -131,7 +150,7 @@ def ddtw_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -178,9 +197,9 @@ def ddtw_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -221,9 +240,9 @@ def ddtw_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -275,9 +294,9 @@ def ddtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

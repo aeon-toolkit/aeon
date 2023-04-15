@@ -18,11 +18,19 @@ def msm_distance(
 ) -> float:
     """Compute the MSM distance between two time series.
 
+    This metric uses as building blocks three fundamental operations: Move, Split,
+    and Merge. A Move operation changes the value of a single element, a Split
+    operation converts a single element into two consecutive elements, and a Merge
+    operation merges two consecutive elements into one. Each operation has an
+    associated cost, and the MSM distance between two time series is defined to be
+    the cost of the cheapest sequence of operations that transforms the first time
+    series into the second one.
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: int or None
         The window size to use for the bounding matrix. If None, the
@@ -46,6 +54,12 @@ def msm_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> msm_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
+    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
+    25(6):1425–1438, 2013.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _msm_distance(x, y, bounding_matrix, independent, c)
@@ -63,9 +77,9 @@ def msm_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: int or None
         The window size to use for the bounding matrix. If None, the
@@ -240,7 +254,7 @@ def msm_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -290,9 +304,9 @@ def msm_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -341,9 +355,9 @@ def msm_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -393,9 +407,9 @@ def msm_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

@@ -66,7 +66,8 @@ __all__ = [
     "distance_from_multiple_to_multiple",
     "cost_matrix",
     "ddtw_alignment_path",
-    "dtw_alignment_path"
+    "dtw_alignment_path",
+    "alignment_path"
 ]
 
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
@@ -126,7 +127,7 @@ from aeon.distance_rework._twe import (
 )
 from aeon.distance_rework._distance import (
     distance, pairwise_distance, distance_from_single_to_multiple,
-    distance_from_multiple_to_multiple, cost_matrix
+    distance_from_multiple_to_multiple, cost_matrix, alignment_path
 )
 from aeon.distance_rework._alignment_paths import (
     compute_min_return_path, compute_lcss_return_path

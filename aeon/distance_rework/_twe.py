@@ -18,11 +18,18 @@ def twe_distance(
 ) -> float:
     """Compute the TWE distance between two time series.
 
+    The Time Warp Edit (TWE) distance is a distance measure for discrete time series
+    matching with time 'elasticity'. In comparison to other distance measures, (e.g.
+    DTW (Dynamic Time Warping) or LCS (Longest Common Subsequence Problem)), TWE is a
+    metric. Its computational time complexity is O(n^2), but can be drastically reduced
+    in some specific situation by using a corridor to reduce the search space. Its
+    memory space complexity can be reduced to O(n). It was first proposed in [1].
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: int, defaults = None
         Window size. If None, the window size is set to the length of the
@@ -46,6 +53,12 @@ def twe_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> twe_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
+    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
+    Intelligence. 31 (2): 306–318.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     x = _pad_arrs(x)
@@ -65,9 +78,9 @@ def twe_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: int, defaults = None
         Window size. If None, the window size is set to the length of the
@@ -177,7 +190,7 @@ def twe_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -234,9 +247,9 @@ def twe_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -289,9 +302,9 @@ def twe_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -351,9 +364,9 @@ def twe_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

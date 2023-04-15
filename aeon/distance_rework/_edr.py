@@ -13,12 +13,20 @@ def edr_distance(
         x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> float:
     """Compute the edr distance between two time series.
+    
+    EDR computes the minimum number of elements (as a percentage) that must be removed
+    from x and y so that the sum of the distance between the remaining signal elements
+    lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
+
+    The value returned will be between 0 and 1 per time series. The value will
+    represent as a percentage of elements that must be removed for the time series to
+    be an exact match.
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -41,6 +49,14 @@ def edr_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> edr_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
+    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
+    international conference on Management of data (SIGMOD '05). Association for
+    Computing Machinery, New York, NY, USA, 491–502.
+    DOI:https://doi.org/10.1145/1066157.1066213
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _edr_distance(x, y, bounding_matrix, epsilon)
@@ -54,9 +70,9 @@ def edr_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -138,7 +154,7 @@ def edr_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -183,9 +199,9 @@ def edr_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -227,9 +243,9 @@ def edr_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -274,9 +290,9 @@ def edr_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -292,6 +308,8 @@ def edr_alignment_path(
         The alignment path between the two time series where each element is a tuple
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
+    float
+        The edr distance between the two time series.
 
     Examples
     --------

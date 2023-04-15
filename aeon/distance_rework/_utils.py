@@ -15,9 +15,9 @@ def _pairwise_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         First set of instances of time series.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         Second set of instances of time series.
     distance_function
         Distance function that takes two time series as parameters. It should take
@@ -60,9 +60,9 @@ def _distance_from_single_to_multiple(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         A time series.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A set of instances of time series.
     distance_function
         Distance function that takes two time series as parameters. It should take
@@ -102,9 +102,9 @@ def _distance_from_multiple_to_multiple(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First set of instances of time series.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         Second set of instances of time series.
     distance_function
         Distance function that takes two time series as parameters. It should take

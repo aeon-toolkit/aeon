@@ -7,11 +7,17 @@ from aeon.distance_rework._squared import squared_distance
 def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the euclidean distance between two time series.
 
+    The Euclidean distance between two time series of length m is the square root of
+    the squared distance and is defined as:
+
+    .. math::
+        ed(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
 
     Returns
@@ -28,7 +34,7 @@ def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -65,9 +71,9 @@ def euclidean_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -104,9 +110,9 @@ def euclidean_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
 
     Returns

@@ -10,11 +10,22 @@ from aeon.distance_rework._alignment_paths import compute_min_return_path
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     """Compute the dtw distance between two time series.
 
+    Originally proposed in [1]_ DTW computes the distance between two time series by
+    considering their alignments during the calculation. This is done by measuring
+    the pointwise distance (normally using Euclidean) between all elements of the two
+    time series and then using dynamic programming to find the warping path
+    that minimises the total pointwise distance between realigned series.
+
+    Mathematically dtw can be defined as:
+
+    .. math::
+        dtw(x, y) = \sqrt{\sum_{(i, j) \in \pi} \|x_{i} - y_{j}\|^2}
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -33,6 +44,12 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> dtw_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] H. Sakoe, S. Chiba, "Dynamic programming algorithm optimization for
+           spoken word recognition," IEEE Transactions on Acoustics, Speech and
+           Signal Processing, vol. 26(1), pp. 43--49, 1978.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _dtw_distance(x, y, bounding_matrix)
@@ -44,9 +61,9 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -114,7 +131,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         Set of time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -155,9 +172,9 @@ def dtw_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -197,9 +214,9 @@ def dtw_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -240,9 +257,9 @@ def dtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

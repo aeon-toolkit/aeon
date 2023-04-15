@@ -1,3 +1,4 @@
+from typing import Callable
 import numpy as np
 from aeon.distance_rework import (
     euclidean_distance,
@@ -53,6 +54,15 @@ from aeon.distance_rework import (
     erp_cost_matrix,
     edr_cost_matrix,
     twe_cost_matrix,
+    dtw_alignment_path,
+    ddtw_alignment_path,
+    wdtw_alignment_path,
+    wddtw_alignment_path,
+    lcss_alignment_path,
+    msm_alignment_path,
+    erp_alignment_path,
+    edr_alignment_path,
+    twe_alignment_path,
 )
 
 
@@ -61,9 +71,9 @@ def distance(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     metric : str
         Distance metric to use. Must be one of the following:
@@ -101,7 +111,7 @@ def distance(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
     >>> distance(x, y, "dtw", window = 0.2)
     125.0
     """
-    if metric not in _distances:
+    if metric not in _distances and not isinstance(metric, Callable):
         raise ValueError(f"Unknown distance metric: {metric}")
     return _distances[metric](x, y, **kwargs)
 
@@ -111,7 +121,7 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         Set of time series.
     metric : str
         Distance metric to use. Must be one of the following:
@@ -150,7 +160,7 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
            [ 28.,   0.,  27.],
            [109.,  27.,   0.]])
     """
-    if metric not in _pairwise_distances:
+    if metric not in _pairwise_distances and not isinstance(metric, Callable):
         raise ValueError(f"Unknown distance metric: {metric}")
     return _pairwise_distances[metric](X, **kwargs)
 
@@ -162,9 +172,9 @@ def distance_from_single_to_multiple(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     metric : str
         Distance metric to use. Must be one of the following:
@@ -202,7 +212,7 @@ def distance_from_single_to_multiple(
     >>> distance_from_single_to_multiple(x, y, "dtw", window=0.2)
     array([316., 532., 784.])
     """
-    if metric not in _single_to_multiple_distances:
+    if metric not in _single_to_multiple_distances and not isinstance(metric, Callable):
         raise ValueError(f"Unknown distance metric: {metric}")
     return _single_to_multiple_distances[metric](x, y, **kwargs)
 
@@ -216,9 +226,9 @@ def distance_from_multiple_to_multiple(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     metric : str
         Distance metric to use. Must be one of the following:
@@ -258,7 +268,8 @@ def distance_from_multiple_to_multiple(
            [147., 300., 507.],
            [ 48., 147., 300.]])
     """
-    if metric not in _multiple_to_multiple_distances:
+    if metric not in _multiple_to_multiple_distances and not isinstance(metric,
+                                                                       Callable):
         raise ValueError(f"Unknown distance metric: {metric}")
     return _multiple_to_multiple_distances[metric](x, y, **kwargs)
 
@@ -268,9 +279,9 @@ def cost_matrix(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     metric : str
         Distance metric to use. Must be one of the following:
@@ -309,9 +320,56 @@ def cost_matrix(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
            [ inf,  inf, 300., 301.],
            [ inf,  inf,  inf, 316.]])
     """
-    if metric not in _cost_matrices:
+    if metric not in _cost_matrices and not isinstance(metric, Callable):
         raise ValueError(f"Unknown distance metric: {metric}")
     return _cost_matrices[metric](x, y, **kwargs)
+
+
+def alignment_path(x: np.ndarray, y: np.ndarray, metric: str, **kwargs):
+    """Compute the alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_channels, n_timepoints)
+        First time series.
+    y: np.ndarray (n_channels, n_timepoints)
+        Second time series.
+    metric : str
+        Distance metric to use. Must be one of the following:
+        - "dtw"
+        - "ddtw"
+        - "wdtw"
+        - "wddtw"
+        - "lcss"
+        - "msm"
+        - "erp"
+        - "edr"
+        - "twe"
+    **kwargs
+        Additional keyword arguments to pass to the distance function. See the distance
+        function documentation for more details on what to pass.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The wdtw distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[11, 12, 13, 2]])
+    >>> alignment_path(x, y, "dtw", window=0.2)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 316.0)
+    """
+    if metric not in _alignment_path and not isinstance(metric, Callable):
+        raise ValueError(f"Unknown distance metric: {metric}")
+    return _alignment_path[metric](x, y, **kwargs)
 
 
 _distances = {
@@ -380,4 +438,16 @@ _cost_matrices = {
     "erp": erp_cost_matrix,
     "edr": edr_cost_matrix,
     "twe": twe_cost_matrix
+}
+
+_alignment_path = {
+    "dtw": dtw_alignment_path,
+    "ddtw": ddtw_alignment_path,
+    "wdtw": wdtw_alignment_path,
+    "wddtw": wddtw_alignment_path,
+    "lcss": lcss_alignment_path,
+    "msm": msm_alignment_path,
+    "erp": erp_alignment_path,
+    "edr": edr_alignment_path,
+    "twe": twe_alignment_path
 }

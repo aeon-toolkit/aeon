@@ -12,11 +12,24 @@ def wdtw_distance(
 ) -> float:
     """Compute the wdtw distance between two time series.
 
+    First proposed in [1]_, WDTW adds a  adds a multiplicative weight penalty based on
+    the warping distance. This means that time series with lower phase difference have
+    a smaller weight imposed (i.e less penalty imposed) and time series with larger
+    phase difference have a larger weight imposed (i.e. larger penalty imposed).
+
+    Formally this can be described as:
+
+    .. math::
+        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(x_{i} - y_{j})||
+
+    Where d_w is the distance with a the weight applied to it for points i, j, where
+    w(|i-j|) is a positive weight between the two points x_i and y_j.
+
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -38,6 +51,12 @@ def wdtw_distance(
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> wdtw_distance(x, y)
     0.0
+
+    References
+    ----------
+    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
+    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
+    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     return _wdtw_distance(x, y, bounding_matrix, g)
@@ -51,9 +70,9 @@ def wdtw_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -152,7 +171,7 @@ def wdtw_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_dims, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -196,9 +215,9 @@ def wdtw_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_dims, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -241,9 +260,9 @@ def wdtw_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_dims, n_timepoints)
+    x: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_dims, n_timepoints)
+    y: np.ndarray (m_instances, n_channels, n_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -286,9 +305,9 @@ def wdtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_dims, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_dims, n_timepoints)
+    y: np.ndarray (n_channels, n_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
