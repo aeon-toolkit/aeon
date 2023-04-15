@@ -76,7 +76,7 @@ MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_HIERARCHICAL)
 
 
 # mtypes to exclude in checking since they are ambiguous and rare
-AMBIGUOUS_MTYPES = ["numpyflat", "alignment_loc", "np-list"]
+AMBIGUOUS_MTYPES = ["numpyflat", "alignment_loc"]
 
 # all time series mtypes excluding ambiguous ones
 ALL_TIME_SERIES_MTYPES = (
