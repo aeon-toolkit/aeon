@@ -13,13 +13,13 @@ __all__ = [
     "_MsmDistance",
 ]
 
-from sktime.distances.distance_rework_two._ddtw import _DdtwDistance
-from sktime.distances.distance_rework_two._dtw import _DtwDistance
-from sktime.distances.distance_rework_two._edr import _EdrDistance
-from sktime.distances.distance_rework_two._erp import _ErpDistance
-from sktime.distances.distance_rework_two._lcss import _LcssDistance
-from sktime.distances.distance_rework_two._msm import _MsmDistance
-from sktime.distances.distance_rework_two._squared import _SquaredDistance
-from sktime.distances.distance_rework_two._twe import _TweDistance
-from sktime.distances.distance_rework_two._wddtw import _WddtwDistance
-from sktime.distances.distance_rework_two._wdtw import _WdtwDistance
+from sktime.distances.distances_two._ddtw import _DdtwDistance
+from sktime.distances.distances_two._dtw import _DtwDistance
+from sktime.distances.distances_two._edr import _EdrDistance
+from sktime.distances.distances_two._erp import _ErpDistance
+from sktime.distances.distances_two._lcss import _LcssDistance
+from sktime.distances.distances_two._msm import _MsmDistance
+from sktime.distances.distances_two._squared import _SquaredDistance
+from sktime.distances.distances_two._twe import _TweDistance
+from sktime.distances.distances_two._wddtw import _WddtwDistance
+from sktime.distances.distances_two._wdtw import _WdtwDistance

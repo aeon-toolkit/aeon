@@ -86,7 +86,7 @@ unit_test_proba["ElasticEnsemble"] = np.array(
         [1.0, 0.0],
         [0.0, 1.0],
         [1.0, 0.0],
-        [0.33333333, 0.66666667],
+        [0.66666667, 0.33333333],
         [1.0, 0.0],
         [0.66666667, 0.33333333],
         [0.0, 1.0],
@@ -94,6 +94,7 @@ unit_test_proba["ElasticEnsemble"] = np.array(
         [1.0, 0.0],
     ]
 )
+
 unit_test_proba["ShapeDTW"] = np.array(
     [
         [0.0, 1.0],

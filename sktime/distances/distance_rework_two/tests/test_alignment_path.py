@@ -2,7 +2,7 @@
 """Test for the distance alignment"""
 import numpy as np
 
-from sktime.distances.distance_rework_two import (
+from sktime.distances.distances_two import (
     _DdtwDistance,
     _DtwDistance,
     _EdrDistance,

@@ -2,7 +2,7 @@
 import numpy as np
 from numba import njit
 
-from sktime.distances.distance_rework_two._dtw import _DtwDistance
+from sktime.distances.distances_two._dtw import _DtwDistance
 
 
 @njit(fastmath=True, cache=True)

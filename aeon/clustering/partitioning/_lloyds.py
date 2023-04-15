@@ -11,8 +11,9 @@ from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.metrics.averaging import mean_average
-from aeon.distances import distance_factory, pairwise_distance
-from aeon.distances._ddtw import average_of_slope_transform
+from aeon.distances import (
+    distance_function_dict, distance_from_multiple_to_multiple
+)
 
 
 def _forgy_center_initializer(
@@ -129,7 +130,8 @@ def _kmeans_plus_plus(
     center_id = random_state.randint(n_samples)
     centers[0] = X[center_id]
     closest_dist_sq = (
-        pairwise_distance(centers[0, np.newaxis], X, metric=distance_metric) ** 2
+        distance_from_multiple_to_multiple(
+            centers[0, np.newaxis], X, metric=distance_metric) ** 2
     )
     current_pot = closest_dist_sq.sum()
 
@@ -139,7 +141,8 @@ def _kmeans_plus_plus(
         np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
 
         distance_to_candidates = (
-            pairwise_distance(X[candidate_ids], X, metric=distance_metric) ** 2
+            distance_from_multiple_to_multiple(
+                X[candidate_ids], X, metric=distance_metric) ** 2
         )
 
         np.minimum(closest_dist_sq, distance_to_candidates, out=distance_to_candidates)
@@ -281,10 +284,6 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
         else:
             self._distance_params = self.distance_params
 
-        self._distance_metric = distance_factory(
-            X[0], X[1], metric=self.metric, **self._distance_params
-        )
-
     def _fit(self, X: np.ndarray, y=None):
         """Fit time series clusterer to training data.
 
@@ -301,20 +300,6 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Fitted estimator.
         """
         self._check_params(X)
-        if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
-            if self.metric == "ddtw":
-                self._distance_metric = distance_factory(
-                    X[0], X[1], metric="dtw", **self._distance_params
-                )
-            else:
-                self._distance_metric = distance_factory(
-                    X[0], X[1], metric="wdtw", **self._distance_params
-                )
-        else:
-            self._distance_metric = distance_factory(
-                X[0], X[1], metric=self.metric, **self._distance_params
-            )
         best_centers = None
         best_inertia = np.inf
         best_labels = None
@@ -348,8 +333,6 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
         np.ndarray (1d array of shape (n_instances,))
             Index of the cluster each time series in X belongs to.
         """
-        if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
         return self._assign_clusters(X, self.cluster_centers_)[0]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
@@ -382,7 +365,7 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             X,
             self.n_clusters,
             self._random_state,
-            distance_metric=self._distance_metric,
+            distance_metric=self.metric,
         )
         old_inertia = np.inf
         old_labels = None
@@ -439,9 +422,10 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Only returned when return_inertia is true. Float representing inertia of
             the assigned clusters.
         """
-        pairwise = pairwise_distance(
+        pairwise = distance_from_multiple_to_multiple(
             X, cluster_centres, metric=self.metric, **self._distance_params
         )
+
         return pairwise.argmin(axis=1), pairwise.min(axis=1).sum()
 
     def _score(self, X, y=None):

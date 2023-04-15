@@ -1,5 +1,5 @@
 import numpy as np
-from aeon.distance_rework import (
+from aeon.distances import (
     dtw_distance, dtw_alignment_path, ddtw_distance, ddtw_alignment_path,
     edr_distance, edr_alignment_path, erp_distance, erp_alignment_path,
     lcss_distance, lcss_alignment_path, msm_distance, msm_alignment_path,

@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from sktime.distances.distance_rework_two._base import BaseLocalDistance
+from sktime.distances.distances_two._base import BaseLocalDistance
 
 LocalDistanceParam = Union[np.ndarray, float]
 

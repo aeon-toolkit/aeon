@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 from numba import njit
 
-from sktime.distances.distance_rework_two._base import BaseDistance
+from sktime.distances.distances_two._base import BaseDistance
 
 LocalDistanceParam = Union[np.ndarray, float]
 

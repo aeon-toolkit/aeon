@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 import numpy as np
 from numba import njit
-from aeon.distance_rework._squared import univariate_squared_distance
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)

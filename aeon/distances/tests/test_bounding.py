@@ -1,5 +1,5 @@
 import numpy as np
-from aeon.distance_rework import create_bounding_matrix
+from aeon.distances import create_bounding_matrix
 
 
 def test_full_bounding():

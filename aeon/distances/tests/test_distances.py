@@ -1,6 +1,6 @@
 import numpy as np
-from aeon.distance_rework.test._utils import create_test_distance_numpy
-from aeon.distance_rework import (
+from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances import (
     dtw_pairwise_distance,
     dtw_distance,
     dtw_from_single_to_multiple_distance,

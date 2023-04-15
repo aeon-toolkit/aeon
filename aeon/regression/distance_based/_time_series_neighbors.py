@@ -11,7 +11,7 @@ __all__ = ["KNeighborsTimeSeriesRegressor"]
 
 import numpy as np
 
-from aeon.distances import distance_factory
+from aeon.distances import distance_from_single_to_multiple
 from aeon.regression.base import BaseRegressor
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
@@ -72,6 +72,8 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         weights="uniform",
     ):
         self.distance = distance
+        if distance_params is None:
+            distance_params = {}
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
 
@@ -93,14 +95,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : {array-like, sparse matrix}
             Target values of shape = [n_samples]
         """
-        if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
-
         self.X_ = X
         self.y_ = y
         return self
@@ -142,10 +136,9 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         ws : array
             Array representing the weights of each neighbor.
         """
-        distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+        distances = distance_from_single_to_multiple(
+            X, self.X_, self.distance, **self.distance_params
         )
-
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]
         # They might not be ordered within themselves,

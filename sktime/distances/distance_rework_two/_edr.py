@@ -3,13 +3,13 @@ from typing import Union, List, Tuple
 
 import numpy as np
 
-from sktime.distances.distance_rework_two._base import (
+from sktime.distances.distances_two._base import (
     ElasticDistance,
     ElasticDistanceReturn,
     get_bounding_matrix,
     _convert_2d
 )
-from sktime.distances.distance_rework_two._squared import _SquaredDistance
+from sktime.distances.distances_two._squared import _SquaredDistance
 
 squared_distance = _SquaredDistance().distance_factory()
 

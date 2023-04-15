@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from sktime.distances.distance_rework_two._ddtw import average_of_slope
-from sktime.distances.distance_rework_two._wdtw import _WdtwDistance
+from sktime.distances.distances_two._ddtw import average_of_slope
+from sktime.distances.distances_two._wdtw import _WdtwDistance
 
 
 class _WddtwDistance(_WdtwDistance):

@@ -11,19 +11,19 @@ __all__ = [
     "get_bounding_matrix",
     "_convert_2d"
 ]
-from sktime.distances.distance_rework_two._base.base import (
+from sktime.distances.distances_two._base.base import (
     BaseDistance,
     DistanceCallable,
     DistanceCallableReturn,
     LocalDistanceCallable,
     _convert_2d
 )
-from sktime.distances.distance_rework_two._base.base_elastic import (
+from sktime.distances.distances_two._base.base_elastic import (
     ElasticDistance,
     ElasticDistanceReturn,
     get_bounding_matrix,
 )
-from sktime.distances.distance_rework_two._base.base_local import (
+from sktime.distances.distances_two._base.base_local import (
     BaseLocalDistance,
     LocalDistanceParam,
 )

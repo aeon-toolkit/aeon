@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder"]
 
-from typing import Tuple
+from typing import Callable, List, Any, Tuple
 
 import numpy as np
 from numba import njit
 
 from aeon.clustering.metrics.medoids import medoids
-from aeon.distances import distance_alignment_path_factory
-from aeon.distances.base import DistanceAlignmentPathCallable
+from aeon.distances import alignment_path_function_dict
 
 
 def dba(
-    X: np.ndarray,
-    max_iters: int = 30,
-    tol=1e-5,
-    averaging_distance_metric: str = "dtw",
-    medoids_distance_metric: str = "dtw",
-    precomputed_medoids_pairwise_distance: np.ndarray = None,
-    verbose: bool = False,
-    **kwargs,
+        X: np.ndarray,
+        max_iters: int = 30,
+        tol=1e-5,
+        averaging_distance_metric: str = "dtw",
+        medoids_distance_metric: str = "dtw",
+        precomputed_medoids_pairwise_distance: np.ndarray = None,
+        verbose: bool = False,
+        **kwargs,
 ) -> np.ndarray:
     """Compute the dtw barycenter average of time series.
 
@@ -67,13 +66,13 @@ def dba(
         distance_metric=medoids_distance_metric,
         precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
     )
-    path_callable = distance_alignment_path_factory(
-        X[0], X[1], metric=averaging_distance_metric, **kwargs
-    )
+    path_callable = alignment_path_function_dict.get(averaging_distance_metric)
+    # X[0], X[1], metric=averaging_distance_metric, **kwargs
+    # )
 
     cost_prev = np.inf
     for i in range(max_iters):
-        center, cost = _dba_update(center, X, path_callable)
+        center, cost = _dba_update(center, X, path_callable, **kwargs)
 
         if abs(cost_prev - cost) < tol:
             break
@@ -87,9 +86,14 @@ def dba(
     return center
 
 
-@njit(fastmath=True)
+PathCallableType = Callable[
+    [np.ndarray, np.ndarray, Any], Tuple[Tuple[int, int], float]
+]
+
+
+# @njit(cache=True, fastmath=True)
 def _dba_update(
-    center: np.ndarray, X: np.ndarray, path_callable: DistanceAlignmentPathCallable
+        center: np.ndarray, X: np.ndarray, path_callable: PathCallableType, **kwargs
 ) -> Tuple[np.ndarray, float]:
     """Perform an update iteration for dba.
 
@@ -101,7 +105,7 @@ def _dba_update(
     X : np.ndarray (3d array of shape (n, m, p) where n is number of instances, m
                     is the dimensions and p is the timepoints))
         Time series instances compute average from.
-    path_callable: Callable[Union[np.ndarray, np.ndarray], tuple[list[tuple], float]]
+    path_callable: Callable[Union[np.ndarray, np.ndarray, Any], tuple[list[tuple], float]]
         Callable that returns the distance path.
 
     Returns
@@ -117,7 +121,7 @@ def _dba_update(
     cost = 0.0
     for i in range(X_size):
         curr_ts = X[i]
-        curr_alignment, _ = path_callable(curr_ts, center)
+        curr_alignment, _ = path_callable(curr_ts, center, **kwargs)
         for j, k in curr_alignment:
             alignment[:, k] += curr_ts[:, j]
             sum[k] += 1

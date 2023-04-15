@@ -12,7 +12,7 @@ __all__ = ["KNeighborsTimeSeriesClassifier"]
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances import distance_factory
+from aeon.distances import distance_from_single_to_multiple
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -77,6 +77,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         n_jobs=1,
     ):
         self.distance = distance
+        if distance_params is None:
+            distance_params = {}
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
         self.n_jobs = n_jobs
@@ -99,14 +101,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : {array-like, sparse matrix}
             Class labels of shape = [n_samples]
         """
-        if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
-
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self
@@ -179,10 +173,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ws : array
             Array representing the weights of each neighbor.
         """
-        distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+        distances = distance_from_single_to_multiple(
+            X, self.X_, self.distance, **self.distance_params
         )
-
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]
         # They might not be ordered within themselves,

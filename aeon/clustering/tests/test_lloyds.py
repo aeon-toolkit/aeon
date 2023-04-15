@@ -22,7 +22,7 @@ class _test_class(TimeSeriesLloyds):
     def _compute_new_cluster_centers(
         self, X: np.ndarray, assignment_indexes: np.ndarray
     ) -> np.ndarray:
-        return self.cluster_centers_
+        return X[list(range(self.n_clusters))]
 
     def __init__(self):
         super(_test_class, self).__init__(random_state=1, n_init=2)
@@ -41,9 +41,7 @@ def test_lloyds():
 
     assert np.array_equal(
         test_result,
-        np.array(
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-        ),
+        np.array([6, 0, 0, 0, 6, 5, 0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 7, 0, 7, 7])
     )
 
 

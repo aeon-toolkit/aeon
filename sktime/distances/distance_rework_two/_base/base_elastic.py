@@ -5,7 +5,7 @@ from typing import Callable, List, Tuple, Union
 import numpy as np
 from numba import njit
 
-from sktime.distances.distance_rework_two._base.base import (
+from sktime.distances.distances_two._base.base import (
     BaseDistance,
     DistanceCallable,
 )
