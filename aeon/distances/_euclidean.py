@@ -1,11 +1,13 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from numba import njit
+
 from aeon.distances._squared import squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
-    """Compute the euclidean distance between two time series.
+    r"""Compute the euclidean distance between two time series.
 
     The Euclidean distance between two time series of length m is the square root of
     the squared distance and is defined as:
@@ -65,7 +67,7 @@ def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def euclidean_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the euclidean distance between a single time series and multiple.
 
@@ -102,7 +104,7 @@ def euclidean_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def euclidean_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the euclidean distance between two sets of time series.
 

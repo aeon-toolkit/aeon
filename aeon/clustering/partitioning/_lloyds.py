@@ -11,9 +11,7 @@ from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.metrics.averaging import mean_average
-from aeon.distances import (
-    distance_function_dict, distance_from_multiple_to_multiple
-)
+from aeon.distances import distance_from_multiple_to_multiple
 
 
 def _forgy_center_initializer(
@@ -131,7 +129,9 @@ def _kmeans_plus_plus(
     centers[0] = X[center_id]
     closest_dist_sq = (
         distance_from_multiple_to_multiple(
-            centers[0, np.newaxis], X, metric=distance_metric) ** 2
+            centers[0, np.newaxis], X, metric=distance_metric
+        )
+        ** 2
     )
     current_pot = closest_dist_sq.sum()
 
@@ -142,7 +142,9 @@ def _kmeans_plus_plus(
 
         distance_to_candidates = (
             distance_from_multiple_to_multiple(
-                X[candidate_ids], X, metric=distance_metric) ** 2
+                X[candidate_ids], X, metric=distance_metric
+            )
+            ** 2
         )
 
         np.minimum(closest_dist_sq, distance_to_candidates, out=distance_to_candidates)

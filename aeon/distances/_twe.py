@@ -1,20 +1,24 @@
+# -*- coding: utf-8 -*-
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._squared import univariate_squared_distance
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import (
-    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
 )
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def twe_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
 ) -> float:
     """Compute the TWE distance between two time series.
 
@@ -68,11 +72,11 @@ def twe_distance(
 
 @njit(cache=True, fastmath=True)
 def twe_cost_matrix(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
 ) -> np.ndarray:
     """Compute the TWE cost matrix between two time series.
 
@@ -120,24 +124,14 @@ def twe_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _twe_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        bounding_matrix: np.ndarray,
-        nu: float,
-        lmbda: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> float:
-    return _twe_cost_matrix(
-        x, y, bounding_matrix, nu, lmbda
-    )[-1, -1]
+    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)[-1, -1]
 
 
 @njit(cache=True, fastmath=True)
 def _twe_cost_matrix(
-        x: np.ndarray,
-        y: np.ndarray,
-        bounding_matrix: np.ndarray,
-        nu: float,
-        lmbda: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -159,13 +153,14 @@ def _twe_cost_matrix(
 
                 # Match
                 match_same_squared_d = univariate_squared_distance(x[:, i], y[:, j])
-                match_prev_squared_d = univariate_squared_distance(x[:, i - 1],
-                                                                   y[:, j - 1])
+                match_prev_squared_d = univariate_squared_distance(
+                    x[:, i - 1], y[:, j - 1]
+                )
                 match = (
-                        cost_matrix[i - 1, j - 1]
-                        + match_same_squared_d
-                        + match_prev_squared_d
-                        + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                    cost_matrix[i - 1, j - 1]
+                    + match_same_squared_d
+                    + match_prev_squared_d
+                    + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
                 )
 
                 cost_matrix[i, j] = min(del_x, del_y, match)
@@ -184,7 +179,7 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def twe_pairwise_distance(
-        X: np.ndarray, window: float = None, nu: float = 0.001, lmbda: float = 1.
+    X: np.ndarray, window: float = None, nu: float = 0.001, lmbda: float = 1.0
 ) -> np.ndarray:
     """Compute the twe pairwise distance between a set of time series.
 
@@ -237,11 +232,11 @@ def twe_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def twe_from_single_to_multiple_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
 ) -> np.ndarray:
     """Compute the twe distance between a single time series and multiple.
 
@@ -290,11 +285,11 @@ def twe_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def twe_from_multiple_to_multiple_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
 ) -> np.ndarray:
     """Compute the twe distance between two sets of time series.
 
@@ -352,13 +347,14 @@ def twe_from_multiple_to_multiple_distance(
             )
     return distances
 
+
 @njit(cache=True, fastmath=True)
 def twe_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the twe alignment path between two time series.
 

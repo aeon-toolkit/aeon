@@ -1,19 +1,25 @@
-from typing import Tuple, List
+# -*- coding: utf-8 -*-
+from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._wdtw import (
-    wdtw_distance, wdtw_cost_matrix, _wdtw_distance, _wdtw_cost_matrix
-)
-from aeon.distances._ddtw import average_of_slope
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._ddtw import average_of_slope
+from aeon.distances._wdtw import (
+    _wdtw_cost_matrix,
+    _wdtw_distance,
+    wdtw_cost_matrix,
+    wdtw_distance,
+)
 
 
 @njit(cache=True, fastmath=True)
 def wddtw_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
-    """Compute the wddtw distance between two time series.
+    r"""Compute the wddtw distance between two time series.
 
     WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
     to the derivative it means the alignment isn't only considering the shape of the
@@ -69,7 +75,7 @@ def wddtw_distance(
 
 @njit(cache=True, fastmath=True)
 def wddtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wddtw cost matrix between two time series.
 
@@ -113,8 +119,9 @@ def wddtw_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def wddtw_pairwise_distance(X: np.ndarray, window: float = None,
-                            g: float = 0.05) -> np.ndarray:
+def wddtw_pairwise_distance(
+    X: np.ndarray, window: float = None, g: float = 0.05
+) -> np.ndarray:
     """Compute the wddtw pairwise distance between a set of time series.
 
     Parameters
@@ -163,7 +170,7 @@ def wddtw_pairwise_distance(X: np.ndarray, window: float = None,
 
 @njit(cache=True, fastmath=True)
 def wddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wddtw distance between a single time series and multiple.
 
@@ -207,7 +214,7 @@ def wddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wddtw distance between two sets of time series.
 
@@ -266,7 +273,7 @@ def wddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wddtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the wddtw alignment path between two time series.
 

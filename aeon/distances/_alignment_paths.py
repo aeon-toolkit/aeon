@@ -5,13 +5,12 @@ from typing import List, Tuple
 
 import numpy as np
 from numba import njit
+
 from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
-def compute_min_return_path(
-        cost_matrix: np.ndarray
-) -> List[Tuple]:
+def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
     """Compute the minimum return path through a cost matrix.
 
     Parameters
@@ -36,11 +35,15 @@ def compute_min_return_path(
         elif j == 0:
             i -= 1
         else:
-            min_index = np.argmin(np.array([
-                cost_matrix[i - 1, j - 1],
-                cost_matrix[i - 1, j],
-                cost_matrix[i, j - 1]
-            ]))
+            min_index = np.argmin(
+                np.array(
+                    [
+                        cost_matrix[i - 1, j - 1],
+                        cost_matrix[i - 1, j],
+                        cost_matrix[i, j - 1],
+                    ]
+                )
+            )
 
             if min_index == 0:
                 i, j = i - 1, j - 1
@@ -55,11 +58,11 @@ def compute_min_return_path(
 
 @njit(cache=True, fastmath=True)
 def compute_lcss_return_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        epsilon: float,
-        bounding_matrix: np.ndarray,
-        cost_matrix: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
+    epsilon: float,
+    bounding_matrix: np.ndarray,
+    cost_matrix: np.ndarray,
 ) -> List[Tuple]:
     """Compute the return path through a cost matrix for the LCSS algorithm.
 
@@ -100,7 +103,7 @@ def compute_lcss_return_path(
 
 @njit(cache=True, fastmath=True)
 def _add_inf_to_out_of_bounds_cost_matrix(
-        cost_matrix: np.ndarray, bounding_matrix: np.ndarray
+    cost_matrix: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
     x_size, y_size = cost_matrix.shape
     for i in range(x_size):
@@ -109,4 +112,3 @@ def _add_inf_to_out_of_bounds_cost_matrix(
                 cost_matrix[i, j] = np.inf
 
     return cost_matrix
-

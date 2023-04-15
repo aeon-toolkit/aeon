@@ -1,14 +1,17 @@
+# -*- coding: utf-8 -*-
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._squared import univariate_squared_distance
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    """Compute the dtw distance between two time series.
+    r"""Compute the dtw distance between two time series.
 
     Originally proposed in [1]_ DTW computes the distance between two time series by
     considering their alignments during the calculation. This is done by measuring
@@ -97,15 +100,13 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
 
 
 @njit(cache=True, fastmath=True)
-def _dtw_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
-) -> float:
+def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _dtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -115,12 +116,13 @@ def _dtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
-                cost_matrix[i + 1, j + 1] = \
-                    univariate_squared_distance(x[:, i], y[:, j]) + min(
-                        cost_matrix[i, j + 1],
-                        cost_matrix[i + 1, j],
-                        cost_matrix[i, j],
-                    )
+                cost_matrix[i + 1, j + 1] = univariate_squared_distance(
+                    x[:, i], y[:, j]
+                ) + min(
+                    cost_matrix[i, j + 1],
+                    cost_matrix[i + 1, j],
+                    cost_matrix[i, j],
+                )
 
     return cost_matrix[1:, 1:]
 
@@ -166,7 +168,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def dtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between a single time series and multiple.
 
@@ -206,7 +208,7 @@ def dtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def dtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between two sets of time series.
 
@@ -251,7 +253,7 @@ def dtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def dtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the dtw alignment path between two time series.
 

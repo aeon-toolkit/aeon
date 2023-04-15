@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import numpy as np
+
 from aeon.distances import create_bounding_matrix
 
 

@@ -1,19 +1,23 @@
+# -*- coding: utf-8 -*-
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._squared import univariate_squared_distance
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import (
-    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
 )
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def edr_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> float:
     """Compute the edr distance between two time series.
-    
+
     EDR computes the minimum number of elements (as a percentage) that must be removed
     from x and y so that the sum of the distance between the remaining signal elements
     lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
@@ -64,7 +68,7 @@ def edr_distance(
 
 @njit(cache=True, fastmath=True)
 def edr_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
     """Compute the edr cost matrix between two time series.
 
@@ -111,17 +115,17 @@ def edr_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _edr_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> float:
-    distance = _edr_cost_matrix(
-        x, y, bounding_matrix, epsilon
-    )[x.shape[1] - 1, y.shape[1] - 1]
+    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
     return float(distance / max(x.shape[1], y.shape[1]))
 
 
 @njit(cache=True, fastmath=True)
 def _edr_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -148,7 +152,7 @@ def _edr_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def edr_pairwise_distance(
-        X: np.ndarray, window: float = None, epsilon: float = None
+    X: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
     """Compute the pairwise edr distance between a set of time series.
 
@@ -193,7 +197,7 @@ def edr_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def edr_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
     """Compute the edr distance between a single time series and a set of time series.
 
@@ -237,7 +241,7 @@ def edr_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def edr_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
     """Compute the edr distance between a set of time series and a set of time series.
 
@@ -284,7 +288,7 @@ def edr_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def edr_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the edr alignment path between two time series.
 
@@ -325,5 +329,6 @@ def edr_alignment_path(
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
 
-    return compute_min_return_path(cost_matrix), \
-        float(cost_matrix[-1, -1] / max(x.shape[1], y.shape[1]))
+    return compute_min_return_path(cost_matrix), float(
+        cost_matrix[-1, -1] / max(x.shape[1], y.shape[1])
+    )

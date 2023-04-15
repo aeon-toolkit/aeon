@@ -1,15 +1,14 @@
+# -*- coding: utf-8 -*-
 from typing import Callable
+
 import numpy as np
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray], float]
 BoundingDistanceFunction = Callable[[np.ndarray, np.ndarray, np.ndarray], float]
 
+
 def _pairwise_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        distance_function: DistanceFunction,
-        *args,
-        **kwargs
+    x: np.ndarray, y: np.ndarray, distance_function: DistanceFunction, *args, **kwargs
 ):
     """Compute pairwise distance between two sets of instances of time series.
 
@@ -48,15 +47,11 @@ def _pairwise_distance(
 
     return distances
 
+
 def _distance_from_single_to_multiple(
-        x: np.ndarray,
-        y: np.ndarray,
-        distance_function: DistanceFunction,
-        *args,
-        **kwargs
+    x: np.ndarray, y: np.ndarray, distance_function: DistanceFunction, *args, **kwargs
 ):
-    """Compute distance between a single time series and a set of instances of
-    time series.
+    """Compute distance between a single time series and a set of time series.
 
     Parameters
     ----------
@@ -90,15 +85,11 @@ def _distance_from_single_to_multiple(
         distances[i] = distance_function(x, y[i], **kwargs)
     return distances
 
+
 def _distance_from_multiple_to_multiple(
-        x: np.ndarray,
-        y: np.ndarray,
-        distance_function: DistanceFunction,
-        *args,
-        **kwargs
+    x: np.ndarray, y: np.ndarray, distance_function: DistanceFunction, *args, **kwargs
 ):
-    """Compute distance between one set of instances of time series and another set of
-    instances of time series.
+    """Compute distance between two sets of instances of time series.
 
     Parameters
     ----------

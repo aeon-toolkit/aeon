@@ -1,16 +1,22 @@
+# -*- coding: utf-8 -*-
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._dtw import (
-    dtw_distance, dtw_cost_matrix, create_bounding_matrix, _dtw_distance,
-    _dtw_cost_matrix
-)
+
 from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._dtw import (
+    _dtw_cost_matrix,
+    _dtw_distance,
+    create_bounding_matrix,
+    dtw_cost_matrix,
+    dtw_distance,
+)
 
 
 @njit(fastmath=True, cache=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    """Compute the ddtw distance between two time series.
+    r"""Compute the ddtw distance between two time series.
 
     DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
     improve on dtw by better account for the 'shape' of the time series.
@@ -62,7 +68,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
 @njit(fastmath=True, cache=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
-    """Compute the ddtw cost matrix between two time series.
+    r"""Compute the ddtw cost matrix between two time series.
 
     Parameters
     ----------
@@ -73,6 +79,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
@@ -102,6 +109,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 @njit(fastmath=True, cache=True)
 def average_of_slope(q: np.ndarray) -> np.ndarray:
     r"""Compute the average of a slope between points.
+
     Computes the average of the slope of the line through the point in question and
     its left neighbour, and the slope of the line through the left neighbour and the
     right neighbour. proposed in [1] for use in this context.
@@ -137,15 +145,14 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     result = np.zeros((q.shape[0], q.shape[1] - 2))
     for i in range(q.shape[0]):
         for j in range(1, q.shape[1] - 1):
-            result[i, j - 1] = ((q[i, j] - q[i, j - 1])
-                                + (q[i, j + 1] - q[i, j - 1]) / 2.) / 2.
+            result[i, j - 1] = (
+                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
+            ) / 2.0
     return result
 
 
 @njit(cache=True, fastmath=True)
-def ddtw_pairwise_distance(
-        X: np.ndarray, window: float = None
-) -> np.ndarray:
+def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the ddtw pairwise distance between a set of time series.
 
     Parameters
@@ -191,7 +198,7 @@ def ddtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
@@ -232,7 +239,7 @@ def ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
@@ -280,15 +287,13 @@ def ddtw_from_multiple_to_multiple_distance(
 
     for i in range(n_instances):
         for j in range(m_instances):
-            distances[i, j] = _dtw_distance(
-                derive_x[i], derive_y[j], bounding_matrix
-            )
+            distances[i, j] = _dtw_distance(derive_x[i], derive_y[j], bounding_matrix)
     return distances
 
 
 @njit(cache=True, fastmath=True)
 def ddtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ddtw alignment path between two time series.
 

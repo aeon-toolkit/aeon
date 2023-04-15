@@ -1,16 +1,19 @@
-from typing import Tuple, List
+# -*- coding: utf-8 -*-
+from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._squared import univariate_squared_distance
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import compute_lcss_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def lcss_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
-    """Returns the lcss distance between x and y.
+    r"""Return the lcss distance between x and y.
 
     LCSS attempts to find the longest common sequence between two time series and
     returns a value that is the percentage that longest common sequence assumes.
@@ -60,9 +63,9 @@ def lcss_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
-    """Returns the lcss cost matrix between x and y.
+    r"""Return the lcss cost matrix between x and y.
 
     Parameters
     ----------
@@ -106,17 +109,17 @@ def lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _lcss_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    distance = _lcss_cost_matrix(
-        x, y, bounding_matrix, epsilon
-    )[x.shape[1] - 1, y.shape[1] - 1]
+    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
     return 1 - float(distance / min(x.shape[1], y.shape[1]))
 
 
 @njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -139,7 +142,7 @@ def _lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
-        X: np.ndarray, window: float = None, epsilon: float = 1.
+    X: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss pairwise distance between a set of time series.
 
@@ -183,7 +186,7 @@ def lcss_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss distance between a single time series and multiple.
 
@@ -226,7 +229,7 @@ def lcss_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss distance between two sets of time series.
 
@@ -271,9 +274,10 @@ def lcss_from_multiple_to_multiple_distance(
             distances[i, j] = _lcss_distance(x[i], y[j], bounding_matrix, epsilon)
     return distances
 
+
 @njit(cache=True, fastmath=True)
 def lcss_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the lcss alignment path between two time series.
 
@@ -311,5 +315,6 @@ def lcss_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
-    return compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix), \
-        1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))
+    return compute_lcss_return_path(
+        x, y, epsilon, bounding_matrix, cost_matrix
+    ), 1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))

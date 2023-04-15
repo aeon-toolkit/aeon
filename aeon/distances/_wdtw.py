@@ -1,14 +1,17 @@
+# -*- coding: utf-8 -*-
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
-from aeon.distances._squared import univariate_squared_distance
-from aeon.distances._bounding_matrix import create_bounding_matrix
+
 from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._squared import univariate_squared_distance
 
 
 @njit(cache=True, fastmath=True)
 def wdtw_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
     """Compute the wdtw distance between two time series.
 
@@ -64,7 +67,7 @@ def wdtw_distance(
 
 @njit(cache=True, fastmath=True)
 def wdtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wdtw cost matrix between two time series.
 
@@ -130,14 +133,14 @@ def wdtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _wdtw_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
     return _wdtw_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _wdtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -151,21 +154,20 @@ def _wdtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
-                cost_matrix[i + 1, j + 1] = \
-                    univariate_squared_distance(x[:, i], y[:, j]) * weight_vector[
-                        abs(i - j)
-                    ] + min(
-                        cost_matrix[i, j + 1],
-                        cost_matrix[i + 1, j],
-                        cost_matrix[i, j],
-                    )
+                cost_matrix[i + 1, j + 1] = univariate_squared_distance(
+                    x[:, i], y[:, j]
+                ) * weight_vector[abs(i - j)] + min(
+                    cost_matrix[i, j + 1],
+                    cost_matrix[i + 1, j],
+                    cost_matrix[i, j],
+                )
 
     return cost_matrix[1:, 1:]
 
 
 @njit(cache=True, fastmath=True)
 def wdtw_pairwise_distance(
-        X: np.ndarray, window: float = None, g: float = 0.05
+    X: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wdtw pairwise distance between a set of time series.
 
@@ -209,7 +211,7 @@ def wdtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def wdtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wdtw distance between a single time series and multiple.
 
@@ -252,7 +254,7 @@ def wdtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wdtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wdtw distance between two sets of time series.
 
@@ -297,9 +299,10 @@ def wdtw_from_multiple_to_multiple_distance(
             distances[i, j] = _wdtw_distance(x[i], y[j], bounding_matrix, g)
     return distances
 
+
 @njit(cache=True, fastmath=True)
 def wdtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the wdtw alignment path between two time series.
 

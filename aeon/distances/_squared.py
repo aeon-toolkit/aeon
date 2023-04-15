@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from numba import njit
 
 
 @njit(cache=True, fastmath=True)
 def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
-    """Compute the squared distance between two time series.
+    r"""Compute the squared distance between two time series.
 
     The squared distance between two time series is defined as:
 
@@ -90,7 +91,7 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def squared_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the squared distance between a single time series and multiple.
 
@@ -127,7 +128,7 @@ def squared_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def squared_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the squared distance between two sets of time series.
 

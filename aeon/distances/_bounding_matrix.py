@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+import math
+
 import numpy as np
 from numba import njit
-import math
 
 
 @njit(cache=True, fastmath=True)
@@ -41,8 +43,9 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
 
 
 @njit(cache=True, fastmath=True)
-def _sakoe_chiba_bounding(x_size: int, y_size: int,
-                          radius_percent: float) -> np.ndarray:
+def _sakoe_chiba_bounding(
+    x_size: int, y_size: int, radius_percent: float
+) -> np.ndarray:
     one_percent = min(x_size, y_size) / 100
     radius = math.ceil(((radius_percent * one_percent) * 100))
     bounding_matrix = np.full((x_size, y_size), False)
