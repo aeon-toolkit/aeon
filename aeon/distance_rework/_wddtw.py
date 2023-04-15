@@ -1,8 +1,12 @@
+from typing import Tuple, List
 import numpy as np
 from numba import njit
-from aeon.distance_rework._wdtw import wdtw_distance, wdtw_cost_matrix, _wdtw_distance
+from aeon.distance_rework._wdtw import (
+    wdtw_distance, wdtw_cost_matrix, _wdtw_distance, _wdtw_cost_matrix
+)
 from aeon.distance_rework._ddtw import average_of_slope
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import compute_min_return_path
 
 
 @njit(cache=True, fastmath=True)
@@ -89,7 +93,8 @@ def wddtw_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def wddtw_pairwise_distance(X: np.ndarray, window: float = None, g: float = 0.05) -> np.ndarray:
+def wddtw_pairwise_distance(X: np.ndarray, window: float = None,
+                            g: float = 0.05) -> np.ndarray:
     """Compute the wddtw pairwise distance between a set of time series.
 
     Parameters
@@ -237,3 +242,47 @@ def wddtw_from_multiple_to_multiple_distance(
                 derive_x[i], derive_y[j], bounding_matrix, g
             )
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def wddtw_alignment_path(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the wddtw alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    g: float, defaults=0.05
+        Constant that controls the level of penalisation for the points with larger
+        phase difference. Default is 0.05.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The wddtw distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import wddtw_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> wddtw_alignment_path(x, y)
+    ([(0, 0), (1, 1)], 0.1218756508789474)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[1] - 2, window)
+    x = average_of_slope(x)
+    y = average_of_slope(y)
+    cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
+    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]

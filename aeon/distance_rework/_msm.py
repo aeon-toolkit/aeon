@@ -1,7 +1,11 @@
+from typing import List, Tuple
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import (
+    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+)
 
 
 @njit(cache=True, fastmath=True)
@@ -375,3 +379,61 @@ def msm_from_multiple_to_multiple_distance(
         for j in range(m_instances):
             distances[i, j] = _msm_distance(x[i], y[j], bounding_matrix, independent, c)
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def msm_alignment_path(
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        independent: bool = True,
+        c: float = 1.
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the msm alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    independent: bool, defaults=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c: float, defaults=1.
+        Cost for split or merge operation. Default is 1.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The msm distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import msm_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> msm_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    if independent:
+        cost_matrix = _msm_independent_cost_matrix(
+            x, y, bounding_matrix, c
+        )
+    else:
+        cost_matrix = _msm_dependent_cost_matrix(
+            x, y, bounding_matrix, c
+        )
+
+    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
+    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
+    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]

@@ -1,8 +1,11 @@
+from typing import List, Tuple
 import numpy as np
 from numba import njit
 from aeon.distance_rework._dtw import (
-    dtw_distance, dtw_cost_matrix, create_bounding_matrix, _dtw_distance
+    dtw_distance, dtw_cost_matrix, create_bounding_matrix, _dtw_distance,
+    _dtw_cost_matrix
 )
+from aeon.distance_rework._alignment_paths import compute_min_return_path
 
 
 @njit(fastmath=True, cache=True)
@@ -18,6 +21,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+
     Returns
     -------
     float
@@ -261,3 +265,44 @@ def ddtw_from_multiple_to_multiple_distance(
                 derive_x[i], derive_y[j], bounding_matrix
             )
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def ddtw_alignment_path(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the ddtw alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The ddtw distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import ddtw_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> ddtw_alignment_path(x, y)
+    ([(0, 0), (1, 1)], 0.25)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[1] - 2, window)
+    cost_matrix = _dtw_cost_matrix(
+        average_of_slope(x), average_of_slope(y), bounding_matrix
+    )
+    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]

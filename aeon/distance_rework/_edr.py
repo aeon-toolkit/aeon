@@ -1,7 +1,11 @@
+from typing import List, Tuple
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import (
+    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+)
 
 
 @njit(cache=True, fastmath=True)
@@ -260,3 +264,48 @@ def edr_from_multiple_to_multiple_distance(
         for j in range(m_instances):
             distances[i, j] = _edr_distance(x[i], y[j], bounding_matrix, epsilon)
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def edr_alignment_path(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the edr alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon : float, defaults = None
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. If not specified as per the original paper
+        epsilon is set to a quarter of the maximum standard deviation.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import edr_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> edr_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 0.25)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    cost_matrix = _edr_cost_matrix(x, y, bounding_matrix, epsilon)
+    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
+    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
+
+    return compute_min_return_path(cost_matrix), \
+        float(cost_matrix[-1, -1] / max(x.shape[1], y.shape[1]))

@@ -1,7 +1,9 @@
+from typing import List, Tuple
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import compute_min_return_path
 
 
 @njit(cache=True, fastmath=True)
@@ -228,3 +230,42 @@ def dtw_from_multiple_to_multiple_distance(
         for j in range(m_instances):
             distances[i, j] = _dtw_distance(x[i], y[j], bounding_matrix)
     return distances
+
+
+@njit(cache=True, fastmath=True)
+def dtw_alignment_path(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the dtw alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The dtw distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import dtw_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> dtw_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    cost_matrix = _dtw_cost_matrix(x, y, bounding_matrix)
+    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]

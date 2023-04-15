@@ -1,7 +1,11 @@
+from typing import List, Tuple
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import (
+    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+)
 
 
 @njit(cache=True, fastmath=True)
@@ -49,8 +53,7 @@ def twe_distance(
     return _twe_distance(x, y, bounding_matrix, nu, lmbda)
 
 
-#
-# @njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def twe_cost_matrix(
         x: np.ndarray,
         y: np.ndarray,
@@ -84,29 +87,17 @@ def twe_cost_matrix(
     --------
     >>> import numpy as np
     >>> from aeon.distance_rework import twe_cost_matrix
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8]])
     >>> twe_cost_matrix(x, y)
-    array([[ 0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006, 14.007,
-            16.008, 18.009],
-           [ 2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006,
-            14.007, 16.008],
-           [ 4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005,
-            12.006, 14.007],
-           [ 6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004,
-            10.005, 12.006],
-           [ 8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,
-             8.004, 10.005],
-           [10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,
-             6.003,  8.004],
-           [12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,
-             4.002,  6.003],
-           [14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,
-             2.001,  4.002],
-           [16.008, 14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,
-             0.   ,  2.001],
-           [18.009, 16.008, 14.007, 12.006, 10.005,  8.004,  6.003,  4.002,
-             2.001,  0.   ]])
+    array([[ 0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006, 14.007],
+           [ 2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005, 12.006],
+           [ 4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004, 10.005],
+           [ 6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003,  8.004],
+           [ 8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002,  6.003],
+           [10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001,  4.002],
+           [12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ,  2.001],
+           [14.007, 12.006, 10.005,  8.004,  6.003,  4.002,  2.001,  0.   ]])
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     x = _pad_arrs(x)
@@ -124,7 +115,7 @@ def _twe_distance(
 ) -> float:
     return _twe_cost_matrix(
         x, y, bounding_matrix, nu, lmbda
-    )[x.shape[1] - 2, y.shape[1] - 2]
+    )[-1, -1]
 
 
 @njit(cache=True, fastmath=True)
@@ -347,3 +338,54 @@ def twe_from_multiple_to_multiple_distance(
                 padded_x[i], padded_y[j], bounding_matrix, nu, lmbda
             )
     return distances
+
+@njit(cache=True, fastmath=True)
+def twe_alignment_path(
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        nu: float = 0.001,
+        lmbda: float = 1.
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the twe alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    nu: float, defaults = 0.001
+        A non-negative constant which characterizes the stiffness of the elastic
+        twe measure. Must be > 0.
+    lmbda: float, defaults = 1.0
+        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+    float
+        The twe distance betweeen the two time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import twe_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> twe_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x = _pad_arrs(x)
+    y = _pad_arrs(y)
+    cost_matrix = _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)
+    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
+    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
+    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]

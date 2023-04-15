@@ -1,7 +1,9 @@
+from typing import Tuple, List
 import numpy as np
 from numba import njit
 from aeon.distance_rework._squared import univariate_squared_distance
 from aeon.distance_rework._bounding_matrix import create_bounding_matrix
+from aeon.distance_rework._alignment_paths import compute_lcss_return_path
 
 
 @njit(cache=True, fastmath=True)
@@ -253,3 +255,44 @@ def lcss_from_multiple_to_multiple_distance(
         for j in range(m_instances):
             distances[i, j] = _lcss_distance(x[i], y[j], bounding_matrix, epsilon)
     return distances
+
+@njit(cache=True, fastmath=True)
+def lcss_alignment_path(
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.
+) -> Tuple[List[Tuple[int, int]], float]:
+    """Compute the lcss alignment path between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray (n_dims, n_timepoints)
+        First time series.
+    y: np.ndarray (n_dims, n_timepoints)
+        Second time series.
+    window: float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    epsilon: float, defaults=1.
+        Matching threshold to determine if two subsequences are considered close
+        enough to be considered 'common'. The default is 1.
+
+
+    Returns
+    -------
+    List[Tuple[int, int]]
+        The alignment path between the two time series where each element is a tuple
+        of the index in x and the index in y that have the best alignment according
+        to the cost matrix.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distance_rework import lcss_alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> lcss_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2)], 0.25)
+    """
+    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
+    return compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix), \
+        1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))

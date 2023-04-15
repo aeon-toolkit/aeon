@@ -77,23 +77,3 @@ def _time_distance(callable: Callable, average: int = 30, **kwargs):
         total += time.time() - start
 
     return total / average
-
-
-def almost_equal(first: float, second: float, less_than_val: float = 0.0001) -> bool:
-    """On some hardware decimal place values are not the same (e.g. Apple Silicon).
-    This function is used to check if two floats are almost equal.
-    Parameters
-    ----------
-    first : float
-        First float to compare.
-    second : float
-        Second float to compare.
-    less_than_val : float, default = 0.0001
-        The value that the difference between the two floats must be less than.
-    Returns
-    -------
-    bool
-        True if floats are almost equal, False otherwise.
-    """
-    return abs(first - second) < less_than_val
-
