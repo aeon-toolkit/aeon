@@ -159,9 +159,7 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d.
-        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
-        length series. There other options, see datatypes.SCITYPE_REGISTER, but these
-        will not be supported longterm.
+        "np-list": for unequal length series that cannot be storeed in numpy arrays
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
@@ -268,16 +266,16 @@ def _load_provided_dataset(
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X, y = load_from_tsfile(abspath, return_data_type="nested_univ")
+        X, y = load_from_tsfile(abspath, return_type="nested_univ")
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_train, y_train = load_from_tsfile(abspath, return_data_type="nested_univ")
+        X_train, y_train = load_from_tsfile(abspath, return_type="nested_univ")
 
         fname = name + "_TEST.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_test, y_test = load_from_tsfile(abspath, return_data_type="nested_univ")
+        X_test, y_test = load_from_tsfile(abspath, return_type="nested_univ")
 
         X = pd.concat([X_train, X_test])
         X = X.reset_index(drop=True)
@@ -384,7 +382,7 @@ def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_y=True,
-    return_data_type="nested_univ",
+    return_type="nested_univ",
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -401,12 +399,12 @@ def load_from_tsfile(
        to parsing.
     return_y : boolean, default True
        whether to return the y variable, if it is present.
-    return_data_type : str, optional, default = "nested_univ"
+    return_type : str, optional, default = "nested_univ"
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d.
-        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
+        "np-list": list of numpy array, use for unequal length series
         length series. There other options, see datatypes.SCITYPE_REGISTER, but these
         will not be supported longterm.
 
@@ -425,18 +423,18 @@ def load_from_tsfile(
     ValueError if return_data_type = numpy2d but the data are multivariate and/
     or unequal length series
     """
-    return_data_type = _alias_datatype_check(return_data_type)
+    return_type = _alias_datatype_check(return_type)
 
-    if not isinstance(return_data_type, str):
+    if not isinstance(return_type, str):
         raise TypeError(
             f"return_data_type argument must be a str, but found "
-            f"{type(return_data_type)}"
+            f"{type(return_type)}"
         )
-    if return_data_type not in MTYPE_LIST_PANEL:
+    if return_type not in MTYPE_LIST_PANEL:
         raise ValueError(
             f"return_data_type must be one of the following identifier strings for "
             f"aeon panel time series data format specifications: {MTYPE_LIST_PANEL}, "
-            f"but found {return_data_type}"
+            f"but found {return_type}"
         )
 
     # Initialize flags and variables used when parsing the file
@@ -446,7 +444,7 @@ def load_from_tsfile(
         replace_missing_vals_with=replace_missing_vals_with,
     )
 
-    X = convert(X, from_type="nested_univ", to_type=return_data_type)
+    X = convert(X, from_type="nested_univ", to_type=return_type)
 
     if return_y:
         return X, y
