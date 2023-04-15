@@ -48,9 +48,9 @@ class DummyRegressor(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "nested_univ",
+        "X_inner_mtype": "numpy3D",
         "capability:missing_values": True,
-        "capability:unequal_length": True,
+        "capability:unequal_length": False,
         "capability:multivariate": True,
     }
 
@@ -68,15 +68,14 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : aeon-format pandas dataframe with shape(n,d),
-        or numpy ndarray with shape(n,d,m)
+        X : 3D np.array of shape [n_instances, n_channels, series_length]
         y : array-like, shape = [n_instances] - the target values
 
         Returns
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_regressor.fit(np.zeros(X.shape), y)
+        self.sklearn_dummy_regressor.fit(None, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -84,7 +83,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : aeon-format pandas dataframe or array-like, shape (n, d)
+        X : 3D np.array of shape [n_instances, n_channels, series_length]
 
         Returns
         -------
