@@ -519,6 +519,29 @@ def from_nested_to_nplist(nested_df, store=None):
 convert_dict[("nested_univ", "np-list", "Panel")] = from_nested_to_nplist
 
 
+def from_dflist_to_nplist(df_list, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    list = []
+    n_cases = len(df_list)
+    for i in range(n_cases):
+        one_case = df_list[i]
+        list.append(np.array(one_case))
+    return list
+
+
+convert_dict[("df-list", "np-list", "Panel")] = from_dflist_to_nplist
+
+
+def from_multi_index_to_nplist(pd_multi, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    df_list = from_multiindex_to_dflist()
+    np_list = from_dflist_to_nplist(df_list)
+    return np_list
+
+
+convert_dict[("pd_multiindex", "np-list", "Panel")] = from_multi_index_to_nplist
+
+
 def from_nplist_to_multiindex(np_list, store=None):
     nested_univ = from_nplist_to_nested(np_list)
     return from_nested_to_multi_index(nested_univ)
