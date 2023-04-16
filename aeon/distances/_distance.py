@@ -90,6 +90,47 @@ from aeon.distances._wdtw import (
 
 MetricCallableType = Union[Callable[[np.ndarray, np.ndarray, Any], float], str]
 
+# epsilon = edr, lcss
+# g = wdtw, wddtw, erp
+# c = msm
+# independent = msm
+# nu = twe
+# lmbda = twe
+def _resolve_kwargs(metric_str: str, kwargs: dict) -> dict:
+    """Resolve keyword arguments for distance functions.
+
+    Parameters
+    ----------
+    kwargs : dict
+        Keyword arguments to resolve.
+
+    Returns
+    -------
+    dict
+        Resolved keyword arguments.
+    """
+    validated_kwargs = {}
+    if metric_str in ["euclidean", "squared"]:
+        return validated_kwargs
+
+    if "window" in kwargs:
+        validated_kwargs["window"] = kwargs["window"]
+
+    if "g" in kwargs and metric_str in ["wdtw", "wddtw", "erp"]:
+        validated_kwargs["g"] = kwargs["g"]
+    if "lmbda" in kwargs and metric_str == "twe":
+        validated_kwargs["lmbda"] = kwargs["lmbda"]
+    if "nu" in kwargs and metric_str == "twe":
+        validated_kwargs["nu"] = kwargs["nu"]
+    if "c" in kwargs and metric_str == "msm":
+        validated_kwargs["c"] = kwargs["c"]
+    if "independent" in kwargs and metric_str == "msm":
+        validated_kwargs["independent"] = kwargs["independent"]
+    if "epsilon" in kwargs and metric_str in ["edr", "lcss"]:
+        validated_kwargs["epsilon"] = kwargs["epsilon"]
+
+    return validated_kwargs
+
 
 def distance(x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs):
     """Compute distance between two time series.
@@ -141,7 +182,10 @@ def distance(x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs)
         return metric(x, y, **kwargs)
     if metric not in distance_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return distance_function_dict[metric](x, y, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return distance_function_dict[metric](x, y)
+    return distance_function_dict[metric](x, y, **validated_kwargs)
 
 
 def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
@@ -190,7 +234,10 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
     """
     if metric not in pairwise_distance_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return pairwise_distance_function_dict[metric](X, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return pairwise_distance_function_dict[metric](X)
+    return pairwise_distance_function_dict[metric](X, **validated_kwargs)
 
 
 def distance_from_single_to_multiple(
@@ -242,7 +289,10 @@ def distance_from_single_to_multiple(
     """
     if metric not in single_to_multiple_distance_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return single_to_multiple_distance_function_dict[metric](x, y, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return single_to_multiple_distance_function_dict[metric](x, y)
+    return single_to_multiple_distance_function_dict[metric](x, y, **validated_kwargs)
 
 
 def distance_from_multiple_to_multiple(
@@ -298,8 +348,10 @@ def distance_from_multiple_to_multiple(
     """
     if metric not in multiple_to_multiple_distance_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-
-    return multiple_to_multiple_distance_function_dict[metric](x, y, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return multiple_to_multiple_distance_function_dict[metric](x, y)
+    return multiple_to_multiple_distance_function_dict[metric](x, y, **validated_kwargs)
 
 
 def cost_matrix(
@@ -352,7 +404,10 @@ def cost_matrix(
     """
     if metric not in cost_matrix_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return cost_matrix_function_dict[metric](x, y, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return cost_matrix_function_dict[metric](x, y)
+    return cost_matrix_function_dict[metric](x, y, **validated_kwargs)
 
 
 def alignment_path(
@@ -401,7 +456,10 @@ def alignment_path(
     """
     if metric not in alignment_path_function_dict:
         raise ValueError(f"Unknown distance metric: {metric}")
-    return alignment_path_function_dict[metric](x, y, **kwargs)
+    validated_kwargs = _resolve_kwargs(metric, kwargs)
+    if validated_kwargs == {}:
+        return alignment_path_function_dict[metric](x, y)
+    return alignment_path_function_dict[metric](x, y, **validated_kwargs)
 
 
 distance_function_dict = {
