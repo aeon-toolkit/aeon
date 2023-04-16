@@ -3,69 +3,89 @@ from typing import Any, Callable, List, Tuple, Union
 
 import numpy as np
 
-from aeon.distances import (
-    ddtw_alignment_path,
-    ddtw_cost_matrix,
-    ddtw_distance,
-    ddtw_from_multiple_to_multiple_distance,
-    ddtw_from_single_to_multiple_distance,
-    ddtw_pairwise_distance,
-    dtw_alignment_path,
-    dtw_cost_matrix,
+from aeon.distances._dtw import (
     dtw_distance,
+    dtw_cost_matrix,
     dtw_from_multiple_to_multiple_distance,
     dtw_from_single_to_multiple_distance,
     dtw_pairwise_distance,
-    edr_alignment_path,
-    edr_cost_matrix,
-    edr_distance,
-    edr_from_multiple_to_multiple_distance,
-    edr_from_single_to_multiple_distance,
-    edr_pairwise_distance,
-    erp_alignment_path,
-    erp_cost_matrix,
-    erp_distance,
-    erp_from_multiple_to_multiple_distance,
-    erp_from_single_to_multiple_distance,
-    erp_pairwise_distance,
-    euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
-    euclidean_from_single_to_multiple_distance,
-    euclidean_pairwise_distance,
-    lcss_alignment_path,
-    lcss_cost_matrix,
-    lcss_distance,
-    lcss_from_multiple_to_multiple_distance,
-    lcss_from_single_to_multiple_distance,
-    lcss_pairwise_distance,
-    msm_alignment_path,
-    msm_cost_matrix,
-    msm_distance,
-    msm_from_multiple_to_multiple_distance,
-    msm_from_single_to_multiple_distance,
-    msm_pairwise_distance,
-    squared_distance,
-    squared_from_multiple_to_multiple_distance,
-    squared_from_single_to_multiple_distance,
-    squared_pairwise_distance,
-    twe_alignment_path,
-    twe_cost_matrix,
-    twe_distance,
-    twe_from_multiple_to_multiple_distance,
-    twe_from_single_to_multiple_distance,
-    twe_pairwise_distance,
-    wddtw_alignment_path,
-    wddtw_cost_matrix,
-    wddtw_distance,
-    wddtw_from_multiple_to_multiple_distance,
-    wddtw_from_single_to_multiple_distance,
-    wddtw_pairwise_distance,
-    wdtw_alignment_path,
-    wdtw_cost_matrix,
+    dtw_alignment_path
+)
+from aeon.distances._ddtw import (
+    ddtw_distance,
+    ddtw_cost_matrix,
+    ddtw_from_multiple_to_multiple_distance,
+    ddtw_from_single_to_multiple_distance,
+    ddtw_pairwise_distance,
+    ddtw_alignment_path
+)
+from aeon.distances._wdtw import (
     wdtw_distance,
+    wdtw_cost_matrix,
     wdtw_from_multiple_to_multiple_distance,
     wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
+    wdtw_alignment_path
+)
+from aeon.distances._wddtw import (
+    wddtw_distance,
+    wddtw_cost_matrix,
+    wddtw_from_multiple_to_multiple_distance,
+    wddtw_from_single_to_multiple_distance,
+    wddtw_pairwise_distance,
+    wddtw_alignment_path
+)
+from aeon.distances._lcss import (
+    lcss_distance,
+    lcss_cost_matrix,
+    lcss_from_multiple_to_multiple_distance,
+    lcss_from_single_to_multiple_distance,
+    lcss_pairwise_distance,
+    lcss_alignment_path
+)
+from aeon.distances._msm import (
+    msm_distance,
+    msm_cost_matrix,
+    msm_from_multiple_to_multiple_distance,
+    msm_from_single_to_multiple_distance,
+    msm_pairwise_distance,
+    msm_alignment_path
+)
+from aeon.distances._erp import (
+    erp_distance,
+    erp_cost_matrix,
+    erp_from_multiple_to_multiple_distance,
+    erp_from_single_to_multiple_distance,
+    erp_pairwise_distance,
+    erp_alignment_path
+)
+from aeon.distances._edr import (
+    edr_distance,
+    edr_cost_matrix,
+    edr_from_multiple_to_multiple_distance,
+    edr_from_single_to_multiple_distance,
+    edr_pairwise_distance,
+    edr_alignment_path
+)
+from aeon.distances._twe import (
+    twe_distance,
+    twe_cost_matrix,
+    twe_from_multiple_to_multiple_distance,
+    twe_from_single_to_multiple_distance,
+    twe_pairwise_distance,
+    twe_alignment_path
+)
+from aeon.distances._euclidean import (
+    euclidean_distance,
+    euclidean_from_multiple_to_multiple_distance,
+    euclidean_from_single_to_multiple_distance,
+    euclidean_pairwise_distance
+)
+from aeon.distances._squared import (
+    squared_distance,
+    squared_from_multiple_to_multiple_distance,
+    squared_from_single_to_multiple_distance,
+    squared_pairwise_distance
 )
 
 MetricCallableType = Union[Callable[[np.ndarray, np.ndarray, Any], float], str]
@@ -174,7 +194,7 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
 
 
 def distance_from_single_to_multiple(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between a single time series and multiple.
 
@@ -226,7 +246,7 @@ def distance_from_single_to_multiple(
 
 
 def distance_from_multiple_to_multiple(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between two sets of time series.
 
@@ -283,7 +303,7 @@ def distance_from_multiple_to_multiple(
 
 
 def cost_matrix(
-    x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
 ) -> np.ndarray:
     """Compute the cost matrix between two time series.
 
@@ -336,7 +356,7 @@ def cost_matrix(
 
 
 def alignment_path(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path between two time series.
 
