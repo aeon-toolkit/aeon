@@ -88,6 +88,7 @@ from aeon.distances._squared import (
     squared_pairwise_distance
 )
 
+
 MetricCallableType = Union[Callable[[np.ndarray, np.ndarray, Any], float], str]
 
 
