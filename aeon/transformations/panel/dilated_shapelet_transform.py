@@ -11,25 +11,18 @@ __all__ = ["RandomDilatedShapeletTransform"]
 import numpy as np
 from numba import njit, prange, set_num_threads
 from sklearn.preprocessing import LabelEncoder
-from sklearn.utils import check_random_state
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.numba.rdst_utils import (
     choice_log,
-    compute_normalized_shapelet_dist_vector,
-    compute_shapelet_dist_vector,
+    combinations_1d,
     get_subsequence,
     get_subsequence_with_mean_std,
     prime_up_to,
+    sliding_dot_product,
+    sliding_mean_std_one_series,
 )
 from aeon.utils.validation import check_n_jobs
-
-# todo: if any imports are aeon soft dependencies:
-#  * make sure to fill in the "python_dependencies" tag with the package import name
-#  * add a _check_soft_dependencies warning here, example:
-#
-# from aeon.utils.validation._dependencies import check_soft_dependencies
-# _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
 class RandomDilatedShapeletTransform(BaseTransformer):
@@ -92,6 +85,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     affecting a random feature subsets to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
+    It also speed up the shapelet computation with early abandoning, online
+    normalization and use of the dot product to compute z-normalized squared Euclidean
+    distances.
 
     References
     ----------
@@ -144,14 +140,14 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     ):
         self.max_shapelets = max_shapelets
         if shapelet_lengths is None:
-            self.shapelet_lengths = [11]
+            self.shapelet_lengths = np.asarray([11])
         else:
-            self.shapelet_lengths = shapelet_lengths
+            self.shapelet_lengths = np.asarray(shapelet_lengths)
         self.proba_normalization = proba_normalization
         if threshold_percentiles is None:
-            self.threshold_percentiles = [5, 10]
+            self.threshold_percentiles = np.asarray([5, 10])
         else:
-            self.threshold_percentiles = threshold_percentiles
+            self.threshold_percentiles = np.asarray(threshold_percentiles)
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
         self.random_state = random_state
@@ -176,8 +172,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
-        # Does forcing float32 as in MiniRocket improves performance ?
-        self._random_state = check_random_state(self.random_state)
+        self._random_state = (
+            np.int64(self.random_state) if isinstance(self.random_state, int) else None
+        )
 
         self._n_jobs = check_n_jobs(self.n_jobs)
         set_num_threads(self._n_jobs)
@@ -196,7 +193,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
                 "with input length = {}".format(self.series_length),
             )
 
-        self.shapelets_ = _random_dilated_shapelet_extraction(
+        self.shapelets_ = random_dilated_shapelet_extraction(
             X,
             y,
             self.max_shapelets,
@@ -223,7 +220,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         X_new : 2D np.array of shape = (n_instances, 3*max_shapelets)
             The transformed data.
         """
-        X_new = _dilated_shapelet_transform(X, self.shapelets_)
+        X_new = dilated_shapelet_transform(X, self.shapelets_)
         return X_new
 
     @classmethod
@@ -246,7 +243,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
-            params = {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
+            params = {"max_shapelets": 5}
         else:
             raise NotImplementedError(
                 "The parameter set {} is not yet implemented".format(parameter_set)
@@ -343,7 +340,7 @@ def _init_random_shapelet_params(
 
 
 @njit(cache=True, parallel=True, fastmath=True)
-def _random_dilated_shapelet_extraction(
+def random_dilated_shapelet_extraction(
     X,
     y,
     max_shapelets,
@@ -409,11 +406,10 @@ def _random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    # TODO : check if going all dtype 32 improve performances (question slack)
     n_instances, n_channels, series_length = X.shape
     # Fix the random seed
-    np.random.seed(seed)
-
+    if seed is not None:
+        np.random.seed(seed)
     # Initialize shapelets
     (
         values,
@@ -526,7 +522,7 @@ def _random_dilated_shapelet_extraction(
 
 
 @njit(cache=True, parallel=True, fastmath=True)
-def _dilated_shapelet_transform(X, shapelets):
+def dilated_shapelet_transform(X, shapelets):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
     Parameters
@@ -535,19 +531,19 @@ def _dilated_shapelet_transform(X, shapelets):
         Time series dataset
     Shapelets : tuple
     The returned tuple contains 7 arrays describing the shapelets parameters:
-        - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
+        - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
-        - lengths : array, shape (max_shapelets)
+        - lengths : array, shape (n_shapelets)
             Length parameter of the shapelets
-        - dilations : array, shape (max_shapelets)
+        - dilations : array, shape (n_shapelets)
             Dilation parameter of the shapelets
-        - threshold : array, shape (max_shapelets)
+        - threshold : array, shape (n_shapelets)
             Threshold parameter of the shapelets
-        - normalize : array, shape (max_shapelets)
+        - normalize : array, shape (n_shapelets)
             Normalization indicator of the shapelets
-        - means : array, shape (max_shapelets, n_channels)
+        - means : array, shape (n_shapelets, n_channels)
             Means of the shapelets
-        - stds : array, shape (max_shapelets, n_channels)
+        - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
 
     Returns
@@ -557,89 +553,202 @@ def _dilated_shapelet_transform(X, shapelets):
         feature from the distance vector computed on each time series.
 
     """
-    return X
-    """
     (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
     n_shapelets = len(lengths)
     n_instances, n_channels, series_length = X.shape
 
-    n_output_features = 3
+    n_ft = 3
 
-    #(u_l * u_d , 2)
+    # (u_l * u_d , 2)
     params_shp = combinations_1d(lengths, dilations)
-    #(u_l * u_d) + 1
-    n_shp_params = zeros(params_shp.shape[0]+1, dtype=np.int64)
-    #(n_shapelets)
-    idx_shp = zeros(n_shapelets, dtype=np.int64)
 
-    #Indexes per shapelets for values array
-    a1 = concatenate((zeros(1, dtype=np.int64),cumsum(n_channels*lengths)))
-    #Indexes per shapelets for channel_ids array
-    a2 = concatenate((zeros(1, dtype=np.int64),cumsum(n_channels)))
-    # Counter for shapelet params array
-    a3 = 0
-
-    for i in range(params_shp.shape[0]):
-        _length = params_shp[i, 0]
-        _dilation = params_shp[i, 1]
-
-        ix_shapelets = where((lengths == _length) & (dilations == _dilation))[0]
-        b = a3 + ix_shapelets.shape[0]
-
-        idx_shp[a3:b] = ix_shapelets
-        n_shp_params[i+1] = ix_shapelets.shape[0]
-
-        a3 = b
-    n_shp_params = cumsum(n_shp_params)
-
-    X_new = zeros((n_samples, n_features * n_shapelets))
-    for i_sample in prange(n_samples):
-        #n_shp_params is a cumsum starting at 0
-        for i_shp_param in prange(n_shp_params.shape[0]-1):
-            _length = params_shp[i_shp_param, 0]
-            _dilation = params_shp[i_shp_param, 1]
-
-            strides = generate_strides_2D(
-                X[i_sample], _length, _dilation, use_phase
-            )
-            # Indexes of shapelets corresponding to the params of i_shp_param
-            _idx_shp = idx_shp[n_shp_params[i_shp_param]:n_shp_params[i_shp_param+1]]
-
-            _idx_no_norm = _idx_shp[where(normalize[_idx_shp] == False)[0]]
-            for i_idx in range(_idx_no_norm.shape[0]):
-                i_shp = _idx_no_norm[i_idx]
-                _channels = channel_ids[a2[i_shp]:a2[i_shp+1]]
-                _values = values[a1[i_shp]:a1[i_shp+1]].reshape(
-                    n_channels[i_shp], _length
-                )
-
+    X_new = np.zeros((n_instances, n_ft * n_shapelets))
+    for i_params in prange(params_shp.shape[0]):
+        length = params_shp[i_params, 0]
+        dilation = params_shp[i_params, 1]
+        id_shps = np.where((lengths == length) & (dilations == dilation))[0]
+        for i_x in prange(n_instances):
+            idx_no_norm = id_shps[np.where(~normalize[id_shps])[0]]
+            for i_shp in idx_no_norm:
                 X_new[
-                    i_sample, (n_features * i_shp):(n_features * i_shp + n_features)
-                ] = \
-                apply_one_shapelet_one_sample_multivariate(
-                    strides[_channels], _values, threshold[i_shp], dist_func
+                    i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
+                ] = compute_shapelet_features(
+                    X[i_x], values[i_shp], length, dilation, threshold[i_shp]
                 )
 
-            _idx_norm = _idx_shp[where(normalize[_idx_shp] == True)[0]]
-            if _idx_norm.shape[0] > 0:
-                #n_features
-                for i_stride in range(strides.shape[0]):
-                    #n_timestamps
-                    for j_stride in range(strides.shape[1]):
-                      _str = strides[i_stride,j_stride]
-                      strides[i_stride,j_stride] = (_str - mean(_str))/(std(_str)+1e-8)
-
-                for i_idx in range(_idx_norm.shape[0]):
-                    i_shp = _idx_norm[i_idx]
-                    _channels = channel_ids[a2[i_shp]:a2[i_shp+1]]
-                    _values = values[a1[i_shp]:a1[i_shp+1]].reshape(
-                        n_channels[i_shp], _length
-                    )
-
+            idx_norm = id_shps[np.where(normalize[id_shps])[0]]
+            if len(idx_norm) > 0:
+                X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
+                for i_shp in idx_norm:
                     X_new[
-                        i_sample, (n_features * i_shp):(n_features * i_shp + n_features)
-                    ] = \
-                    apply_one_shapelet_one_sample_multivariate(
-                        strides[_channels], _values, threshold[i_shp], dist_func
+                        i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
+                    ] = compute_shapelet_features_normalized(
+                        X[i_x],
+                        values[i_shp],
+                        length,
+                        dilation,
+                        threshold[i_shp],
+                        X_means,
+                        X_stds,
+                        means[i_shp],
+                        stds[i_shp],
                     )
+    return X_new
+
+
+@njit(cache=True, fastmath=True)
+def compute_shapelet_features(X, values, length, dilation, threshold):
+    _min = np.inf
+    _argmin = np.inf
+    _SO = 0
+
+    n_channels, series_length = X.shape
+    n_subs = series_length - (length - 1) * dilation
+    for i_sub in prange(n_subs):
+        idx = i_sub
+        _sum = 0
+        for i_l in prange(length):
+            for i_channel in prange(n_channels):
+                _sum += (X[i_channel, idx] - values[i_channel, i_l]) ** 2
+
+            if _sum >= _min and _sum >= threshold:
+                break
+
+            idx += dilation
+
+        if _sum < _min:
+            _min = _sum
+            _argmin = i_sub
+        if _sum < threshold:
+            _SO += 1
+
+    return _min, np.float64(_argmin), np.float64(_SO)
+
+
+@njit(cache=True, fastmath=True)
+def compute_shapelet_features_normalized(
+    X, values, length, dilation, threshold, X_means, X_stds, means, stds
+):
+    _min = np.inf
+    _argmin = np.inf
+    _SO = 0
+    n_channels, series_length = X.shape
+    n_subs = series_length - (length - 1) * dilation
+    for i_sub in prange(n_subs):
+        _sum = 0
+        for i_channel in prange(n_channels):
+            idx = i_sub
+            dot_sub = 0
+            for i_l in prange(length):
+                dot_sub += X[i_channel, idx] * values[i_channel, i_l]
+                idx += dilation
+
+            if stds[i_channel] <= 0:
+                _sum += X_stds[i_channel, i_sub] * length
+            else:
+                if X_stds[i_channel, i_sub] <= 0:
+                    _sum += stds[i_channel] * length
+                else:
+                    denom = length * stds[i_channel] * X_stds[i_channel, i_sub]
+                    p = (
+                        dot_sub - length * means[i_channel] * X_means[i_channel, i_sub]
+                    ) / denom
+                    p = min(p, 1.0)
+                    _sum += abs(2 * length * (1.0 - p))
+
+            if _sum >= _min and _sum >= threshold:
+                break
+
+        if _sum < _min:
+            _min = _sum
+            _argmin = i_sub
+        if _sum < threshold:
+            _SO += 1
+
+    return _min, np.float64(_argmin), np.float64(_SO)
+
+
+@njit(cache=True, fastmath=True)
+def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, stds):
+    """Compute the normalized distance vector between a shapelet and a time series.
+
+    Parameters
+    ----------
+    X : array, shape (n_channels, n_timestamps)
+        An input time series
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    length : int
+        Length of the shapelet
+    dilation : int
+        Dilation of the shapelet
+    values : array, shape (n_channels, length)
+        The resulting subsequence
+    means : array, shape (n_channels)
+        The mean of each channel of the shapelet
+    stds: array, shape (n_channels)
+        The std of each channel of the shapelet
+
+    Returns
+    -------
+    d_vect : array, shape (n_timestamps - (length-1) * dilation)
+        The resulting distance vector
     """
+    n_channels, n_timestamps = X.shape
+    # shape (n_channels, n_subsequences)
+    X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
+    X_dots = sliding_dot_product(X, values, length, dilation)
+
+    d_vect_len = n_timestamps - (length - 1) * dilation
+    d_vect = np.zeros(d_vect_len)
+    for i_channel in prange(n_channels):
+        # Edge case: shapelet channel is constant
+        if stds[i_channel] <= 0:
+            for i_sub in prange(d_vect_len):
+                d_vect[i_sub] += X_stds[i_channel, i_sub] * length
+        else:
+            for i_sub in prange(d_vect_len):
+                # Edge case: subsequence channel is constant
+                if X_stds[i_channel, i_sub] <= 0:
+                    d_vect[i_sub] += stds[i_channel] * length
+                else:
+                    denom = length * stds[i_channel] * X_stds[i_channel, i_sub]
+                    p = (
+                        X_dots[i_channel, i_sub]
+                        - length * means[i_channel] * X_means[i_channel, i_sub]
+                    ) / denom
+                    p = min(p, 1.0)
+                    d_vect[i_sub] += abs(2 * length * (1.0 - p))
+    return d_vect
+
+
+@njit(cache=True, fastmath=True)
+def compute_shapelet_dist_vector(X, values, length, dilation):
+    """Compute the distance vector between a shapelet and a time series.
+
+    Parameters
+    ----------
+    X : array, shape (n_channels, n_timestamps)
+        An input time series
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    length : int
+        Length of the shapelet
+    dilation : int
+        Dilation of the shapelet
+
+    Returns
+    -------
+    d_vect : array, shape (n_timestamps - (length-1) * dilation)
+        The resulting distance vector
+    """
+    n_channels, n_timestamps = X.shape
+    d_vect_len = n_timestamps - (length - 1) * dilation
+    d_vect = np.zeros(d_vect_len)
+    for i_vect in prange(d_vect_len):
+        for i_channel in prange(n_channels):
+            _idx = i_vect
+            for i_l in prange(length):
+                d_vect[i_vect] += (X[i_channel, _idx] - values[i_channel, i_l]) ** 2
+                _idx += dilation
+    return d_vect

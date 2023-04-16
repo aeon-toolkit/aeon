@@ -158,38 +158,6 @@ def get_subsequence_with_mean_std(X, i_start, length, dilation):
 
 
 @njit(cache=True, fastmath=True)
-def compute_shapelet_dist_vector(X, values, length, dilation):
-    """Compute the distance vector between a shapelet and a time series.
-
-    Parameters
-    ----------
-    X : array, shape (n_channels, n_timestamps)
-        An input time series
-    values : array, shape (n_channels, length)
-        The value array of the shapelet
-    length : int
-        Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
-
-    Returns
-    -------
-    d_vect : array, shape (n_timestamps - (length-1) * dilation)
-        The resulting distance vector
-    """
-    n_channels, n_timestamps = X.shape
-    d_vect_len = n_timestamps - (length - 1) * dilation
-    d_vect = np.zeros(d_vect_len)
-    for i_vect in prange(d_vect_len):
-        for i_channel in prange(n_channels):
-            _idx = i_vect
-            for i_l in prange(length):
-                d_vect[i_vect] += (X[i_channel, _idx] - values[i_channel, i_l]) ** 2
-                _idx += dilation
-    return d_vect
-
-
-@njit(cache=True, fastmath=True)
 def sliding_mean_std_one_series(X, length, dilation):
     """Return the mean and standard deviation for all subsequence (l,d) in X.
 
@@ -279,69 +247,14 @@ def sliding_dot_product(X, values, length, dilation):
     n_subs = n_timestamps - (length - 1) * dilation
     dot_prods = np.zeros((n_channels, n_subs))
     for i_sub in prange(n_subs):
-        _idx = i_sub
+        idx = i_sub
         for i_l in prange(length):
             for i_channel in prange(n_channels):
                 dot_prods[i_channel, i_sub] += (
-                    X[i_channel, _idx] * values[i_channel, i_l]
+                    X[i_channel, idx] * values[i_channel, i_l]
                 )
-            _idx += dilation
+            idx += dilation
     return dot_prods
-
-
-@njit(cache=True, fastmath=True)
-def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, stds):
-    """Compute the normalized distance vector between a shapelet and a time series.
-
-    Parameters
-    ----------
-    X : array, shape (n_channels, n_timestamps)
-        An input time series
-    values : array, shape (n_channels, length)
-        The value array of the shapelet
-    length : int
-        Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
-    means : array, shape (n_channels)
-        The mean of each channel of the shapelet
-    stds: array, shape (n_channels)
-        The std of each channel of the shapelet
-
-    Returns
-    -------
-    d_vect : array, shape (n_timestamps - (length-1) * dilation)
-        The resulting distance vector
-    """
-    n_channels, n_timestamps = X.shape
-    # shape (n_channels, n_subsequences)
-    X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
-    X_dots = sliding_dot_product(X, values, length, dilation)
-
-    d_vect_len = n_timestamps - (length - 1) * dilation
-    d_vect = np.zeros(d_vect_len)
-    for i_channel in prange(n_channels):
-        # Edge case: shapelet channel is constant
-        if stds[i_channel] <= 0:
-            for i_sub in prange(d_vect_len):
-                d_vect[i_sub] += X_stds[i_channel, i_sub] * length
-        else:
-            for i_sub in prange(d_vect_len):
-                # Edge case: subsequence channel is constant
-                if X_stds[i_channel, i_sub] <= 0:
-                    d_vect[i_sub] += stds[i_channel] * length
-                else:
-                    denom = length * stds[i_channel] * X_stds[i_channel, i_sub]
-                    p = (
-                        X_dots[i_channel, i_sub]
-                        - length * means[i_channel] * X_means[i_channel, i_sub]
-                    ) / denom
-                    p = min(p, 1.0)
-                    d_vect[i_sub] += abs(2 * length * (1.0 - p))
-
-    return d_vect
 
 
 @njit(cache=True)
