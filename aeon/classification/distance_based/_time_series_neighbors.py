@@ -77,8 +77,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         n_jobs=1,
     ):
         self.distance = distance
-        if distance_params is None:
-            distance_params = {}
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
         self.n_jobs = n_jobs
@@ -89,6 +87,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
                 f"Allowed values are: {WEIGHTS_SUPPORTED}. "
             )
         self.weights = weights
+        self._distance_params = distance_params
+        if distance_params is None:
+            self._distance_params = {}
 
         super(KNeighborsTimeSeriesClassifier, self).__init__()
 
@@ -174,7 +175,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Array representing the weights of each neighbor.
         """
         distances = distance_from_single_to_multiple(
-            X, self.X_, self.distance, **self.distance_params
+            X, self.X_, self.distance, **self._distance_params
         )
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]
