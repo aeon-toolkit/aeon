@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+__author__ = ["chrisholder"]
+
 import time
 from typing import Callable
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+__author__ = ["chrisholder"]
+
 import numpy as np
 
 from aeon.distances import (

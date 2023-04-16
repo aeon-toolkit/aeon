@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__author__ = ["chrisholder", "TonyBagnall"]
+__author__ = ["chrisholder"]
 
 from typing import List, Tuple
 

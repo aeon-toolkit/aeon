@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+__author__ = ["chrisholder"]
+
 from typing import Any, Callable, List, Tuple, Union
 
 import numpy as np

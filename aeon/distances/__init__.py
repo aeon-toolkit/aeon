@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Distance module."""
+__author__ = ["chrisholder"]
 __all__ = [
     "create_bounding_matrix",
     "euclidean_distance",
