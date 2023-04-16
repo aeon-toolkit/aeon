@@ -310,7 +310,7 @@ def _init_random_shapelet_params(
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets)
     # Upper bound values for dilations
-    dilations = np.zeros(max_shapelets, dtype=int)
+    dilations = np.zeros(max_shapelets, dtype=np.int64)
     upper_bounds = np.log2(np.floor_divide(series_length - 1, lengths - 1))
 
     if use_prime_dilations:
@@ -409,7 +409,6 @@ def _random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    # TODO : using python dtype for now, check with test if that adapts to any dtype
     # TODO : check if going all dtype 32 improve performances (question slack)
     n_instances, n_channels, series_length = X.shape
     # Fix the random seed
@@ -438,7 +437,7 @@ def _random_dilated_shapelet_extraction(
 
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-        alpha_mask = np.ones((2, n_instances, series_length), dtype=bool)
+        alpha_mask = np.ones((2, n_instances, series_length), dtype=np.bool_)
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
         # For each shapelet id with this dilation
@@ -510,7 +509,7 @@ def _random_dilated_shapelet_extraction(
                     means[i_shp] = _means
                     stds[i_shp] = _stds
 
-    mask_values = np.ones(max_shapelets, dtype=bool)
+    mask_values = np.ones(max_shapelets, dtype=np.bool_)
     for i in prange(max_shapelets):
         if np.all(values[i] == 0):
             mask_values[i] = False
@@ -528,5 +527,119 @@ def _random_dilated_shapelet_extraction(
 
 @njit(cache=True, parallel=True, fastmath=True)
 def _dilated_shapelet_transform(X, shapelets):
-    # TODO : To implement
+    """Perform the shapelet transform with a set of shapelets and a set of time series.
+
+    Parameters
+    ----------
+    X : array, shape (n_instances, n_channels, series_length)
+        Time series dataset
+    Shapelets : tuple
+    The returned tuple contains 7 arrays describing the shapelets parameters:
+        - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
+            Values of the shapelets.
+        - lengths : array, shape (max_shapelets)
+            Length parameter of the shapelets
+        - dilations : array, shape (max_shapelets)
+            Dilation parameter of the shapelets
+        - threshold : array, shape (max_shapelets)
+            Threshold parameter of the shapelets
+        - normalize : array, shape (max_shapelets)
+            Normalization indicator of the shapelets
+        - means : array, shape (max_shapelets, n_channels)
+            Means of the shapelets
+        - stds : array, shape (max_shapelets, n_channels)
+            Standard deviation of the shapelets
+
+    Returns
+    -------
+    X_new : array, shape=(n_instances, 3*n_shapelets)
+        The transformed input time series with each shapelet extracting 3
+        feature from the distance vector computed on each time series.
+
+    """
     return X
+    """
+    (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
+    n_shapelets = len(lengths)
+    n_instances, n_channels, series_length = X.shape
+
+    n_output_features = 3
+
+    #(u_l * u_d , 2)
+    params_shp = combinations_1d(lengths, dilations)
+    #(u_l * u_d) + 1
+    n_shp_params = zeros(params_shp.shape[0]+1, dtype=np.int64)
+    #(n_shapelets)
+    idx_shp = zeros(n_shapelets, dtype=np.int64)
+
+    #Indexes per shapelets for values array
+    a1 = concatenate((zeros(1, dtype=np.int64),cumsum(n_channels*lengths)))
+    #Indexes per shapelets for channel_ids array
+    a2 = concatenate((zeros(1, dtype=np.int64),cumsum(n_channels)))
+    # Counter for shapelet params array
+    a3 = 0
+
+    for i in range(params_shp.shape[0]):
+        _length = params_shp[i, 0]
+        _dilation = params_shp[i, 1]
+
+        ix_shapelets = where((lengths == _length) & (dilations == _dilation))[0]
+        b = a3 + ix_shapelets.shape[0]
+
+        idx_shp[a3:b] = ix_shapelets
+        n_shp_params[i+1] = ix_shapelets.shape[0]
+
+        a3 = b
+    n_shp_params = cumsum(n_shp_params)
+
+    X_new = zeros((n_samples, n_features * n_shapelets))
+    for i_sample in prange(n_samples):
+        #n_shp_params is a cumsum starting at 0
+        for i_shp_param in prange(n_shp_params.shape[0]-1):
+            _length = params_shp[i_shp_param, 0]
+            _dilation = params_shp[i_shp_param, 1]
+
+            strides = generate_strides_2D(
+                X[i_sample], _length, _dilation, use_phase
+            )
+            # Indexes of shapelets corresponding to the params of i_shp_param
+            _idx_shp = idx_shp[n_shp_params[i_shp_param]:n_shp_params[i_shp_param+1]]
+
+            _idx_no_norm = _idx_shp[where(normalize[_idx_shp] == False)[0]]
+            for i_idx in range(_idx_no_norm.shape[0]):
+                i_shp = _idx_no_norm[i_idx]
+                _channels = channel_ids[a2[i_shp]:a2[i_shp+1]]
+                _values = values[a1[i_shp]:a1[i_shp+1]].reshape(
+                    n_channels[i_shp], _length
+                )
+
+                X_new[
+                    i_sample, (n_features * i_shp):(n_features * i_shp + n_features)
+                ] = \
+                apply_one_shapelet_one_sample_multivariate(
+                    strides[_channels], _values, threshold[i_shp], dist_func
+                )
+
+            _idx_norm = _idx_shp[where(normalize[_idx_shp] == True)[0]]
+            if _idx_norm.shape[0] > 0:
+                #n_features
+                for i_stride in range(strides.shape[0]):
+                    #n_timestamps
+                    for j_stride in range(strides.shape[1]):
+                      _str = strides[i_stride,j_stride]
+                      strides[i_stride,j_stride] = (_str - mean(_str))/(std(_str)+1e-8)
+
+                for i_idx in range(_idx_norm.shape[0]):
+                    i_shp = _idx_norm[i_idx]
+                    _channels = channel_ids[a2[i_shp]:a2[i_shp+1]]
+                    _values = values[a1[i_shp]:a1[i_shp+1]].reshape(
+                        n_channels[i_shp], _length
+                    )
+
+                    X_new[
+                        i_sample, (n_features * i_shp):(n_features * i_shp + n_features)
+                    ] = \
+                    apply_one_shapelet_one_sample_multivariate(
+                        strides[_channels], _values, threshold[i_shp], dist_func
+                    )
+    """

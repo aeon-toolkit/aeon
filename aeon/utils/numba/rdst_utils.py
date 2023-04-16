@@ -71,12 +71,12 @@ def choice_log(n_choice, n_sample):
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
-        loc = np.zeros(n_sample, dtype=int)
+        loc = np.zeros(n_sample, dtype=np.int64)
         for i in prange(n_sample):
             loc[i] = np.where(P >= np.random.rand())[0][0]
         return loc
     else:
-        return np.zeros(n_sample, dtype=int)
+        return np.zeros(n_sample, dtype=np.int64)
 
 
 @njit(cache=True, fastmath=True)
@@ -228,12 +228,13 @@ def sliding_mean_std_one_series(X, length, dilation):
                 _idx += dilation
 
             mean[i_channel, i_mod_dilation] = _sum / length
-            std[i_channel, i_mod_dilation] = (
-                (_sum2 / length) - mean[i_channel, i_mod_dilation] ** 2
-            ) ** 0.5
-
+            _s = (_sum2 / length) - (mean[i_channel, i_mod_dilation] ** 2)
+            if _s > 0:
+                std[i_channel, i_mod_dilation] = _s**0.5
             # Number of remaining subsequence for each starting i_mod_dilation index
-            n_subs_mod_d = n_subs // dilation + ((n_subs % dilation) - i_mod_dilation)
+            n_subs_mod_d = n_subs // dilation + max(
+                0, ((n_subs % dilation) - i_mod_dilation)
+            )
             # Iteratively update sums
             start_idx_sub = i_mod_dilation + dilation
             for _ in prange(1, n_subs_mod_d):
@@ -246,12 +247,10 @@ def sliding_mean_std_one_series(X, length, dilation):
                 _sum2 += (_v_new * _v_new) - (_v_old * _v_old)
 
                 mean[i_channel, start_idx_sub] = _sum / length
-                std[i_channel, start_idx_sub] = (
-                    (_sum2 / length) - mean[i_channel, start_idx_sub] ** 2
-                ) ** 0.5
-
+                _s = (_sum2 / length) - (mean[i_channel, start_idx_sub] ** 2)
+                if _s > 0:
+                    std[i_channel, start_idx_sub] = _s**0.5
                 start_idx_sub += dilation
-
     return mean, std
 
 
@@ -307,7 +306,9 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
     values : array, shape (n_channels, length)
         The resulting subsequence
     means : array, shape (n_channels)
-        The mean of each channel
+        The mean of each channel of the shapelet
+    stds: array, shape (n_channels)
+        The std of each channel of the shapelet
 
     Returns
     -------
@@ -318,19 +319,61 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
     # shape (n_channels, n_subsequences)
     X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
     X_dots = sliding_dot_product(X, values, length, dilation)
-    d_vect_len = X_means.shape[0]
+
+    d_vect_len = n_timestamps - (length - 1) * dilation
     d_vect = np.zeros(d_vect_len)
-    for i_sub in prange(d_vect_len):
-        for i_channel in prange(n_channels):
-            denom = length * stds[i_channel] * X_stds[i_channel, i_sub]
-            denom = max(denom, 1e-12)
-
-            p = (
-                X_dots[i_channel, i_sub]
-                - length * means[i_channel] * X_means[i_channel, i_sub]
-            ) / denom
-            p = min(p, 1.0)
-
-            d_vect[i_sub] += abs(2 * length * (1.0 - p))
+    for i_channel in prange(n_channels):
+        # Edge case: shapelet channel is constant
+        if stds[i_channel] <= 0:
+            for i_sub in prange(d_vect_len):
+                d_vect[i_sub] += X_stds[i_channel, i_sub] * length
+        else:
+            for i_sub in prange(d_vect_len):
+                # Edge case: subsequence channel is constant
+                if X_stds[i_channel, i_sub] <= 0:
+                    d_vect[i_sub] += stds[i_channel] * length
+                else:
+                    denom = length * stds[i_channel] * X_stds[i_channel, i_sub]
+                    p = (
+                        X_dots[i_channel, i_sub]
+                        - length * means[i_channel] * X_means[i_channel, i_sub]
+                    ) / denom
+                    p = min(p, 1.0)
+                    d_vect[i_sub] += abs(2 * length * (1.0 - p))
 
     return d_vect
+
+
+@njit(cache=True)
+def combinations_1d(x, y):
+    """Return the unique pairs of the 2D array made by concatenating x and y.
+
+    Parameters
+    ----------
+    x : array, shape=(u)
+        A 1D array of values
+    y : array, shape=(v)
+        A 1D array of values
+
+    Returns
+    -------
+    array, shape=(w, 2)
+        The unique pairs in the concatenation of x and y.
+
+    """
+    # Fix issues with multiple length, but could be optimized
+    u_x = np.unique(x)
+    u_y = np.unique(y)
+    u_mask = np.zeros((u_x.shape[0], u_y.shape[0]), dtype=np.bool_)
+
+    for i in range(x.shape[0]):
+        u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = True
+    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int64)
+    i_comb = 0
+    for i in range(x.shape[0]):
+        if u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]]:
+            combinations[i_comb, 0] = x[i]
+            combinations[i_comb, 1] = y[i]
+            u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = False
+            i_comb += 1
+    return combinations
