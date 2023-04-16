@@ -90,6 +90,7 @@ from aeon.distances._wdtw import (
 
 MetricCallableType = Union[Callable[[np.ndarray, np.ndarray, Any], float], str]
 
+
 # epsilon = edr, lcss
 # g = wdtw, wddtw, erp
 # c = msm
