@@ -273,7 +273,7 @@ def wddtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:

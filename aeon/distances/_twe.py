@@ -350,7 +350,7 @@ def twe_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_alignment_path(
     x: np.ndarray,
     y: np.ndarray,

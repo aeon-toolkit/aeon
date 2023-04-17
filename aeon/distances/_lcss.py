@@ -277,7 +277,7 @@ def lcss_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:

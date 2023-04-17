@@ -287,7 +287,7 @@ def erp_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> Tuple[List[Tuple[int, int]], float]:
