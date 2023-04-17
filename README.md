@@ -1,4 +1,6 @@
-<a href="https://www.aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="40%" align="right" /></a>
+<p align="center">
+    <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="40%" alt="aeon logo" /></a>
+</p>
 
 # Welcome to aeon
 
