@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """Configuration file for the Sphinx documentation builder."""
@@ -23,28 +22,14 @@ github_tag = f"v{version}"
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-
-ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
-if not ON_READTHEDOCS:
-    sys.path.insert(0, os.path.abspath("../.."))
-
-# -- Project information -----------------------------------------------------
-project = "aeon"
-copyright = "BSD-3-Clause License"
-author = "aeon developers"
-
-# The full version, including alpha/beta/rc tags
-CURRENT_VERSION = f"v{aeon.__version__}"
-
-# If on readthedocs, and we're building the latest version, update tag to generate
-# correct links in notebooks
-if ON_READTHEDOCS:
-    READTHEDOCS_VERSION = os.environ.get("READTHEDOCS_VERSION")
-    if READTHEDOCS_VERSION == "latest":
-        CURRENT_VERSION = "main"
-
+# add these directories to sys.path here.
+on_readthedocs = os.environ.get("READTHEDOCS") == "True"
+if not on_readthedocs:
+    sys.path.insert(0, os.path.abspath(""))
+else:
+    rtd_version = os.environ.get("READTHEDOCS_VERSION")
+    if rtd_version == "latest":
+        github_tag = "main"
 
 # -- General configuration ---------------------------------------------------
 
@@ -52,8 +37,6 @@ if ON_READTHEDOCS:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
@@ -217,12 +200,12 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/",
     "light_css_variables": {
-        "color-brand-primary": "#D71414",
-        "color-brand-content": "#EB1414",
+        "color-brand-primary": "#005E80",
+        "color-brand-content": "#F05F05",
     },
     "dark_css_variables": {
-        "color-brand-primary": "#FF1414",
-        "color-brand-content": "#EB3C3C",
+        "color-brand-primary": "#00ACEB",
+        "color-brand-content": "#FB9456",
     },
     "footer_icons": [
         {
