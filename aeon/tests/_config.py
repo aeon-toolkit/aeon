@@ -142,7 +142,6 @@ EXCLUDED_TESTS = {
         "test_inheritance",
         "test_create_test_instance",
     ],
-    "SAX": "test_fit_transform_output",  # SAX returns strange output format
     # this needs to be fixed, was not tested previously due to legacy exception
     "Prophet": ":test_hierarchical_with_exogeneous",
     # Prophet does not support datetime indices, see #2475 for the known issue
@@ -166,10 +165,6 @@ NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict_proba",
     "decision_function",
     "transform",
-    # todo: add this back
-    # escaping this, since for some estimators
-    #   the input format of inverse_transform assumes special col names
-    # "inverse_transform",
 )
 
 NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
