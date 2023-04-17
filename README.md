@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="40%" alt="aeon logo" /></a>
+    <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
 </p>
 
 # Welcome to **aeon**
