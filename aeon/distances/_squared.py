@@ -25,6 +25,15 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     -------
     float
         Squared distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import squared_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> squared_distance(x, y)
+    0.0
     """
     distance = 0.0
     for i in range(x.shape[0]):

@@ -28,6 +28,15 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     -------
     float
         Euclidean distance between x and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import euclidean_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> euclidean_distance(x, y)
+    0.0
     """
     return np.sqrt(squared_distance(x, y))
 
