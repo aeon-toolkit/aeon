@@ -14,7 +14,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def edr_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> float:
@@ -68,7 +68,7 @@ def edr_distance(
     return _edr_distance(x, y, bounding_matrix, epsilon)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def edr_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
@@ -115,7 +115,7 @@ def edr_cost_matrix(
     return _edr_cost_matrix(x, y, bounding_matrix, epsilon)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _edr_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> float:
@@ -125,7 +125,7 @@ def _edr_distance(
     return float(distance / max(x.shape[1], y.shape[1]))
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _edr_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
 ) -> np.ndarray:
@@ -152,7 +152,7 @@ def _edr_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def edr_pairwise_distance(
     X: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
@@ -197,7 +197,7 @@ def edr_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def edr_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
@@ -241,7 +241,7 @@ def edr_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def edr_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
@@ -326,9 +326,11 @@ def edr_alignment_path(
     >>> edr_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 0.25)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
     cost_matrix = _edr_cost_matrix(x, y, bounding_matrix, epsilon)
-    distance = float(cost_matrix[-1, -1] / max(x.shape[1], y.shape[1]))
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), \
+        float(cost_matrix[x_size - 1, y_size - 1] / max(x_size, y_size))

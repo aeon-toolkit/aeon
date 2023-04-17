@@ -264,7 +264,7 @@ def test_wddtw_distance():
 def test_edr_distance():
     np.testing.assert_almost_equal(edr_distance(x_multivariate, y_multivariate), 0.8)
     np.testing.assert_almost_equal(
-        edr_distance(x_multivariate, y_multivariate, window=0.1), 0.1
+        edr_distance(x_multivariate, y_multivariate, window=0.1), 0.2
     )
     cost_matrix = edr_cost_matrix(x_multivariate, y_multivariate, window=0.2)
     bounding_matrix = create_bounding_matrix(
@@ -293,7 +293,7 @@ def test_erp_distance():
         erp_distance(x_multivariate, y_multivariate), 4408.25
     )
     np.testing.assert_almost_equal(
-        erp_distance(x_multivariate, y_multivariate, window=0.1), 245.0
+        erp_distance(x_multivariate, y_multivariate, window=0.1), 1473.0
     )
     cost_matrix = erp_cost_matrix(x_multivariate, y_multivariate, window=0.2)
     bounding_matrix = create_bounding_matrix(
@@ -347,13 +347,13 @@ def test_lcss_distance():
 def test_msm_distance():
     np.testing.assert_almost_equal(msm_distance(x_multivariate, y_multivariate), 164.5)
     np.testing.assert_almost_equal(
-        msm_distance(x_multivariate, y_multivariate, window=0.1), 3.0
+        msm_distance(x_multivariate, y_multivariate, window=0.1), 5.0
     )
     np.testing.assert_almost_equal(
         msm_distance(x_multivariate, y_multivariate, independent=False), 164.0
     )
     np.testing.assert_almost_equal(
-        msm_distance(x_multivariate, y_multivariate, independent=False, window=0.1), 1.0
+        msm_distance(x_multivariate, y_multivariate, independent=False, window=0.1), 3.0
     )
     cost_matrix = msm_cost_matrix(x_multivariate, y_multivariate, window=0.2)
     bounding_matrix = create_bounding_matrix(
@@ -408,7 +408,7 @@ def test_msm_distance():
 def test_twe_distance():
     np.testing.assert_almost_equal(twe_distance(x_multivariate, y_multivariate), 8815.5)
     np.testing.assert_almost_equal(
-        twe_distance(x_multivariate, y_multivariate, window=0.1), 1501.001
+        twe_distance(x_multivariate, y_multivariate, window=0.1), 2008.252
     )
     cost_matrix = twe_cost_matrix(x_multivariate, y_multivariate, window=0.2)
     bounding_matrix = create_bounding_matrix(

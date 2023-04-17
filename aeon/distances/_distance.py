@@ -93,12 +93,6 @@ from aeon.distances._wdtw import (
 MetricCallableType = Union[Callable[[np.ndarray, np.ndarray, Any], float], str]
 
 
-# epsilon = edr, lcss
-# g = wdtw, wddtw, erp
-# c = msm
-# independent = msm
-# nu = twe
-# lmbda = twe
 def _resolve_kwargs(metric_str: str, kwargs: dict) -> dict:
     """Resolve keyword arguments for distance functions.
 
@@ -244,7 +238,7 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
 
 
 def distance_from_single_to_multiple(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between a single time series and multiple.
 
@@ -299,7 +293,7 @@ def distance_from_single_to_multiple(
 
 
 def distance_from_multiple_to_multiple(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between two sets of time series.
 
@@ -358,7 +352,7 @@ def distance_from_multiple_to_multiple(
 
 
 def cost_matrix(
-    x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
 ) -> np.ndarray:
     """Compute the cost matrix between two time series.
 
@@ -414,7 +408,7 @@ def cost_matrix(
 
 
 def alignment_path(
-    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path between two time series.
 

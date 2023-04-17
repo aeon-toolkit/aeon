@@ -17,7 +17,7 @@ from aeon.distances._wdtw import (
 )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
@@ -75,7 +75,7 @@ def wddtw_distance(
     return wdtw_distance(x, y, window, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -120,7 +120,7 @@ def wddtw_cost_matrix(
     return wdtw_cost_matrix(x, y, window, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_pairwise_distance(
     X: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -170,7 +170,7 @@ def wddtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -214,7 +214,7 @@ def wddtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wddtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -311,8 +311,8 @@ def wddtw_alignment_path(
     ([(0, 0), (1, 1)], 0.1218756508789474)
     """
     bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[1] - 2, window)
-    x = average_of_slope(x)
-    y = average_of_slope(y)
-    cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
-    distances = cost_matrix[-1, -1]
-    return compute_min_return_path(cost_matrix), distances
+    cost_matrix = _wdtw_cost_matrix(
+        average_of_slope(x), average_of_slope(y), bounding_matrix, g
+    )
+    return compute_min_return_path(cost_matrix), \
+        cost_matrix[x.shape[1] - 3, y.shape[1] - 3]

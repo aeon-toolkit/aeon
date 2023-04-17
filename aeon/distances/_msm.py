@@ -14,7 +14,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def msm_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -71,7 +71,7 @@ def msm_distance(
     return _msm_distance(x, y, bounding_matrix, independent, c)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def msm_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
@@ -125,7 +125,7 @@ def msm_cost_matrix(
     return _msm_dependent_cost_matrix(x, y, bounding_matrix, c)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _msm_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -142,20 +142,22 @@ def _msm_distance(
     ]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _msm_independent_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.zeros((x_size, y_size))
+    distance = 0
     for i in range(x.shape[0]):
         curr_cost_matrix = _independent_cost_matrix(x[i], y[i], bounding_matrix, c)
         cost_matrix = np.add(cost_matrix, curr_cost_matrix)
+        distance += curr_cost_matrix[-1, -1]
     return cost_matrix
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _independent_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
@@ -186,7 +188,7 @@ def _independent_cost_matrix(
     return cost_matrix
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _msm_dependent_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, c: float
 ) -> np.ndarray:
@@ -219,7 +221,7 @@ def _msm_dependent_cost_matrix(
     return cost_matrix
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> float:
     diameter = univariate_squared_distance(y, z)
     mid = (y + z) / 2
@@ -236,14 +238,14 @@ def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> fl
             return c + dist_to_c
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     if (y <= x <= z) or (y >= x >= z):
         return c
     return c + min(abs(x - y), abs(x - z))
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def msm_pairwise_distance(
     X: np.ndarray, window: float = None, independent: bool = True, c: float = 1.0
 ) -> np.ndarray:
@@ -289,7 +291,7 @@ def msm_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def msm_from_single_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -338,7 +340,7 @@ def msm_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def msm_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -435,13 +437,14 @@ def msm_alignment_path(
     >>> msm_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
     if independent:
         cost_matrix = _msm_independent_cost_matrix(x, y, bounding_matrix, c)
     else:
         cost_matrix = _msm_dependent_cost_matrix(x, y, bounding_matrix, c)
 
-    distance = cost_matrix[-1, -1]
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), cost_matrix[x_size - 1, y_size - 1]

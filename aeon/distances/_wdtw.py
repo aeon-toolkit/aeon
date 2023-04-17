@@ -11,7 +11,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wdtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
@@ -67,7 +67,7 @@ def wdtw_distance(
     return _wdtw_distance(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -133,14 +133,14 @@ def wdtw_cost_matrix(
     return _wdtw_cost_matrix(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _wdtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
     return _wdtw_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
@@ -149,8 +149,9 @@ def _wdtw_cost_matrix(
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
     cost_matrix[0, 0] = 0.0
 
+    max_size = max(x_size, y_size)
     weight_vector = np.array(
-        [1 / (1 + np.exp(-g * (i - x_size / 2))) for i in range(0, x_size)]
+        [1 / (1 + np.exp(-g * (i - max_size / 2))) for i in range(0, max_size)]
     )
 
     for i in range(x_size):
@@ -167,7 +168,7 @@ def _wdtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wdtw_pairwise_distance(
     X: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -211,7 +212,7 @@ def wdtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wdtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -254,7 +255,7 @@ def wdtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def wdtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -341,5 +342,5 @@ def wdtw_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
-    distance = cost_matrix[-1, -1]
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), \
+        cost_matrix[x.shape[1] - 1, y.shape[1] - 1]

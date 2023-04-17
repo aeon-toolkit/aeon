@@ -14,7 +14,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> float:
@@ -62,7 +62,7 @@ def erp_distance(
     return _erp_distance(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
@@ -107,14 +107,14 @@ def erp_cost_matrix(
     return _erp_cost_matrix(x, y, bounding_matrix, g)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _erp_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _erp_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
@@ -142,7 +142,7 @@ def _erp_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _precompute_g(x: np.ndarray, g: float) -> Tuple[np.ndarray, float]:
     gx_distance = np.zeros(x.shape[1])
     g_arr = np.full(x.shape[0], g)
@@ -155,7 +155,7 @@ def _precompute_g(x: np.ndarray, g: float) -> Tuple[np.ndarray, float]:
     return gx_distance, x_sum
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_pairwise_distance(
     X: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
@@ -198,7 +198,7 @@ def erp_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
@@ -240,7 +240,7 @@ def erp_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def erp_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
@@ -323,9 +323,10 @@ def erp_alignment_path(
     >>> erp_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
     cost_matrix = _erp_cost_matrix(x, y, bounding_matrix, g)
-    distance = cost_matrix[-1, -1]
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), cost_matrix[x_size - 1, y_size - 1]

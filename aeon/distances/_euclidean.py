@@ -7,7 +7,7 @@ from numba import njit
 from aeon.distances._squared import squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the euclidean distance between two time series.
 
@@ -41,7 +41,7 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     return np.sqrt(squared_distance(x, y))
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
     """Compute the euclidean pairwise distance between a set of time series.
 
@@ -76,7 +76,7 @@ def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def euclidean_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
@@ -113,7 +113,7 @@ def euclidean_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def euclidean_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:

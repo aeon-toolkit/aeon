@@ -11,7 +11,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     r"""Compute the dtw distance between two time series.
 
@@ -60,7 +60,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     return _dtw_distance(x, y, bounding_matrix)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the dtw cost matrix between two time series.
 
@@ -101,12 +101,12 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     return _dtw_cost_matrix(x, y, bounding_matrix)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
@@ -129,7 +129,7 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the dtw pairwise distance between a set of time series.
 
@@ -168,7 +168,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
@@ -208,7 +208,7 @@ def dtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def dtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
@@ -289,5 +289,5 @@ def dtw_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _dtw_cost_matrix(x, y, bounding_matrix)
-    distance = cost_matrix[-1, -1]
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), \
+        cost_matrix[x.shape[1] - 1, y.shape[1] - 1]

@@ -5,7 +5,7 @@ import numpy as np
 from numba import njit
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the squared distance between two time series.
 
@@ -41,7 +41,7 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the squared distance between two time series.
 
@@ -65,7 +65,7 @@ def univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     """Compute the squared pairwise distance between a set of time series.
 
@@ -100,7 +100,7 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def squared_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
@@ -137,7 +137,7 @@ def squared_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def squared_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:

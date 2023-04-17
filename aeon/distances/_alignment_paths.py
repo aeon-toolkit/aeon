@@ -9,7 +9,7 @@ from numba import njit
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True)
+@njit
 def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
     """Compute the minimum return path through a cost matrix.
 
@@ -56,7 +56,7 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
     return alignment[::-1]
 
 
-@njit(cache=True)
+@njit
 def compute_lcss_return_path(
     x: np.ndarray,
     y: np.ndarray,
@@ -101,7 +101,7 @@ def compute_lcss_return_path(
     return path[::-1]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _add_inf_to_out_of_bounds_cost_matrix(
     cost_matrix: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:

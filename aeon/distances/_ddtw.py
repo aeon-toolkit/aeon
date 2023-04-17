@@ -16,7 +16,7 @@ from aeon.distances._dtw import (
 )
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     r"""Compute the ddtw distance between two time series.
 
@@ -68,7 +68,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     return dtw_distance(x, y, window)
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     r"""Compute the ddtw cost matrix between two time series.
 
@@ -108,7 +108,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
     return dtw_cost_matrix(x, y, window)
 
 
-@njit(fastmath=True, cache=True)
+@njit(cache=True)
 def average_of_slope(q: np.ndarray) -> np.ndarray:
     r"""Compute the average of a slope between points.
 
@@ -153,7 +153,7 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     return result
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the ddtw pairwise distance between a set of time series.
 
@@ -198,7 +198,7 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def ddtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
@@ -239,7 +239,7 @@ def ddtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def ddtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
@@ -331,5 +331,5 @@ def ddtw_alignment_path(
     cost_matrix = _dtw_cost_matrix(
         average_of_slope(x), average_of_slope(y), bounding_matrix
     )
-    distance = cost_matrix[-1, -1]
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), \
+        cost_matrix[x.shape[1] - 3, y.shape[1] - 3]

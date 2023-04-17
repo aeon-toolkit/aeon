@@ -11,7 +11,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
@@ -63,7 +63,7 @@ def lcss_distance(
     return _lcss_distance(x, y, bounding_matrix, epsilon)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -109,7 +109,7 @@ def lcss_cost_matrix(
     return _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
@@ -119,7 +119,7 @@ def _lcss_distance(
     return 1 - float(distance / min(x.shape[1], y.shape[1]))
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
@@ -142,7 +142,7 @@ def _lcss_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_pairwise_distance(
     X: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -186,7 +186,7 @@ def lcss_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -229,7 +229,7 @@ def lcss_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -315,9 +315,11 @@ def lcss_alignment_path(
     >>> lcss_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2)], 0.25)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
     cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
-    distance = 1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))
+    distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
     return (
         compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix),
         distance,

@@ -14,7 +14,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import univariate_squared_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -72,7 +72,7 @@ def twe_distance(
     return _twe_distance(x, y, bounding_matrix, nu, lmbda)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
@@ -124,14 +124,17 @@ def twe_cost_matrix(
     return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _twe_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> float:
-    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)[-1, -1]
+    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)[
+        x.shape[1] - 2, y.shape[1] - 2
+    ]
 
 
-@njit(cache=True, fastmath=True)
+
+@njit(cache=True)
 def _twe_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> np.ndarray:
@@ -170,7 +173,7 @@ def _twe_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _pad_arrs(x: np.ndarray) -> np.ndarray:
     padded_x = np.zeros((x.shape[0], x.shape[1] + 1))
     zero_arr = np.array([0.0])
@@ -179,7 +182,7 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
     return padded_x
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_pairwise_distance(
     X: np.ndarray, window: float = None, nu: float = 0.001, lmbda: float = 1.0
 ) -> np.ndarray:
@@ -232,7 +235,7 @@ def twe_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_from_single_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -285,7 +288,7 @@ def twe_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def twe_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -394,10 +397,10 @@ def twe_alignment_path(
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-    x = _pad_arrs(x)
-    y = _pad_arrs(y)
-    cost_matrix = _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)
-    distance = cost_matrix[-1, -1]
+    _x = _pad_arrs(x)
+    _y = _pad_arrs(y)
+    cost_matrix = _twe_cost_matrix(_x, _y, bounding_matrix, nu, lmbda)
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), distance
+    return compute_min_return_path(cost_matrix), \
+        cost_matrix[x.shape[1] - 1, y.shape[1] - 1]
