@@ -243,7 +243,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
-            params = {"max_shapelets": 5}
+            params = {"max_shapelets": 10}
         else:
             raise NotImplementedError(
                 "The parameter set {} is not yet implemented".format(parameter_set)
@@ -598,6 +598,42 @@ def dilated_shapelet_transform(X, shapelets):
 
 @njit(cache=True, fastmath=True)
 def compute_shapelet_features(X, values, length, dilation, threshold):
+    """Extract the features from a shapelet distance vector.
+
+    Given a shapelet and a time series, extract three features from the resulting
+    distance vector:
+        - min
+        - argmin
+        - Shapelet Occurence : number of point in the distance vector inferior to the
+        threshold parameter
+
+    Parameters
+    ----------
+    X : array, shape (n_channels, n_timestamps)
+        An input time series
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    length : int
+        Length of the shapelet
+    dilation : int
+        Dilation of the shapelet
+    values : array, shape (n_channels, length)
+        The resulting subsequence
+    X_means : array, shape (n_channels)
+        The mean of each subsequence (l,d) of channel of the input time series
+    X_stds: array, shape (n_channels)
+        The standard deviation of each subsequence (l,d) of channel of the
+        input time series
+    means : array, shape (n_channels)
+        The mean of each channel of the shapelet
+    stds: array, shape (n_channels)
+        The std of each channel of the shapelet
+
+    Returns
+    -------
+    min, argmin, shapelet occurence
+        The three computed features as float dtypes
+    """
     _min = np.inf
     _argmin = np.inf
     _SO = 0
@@ -629,6 +665,43 @@ def compute_shapelet_features(X, values, length, dilation, threshold):
 def compute_shapelet_features_normalized(
     X, values, length, dilation, threshold, X_means, X_stds, means, stds
 ):
+    """Extract the features from a normalized shapelet distance vector.
+
+    Given a shapelet, a time series and their means and standard deviations, extract
+    three features from the resulting normalized distance vector:
+        - min
+        - argmin
+        - Shapelet Occurence : number of point in the distance vector inferior to the
+        threshold parameter
+
+    Parameters
+    ----------
+    X : array, shape (n_channels, n_timestamps)
+        An input time series
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    length : int
+        Length of the shapelet
+    dilation : int
+        Dilation of the shapelet
+    values : array, shape (n_channels, length)
+        The resulting subsequence
+    X_means : array, shape (n_channels)
+        The mean of each subsequence (l,d) of channel of the input time series
+    X_stds: array, shape (n_channels)
+        The standard deviation of each subsequence (l,d) of channel of the
+        input time series
+    means : array, shape (n_channels)
+        The mean of each channel of the shapelet
+    stds: array, shape (n_channels)
+        The std of each channel of the shapelet
+
+    Returns
+    -------
+    min, argmin, shapelet occurence
+        The three computed features as float dtypes
+
+    """
     _min = np.inf
     _argmin = np.inf
     _SO = 0
@@ -682,8 +755,6 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
         Length of the shapelet
     dilation : int
         Dilation of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
     means : array, shape (n_channels)
         The mean of each channel of the shapelet
     stds: array, shape (n_channels)

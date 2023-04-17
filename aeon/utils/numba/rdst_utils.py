@@ -184,6 +184,7 @@ def sliding_mean_std_one_series(X, length, dilation):
     std = np.zeros((n_channels, n_subs))
 
     for i_channel in prange(n_channels):
+        mod_dil = n_subs % dilation
         for i_mod_dilation in prange(dilation):
             _idx = i_mod_dilation
             _sum = 0
@@ -200,9 +201,11 @@ def sliding_mean_std_one_series(X, length, dilation):
             if _s > 0:
                 std[i_channel, i_mod_dilation] = _s**0.5
             # Number of remaining subsequence for each starting i_mod_dilation index
-            n_subs_mod_d = n_subs // dilation + max(
-                0, ((n_subs % dilation) - i_mod_dilation)
-            )
+
+            n_subs_mod_d = n_subs // dilation
+            if mod_dil > 0:
+                n_subs_mod_d += 1
+                mod_dil -= 1
             # Iteratively update sums
             start_idx_sub = i_mod_dilation + dilation
             for _ in prange(1, n_subs_mod_d):
