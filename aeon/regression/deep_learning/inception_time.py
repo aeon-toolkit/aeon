@@ -198,7 +198,7 @@ class InceptionTimeRegressor(BaseRegressor):
         Arguments:
         ----------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples.
         y : np.ndarray of shape n
             The training data target values.
@@ -206,6 +206,7 @@ class InceptionTimeRegressor(BaseRegressor):
         Returns
         -------
         self : object
+            fitted estimator
         """
         self.regressors_ = []
         rng = check_random_state(self.random_state)
@@ -248,12 +249,13 @@ class InceptionTimeRegressor(BaseRegressor):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n)), the predicted values
+        Y : np.ndarray of shape = (n_instances)
+            The predicted values
 
         """
         ypreds = np.zeros(shape=(X.shape[0]))
@@ -281,14 +283,14 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default=[None]
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_regressors": 2,
+            "n_regressors": 1,
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
@@ -296,14 +298,7 @@ class InceptionTimeRegressor(BaseRegressor):
             "use_bottleneck": True,
         }
 
-        param2 = {
-            "n_regressors": 3,
-            "n_epochs": 12,
-            "batch_size": 6,
-            "use_bias": True,
-        }
-
-        return [param1, param2]
+        return [param1]
 
 
 class IndividualInceptionRegressor(BaseDeepRegressor):
@@ -482,7 +477,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Returns
         -------
-        output : a compiled Keras Model
+        tf.keras.models.Model
+            A compiled Keras Model
         """
         import tensorflow as tf
 
@@ -513,10 +509,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
-        y : array-like, shape = [n_instances]
+        y : np.ndarray of shape (n_instances)
             The training data target values.
         input_checks : boolean
             whether to check the X and y parameters
@@ -536,20 +532,20 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self : object
         """
         rng = check_random_state(self.random_state)
-        self.random_state = rng.randint(0, np.iinfo(np.int32).max)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
-        self.input_shape = X.shape[1:]
+        self.input_shape_ = X.shape[1:]
 
         if self.use_mini_batch_size:
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
             mini_batch_size = self.batch_size
-        self.model_ = self.build_model(self.input_shape)
+        self.model_ = self.build_model(self.input_shape_)
 
         if self.verbose:
             self.model_.summary()
@@ -581,7 +577,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default=[None]
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
@@ -594,11 +590,5 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             "use_residual": False,
             "use_bottleneck": True,
         }
-
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
 
         return [param1]
