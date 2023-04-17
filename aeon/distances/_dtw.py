@@ -289,4 +289,5 @@ def dtw_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _dtw_cost_matrix(x, y, bounding_matrix)
-    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]
+    distance = cost_matrix[-1, -1]
+    return compute_min_return_path(cost_matrix), distance

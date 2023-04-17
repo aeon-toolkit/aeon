@@ -317,6 +317,7 @@ def lcss_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
+    distance = 1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))
     return compute_lcss_return_path(
         x, y, epsilon, bounding_matrix, cost_matrix
-    ), 1 - float(cost_matrix[-1, -1] / min(x.shape[1], y.shape[1]))
+    ), distance

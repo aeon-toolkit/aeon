@@ -328,9 +328,7 @@ def edr_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _edr_cost_matrix(x, y, bounding_matrix, epsilon)
+    distance = float(cost_matrix[-1, -1] / max(x.shape[1], y.shape[1]))
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-
-    return compute_min_return_path(cost_matrix), float(
-        cost_matrix[-1, -1] / max(x.shape[1], y.shape[1])
-    )
+    return compute_min_return_path(cost_matrix), distance

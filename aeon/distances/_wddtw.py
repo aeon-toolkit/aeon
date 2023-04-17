@@ -314,4 +314,5 @@ def wddtw_alignment_path(
     x = average_of_slope(x)
     y = average_of_slope(y)
     cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
-    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]
+    distances = cost_matrix[-1, -1]
+    return compute_min_return_path(cost_matrix), distances

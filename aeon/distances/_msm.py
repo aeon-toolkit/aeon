@@ -441,6 +441,7 @@ def msm_alignment_path(
     else:
         cost_matrix = _msm_dependent_cost_matrix(x, y, bounding_matrix, c)
 
+    distance = cost_matrix[-1, -1]
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]
+    return compute_min_return_path(cost_matrix), distance

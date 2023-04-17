@@ -331,4 +331,5 @@ def ddtw_alignment_path(
     cost_matrix = _dtw_cost_matrix(
         average_of_slope(x), average_of_slope(y), bounding_matrix
     )
-    return compute_min_return_path(cost_matrix), cost_matrix[-1, -1]
+    distance = cost_matrix[-1, -1]
+    return compute_min_return_path(cost_matrix), distance
