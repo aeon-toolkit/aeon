@@ -7,7 +7,7 @@ Created on Sun Apr 16 22:59:04 2023
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.panel.dilated_shapelet_transform import (
@@ -87,7 +87,9 @@ def test_compute_shapelet_features(dtype):
         X, values, length, dilation, threshold
     )
 
-    assert _min == 0.0
+    # On some occasion, float32 precision with fasmath retruns things like
+    # 2.1835059227370834e-07 instead of 0
+    assert assert_almost_equal(_min, 0.0)
     assert _argmin == 0.0
     assert SO == 3.0
 
@@ -98,7 +100,7 @@ def test_compute_shapelet_features(dtype):
         X, values, length, dilation, threshold
     )
 
-    assert _min == 0.0
+    assert assert_almost_equal(_min, 0.0)
     assert _argmin == 7.0
     assert SO == 1.0
 
@@ -109,7 +111,7 @@ def test_compute_shapelet_features(dtype):
         X, values, length, dilation, threshold
     )
 
-    assert _min == 0.0
+    assert assert_almost_equal(_min, 0.0)
     assert _argmin == 3.0
     assert SO == 3.0
 
@@ -132,8 +134,9 @@ def test_compute_shapelet_features_normalized(dtype):
     _min, _argmin, SO = compute_shapelet_features_normalized(
         X, values, length, dilation, threshold, X_means, X_stds, means, stds
     )
-
-    assert _min == 0.0
+    # On some occasion, float32 precision with fasmath retruns things like
+    # 2.1835059227370834e-07 instead of 0
+    assert assert_almost_equal(_min, 0.0)
     assert _argmin == 1.0
     assert SO == 3.0
 
@@ -146,7 +149,7 @@ def test_compute_shapelet_features_normalized(dtype):
         X, values, length, dilation, threshold, X_means, X_stds, means, stds
     )
 
-    assert _min == 0.0
+    assert assert_almost_equal(_min, 0.0)
     # Scale invariance should match with the sets of 3*
     assert _argmin == 1.0
     # And should also do so for the 1* and 2*, all spaced by dilation 4
