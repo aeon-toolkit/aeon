@@ -261,8 +261,8 @@ html_theme_options = {
     ],
 }
 
-html_logo = "images/aeon-logo-horizontal.png"
-html_favicon = "images/aeon-favicon.ico"
+html_logo = "images/logo/aeon-logo-blue-2-compact.png"
+html_favicon = "images/logo/aeon-favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
