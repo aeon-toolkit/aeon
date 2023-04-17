@@ -2,7 +2,7 @@
     <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
 </p>
 
-# Welcome to **aeon**
+# ⌛ Welcome to **aeon**
 
 ``aeon`` is an open source toolkit for learning from time series compatible with
 [scikit-learn](https://scikit-learn.org). It provides access to the  very latest
@@ -23,7 +23,7 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 | **Code**      | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE)                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | **Community** | [![!slack](https://img.shields.io/static/v1?logo=slack&label=Slack&message=chat&color=lightgreen)](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg) [![!linkedin](https://img.shields.io/static/v1?logo=linkedin&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!twitter](https://img.shields.io/static/v1?logo=twitter&label=Twitter&message=news&color=lightblue)](https://twitter.com/aeon_toolkit)                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
-## Installation
+## ⚙️ Installation
 
 ``aeon`` requires a Python version of 3.8 or greater. Our full installation guide is
 available in our [documentation](https://www.aeon-toolkit.org/en/latest/installation.html).
