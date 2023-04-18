@@ -7,7 +7,7 @@ import numpy as np
 from numba import njit
 
 
-# @njit(cache=True)
+@njit(cache=True)
 def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     """Create a bounding matrix for a elastic distance.
     Parameters
@@ -41,7 +41,7 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     return _sakoe_chiba_bounding(x_size, y_size, window)
 
 
-# @njit(cache=True)
+@njit(cache=True)
 def _sakoe_chiba_bounding(
     x_size: int, y_size: int, radius_percent: float
 ) -> np.ndarray:
