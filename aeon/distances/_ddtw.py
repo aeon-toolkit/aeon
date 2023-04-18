@@ -17,7 +17,7 @@ from aeon.distances.base import (
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances.lower_bounding import resolve_bounding_matrix
+from aeon.distances._bounding_matrix import create_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -93,8 +93,6 @@ class _DdtwDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         compute_derivative: DerivativeCallable = average_of_slope,
         **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
@@ -114,14 +112,6 @@ class _DdtwDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the Sakoe-Chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for Itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         compute_derivative: Callable[[np.ndarray], np.ndarray],
                                 defaults = average slope difference
             Callable that computes the derivative. If none is provided the average of
@@ -139,13 +129,9 @@ class _DdtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If the compute derivative callable is not no_python compiled.
+            If the sakoe_chiba_window_radius is not an integer.            If the compute derivative callable is not no_python compiled.
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if not is_no_python_compiled_callable(compute_derivative):
             raise ValueError(
@@ -187,8 +173,6 @@ class _DdtwDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         compute_derivative: DerivativeCallable = average_of_slope,
         **kwargs: Any,
     ) -> DistanceCallable:
@@ -206,14 +190,6 @@ class _DdtwDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the Sakoe-Chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for Itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         compute_derivative: Callable[[np.ndarray], np.ndarray],
                                 defaults = average slope difference
             Callable that computes the derivative. If none is provided the average of
@@ -231,14 +207,9 @@ class _DdtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If the compute derivative callable is not no_python compiled.
+            If the sakoe_chiba_window_radius is not an integer.            If the compute derivative callable is not no_python compiled.
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
-
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
         if not is_no_python_compiled_callable(compute_derivative):
             raise ValueError(
                 f"The derivative callable must be no_python compiled. The name"
