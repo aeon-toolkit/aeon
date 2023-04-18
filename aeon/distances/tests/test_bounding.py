@@ -12,7 +12,7 @@ def test_full_bounding():
 
 
 def test_window_bounding():
-    matrix = create_bounding_matrix(10, 10, window=0.5)
+    matrix = create_bounding_matrix(5, 5, window=0.2)
     num_true = 0
     num_false = 0
     for row in matrix:
