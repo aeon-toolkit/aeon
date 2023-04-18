@@ -221,7 +221,10 @@ def test_pairwise_distance(dist: MetricInfo) -> None:
     distance_numba_class = dist.dist_instance
     distance_function = dist.dist_func
 
-    distance_factory = distance_numba_class.distance_factory
+    if distance_numba_class is not None:
+        distance_factory = distance_numba_class.distance_factory
+    else:
+        distance_factory = None
 
     _validate_pairwise_result(
         x=np.array([10.0]),
