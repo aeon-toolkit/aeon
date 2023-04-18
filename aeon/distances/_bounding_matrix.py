@@ -34,10 +34,10 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
            [ True,  True,  True,  True,  True,  True, False, False],
            [ True,  True,  True,  True,  True,  True,  True, False],
            [ True,  True,  True,  True,  True,  True,  True,  True],
+           [ True,  True,  True,  True,  True,  True,  True,  True],
            [False,  True,  True,  True,  True,  True,  True,  True],
            [False, False,  True,  True,  True,  True,  True,  True],
-           [False, False, False,  True,  True,  True,  True,  True],
-           [False, False, False, False,  True,  True,  True,  True]])
+           [False, False, False,  True,  True,  True,  True,  True]])
     """
     if window is None or window >= 1:
         return np.full((x_size, y_size), True)
