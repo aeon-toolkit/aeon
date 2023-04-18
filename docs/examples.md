@@ -327,15 +327,6 @@ Benchmarking with sktime
 :::
 
 :::{grid-item-card}
-:link: /examples/distances.ipynb
-:link-type: ref
-:text-align: center
-
-Distances
-
-:::
-
-:::{grid-item-card}
 :link: /examples/mlflow.ipynb
 :link-type: ref
 :text-align: center
