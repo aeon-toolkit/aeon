@@ -8,13 +8,13 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances._bounding_matrix import create_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -78,7 +78,6 @@ class _EdrDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.            If epsilon is not a float.
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
@@ -156,7 +155,7 @@ class _EdrDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.            If epsilon is not a float.
+          If
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 

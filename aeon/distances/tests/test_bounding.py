@@ -10,6 +10,7 @@ def test_full_bounding():
     matrix = create_bounding_matrix(10, 10)
     assert np.all(matrix)
 
+
 def test_window_bounding():
     matrix = create_bounding_matrix(10, 10, window=0.5)
     num_true = 0

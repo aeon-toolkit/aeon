@@ -10,6 +10,7 @@ from numba import njit
 @njit(cache=True)
 def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     """Create a bounding matrix for a elastic distance.
+
     Parameters
     ----------
     x_size: int
@@ -19,11 +20,13 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
     window: float, defaults=None
         Window size as a percentage of the smallest time series.
         If None, the bounding matrix will be full.
+
     Returns
     -------
     np.ndarray
         Bounding matrix where values in bound are True and values out of bounds are
         False.
+
     Examples
     --------
     >>> create_bounding_matrix(8, 8, window=0.5)

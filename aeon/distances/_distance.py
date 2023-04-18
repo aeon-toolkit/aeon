@@ -153,7 +153,8 @@ def edr_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -231,7 +232,8 @@ def lcss_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -306,7 +308,8 @@ def wddtw_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -390,7 +393,8 @@ def wdtw_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -470,7 +474,8 @@ def ddtw_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -546,7 +551,8 @@ def dtw_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -687,7 +693,8 @@ def twe_distance(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -875,7 +882,8 @@ def dtw_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -954,7 +962,8 @@ def wdtw_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1032,7 +1041,8 @@ def ddtw_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1118,7 +1128,8 @@ def wddtw_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1195,7 +1206,8 @@ def edr_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1266,7 +1278,8 @@ def erp_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1341,7 +1354,8 @@ def lcss_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
@@ -1490,7 +1504,8 @@ def twe_alignment_path(
     Raises
     ------
     ValueError
-        If the sakoe_chiba_window_radius is not a float.        If the value of x or y provided is not a numpy array.
+        If the sakoe_chiba_window_radius is not a float.
+        If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from

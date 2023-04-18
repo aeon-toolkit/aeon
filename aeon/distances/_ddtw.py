@@ -9,6 +9,7 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances._dtw import _cost_matrix
 from aeon.distances._numba_utils import is_no_python_compiled_callable
@@ -17,7 +18,6 @@ from aeon.distances.base import (
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances._bounding_matrix import create_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -129,7 +129,7 @@ class _DdtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.            If the compute derivative callable is not no_python compiled.
+            If the compute derivative callable is not no_python compiled.
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
@@ -207,7 +207,7 @@ class _DdtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.            If the compute derivative callable is not no_python compiled.
+            If the compute derivative callable is not no_python compiled.
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
         if not is_no_python_compiled_callable(compute_derivative):
