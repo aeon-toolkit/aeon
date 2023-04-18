@@ -342,5 +342,7 @@ def wdtw_alignment_path(
     """
     bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
     cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
-    return compute_min_return_path(cost_matrix), \
-        cost_matrix[x.shape[1] - 1, y.shape[1] - 1]
+    return (
+        compute_min_return_path(cost_matrix),
+        cost_matrix[x.shape[1] - 1, y.shape[1] - 1],
+    )

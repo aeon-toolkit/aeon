@@ -238,7 +238,7 @@ def pairwise_distance(X: np.ndarray, metric: str, **kwargs):
 
 
 def distance_from_single_to_multiple(
-        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between a single time series and multiple.
 
@@ -293,7 +293,7 @@ def distance_from_single_to_multiple(
 
 
 def distance_from_multiple_to_multiple(
-        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ):
     """Compute the distance between two sets of time series.
 
@@ -352,7 +352,7 @@ def distance_from_multiple_to_multiple(
 
 
 def cost_matrix(
-        x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
+    x: np.ndarray, y: np.ndarray, metric: MetricCallableType, **kwargs
 ) -> np.ndarray:
     """Compute the cost matrix between two time series.
 
@@ -408,7 +408,7 @@ def cost_matrix(
 
 
 def alignment_path(
-        x: np.ndarray, y: np.ndarray, metric: str, **kwargs
+    x: np.ndarray, y: np.ndarray, metric: str, **kwargs
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path between two time series.
 

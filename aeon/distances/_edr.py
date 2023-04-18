@@ -332,5 +332,6 @@ def edr_alignment_path(
     cost_matrix = _edr_cost_matrix(x, y, bounding_matrix, epsilon)
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), \
-        float(cost_matrix[x_size - 1, y_size - 1] / max(x_size, y_size))
+    return compute_min_return_path(cost_matrix), float(
+        cost_matrix[x_size - 1, y_size - 1] / max(x_size, y_size)
+    )
