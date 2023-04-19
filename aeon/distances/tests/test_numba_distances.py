@@ -7,6 +7,7 @@ from typing import Callable
 
 import numpy as np
 import pytest
+from numba import njit
 from numpy.testing import assert_almost_equal
 
 from aeon.distances._distance import _METRIC_INFOS, distance, distance_factory
@@ -17,7 +18,6 @@ from aeon.distances.tests._shared_tests import (
     _test_metric_parameters,
 )
 from aeon.distances.tests._utils import create_test_distance_numpy
-from numba import njit
 
 _ran_once = False
 
@@ -90,8 +90,9 @@ def _validate_distance_result(
             assert isinstance(metric_numba_class_result, float), (
                 f"The result for a distance using the NumbaDistance class: "
                 f'{distance_numba_class} as the "metric" parameter should return a '
-                f'float. '
-                f"The return type provided is of type {type(metric_numba_class_result)}."
+                f"float. "
+                f"The return type provided is of type "
+                f"{type(metric_numba_class_result)}."
             )
 
         assert isinstance(distance_func_result, float), (
@@ -112,10 +113,10 @@ def _validate_distance_result(
         if distance_numba_class is not None:
             assert metric_str_result == metric_numba_class_result, (
                 f'The result of using the string: {metric_str} as the "metric" '
-                f'parameter'
+                f"parameter"
                 f"result does not equal the result of using a NumbaDistance class: "
                 f'{distance_numba_class} as the "metric" parameter. These results '
-                f'should be equal. '
+                f"should be equal. "
                 f"The result of the distance calculation where metric={metric_str} is "
                 f"{metric_str_result}. The result of the distance calculation where "
                 f"metric={distance_numba_class} is {metric_numba_class_result}."
@@ -168,9 +169,11 @@ def test_distance(dist: MetricInfo) -> None:
     if distance_numba_class is not None and not isinstance(distance_numba_class, str):
         distance_factory = distance_numba_class.distance_factory
     else:
+
         @njit()
         def _dist_factory(x, y):
             return dist.dist_func
+
         distance_factory = _dist_factory
 
     _validate_distance_result(

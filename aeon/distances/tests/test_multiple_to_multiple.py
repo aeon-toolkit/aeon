@@ -1,15 +1,17 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
-from aeon.distances.tests.test_new_distances import DISTANCES
+
 from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
+from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_multiple_to_multiple_result(
-        x,
-        y,
-        name,  # This will be used in a later pr
-        distance,
-        multiple_to_multiple_distance,
+    x,
+    y,
+    name,  # This will be used in a later pr
+    distance,
+    multiple_to_multiple_distance,
 ):
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 

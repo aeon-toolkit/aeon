@@ -17,10 +17,10 @@ from aeon.distances import (
     euclidean_distance,
     lcss_distance,
     msm_distance,
+    squared_distance,
     twe_distance,
     wddtw_distance,
     wdtw_distance,
-    squared_distance
 )
 
 distances = [

@@ -132,8 +132,6 @@ def _validate_pairwise_result(
         f"metric={distance_numba_class} is {metric_numba_class_result}."
     )
 
-    print(metric_str_result)
-    print(metric_dist_func_result)
     assert np.array_equal(metric_str_result, metric_dist_func_result), (
         f'The result of using the string: {metric_str} as the "metric" parameter'
         f"result does not equal the result of using a NumbaDistance class: "

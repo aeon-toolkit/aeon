@@ -1,14 +1,16 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
-from aeon.distances.tests.test_new_distances import DISTANCES
+
 from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
+from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_pairwise_result(
-        x,
-        name,  # This will be used in a later pr
-        distance,
-        pairwise_distance,
+    x,
+    name,  # This will be used in a later pr
+    distance,
+    pairwise_distance,
 ):
     multiple_to_multiple_result = pairwise_distance(x)
 
@@ -32,7 +34,6 @@ def _validate_pairwise_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
-
     _validate_pairwise_result(
         create_test_distance_numpy(5, 5),
         dist["name"],

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder"]
 
-import os
 import numpy as np
 from numba import generated_jit, njit
 
-from aeon.distances._squared import squared_distance, _univariate_squared_distance
+from aeon.distances._squared import squared_distance
 from aeon.distances.tests._utils import debug_generated_jit_distance_function
 
 
@@ -47,6 +46,7 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     elif x.ndim == 2 or y.ndim == 2:
         return _euclidean_distance
     elif x.ndim == 3 and y.ndim == 3:
+
         def _distance(x, y):
             distance = 0
             for curr_x, curr_y in zip(x, y):
@@ -55,8 +55,9 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
         return _distance
     else:
-        raise ValueError("x and y must be 1D, 2D or 3D and both must have the same"
-                         "number of dims")
+        raise ValueError(
+            "x and y must be 1D, 2D or 3D and both must have the same" "number of dims"
+        )
 
 
 @njit(cache=True)
@@ -93,6 +94,7 @@ def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
     if X.ndim == 3:
         return _euclidean_pairwise_distance
     elif X.ndim == 2:
+
         def _distance(X):
             X = X.reshape((X.shape[1], 1, X.shape[0]))
             return _euclidean_pairwise_distance(X)
@@ -120,7 +122,7 @@ def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
 @debug_generated_jit_distance_function
 @generated_jit(cache=True)
 def euclidean_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the euclidean distance between a single time series and multiple.
 
@@ -150,6 +152,7 @@ def euclidean_from_single_to_multiple_distance(
     if y.ndim == 3 and x.ndim == 2:
         return _euclidean_from_single_to_multiple_distance
     elif y.ndim == 2 and x.ndim == 1:
+
         def _distance(x, y):
             x = x.reshape((1, x.shape[0]))
             y = y.reshape((y.shape[0], 1, y.shape[1]))
@@ -162,7 +165,7 @@ def euclidean_from_single_to_multiple_distance(
 
 @njit(cache=True)
 def _euclidean_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -176,7 +179,7 @@ def _euclidean_from_single_to_multiple_distance(
 @debug_generated_jit_distance_function
 @generated_jit(cache=True)
 def euclidean_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the euclidean distance between two sets of time series.
 
@@ -208,6 +211,7 @@ def euclidean_from_multiple_to_multiple_distance(
     if y.ndim == 3 and x.ndim == 3:
         return _euclidean_from_multiple_to_multiple_distance
     elif y.ndim == 2 and x.ndim == 2:
+
         def _distance(x, y):
             x = x.reshape((x.shape[0], 1, x.shape[1]))
             y = y.reshape((y.shape[0], 1, y.shape[1]))
@@ -215,6 +219,7 @@ def euclidean_from_multiple_to_multiple_distance(
 
         return _distance
     elif y.ndim == 1 and x.ndim == 1:
+
         def _distance(x, y):
             x = x.reshape((x.shape[0], 1, 1))
             y = y.reshape((x.shape[0], 1, 1))
@@ -227,7 +232,7 @@ def euclidean_from_multiple_to_multiple_distance(
 
 @njit(cache=True)
 def _euclidean_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]

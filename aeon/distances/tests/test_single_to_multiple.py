@@ -1,21 +1,18 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
+
+from aeon.distances.tests._utils import create_test_distance_numpy
 from aeon.distances.tests.test_new_distances import DISTANCES
-from aeon.distances.tests._utils import (
-    create_test_distance_numpy
-)
 
 
 def _validate_single_to_multiple_result(
-        x,
-        y,
-        name,  # This will be used in a later pr
-        distance,
-        single_to_multiple_distance,
+    x,
+    y,
+    name,  # This will be used in a later pr
+    distance,
+    single_to_multiple_distance,
 ):
-    # distance = _test_generated_jit_distance_function(distance)
-    # single_to_multiple_distance = _test_generated_jit_distance_function(single_to_multiple_distance)
-
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)

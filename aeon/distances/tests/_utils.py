@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import time
 import os
+import time
 from typing import Callable
+
 import numpy as np
 
 from aeon.datatypes import convert_to
@@ -10,10 +11,10 @@ from aeon.utils._testing.series import _make_series
 
 
 def create_test_distance_numpy(
-        n_instance: int,
-        n_columns: int = None,
-        n_timepoints: int = None,
-        random_state: int = 1,
+    n_instance: int,
+    n_columns: int = None,
+    n_timepoints: int = None,
+    random_state: int = 1,
 ):
     """Create a test numpy distance.
 
@@ -141,6 +142,7 @@ def debug_generated_jit_distance_function(func):
         The function that is wrapped if numba isnt active.
     """
     if "NUMBA_DISABLE_JIT" in os.environ and os.environ["NUMBA_DISABLE_JIT"] == "1":
+
         def dist_callable(x, y):
             inner_callable = func(x, y)
             return inner_callable(x, y)
