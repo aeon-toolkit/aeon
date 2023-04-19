@@ -2,10 +2,12 @@
 __author__ = ["chrisholder"]
 
 import numpy as np
-from numba import njit
+from numba import generated_jit, njit
+from aeon.distances.tests._utils import debug_generated_jit_distance_function
 
 
-@njit(cache=True)
+@debug_generated_jit_distance_function
+@generated_jit(cache=True)
 def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the squared distance between two time series.
 
@@ -16,7 +18,8 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray of shape (n_timepoints) or (n_channels, n_timepoints) or
+        (n_instances, n_channels, n_timepoints)
         First time series.
     y: np.ndarray (n_channels, n_timepoints)
         Second time series.
@@ -35,14 +38,33 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     >>> squared_distance(x, y)
     0.0
     """
+    if x.ndim == 1 and y.ndim == 1:
+        return _univariate_squared_distance
+    elif x.ndim == 2 or y.ndim == 2:
+        return _squared_distance
+    elif x.ndim == 3 and y.ndim == 3:
+        def _distance(x, y):
+            distance = 0
+            for curr_x, curr_y in zip(x, y):
+                distance += _squared_distance(curr_x, curr_y)
+            return distance
+
+        return _distance
+    else:
+        raise ValueError("x and y must be 1D, 2D or 3D and both must have the same"
+                         "number of dims")
+
+
+@njit(cache=True)
+def _squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     distance = 0.0
     for i in range(x.shape[0]):
-        distance += univariate_squared_distance(x[i], y[i])
+        distance += _univariate_squared_distance(x[i], y[i])
     return distance
 
 
 @njit(cache=True)
-def univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
+def _univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     """Compute the squared distance between two time series.
 
     Parameters
@@ -65,13 +87,15 @@ def univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
-@njit(cache=True)
+@debug_generated_jit_distance_function
+@generated_jit(cache=True)
 def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     """Compute the squared pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_channels, n_timepoints)
+    X: np.ndarray of shape (n_instances, n_channels, n_timepoints) or
+        (n_instances, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -89,6 +113,21 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
            [ 28.,   0.,  27.],
            [109.,  27.,   0.]])
     """
+    if X.ndim == 3:
+        return _squared_pairwise_distance
+    elif X.ndim == 2:
+        def _distance(X):
+            X = X.reshape((X.shape[1], 1, X.shape[0]))
+            return _squared_pairwise_distance(X)
+
+        return _distance
+    else:
+        raise ValueError("X must be either 2 or 3 dimensional")
+
+
+@debug_generated_jit_distance_function
+@njit(cache=True)
+def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
 
@@ -100,17 +139,19 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     return distances
 
 
-@njit(cache=True)
+@debug_generated_jit_distance_function
+@generated_jit(cache=True)
 def squared_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray
+        x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the squared distance between a single time series and multiple.
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray of shape (n_channels, n_timepoints) or (n_timepoints)
         Single time series.
-    y: np.ndarray (n_instances, n_channels, n_timepoints)
+    y: np.ndarray of shape (n_instances, n_channels, n_timepoints) or
+        (n_instances, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -128,6 +169,23 @@ def squared_from_single_to_multiple_distance(
     >>> squared_from_single_to_multiple_distance(x, y)
     array([  4.,  36., 117.])
     """
+    if y.ndim == 3 and x.ndim == 2:
+        return _squared_from_single_to_multiple_distance
+    elif y.ndim == 2 and x.ndim == 1:
+        def _distance(x, y):
+            x = x.reshape((1, x.shape[0]))
+            y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _squared_from_single_to_multiple_distance(x, y)
+
+        return _distance
+    else:
+        raise ValueError("x must be 1D or 2D and y must be 2D or 3D")
+
+
+@njit(cache=True)
+def _squared_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray
+) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
 
@@ -137,9 +195,10 @@ def squared_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@debug_generated_jit_distance_function
+@generated_jit(cache=True)
 def squared_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray
+        x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     """Compute the squared distance between two sets of time series.
 
@@ -168,6 +227,30 @@ def squared_from_multiple_to_multiple_distance(
            [196., 364., 508.],
            [448., 588., 444.]])
     """
+    if y.ndim == 3 and x.ndim == 3:
+        return _squared_from_multiple_to_multiple_distance
+    elif y.ndim == 2 and x.ndim == 2:
+        def _distance(x, y):
+            x = x.reshape((x.shape[0], 1, x.shape[1]))
+            y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _squared_from_multiple_to_multiple_distance(x, y)
+
+        return _distance
+    elif y.ndim == 1 and x.ndim == 1:
+        def _distance(x, y):
+            x = x.reshape((x.shape[0], 1, 1))
+            y = y.reshape((x.shape[0], 1, 1))
+            return _squared_from_multiple_to_multiple_distance(x, y)
+
+        return _distance
+    else:
+        raise ValueError("x and y must be 1D, 2D or 3D")
+
+
+@njit(cache=True)
+def _squared_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray
+) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))

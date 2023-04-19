@@ -21,13 +21,13 @@ DISTANCES = [
         "single_to_multiple_distance": euclidean_from_single_to_multiple_distance,
         "multiple_to_multiple_distance": euclidean_from_multiple_to_multiple_distance,
     },
-    # {
-    #     "name": "squared",
-    #     "distance": squared_distance,
-    #     "pairwise_distance": squared_pairwise_distance,
-    #     "single_to_multiple_distance": squared_from_single_to_multiple_distance,
-    #     "multiple_to_multiple_distance": squared_from_multiple_to_multiple_distance,
-    # }
+    {
+        "name": "squared",
+        "distance": squared_distance,
+        "pairwise_distance": squared_pairwise_distance,
+        "single_to_multiple_distance": squared_from_single_to_multiple_distance,
+        "multiple_to_multiple_distance": squared_from_multiple_to_multiple_distance,
+    }
 ]
 
 

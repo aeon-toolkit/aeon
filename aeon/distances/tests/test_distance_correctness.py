@@ -20,6 +20,7 @@ from aeon.distances import (
     twe_distance,
     wddtw_distance,
     wdtw_distance,
+    squared_distance
 )
 
 distances = [
@@ -48,6 +49,7 @@ distance_parameters = {
 }
 unit_test_distances = {
     "euclidean": 619.7959,
+    "squared": 384147.0,
     "dtw": [384147.0, 315012.0, 275854.0],
     "wdtw": [137927.0, 68406.15849, 2.2296],
     "msm": [1515.0, 1516.4, 1529.0],
@@ -60,6 +62,7 @@ unit_test_distances = {
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
+    "squared": 757.25971908652,
     "dtw": [757.259719, 330.834497, 330.834497],
     "wdtw": [165.41724, 3.308425, 0],
     "msm": [70.014828, 89.814828, 268.014828],
@@ -79,6 +82,8 @@ def test_multivariate_correctness():
     case2 = trainX[1]
     d = euclidean_distance(case1, case2)
     assert_almost_equal(d, basic_motions_distances["euclidean"], 4)
+    d = squared_distance(case1, case2)
+    assert_almost_equal(d, basic_motions_distances["squared"], 4)
     twe_mult = []
     for j in range(0, 3):
         d = dtw_distance(case1, case2, window=distance_parameters["dtw"][j])
@@ -111,6 +116,10 @@ def test_univariate_correctness():
     d = euclidean_distance(cases1[0], cases2[0])
     d2 = euclidean_distance(cases1[1], cases2[1])
     assert_almost_equal(d, unit_test_distances["euclidean"], 4)
+    assert d == d2
+    d = squared_distance(cases1[0], cases2[0])
+    d2 = squared_distance(cases1[1], cases2[1])
+    assert_almost_equal(d, unit_test_distances["squared"], 4)
     assert d == d2
     twe_uni = []
     for j in range(0, 3):
