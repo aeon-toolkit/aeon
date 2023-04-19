@@ -1,9 +1,9 @@
 # This Dockerfile is used to build aeon when launching binder.
 # Find out more at: https://mybinder.readthedocs.io/en/latest/index.html
 
-# Load jupyter python 3.10 image
-# 3.10 is the highest currently supported version we can use
-FROM jupyter/scipy-notebook:python-3.9.7
+# Load jupyter python 3.9 image
+# 3.9 is the highest currently supported version we can use
+FROM jupyter/scipy-notebook:python-3.9.13
 
 # Set up user to avoid running as root
 ARG NB_USER=user
