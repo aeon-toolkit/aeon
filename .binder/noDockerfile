@@ -3,7 +3,8 @@
 
 # Load jupyter python 3.8 image
 # 3.8 is the highest currently supported version we can use
-FROM  jupyter/scipy-notebook:python-3.8.8
+FROM jupyter/scipy-notebook:python-3.8.8
+
 # Set up user to avoid running as root
 ARG NB_USER
 ARG NB_UID
@@ -21,4 +22,5 @@ USER ${USER}
 WORKDIR ${HOME}
 
 # Install extra requirements and aeon based on master branch
-RUN pip install --upgrade pip --no-cache-dir && pip install .[binder]
+RUN pip install --upgrade pip --no-cache-dir
+RUN pip install .[all_extras,binder] --ignore installed
