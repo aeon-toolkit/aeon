@@ -12,7 +12,7 @@ def test_full_bounding():
 
 
 def test_window_bounding():
-    matrix = create_bounding_matrix(5, 5, window=0.2)
+    matrix = create_bounding_matrix(10, 10, window=0.2)
     num_true = 0
     num_false = 0
     for row in matrix:
@@ -22,5 +22,5 @@ def test_window_bounding():
             else:
                 num_false += 1
 
-    assert num_true == 80
-    assert num_false == 20
+    assert num_true == 44
+    assert num_false == 56
