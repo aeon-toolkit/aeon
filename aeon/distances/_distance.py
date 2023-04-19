@@ -10,6 +10,10 @@ from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_s
 from aeon.distances._dtw import _DtwDistance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
+from aeon.distances._euclidean import (
+    euclidean_distance,
+    euclidean_from_multiple_to_multiple_distance,
+)
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -22,6 +26,10 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
+from aeon.distances._squared import (
+    squared_distance,
+    squared_from_multiple_to_multiple_distance,
+)
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import _WdtwDistance
@@ -32,24 +40,14 @@ from aeon.distances.base import (
     MetricInfo,
     NumbaDistance,
 )
-from aeon.distances._squared import (
-    squared_distance, squared_pairwise_distance,
-    squared_from_single_to_multiple_distance,
-    squared_from_multiple_to_multiple_distance
-)
-from aeon.distances._euclidean import (
-    euclidean_distance, euclidean_pairwise_distance,
-    euclidean_from_single_to_multiple_distance,
-    euclidean_from_multiple_to_multiple_distance
-)
 
 
 def erp_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        g: float = 0.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    g: float = 0.0,
+    **kwargs: Any,
 ) -> float:
     """Compute the Edit distance for real penalty (ERP) distance between two series.
 
@@ -118,11 +116,11 @@ def erp_distance(
 
 
 def edr_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        epsilon: float = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    epsilon: float = None,
+    **kwargs: Any,
 ) -> float:
     """Compute the Edit distance for real sequences (EDR) between two series.
 
@@ -198,11 +196,11 @@ def edr_distance(
 
 
 def lcss_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        epsilon: float = 1.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    epsilon: float = 1.0,
+    **kwargs: Any,
 ) -> float:
     """Compute the longest common subsequence (LCSS) score between two time series.
 
@@ -264,12 +262,12 @@ def lcss_distance(
 
 
 def wddtw_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
-        g: float = 0.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    compute_derivative: DerivativeCallable = average_of_slope,
+    g: float = 0.0,
+    **kwargs: Any,
 ) -> float:
     r"""Compute the weighted derivative dynamic time warping (WDDTW) distance.
 
@@ -354,11 +352,11 @@ def wddtw_distance(
 
 
 def wdtw_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        g: float = 0.05,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    g: float = 0.05,
+    **kwargs: Any,
 ) -> float:
     """Compute the weighted dynamic time warping (WDTW) distance between time series.
 
@@ -436,11 +434,11 @@ def wdtw_distance(
 
 
 def ddtw_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    compute_derivative: DerivativeCallable = average_of_slope,
+    **kwargs: Any,
 ) -> float:
     r"""Compute the derivative dynamic time warping (DDTW) distance between time series.
 
@@ -520,10 +518,10 @@ def ddtw_distance(
 
 
 def dtw_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    **kwargs: Any,
 ) -> float:
     r"""Compute the dynamic time warping (DTW) distance between two time series.
 
@@ -595,11 +593,11 @@ def dtw_distance(
 
 
 def msm_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        c: float = 1.0,
-        window: float = None,
-        **kwargs: dict,
+    x: np.ndarray,
+    y: np.ndarray,
+    c: float = 1.0,
+    window: float = None,
+    **kwargs: dict,
 ) -> float:
     """Compute the move-split-merge distance.
 
@@ -656,13 +654,13 @@ def msm_distance(
 
 
 def twe_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: Union[float, None] = None,
-        lmbda: float = 1.0,
-        nu: float = 0.001,
-        p: int = 2,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Union[float, None] = None,
+    lmbda: float = 1.0,
+    nu: float = 0.001,
+    p: int = 2,
+    **kwargs: Any,
 ) -> float:
     """Time Warp Edit (TWE) distance between two time series.
 
@@ -740,11 +738,11 @@ def twe_distance(
 
 
 def dtw_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     r"""Compute the dynamic time warping (DTW) alignment path.
 
@@ -812,12 +810,12 @@ def dtw_alignment_path(
 
 
 def wdtw_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        g: float = 0.05,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    g: float = 0.05,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Compute the weighted dynamic time warping (wdtw) alignment path.
 
@@ -892,12 +890,12 @@ def wdtw_alignment_path(
 
 
 def ddtw_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    compute_derivative: DerivativeCallable = average_of_slope,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     r"""Compute the derivative dynamic time warping (DDTW) alignment path.
 
@@ -973,13 +971,13 @@ def ddtw_alignment_path(
 
 
 def wddtw_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
-        g: float = 0.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    compute_derivative: DerivativeCallable = average_of_slope,
+    g: float = 0.0,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     r"""Compute the weighted derivative dynamic time warping (WDDTW) alignment path.
 
@@ -1061,12 +1059,12 @@ def wddtw_alignment_path(
 
 
 def edr_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        epsilon: float = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    epsilon: float = None,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Compute the Edit distance for real sequences (EDR) alignment path.
 
@@ -1138,12 +1136,12 @@ def edr_alignment_path(
 
 
 def erp_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        g: float = 0.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    g: float = 0.0,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Compute the Edit distance for real penalty (ERP) alignment path.
 
@@ -1209,12 +1207,12 @@ def erp_alignment_path(
 
 
 def lcss_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: Union[float, None] = None,
-        epsilon: float = 1.0,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: Union[float, None] = None,
+    epsilon: float = 1.0,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Compute the longest common subsequence (LCSS) alignment path.
 
@@ -1285,12 +1283,12 @@ def lcss_alignment_path(
 
 
 def msm_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        c: float = 1.0,
-        window: float = None,
-        **kwargs: dict,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    c: float = 1.0,
+    window: float = None,
+    **kwargs: dict,
 ) -> AlignmentPathReturn:
     """Compute the move-split-merge alignment path.
 
@@ -1356,14 +1354,14 @@ def msm_alignment_path(
 
 
 def twe_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        return_cost_matrix: bool = False,
-        window: float = None,
-        lmbda: float = 1.0,
-        nu: float = 0.001,
-        p: int = 2,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    return_cost_matrix: bool = False,
+    window: float = None,
+    lmbda: float = 1.0,
+    nu: float = 0.001,
+    p: int = 2,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Time Warp Edit (TWE) distance between two time series.
 
@@ -1440,18 +1438,17 @@ NEW_DISTANCES = ["squared", "euclidean"]
 
 
 def distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: Union[
-            str,
-            Callable[
-                [np.ndarray, np.ndarray, dict], Callable[
-                    [np.ndarray, np.ndarray], float]
-            ],
-            Callable[[np.ndarray, np.ndarray], float],
-            NumbaDistance,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: Union[
+        str,
+        Callable[
+            [np.ndarray, np.ndarray, dict], Callable[[np.ndarray, np.ndarray], float]
         ],
-        **kwargs: Any,
+        Callable[[np.ndarray, np.ndarray], float],
+        NumbaDistance,
+    ],
+    **kwargs: Any,
 ) -> float:
     """Compute the distance between two time series.
 
@@ -1535,18 +1532,17 @@ def distance(
 
 
 def distance_factory(
-        x: np.ndarray = None,
-        y: np.ndarray = None,
-        metric: Union[
-            str,
-            Callable[
-                [np.ndarray, np.ndarray, dict], Callable[
-                    [np.ndarray, np.ndarray], float]
-            ],
-            Callable[[np.ndarray, np.ndarray], float],
-            NumbaDistance,
-        ] = "euclidean",
-        **kwargs: Any,
+    x: np.ndarray = None,
+    y: np.ndarray = None,
+    metric: Union[
+        str,
+        Callable[
+            [np.ndarray, np.ndarray, dict], Callable[[np.ndarray, np.ndarray], float]
+        ],
+        Callable[[np.ndarray, np.ndarray], float],
+        NumbaDistance,
+    ] = "euclidean",
+    **kwargs: Any,
 ) -> DistanceCallable:
     """Create a no_python distance callable.
 
@@ -1618,18 +1614,17 @@ def distance_factory(
 
 
 def pairwise_distance(
-        x: np.ndarray,
-        y: np.ndarray = None,
-        metric: Union[
-            str,
-            Callable[
-                [np.ndarray, np.ndarray, dict], Callable[
-                    [np.ndarray, np.ndarray], float]
-            ],
-            Callable[[np.ndarray, np.ndarray], float],
-            NumbaDistance,
-        ] = "euclidean",
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray = None,
+    metric: Union[
+        str,
+        Callable[
+            [np.ndarray, np.ndarray, dict], Callable[[np.ndarray, np.ndarray], float]
+        ],
+        Callable[[np.ndarray, np.ndarray], float],
+        NumbaDistance,
+    ] = "euclidean",
+    **kwargs: Any,
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -1725,19 +1720,18 @@ def pairwise_distance(
 
 
 def distance_alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: Union[
-            str,
-            Callable[
-                [np.ndarray, np.ndarray, dict], Callable[
-                    [np.ndarray, np.ndarray], float]
-            ],
-            Callable[[np.ndarray, np.ndarray], float],
-            NumbaDistance,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: Union[
+        str,
+        Callable[
+            [np.ndarray, np.ndarray, dict], Callable[[np.ndarray, np.ndarray], float]
         ],
-        return_cost_matrix: bool = False,
-        **kwargs: Any,
+        Callable[[np.ndarray, np.ndarray], float],
+        NumbaDistance,
+    ],
+    return_cost_matrix: bool = False,
+    **kwargs: Any,
 ) -> AlignmentPathReturn:
     """Compute the alignment path and distance between two time series.
 
@@ -1805,19 +1799,18 @@ def distance_alignment_path(
 
 
 def distance_alignment_path_factory(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: Union[
-            str,
-            Callable[
-                [np.ndarray, np.ndarray, dict], Callable[
-                    [np.ndarray, np.ndarray], float]
-            ],
-            Callable[[np.ndarray, np.ndarray], float],
-            NumbaDistance,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: Union[
+        str,
+        Callable[
+            [np.ndarray, np.ndarray, dict], Callable[[np.ndarray, np.ndarray], float]
         ],
-        return_cost_matrix: bool = False,
-        **kwargs: Any,
+        Callable[[np.ndarray, np.ndarray], float],
+        NumbaDistance,
+    ],
+    return_cost_matrix: bool = False,
+    **kwargs: Any,
 ) -> DistanceAlignmentPathCallable:
     """Produce a distance alignment path factory numba callable.
 
