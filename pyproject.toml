@@ -94,6 +94,11 @@ dev = [
     "moto",  # mlflow related
 ]
 
+binder = [
+    "notebook",
+    "jupyterlab",
+]
+
 docs = [
     "jupyter",
     "myst-parser",

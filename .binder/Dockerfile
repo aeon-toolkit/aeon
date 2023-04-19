@@ -23,6 +23,5 @@ WORKDIR ${HOME}
 
 # Install extra requirements and aeon based on master branch
 RUN pip install --upgrade pip --no-cache-dir
-RUN pip install --no-cache-dir notebook jupyterlab
 RUN pip install llvmlite --ignore-installed
-RUN pip install .[all_extras]
+RUN pip install .[binder]
