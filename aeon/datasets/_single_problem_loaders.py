@@ -32,7 +32,7 @@ __all__ = [
     "load_acsf1",
     "load_unit_test",
     "load_uschange",
-    "load_UCR_UEA_dataset",
+    "load_TSC_dataset",
     "load_PBS_dataset",
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
@@ -48,19 +48,16 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_io import (
-    _load_dataset,
-    _load_provided_dataset,
-    load_tsf_to_dataframe,
-)
+from aeon.datasets._data_io import load_tsf_to_dataframe
+from aeon.datasets._data_loader import _load_dataset, _load_provided_dataset
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
 
 
-def load_UCR_UEA_dataset(
-    name, split=None, return_X_y=True, return_type=None, extract_path=None
+def load_TSC_dataset(
+    name, split=None, return_X_y=True, return_type="auto", extract_path=None
 ):
     """Load dataset from UCR UEA time series archive.
 
@@ -78,23 +75,21 @@ def load_UCR_UEA_dataset(
         this function will look in the extract_path first, and if it is not present,
         attempt to download the data from www.timeseriesclassification.com, saving it to
         the extract_path.
-    split : None or str{"train", "test"}, optional (default=None)
+    split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
         loads both into a single dataset, otherwise it looks only for files of the
         format <name>_TRAIN.ts or <name>_TEST.ts.
-    return_X_y : bool, optional (default=False)
+    return_X_y : bool, optional (default=True)
         it returns two objects, if False, it appends the class labels to the dataframe.
-    return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
-        Memory data format specification to return X in, None = "nested_univ" type.
-        str can be any supported aeon Panel mtype,
-            for list of mtypes, see datatypes.MTYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        commonly used specifications:
-            "nested_univ: nested pd.DataFrame, pd.Series in cells
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
-            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
-        Exception is raised if the data cannot be stored in the requested type.
+    return_type: str, default="auto""
+        valid collection data type.
+            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (n_cases, n_channels,
+            series_length)
+            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (n_cases, series_length)
+            "np-list": list of len n_cases, of  2D (n_channels, series_length)
+        If "auto" it will load numpy3D for equal length, list of 2D numpy for unequal.
+        For a list of other supported types, see datatypes.MTYPE_REGISTER
+       Exception is raised if the data cannot be stored in the requested type.
     extract_path : str, optional (default=None)
         the path to look for the data. If no path is provided, the function
         looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
@@ -102,8 +97,9 @@ def load_UCR_UEA_dataset(
 
     Returns
     -------
-    X: pd.DataFrame
-        The time series data for the problem with n_cases rows and either
+    X:  The time series data, of type return_type, or if return_type is none,
+        3D numpy for equal length (n_cases, n_channels, series_length) for
+        the problem with n_cases rows and either
         n_dimensions or n_dimensions+1 columns. Columns 1 to n_dimensions are the
         series associated with each case. If return_X_y is False, column
         n_dimensions+1 contains the class labels/target variable.
@@ -113,8 +109,8 @@ def load_UCR_UEA_dataset(
 
     Examples
     --------
-    >>> from aeon.datasets import load_UCR_UEA_dataset
-    >>> X, y = load_UCR_UEA_dataset(name="ArrowHead", return_type="numpy3d")
+    >>> from aeon.datasets import load_TSC_dataset
+    >>> X, y = load_TSC_dataset(name="ArrowHead", return_type="numpy3d")
     """
     return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
@@ -124,9 +120,10 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
 
     Parameters
     ----------
-    split: string, optional (default=None). None or one of "TRAIN", "TEST",
-         Whether to load the train or test instances of the problem. By default it
-        loads both train and test series into a single array.
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
     return_X_y: bool, optional (default=True)
         If True, returns (time series, target) separately as two arrays.
     return_type: string, optional (default="numpy3d")

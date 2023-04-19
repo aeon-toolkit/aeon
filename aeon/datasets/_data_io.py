@@ -11,7 +11,7 @@ __author__ = [
 __all__ = [
     "generate_example_long_table",
     "make_multi_index_dataframe",
-    "load_from_tsfile",
+    "load_from_tsfile_old",
     "load_from_tsfile_to_dataframe",
     "load_from_arff_to_dataframe",
     "load_from_long_to_dataframe",
@@ -37,6 +37,7 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
+from aeon.datasets._data_loader import _load_provided_dataset
 from aeon.datatypes import (
     MTYPE_LIST_HIERARCHICAL,
     MTYPE_LIST_PANEL,
@@ -154,12 +155,13 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
     return_X_y: bool, optional (default=True)
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
-    return_data_type : str, optional, default = "nested_univ"
+    return_data_type : str, optional, default = None
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d.
         "np-list": for unequal length series that cannot be storeed in numpy arrays
+        if None returns either numpy3D for equal length or  "np-list" for unequal
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
@@ -214,84 +216,6 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
     return _load_provided_dataset(
         name, split, return_X_y, return_type, local_module, local_dirname
     )
-
-
-def _load_provided_dataset(
-    name,
-    split=None,
-    return_X_y=True,
-    return_type=None,
-    local_module=MODULE,
-    local_dirname=DIRNAME,
-):
-    """Load baked in time series classification datasets (helper function).
-
-    Loads data from the provided files from aeon/datasets/data only.
-
-    Parameters
-    ----------
-    name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
-        Whether to load the train or test instances of the problem.
-        By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for features and the target.
-    return_data_type : str, optional, default = "nested_univ"
-        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
-        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
-        although we recommend numpy3d, because some transformers do not work with
-        numpy2d.
-        "nested_univ": nested pd.DataFrame, pd.Series in cells, use for unequal
-        length series. There other options, see datatypes.SCITYPE_REGISTER, but these
-        will not be supported longterm.
-    local_module: default = os.path.dirname(__file__),
-    local_dirname: default = "data"
-
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
-
-    Returns
-    -------
-    X: Data stored in specified `return_type`
-        The time series data for the problem, with n instances
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
-    """
-    if isinstance(split, str):
-        split = split.upper()
-
-    if split in ("TRAIN", "TEST"):
-        fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
-        X, y = load_from_tsfile(abspath, return_type="nested_univ")
-    # if split is None, load both train and test set
-    elif split is None:
-        fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_train, y_train = load_from_tsfile(abspath, return_type="nested_univ")
-
-        fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_test, y_test = load_from_tsfile(abspath, return_type="nested_univ")
-
-        X = pd.concat([X_train, X_test])
-        X = X.reset_index(drop=True)
-        y = np.concatenate([y_train, y_test])
-
-    else:
-        raise ValueError("Invalid `split` value =", split)
-
-    return_type = _alias_datatype_check(return_type)
-    if return_X_y:
-        X = convert(X, from_type="nested_univ", to_type=return_type)
-        return X, y
-    else:
-        X["class_val"] = pd.Series(y)
-        X = convert(X, from_type="nested_univ", to_type=return_type)
-        return X
 
 
 def _read_header(file, full_file_path_and_name):
@@ -378,7 +302,7 @@ def _read_header(file, full_file_path_and_name):
     )
 
 
-def load_from_tsfile(
+def load_from_tsfile_old(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_y=True,
