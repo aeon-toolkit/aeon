@@ -8,8 +8,6 @@ import numpy as np
 from numba import njit
 
 from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
-from aeon.distances._squared import squared_distance
-from aeon.distances._euclidean import euclidean_distance
 from aeon.distances._dtw import _DtwDistance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
@@ -1862,12 +1860,6 @@ def distance_alignment_path_factory(
 
 _METRIC_INFOS = [
     MetricInfo(
-        canonical_name="euclidean",
-        aka={"euclidean", "ed", "euclid", "pythagorean"},
-        dist_func=euclidean_distance,
-        dist_instance=None
-    ),
-    MetricInfo(
         canonical_name="erp",
         aka={"erp", "edit distance with real penalty"},
         dist_func=erp_distance,
@@ -1887,12 +1879,6 @@ _METRIC_INFOS = [
         dist_func=lcss_distance,
         dist_instance=_LcssDistance(),
         dist_alignment_path_func=lcss_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="squared",
-        aka={"squared"},
-        dist_func=squared_distance,
-        dist_instance=None
     ),
     MetricInfo(
         canonical_name="dtw",
@@ -1950,10 +1936,8 @@ ALL_DISTANCES = (
     dtw_distance,
     edr_distance,
     erp_distance,
-    euclidean_distance,
     lcss_distance,
     msm_distance,
-    squared_distance,
     wddtw_distance,
     wdtw_distance,
     twe_distance,

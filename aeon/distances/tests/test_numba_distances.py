@@ -17,6 +17,7 @@ from aeon.distances.tests._shared_tests import (
     _test_metric_parameters,
 )
 from aeon.distances.tests._utils import create_test_distance_numpy
+from numba import njit
 
 _ran_once = False
 
@@ -164,10 +165,13 @@ def test_distance(dist: MetricInfo) -> None:
     name = dist.canonical_name
     distance_numba_class = dist.dist_instance
     distance_function = dist.dist_func
-    if distance_numba_class is not None:
+    if distance_numba_class is not None and not isinstance(distance_numba_class, str):
         distance_factory = distance_numba_class.distance_factory
     else:
-        distance_factory = None
+        @njit()
+        def _dist_factory(x, y):
+            return dist.dist_func
+        distance_factory = _dist_factory
 
     _validate_distance_result(
         x=np.array([10.0]),

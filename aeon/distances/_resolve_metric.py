@@ -75,7 +75,6 @@ def _resolve_dist_instance(
 
     return numba_dist_instance
 
-
 def _resolve_metric_to_factory(
     metric: Union[str, Callable, NumbaDistance],
     x: np.ndarray,
@@ -118,6 +117,7 @@ def _resolve_metric_to_factory(
     if isinstance(metric, NumbaDistance):
         numba_dist_instance = metric
     elif isinstance(metric, str):
+
         numba_dist_instance = _resolve_str_metric(metric, known_metric_dict)
     elif callable(metric):
         if _is_distance_factory_callable(metric):
@@ -130,6 +130,7 @@ def _resolve_metric_to_factory(
                     numba_dist_instance = val.dist_instance
                     break
     else:
+        print(metric)
         raise ValueError(
             "Unable to resolve the metric with the parameters provided."
             "The metric must be a valid string, NumbaDistance or a"
