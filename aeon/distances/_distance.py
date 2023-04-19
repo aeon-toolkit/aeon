@@ -1703,15 +1703,16 @@ def pairwise_distance(
     array([[256., 576.],
            [ 58., 256.]])
     """
-    if metric in NEW_DISTANCES:
-        if metric == "squared":
-            return euclidean_from_multiple_to_multiple_distance(x, y)
-        elif metric == "euclidean":
-            return squared_from_multiple_to_multiple_distance(x, y)
+
     _x = _make_3d_series(x)
     if y is None:
         y = x
     _y = _make_3d_series(y)
+    if metric in NEW_DISTANCES:
+        if metric == "euclidean":
+            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+        elif metric == "squared":
+            return squared_from_multiple_to_multiple_distance(_x, _y)
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
         metric, _x[0], _y[0], _METRIC_INFOS, **kwargs
