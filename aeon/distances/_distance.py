@@ -1703,7 +1703,6 @@ def pairwise_distance(
     array([[256., 576.],
            [ 58., 256.]])
     """
-
     _x = _make_3d_series(x)
     if y is None:
         y = x
