@@ -43,7 +43,7 @@ class _DtwDistance(NumbaDistance):
     formulation. This can be a time consuming operation, and it is common to put a
     restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
-    The most xommon bounding strategies include the Sakoe-Chiba band [2].
+    The most common bounding strategies include the Sakoe-Chiba band [2].
 
     References
     ----------
