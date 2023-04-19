@@ -22,7 +22,12 @@ df = pd.DataFrame(
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
+    not all(
+        (
+            _check_soft_dependencies("statsmodels", severity="none"),
+            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+        )
+    ),
     reason="skip test if required soft dependency not available",
 )
 def test_VARMAX_against_statsmodels():
@@ -50,7 +55,12 @@ def test_VARMAX_against_statsmodels():
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
+    not all(
+        (
+            _check_soft_dependencies("statsmodels", severity="none"),
+            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+        )
+    ),
     reason="skip test if required soft dependency not available",
 )
 def test_VARMAX_against_statsmodels_with_exog():

@@ -135,7 +135,7 @@ class SAX(BaseTransformer):
 
             split = scipy.stats.zscore(split, axis=1)
 
-            paa = PAA(num_intervals=self.word_length)
+            paa = PAA(n_intervals=self.word_length)
             data = pd.DataFrame()
             data[0] = [pd.Series(x, dtype=np.float32) for x in split]
             patterns = paa.fit_transform(data)
