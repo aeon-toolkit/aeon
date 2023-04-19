@@ -3,7 +3,7 @@
 
 # Load jupyter python 3.10 image
 # 3.10 is the highest currently supported version we can use
-FROM jupyter/scipy-notebook:python-3.10.10
+FROM jupyter/scipy-notebook:python-3.9.9
 
 # Set up user to avoid running as root
 ARG NB_USER=user
