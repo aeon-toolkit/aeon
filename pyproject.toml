@@ -94,10 +94,6 @@ dev = [
     "moto",  # mlflow related
 ]
 
-binder = [
-    "jupyter",
-]
-
 docs = [
     "jupyter",
     "myst-parser",
