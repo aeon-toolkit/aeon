@@ -125,13 +125,13 @@ class Catch22Wrapper(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D numpy array of shape [n_instances, n_channels, n_features],
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
             input time series collection.
         y : ignored.
 
         Returns
         -------
-        c22 : numpy array of shape [n_instances, c*n_channels] where c is the
+        c22 : numpy array of shape (n_instances, c*n_channels) where c is the
              number of features requested, containing Catch22 features for X.
         """
         n_instances = X.shape[0]
