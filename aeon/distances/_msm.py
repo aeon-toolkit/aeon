@@ -9,7 +9,9 @@ from numba import njit
 from numba.core.errors import NumbaWarning
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_min_return_path
+from aeon.distances._distance_alignment_paths import (
+    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+)
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
@@ -104,7 +106,10 @@ class _MsmDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float, np.ndarray]:
                 cost_matrix = _cost_matrix(_x, _y, _bounding_matrix, c)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -115,7 +120,10 @@ class _MsmDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float]:
                 cost_matrix = _cost_matrix(_x, _y, _bounding_matrix, c)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1]
 
         return numba_msm_distance_alignment_path

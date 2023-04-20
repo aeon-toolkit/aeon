@@ -104,7 +104,7 @@ class _WddtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -117,7 +117,7 @@ class _WddtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1]
 
         return numba_wddtw_distance_alignment_path
