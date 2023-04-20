@@ -1,5 +1,5 @@
 ---
-name: "\U0001F41B Bug report"
+name: "\U0001F41B Bug report (old)"
 about: Report a bug currently impacting aeon.
 title: "[BUG]"
 labels: bug

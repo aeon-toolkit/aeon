@@ -1,7 +1,7 @@
 name: 🐛 Bug report
 description: Report a bug currently impacting aeon.
-title: "[BUG]"
-labels: ["bug", "needs triage"]
+title: "[BUG] "
+labels: ["bug"]
 
 body:
 - type: markdown

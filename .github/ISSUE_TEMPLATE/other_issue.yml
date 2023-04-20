@@ -1,0 +1,20 @@
+name: 🔧 Other issue
+description: Other issue categories do not fit. You may wish to consider a Discussion.
+title: "Please include an informative title. "
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      If the issue is governance related, please start the title with [GOV] and add the governance tag. If the issue is maintenance related (i.e. CI), please start the title with [MNT] and add the maintenance tag.
+- type: textarea
+  attributes:
+    label: Describe the issue
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Suggest a potential alternative/fix
+- type: textarea
+  attributes:
+    label: Additional context

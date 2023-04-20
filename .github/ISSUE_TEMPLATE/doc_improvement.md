@@ -1,5 +1,5 @@
 ---
-name: "\U0001F4D6 Documentation improvement"
+name: "\U0001F4D6 Documentation improvement (old)"
 about: Create a report to help us improve the aeon documentation.
 title: "[DOC]"
 labels: documentation

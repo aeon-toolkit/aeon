@@ -6,7 +6,7 @@ contact_links:
     url: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
     about: For all other questions and general chat, come chat with the aeon community on Slack!
   - name: "\u2709\uFE0F Email"
-    url: <contact@aeon-toolkit.org>
+    url: mailto:contact@aeon-toolkit.org
     about: Send an email to the aeon developers. Checked periodically.
   - name: "\u2709\uFE0F CoC Report"
     url: https://www.aeon-toolkit.org/en/latest/get_involved/code_of_conduct.html#incident-reporting-guidelines

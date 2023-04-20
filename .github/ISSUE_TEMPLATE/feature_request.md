@@ -1,5 +1,5 @@
 ---
-name: "\u2728 Feature request"
+name: "\u2728 Feature request (old)"
 about: Suggest a new algorithm or idea for aeon.
 title: "[ENH]"
 labels: enhancement
