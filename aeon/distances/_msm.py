@@ -8,13 +8,13 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances.lower_bounding import resolve_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -51,8 +51,6 @@ class _MsmDistance(NumbaDistance):
         return_cost_matrix: bool = False,
         c: float = 1.0,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         **kwargs: dict,
     ) -> DistanceAlignmentPathCallable:
         """Create a no_python compiled MSM distance path callable.
@@ -73,14 +71,6 @@ class _MsmDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         kwargs: any
             extra kwargs.
 
@@ -95,9 +85,7 @@ class _MsmDistance(NumbaDistance):
             If the input time series have more than one dimension (shape[0] > 1)
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If epsilon is not a float.
+          If
         """
         if x.shape[0] > 1 or y.shape[0] > 1:
             raise ValueError(
@@ -106,9 +94,7 @@ class _MsmDistance(NumbaDistance):
                 f"shape {y.shape[0]}"
             )
 
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if return_cost_matrix is True:
 
@@ -140,8 +126,6 @@ class _MsmDistance(NumbaDistance):
         y: np.ndarray,
         c: float = 1.0,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         **kwargs: dict,
     ) -> DistanceCallable:
         """Create a no_python compiled MSM distance callable.
@@ -160,14 +144,6 @@ class _MsmDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         kwargs: any
             extra kwargs.
 
@@ -183,8 +159,8 @@ class _MsmDistance(NumbaDistance):
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
             If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If epsilon is not a float.
+
+          If
         """
         if x.shape[0] > 1 or y.shape[0] > 1:
             raise ValueError(
@@ -192,9 +168,7 @@ class _MsmDistance(NumbaDistance):
                 f"univariate series, passed seris shape {x.shape[0]} and"
                 f"shape {y.shape[0]}"
             )
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         @njit(cache=True)
         def numba_msm_distance(
@@ -259,14 +233,14 @@ def _cost_matrix(
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 d1 = cost_matrix[i - 1, j - 1] + np.abs(x[0][i] - y[0][j])
                 d2 = cost_matrix[i - 1, j] + _cost(x[0][i], x[0][i - 1], y[0][j], c)
                 d3 = cost_matrix[i, j - 1] + _cost(y[0][j], x[0][i], y[0][j - 1], c)
                 cost_matrix[i][j] = min(d1, d2, d3)
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 d1 = cost_matrix[i - 1, j - 1] + abs(x[0, i] - y[0, j])
                 d2 = cost_matrix[i - 1, j] + _cost(x[0, i], x[0, i - 1], y[0, j], c)
                 d3 = cost_matrix[i, j - 1] + _cost(y[0, j], x[0, i], y[0, j - 1], c)
