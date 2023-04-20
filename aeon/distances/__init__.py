@@ -11,6 +11,12 @@ __all__ = [
     "euclidean_pairwise_distance",
     "euclidean_from_single_to_multiple_distance",
     "euclidean_from_multiple_to_multiple_distance",
+    "dtw_distance",
+    "dtw_pairwise_distance",
+    "dtw_from_single_to_multiple_distance",
+    "dtw_from_multiple_to_multiple_distance",
+    "dtw_cost_matrix",
+    "dtw_alignment_path",
     "distance",
     "distance_factory",
     "pairwise_distance",
@@ -75,4 +81,12 @@ from aeon.distances._squared import (
     squared_from_multiple_to_multiple_distance,
     squared_from_single_to_multiple_distance,
     squared_pairwise_distance,
+)
+from aeon.distances._dtw import (
+    dtw_distance,
+    dtw_pairwise_distance,
+    dtw_from_single_to_multiple_distance,
+    dtw_from_multiple_to_multiple_distance,
+    dtw_cost_matrix,
+    dtw_alignment_path,
 )

@@ -11,7 +11,7 @@ from numba.core.errors import NumbaWarning
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._dtw import _cost_matrix
+from aeon.distances._dtw import _dtw_cost_matrix
 from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
@@ -149,7 +149,7 @@ class _DdtwDistance(NumbaDistance):
             ) -> Tuple[List, float, np.ndarray]:
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
-                cost_matrix = _cost_matrix(_x, _y, _bounding_matrix)
+                cost_matrix = _dtw_cost_matrix(_x, _y, _bounding_matrix)
                 path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1], cost_matrix
 
@@ -162,7 +162,7 @@ class _DdtwDistance(NumbaDistance):
             ) -> Tuple[List, float]:
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
-                cost_matrix = _cost_matrix(_x, _y, _bounding_matrix)
+                cost_matrix = _dtw_cost_matrix(_x, _y, _bounding_matrix)
                 path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1]
 
@@ -224,7 +224,7 @@ class _DdtwDistance(NumbaDistance):
         ) -> float:
             _x = compute_derivative(_x)
             _y = compute_derivative(_y)
-            cost_matrix = _cost_matrix(_x, _y, _bounding_matrix)
+            cost_matrix = _dtw_cost_matrix(_x, _y, _bounding_matrix)
             return cost_matrix[-1, -1]
 
         return numba_ddtw_distance

@@ -93,8 +93,21 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
            spoken word recognition," IEEE Transactions on Acoustics, Speech and
            Signal Processing, vol. 26(1), pp. 43--49, 1978.
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-    return _dtw_distance(x, y, bounding_matrix)
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        return _dtw_distance(_x, _y, bounding_matrix)
+    if x.ndim == 2 and y.ndim == 2:
+        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        return _dtw_distance(x, y, bounding_matrix)
+    if x.ndim == 3 and y.ndim == 3:
+        distance = 0
+        bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+        for curr_x, curr_y in zip(x, y):
+            distance += _dtw_distance(curr_x, curr_y, bounding_matrix)
+        return distance
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True)
@@ -134,10 +147,25 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
            [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
            [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-    return _dtw_cost_matrix(x, y, bounding_matrix)
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        return _dtw_cost_matrix(_x, _y, bounding_matrix)
+    if x.ndim == 2 and y.ndim == 2:
+        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        return _dtw_cost_matrix(x, y, bounding_matrix)
+    if x.ndim == 3 and y.ndim == 3:
+        bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+        cost_matrix = np.zeros((x.shape[2], y.shape[2]))
+        for curr_x, curr_y in zip(x, y):
+            cost_matrix = np.add(
+                cost_matrix, _dtw_distance(curr_x, curr_y, bounding_matrix)
+            )
+        return cost_matrix
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
-
+# TODO: add dtw to the new tests and additional add a new test for cost matrix calls
 @njit(cache=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
@@ -145,7 +173,7 @@ def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> 
 
 @njit(cache=True)
 def _dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -155,7 +183,7 @@ def _dtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
-                cost_matrix[i + 1, j + 1] = univariate_squared_distance(
+                cost_matrix[i + 1, j + 1] = _univariate_squared_distance(
                     x[:, i], y[:, j]
                 ) + min(
                     cost_matrix[i, j + 1],
@@ -193,6 +221,10 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
            [ 26.,   0.,  26.],
            [108.,  26.,   0.]])
     """
+
+@njit(cache=True)
+def _dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
+
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -207,7 +239,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 @njit(cache=True)
 def dtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between a single time series and multiple.
 
@@ -247,7 +279,7 @@ def dtw_from_single_to_multiple_distance(
 
 @njit(cache=True)
 def dtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between two sets of time series.
 
@@ -292,7 +324,7 @@ def dtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True)
 def dtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the dtw alignment path between two time series.
 
