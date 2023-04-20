@@ -83,7 +83,7 @@ class Catch22(BaseTransformer):
     >>> import numpy as np
     >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
     >>> c22 = Catch22(replace_nans=True)
-    >>> c22.fit_transform(data)
+    >>> result = c22.fit_transform(data)
     """
 
     _tags = {
