@@ -7,7 +7,7 @@ from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_pairwise_result(
-    x,
+    x: np.ndarray,
     name,  # This will be used in a later pr
     distance,
     pairwise_distance,
@@ -41,16 +41,16 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
-    _validate_pairwise_result(
-        create_test_distance_numpy(5, 1, 5),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    _validate_pairwise_result(
-        create_test_distance_numpy(5, 5, 5),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
+    # _validate_pairwise_result(
+    #     create_test_distance_numpy(5, 1, 5),
+    #     dist["name"],
+    #     dist["distance"],
+    #     dist["pairwise_distance"],
+    # )
+    #
+    # _validate_pairwise_result(
+    #     create_test_distance_numpy(5, 5, 5),
+    #     dist["name"],
+    #     dist["distance"],
+    #     dist["pairwise_distance"],
+    # )

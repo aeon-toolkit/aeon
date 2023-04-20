@@ -2,27 +2,23 @@
 __author__ = ["chrisholder"]
 
 import numpy as np
-from numba import generated_jit, njit
+from numba import njit
 
-from aeon.distances._squared import squared_distance
-from aeon.distances.tests._utils import debug_generated_jit_distance_function
+from aeon.distances._squared import _univariate_squared_distance, squared_distance
 
 
-@debug_generated_jit_distance_function
-@generated_jit(cache=True)
+@njit(cache=True)
 def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the euclidean distance between two time series.
 
     The Euclidean distance between two time series of length m is the square root of
     the squared distance and is defined as:
-
     .. math::
         ed(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
 
     Parameters
     ----------
-    x: np.ndarray of shape (n_timepoints) or (n_channels, n_timepoints) or
-        (n_instances, n_channels, n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         First time series.
     y: np.ndarray (n_channels, n_timepoints)
         Second time series.
@@ -42,22 +38,15 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     0.0
     """
     if x.ndim == 1 and y.ndim == 1:
-        return _euclidean_distance
-    elif x.ndim == 2 or y.ndim == 2:
-        return _euclidean_distance
-    elif x.ndim == 3 and y.ndim == 3:
-
-        def _distance(x, y):
-            distance = 0
-            for curr_x, curr_y in zip(x, y):
-                distance += _euclidean_distance(curr_x, curr_y)
-            return distance
-
-        return _distance
-    else:
-        raise ValueError(
-            "x and y must be 1D, 2D or 3D and both must have the same" "number of dims"
-        )
+        return _univariate_euclidean_distance(x, y)
+    if x.ndim == 2 and y.ndim == 2:
+        return _euclidean_distance(x, y)
+    if x.ndim == 3 and y.ndim == 3:
+        distance = 0
+        for curr_x, curr_y in zip(x, y):
+            distance += _euclidean_distance(curr_x, curr_y)
+        return distance
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True)
@@ -65,15 +54,18 @@ def _euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     return np.sqrt(squared_distance(x, y))
 
 
-@debug_generated_jit_distance_function
-@generated_jit(cache=True)
+@njit(cache=True)
+def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
+    return np.sqrt(_univariate_squared_distance(x, y))
+
+
+@njit(cache=True)
 def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
     """Compute the euclidean pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X: np.ndarray of shape (n_instances, n_channels, n_timepoints) or
-        (n_instances, n_timepoints)
+    X: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -92,22 +84,16 @@ def euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
            [10.44030651,  5.19615242,  0.        ]])
     """
     if X.ndim == 3:
-        return _euclidean_pairwise_distance
-    elif X.ndim == 2:
+        return _euclidean_pairwise_distance(X)
+    if X.ndim == 2:
+        _X = X.reshape((X.shape[1], 1, X.shape[0]))
+        return _euclidean_pairwise_distance(_X)
 
-        def _distance(X):
-            X = X.reshape((X.shape[1], 1, X.shape[0]))
-            return _euclidean_pairwise_distance(X)
-
-        return _distance
-    else:
-        raise ValueError("X must be either 2 or 3 dimensional")
+    raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True)
 def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    if X.ndim == 2:
-        X = X.reshape((X.shape[1], 1, X.shape[0]))
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
 
@@ -119,8 +105,7 @@ def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
     return distances
 
 
-@debug_generated_jit_distance_function
-@generated_jit(cache=True)
+@njit(cache=True)
 def euclidean_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
@@ -128,10 +113,9 @@ def euclidean_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray of shape (n_channels, n_timepoints) or (n_timepoints)
+    x: np.ndarray (n_channels, n_timepoints)
         Single time series.
-    y: np.ndarray of shape (n_instances, n_channels, n_timepoints) or
-        (n_instances, n_timepoints)
+    y: np.ndarray (n_instances, n_channels, n_timepoints)
         A collection of time series instances.
 
     Returns
@@ -150,17 +134,13 @@ def euclidean_from_single_to_multiple_distance(
     array([ 2.        ,  6.        , 10.81665383])
     """
     if y.ndim == 3 and x.ndim == 2:
-        return _euclidean_from_single_to_multiple_distance
-    elif y.ndim == 2 and x.ndim == 1:
-
-        def _distance(x, y):
-            x = x.reshape((1, x.shape[0]))
-            y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _euclidean_from_single_to_multiple_distance(x, y)
-
-        return _distance
+        return _euclidean_from_single_to_multiple_distance(x, y)
+    if y.ndim == 2 and x.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((y.shape[0], 1, y.shape[1]))
+        return _euclidean_from_single_to_multiple_distance(_x, _y)
     else:
-        raise ValueError("x must be 1D or 2D and y must be 2D or 3D")
+        raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True)
@@ -176,8 +156,7 @@ def _euclidean_from_single_to_multiple_distance(
     return distances
 
 
-@debug_generated_jit_distance_function
-@generated_jit(cache=True)
+@njit(cache=True)
 def euclidean_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
@@ -209,25 +188,16 @@ def euclidean_from_multiple_to_multiple_distance(
            [21.16601049, 24.24871131, 21.07130751]])
     """
     if y.ndim == 3 and x.ndim == 3:
-        return _euclidean_from_multiple_to_multiple_distance
-    elif y.ndim == 2 and x.ndim == 2:
-
-        def _distance(x, y):
-            x = x.reshape((x.shape[0], 1, x.shape[1]))
-            y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _euclidean_from_multiple_to_multiple_distance(x, y)
-
-        return _distance
-    elif y.ndim == 1 and x.ndim == 1:
-
-        def _distance(x, y):
-            x = x.reshape((x.shape[0], 1, 1))
-            y = y.reshape((x.shape[0], 1, 1))
-            return _euclidean_from_multiple_to_multiple_distance(x, y)
-
-        return _distance
-    else:
-        raise ValueError("x and y must be 1D, 2D or 3D")
+        return _euclidean_from_multiple_to_multiple_distance(x, y)
+    if y.ndim == 2 and x.ndim == 2:
+        _x = x.reshape((x.shape[0], 1, x.shape[1]))
+        _y = y.reshape((y.shape[0], 1, y.shape[1]))
+        return _euclidean_from_multiple_to_multiple_distance(_x, _y)
+    if y.ndim == 1 and x.ndim == 1:
+        _x = x.reshape((x.shape[0], 1, 1))
+        _y = y.reshape((x.shape[0], 1, 1))
+        return _euclidean_from_multiple_to_multiple_distance(_x, _y)
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True)
