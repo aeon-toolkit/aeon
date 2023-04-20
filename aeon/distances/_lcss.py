@@ -9,11 +9,11 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
-from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import (
+from aeon.distances._alignment_paths import (
     _add_inf_to_out_of_bounds_cost_matrix,
     compute_lcss_return_path,
 )
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,

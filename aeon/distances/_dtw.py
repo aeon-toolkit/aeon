@@ -8,8 +8,8 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances.base import DistanceCallable, NumbaDistance
 from aeon.distances.base._types import DistanceAlignmentPathCallable
 

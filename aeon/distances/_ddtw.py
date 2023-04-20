@@ -9,8 +9,8 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances._dtw import _cost_matrix
 from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances.base import (
