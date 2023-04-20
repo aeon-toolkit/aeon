@@ -10,7 +10,8 @@ from numba.core.errors import NumbaWarning
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance_alignment_paths import (
-    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
 )
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,

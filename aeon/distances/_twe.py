@@ -10,7 +10,8 @@ from numba.core.errors import NumbaWarning
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance_alignment_paths import (
-    compute_min_return_path, _add_inf_to_out_of_bounds_cost_matrix
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
 )
 from aeon.distances.base import DistanceCallable, NumbaDistance
 
@@ -84,7 +85,9 @@ class _TweDistance(NumbaDistance):
             If the input time series do not have exactly 2 dimensions.
             If the sakoe_chiba_window_radius is not an integer.
         """
-        _bounding_matrix = create_bounding_matrix(x.shape[1] + 1, y.shape[1] + 1, window)
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
+        )
 
         if return_cost_matrix is True:
 
@@ -161,7 +164,9 @@ class _TweDistance(NumbaDistance):
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
         """
-        _bounding_matrix = create_bounding_matrix(x.shape[1] + 1, y.shape[1] + 1, window)
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
+        )
 
         @njit(cache=True)
         def numba_twe_distance(

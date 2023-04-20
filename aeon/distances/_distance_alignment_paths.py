@@ -58,11 +58,11 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
 
 @njit(cache=True)
 def compute_lcss_return_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        epsilon: float,
-        bounding_matrix: np.ndarray,
-        cost_matrix: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
+    epsilon: float,
+    bounding_matrix: np.ndarray,
+    cost_matrix: np.ndarray,
 ) -> List[Tuple]:
     """Compute the return path through a cost matrix for the LCSS algorithm.
 
@@ -103,7 +103,7 @@ def compute_lcss_return_path(
 
 @njit(cache=True)
 def _add_inf_to_out_of_bounds_cost_matrix(
-        cost_matrix: np.ndarray, bounding_matrix: np.ndarray
+    cost_matrix: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
     x_size, y_size = cost_matrix.shape
     for i in range(x_size):

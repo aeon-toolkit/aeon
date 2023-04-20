@@ -14,7 +14,6 @@ def _validate_distance_alignment_path_result(
     distance_path_callable,
     kwargs_dict: dict = None,
 ):
-
     if kwargs_dict is None:
         kwargs_dict = {}
 
