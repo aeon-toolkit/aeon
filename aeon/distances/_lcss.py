@@ -114,7 +114,7 @@ class _LcssDistance(NumbaDistance):
                 x_size = _x.shape[1]
                 y_size = _y.shape[1]
                 cost_matrix = _sequence_cost_matrix(_x, _y, _bounding_matrix, epsilon)
-                distance = 1 - float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+                distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
                 temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
                     cost_matrix,
                     _bounding_matrix
@@ -138,7 +138,7 @@ class _LcssDistance(NumbaDistance):
                 x_size = _x.shape[1]
                 y_size = _y.shape[1]
                 cost_matrix = _sequence_cost_matrix(_x, _y, _bounding_matrix, epsilon)
-                distance = 1 - float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+                distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
                 temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
                     cost_matrix,
                     _bounding_matrix

@@ -245,7 +245,7 @@ def _twe_cost_matrix(
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if bounding_matrix[i - 1, j - 1]:
+            if bounding_matrix[i, j]:
                 # Deletion in x
                 # Euclidean distance to x[:, i - 1] and y[:, i]
                 deletion_x_euclid_dist = 0
