@@ -8,8 +8,11 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import (
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
+)
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_twe_return_path
 from aeon.distances.base import DistanceCallable, NumbaDistance
 
 # Warning occurs when using large time series (i.e. 1000x1000)
@@ -82,7 +85,9 @@ class _TweDistance(NumbaDistance):
             If the input time series do not have exactly 2 dimensions.
             If the sakoe_chiba_window_radius is not an integer.
         """
-        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
+        )
 
         if return_cost_matrix is True:
 
@@ -92,7 +97,10 @@ class _TweDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float, np.ndarray]:
                 cost_matrix = _twe_cost_matrix(_x, _y, _bounding_matrix, lmbda, nu, p)
-                path = compute_twe_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -103,7 +111,10 @@ class _TweDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float]:
                 cost_matrix = _twe_cost_matrix(_x, _y, _bounding_matrix, lmbda, nu, p)
-                path = compute_twe_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1]
 
         return numba_twe_distance_alignment_path
@@ -153,9 +164,9 @@ class _TweDistance(NumbaDistance):
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
         """
-        x = pad_ts(x)
-        y = pad_ts(y)
-        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
+        )
 
         @njit(cache=True)
         def numba_twe_distance(
@@ -280,4 +291,4 @@ def _twe_cost_matrix(
 
                 # Choose the operation with the minimal cost and update DP Matrix
                 cost_matrix[i, j] = min(del_x, del_y, match)
-    return cost_matrix
+    return cost_matrix[1:, 1:]

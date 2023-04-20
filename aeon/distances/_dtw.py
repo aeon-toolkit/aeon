@@ -45,7 +45,7 @@ from numba import njit
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._squared import univariate_squared_distance
+from aeon.distances._squared import _univariate_squared_distance
 
 
 @njit(cache=True)
