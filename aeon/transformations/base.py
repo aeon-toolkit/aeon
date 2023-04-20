@@ -129,7 +129,7 @@ class BaseTransformer(BaseEstimator):
     }
 
     # allowed mtypes for transformers - Series and Panel
-    ALLOWED_INPUT_MTYPES = [
+    ALLOWED_INPUT_TYPES = [
         "pd.Series",
         "pd.DataFrame",
         "np.ndarray",
@@ -828,7 +828,7 @@ class BaseTransformer(BaseEstimator):
         y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        ALLOWED_MTYPES = self.ALLOWED_INPUT_MTYPES
+        ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
 
         # checking X
         X_valid, msg, X_metadata = check_is_scitype(
