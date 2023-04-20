@@ -1,6 +1,5 @@
 name: 🔧 Other issue
 description: Other issue categories do not fit. You may wish to consider a Discussion.
-title: "Please include an informative title. "
 
 body:
 - type: markdown
