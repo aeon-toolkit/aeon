@@ -36,7 +36,7 @@ def compute_min_return_path(
 
     for i in range(x_size):
         for j in range(y_size):
-            if not np.isfinite(bounding_matrix[i, j]):
+            if not bounding_matrix[i, j]:
                 cost_matrix[i, j] = np.inf
 
     i = x_size - 1
@@ -98,7 +98,7 @@ def compute_twe_return_path(
     x_size, y_size = cost_matrix.shape
     for i in range(x_size):
         for j in range(y_size):
-            if not np.isfinite(bounding_matrix[i, j]):
+            if not bounding_matrix[i, j]:
                 cost_matrix[i, j] = np.inf
 
     i = cost_matrix.shape[0] - 1
@@ -169,7 +169,7 @@ def compute_lcss_return_path(
     path = []
 
     while i > 0 and j > 0:
-        if np.isfinite(bounding_matrix[i - 1, j - 1]):
+        if bounding_matrix[i - 1, j - 1]:
             curr_dist = 0
             for k in range(dimensions):
                 curr_dist += (x[k][i - 1] - y[k][j - 1]) ** 2
