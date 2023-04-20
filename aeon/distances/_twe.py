@@ -84,7 +84,7 @@ class _TweDistance(NumbaDistance):
             If the input time series do not have exactly 2 dimensions.
             If the sakoe_chiba_window_radius is not an integer.
         """
-        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        _bounding_matrix = create_bounding_matrix(x.shape[1] + 1, y.shape[1] + 1, window)
 
         if return_cost_matrix is True:
 
@@ -161,9 +161,7 @@ class _TweDistance(NumbaDistance):
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
         """
-        x = pad_ts(x)
-        y = pad_ts(y)
-        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        _bounding_matrix = create_bounding_matrix(x.shape[1] + 1, y.shape[1] + 1, window)
 
         @njit(cache=True)
         def numba_twe_distance(
