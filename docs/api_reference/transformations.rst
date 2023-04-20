@@ -147,7 +147,7 @@ Shapelets, wavelets, and convolution
     ShapeletTransform
     RandomShapeletTransform
 
-.. currentmodule:: aeon.transformations.panel.dilatshapelet_transform
+.. currentmodule:: aeon.transformations.panel.dilated_shapelet_transform
 
 .. autosummary::
     :toctree: auto_generated/
