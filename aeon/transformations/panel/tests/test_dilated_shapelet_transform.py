@@ -17,7 +17,7 @@ from aeon.transformations.panel.dilated_shapelet_transform import (
     compute_shapelet_features,
     compute_shapelet_features_normalized,
 )
-from aeon.utils.numba.rdst_utils import sliding_mean_std_one_series
+from aeon.utils.numba.rdst_utils import is_prime, sliding_mean_std_one_series
 
 DATATYPES = ("int32", "int64", "float32", "float64")
 
@@ -72,7 +72,14 @@ def test_rdst_on_basic_motions():
     assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
 
 
-# TODO : add tests for input parameter such as prime dilations, max shapelets etc...
+def test_shapelet_prime_dilation():
+    X_train, y_train = load_basic_motions(split="train")
+    indices = np.random.RandomState(4).choice(len(y_train), 3, replace=False)
+    rdst = RandomDilatedShapeletTransform(
+        max_shapelets=10, use_prime_dilations=True
+    ).fit(X_train[indices], y_train[indices])
+    dilations = rdst.shapelets_[2]
+    assert np.all([d == 1 or is_prime(d) for d in dilations])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
@@ -89,7 +96,7 @@ def test_compute_shapelet_features(dtype):
 
     # On some occasion, float32 precision with fasmath retruns things like
     # 2.1835059227370834e-07 instead of 0
-    assert assert_almost_equal(_min, 0.0)
+    assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 0.0
     assert SO == 3.0
 
@@ -100,7 +107,7 @@ def test_compute_shapelet_features(dtype):
         X, values, length, dilation, threshold
     )
 
-    assert assert_almost_equal(_min, 0.0)
+    assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 7.0
     assert SO == 1.0
 
@@ -111,7 +118,7 @@ def test_compute_shapelet_features(dtype):
         X, values, length, dilation, threshold
     )
 
-    assert assert_almost_equal(_min, 0.0)
+    assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 3.0
     assert SO == 3.0
 
@@ -136,7 +143,7 @@ def test_compute_shapelet_features_normalized(dtype):
     )
     # On some occasion, float32 precision with fasmath retruns things like
     # 2.1835059227370834e-07 instead of 0
-    assert assert_almost_equal(_min, 0.0)
+    assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 1.0
     assert SO == 3.0
 
@@ -149,7 +156,7 @@ def test_compute_shapelet_features_normalized(dtype):
         X, values, length, dilation, threshold, X_means, X_stds, means, stds
     )
 
-    assert assert_almost_equal(_min, 0.0)
+    assert_almost_equal(_min, 0.0, decimal=4)
     # Scale invariance should match with the sets of 3*
     assert _argmin == 1.0
     # And should also do so for the 1* and 2*, all spaced by dilation 4

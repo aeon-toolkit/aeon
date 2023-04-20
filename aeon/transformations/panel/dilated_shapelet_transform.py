@@ -8,6 +8,8 @@ Shapelets.
 __author__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
+import warnings
+
 import numpy as np
 from numba import njit, prange, set_num_threads
 from sklearn.preprocessing import LabelEncoder
@@ -28,14 +30,24 @@ from aeon.utils.validation import check_n_jobs
 class RandomDilatedShapeletTransform(BaseTransformer):
     """Random Dilated Shapelet Transform (RDST) as described in [1]_[2]_.
 
-    Overview: Input n series with d channels of length m. First step is to extract
-    candidate shapelets from the inputs.
-        For each candidate shapelet:
-            - TODO
-    Then, once the set of shapelets have been initialized, we then extract the shapelet
-    features from each pair of shapelets and input series.
-        We extract three features in
-            - TODO describe computations
+    Overview: The input is n series with d channels of length m. First step is to
+    extract candidate shapelets from the inputs. This is done randomly, and for
+    each candidate shapelet:
+        - Length is randomly selected from shapelet_lengths parameter
+        - Dilation is sampled as a function the shapelet length and time series length
+        - Normalization is choosed randomly given the probability given as parameter
+        - Value is sampled randomly from an input time series given the length and
+        dilation parameter.
+        - Threshold is randomly choosen between two percentiles of the distribution
+        of the distance vector between the shapelet and another time series, of the
+        same class if they are given during fit, or to another random sample.
+    Then, once the set of shapelets have been initialized, we extract the shapelet
+    features from each pair of shapelets and input series. Three features are extracted:
+        - min d(S,X): the minimum value of the distance vector between a shapelet S and
+        a time series X.
+        - argmin d(S,X): the location of the minumum.
+        - SO(d(S,X), threshold): The number of point in the distance vector that are
+        bellow the threshold parameter of the shapelet.
 
     Parameters
     ----------
@@ -59,7 +71,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         the allowed number of common indexes with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
-        the whole search space has been covered. The default is 0.5.
+        the whole search space has been covered. The default is 0.5, and the maximum is
+        1. Value above it have no effect for now.
     use_prime_dilations : bool, default=False
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
@@ -78,6 +91,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             - dilation parameter
             - treshold parameter
             - normalization parameter
+            - mean parameter
+            - standard deviation parameter
 
     Notes
     -----
@@ -113,9 +128,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     >>> X_t = t.transform(X_train)
     """
 
-    # Variable length is defined as variable length for fit transform(but same in one X)
-    # or variable within one X
-    # How do we specify y not mandatory but accepted
+    # How do we specify y not mandatory but accepted ?
     _tags = {
         "scitype:transform-output": "Primitives",
         "fit_is_empty": False,
@@ -142,7 +155,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         if shapelet_lengths is None:
             self.shapelet_lengths = np.asarray([11])
         else:
-            self.shapelet_lengths = np.asarray(shapelet_lengths)
+            self.shapelet_lengths = shapelet_lengths
         self.proba_normalization = proba_normalization
         if threshold_percentiles is None:
             self.threshold_percentiles = np.asarray([5, 10])
@@ -176,10 +189,12 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             np.int64(self.random_state) if isinstance(self.random_state, int) else None
         )
 
+        self.n_instances, self.n_channels, self.series_length = X.shape
+
+        self._check_input_params()
+
         self._n_jobs = check_n_jobs(self.n_jobs)
         set_num_threads(self._n_jobs)
-
-        self.n_instances, self.n_channels, self.series_length = X.shape
 
         if y is None:
             y = np.zeros(self.n_instances)
@@ -212,16 +227,56 @@ class RandomDilatedShapeletTransform(BaseTransformer):
 
         Parameters
         ----------
-        X : np.ndarray shape (n_time_series, n_channels, series_length)
+        X : np.ndarray shape (n_instances, n_channels, series_length)
             The input data to transform.
 
         Returns
         -------
-        X_new : 2D np.array of shape = (n_instances, 3*max_shapelets)
+        X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
             The transformed data.
         """
         X_new = dilated_shapelet_transform(X, self.shapelets_)
         return X_new
+
+    def _check_input_params(self):
+        if isinstance(self.max_shapelets, bool):
+            raise TypeError(
+                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+            )
+
+        if not isinstance(self.max_shapelets, (int, np.integer)):
+            raise TypeError(
+                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+            )
+
+        if not isinstance(self.shapelet_lengths, (list, tuple, np.ndarray)):
+            raise TypeError(
+                "'shapelet_lengths' must be a list, a tuple or "
+                "an array (got {}).".format(self.shapelet_lengths)
+            )
+
+        self.shapelet_lengths = np.array(self.shapelet_lengths, dtype=np.int64)
+        if not np.all(self.shapelet_lengths >= 2):
+            warnings.warn(
+                "Some values in 'shapelet_lengths' are inferior to 2. These values will"
+                " be ignored."
+            )
+            self.shapelet_lengths = self.shapelet_lengths[self.shapelet_lengths >= 2]
+
+        if not np.all(self.shapelet_lengths <= self.series_length):
+            warnings.warn(
+                "All the values in 'shapelet_lengths' must be lower than or equal to "
+                + "the series length. Shapelet lengths above it will be ignored."
+            )
+            self.shapelet_lengths = self.shapelet_lengths[
+                self.shapelet_lengths <= self.series_length
+            ]
+
+        if len(self.shapelet_lengths) == 0:
+            raise ValueError(
+                "Shapelet lengths array is empty, did you give shapelets lengths"
+                " superior to the size of the series ?"
+            )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -305,36 +360,38 @@ def _init_random_shapelet_params(
     """
     # Lengths of the shapelets
     # test dtypes correctness
-    lengths = np.random.choice(shapelet_lengths, size=max_shapelets)
+    lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int64)
     # Upper bound values for dilations
     dilations = np.zeros(max_shapelets, dtype=np.int64)
     upper_bounds = np.log2(np.floor_divide(series_length - 1, lengths - 1))
 
     if use_prime_dilations:
-        _primes = prime_up_to(int(2 ** upper_bounds.max()))
-        # 0 and 1 are not primes, but we need them for 2**0 =1 and 2**1 = 2
-        primes = np.zeros(_primes.shape[0] + 2)
-        primes[1] = 1
-        primes[2:] = _primes
+        _primes = prime_up_to(np.int64(2 ** upper_bounds.max()))
+        # 1 is not prime, but it is still a valid dilation for the "prime" scheme
+        primes = np.zeros((_primes.shape[0] + 1), dtype=np.int64)
+        primes[0] = 1
+        primes[1:] = _primes
         for i in prange(max_shapelets):
-            shp_primes = primes[primes <= int(2 ** upper_bounds[i])]
+            shp_primes = primes[primes <= np.int64(2 ** upper_bounds[i])]
             dilations[i] = shp_primes[choice_log(shp_primes.shape[0], 1)[0]]
     else:
         for i in prange(max_shapelets):
-            dilations[i] = int(2 ** np.random.uniform(0, upper_bounds[i]))
+            dilations[i] = np.int64(2 ** np.random.uniform(0, upper_bounds[i]))
 
     # Init threshold array
-    threshold = np.zeros(max_shapelets)
+    threshold = np.zeros(max_shapelets, dtype=np.float64)
 
     # Init values array
-    values = np.zeros((max_shapelets, n_channels, max(shapelet_lengths)))
+    values = np.zeros(
+        (max_shapelets, n_channels, max(shapelet_lengths)), dtype=np.float64
+    )
 
     # Is shapelet using z-normalization ?
     normalize = np.random.random(size=max_shapelets)
     normalize = normalize < proba_normalization
 
-    means = np.zeros((max_shapelets, n_channels))
-    stds = np.zeros((max_shapelets, n_channels))
+    means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
+    stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
     return values, lengths, dilations, threshold, normalize, means, stds
 
@@ -433,6 +490,7 @@ def random_dilated_shapelet_extraction(
 
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
+        # (2, _, _): Mask is different for normalized and non-normalized shapelets
         alpha_mask = np.ones((2, n_instances, series_length), dtype=np.bool_)
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
@@ -441,7 +499,7 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = int(normalize[i_shp])
+            norm = np.int64(normalize[i_shp])
             dist_vect_shape = series_length - (length - 1) * dilation
 
             # Possible sampling points given self similarity mask
@@ -507,7 +565,7 @@ def random_dilated_shapelet_extraction(
 
     mask_values = np.ones(max_shapelets, dtype=np.bool_)
     for i in prange(max_shapelets):
-        if np.all(values[i] == 0):
+        if threshold[i] == 0 and np.all(values[i] == 0):
             mask_values[i] = False
 
     return (
@@ -609,7 +667,7 @@ def compute_shapelet_features(X, values, length, dilation, threshold):
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, series_length)
         An input time series
     values : array, shape (n_channels, length)
         The value array of the shapelet
@@ -676,7 +734,7 @@ def compute_shapelet_features_normalized(
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, series_length)
         An input time series
     values : array, shape (n_channels, length)
         The value array of the shapelet
@@ -747,7 +805,7 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, series_length)
         An input time series
     values : array, shape (n_channels, length)
         The value array of the shapelet
@@ -762,15 +820,15 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
 
     Returns
     -------
-    d_vect : array, shape (n_timestamps - (length-1) * dilation)
+    d_vect : array, shape (series_length - (length-1) * dilation)
         The resulting distance vector
     """
-    n_channels, n_timestamps = X.shape
+    n_channels, series_length = X.shape
     # shape (n_channels, n_subsequences)
     X_means, X_stds = sliding_mean_std_one_series(X, length, dilation)
     X_dots = sliding_dot_product(X, values, length, dilation)
 
-    d_vect_len = n_timestamps - (length - 1) * dilation
+    d_vect_len = series_length - (length - 1) * dilation
     d_vect = np.zeros(d_vect_len)
     for i_channel in prange(n_channels):
         # Edge case: shapelet channel is constant
@@ -799,7 +857,7 @@ def compute_shapelet_dist_vector(X, values, length, dilation):
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
+    X : array, shape (n_channels, series_length)
         An input time series
     values : array, shape (n_channels, length)
         The value array of the shapelet
@@ -810,11 +868,11 @@ def compute_shapelet_dist_vector(X, values, length, dilation):
 
     Returns
     -------
-    d_vect : array, shape (n_timestamps - (length-1) * dilation)
+    d_vect : array, shape (series_length - (length-1) * dilation)
         The resulting distance vector
     """
-    n_channels, n_timestamps = X.shape
-    d_vect_len = n_timestamps - (length - 1) * dilation
+    n_channels, series_length = X.shape
+    d_vect_len = series_length - (length - 1) * dilation
     d_vect = np.zeros(d_vect_len)
     for i_vect in prange(d_vect_len):
         for i_channel in prange(n_channels):
