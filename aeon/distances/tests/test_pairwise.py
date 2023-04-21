@@ -41,16 +41,16 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
-    # _validate_pairwise_result(
-    #     create_test_distance_numpy(5, 1, 5),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # _validate_pairwise_result(
-    #     create_test_distance_numpy(5, 5, 5),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
+    _validate_pairwise_result(
+        create_test_distance_numpy(5, 1, 5),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    _validate_pairwise_result(
+        create_test_distance_numpy(5, 5, 5),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
