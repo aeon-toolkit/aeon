@@ -8,7 +8,9 @@ from numba import njit
 
 from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
 from aeon.distances._dtw import (
-    dtw_distance, dtw_from_multiple_to_multiple_distance, dtw_alignment_path
+    dtw_alignment_path,
+    dtw_distance,
+    dtw_from_multiple_to_multiple_distance,
 )
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
@@ -662,6 +664,7 @@ def twe_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="twe", **format_kwargs)
+
 
 def wdtw_alignment_path(
     x: np.ndarray,

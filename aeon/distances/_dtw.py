@@ -46,7 +46,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     r"""Compute the dtw distance between two time series.
 
@@ -115,7 +115,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the dtw cost matrix between two time series.
 
@@ -178,14 +178,14 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _dtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -206,7 +206,7 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the dtw pairwise distance between a set of time series.
 
@@ -243,7 +243,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -257,9 +257,9 @@ def _dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between a single time series and multiple.
 
@@ -298,9 +298,9 @@ def dtw_from_single_to_multiple_distance(
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _dtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -312,9 +312,9 @@ def _dtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the dtw distance between two sets of time series.
 
@@ -361,9 +361,9 @@ def dtw_from_multiple_to_multiple_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _dtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -376,9 +376,9 @@ def _dtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def dtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the dtw alignment path between two time series.
 

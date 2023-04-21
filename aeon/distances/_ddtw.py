@@ -12,7 +12,6 @@ from numba.core.errors import NumbaWarning
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._dtw import _dtw_cost_matrix
-from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
@@ -133,13 +132,6 @@ class _DdtwDistance(NumbaDistance):
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
-            )
-
         if return_cost_matrix is True:
 
             @njit(cache=True)
@@ -210,12 +202,6 @@ class _DdtwDistance(NumbaDistance):
             If the compute derivative callable is not no_python compiled.
         """
         _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
-            )
 
         @njit(cache=True)
         def numba_ddtw_distance(

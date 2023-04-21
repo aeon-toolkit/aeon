@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -7,11 +8,11 @@ from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_cost_matrix_result(
-        x: np.ndarray,
-        y: np.ndarray,
-        name,  # This will be used in a later pr
-        distance,
-        cost_matrix,
+    x: np.ndarray,
+    y: np.ndarray,
+    name,  # This will be used in a later pr
+    distance,
+    cost_matrix,
 ):
     cost_matrix_result = cost_matrix(x, y)
 

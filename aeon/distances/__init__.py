@@ -50,8 +50,6 @@ from aeon.distances._distance import (
     distance_alignment_path,
     distance_alignment_path_factory,
     distance_factory,
-    dtw_alignment_path,
-    dtw_distance,
     edr_alignment_path,
     edr_distance,
     erp_alignment_path,
@@ -68,6 +66,14 @@ from aeon.distances._distance import (
     wdtw_alignment_path,
     wdtw_distance,
 )
+from aeon.distances._dtw import (
+    dtw_alignment_path,
+    dtw_cost_matrix,
+    dtw_distance,
+    dtw_from_multiple_to_multiple_distance,
+    dtw_from_single_to_multiple_distance,
+    dtw_pairwise_distance,
+)
 from aeon.distances._euclidean import (
     euclidean_distance,
     euclidean_from_multiple_to_multiple_distance,
@@ -79,12 +85,4 @@ from aeon.distances._squared import (
     squared_from_multiple_to_multiple_distance,
     squared_from_single_to_multiple_distance,
     squared_pairwise_distance,
-)
-from aeon.distances._dtw import (
-    dtw_distance,
-    dtw_pairwise_distance,
-    dtw_from_single_to_multiple_distance,
-    dtw_from_multiple_to_multiple_distance,
-    dtw_cost_matrix,
-    dtw_alignment_path,
 )
