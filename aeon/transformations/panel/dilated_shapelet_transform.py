@@ -26,6 +26,9 @@ from aeon.utils.numba.rdst_utils import (
 )
 from aeon.utils.validation import check_n_jobs
 
+__default_shapelet_lengths__ = [11]
+__default_threshold_percentiles__ = [5, 10]
+
 
 class RandomDilatedShapeletTransform(BaseTransformer):
     """Random Dilated Shapelet Transform (RDST) as described in [1]_[2]_.
@@ -128,7 +131,6 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     >>> X_t = t.transform(X_train)
     """
 
-    # How do we specify y not mandatory but accepted ?
     _tags = {
         "scitype:transform-output": "Primitives",
         "fit_is_empty": False,
@@ -143,24 +145,18 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     def __init__(
         self,
         max_shapelets=10_000,
-        shapelet_lengths=None,
+        shapelet_lengths=__default_shapelet_lengths__,
         proba_normalization=0.8,
-        threshold_percentiles=None,
+        threshold_percentiles=__default_threshold_percentiles__,
         alpha_similarity=0.5,
         use_prime_dilations=False,
         random_state=None,
         n_jobs=1,
     ):
         self.max_shapelets = max_shapelets
-        if shapelet_lengths is None:
-            self.shapelet_lengths = np.asarray([11])
-        else:
-            self.shapelet_lengths = shapelet_lengths
+        self.shapelet_lengths = shapelet_lengths
         self.proba_normalization = proba_normalization
-        if threshold_percentiles is None:
-            self.threshold_percentiles = np.asarray([5, 10])
-        else:
-            self.threshold_percentiles = np.asarray(threshold_percentiles)
+        self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
         self.random_state = random_state
@@ -276,6 +272,17 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             raise ValueError(
                 "Shapelet lengths array is empty, did you give shapelets lengths"
                 " superior to the size of the series ?"
+            )
+
+        if not isinstance(self.threshold_percentiles, (list, tuple, np.ndarray)):
+            raise TypeError(
+                "Expected a list, numpy array or tuple for threshold_percentiles params"
+            )
+
+        self.threshold_percentiles = np.asarray(self.threshold_percentiles)
+        if len(self.threshold_percentiles) != 2:
+            raise ValueError(
+                "The threshold_percentiles param should be an array of size 2"
             )
 
     @classmethod
