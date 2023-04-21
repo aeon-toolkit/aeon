@@ -69,6 +69,7 @@ def _validate_distance_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distances(dist):
+    # Test univariate
     _validate_distance_result(
         np.array([10.0]),
         np.array([15.0]),
@@ -86,6 +87,15 @@ def test_new_distances(dist):
     )
 
     _validate_distance_result(
+        create_test_distance_numpy(2, 1, 10)[0],
+        create_test_distance_numpy(2, 1, 10, random_state=2)[0],
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][1],
+    )
+
+    # Test multivariate
+    _validate_distance_result(
         create_test_distance_numpy(10, 10),
         create_test_distance_numpy(10, 10, random_state=2),
         dist["name"],
@@ -99,4 +109,29 @@ def test_new_distances(dist):
         dist["name"],
         dist["distance"],
         _expected_distance_results[dist["name"]][3],
+    )
+
+    # Test unequal length
+    _validate_distance_result(
+        create_test_distance_numpy(5),
+        create_test_distance_numpy(10, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][4],
+    )
+
+    _validate_distance_result(
+        create_test_distance_numpy(10, 5),
+        create_test_distance_numpy(10, 10, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][5],
+    )
+
+    _validate_distance_result(
+        create_test_distance_numpy(10, 10, 5),
+        create_test_distance_numpy(10, 10, 10, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][6],
     )

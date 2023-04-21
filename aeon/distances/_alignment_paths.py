@@ -15,7 +15,7 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
 
     Parameters
     ----------
-    cost_matrix: np.ndarray (n_timepoints_x, n_timepoints_y)
+    cost_matrix: np.ndarray, of shape (n_timepoints_x, n_timepoints_y)
         Cost matrix.
 
     Returns
@@ -68,9 +68,9 @@ def compute_lcss_return_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints_x)
+    x: np.ndarray, of shape (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_channels, n_timepoints_y)
+    y: np.ndarray (m_channels, m_timepoints)
         Second time series.
     epsilon: float
         Threshold for the LCSS algorithm.
