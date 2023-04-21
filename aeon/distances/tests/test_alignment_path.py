@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
+from aeon.distances.tests._utils import create_test_distance_numpy
 from aeon.distances.tests.test_new_distances import DISTANCES
 
 

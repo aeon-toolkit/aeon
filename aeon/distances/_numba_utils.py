@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import Callable
-
 import numpy as np
 from numba import njit
 
@@ -87,6 +85,7 @@ def _compute_pairwise_distance(
             else:
                 pairwise_matrix[i, j] = distance_callable(curr_x, _y[j])
     return pairwise_matrix
+
 
 def to_numba_timeseries(x: np.ndarray) -> np.ndarray:
     """Convert a time series to a valid time series for numba use.
