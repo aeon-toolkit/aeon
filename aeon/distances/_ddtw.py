@@ -142,7 +142,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
         cost_matrix = np.zeros((x.shape[2], y.shape[2]))
         for curr_x, curr_y in zip(x, y):
             cost_matrix = np.add(
-                cost_matrix, _dtw_distance(curr_x, curr_y, bounding_matrix)
+                cost_matrix, _dtw_cost_matrix(curr_x, curr_y, bounding_matrix)
             )
         return cost_matrix
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
@@ -211,6 +211,11 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     np.ndarray (n_instances, n_instances)
         ddtw pairwise matrix between the instances of X.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
+
     Examples
     --------
     >>> import numpy as np
@@ -221,6 +226,16 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
            [1.    , 0.    , 0.5625],
            [3.0625, 0.5625, 0.    ]])
     """
+    if X.ndim == 3:
+        return _ddtw_pairwise_distance(X)
+    if X.ndim == 2:
+        _X = X.reshape((X.shape[1], 1, X.shape[0]))
+        return _ddtw_pairwise_distance(_X)
+
+    raise ValueError("x and y must be 2D or 3D arrays")
+
+@njit(cache=True)
+def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2] - 2, X.shape[2] - 2, window)
