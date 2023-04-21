@@ -6,7 +6,7 @@ from typing import Any, Callable, Union
 import numpy as np
 from numba import njit
 
-from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
+from aeon.distances._ddtw import average_of_slope
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
@@ -269,7 +269,7 @@ def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative = average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> float:
@@ -441,7 +441,7 @@ def ddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative = average_of_slope,
     **kwargs: Any,
 ) -> float:
     r"""Compute the derivative dynamic time warping (DDTW) distance between time series.
@@ -751,7 +751,7 @@ def ddtw_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative = average_of_slope,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
     r"""Compute the derivative dynamic time warping (DDTW) alignment path.
@@ -832,7 +832,7 @@ def wddtw_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative = average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1776,13 +1776,6 @@ _METRIC_INFOS = [
         dist_alignment_path_func=lcss_alignment_path,
     ),
     MetricInfo(
-        canonical_name="ddtw",
-        aka={"ddtw", "derivative dynamic time warping"},
-        dist_func=ddtw_distance,
-        dist_instance=_DdtwDistance(),
-        dist_alignment_path_func=ddtw_alignment_path,
-    ),
-    MetricInfo(
         canonical_name="wdtw",
         aka={"wdtw", "weighted dynamic time warping"},
         dist_func=wdtw_distance,
@@ -1820,7 +1813,6 @@ _METRIC_CALLABLES = dict(
 _METRICS_NAMES = list(_METRICS.keys())
 
 ALL_DISTANCES = (
-    ddtw_distance,
     edr_distance,
     erp_distance,
     lcss_distance,
