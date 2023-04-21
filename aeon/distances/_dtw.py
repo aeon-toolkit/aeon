@@ -172,7 +172,7 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
         cost_matrix = np.zeros((x.shape[2], y.shape[2]))
         for curr_x, curr_y in zip(x, y):
             cost_matrix = np.add(
-                cost_matrix, _dtw_distance(curr_x, curr_y, bounding_matrix)
+                cost_matrix, _dtw_cost_matrix(curr_x, curr_y, bounding_matrix)
             )
         return cost_matrix
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
