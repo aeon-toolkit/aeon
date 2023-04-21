@@ -224,6 +224,11 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     np.ndarray (n_instances, n_instances)
         dtw pairwise matrix between the instances of X.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
+
     Examples
     --------
     >>> import numpy as np
@@ -278,6 +283,11 @@ def dtw_from_single_to_multiple_distance(
     -------
     np.ndarray (n_instances)
         dtw distance between the collection of instances in y and the time series x.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
 
     Examples
     --------
@@ -336,6 +346,11 @@ def dtw_from_multiple_to_multiple_distance(
     -------
     np.ndarray (n_instances, m_instances)
         dtw distance between two collections of time series, x and y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
 
     Examples
     --------
@@ -402,6 +417,11 @@ def dtw_alignment_path(
         to the cost matrix.
     float
         The dtw distance betweeen the two time series.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
 
     Examples
     --------
