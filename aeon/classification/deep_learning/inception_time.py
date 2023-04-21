@@ -586,23 +586,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         return self
 
-        #        self.save_trained_model()
-        #        self._is_fitted = True
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        #     return self
-
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
