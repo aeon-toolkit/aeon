@@ -15,6 +15,12 @@ from aeon.distances import (
     squared_from_multiple_to_multiple_distance,
     squared_from_single_to_multiple_distance,
     squared_pairwise_distance,
+    dtw_distance,
+    dtw_from_multiple_to_multiple_distance,
+    dtw_from_single_to_multiple_distance,
+    dtw_pairwise_distance,
+    dtw_cost_matrix,
+    dtw_alignment_path
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
@@ -33,6 +39,15 @@ DISTANCES = [
         "pairwise_distance": squared_pairwise_distance,
         "single_to_multiple_distance": squared_from_single_to_multiple_distance,
         "multiple_to_multiple_distance": squared_from_multiple_to_multiple_distance,
+    },
+    {
+        "name": "dtw",
+        "distance": dtw_distance,
+        "pairwise_distance": dtw_pairwise_distance,
+        "single_to_multiple_distance": dtw_from_single_to_multiple_distance,
+        "multiple_to_multiple_distance": dtw_from_multiple_to_multiple_distance,
+        "cost_matrix": dtw_cost_matrix,
+        "alignment_path": dtw_alignment_path
     },
 ]
 
