@@ -67,7 +67,7 @@ def plot_series(
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
     for y in series:
-        check_y(y)
+        check_y(y, allow_index_names=True)
 
     series = list(series)
     series = [convert_to(y, "pd.Series", "Series") for y in series]
