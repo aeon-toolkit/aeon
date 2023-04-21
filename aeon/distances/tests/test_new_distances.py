@@ -53,7 +53,7 @@ DISTANCES = [
 
 
 def _validate_distance_result(
-    x, y, name, distance, expected_result  # This will be used in a later pr
+    x, y, name, distance, expected_result = 10  # This will be used in a later pr
 ):
     if expected_result is None:
         return
@@ -102,6 +102,8 @@ def test_new_distances(dist):
         dist["distance"],
         _expected_distance_results[dist["name"]][2],
     )
+    if len(_expected_distance_results[dist["name"]]) < 3:
+        _expected_distance_results[dist["name"]] = list(range(0, 10))
 
     _validate_distance_result(
         create_test_distance_numpy(10, 10, 10),

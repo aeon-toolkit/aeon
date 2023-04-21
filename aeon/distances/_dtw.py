@@ -35,8 +35,6 @@ spoken word recognition. IEEE Transactions on Acoustics, Speech, and Signal
 Processing 26(1):43–49, 1978
 """
 __author__ = ["chrisholder", "TonyBagnall"]
-# -*- coding: utf-8 -*-
-__author__ = ["chrisholder"]
 
 from typing import List, Tuple
 
@@ -65,9 +63,11 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -77,6 +77,11 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     -------
     float
         dtw distance between x and y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
 
     Examples
     --------
@@ -116,9 +121,11 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -126,8 +133,13 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
 
     Returns
     -------
-    np.ndarray (n_timepoints_x, n_timepoints_y)
+    np.ndarray (n_timepoints, m_timepoints)
         dtw cost matrix between x and y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
 
     Examples
     --------
@@ -200,8 +212,9 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
     Parameters
     ----------
-    X: np.ndarray (n_instances, n_channels, n_timepoints)
-        Set of time series.
+    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+            (n_instances, n_timepoints)
+        A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -252,9 +265,10 @@ def dtw_from_single_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray, (n_channels, n_timepoints) or (n_timepoints,)
         Single time series.
-    y: np.ndarray (n_instances, n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -308,9 +322,11 @@ def dtw_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+            (n_instances, n_timepoints) or (n_timepoints,)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -340,7 +356,7 @@ def dtw_from_multiple_to_multiple_distance(
         return _dtw_from_multiple_to_multiple_distance(_x, _y)
     if y.ndim == 1 and x.ndim == 1:
         _x = x.reshape((x.shape[0], 1, 1))
-        _y = y.reshape((x.shape[0], 1, 1))
+        _y = y.reshape((y.shape[0], 1, 1))
         return _dtw_from_multiple_to_multiple_distance(_x, _y)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
@@ -368,9 +384,11 @@ def dtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -397,5 +415,5 @@ def dtw_alignment_path(
     cost_matrix = dtw_cost_matrix(x, y, window)
     return (
         compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[1] - 1, y.shape[1] - 1],
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
