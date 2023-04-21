@@ -528,30 +528,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # if user hasn't provided a custom ReduceLROnPlateau via init already,
-        # add the default from literature
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     ),
-        #     tf.keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks,
-        # ]
-
-        # if not any(
-        #     isinstance(callback, keras.callbacks.ReduceLROnPlateau)
-        #     for callback in self.callbacks
-        # ):
-        #     reduce_lr = keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     self.callbacks.append(reduce_lr)
-
         return model
 
     def _fit(self, X, y):
@@ -582,9 +558,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         self : object
         """
-        rng = check_random_state(self.random_state)
-        self.random_state = rng.randint(0, np.iinfo(np.int32).max)
-
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -659,11 +632,5 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "use_residual": False,
             "use_bottleneck": True,
         }
-
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
 
         return [param1]
