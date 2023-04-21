@@ -165,7 +165,7 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
         return cost_matrix
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
-# TODO: add dtw to the new tests and additional add a new test for cost matrix calls
+
 @njit(cache=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
     return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
@@ -229,9 +229,9 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
     raise ValueError("x and y must be 2D or 3D arrays")
 
+
 @njit(cache=True)
 def _dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
-
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -282,6 +282,7 @@ def dtw_from_single_to_multiple_distance(
         return _dtw_from_single_to_multiple_distance(_x, _y)
     else:
         raise ValueError("x and y must be 2D or 3D arrays")
+
 
 @njit(cache=True)
 def _dtw_from_single_to_multiple_distance(
@@ -343,6 +344,7 @@ def dtw_from_multiple_to_multiple_distance(
         return _dtw_from_multiple_to_multiple_distance(_x, _y)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
+
 @njit(cache=True)
 def _dtw_from_multiple_to_multiple_distance(
         x: np.ndarray, y: np.ndarray, window: float = None
@@ -397,4 +399,3 @@ def dtw_alignment_path(
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[1] - 1, y.shape[1] - 1],
     )
-

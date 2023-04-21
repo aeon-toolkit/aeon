@@ -92,3 +92,11 @@ def test_new_distances(dist):
         dist["distance"],
         _expected_distance_results[dist["name"]][2],
     )
+
+    _validate_distance_result(
+        create_test_distance_numpy(10, 10, 10),
+        create_test_distance_numpy(10, 10, 10, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][3],
+    )
