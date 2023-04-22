@@ -61,6 +61,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     ------
     ValueError
         If x and y are not 1D, 2D, or 3D arrays.
+        If n_timepoints or m_timepoints are less than 2.
 
     Examples
     --------
@@ -75,7 +76,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
         _y = average_of_slope(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
-        return _dtw_distance(x, y, bounding_matrix)
+        return _dtw_distance(_x, _y, bounding_matrix)
     if x.ndim == 2 and y.ndim == 2:
         _x = average_of_slope(x)
         _y = average_of_slope(y)
@@ -113,6 +114,12 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
     np.ndarray (n_timepoints, m_timepoints)
         ddtw cost matrix between x and y.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
+        If n_timepoints or m_timepoints are less than 2.
+
     Examples
     --------
     >>> import numpy as np
@@ -130,22 +137,27 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
            [0., 0., 0., 0., 0., 0., 0., 0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((1, y.shape[0]))
+        _x = average_of_slope(x.reshape((1, x.shape[0])))
+        _y = average_of_slope(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
         return _dtw_cost_matrix(_x, _y, bounding_matrix)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-        return _dtw_cost_matrix(x, y, bounding_matrix)
+        _x = average_of_slope(x)
+        _y = average_of_slope(y)
+        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        return _dtw_cost_matrix(_x, _y, bounding_matrix)
     if x.ndim == 3 and y.ndim == 3:
-        bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
-        cost_matrix = np.zeros((x.shape[2], y.shape[2]))
+        bounding_matrix = create_bounding_matrix(x.shape[2] - 2, y.shape[2] - 2, window)
+        cost_matrix = np.zeros((x.shape[2] - 2, y.shape[2] - 2))
         for curr_x, curr_y in zip(x, y):
+            _x = average_of_slope(curr_x)
+            _y = average_of_slope(curr_y)
             cost_matrix = np.add(
-                cost_matrix, _dtw_cost_matrix(curr_x, curr_y, bounding_matrix)
+                cost_matrix, _dtw_cost_matrix(_x, _y, bounding_matrix)
             )
         return cost_matrix
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+
 
 
 @njit(cache=True)
@@ -188,8 +200,9 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     for i in range(q.shape[0]):
         for j in range(1, q.shape[1] - 1):
             result[i, j - 1] = (
-                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
-            ) / 2.0
+                                       (q[i, j] - q[i, j - 1]) + (
+                                       q[i, j + 1] - q[i, j - 1]) / 2.0
+                               ) / 2.0
     return result
 
 
@@ -215,6 +228,7 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     ------
     ValueError
         If x and y are not 2D or 3D arrays.
+        If n_timepoints is less than 2.
 
     Examples
     --------
@@ -233,6 +247,7 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
         return _ddtw_pairwise_distance(_X)
 
     raise ValueError("x and y must be 2D or 3D arrays")
+
 
 @njit(cache=True)
 def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
@@ -256,7 +271,7 @@ def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 @njit(cache=True)
 def ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
@@ -276,6 +291,12 @@ def ddtw_from_single_to_multiple_distance(
     np.ndarray (n_instances)
         ddtw distance between the collection of instances in y and the time series x.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
+        If n_timepoints or m_timepoints are less than 2.
+
     Examples
     --------
     >>> import numpy as np
@@ -285,6 +306,20 @@ def ddtw_from_single_to_multiple_distance(
     >>> ddtw_from_single_to_multiple_distance(x, y)
     array([0.25  , 2.25  , 5.0625])
     """
+    if y.ndim == 3 and x.ndim == 2:
+        return _ddtw_from_single_to_multiple_distance(x, y)
+    if y.ndim == 2 and x.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((y.shape[0], 1, y.shape[1]))
+        return _ddtw_from_single_to_multiple_distance(_x, _y)
+    else:
+        raise ValueError("x and y must be 2D or 3D arrays")
+
+
+@njit(cache=True)
+def _ddtw_from_single_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
     bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[2] - 2, window)
@@ -298,7 +333,7 @@ def ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True)
 def ddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
@@ -321,6 +356,12 @@ def ddtw_from_multiple_to_multiple_distance(
     np.ndarray (n_instances, m_instances)
         ddtw distance between two collections of time series, x and y.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
+        If n_timepoints or m_timepoints are less than 2.
+
     Examples
     --------
     >>> import numpy as np
@@ -332,6 +373,23 @@ def ddtw_from_multiple_to_multiple_distance(
            [12.25  , 20.25  ,  9.    ],
            [36.    , 49.    , 30.25  ]])
     """
+    if y.ndim == 3 and x.ndim == 3:
+        return _ddtw_from_multiple_to_multiple_distance(x, y)
+    if y.ndim == 2 and x.ndim == 2:
+        _x = x.reshape((x.shape[0], 1, x.shape[1]))
+        _y = y.reshape((y.shape[0], 1, y.shape[1]))
+        return _ddtw_from_multiple_to_multiple_distance(_x, _y)
+    if y.ndim == 1 and x.ndim == 1:
+        _x = x.reshape((x.shape[0], 1, 1))
+        _y = y.reshape((y.shape[0], 1, 1))
+        return _ddtw_from_multiple_to_multiple_distance(_x, _y)
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+
+
+@njit(cache=True)
+def _ddtw_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None
+) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
@@ -354,7 +412,7 @@ def ddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True)
 def ddtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ddtw alignment path between two time series.
 
@@ -379,6 +437,12 @@ def ddtw_alignment_path(
     float
         The ddtw distance betweeen the two time series.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
+        If n_timepoints or m_timepoints are less than 2.
+
     Examples
     --------
     >>> import numpy as np
@@ -388,11 +452,8 @@ def ddtw_alignment_path(
     >>> ddtw_alignment_path(x, y)
     ([(0, 0), (1, 1)], 0.25)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[1] - 2, window)
-    cost_matrix = _dtw_cost_matrix(
-        average_of_slope(x), average_of_slope(y), bounding_matrix
-    )
+    cost_matrix = ddtw_cost_matrix(x, y, window)
     return (
         compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[1] - 3, y.shape[1] - 3],
+        cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],
     )
