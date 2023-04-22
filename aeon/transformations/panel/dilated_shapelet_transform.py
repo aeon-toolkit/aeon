@@ -15,19 +15,16 @@ from numba import njit, prange, set_num_threads
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.numba.rdst_utils import (
+from aeon.utils.numba.general import (
     choice_log,
     combinations_1d,
     get_subsequence,
     get_subsequence_with_mean_std,
-    prime_up_to,
     sliding_dot_product,
     sliding_mean_std_one_series,
 )
+from aeon.utils.numba.stats import prime_up_to
 from aeon.utils.validation import check_n_jobs
-
-__default_shapelet_lengths__ = [11]
-__default_threshold_percentiles__ = [5, 10]
 
 
 class RandomDilatedShapeletTransform(BaseTransformer):
@@ -145,9 +142,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     def __init__(
         self,
         max_shapelets=10_000,
-        shapelet_lengths=__default_shapelet_lengths__,
+        shapelet_lengths=None,
         proba_normalization=0.8,
-        threshold_percentiles=__default_threshold_percentiles__,
+        threshold_percentiles=None,
         alpha_similarity=0.5,
         use_prime_dilations=False,
         random_state=None,
@@ -197,10 +194,10 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         else:
             y = LabelEncoder().fit_transform(y)
 
-        if any(self.shapelet_lengths > self.series_length):
+        if any(self.shapelet_lengths_ > self.series_length):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
-                "but got shapelets_lengths = {} ".format(self.shapelet_lengths),
+                "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
                 "with input length = {}".format(self.series_length),
             )
 
@@ -208,9 +205,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             X,
             y,
             self.max_shapelets,
-            self.shapelet_lengths,
+            self.shapelet_lengths_,
             self.proba_normalization,
-            self.threshold_percentiles,
+            self.threshold_percentiles_,
             self.alpha_similarity,
             self.use_prime_dilations,
             self._random_state,
@@ -244,46 +241,54 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             raise TypeError(
                 "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
             )
+        self.shapelet_lengths_ = self.shapelet_lengths
+        if self.shapelet_lengths_ is None:
+            self.shapelet_lengths_ = np.array([min(11, self.series_length)])
+        else:
+            if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
+                raise TypeError(
+                    "'shapelet_lengths' must be a list, a tuple or "
+                    "an array (got {}).".format(self.shapelet_lengths_)
+                )
 
-        if not isinstance(self.shapelet_lengths, (list, tuple, np.ndarray)):
-            raise TypeError(
-                "'shapelet_lengths' must be a list, a tuple or "
-                "an array (got {}).".format(self.shapelet_lengths)
-            )
+            self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int64)
+            if not np.all(self.shapelet_lengths_ >= 2):
+                warnings.warn(
+                    "Some values in 'shapelet_lengths' are inferior to 2."
+                    "These values will be ignored."
+                )
+                self.shapelet_lengths_ = self.shapelet_lengths[
+                    self.shapelet_lengths_ >= 2
+                ]
 
-        self.shapelet_lengths = np.array(self.shapelet_lengths, dtype=np.int64)
-        if not np.all(self.shapelet_lengths >= 2):
-            warnings.warn(
-                "Some values in 'shapelet_lengths' are inferior to 2. These values will"
-                " be ignored."
-            )
-            self.shapelet_lengths = self.shapelet_lengths[self.shapelet_lengths >= 2]
+            if not np.all(self.shapelet_lengths_ <= self.series_length):
+                warnings.warn(
+                    "All the values in 'shapelet_lengths' must be lower or equal to"
+                    + "the series length. Shapelet lengths above it will be ignored."
+                )
+                self.shapelet_lengths_ = self.shapelet_lengths_[
+                    self.shapelet_lengths_ <= self.series_length
+                ]
 
-        if not np.all(self.shapelet_lengths <= self.series_length):
-            warnings.warn(
-                "All the values in 'shapelet_lengths' must be lower than or equal to "
-                + "the series length. Shapelet lengths above it will be ignored."
-            )
-            self.shapelet_lengths = self.shapelet_lengths[
-                self.shapelet_lengths <= self.series_length
-            ]
+            if len(self.shapelet_lengths_) == 0:
+                raise ValueError(
+                    "Shapelet lengths array is empty, did you give shapelets lengths"
+                    " superior to the size of the series ?"
+                )
 
-        if len(self.shapelet_lengths) == 0:
-            raise ValueError(
-                "Shapelet lengths array is empty, did you give shapelets lengths"
-                " superior to the size of the series ?"
-            )
-
-        if not isinstance(self.threshold_percentiles, (list, tuple, np.ndarray)):
-            raise TypeError(
-                "Expected a list, numpy array or tuple for threshold_percentiles params"
-            )
-
-        self.threshold_percentiles = np.asarray(self.threshold_percentiles)
-        if len(self.threshold_percentiles) != 2:
-            raise ValueError(
-                "The threshold_percentiles param should be an array of size 2"
-            )
+        self.threshold_percentiles_ = self.threshold_percentiles
+        if self.threshold_percentiles_ is None:
+            self.threshold_percentiles_ = np.array([5, 10])
+        else:
+            if not isinstance(self.threshold_percentiles_, (list, tuple, np.ndarray)):
+                raise TypeError(
+                    "Expected a list, numpy array or tuple for threshold_percentiles"
+                )
+            if len(self.threshold_percentiles_) != 2:
+                raise ValueError(
+                    "The threshold_percentiles param should be an array of size 2"
+                )
+            self.threshold_percentiles_ = np.asarray(self.threshold_percentiles_)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

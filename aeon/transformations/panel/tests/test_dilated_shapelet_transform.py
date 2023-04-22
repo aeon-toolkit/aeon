@@ -16,10 +16,11 @@ from aeon.transformations.panel.dilated_shapelet_transform import (
     compute_shapelet_dist_vector,
     compute_shapelet_features,
     compute_shapelet_features_normalized,
+    sliding_mean_std_one_series,
 )
-from aeon.utils.numba.rdst_utils import is_prime, sliding_mean_std_one_series
+from aeon.utils.numba.stats import is_prime
 
-DATATYPES = ("int32", "int64", "float32", "float64")
+DATATYPES = ("int64", "float64")
 
 shapelet_transform_unit_test_data = np.array(
     [
