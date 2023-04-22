@@ -7,11 +7,11 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import (
-    ddtw_distance,
-    ddtw_cost_matrix,
     ddtw_alignment_path,
-    ddtw_from_single_to_multiple_distance,
+    ddtw_cost_matrix,
+    ddtw_distance,
     ddtw_from_multiple_to_multiple_distance,
+    ddtw_from_single_to_multiple_distance,
     ddtw_pairwise_distance,
     dtw_alignment_path,
     dtw_cost_matrix,

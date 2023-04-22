@@ -8,9 +8,9 @@ from numba import njit
 
 from aeon.distances._ddtw import (
     average_of_slope,
+    ddtw_alignment_path,
     ddtw_distance,
     ddtw_from_multiple_to_multiple_distance,
-    ddtw_alignment_path
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,
@@ -274,7 +274,7 @@ def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    compute_derivative = average_of_slope,
+    compute_derivative=average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> float:
@@ -672,7 +672,7 @@ def wddtw_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    compute_derivative = average_of_slope,
+    compute_derivative=average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> AlignmentPathReturn:

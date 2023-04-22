@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-r""" Derivative Dynamic Time Warping (DDTW) distance.
+r"""Derivative Dynamic Time Warping (DDTW) distance.
 
 DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
 improve on dtw by better account for the 'shape' of the time series.
 This is done by considering y axis data points as higher level features of 'shape'.
 To do this the first derivative of the sequence is taken, and then using this
 derived sequence a dtw computation is done.
-
 The default derivative used is:
 
 .. math::
@@ -28,15 +27,10 @@ import numpy as np
 from numba import njit
 
 from aeon.distances._alignment_paths import compute_min_return_path
-from aeon.distances._dtw import (
-    _dtw_cost_matrix,
-    _dtw_distance,
-    create_bounding_matrix,
-    dtw_cost_matrix,
-)
+from aeon.distances._dtw import _dtw_cost_matrix, _dtw_distance, create_bounding_matrix
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     r"""Compute the ddtw distance between two time series.
 
@@ -93,7 +87,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     r"""Compute the ddtw cost matrix between two time series.
 
@@ -152,15 +146,12 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
         for curr_x, curr_y in zip(x, y):
             _x = average_of_slope(curr_x)
             _y = average_of_slope(curr_y)
-            cost_matrix = np.add(
-                cost_matrix, _dtw_cost_matrix(_x, _y, bounding_matrix)
-            )
+            cost_matrix = np.add(cost_matrix, _dtw_cost_matrix(_x, _y, bounding_matrix))
         return cost_matrix
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def average_of_slope(q: np.ndarray) -> np.ndarray:
     r"""Compute the average of a slope between points.
 
@@ -200,13 +191,12 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     for i in range(q.shape[0]):
         for j in range(1, q.shape[1] - 1):
             result[i, j - 1] = (
-                                       (q[i, j] - q[i, j - 1]) + (
-                                       q[i, j + 1] - q[i, j - 1]) / 2.0
-                               ) / 2.0
+                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
+            ) / 2.0
     return result
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the ddtw pairwise distance between a set of time series.
 
@@ -249,7 +239,7 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -269,9 +259,9 @@ def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
@@ -316,9 +306,9 @@ def ddtw_from_single_to_multiple_distance(
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _ddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -331,9 +321,9 @@ def _ddtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
@@ -386,9 +376,9 @@ def ddtw_from_multiple_to_multiple_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _ddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -410,9 +400,9 @@ def _ddtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def ddtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ddtw alignment path between two time series.
 

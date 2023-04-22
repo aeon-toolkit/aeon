@@ -43,12 +43,19 @@ __all__ = [
     "distance_alignment_path_factory",
     "distance_alignment_path",
     "twe_alignment_path",
+    "wddtw_alignment_path",
 ]
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance import (
+from aeon.distances._ddtw import (
     ddtw_alignment_path,
+    ddtw_cost_matrix,
     ddtw_distance,
+    ddtw_from_multiple_to_multiple_distance,
+    ddtw_from_single_to_multiple_distance,
+    ddtw_pairwise_distance,
+)
+from aeon.distances._distance import (
     distance,
     distance_alignment_path,
     distance_alignment_path_factory,
@@ -68,14 +75,6 @@ from aeon.distances._distance import (
     wddtw_distance,
     wdtw_alignment_path,
     wdtw_distance,
-)
-from aeon.distances._ddtw import (
-    ddtw_alignment_path,
-    ddtw_cost_matrix,
-    ddtw_distance,
-    ddtw_from_multiple_to_multiple_distance,
-    ddtw_from_single_to_multiple_distance,
-    ddtw_pairwise_distance,
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,

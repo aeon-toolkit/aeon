@@ -35,7 +35,7 @@ class _WddtwDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: int = None,
-        compute_derivative = average_of_slope,
+        compute_derivative=average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
@@ -119,7 +119,7 @@ class _WddtwDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: int = None,
-        compute_derivative = average_of_slope,
+        compute_derivative=average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
     ) -> DistanceCallable:

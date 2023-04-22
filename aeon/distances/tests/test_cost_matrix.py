@@ -18,7 +18,7 @@ def _validate_cost_matrix_result(
 
     assert isinstance(cost_matrix_result, np.ndarray)
     if name == "ddtw" or name == "wddtw":
-        assert cost_matrix_result.shape == (x.shape[-1] -2 , y.shape[-1] - 2)
+        assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
     else:
         assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
 
