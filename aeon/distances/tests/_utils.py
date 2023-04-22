@@ -106,7 +106,7 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     num_dims = x.ndim
     if num_dims == 1:
         shape = x.shape
-        _x = np.reshape(x, (shape[0], 1, 1))
+        _x = np.reshape(x, (1, 1, shape[0]))
     elif num_dims == 2:
         shape = x.shape
         _x = np.reshape(x, (shape[0], 1, shape[1]))

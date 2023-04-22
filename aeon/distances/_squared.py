@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__author__ = ["chrisholder"]
+__author__ = ["chrisholder", "tonybagnall"]
 
 import numpy as np
 from numba import njit
@@ -37,9 +37,9 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     >>> import numpy as np
     >>> from aeon.distances import squared_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> squared_distance(x, y)
-    0.0
+    1000.0
     """
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_squared_distance(x, y)
@@ -104,7 +104,7 @@ def squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
     if X.ndim == 3:
         return _squared_pairwise_distance(X)
     if X.ndim == 2:
-        _X = X.reshape((X.shape[1], 1, X.shape[0]))
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
         return _squared_pairwise_distance(_X)
     raise ValueError("x and y must be 2D or 3D arrays")
 
@@ -224,8 +224,8 @@ def squared_from_multiple_to_multiple_distance(
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
         return _squared_from_multiple_to_multiple_distance(_x, _y)
     if y.ndim == 1 and x.ndim == 1:
-        _x = x.reshape((x.shape[0], 1, 1))
-        _y = y.reshape((y.shape[0], 1, 1))
+        _x = x.reshape((1, 1, x.shape[0]))
+        _y = y.reshape((1, 1, y.shape[0]))
         return _squared_from_multiple_to_multiple_distance(_x, _y)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
