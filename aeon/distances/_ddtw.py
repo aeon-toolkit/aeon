@@ -19,7 +19,7 @@ References
     First SIAM International Conference on Data Mining.
     1. 10.1137/1.9781611972719.1.
 """
-__author__ = ["chrisholder"]
+__author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
 
