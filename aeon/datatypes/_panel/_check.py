@@ -150,7 +150,7 @@ def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
     bad_inds = [
         i
         for i in range(n)
-        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim < 3
+        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim == 2
     ]
 
     if len(bad_inds) > 0:
