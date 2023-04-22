@@ -2,6 +2,7 @@
 """Distance computation."""
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = [
+    "create_bounding_matrix",
     "distance",
     "distance_factory",
     "pairwise_distance",
@@ -16,7 +17,6 @@ __all__ = [
     "msm_distance",
     "lcss_distance",
     "twe_distance",
-    "LowerBounding",
     "dtw_alignment_path",
     "ddtw_alignment_path",
     "wdtw_alignment_path",
@@ -30,6 +30,7 @@ __all__ = [
     "twe_alignment_path",
 ]
 
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance import (
     ddtw_alignment_path,
     ddtw_distance,
@@ -57,4 +58,3 @@ from aeon.distances._distance import (
     wdtw_alignment_path,
     wdtw_distance,
 )
-from aeon.distances.lower_bounding import LowerBounding
