@@ -216,7 +216,7 @@ def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
@@ -263,7 +263,7 @@ def ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -278,7 +278,7 @@ def _ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
@@ -333,7 +333,7 @@ def ddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -357,7 +357,7 @@ def _ddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ddtw alignment path between two time series.
 
@@ -444,7 +444,6 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     for i in range(q.shape[0]):
         for j in range(1, q.shape[1] - 1):
             result[i, j - 1] = (
-                                       (q[i, j] - q[i, j - 1]) + (
-                                           q[i, j + 1] - q[i, j - 1]) / 2.0
-                               ) / 2.0
+                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
+            ) / 2.0
     return result

@@ -352,7 +352,10 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Index of the cluster each time series in X belongs to.
         """
         if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
+            derivative_X = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
+            for i in range(X.shape[0]):
+                derivative_X[i] = average_of_slope(X[i])
+            X = derivative_X
         return self._assign_clusters(X, self.cluster_centers_)[0]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
