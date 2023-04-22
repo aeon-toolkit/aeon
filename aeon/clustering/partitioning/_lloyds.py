@@ -12,7 +12,7 @@ from sklearn.utils.extmath import stable_cumsum
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.metrics.averaging import mean_average
 from aeon.distances import distance_factory, pairwise_distance
-from aeon.distances._ddtw import average_of_slope_transform
+from aeon.distances._ddtw import average_of_slope
 
 
 def _forgy_center_initializer(
@@ -301,8 +301,11 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Fitted estimator.
         """
         self._check_params(X)
-        if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
+        if self.metric == "wddtw" or self.metric == "ddtw":
+            derivative_X = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
+            for i in range(X.shape[0]):
+                derivative_X[i] = average_of_slope(X[i])
+            X = derivative_X
             if self.metric == "ddtw":
                 self._distance_metric = distance_factory(
                     X[0], X[1], metric="dtw", **self._distance_params

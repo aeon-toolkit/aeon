@@ -152,51 +152,6 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 
 
 @njit(cache=True, fastmath=True)
-def average_of_slope(q: np.ndarray) -> np.ndarray:
-    r"""Compute the average of a slope between points.
-
-    Computes the average of the slope of the line through the point in question and
-    its left neighbour, and the slope of the line through the left neighbour and the
-    right neighbour. proposed in [1] for use in this context.
-    .. math::
-    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-    Where q is the original time series and q' is the derived time series.
-
-    Parameters
-    ----------
-    q: np.ndarray (n_channels, n_timepoints)
-        Time series to take derivative of.
-
-    Returns
-    -------
-    np.ndarray  (n_channels, n_timepoints - 2)
-        Array containing the derivative of q.
-
-    Raises
-    ------
-    ValueError
-        If the time series has less than 3 points.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances._ddtw import average_of_slope
-    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> average_of_slope(q)
-    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
-    """
-    if q.shape[1] < 3:
-        raise ValueError("Time series must have at least 3 points.")
-    result = np.zeros((q.shape[0], q.shape[1] - 2))
-    for i in range(q.shape[0]):
-        for j in range(1, q.shape[1] - 1):
-            result[i, j - 1] = (
-                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
-            ) / 2.0
-    return result
-
-
-@njit(cache=True, fastmath=True)
 def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     """Compute the ddtw pairwise distance between a set of time series.
 
@@ -261,7 +216,7 @@ def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between a single time series and multiple.
 
@@ -308,7 +263,7 @@ def ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -323,7 +278,7 @@ def _ddtw_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     """Compute the ddtw distance between two sets of time series.
 
@@ -378,7 +333,7 @@ def ddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -402,7 +357,7 @@ def _ddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def ddtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None
+        x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ddtw alignment path between two time series.
 
@@ -447,3 +402,49 @@ def ddtw_alignment_path(
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],
     )
+
+
+@njit(cache=True, fastmath=True)
+def average_of_slope(q: np.ndarray) -> np.ndarray:
+    r"""Compute the average of a slope between points.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. proposed in [1] for use in this context.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
+
+    Parameters
+    ----------
+    q: np.ndarray (n_channels, n_timepoints)
+        Time series to take derivative of.
+
+    Returns
+    -------
+    np.ndarray  (n_channels, n_timepoints - 2)
+        Array containing the derivative of q.
+
+    Raises
+    ------
+    ValueError
+        If the time series has less than 3 points.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances._ddtw import average_of_slope
+    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> average_of_slope(q)
+    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
+    """
+    if q.shape[1] < 3:
+        raise ValueError("Time series must have at least 3 points.")
+    result = np.zeros((q.shape[0], q.shape[1] - 2))
+    for i in range(q.shape[0]):
+        for j in range(1, q.shape[1] - 1):
+            result[i, j - 1] = (
+                                       (q[i, j] - q[i, j - 1]) + (
+                                           q[i, j + 1] - q[i, j - 1]) / 2.0
+                               ) / 2.0
+    return result
