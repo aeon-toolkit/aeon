@@ -242,7 +242,7 @@ def dtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     if X.ndim == 3:
         return _dtw_pairwise_distance(X)
     if X.ndim == 2:
-        _X = X.reshape((X.shape[1], 1, X.shape[0]))
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
         return _dtw_pairwise_distance(_X)
 
     raise ValueError("x and y must be 2D or 3D arrays")
@@ -370,8 +370,8 @@ def dtw_from_multiple_to_multiple_distance(
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
         return _dtw_from_multiple_to_multiple_distance(_x, _y)
     if y.ndim == 1 and x.ndim == 1:
-        _x = x.reshape((x.shape[0], 1, 1))
-        _y = y.reshape((y.shape[0], 1, 1))
+        _x = x.reshape((1, 1, x.shape[0]))
+        _y = y.reshape((1, 1, y.shape[0]))
         return _dtw_from_multiple_to_multiple_distance(_x, _y)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 

@@ -15,7 +15,10 @@ def _validate_multiple_to_multiple_result(
 ):
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
-    expected_size = (len(x), len(y))
+    if x.ndim == 1 and y.ndim == 1:
+        expected_size = (1, 1)
+    else:
+        expected_size = (len(x), len(y))
 
     assert isinstance(multiple_to_multiple_result, np.ndarray)
     assert multiple_to_multiple_result.shape == expected_size
@@ -35,7 +38,7 @@ def _validate_multiple_to_multiple_result(
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
-def test_new_multiple_to_multiple_distances(dist):
+def test_multiple_to_multiple_distances(dist):
     # Univariate tests
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_multiple_to_multiple_result(
