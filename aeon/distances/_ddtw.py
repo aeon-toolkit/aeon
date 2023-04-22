@@ -62,9 +62,9 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> import numpy as np
     >>> from aeon.distances import ddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
     >>> ddtw_distance(x, y)
-    0.0
+    2179.9375
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
@@ -188,7 +188,7 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     if X.ndim == 3:
         return _ddtw_pairwise_distance(X)
     if X.ndim == 2:
-        _X = X.reshape((X.shape[1], 1, X.shape[0]))
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
         return _ddtw_pairwise_distance(_X)
 
     raise ValueError("x and y must be 2D or 3D arrays")
@@ -325,8 +325,8 @@ def ddtw_from_multiple_to_multiple_distance(
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
         return _ddtw_from_multiple_to_multiple_distance(_x, _y)
     if y.ndim == 1 and x.ndim == 1:
-        _x = x.reshape((x.shape[0], 1, 1))
-        _y = y.reshape((y.shape[0], 1, 1))
+        _x = x.reshape((1, 1, x.shape[0]))
+        _y = y.reshape((1, 1, y.shape[0]))
         return _ddtw_from_multiple_to_multiple_distance(_x, _y)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
