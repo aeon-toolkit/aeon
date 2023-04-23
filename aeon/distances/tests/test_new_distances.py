@@ -7,6 +7,12 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import (
+    ddtw_alignment_path,
+    ddtw_cost_matrix,
+    ddtw_distance,
+    ddtw_from_multiple_to_multiple_distance,
+    ddtw_from_single_to_multiple_distance,
+    ddtw_pairwise_distance,
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
@@ -49,6 +55,15 @@ DISTANCES = [
         "cost_matrix": dtw_cost_matrix,
         "alignment_path": dtw_alignment_path,
     },
+    {
+        "name": "ddtw",
+        "distance": ddtw_distance,
+        "pairwise_distance": ddtw_pairwise_distance,
+        "single_to_multiple_distance": ddtw_from_single_to_multiple_distance,
+        "multiple_to_multiple_distance": ddtw_from_multiple_to_multiple_distance,
+        "cost_matrix": ddtw_cost_matrix,
+        "alignment_path": ddtw_alignment_path,
+    },
 ]
 
 
@@ -70,13 +85,15 @@ def _validate_distance_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distances(dist):
     # Test univariate
-    _validate_distance_result(
-        np.array([10.0]),
-        np.array([15.0]),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][0],
-    )
+
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_distance_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][0],
+        )
 
     _validate_distance_result(
         create_test_distance_numpy(10),

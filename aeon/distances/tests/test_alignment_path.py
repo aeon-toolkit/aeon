@@ -30,13 +30,14 @@ def test_cost_matrix(dist):
         return
 
     # Test univariate
-    _validate_cost_matrix_result(
-        np.array([10.0]),
-        np.array([15.0]),
-        dist["name"],
-        dist["distance"],
-        dist["alignment_path"],
-    )
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_cost_matrix_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            dist["alignment_path"],
+        )
 
     _validate_cost_matrix_result(
         create_test_distance_numpy(10),

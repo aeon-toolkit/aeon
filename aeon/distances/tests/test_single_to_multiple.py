@@ -33,13 +33,14 @@ def _validate_single_to_multiple_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
     # Univariate tests
-    _validate_single_to_multiple_result(
-        np.array([10.0]),
-        np.array([[15.0]]),
-        dist["name"],
-        dist["distance"],
-        dist["single_to_multiple_distance"],
-    )
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_single_to_multiple_result(
+            np.array([10.0]),
+            np.array([[15.0]]),
+            dist["name"],
+            dist["distance"],
+            dist["single_to_multiple_distance"],
+        )
 
     _validate_single_to_multiple_result(
         create_test_distance_numpy(5),
@@ -68,7 +69,7 @@ def test_new_single_to_multiple_distances(dist):
 
     # Unequal length tests
     _validate_single_to_multiple_result(
-        create_test_distance_numpy(2),
+        create_test_distance_numpy(3),
         create_test_distance_numpy(2, 1, 5, random_state=2)[0],
         dist["name"],
         dist["distance"],
@@ -77,14 +78,14 @@ def test_new_single_to_multiple_distances(dist):
 
     _validate_single_to_multiple_result(
         create_test_distance_numpy(5),
-        create_test_distance_numpy(2, 1, 2, random_state=2)[0],
+        create_test_distance_numpy(2, 1, 3, random_state=2)[0],
         dist["name"],
         dist["distance"],
         dist["single_to_multiple_distance"],
     )
 
     _validate_single_to_multiple_result(
-        create_test_distance_numpy(5, 2),
+        create_test_distance_numpy(5, 3),
         create_test_distance_numpy(5, 5, 5, random_state=2),
         dist["name"],
         dist["distance"],
@@ -93,7 +94,7 @@ def test_new_single_to_multiple_distances(dist):
 
     _validate_single_to_multiple_result(
         create_test_distance_numpy(5, 5),
-        create_test_distance_numpy(5, 5, 2, random_state=2),
+        create_test_distance_numpy(5, 5, 3, random_state=2),
         dist["name"],
         dist["distance"],
         dist["single_to_multiple_distance"],

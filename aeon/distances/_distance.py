@@ -6,7 +6,12 @@ from typing import Any, Callable, Union
 import numpy as np
 from numba import njit
 
-from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
+from aeon.distances._ddtw import (
+    average_of_slope,
+    ddtw_alignment_path,
+    ddtw_distance,
+    ddtw_from_multiple_to_multiple_distance,
+)
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
@@ -269,7 +274,7 @@ def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative=average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> float:
@@ -435,90 +440,6 @@ def wdtw_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="wdtw", **format_kwargs)
-
-
-def ddtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    **kwargs: Any,
-) -> float:
-    r"""Compute the derivative dynamic time warping (DDTW) distance between time series.
-
-    DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
-    improve on dtw by better account for the 'shape' of the time series.
-    This is done by considering y axis data points as higher level features of 'shape'.
-    To do this the first derivative of the sequence is taken, and then using this
-    derived sequence a dtw computation is done.
-
-    The default derivative used is:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Where q is the original time series and d_q is the derived time series.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Ddtw distance between the x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric or compute derivative callable is not no_python compiled.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> ddtw_distance(x_1d, y_1d)
-    0.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> ddtw_distance(x_2d, y_2d)
-    0.0
-
-    References
-    ----------
-    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
-        First SIAM International Conference on Data Mining.
-        1. 10.1137/1.9781611972719.1.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="ddtw", **format_kwargs)
 
 
 def msm_distance(
@@ -746,93 +667,12 @@ def wdtw_alignment_path(
     )
 
 
-def ddtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    r"""Compute the derivative dynamic time warping (DDTW) alignment path.
-
-    DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
-    improve on dtw by better account for the 'shape' of the time series.
-    This is done by considering y axis data points as higher level features of 'shape'.
-    To do this the first derivative of the sequence is taken, and then using this
-    derived sequence a dtw computation is done.
-
-    The default derivative used is:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Where q is the original time series and d_q is the derived time series.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the ddtw alignment path.
-    float
-        Ddtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric or compute derivative callable is not no_python compiled.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-
-    References
-    ----------
-    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
-        First SIAM International Conference on Data Mining.
-        1. 10.1137/1.9781611972719.1.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="ddtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
 def wddtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
+    compute_derivative=average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1291,7 +1131,7 @@ def twe_alignment_path(
     )
 
 
-NEW_DISTANCES = ["squared", "euclidean", "dtw"]
+NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw"]
 
 
 def distance(
@@ -1380,6 +1220,8 @@ def distance(
             return euclidean_distance(x, y)
         elif metric == "dtw":
             return dtw_distance(x, y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1453,6 +1295,8 @@ def distance_factory(
             return euclidean_distance
         elif metric == "dtw":
             return dtw_distance
+        elif metric == "ddtw":
+            return ddtw_distance
     global dist_callable
 
     if x is None:
@@ -1575,6 +1419,8 @@ def pairwise_distance(
             return squared_from_multiple_to_multiple_distance(_x, _y)
         elif metric == "dtw":
             return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -1655,6 +1501,8 @@ def distance_alignment_path(
     if metric in NEW_DISTANCES:
         if metric == "dtw":
             return dtw_alignment_path(x, y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1732,6 +1580,8 @@ def distance_alignment_path_factory(
     if metric in NEW_DISTANCES:
         if metric == "dtw":
             return dtw_alignment_path
+        elif metric == "ddtw":
+            return ddtw_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1776,13 +1626,6 @@ _METRIC_INFOS = [
         dist_alignment_path_func=lcss_alignment_path,
     ),
     MetricInfo(
-        canonical_name="ddtw",
-        aka={"ddtw", "derivative dynamic time warping"},
-        dist_func=ddtw_distance,
-        dist_instance=_DdtwDistance(),
-        dist_alignment_path_func=ddtw_alignment_path,
-    ),
-    MetricInfo(
         canonical_name="wdtw",
         aka={"wdtw", "weighted dynamic time warping"},
         dist_func=wdtw_distance,
@@ -1820,7 +1663,6 @@ _METRIC_CALLABLES = dict(
 _METRICS_NAMES = list(_METRICS.keys())
 
 ALL_DISTANCES = (
-    ddtw_distance,
     edr_distance,
     erp_distance,
     lcss_distance,
