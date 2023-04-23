@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "TonyBagnall"]
 
-
 from typing import Any, Callable, Union
 
 import numpy as np
@@ -11,7 +10,10 @@ from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_s
 from aeon.distances._dtw import _DtwDistance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
-from aeon.distances._euclidean import _EuclideanDistance
+from aeon.distances._euclidean import (
+    euclidean_distance,
+    euclidean_from_multiple_to_multiple_distance,
+)
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -24,7 +26,10 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import _SquaredDistance
+from aeon.distances._squared import (
+    squared_distance,
+    squared_from_multiple_to_multiple_distance,
+)
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import _WdtwDistance
@@ -732,109 +737,6 @@ def twe_distance(
     return distance(x, y, metric="twe", **format_kwargs)
 
 
-def squared_distance(x: np.ndarray, y: np.ndarray, **kwargs: Any) -> float:
-    r"""Compute the squared distance between two time series.
-
-    The squared distance between two time series is defined as:
-
-    .. math::
-        sd(x, y) = \sum_{i=1}^{n} (x_i - y_i)^2
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    kwargs: Any
-        Extra kwargs. For squared there are none however, this is kept for
-        consistency.
-
-    Returns
-    -------
-    float
-        Squared distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> squared_distance(x_1d, y_1d)
-    64.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> squared_distance(x_2d, y_2d)
-    512.0
-    """
-    return distance(x, y, metric="squared", **kwargs)
-
-
-def euclidean_distance(x: np.ndarray, y: np.ndarray, **kwargs: Any) -> float:
-    r"""Compute the Euclidean distance between two time series.
-
-    Euclidean distance is supported for 1d, 2d and 3d arrays.
-
-    The Euclidean distance between two time series of length m is the square root of
-    the squared distance and is defined as:
-
-    .. math::
-        ed(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    kwargs: Any
-        Extra kwargs. For euclidean there are none however, this is kept for
-        consistency.
-
-    Returns
-    -------
-    float
-        Euclidean distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> euclidean_distance(x_1d, y_1d)
-    8.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> euclidean_distance(x_2d, y_2d)
-    22.627416997969522
-    """
-    return distance(x, y, metric="euclidean", **kwargs)
-
-
 def dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
@@ -1532,6 +1434,9 @@ def twe_alignment_path(
     )
 
 
+NEW_DISTANCES = ["squared", "euclidean"]
+
+
 def distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -1611,6 +1516,11 @@ def distance(
     float
         Distance between the x and y.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "squared":
+            return squared_distance(x, y)
+        elif metric == "euclidean":
+            return euclidean_distance(x, y)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1677,6 +1587,11 @@ def distance_factory(
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "squared":
+            return squared_distance
+        elif metric == "euclidean":
+            return euclidean_distance
     global dist_callable
 
     if x is None:
@@ -1792,6 +1707,11 @@ def pairwise_distance(
     if y is None:
         y = x
     _y = _make_3d_series(y)
+    if metric in NEW_DISTANCES:
+        if metric == "euclidean":
+            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+        elif metric == "squared":
+            return squared_from_multiple_to_multiple_distance(_x, _y)
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
         metric, _x[0], _y[0], _METRIC_INFOS, **kwargs
@@ -1965,12 +1885,6 @@ def distance_alignment_path_factory(
 
 _METRIC_INFOS = [
     MetricInfo(
-        canonical_name="euclidean",
-        aka={"euclidean", "ed", "euclid", "pythagorean"},
-        dist_func=euclidean_distance,
-        dist_instance=_EuclideanDistance(),
-    ),
-    MetricInfo(
         canonical_name="erp",
         aka={"erp", "edit distance with real penalty"},
         dist_func=erp_distance,
@@ -1990,12 +1904,6 @@ _METRIC_INFOS = [
         dist_func=lcss_distance,
         dist_instance=_LcssDistance(),
         dist_alignment_path_func=lcss_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="squared",
-        aka={"squared"},
-        dist_func=squared_distance,
-        dist_instance=_SquaredDistance(),
     ),
     MetricInfo(
         canonical_name="dtw",
@@ -2053,10 +1961,8 @@ ALL_DISTANCES = (
     dtw_distance,
     edr_distance,
     erp_distance,
-    euclidean_distance,
     lcss_distance,
     msm_distance,
-    squared_distance,
     wddtw_distance,
     wdtw_distance,
     twe_distance,

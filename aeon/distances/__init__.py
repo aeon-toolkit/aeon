@@ -3,6 +3,14 @@
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = [
     "create_bounding_matrix",
+    "squared_distance",
+    "squared_pairwise_distance",
+    "squared_from_single_to_multiple_distance",
+    "squared_from_multiple_to_multiple_distance",
+    "euclidean_distance",
+    "euclidean_pairwise_distance",
+    "euclidean_from_single_to_multiple_distance",
+    "euclidean_from_multiple_to_multiple_distance",
     "distance",
     "distance_factory",
     "pairwise_distance",
@@ -44,17 +52,27 @@ from aeon.distances._distance import (
     edr_distance,
     erp_alignment_path,
     erp_distance,
-    euclidean_distance,
     lcss_alignment_path,
     lcss_distance,
     msm_alignment_path,
     msm_distance,
     pairwise_distance,
-    squared_distance,
     twe_alignment_path,
     twe_distance,
     wddtw_alignment_path,
     wddtw_distance,
     wdtw_alignment_path,
     wdtw_distance,
+)
+from aeon.distances._euclidean import (
+    euclidean_distance,
+    euclidean_from_multiple_to_multiple_distance,
+    euclidean_from_single_to_multiple_distance,
+    euclidean_pairwise_distance,
+)
+from aeon.distances._squared import (
+    squared_distance,
+    squared_from_multiple_to_multiple_distance,
+    squared_from_single_to_multiple_distance,
+    squared_pairwise_distance,
 )
