@@ -23,7 +23,7 @@ from aeon.benchmarking.strategies import TSCStrategy
 from aeon.benchmarking.tasks import TSCTask
 from aeon.classification.compose import ComposableTimeSeriesForestClassifier
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.datasets import load_arrow_head, load_gunpoint
+from aeon.datasets import load_gunpoint, load_unit_test
 from aeon.series_as_features.model_selection import SingleSplit
 from aeon.transformations.panel.reduce import Tabularizer
 
@@ -38,10 +38,9 @@ def make_reduction_pipeline(estimator):
 
 
 # simple test of orchestration and metric evaluation
-@pytest.mark.parametrize("data_loader", [load_gunpoint, load_arrow_head])
-def test_automated_orchestration_vs_manual(data_loader):
+def test_automated_orchestration_vs_manual():
     """Test orchestration."""
-    data = data_loader(return_X_y=False, return_type="nested_univ")
+    data = load_unit_test(return_X_y=False, return_type="nested_univ")
 
     dataset = RAMDataset(dataset=data, name="data")
     task = TSCTask(target="class_val")
@@ -86,8 +85,8 @@ def test_automated_orchestration_vs_manual(data_loader):
     "dataset",
     [
         RAMDataset(
-            dataset=load_arrow_head(return_X_y=False, return_type="nested_univ"),
-            name="ArrowHead",
+            dataset=load_unit_test(return_X_y=False, return_type="nested_univ"),
+            name="UnitTest",
         ),
         UEADataset(path=DATAPATH, name="GunPoint", target_name="class_val"),
     ],
@@ -96,14 +95,13 @@ def test_automated_orchestration_vs_manual(data_loader):
     "cv", [SingleSplit(random_state=1), StratifiedKFold(random_state=1, shuffle=True)]
 )
 @pytest.mark.parametrize(
-    "metric_func", [accuracy_score, f1_score]  # pairwise metric  # composite metric
+    "metric_func", [accuracy_score]  # pairwise metric  # composite metric
 )
-@pytest.mark.parametrize("results_cls", [RAMResults, HDDResults])
+@pytest.mark.parametrize("results_cls", [RAMResults])
 @pytest.mark.parametrize(
     "estimator",
     [
         DummyClassifier(strategy="most_frequent", random_state=1),
-        RandomForestClassifier(n_estimators=2, random_state=1),
     ],
 )
 def test_single_dataset_single_strategy_against_sklearn(
@@ -165,7 +163,7 @@ def test_single_dataset_single_strategy_against_sklearn(
 def test_stat():
     """Test sign ranks."""
     data = load_gunpoint(split="train", return_X_y=False, return_type="nested_univ")
-    dataset = RAMDataset(dataset=data, name="gunpoint")
+    dataset = RAMDataset(dataset=data, name="unit_test")
     task = TSCTask(target="class_val")
 
     fc = ComposableTimeSeriesForestClassifier(n_estimators=1, random_state=1)

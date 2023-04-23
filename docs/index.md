@@ -2,6 +2,11 @@
 hide-toc: true
 ---
 
+```{image} images/logo/aeon-logo-blue-compact.png
+:align: center
+:alt: aeon logo
+:width: 80%
+```
 # Welcome to the documentation for **aeon**
 
 <br>

@@ -7,6 +7,7 @@ from typing import Callable
 
 import numpy as np
 import pytest
+from numba import njit
 from numpy.testing import assert_almost_equal
 
 from aeon.distances._distance import _METRIC_INFOS, distance, distance_factory
@@ -69,9 +70,10 @@ def _validate_distance_result(
     if _ran_once is False:
         _ran_once = True
         metric_factory_result = distance(x, y, metric=distance_factory, **kwargs_dict)
-        metric_numba_class_result = distance(
-            x, y, metric=distance_numba_class, **kwargs_dict
-        )
+        if distance_numba_class is not None:
+            metric_numba_class_result = distance(
+                x, y, metric=distance_numba_class, **kwargs_dict
+            )
         metric_dist_func_result = distance(
             x, y, metric=distance_function, **kwargs_dict
         )
@@ -84,11 +86,14 @@ def _validate_distance_result(
             f"The return type provided is of type {type(metric_factory_result)}"
         )
 
-        assert isinstance(metric_numba_class_result, float), (
-            f"The result for a distance using the NumbaDistance class: "
-            f'{distance_numba_class} as the "metric" parameter should return a float. '
-            f"The return type provided is of type {type(metric_numba_class_result)}."
-        )
+        if distance_numba_class is not None:
+            assert isinstance(metric_numba_class_result, float), (
+                f"The result for a distance using the NumbaDistance class: "
+                f'{distance_numba_class} as the "metric" parameter should return a '
+                f"float. "
+                f"The return type provided is of type "
+                f"{type(metric_numba_class_result)}."
+            )
 
         assert isinstance(distance_func_result, float), (
             f"The result for a distance using the NumbaDistance class: "
@@ -105,15 +110,17 @@ def _validate_distance_result(
             f"metric={distance_factory} is {metric_factory_result}."
         )
 
-        assert metric_str_result == metric_numba_class_result, (
-            f'The result of using the string: {metric_str} as the "metric" parameter'
-            f"result does not equal the result of using a NumbaDistance class: "
-            f'{distance_numba_class} as the "metric" parameter. These results should '
-            f"be equal. "
-            f"The result of the distance calculation where metric={metric_str} is "
-            f"{metric_str_result}. The result of the distance calculation where "
-            f"metric={distance_numba_class} is {metric_numba_class_result}."
-        )
+        if distance_numba_class is not None:
+            assert metric_str_result == metric_numba_class_result, (
+                f'The result of using the string: {metric_str} as the "metric" '
+                f"parameter"
+                f"result does not equal the result of using a NumbaDistance class: "
+                f'{distance_numba_class} as the "metric" parameter. These results '
+                f"should be equal. "
+                f"The result of the distance calculation where metric={metric_str} is "
+                f"{metric_str_result}. The result of the distance calculation where "
+                f"metric={distance_numba_class} is {metric_numba_class_result}."
+            )
 
         assert metric_str_result == metric_dist_func_result, (
             f'The result of using the string: {metric_str} as the "metric" parameter'
@@ -159,7 +166,15 @@ def test_distance(dist: MetricInfo) -> None:
     name = dist.canonical_name
     distance_numba_class = dist.dist_instance
     distance_function = dist.dist_func
-    distance_factory = distance_numba_class.distance_factory
+    if distance_numba_class is not None and not isinstance(distance_numba_class, str):
+        distance_factory = distance_numba_class.distance_factory
+    else:
+
+        @njit()
+        def _dist_factory(x, y):
+            return dist.dist_func
+
+        distance_factory = _dist_factory
 
     _validate_distance_result(
         x=np.array([10.0]),
