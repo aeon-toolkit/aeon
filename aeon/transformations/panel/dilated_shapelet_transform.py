@@ -179,7 +179,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             This estimator.
         """
         self._random_state = (
-            np.int64(self.random_state) if isinstance(self.random_state, int) else None
+            np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
 
         self.n_instances, self.n_channels, self.series_length = X.shape
@@ -251,7 +251,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
                     "an array (got {}).".format(self.shapelet_lengths_)
                 )
 
-            self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int64)
+            self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int32)
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
                     "Some values in 'shapelet_lengths' are inferior to 2."
@@ -378,17 +378,17 @@ def _init_random_shapelet_params(
     upper_bounds = np.log2(np.floor_divide(series_length - 1, lengths - 1))
 
     if use_prime_dilations:
-        _primes = prime_up_to(np.int64(2 ** upper_bounds.max()))
+        _primes = prime_up_to(np.int32(2 ** upper_bounds.max()))
         # 1 is not prime, but it is still a valid dilation for the "prime" scheme
         primes = np.zeros((_primes.shape[0] + 1), dtype=np.int32)
         primes[0] = 1
         primes[1:] = _primes
         for i in prange(max_shapelets):
-            shp_primes = primes[primes <= np.int64(2 ** upper_bounds[i])]
+            shp_primes = primes[primes <= np.int32(2 ** upper_bounds[i])]
             dilations[i] = shp_primes[choice_log(shp_primes.shape[0], 1)[0]]
     else:
         for i in prange(max_shapelets):
-            dilations[i] = np.int64(2 ** np.random.uniform(0, upper_bounds[i]))
+            dilations[i] = np.int32(2 ** np.random.uniform(0, upper_bounds[i]))
 
     # Init threshold array
     threshold = np.zeros(max_shapelets, dtype=np.float32)
@@ -511,7 +511,7 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = np.int64(normalize[i_shp])
+            norm = np.int32(normalize[i_shp])
             dist_vect_shape = series_length - (length - 1) * dilation
 
             # Possible sampling points given self similarity mask

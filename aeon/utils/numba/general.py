@@ -163,12 +163,12 @@ def choice_log(n_choice, n_sample):
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
-        loc = np.zeros(n_sample, dtype=np.int64)
+        loc = np.zeros(n_sample, dtype=np.int32)
         for i in prange(n_sample):
             loc[i] = np.where(P >= np.random.rand())[0][0]
         return loc
     else:
-        return np.zeros(n_sample, dtype=np.int64)
+        return np.zeros(n_sample, dtype=np.int32)
 
 
 @njit(cache=True, fastmath=True)
@@ -376,7 +376,7 @@ def combinations_1d(x, y):
 
     for i in range(x.shape[0]):
         u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = True
-    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int64)
+    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int32)
     i_comb = 0
     for i in range(x.shape[0]):
         if u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]]:
