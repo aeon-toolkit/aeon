@@ -272,10 +272,10 @@ def wdtw_pairwise_distance(
            [51.77726856, 12.45039545,  0.        ]])
     """
     if X.ndim == 3:
-        return _wdtw_pairwise_distance(X)
+        return _wdtw_pairwise_distance(X, g)
     if X.ndim == 2:
         _X = X.reshape((X.shape[0], 1, X.shape[1]))
-        return _wdtw_pairwise_distance(_X)
+        return _wdtw_pairwise_distance(_X, g)
 
     raise ValueError("x and y must be 2D or 3D arrays")
 
@@ -336,11 +336,11 @@ def wdtw_from_single_to_multiple_distance(
     array([ 1.90008325, 11.50038504, 47.95102508])
     """
     if y.ndim == 3 and x.ndim == 2:
-        return _wdtw_from_single_to_multiple_distance(x, y)
+        return _wdtw_from_single_to_multiple_distance(x, y, g)
     if y.ndim == 2 and x.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _wdtw_from_single_to_multiple_distance(_x, _y)
+        return _wdtw_from_single_to_multiple_distance(_x, _y, g)
     else:
         raise ValueError("x and y must be 2D or 3D arrays")
 
@@ -368,9 +368,11 @@ def wdtw_from_multiple_to_multiple_distance(
 
     Parameters
     ----------
-    x: np.ndarray (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+            (n_instances, n_timepoints) or (n_timepoints,)
         A collection of time series instances.
-    y: np.ndarray (m_instances, n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,)
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -384,6 +386,11 @@ def wdtw_from_multiple_to_multiple_distance(
     np.ndarray (n_instances, m_instances)
         wdtw distance between two collections of time series, x and y.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 2D or 3D arrays.
+
     Examples
     --------
     >>> import numpy as np
@@ -395,6 +402,23 @@ def wdtw_from_multiple_to_multiple_distance(
            [ 88.90217501, 172.90757576, 241.31057276],
            [212.80932401, 279.31223776, 199.26802346]])
     """
+    if y.ndim == 3 and x.ndim == 3:
+        return _wdtw_from_multiple_to_multiple_distance(x, y)
+    if y.ndim == 2 and x.ndim == 2:
+        _x = x.reshape((x.shape[0], 1, x.shape[1]))
+        _y = y.reshape((y.shape[0], 1, y.shape[1]))
+        return _wdtw_from_multiple_to_multiple_distance(_x, _y)
+    if y.ndim == 1 and x.ndim == 1:
+        _x = x.reshape((1, 1, x.shape[0]))
+        _y = y.reshape((1, 1, y.shape[0]))
+        return _wdtw_from_multiple_to_multiple_distance(_x, _y)
+    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+
+
+@njit(cache=True)
+def _wdtw_from_multiple_to_multiple_distance(
+        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
