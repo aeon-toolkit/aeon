@@ -68,7 +68,7 @@ DIST_PARAMS = {
     "edr": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "lcss": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "ddtw": BASIC_BOUNDING_PARAMS,
-    "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
+    "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "wddtw": BASIC_BOUNDING_PARAMS
     + [{"compute_derivative": _test_derivative}]
     + [{"g": 0.5}],
