@@ -272,17 +272,17 @@ def wdtw_pairwise_distance(
            [51.77726856, 12.45039545,  0.        ]])
     """
     if X.ndim == 3:
-        return _wdtw_pairwise_distance(X, g)
+        return _wdtw_pairwise_distance(X, window, g)
     if X.ndim == 2:
         _X = X.reshape((X.shape[0], 1, X.shape[1]))
-        return _wdtw_pairwise_distance(_X, g)
+        return _wdtw_pairwise_distance(_X, window, g)
 
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True)
 def _wdtw_pairwise_distance(
-        X: np.ndarray, window: float = None, g: float = 0.05
+        X: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -336,17 +336,17 @@ def wdtw_from_single_to_multiple_distance(
     array([ 1.90008325, 11.50038504, 47.95102508])
     """
     if y.ndim == 3 and x.ndim == 2:
-        return _wdtw_from_single_to_multiple_distance(x, y, g)
+        return _wdtw_from_single_to_multiple_distance(x, y, window, g)
     if y.ndim == 2 and x.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _wdtw_from_single_to_multiple_distance(_x, _y, g)
+        return _wdtw_from_single_to_multiple_distance(_x, _y, window, g)
     else:
         raise ValueError("x and y must be 2D or 3D arrays")
 
 @njit(cache=True)
 def _wdtw_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+        x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -403,21 +403,21 @@ def wdtw_from_multiple_to_multiple_distance(
            [212.80932401, 279.31223776, 199.26802346]])
     """
     if y.ndim == 3 and x.ndim == 3:
-        return _wdtw_from_multiple_to_multiple_distance(x, y)
+        return _wdtw_from_multiple_to_multiple_distance(x, y, window, g)
     if y.ndim == 2 and x.ndim == 2:
         _x = x.reshape((x.shape[0], 1, x.shape[1]))
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _wdtw_from_multiple_to_multiple_distance(_x, _y)
+        return _wdtw_from_multiple_to_multiple_distance(_x, _y, window, g)
     if y.ndim == 1 and x.ndim == 1:
         _x = x.reshape((1, 1, x.shape[0]))
         _y = y.reshape((1, 1, y.shape[0]))
-        return _wdtw_from_multiple_to_multiple_distance(_x, _y)
+        return _wdtw_from_multiple_to_multiple_distance(_x, _y, window, g)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True)
 def _wdtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+        x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -438,9 +438,11 @@ def wdtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray (n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (n_channels, n_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -458,6 +460,11 @@ def wdtw_alignment_path(
     float
         The wdtw distance betweeen the two time series.
 
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
+
     Examples
     --------
     >>> import numpy as np
@@ -467,9 +474,8 @@ def wdtw_alignment_path(
     >>> wdtw_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 1.90008325008424)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
-    cost_matrix = _wdtw_cost_matrix(x, y, bounding_matrix, g)
+    cost_matrix = wdtw_cost_matrix(x, y, window, g)
     return (
         compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[1] - 1, y.shape[1] - 1],
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
