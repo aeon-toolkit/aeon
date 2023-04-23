@@ -20,7 +20,7 @@ from aeon.transformations.panel.dilated_shapelet_transform import (
 )
 from aeon.utils.numba.stats import is_prime
 
-DATATYPES = ("int64", "float64")
+DATATYPES = ["int64", "float64", "int32", "float32"]
 
 
 def test_shapelet_prime_dilation():
