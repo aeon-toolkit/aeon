@@ -16,11 +16,6 @@ from aeon.distances._dtw import (
     dtw_distance,
     dtw_from_multiple_to_multiple_distance,
 )
-from aeon.distances._wddtw import (
-    wddtw_alignment_path,
-    wddtw_distance,
-    wddtw_from_multiple_to_multiple_distance,
-)
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
 from aeon.distances._euclidean import (
@@ -44,6 +39,11 @@ from aeon.distances._squared import (
     squared_from_multiple_to_multiple_distance,
 )
 from aeon.distances._twe import _TweDistance
+from aeon.distances._wddtw import (
+    wddtw_alignment_path,
+    wddtw_distance,
+    wddtw_from_multiple_to_multiple_distance,
+)
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_distance,

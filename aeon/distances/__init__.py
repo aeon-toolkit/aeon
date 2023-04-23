@@ -100,14 +100,6 @@ from aeon.distances._squared import (
     squared_from_single_to_multiple_distance,
     squared_pairwise_distance,
 )
-from aeon.distances._wdtw import (
-    wdtw_alignment_path,
-    wdtw_cost_matrix,
-    wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-    wdtw_from_single_to_multiple_distance,
-    wdtw_pairwise_distance,
-)
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
@@ -115,4 +107,12 @@ from aeon.distances._wddtw import (
     wddtw_from_multiple_to_multiple_distance,
     wddtw_from_single_to_multiple_distance,
     wddtw_pairwise_distance,
+)
+from aeon.distances._wdtw import (
+    wdtw_alignment_path,
+    wdtw_cost_matrix,
+    wdtw_distance,
+    wdtw_from_multiple_to_multiple_distance,
+    wdtw_from_single_to_multiple_distance,
+    wdtw_pairwise_distance,
 )
