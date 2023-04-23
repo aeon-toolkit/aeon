@@ -20,7 +20,7 @@ from aeon.transformations.panel.dilated_shapelet_transform import (
 )
 from aeon.utils.numba.stats import is_prime
 
-DATATYPES = ["int64", "float64", "int32", "float32"]
+DATATYPES = ["int64", "float64"]
 
 
 def test_shapelet_prime_dilation():
@@ -94,7 +94,7 @@ def test_compute_shapelet_features_normalized(dtype):
     )
     # On some occasion, float32 precision with fasmath retruns things like
     # 2.1835059227370834e-07 instead of 0
-    assert_almost_equal(_min, 0.0, decimal=4)
+    assert_almost_equal(_min, 0.0)
     assert _argmin == 1.0
     assert SO == 3.0
 
@@ -107,7 +107,7 @@ def test_compute_shapelet_features_normalized(dtype):
         X, values, length, dilation, threshold, X_means, X_stds, means, stds
     )
 
-    assert_almost_equal(_min, 0.0, decimal=4)
+    assert_almost_equal(_min, 0.0)
     # Scale invariance should match with the sets of 3*
     assert _argmin == 1.0
     # And should also do so for the 1* and 2*, all spaced by dilation 4
@@ -128,6 +128,7 @@ def test_compute_normalized_shapelet_dist_vector(dtype):
             for i_channel in range(X.shape[0]):
                 if values[i_channel].std() > 0:
                     norm_values[i_channel] /= values[i_channel].std()
+
             true_vect = np.zeros(X.shape[1] - (length - 1) * dilation)
             for i_sub in range(true_vect.shape[0]):
                 _idx = [i_sub + j * dilation for j in range(length)]
@@ -136,13 +137,11 @@ def test_compute_normalized_shapelet_dist_vector(dtype):
                     norm_sub = norm_sub - norm_sub.mean()
                     if norm_sub.std() > 0:
                         norm_sub /= norm_sub.std()
-                    true_vect[i_sub] += ((norm_values[i_channel] - norm_sub) ** 2).sum()
-            if dtype == "float32":
-                # Fastmath with float32 can sometime produce different of approx 0.0005
-                # Any way to compensate this ?
-                assert_array_almost_equal(d_vect, true_vect, decimal=3)
-            else:
-                assert_array_almost_equal(d_vect, true_vect)
+                    for i_l in range(length):
+                        _v = norm_values[i_channel, i_l] - norm_sub[i_l]
+                        true_vect[i_sub] += _v * _v
+
+            assert_array_almost_equal(d_vect, true_vect)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

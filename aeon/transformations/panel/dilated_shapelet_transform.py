@@ -391,19 +391,19 @@ def _init_random_shapelet_params(
             dilations[i] = np.int32(2 ** np.random.uniform(0, upper_bounds[i]))
 
     # Init threshold array
-    threshold = np.zeros(max_shapelets, dtype=np.float32)
+    threshold = np.zeros(max_shapelets, dtype=np.float64)
 
     # Init values array
     values = np.zeros(
-        (max_shapelets, n_channels, max(shapelet_lengths)), dtype=np.float32
+        (max_shapelets, n_channels, max(shapelet_lengths)), dtype=np.float64
     )
 
     # Is shapelet using z-normalization ?
     normalize = np.random.random(size=max_shapelets)
     normalize = normalize < proba_normalization
 
-    means = np.zeros((max_shapelets, n_channels), dtype=np.float32)
-    stds = np.zeros((max_shapelets, n_channels), dtype=np.float32)
+    means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
+    stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
     return values, lengths, dilations, threshold, normalize, means, stds
 
@@ -728,7 +728,7 @@ def compute_shapelet_features(X, values, length, dilation, threshold):
         if _sum < threshold:
             _SO += 1
 
-    return np.float32(_min), np.float32(_argmin), np.float32(_SO)
+    return np.float64(_min), np.float64(_argmin), np.float64(_SO)
 
 
 @njit(cache=True, fastmath=True)
@@ -808,7 +808,7 @@ def compute_shapelet_features_normalized(
         if _sum < threshold:
             _SO += 1
 
-    return np.float32(_min), np.float32(_argmin), np.float32(_SO)
+    return np.float64(_min), np.float64(_argmin), np.float64(_SO)
 
 
 @njit(cache=True, fastmath=True)
