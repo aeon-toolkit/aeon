@@ -17,11 +17,6 @@ from aeon.distances._dtw import (
     dtw_distance,
     dtw_from_multiple_to_multiple_distance,
 )
-from aeon.distances._wdtw import (
-    wdtw_alignment_path,
-    wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-)
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
 from aeon.distances._euclidean import (
@@ -46,6 +41,11 @@ from aeon.distances._squared import (
 )
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
+from aeon.distances._wdtw import (
+    wdtw_alignment_path,
+    wdtw_distance,
+    wdtw_from_multiple_to_multiple_distance,
+)
 from aeon.distances.base import (
     AlignmentPathReturn,
     DistanceAlignmentPathCallable,
@@ -1269,7 +1269,6 @@ def pairwise_distance(
             return ddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
         elif metric == "wdtw":
             return wdtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
-
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(

@@ -28,7 +28,7 @@ __all__ = [
     "wdtw_from_single_to_multiple_distance",
     "wdtw_from_multiple_to_multiple_distance",
     "wdtw_cost_matrix",
-    "dtw_alignment_path",
+    "wdtw_alignment_path",
     "distance",
     "distance_factory",
     "pairwise_distance",

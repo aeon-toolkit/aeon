@@ -7,12 +7,6 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import (
-    wdtw_alignment_path,
-    wdtw_cost_matrix,
-    wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-    wdtw_from_single_to_multiple_distance,
-    wdtw_pairwise_distance,
     ddtw_alignment_path,
     ddtw_cost_matrix,
     ddtw_distance,
@@ -33,6 +27,12 @@ from aeon.distances import (
     squared_from_multiple_to_multiple_distance,
     squared_from_single_to_multiple_distance,
     squared_pairwise_distance,
+    wdtw_alignment_path,
+    wdtw_cost_matrix,
+    wdtw_distance,
+    wdtw_from_multiple_to_multiple_distance,
+    wdtw_from_single_to_multiple_distance,
+    wdtw_pairwise_distance,
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
