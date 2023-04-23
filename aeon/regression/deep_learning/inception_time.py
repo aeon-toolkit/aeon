@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
-"""InceptionTime classifier."""
+"""InceptionTime regressor."""
 
-__author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
-__all__ = ["InceptionTimeClassifier"]
+__author__ = ["hadifawaz1999"]
+__all__ = ["InceptionTimeRegressor"]
 
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.classification.base import BaseClassifier
-from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.inception import InceptionNetwork
+from aeon.regression.base import BaseRegressor
+from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
 
 
-class InceptionTimeClassifier(BaseClassifier):
-    """InceptionTime ensemble classifier.
+class InceptionTimeRegressor(BaseRegressor):
+    """InceptionTime ensemble regressor.
 
-    Ensemble of IndividualInceptionTimeClassifiers, as described in [1].
+    Ensemble of IndividualInceptionRegressor, as described in [1].
+    This ensemble regressor is adapted from the classier InceptionTime
 
     Parameters
     ----------
-        n_classifiers       : int, default = 5,
+        n_regressors       : int, default = 5,
             the number of Inception models used for the
             Ensemble in order to create
             InceptionTime.
@@ -57,11 +58,11 @@ class InceptionTimeClassifier(BaseClassifier):
             the dilation rate of convolutions in each inception
             module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception
             module, if not a list,
             the same is used in all inception modules
@@ -81,6 +82,8 @@ class InceptionTimeClassifier(BaseClassifier):
         use_custom_filters  : bool, default = True,
             condition on wether or not to use custom
             filters in the first inception module
+        output_activation   : str, default = "linear",
+            the output activation for the regressor
         batch_size          : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
@@ -99,22 +102,21 @@ class InceptionTimeClassifier(BaseClassifier):
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
         loss                : keras loss,
-                              default = categorical_crossentropy
-        metrics             : keras metrics, default = None,
+                              default = mean_squared_error
         will be set to accuracy as default if None
 
     Notes
     -----
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    Classification, Data Mining and Knowledge Discovery, 34, 2020
+    regression, Data Mining and Knowledge Discovery, 34, 2020
 
     ..[2] Ismail-Fawaz et al. Deep Learning For Time Series
-    Classification Using New
+    regression Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International
     Conference on Big Data.
 
     Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
+    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
@@ -129,7 +131,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_classifiers=5,
+        n_regressors=5,
         nb_filters=32,
         nb_conv_per_layer=3,
         kernel_size=40,
@@ -145,6 +147,7 @@ class InceptionTimeClassifier(BaseClassifier):
         bottleneck_size=32,
         depth=6,
         use_custom_filters=True,
+        output_activation="linear",
         file_path="./",
         batch_size=64,
         use_mini_batch_size=False,
@@ -152,11 +155,10 @@ class InceptionTimeClassifier(BaseClassifier):
         callbacks=None,
         random_state=None,
         verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
+        loss="mse",
         optimizer=None,
     ):
-        self.n_classifiers = n_classifiers
+        self.n_regressors = n_regressors
 
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -174,8 +176,8 @@ class InceptionTimeClassifier(BaseClassifier):
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.n_epochs = n_epochs
-
         self.use_custom_filters = use_custom_filters
+        self.output_activation = output_activation
 
         self.file_path = file_path
 
@@ -184,12 +186,11 @@ class InceptionTimeClassifier(BaseClassifier):
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
-        self.metrics = metrics
         self.optimizer = optimizer
 
-        self.classifers_ = []
+        self.regressors_ = []
 
-        super(InceptionTimeClassifier, self).__init__()
+        super(InceptionTimeRegressor, self).__init__()
 
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
@@ -197,20 +198,21 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ----------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples.
         y : np.ndarray of shape n
-            The training data class labels.
+            The training data target values.
 
         Returns
         -------
         self : object
+            fitted estimator
         """
-        self.classifers_ = []
+        self.regressors_ = []
         rng = check_random_state(self.random_state)
 
-        for _ in range(0, self.n_classifiers):
-            cls = IndividualInceptionClassifier(
+        for _ in range(0, self.n_regressors):
+            rgs = IndividualInceptionRegressor(
                 nb_filters=self.nb_filters,
                 nb_conv_per_layer=self.nb_conv_per_layer,
                 kernel_size=self.kernel_size,
@@ -225,66 +227,45 @@ class InceptionTimeClassifier(BaseClassifier):
                 use_bottleneck=self.use_bottleneck,
                 depth=self.depth,
                 use_custom_filters=self.use_custom_filters,
+                output_activation=self.output_activation,
                 file_path=self.file_path,
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
                 callbacks=self.callbacks,
                 loss=self.loss,
-                metrics=self.metrics,
                 optimizer=self.optimizer,
                 random_state=rng.randint(0, np.iinfo(np.int32).max),
                 verbose=self.verbose,
             )
-            cls.fit(X, y)
-            self.classifers_.append(cls)
+            rgs.fit(X, y)
+            self.regressors_.append(rgs)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict the labels of the test set using InceptionTime.
+        """Predict the values of the test set using InceptionTime.
 
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n)), the predicted labels
+        Y : np.ndarray of shape = (n_instances)
+            The predicted values
 
         """
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
-        )
+        ypreds = np.zeros(shape=(X.shape[0]))
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict the proba of labels of the test set using InceptionTime.
+        for rgs in self.regressors_:
+            ypreds = ypreds + rgs._predict(X)
 
-        Arguments:
-        ---------
+        ypreds = ypreds / self.n_regressors
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
-            The testing input samples.
-
-        Returns
-        -------
-        Y : np.ndarray of shape = (n_instances (n), n_classes (c)), the predicted probs
-
-        """
-        probs = np.zeros((X.shape[0], self.n_classes_))
-
-        for cls in self.classifers_:
-            probs += cls._predict_proba(X)
-
-        probs = probs / self.n_classifiers
-
-        return probs
+        return ypreds
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -295,21 +276,21 @@ class InceptionTimeClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default=[None]
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_classifiers": 1,
+            "n_regressors": 1,
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
@@ -320,8 +301,8 @@ class InceptionTimeClassifier(BaseClassifier):
         return [param1]
 
 
-class IndividualInceptionClassifier(BaseDeepClassifier):
-    """Single InceptionTime classifier.
+class IndividualInceptionRegressor(BaseDeepRegressor):
+    """Single Inception regressor.
 
     Parameters
     ----------
@@ -350,11 +331,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         dilation_rate       : int or list of int, default = 1,
             the dilation rate of convolutions in each inception module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
@@ -371,7 +352,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_custom_filters  : bool, default = True,
             condition on wether or not to use custom filters
             in the first inception module
-
+        output_activation   : str, default = "linear",
+            the output activation of the regressor
         batch_size          : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
@@ -388,20 +370,19 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
-        loss                : keras loss, default = categorical_crossentropy
-        metrics             : keras metrics, default = None, will be set
+        loss                : keras loss, default = mean_squared_error
         to accuracy as default if None
 
     Notes
     -----
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    Classification, Data Mining and Knowledge Discovery, 34, 2020
+    regression, Data Mining and Knowledge Discovery, 34, 2020
 
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series Classification Using New
+    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series regression Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
 
     Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
+    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
@@ -424,6 +405,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         bottleneck_size=32,
         depth=6,
         use_custom_filters=True,
+        output_activation="linear",
         file_path="./",
         batch_size=64,
         use_mini_batch_size=False,
@@ -431,12 +413,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         callbacks=None,
         random_state=None,
         verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
+        loss="mse",
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(IndividualInceptionClassifier, self).__init__()
+        super(IndividualInceptionRegressor, self).__init__()
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -455,6 +436,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
+        self.output_activation = output_activation
 
         self.file_path = file_path
 
@@ -463,7 +445,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
-        self.metrics = metrics
         self.optimizer = optimizer
 
         self._network = InceptionNetwork(
@@ -485,7 +466,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             random_state=self.random_state,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -493,30 +474,23 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer
-        n_classes: int
-            The number of classes, which shall become the size of the output
-             layer
 
         Returns
         -------
-        output : a compiled Keras Model
+        tf.keras.models.Model
+            A compiled Keras Model
         """
         import tensorflow as tf
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
+        output_layer = tf.keras.layers.Dense(1, activation=self.output_activation)(
             output_layer
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         tf.random.set_seed(self.random_state)
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -525,22 +499,21 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
         )
 
         return model
 
     def _fit(self, X, y):
         """
-        Fit the classifier on the training set (X, y).
+        Fit the regressor on the training set (X, y).
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
-        y : array-like, shape = [n_instances]
-            The training data class labels.
+        y : np.ndarray of shape (n_instances)
+            The training data target values.
         input_checks : boolean
             whether to check the X and y parameters
         validation_X : a nested pd.Dataframe, or array-like of shape =
@@ -552,32 +525,34 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             data does not alter training in any way. Predictions at each epoch
             are stored in the model's fit history.
         validation_y : array-like, shape = [n_instances]
-            The validation class labels.
+            The validation target values.
 
         Returns
         -------
         self : object
         """
-        y_onehot = self.convert_y_to_keras(y)
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
-        self.input_shape = X.shape[1:]
+        self.input_shape_ = X.shape[1:]
 
         if self.use_mini_batch_size:
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
             mini_batch_size = self.batch_size
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.model_ = self.build_model(self.input_shape_)
 
         if self.verbose:
             self.model_.summary()
 
         self.history = self.model_.fit(
             X,
-            y_onehot,
+            y,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -595,14 +570,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default=[None]
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
