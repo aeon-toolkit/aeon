@@ -186,16 +186,16 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
            [3.0625, 0.5625, 0.    ]])
     """
     if X.ndim == 3:
-        return _ddtw_pairwise_distance(X)
+        return _ddtw_pairwise_distance(X, window)
     if X.ndim == 2:
         _X = X.reshape((X.shape[0], 1, X.shape[1]))
-        return _ddtw_pairwise_distance(_X)
+        return _ddtw_pairwise_distance(_X, window)
 
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)
-def _ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
+def _ddtw_pairwise_distance(X: np.ndarray, window: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2] - 2, X.shape[2] - 2, window)
@@ -252,18 +252,18 @@ def ddtw_from_single_to_multiple_distance(
     array([0.25  , 2.25  , 5.0625])
     """
     if y.ndim == 3 and x.ndim == 2:
-        return _ddtw_from_single_to_multiple_distance(x, y)
+        return _ddtw_from_single_to_multiple_distance(x, y, window)
     if y.ndim == 2 and x.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _ddtw_from_single_to_multiple_distance(_x, _y)
+        return _ddtw_from_single_to_multiple_distance(_x, _y, window)
     else:
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -319,21 +319,21 @@ def ddtw_from_multiple_to_multiple_distance(
            [36.    , 49.    , 30.25  ]])
     """
     if y.ndim == 3 and x.ndim == 3:
-        return _ddtw_from_multiple_to_multiple_distance(x, y)
+        return _ddtw_from_multiple_to_multiple_distance(x, y, window)
     if y.ndim == 2 and x.ndim == 2:
         _x = x.reshape((x.shape[0], 1, x.shape[1]))
         _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _ddtw_from_multiple_to_multiple_distance(_x, _y)
+        return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
     if y.ndim == 1 and x.ndim == 1:
         _x = x.reshape((1, 1, x.shape[0]))
         _y = y.reshape((1, 1, y.shape[0]))
-        return _ddtw_from_multiple_to_multiple_distance(_x, _y)
+        return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)
 def _ddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
+    x: np.ndarray, y: np.ndarray, window: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
