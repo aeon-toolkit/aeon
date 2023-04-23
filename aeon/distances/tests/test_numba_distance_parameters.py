@@ -57,11 +57,6 @@ BASIC_BOUNDING_PARAMS = [
 ]
 
 
-@njit(cache=True)
-def _test_derivative(q: np.ndarray):
-    return q
-
-
 DIST_PARAMS = {
     "dtw": BASIC_BOUNDING_PARAMS,
     "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
@@ -69,9 +64,7 @@ DIST_PARAMS = {
     "lcss": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "ddtw": BASIC_BOUNDING_PARAMS,
     "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
-    "wddtw": BASIC_BOUNDING_PARAMS
-    + [{"compute_derivative": _test_derivative}]
-    + [{"g": 0.5}],
+    "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}, {"p": 4}],
 }
 

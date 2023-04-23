@@ -443,5 +443,5 @@ def wddtw_alignment_path(
     )
     return (
         compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[1] - 3, y.shape[1] - 3],
+        cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],
     )
