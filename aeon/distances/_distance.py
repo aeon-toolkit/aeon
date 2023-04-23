@@ -7,7 +7,6 @@ import numpy as np
 from numba import njit
 
 from aeon.distances._ddtw import (
-    average_of_slope,
     ddtw_alignment_path,
     ddtw_distance,
     ddtw_from_multiple_to_multiple_distance,
@@ -16,6 +15,11 @@ from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
     dtw_from_multiple_to_multiple_distance,
+)
+from aeon.distances._wddtw import (
+    wddtw_alignment_path,
+    wddtw_distance,
+    wddtw_from_multiple_to_multiple_distance,
 )
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
@@ -40,7 +44,6 @@ from aeon.distances._squared import (
     squared_from_multiple_to_multiple_distance,
 )
 from aeon.distances._twe import _TweDistance
-from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_distance,
@@ -274,96 +277,6 @@ def lcss_distance(
     return distance(x, y, metric="lcss", **format_kwargs)
 
 
-def wddtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    compute_derivative=average_of_slope,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> float:
-    r"""Compute the weighted derivative dynamic time warping (WDDTW) distance.
-
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
-
-    Formally the derivative is calculated as:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Wddtw distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-        If the value of g is not a float
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> wddtw_distance(x_1d, y_1d)
-    0.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> wddtw_distance(x_2d, y_2d)
-    0.0
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="wddtw", **format_kwargs)
-
-
 def msm_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -507,94 +420,6 @@ def twe_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="twe", **format_kwargs)
-
-
-def wddtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    compute_derivative=average_of_slope,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    r"""Compute the weighted derivative dynamic time warping (WDDTW) alignment path.
-
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
-
-    Formally the derivative is calculated as:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the wddtw alignment path.
-    float
-        Wddtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-        If the value of g is not a float
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="wddtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
 
 
 def edr_alignment_path(
@@ -973,7 +798,7 @@ def twe_alignment_path(
     )
 
 
-NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw", "wdtw"]
+NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw", "wdtw", "wddtw"]
 
 
 def distance(
@@ -1066,6 +891,8 @@ def distance(
             return ddtw_distance(x, y, **kwargs)
         elif metric == "wdtw":
             return wdtw_distance(x, y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1143,6 +970,8 @@ def distance_factory(
             return ddtw_distance
         elif metric == "wdtw":
             return wdtw_distance
+        elif metric == "wddtw":
+            return wddtw_distance
     global dist_callable
 
     if x is None:
@@ -1269,6 +1098,8 @@ def pairwise_distance(
             return ddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
         elif metric == "wdtw":
             return wdtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -1353,6 +1184,8 @@ def distance_alignment_path(
             return ddtw_alignment_path(x, y, **kwargs)
         elif metric == "wdtw":
             return wdtw_alignment_path(x, y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1434,6 +1267,8 @@ def distance_alignment_path_factory(
             return ddtw_alignment_path
         elif metric == "wdtw":
             return wdtw_alignment_path
+        elif metric == "wddtw":
+            return wddtw_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1478,13 +1313,6 @@ _METRIC_INFOS = [
         dist_alignment_path_func=lcss_alignment_path,
     ),
     MetricInfo(
-        canonical_name="wddtw",
-        aka={"wddtw", "weighted derivative dynamic time warping"},
-        dist_func=wddtw_distance,
-        dist_instance=_WddtwDistance(),
-        dist_alignment_path_func=wddtw_alignment_path,
-    ),
-    MetricInfo(
         canonical_name="msm",
         aka={"msm", "move-split-merge"},
         dist_func=msm_distance,
@@ -1512,6 +1340,5 @@ ALL_DISTANCES = (
     erp_distance,
     lcss_distance,
     msm_distance,
-    wddtw_distance,
     twe_distance,
 )
