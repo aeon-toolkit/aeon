@@ -11,7 +11,6 @@ import time
 from itertools import product
 
 import numpy as np
-from numba import njit
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import (
     GridSearchCV,
@@ -25,32 +24,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-
-
-@njit(fastmath=True, cache=True)
-def _der(x: np.ndarray):
-    """Loop based Derivative Slope transform."""
-    m = len(x)
-    der = np.zeros(m)
-    for i in range(1, m - 1):
-        der[i] = ((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2.0)) / 2.0
-    der[0] = der[1]
-    der[m - 1] = der[m - 2]
-    return der
-
-
-def series_slope_derivative(X: np.ndarray) -> np.ndarray:
-    """Find the slope derivative of collection of time series.
-
-    Parameters
-    ----------
-    X: np.ndarray shape (n_time_series, n_channels, series_length)
-
-    Returns
-    -------
-    np.ndarray shape (n_time_series, n_channels, series_length)
-    """
-    return np.apply_along_axis(_der, axis=-1, arr=X)
+from aeon.transformations.panel.summarize._extract import series_slope_derivative
 
 
 class ElasticEnsemble(BaseClassifier):
