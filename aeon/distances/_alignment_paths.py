@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 from numba import njit
 
-from aeon.distances._squared import _univariate_squared_distance
+from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
 @njit(cache=True)
@@ -92,7 +92,7 @@ def compute_lcss_return_path(
 
     while i > 0 and j > 0:
         if bounding_matrix[i - 1, j - 1]:
-            if _univariate_squared_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
+            if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
                 path.append((i - 1, j - 1))
                 i, j = (i - 1, j - 1)
             elif cost_matrix[i - 1][j] > cost_matrix[i - 1][j]:

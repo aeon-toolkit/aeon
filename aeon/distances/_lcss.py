@@ -40,7 +40,7 @@ from numba import njit
 
 from aeon.distances._alignment_paths import compute_lcss_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._squared import _univariate_squared_distance
+from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
 @njit(cache=True)
@@ -187,6 +187,11 @@ def lcss_cost_matrix(
 def _lcss_distance(
         x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
+    test = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
+    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
+    joe = 1 - float(distance / min(x.shape[1], y.shape[1]))
     distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
         x.shape[1] - 1, y.shape[1] - 1
     ]
@@ -205,9 +210,9 @@ def _lcss_cost_matrix(
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
             if bounding_matrix[i - 1, j - 1]:
-                squared_distance = _univariate_squared_distance(x[:, i - 1],
+                euclidean_distance = _univariate_euclidean_distance(x[:, i - 1],
                                                                 y[:, j - 1])
-                if squared_distance <= epsilon:
+                if euclidean_distance <= epsilon:
                     cost_matrix[i, j] = 1 + cost_matrix[i - 1, j - 1]
                 else:
                     cost_matrix[i, j] = max(
