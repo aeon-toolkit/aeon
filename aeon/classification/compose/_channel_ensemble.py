@@ -330,8 +330,6 @@ def _get_channel(X, key):
             "strings, or boolean mask is allowed"
         )
 
-    # ensure that pd.DataFrame is returned rather than
-    # pd.Series
     if isinstance(key, (int, str)):
         key = [key]
 

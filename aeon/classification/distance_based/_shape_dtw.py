@@ -5,7 +5,6 @@ Nearest neighbour classifier that extracts shape features.
 """
 
 import numpy as np
-import pandas as pd
 
 # Tuning
 from sklearn.model_selection import GridSearchCV, KFold
@@ -15,7 +14,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.datatypes import convert
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
 
@@ -150,10 +148,10 @@ class ShapeDTW(BaseClassifier):
                 f"shape_descriptor_function must be an 'str'. Found "
                 f"{type(self.shape_descriptor_function).__name__} instead."
             )
-
         if self.metric_params is None:
-            self.metric_params = {}
-            _reset = True
+            self._metric_params = {}
+        else:
+            self._metric_params = self.metric_params
 
         # If the shape descriptor is 'compound',
         # calculate the appropriate weighting_factor
@@ -172,9 +170,6 @@ class ShapeDTW(BaseClassifier):
         self.knn = KNeighborsTimeSeriesClassifier(n_neighbors=self.n_neighbors)
         self.knn.fit(X, y)
         self.classes_ = self.knn.classes_
-        # Hack to pass the unit tests
-        if _reset:
-            self.metric_params = None
         return self
 
     def _calculate_weighting_factor_value(self, X, y):
@@ -190,11 +185,11 @@ class ShapeDTW(BaseClassifier):
         X - training data in a dataframe of shape [n_instances,1]
         y - training data classes of shape [n_instances].
         """
-        self.metric_params = {k.lower(): v for k, v in self.metric_params.items()}
+        self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}
 
         # Get the weighting_factor if one is provided
-        if self.metric_params.get("weighting_factor") is not None:
-            self.weighting_factor = self.metric_params.get("weighting_factor")
+        if self._metric_params.get("weighting_factor") is not None:
+            self.weighting_factor = self._metric_params.get("weighting_factor")
         else:
             # Tune it otherwise
             self._param_matrix = {
@@ -223,11 +218,11 @@ class ShapeDTW(BaseClassifier):
                     + "shape_descriptor_functions must be a "
                     + "string array of length 2."
                 )
-            mp = self.metric_params
+            mp = self._metric_params
 
             grid = GridSearchCV(
                 estimator=ShapeDTW(
-                    n_neighbours=n,
+                    n_neighbors=n,
                     subsequence_length=sl,
                     shape_descriptor_function=sdf,
                     shape_descriptor_functions=sdfs,
@@ -328,15 +323,9 @@ class ShapeDTW(BaseClassifier):
                 newData = t.transform(data)
                 trans_data.append(newData)
 
-        # Combine the arrays into one numpy array
-        if self.shape_descriptor_function == "compound":
-            result = np.array(trans_data)
-        #            result = self._combine_data_frames(
-        #                trans_data, self.weighting_factor, col_names
-        #            )
-        else:
-            result = trans_data[0]
-
+        result = trans_data[0]
+        for i in range(1, len(trans_data)):
+            result = np.concatenate((result, trans_data[i]), axis=1)
         return result
 
     def _get_transformer(self, tName):
@@ -356,7 +345,7 @@ class ShapeDTW(BaseClassifier):
 
         throws : ValueError if a shape descriptor doesn't exist.
         """
-        parameters = self.metric_params
+        parameters = self._metric_params
         tName = tName.lower()
         if parameters is None:
             parameters = {}
@@ -439,48 +428,3 @@ class ShapeDTW(BaseClassifier):
                     + " name is at the end of the metric "
                     + "parameter name."
                 )
-
-    def _combine_data_frames(self, dataFrames, weighting_factor, col_names):
-        """Combine two dataframes together into a single dataframe.
-
-        Used when the shape_descriptor_function is set to "compound".
-        """
-        first_desc = dataFrames[0]
-        second_desc = dataFrames[1]
-
-        first_desc_array = []
-        second_desc_array = []
-
-        # Convert the dataframes into arrays
-        for x in first_desc.columns:
-            first_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-        for x in second_desc.columns:
-            second_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-
-        # Concatenate the arrays together
-        res = []
-        for x in range(len(first_desc_array)):
-            dim1 = []
-            for y in range(len(first_desc_array[x])):
-                dim2 = []
-                dim2.extend(first_desc_array[x][y])
-                dim2.extend(second_desc_array[x][y] * weighting_factor)
-                dim1.append(dim2)
-            res.append(dim1)
-
-        res = np.asarray(res)
-
-        # Convert to pandas dataframe
-        df = pd.DataFrame()
-
-        for col in col_names:
-            colToAdd = []
-            for row in range(len(res[col])):
-                inst = res[col][row]
-                colToAdd.append(pd.Series(inst))
-            df[col] = colToAdd
-        return df
