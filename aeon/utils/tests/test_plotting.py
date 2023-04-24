@@ -49,10 +49,13 @@ def valid_data_types():
     return valid_data_types
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_runs_without_error(series_to_plot):
     """Test whether plot_series runs without error."""
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     _plot_series(series_to_plot)
@@ -68,6 +71,10 @@ def test_plot_series_runs_without_error(series_to_plot):
     plt.close()
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
 def test_plot_series_invalid_input_type_raises_error(series_to_plot, valid_data_types):
     """Tests whether plot_series raises error for invalid input types."""
@@ -85,6 +92,10 @@ def test_plot_series_invalid_input_type_raises_error(series_to_plot, valid_data_
             _plot_series(series_to_plot)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize(
     "series_to_plot", [(y_airline_true, y_airline_test.reset_index(drop=True))]
 )
@@ -97,6 +108,10 @@ def test_plot_series_with_unequal_index_type_raises_error(
         _plot_series(series_to_plot)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_invalid_marker_kwarg_len_raises_error(series_to_plot):
     """Tests whether plot_series raises error for inconsistent series/markers."""
@@ -114,6 +129,10 @@ def test_plot_series_invalid_marker_kwarg_len_raises_error(series_to_plot):
         _plot_series(series_to_plot, markers=markers)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_invalid_label_kwarg_len_raises_error(series_to_plot):
     """Tests whether plot_series raises error for inconsistent series/labels."""
@@ -131,6 +150,10 @@ def test_plot_series_invalid_label_kwarg_len_raises_error(series_to_plot):
         _plot_series(series_to_plot, labels=labels)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_output_type(series_to_plot):
     """Tests whether plot_series returns plt.fig and plt.ax."""
@@ -164,11 +187,14 @@ def test_plot_series_output_type(series_to_plot):
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_series_uniform_treatment_of_int64_range_index_types():
     """Verify that plot_series treats Int64 and Range indices equally."""
     # We test that int64 and range indices are treated uniformly and do not raise an
     # error of inconsistent index types
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     y1 = pd.Series(np.arange(10))
@@ -181,11 +207,14 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
 
 
 # Generically test whether plots only accepting univariate input run
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     """Tests whether plots that accept univariate series run without error."""
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     plot_func(series_to_plot)
@@ -195,6 +224,10 @@ def test_univariate_plots_run_without_error(series_to_plot, plot_func):
 
 # Generically test whether plots only accepting univariate input
 # raise an error when invalid input type is found
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_invalid_input_type_raises_error(
@@ -215,11 +248,14 @@ def test_univariate_plots_invalid_input_type_raises_error(
 
 
 # Generically test output of plots only accepting univariate input
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_output_type(series_to_plot, plot_func):
     """Tests whether plots accepting univariate series have correct output types."""
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     fig, ax = plot_func(series_to_plot)
@@ -238,12 +274,15 @@ def test_univariate_plots_output_type(series_to_plot, plot_func):
 
 # For plots that only accept univariate input, from here onwards are
 # tests specific to a given plot. E.g. to test specific arguments or functionality.
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [2, (1, 2, 3)])
 @pytest.mark.parametrize("suptitle", ["Lag Plot", None])
 def test_plot_lags_arguments(series_to_plot, lags, suptitle):
     """Tests whether plot_lags run with different input arguments."""
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     plot_lags(series_to_plot, lags=lags, suptitle=suptitle)
@@ -251,13 +290,16 @@ def test_plot_lags_arguments(series_to_plot, lags, suptitle):
     plt.close()
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [6, 12, 24, 36])
 @pytest.mark.parametrize("suptitle", ["Correlation Plot", None])
 @pytest.mark.parametrize("series_title", ["Time Series", None])
 def test_plot_correlations_arguments(series_to_plot, lags, suptitle, series_title):
     """Tests whether plot_lags run with different input arguments."""
-    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     plot_correlations(
