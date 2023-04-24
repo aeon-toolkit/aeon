@@ -8,7 +8,6 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["Catch22Wrapper"]
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
 
 from aeon.transformations.base import BaseTransformer
@@ -75,10 +74,9 @@ class Catch22Wrapper(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": True,
-        "X_inner_mtype": "nested_univ",
+        "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "fit_is_empty": True,
         "python_dependencies": "pycatch22",
@@ -127,16 +125,16 @@ class Catch22Wrapper(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D numpy array of shape [n_instances, n_dimensions, n_features],
-            input time series panel.
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
         y : ignored.
 
         Returns
         -------
-        c22 : Pandas DataFrame of shape [n_instances, c*n_dimensions] where c is the
+        c22 : numpy array of shape (n_instances, c*n_channels) where c is the
              number of features requested, containing Catch22 features for X.
         """
-        n_instances, n_dims = X.shape
+        n_instances = X.shape[0]
 
         f_idx = catch22._verify_features(self.features, self.catch24)
 
@@ -171,7 +169,7 @@ class Catch22Wrapper(BaseTransformer):
 
         c22_list = Parallel(n_jobs=threads_to_use, prefer="threads")(
             delayed(self._transform_case)(
-                X.iloc[i],
+                X[i],
                 f_idx,
                 features,
             )
@@ -181,7 +179,7 @@ class Catch22Wrapper(BaseTransformer):
         if self.replace_nans:
             c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
 
-        return pd.DataFrame(c22_list)
+        return c22_list
 
     def _transform_case(self, X, f_idx, features):
         c22 = np.zeros(len(f_idx) * len(X))
