@@ -4,7 +4,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_io import _alias_datatype_check
 from aeon.datatypes import convert
 
 VALID_RETURN_TYPES = ["numpy3d", "numpy2d", "np3d", "np2d", "np_list", "nested_univ"]
@@ -182,6 +181,8 @@ def load_from_tsfile(
         meta_data = _load_header_info(file)
         # if equal load to 3D numpy
         data, y, meta_data = _load_data(file, meta_data)
+        if meta_data["equallength"]:
+            data = np.array(data)
     if return_meta_data:
         return data, y, meta_data
     return data, y
@@ -257,8 +258,8 @@ def _load_provided_dataset(
     else:
         raise ValueError("Invalid `split` value =", split)
 
-    return_type = _alias_datatype_check(return_type)
-    # Check its a valid type, warn if not?
+    #    return_type = _alias_datatype_check(return_type)
+    #    # Check its a valid type, warn if not?
 
     if isinstance(X, list):
         loaded_type = "np-list"
