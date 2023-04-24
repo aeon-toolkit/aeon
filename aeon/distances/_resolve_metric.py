@@ -6,7 +6,6 @@ from typing import Callable, List, Union
 
 import numpy as np
 
-from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances.base import DistanceCallable, MetricInfo, NumbaDistance
 
 
@@ -59,8 +58,6 @@ def _resolve_dist_instance(
     elif callable(metric):
         if _is_distance_factory_callable(metric):
             metric = metric(x, y, **kwargs)
-        elif _is_no_python_distance_callable(metric):
-            metric = metric
         else:
             for val in known_metric_dict:
                 if val.dist_func is metric:
@@ -122,8 +119,6 @@ def _resolve_metric_to_factory(
     elif callable(metric):
         if _is_distance_factory_callable(metric):
             metric = metric(x, y, **kwargs)
-        elif _is_no_python_distance_callable(metric):
-            metric = metric
         else:
             for val in known_metric_dict:
                 if val.dist_func is metric:
@@ -188,9 +183,6 @@ def _is_distance_factory_callable(metric: Callable) -> bool:
         Boolean that is true if callable is a valid distance factory and false
         if the callable is an invalid distance factory.
     """
-    is_no_python_compiled = is_no_python_compiled_callable(metric)
-    if is_no_python_compiled:
-        return False
     correct_num_params = len(inspect.signature(metric).parameters) >= 2
     return_type = inspect.signature(metric).return_annotation
     return_num_params = (
@@ -198,27 +190,4 @@ def _is_distance_factory_callable(metric: Callable) -> bool:
         and hasattr(return_type, "__len__")
         and len(return_type) == 1
     )
-    return correct_num_params and return_num_params
-
-
-def _is_no_python_distance_callable(metric: Callable) -> bool:
-    """Validate if a callable is a no_python compiled distance metric.
-
-    Parameters
-    ----------
-    metric: Callable
-        Callable to validate if is a valid no_python distance callable.
-
-    Returns
-    -------
-    bool
-        Boolean that is true if callable is a valid no_python compiled distance and
-        false if the callable is an invalid no_python callable.
-
-    """
-    is_no_python_compiled = is_no_python_compiled_callable(metric)
-    if not is_no_python_compiled:
-        return False
-    correct_num_params = len(inspect.signature(metric).parameters) == 2
-    return_num_params = inspect.signature(metric).return_annotation is float
     return correct_num_params and return_num_params

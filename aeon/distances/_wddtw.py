@@ -11,7 +11,6 @@ from numba.core.errors import NumbaWarning
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import DerivativeCallable, average_of_slope
-from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances._wdtw import _weighted_cost_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
@@ -85,13 +84,6 @@ class _WddtwDistance(NumbaDistance):
         if not isinstance(g, float):
             raise ValueError(
                 f"The value of g must be a float. The current value is {g}"
-            )
-
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
             )
 
         if return_cost_matrix is True:
@@ -174,13 +166,6 @@ class _WddtwDistance(NumbaDistance):
         if not isinstance(g, float):
             raise ValueError(
                 f"The value of g must be a float. The current value is {g}"
-            )
-
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
             )
 
         @njit(cache=True)
