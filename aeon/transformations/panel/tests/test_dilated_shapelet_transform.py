@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Apr 16 22:59:04 2023
+"""Tests for dilated shapelet transform functions."""
 
-@author: antoi
-"""
+__author__ = ["baraline"]
 
 import numpy as np
 import pytest

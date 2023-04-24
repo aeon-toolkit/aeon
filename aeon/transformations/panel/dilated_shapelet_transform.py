@@ -38,9 +38,11 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         - Normalization is choosed randomly given the probability given as parameter
         - Value is sampled randomly from an input time series given the length and
         dilation parameter.
-        - Threshold is randomly choosen between two percentiles of the distribution
-        of the distance vector between the shapelet and another time series, of the
-        same class if they are given during fit, or to another random sample.
+        - Threshold is randomly chosen between two percentiles of the distribution
+        of the distance vector between the shapelet and another time series. This time
+        serie is drawn from the same class if classes are given during fit. Otherwise,
+        a random sample will be used. If there is only one sample per class, the same
+        sample will be used.
     Then, once the set of shapelets have been initialized, we extract the shapelet
     features from each pair of shapelets and input series. Three features are extracted:
         - min d(S,X): the minimum value of the distance vector between a shapelet S and
@@ -55,17 +57,19 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         The maximum number of shapelet to keep for the final transformation.
         A lower number of shapelets can be kept if alpha similarity have discarded the
         whole dataset.
-    shapelet_lengths : array, default=[11]
+    shapelet_lengths : array, default=None
         The set of possible length for shapelets. Each shapelet length is uniformly
-        drawn from this set.
+        drawn from this set. If None, the shapelets length will be equal to
+        min(max(2,series_length//2),11).
     proba_normalization : float, default=0.8
         This probability (between 0 and 1) indicate the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
-    threshold_percentiles : array, default=[5,10]
+    threshold_percentiles : array, default=None
         The two perceniles used to select the threshold used to compute the Shapelet
-        Occurrence feature.
+        Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
+        will be used.
     alpha_similarity : float, default=0.5
         The strenght of the alpha similarity pruning. The higher the value, the lower
         the allowed number of common indexes with previously sampled shapelets
@@ -243,7 +247,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             )
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
-            self.shapelet_lengths_ = np.array([min(11, self.series_length)])
+            self.shapelet_lengths_ = np.array(
+                [min(max(2, self.series_length // 2), 11)]
+            )
         else:
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
                 raise TypeError(

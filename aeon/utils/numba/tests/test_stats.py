@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Tests for RDST numba utils functions."""
+"""Tests for numba utils functions related to statistical operations."""
 
 __author__ = ["baraline"]
 
