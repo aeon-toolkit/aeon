@@ -9,8 +9,8 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances._dtw import _cost_matrix
 from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances.base import (
@@ -150,7 +150,7 @@ class _DdtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _cost_matrix(_x, _y, _bounding_matrix)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -163,7 +163,7 @@ class _DdtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _cost_matrix(_x, _y, _bounding_matrix)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1]
 
         return numba_ddtw_distance_alignment_path
