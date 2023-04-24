@@ -24,7 +24,12 @@ def _validate_cost_matrix_result(
 
     distance_result = distance(x, y)
 
-    assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
+    if name == "lcss":
+        if x.ndim != 3:
+            distance = 1 - float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
+            assert_almost_equal(distance, distance_result)
+    else:
+        assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -33,7 +38,7 @@ def test_cost_matrix(dist):
         return
 
     # Test univariate
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw" != "lcss":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_cost_matrix_result(
             np.array([10.0]),
             np.array([15.0]),

@@ -84,9 +84,10 @@ def compute_lcss_return_path(
     List[Tuple]
         List of indices that make up the return path.
     """
-    x_size, y_size = cost_matrix.shape
+    x_size = x.shape[1]
+    y_size = y.shape[1]
 
-    i, j = (x_size, y_size)
+    i, j = (x_size - 1, y_size - 1)
     path = []
 
     while i > 0 and j > 0:
@@ -94,7 +95,7 @@ def compute_lcss_return_path(
             if _univariate_squared_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
                 path.append((i - 1, j - 1))
                 i, j = (i - 1, j - 1)
-            elif cost_matrix[i - 1][j] > cost_matrix[i][j - 1]:
+            elif cost_matrix[i - 1][j] > cost_matrix[i - 1][j]:
                 i = i - 1
             else:
                 j = j - 1

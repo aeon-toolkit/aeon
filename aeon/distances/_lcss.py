@@ -423,8 +423,7 @@ def lcss_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
     y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
             (m_instances, m_channels, m_timepoints)
@@ -449,7 +448,7 @@ def lcss_alignment_path(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D, or 2D arrays.
 
     Examples
     --------
@@ -462,10 +461,21 @@ def lcss_alignment_path(
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
-    cost_matrix = lcss_cost_matrix(x, y, window, epsilon)
-    distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
     bounding_matrix = create_bounding_matrix(x_size, y_size, window)
-    return (
-        compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix),
-        distance,
-    )
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+        cost_matrix = _lcss_cost_matrix(_x, _y, bounding_matrix, epsilon)
+        distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
+        return (
+            compute_lcss_return_path(_x, _y, epsilon, bounding_matrix, cost_matrix),
+            distance,
+        )
+    if x.ndim == 2 and y.ndim == 2:
+        cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
+        distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
+        return (
+            compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix),
+            distance,
+        )
+    raise ValueError("x and y must be 1D, or 2D arrays")
