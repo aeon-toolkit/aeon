@@ -243,8 +243,6 @@ class ShapeDTW(BaseClassifier):
         # and then performs the shape descriptor function on
         # each subsequence.
         _X = self.sw.transform(X)
-        # Temporary until conversion complete
-        # X = from_3d_numpy_to_nested(X)
         # Feed X into the appropriate shape descriptor function
         _X = self._generate_shape_descriptors(_X)
 
