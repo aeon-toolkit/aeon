@@ -135,7 +135,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of training data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - list of class labels of shape [n_instances].
 
         Returns
@@ -182,7 +182,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - training data in a dataframe of shape [n_instances,1]
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - training data classes of shape [n_instances].
         """
         self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}
@@ -257,7 +257,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of testing data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
