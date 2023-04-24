@@ -4,111 +4,77 @@ import math
 import numbers
 
 import numpy as np
-import pandas as pd
 
-from aeon.datatypes._panel._convert import from_nested_to_2d_array
 from aeon.transformations.base import BaseTransformer
-
-"""
-The HOG1D Transformer proposed by:
-
-@article{zhao2015classifying,
-  title={Classifying time series using local descriptors with hybrid sampling},
-  author={Zhao, Jiaping and Itti, Laurent},
-  journal={IEEE Transactions on Knowledge and Data Engineering},
-  volume={28},
-  number={3},
-  pages={623--637},
-  year={2015},
-  publisher={IEEE}
-}
-"""
 
 
 class HOG1DTransformer(BaseTransformer):
     """HOG1D transform.
 
-    This class is to calculate the HOG1D transform of a
-    dataframe of time series data. Works by splitting
-    the time series num_intervals times, and calculate
-    a histogram of gradients within each interval.
+    This transformer calculates the HOG1D transform [1] of a collection of time seriess.
+    HOG1D splits each time series num_intervals times, and finds a histogram of
+    gradients within each interval.
 
     Parameters
     ----------
-        num_intervals   : int, length of interval.
-        num_bins        : int, num bins in the histogram.
+        n_intervals   : int, length of interval.
+        n_bins        : int, num bins in the histogram.
         scaling_factor  : float, a constant that is multiplied
                           to modify the distribution.
+
+    Notes
+    -----
+    [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
+    hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
+
+
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
         "fit_is_empty": True,
+        "univariate-only": True,
     }
 
-    def __init__(self, num_intervals=2, num_bins=8, scaling_factor=0.1):
-        self.num_intervals = num_intervals
-        self.num_bins = num_bins
+    def __init__(self, n_intervals=2, n_bins=8, scaling_factor=0.1):
+        self.n_intervals = n_intervals
+        self.n_bins = n_bins
         self.scaling_factor = scaling_factor
-        super(HOG1DTransformer, self).__init__()
+        super(HOG1DTransformer, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
 
-        private _transform containing core logic, called from transform
-
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : 3D np.ndarray of shape = [n_instances, 1, series_length]
+            collection of time series to transform
         y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
-            transformed version of X
+        X : 3D np.ndarray of shape = [n_instances, 1, feature_length]
+            collection of time series to transform
+
         """
         # Get information about the dataframe
-        num_insts = X.shape[0]
-        col_names = X.columns
-        num_atts = len(X.iloc[0, 0])
-
+        n_cases, n_channels, series_length = X.shape
+        if n_channels > 1:
+            raise ValueError("HOG1D does not support multivariate time series.")
         # Check the parameters are appropriate
-        self._check_parameters(num_atts)
-
-        df = pd.DataFrame()
-
-        for x in col_names:
-            # Convert one of the columns in the dataframe to a numpy array
-            arr = from_nested_to_2d_array(pd.DataFrame(X[x]), return_numpy=True)
-
+        self._check_parameters(series_length)
+        transX = []
+        for i in range(n_cases):
             # Get the HOG1Ds of each time series
-            transformedData = []
-            for y in range(num_insts):
-                inst = self._calculate_hog1ds(arr[y])
-                transformedData.append(inst)
-
+            inst = self._calculate_hog1ds(X[i][0])
+            transX.append(inst)
             # Convert to numpy array
-            transformedData = np.asarray(transformedData)
-
-            # Add it to the dataframe
-            colToAdd = []
-            for i in range(len(transformedData)):
-                inst = transformedData[i]
-                colToAdd.append(pd.Series(inst))
-
-            df[x] = colToAdd
-
-        return df
+        transX = np.asarray(transX)
+        transX = np.reshape(transX, [transX.shape[0], 1, transX.shape[1]])
+        return transX
 
     def _calculate_hog1ds(self, X):
         """Calculate the HOG1Ds given a time series.
@@ -145,7 +111,7 @@ class HOG1DTransformer(BaseTransformer):
         # First step is to pad the portion on both ends once.
         gradients = [0.0] * (len(X))
         X = np.pad(X, 1, mode="edge")
-        histogram = [0.0] * self.num_bins
+        histogram = [0.0] * self.n_bins
 
         # Calculate the gradients of each element
         for i in range(1, len(X) - 1):
@@ -156,8 +122,8 @@ class HOG1DTransformer(BaseTransformer):
 
         # Calculate the boundaries of the histogram
         hisBoundaries = [
-            -90 + (180 / self.num_bins) + ((180 / self.num_bins) * x)
-            for x in range(self.num_bins)
+            -90 + (180 / self.n_bins) + ((180 / self.n_bins) * x)
+            for x in range(self.n_bins)
         ]
 
         # Construct the histogram
@@ -182,7 +148,7 @@ class HOG1DTransformer(BaseTransformer):
             into approx equal length intervals of shape
             [num_intervals,interval_length].
         """
-        avg = len(X) / float(self.num_intervals)
+        avg = len(X) / float(self.n_intervals)
         output = []
         beginning = 0.0
 
@@ -192,50 +158,35 @@ class HOG1DTransformer(BaseTransformer):
 
         return output
 
-    def _check_parameters(self, num_atts):
+    def _check_parameters(self, series_length):
         """Check the values of parameters inserted into HOG1D.
 
         Throws
         ------
         ValueError or TypeError if a parameters input is invalid.
         """
-        if isinstance(self.num_intervals, int):
-            if self.num_intervals <= 0:
-                raise ValueError(
-                    "num_intervals must have \
-                                  the value of at least 1"
-                )
-            if self.num_intervals > num_atts:
-                raise ValueError(
-                    "num_intervals cannot be higher \
-                                  than subsequence_length"
-                )
+        if isinstance(self.n_intervals, int):
+            if self.n_intervals <= 0:
+                raise ValueError("num_intervals must have the value of at least 1")
+            if self.n_intervals > series_length:
+                raise ValueError("num_intervals cannot be higher than serie_length")
         else:
             raise TypeError(
-                "num_intervals must be an 'int'. \
-                            Found '"
-                + type(self.num_intervals).__name__
-                + "' instead."
+                f"num_intervals must be an 'int' Found {type(self.n_intervals)} "
+                f"instead."
             )
 
-        if isinstance(self.num_bins, int):
-            if self.num_bins <= 0:
-                raise ValueError(
-                    "num_bins must have the value of \
-                                  at least 1"
-                )
+        if isinstance(self.n_bins, int):
+            if self.n_bins <= 0:
+                raise ValueError("num_bins must have the value of at least 1")
         else:
             raise TypeError(
-                "num_bins must be an 'int'. Found '"
-                + type(self.num_bins).__name__
-                + "' \
-                            instead."
+                f"num_bins must be an 'int'. Found"
+                f" {type(self.n_bins).__name__}instead."
             )
 
         if not isinstance(self.scaling_factor, numbers.Number):
             raise TypeError(
-                "scaling_factor must be a 'number'. \
-                            Found '"
-                + type(self.scaling_factor).__name__
-                + "' instead."
+                f"scaling_factor must be a 'number'. Found"
+                f" {type(self.scaling_factor).__name__}instead."
             )
