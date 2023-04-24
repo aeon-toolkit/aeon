@@ -95,9 +95,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
-        y : {array-like, sparse matrix}
-            Class labels of shape = [n_samples]
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
         """
         if isinstance(self.distance, str):
             if self.distance_params is None:
@@ -116,11 +117,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
 
         Returns
         -------
-        p : array of shape = [n_samples, n_classes]
+        p : array of shape = [n_instances, n_classes]
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
@@ -142,11 +144,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
 
         Returns
         -------
-        y : array of shape [n_samples] or [n_samples, n_outputs]
+        y : array of shape [n_instances]
             Class labels for each data sample.
         """
         self.check_is_fitted()
@@ -170,7 +173,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible data format, Panel or Series, with n_samples series
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
 
         Returns
         -------

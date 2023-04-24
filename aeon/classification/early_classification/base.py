@@ -530,11 +530,11 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : any object (to check/convert)
-            should be of a supported Panel mtype or 2D numpy.ndarray
+            should be of a supported input type or 2D numpy.ndarray
 
         Returns
         -------
-        X: an object of a supported Panel mtype, numpy3D if X was a 2D numpy.ndarray
+        X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
 
         Raises
         ------
@@ -584,7 +584,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : check whether conformant with any aeon Panel mtype specification
+        X : check whether conformant with any aeon input type specification
         y : check whether a pd.Series or np.array
         enforce_min_cases : int, optional (default=1)
             check there are a minimum number of instances.
@@ -609,12 +609,12 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : an object of a supported Panel mtype, or 2D numpy.ndarray
+        X : an object of a supported input type including 2D numpy.ndarray
         y : np.ndarray or pd.Series
 
         Returns
         -------
-        X: an object of a supported Panel mtype, numpy3D if X was a 2D numpy.ndarray
+        X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
         y: np.ndarray
         """
         _internal_convert = BaseClassifier._internal_convert
