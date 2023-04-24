@@ -16,7 +16,6 @@ from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
 from aeon.datatypes import convert
-from aeon.datatypes._panel._convert import from_3d_numpy_to_nested
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
 
@@ -248,13 +247,13 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        X = self.sw.transform(X)
+        _X = self.sw.transform(X)
         # Temporary until conversion complete
-        X = from_3d_numpy_to_nested(X)
+        # X = from_3d_numpy_to_nested(X)
         # Feed X into the appropriate shape descriptor function
-        X = self._generate_shape_descriptors(X)
+        _X = self._generate_shape_descriptors(_X)
 
-        return X
+        return _X
 
     def _predict_proba(self, X) -> np.ndarray:
         """Perform predictions on the testing data X.
@@ -316,28 +315,27 @@ class ShapeDTW(BaseClassifier):
                 )
 
         # To hold the result of each transformer
-        dataFrames = []
-        col_names = list(range(len(data.columns)))
+        trans_data = []
 
         # Apply each transformer on the set of subsequences
         for t in self.transformer:
             if t is None:
                 # Do no transformations
-                dataFrames.append(data)
+                trans_data.append(data)
             else:
                 # Do the transformation and extract the resulting data frame.
                 t.fit(data)
                 newData = t.transform(data)
-                dataFrames.append(newData)
+                trans_data.append(newData)
 
-        # Combine the arrays into one dataframe
+        # Combine the arrays into one numpy array
         if self.shape_descriptor_function == "compound":
-            result = self._combine_data_frames(
-                dataFrames, self.weighting_factor, col_names
-            )
+            result = np.array(trans_data)
+        #            result = self._combine_data_frames(
+        #                trans_data, self.weighting_factor, col_names
+        #            )
         else:
-            result = dataFrames[0]
-            result.columns = col_names
+            result = trans_data[0]
 
         return result
 
