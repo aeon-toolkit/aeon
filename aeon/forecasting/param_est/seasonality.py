@@ -7,7 +7,7 @@ __all__ = ["SeasonalityACF"]
 
 import numpy as np
 
-from aeon.param_est.base import BaseParamFitter
+from aeon.forecasting.param_est.base import BaseParamFitter
 
 
 class SeasonalityACF(BaseParamFitter):

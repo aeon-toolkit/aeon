@@ -2,7 +2,7 @@
 """Composition involving parameter estimators."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.param_est.base import BaseParamFitter
+from aeon.forecasting.param_est.base import BaseParamFitter
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 
@@ -281,8 +281,8 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # imports
-        from aeon.param_est.fixed import FixedParams
-        from aeon.param_est.seasonality import SeasonalityACF
+        from aeon.forecasting.param_est.fixed import FixedParams
+        from aeon.forecasting.param_est.seasonality import SeasonalityACF
         from aeon.transformations.series.exponent import ExponentTransformer
         from aeon.utils.validation._dependencies import _check_estimator_deps
 
