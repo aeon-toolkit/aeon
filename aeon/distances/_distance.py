@@ -11,6 +11,11 @@ from aeon.distances._ddtw import (
     ddtw_distance,
     ddtw_from_multiple_to_multiple_distance,
 )
+from aeon.distances._lcss import (
+    lcss_alignment_path,
+    lcss_distance,
+    lcss_from_multiple_to_multiple_distance,
+)
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
@@ -22,7 +27,6 @@ from aeon.distances._euclidean import (
     euclidean_distance,
     euclidean_from_multiple_to_multiple_distance,
 )
-from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
     _compute_pairwise_distance,
@@ -209,73 +213,6 @@ def edr_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="edr", **format_kwargs)
-
-
-def lcss_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    epsilon: float = 1.0,
-    **kwargs: Any,
-) -> float:
-    """Compute the longest common subsequence (LCSS) score between two time series.
-
-    LCSS attempts to find the longest common sequence between two time series and
-    returns a value that is the percentage that longest common sequence assumes.
-    Originally present in [1]_, LCSS is computed by matching indexes that are
-    similar up until a defined threshold (epsilon).
-
-    The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
-    are exactly the same and 1.0 means they are complete opposites.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = 1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Lcss distance between x and y. The value returned will be between 0.0 and 1.0,
-        where 0.0 means the two time series are exactly the same and 1.0 means they
-        are complete opposites.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="lcss", **format_kwargs)
-
 
 def msm_distance(
     x: np.ndarray,
@@ -569,83 +506,6 @@ def erp_alignment_path(
         x, y, metric="erp", return_cost_matrix=return_cost_matrix, **format_kwargs
     )
 
-
-def lcss_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    epsilon: float = 1.0,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the longest common subsequence (LCSS) alignment path.
-
-    LCSS attempts to find the longest common sequence between two time series and
-    returns a value that is the percentage that longest common sequence assumes.
-    Originally present in [1]_, LCSS is computed by matching indexes that are
-    similar up until a defined threshold (epsilon).
-
-    The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
-    are exactly the same and 1.0 means they are complete opposites.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = 1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the lcss alignment path.
-    float
-        Lcss distance between x and y. The value returned will be between 0.0 and 1.0,
-        where 0.0 means the two time series are exactly the same and 1.0 means they
-        are complete opposites.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="lcss", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
 def msm_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
@@ -798,7 +658,7 @@ def twe_alignment_path(
     )
 
 
-NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw", "wdtw", "wddtw"]
+NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw", "wdtw", "wddtw", "lcss"]
 
 
 def distance(
@@ -893,6 +753,8 @@ def distance(
             return wdtw_distance(x, y, **kwargs)
         elif metric == "wddtw":
             return wddtw_distance(x, y, **kwargs)
+        elif metric == "lcss":
+            return lcss_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -972,6 +834,8 @@ def distance_factory(
             return wdtw_distance
         elif metric == "wddtw":
             return wddtw_distance
+        elif metric == "lcss":
+            return lcss_distance
     global dist_callable
 
     if x is None:
@@ -1100,6 +964,8 @@ def pairwise_distance(
             return wdtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
         elif metric == "wddtw":
             return wddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+        elif metric == "lcss":
+            return lcss_from_multiple_to_multiple_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -1186,6 +1052,8 @@ def distance_alignment_path(
             return wdtw_alignment_path(x, y, **kwargs)
         elif metric == "wddtw":
             return wddtw_alignment_path(x, y, **kwargs)
+        elif metric == "lcss":
+            return lcss_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1269,6 +1137,8 @@ def distance_alignment_path_factory(
             return wdtw_alignment_path
         elif metric == "wddtw":
             return wddtw_alignment_path
+        elif metric == "lcss":
+            return lcss_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1306,13 +1176,6 @@ _METRIC_INFOS = [
         dist_alignment_path_func=edr_alignment_path,
     ),
     MetricInfo(
-        canonical_name="lcss",
-        aka={"lcss", "longest common subsequence"},
-        dist_func=lcss_distance,
-        dist_instance=_LcssDistance(),
-        dist_alignment_path_func=lcss_alignment_path,
-    ),
-    MetricInfo(
         canonical_name="msm",
         aka={"msm", "move-split-merge"},
         dist_func=msm_distance,
@@ -1338,7 +1201,6 @@ _METRICS_NAMES = list(_METRICS.keys())
 ALL_DISTANCES = (
     edr_distance,
     erp_distance,
-    lcss_distance,
     msm_distance,
     twe_distance,
 )

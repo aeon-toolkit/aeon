@@ -39,6 +39,12 @@ from aeon.distances import (
     wdtw_from_multiple_to_multiple_distance,
     wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
+    lcss_distance,
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_pairwise_distance,
+    lcss_from_multiple_to_multiple_distance,
+    lcss_from_single_to_multiple_distance,
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
@@ -94,6 +100,15 @@ DISTANCES = [
         "cost_matrix": wddtw_cost_matrix,
         "alignment_path": wddtw_alignment_path,
     },
+    {
+        "name": "lcss",
+        "distance": lcss_distance,
+        "pairwise_distance": lcss_pairwise_distance,
+        "single_to_multiple_distance": lcss_from_single_to_multiple_distance,
+        "multiple_to_multiple_distance": lcss_from_multiple_to_multiple_distance,
+        "cost_matrix": lcss_cost_matrix,
+        "alignment_path": lcss_alignment_path,
+    }
 ]
 
 

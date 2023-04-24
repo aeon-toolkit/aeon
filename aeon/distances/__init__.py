@@ -116,3 +116,11 @@ from aeon.distances._wdtw import (
     wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances._lcss import (
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_distance,
+    lcss_from_multiple_to_multiple_distance,
+    lcss_from_single_to_multiple_distance,
+    lcss_pairwise_distance,
+)

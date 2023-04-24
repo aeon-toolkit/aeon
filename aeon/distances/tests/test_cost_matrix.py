@@ -33,7 +33,7 @@ def test_cost_matrix(dist):
         return
 
     # Test univariate
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw" != "lcss":
         _validate_cost_matrix_result(
             np.array([10.0]),
             np.array([15.0]),
