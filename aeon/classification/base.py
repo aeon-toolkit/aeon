@@ -443,7 +443,7 @@ class BaseClassifier(BaseEstimator, ABC):
                 raise ValueError(msg)
 
     def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
+        """Convert to inner type.
 
         Parameters
         ----------

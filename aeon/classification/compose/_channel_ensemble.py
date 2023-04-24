@@ -126,18 +126,14 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
             yield name, estimator, channel
 
     def _fit(self, X, y):
-        # the data passed in could be an array of dataframes?
         """Fit all estimators, fit the data.
 
         Parameters
         ----------
-        X : array-like or DataFrame of shape [n_samples, n_channels,
-        n_length]
-            Input data, of which specified subsets are used to fit the
-            transformations.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
-        y : array-like, shape (n_samples, ...), optional
-            Targets for supervised learning.
+        y : array-like, shape = [n_instances]
+            The class labels.
 
         """
         if self.estimators is None or len(self.estimators) == 0:
