@@ -324,7 +324,6 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
             tde.fit(X_subsample, y_subsample)
             tde._subsample = subsample
             
-
             tde._mae = self._individual_train_mae(
                 tde,
                 y_subsample,
@@ -611,8 +610,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualOrdinalTDE(BaseClassifier):
-    """Single O-TDE classifier, an ordinal version of the IndividualTDE algorithm
-    from [2]_.
+    """Single O-TDE classifier, an ordinal version of the IndividualTDE algorithm from [2]_.
 
     Base classifier for the O-TDE classifier. Implementation of single O-TDE base model
     from [1]_.
@@ -1050,6 +1048,7 @@ def histogram_intersection(first, second):
         for word, val_a in first.items():
             val_b = second.get(word, 0)
             sim += min(val_a, val_b)
+            
             
         return sim
     elif isinstance(first, Dict):
