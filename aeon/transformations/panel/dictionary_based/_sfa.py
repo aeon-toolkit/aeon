@@ -17,13 +17,13 @@ from numba import NumbaTypeSafetyWarning, njit, types
 from numba.typed import Dict
 from sklearn.feature_selection import f_classif
 from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
-binning_methods = {"equi-depth", "equi-width", "information-gain", "kmeans"}
+binning_methods = {"equi-depth", "equi-width", "information-gain", "information-gain-mae", "kmeans"}
 
 
 class SFA(BaseTransformer):
@@ -53,7 +53,7 @@ class SFA(BaseTransformer):
     norm:                boolean, default = False
         mean normalise words by dropping first fourier coefficient
 
-    binning_method:      {"equi-depth", "equi-width", "information-gain", "kmeans"},
+    binning_method:      {"equi-depth", "equi-width", "information-gain", "information-gain-mae", "kmeans"},
                             default="equi-depth"
         the binning method used to derive the breakpoints.
 
@@ -123,6 +123,7 @@ class SFA(BaseTransformer):
         use_fallback_dft=False,
         typed_dict=False,
         n_jobs=1,
+        random_state=None,
     ):
         self.words = []
         self.breakpoints = []
@@ -165,6 +166,7 @@ class SFA(BaseTransformer):
         self.typed_dict = typed_dict
 
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         self.n_instances = 0
         self.series_length = 0
@@ -195,7 +197,7 @@ class SFA(BaseTransformer):
         if self.word_length < 1:
             raise ValueError("Word length must be an integer greater than 1")
 
-        if self.binning_method == "information-gain" and y is None:
+        if (self.binning_method == "information-gain" or self.binning_method == "information-gain-mae")  and y is None:
             raise ValueError(
                 "Class values must be provided for information gain binning"
             )
@@ -419,6 +421,8 @@ class SFA(BaseTransformer):
 
         if self.binning_method == "information-gain":
             return self._igb(dft, y)
+        if self.binning_method == "information-gain-mae":
+            return self._igb_mae(dft, y)
         elif self.binning_method == "kmeans":
             return self._k_bins_discretizer(dft)
         else:
@@ -475,6 +479,25 @@ class SFA(BaseTransformer):
             max_depth=int(np.floor(np.log2(self.alphabet_size))),
             max_leaf_nodes=self.alphabet_size,
             random_state=1,
+        )
+
+        for i in range(self.word_length):
+            clf.fit(dft[:, i][:, None], y)
+            threshold = clf.tree_.threshold[clf.tree_.children_left != -1]
+            for bp in range(len(threshold)):
+                breakpoints[i][bp] = threshold[bp]
+            for bp in range(len(threshold), self.alphabet_size):
+                breakpoints[i][bp] = sys.float_info.max
+
+        return np.sort(breakpoints, axis=1)
+    
+    def _igb_mae(self, dft, y):
+        breakpoints = np.zeros((self.word_length, self.alphabet_size))
+        clf = DecisionTreeRegressor(
+            criterion="friedman_mse",
+            max_depth=int(np.floor(np.log2(self.alphabet_size))),
+            max_leaf_nodes=self.alphabet_size,
+            random_state=self.random_state
         )
 
         for i in range(self.word_length):
