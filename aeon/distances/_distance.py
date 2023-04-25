@@ -11,11 +11,6 @@ from aeon.distances._ddtw import (
     ddtw_distance,
     ddtw_from_multiple_to_multiple_distance,
 )
-from aeon.distances._lcss import (
-    lcss_alignment_path,
-    lcss_distance,
-    lcss_from_multiple_to_multiple_distance,
-)
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
@@ -26,6 +21,11 @@ from aeon.distances._erp import _ErpDistance
 from aeon.distances._euclidean import (
     euclidean_distance,
     euclidean_from_multiple_to_multiple_distance,
+)
+from aeon.distances._lcss import (
+    lcss_alignment_path,
+    lcss_distance,
+    lcss_from_multiple_to_multiple_distance,
 )
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -213,6 +213,7 @@ def edr_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="edr", **format_kwargs)
+
 
 def msm_distance(
     x: np.ndarray,
@@ -505,6 +506,7 @@ def erp_alignment_path(
     return distance_alignment_path(
         x, y, metric="erp", return_cost_matrix=return_cost_matrix, **format_kwargs
     )
+
 
 def msm_alignment_path(
     x: np.ndarray,

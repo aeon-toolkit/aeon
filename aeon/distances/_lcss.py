@@ -35,6 +35,7 @@ of the ACM 24(4), 664--675, 1977
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
+
 import numpy as np
 from numba import njit
 
@@ -43,9 +44,9 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
     r"""Return the lcss distance between x and y.
 
@@ -115,9 +116,9 @@ def lcss_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     r"""Return the lcss cost matrix between x and y.
 
@@ -183,24 +184,19 @@ def lcss_cost_matrix(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    test = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
-    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
-    joe = 1 - float(distance / min(x.shape[1], y.shape[1]))
     distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
         x.shape[1] - 1, y.shape[1] - 1
     ]
     return 1 - float(distance / min(x.shape[1], y.shape[1]))
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -210,8 +206,9 @@ def _lcss_cost_matrix(
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
             if bounding_matrix[i - 1, j - 1]:
-                euclidean_distance = _univariate_euclidean_distance(x[:, i - 1],
-                                                                y[:, j - 1])
+                euclidean_distance = _univariate_euclidean_distance(
+                    x[:, i - 1], y[:, j - 1]
+                )
                 if euclidean_distance <= epsilon:
                     cost_matrix[i, j] = 1 + cost_matrix[i - 1, j - 1]
                 else:
@@ -222,9 +219,9 @@ def _lcss_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_pairwise_distance(
-        X: np.ndarray, window: float = None, epsilon: float = 1.0
+    X: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss pairwise distance between a set of time series.
 
@@ -269,10 +266,8 @@ def lcss_pairwise_distance(
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True, fastmath=True)
-def _lcss_pairwise_distance(
-        X: np.ndarray, window: float, epsilon: float
-) -> np.ndarray:
+@njit(cache=True)
+def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -285,9 +280,9 @@ def _lcss_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss distance between a single time series and multiple.
 
@@ -334,9 +329,9 @@ def lcss_from_single_to_multiple_distance(
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, epsilon: float
+    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -348,9 +343,9 @@ def _lcss_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss distance between two sets of time series.
 
@@ -405,9 +400,9 @@ def lcss_from_multiple_to_multiple_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def _lcss_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, epsilon: float
+    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -420,9 +415,9 @@ def _lcss_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True)
 def lcss_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the lcss alignment path between two time series.
 
