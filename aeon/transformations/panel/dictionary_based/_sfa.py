@@ -23,7 +23,13 @@ from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
-binning_methods = {"equi-depth", "equi-width", "information-gain", "information-gain-mae", "kmeans"}
+binning_methods = {
+    "equi-depth",
+    "equi-width",
+    "information-gain",
+    "information-gain-mae",
+    "kmeans",
+}
 
 
 class SFA(BaseTransformer):
@@ -197,7 +203,10 @@ class SFA(BaseTransformer):
         if self.word_length < 1:
             raise ValueError("Word length must be an integer greater than 1")
 
-        if (self.binning_method == "information-gain" or self.binning_method == "information-gain-mae")  and y is None:
+        if (
+            self.binning_method == "information-gain"
+            or self.binning_method == "information-gain-mae"
+        ) and y is None:
             raise ValueError(
                 "Class values must be provided for information gain binning"
             )
@@ -478,7 +487,7 @@ class SFA(BaseTransformer):
             criterion="entropy",
             max_depth=int(np.floor(np.log2(self.alphabet_size))),
             max_leaf_nodes=self.alphabet_size,
-            random_state=1,
+            random_state=self.random_state,
         )
 
         for i in range(self.word_length):
@@ -497,7 +506,7 @@ class SFA(BaseTransformer):
             criterion="friedman_mse",
             max_depth=int(np.floor(np.log2(self.alphabet_size))),
             max_leaf_nodes=self.alphabet_size,
-            random_state=self.random_state
+            random_state=self.random_state,
         )
 
         for i in range(self.word_length):
