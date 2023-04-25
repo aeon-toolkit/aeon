@@ -40,6 +40,7 @@ __all__ = [
     "lcss_from_single_to_multiple_distance",
     "lcss_from_multiple_to_multiple_distance",
     "lcss_alignment_path",
+    "lcss_cost_matrix",
     "distance",
     "distance_factory",
     "pairwise_distance",
