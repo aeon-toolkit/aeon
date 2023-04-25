@@ -34,7 +34,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
@@ -110,7 +110,7 @@ def wdtw_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -198,14 +198,14 @@ def wdtw_cost_matrix(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wdtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
     return _wdtw_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
@@ -233,7 +233,7 @@ def _wdtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_pairwise_distance(
     X: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -280,7 +280,7 @@ def wdtw_pairwise_distance(
     raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wdtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -294,7 +294,7 @@ def _wdtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarra
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -343,7 +343,7 @@ def wdtw_from_single_to_multiple_distance(
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wdtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
@@ -357,7 +357,7 @@ def _wdtw_from_single_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -414,7 +414,7 @@ def wdtw_from_multiple_to_multiple_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wdtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
@@ -429,7 +429,7 @@ def _wdtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wdtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
