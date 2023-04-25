@@ -38,8 +38,8 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
     presented in [2]_.
 
     Overview: Input "n" series length "m" with "d" dimensions.
-    O-TDE performs parameter selection to build the ensemble members based on a Gaussian process 
-    which is intended to predict Mean Absolute Error (MAE) values for specific O-TDE 
+    O-TDE performs parameter selection to build the ensemble members based on a Gaussian process
+    which is intended to predict Mean Absolute Error (MAE) values for specific O-TDE
     parameters configurations. Then, the best performing members are selected and used to build the
     final ensemble.
 
