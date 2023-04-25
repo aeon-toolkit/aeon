@@ -6,7 +6,11 @@ IndividualOrdinalTDE and Ordinal TDE.
 """
 
 __author__ = ["RafaelAyllon"]
-__all__ = ["OrdinalTemporalDictionaryEnsemble", "IndividualOrdinalTDE", "histogram_intersection"]
+__all__ = [
+    "OrdinalTemporalDictionaryEnsemble",
+    "IndividualOrdinalTDE",
+    "histogram_intersection",
+]
 
 import math
 import time
