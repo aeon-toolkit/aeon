@@ -58,7 +58,7 @@ class SeasonalityACF(BaseParamFitter):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>>
     >>> X = load_airline().diff()[1:]  # doctest: +SKIP
     >>> sp_est = SeasonalityACF()  # doctest: +SKIP
@@ -72,7 +72,7 @@ class SeasonalityACF(BaseParamFitter):
     Series should be stationary before applying ACF.
     To pipeline SeasonalityACF with the Differencer, use the ParamFitterPipeline:
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>> from aeon.transformations.series.difference import Differencer
     >>>
     >>> X = load_airline()  # doctest: +SKIP

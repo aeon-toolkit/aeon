@@ -69,8 +69,8 @@ class ParamFitterPipeline(_HeterogenousMetaEstimator, BaseParamFitter):
 
     Examples
     --------
-    >>> from aeon.param_est.compose import ParamFitterPipeline
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.compose import ParamFitterPipeline
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>> from aeon.transformations.series.difference import Differencer
     >>> from aeon.datasets import load_airline
     >>>
