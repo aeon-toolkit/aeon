@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r""" Edit real penalty (erp) distance between two time series.
+r"""Edit real penalty (erp) distance between two time series.
 
 ERP, first proposed in [1]_, attempts align time series
 by better considering how indexes are carried forward through the cost matrix.
@@ -30,7 +30,7 @@ from aeon.distances._euclidean import _univariate_euclidean_distance
 
 @njit(cache=True, fastmath=True)
 def erp_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> float:
     """Compute the ERP distance between two time series.
 
@@ -98,7 +98,7 @@ def erp_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
@@ -165,14 +165,14 @@ def erp_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _erp_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _erp_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -213,7 +213,7 @@ def _precompute_g(x: np.ndarray, g: float) -> Tuple[np.ndarray, float]:
 
 @njit(cache=True, fastmath=True)
 def erp_pairwise_distance(
-        X: np.ndarray, window: float = None, g: float = 0.0
+    X: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
     """Compute the erp pairwise distance between a set of time series.
 
@@ -258,9 +258,7 @@ def erp_pairwise_distance(
 
 
 @njit(cache=True, fastmath=True)
-def _erp_pairwise_distance(
-        X: np.ndarray, window: float, g: float
-) -> np.ndarray:
+def _erp_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -275,7 +273,7 @@ def _erp_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
     """Compute the erp distance between a single time series and multiple.
 
@@ -323,7 +321,7 @@ def erp_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _erp_from_single_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -337,7 +335,7 @@ def _erp_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> np.ndarray:
     """Compute the erp distance between two sets of time series.
 
@@ -393,7 +391,7 @@ def erp_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _erp_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -408,7 +406,7 @@ def _erp_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the erp alignment path between two time series.
 
@@ -457,4 +455,3 @@ def erp_alignment_path(
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
-

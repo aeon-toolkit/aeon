@@ -19,6 +19,12 @@ from aeon.distances import (
     dtw_from_multiple_to_multiple_distance,
     dtw_from_single_to_multiple_distance,
     dtw_pairwise_distance,
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_distance,
+    erp_from_multiple_to_multiple_distance,
+    erp_from_single_to_multiple_distance,
+    erp_pairwise_distance,
     euclidean_distance,
     euclidean_from_multiple_to_multiple_distance,
     euclidean_from_single_to_multiple_distance,
@@ -45,12 +51,6 @@ from aeon.distances import (
     wdtw_from_multiple_to_multiple_distance,
     wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
-    erp_distance,
-    erp_alignment_path,
-    erp_from_multiple_to_multiple_distance,
-    erp_from_single_to_multiple_distance,
-    erp_cost_matrix,
-    erp_pairwise_distance,
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
@@ -123,7 +123,7 @@ DISTANCES = [
         "multiple_to_multiple_distance": erp_from_multiple_to_multiple_distance,
         "cost_matrix": erp_cost_matrix,
         "alignment_path": erp_alignment_path,
-    }
+    },
 ]
 
 
