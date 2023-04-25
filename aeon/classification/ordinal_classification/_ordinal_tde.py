@@ -114,7 +114,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and 
+    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
         Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
         IWANN 2023. 17th International Work-Conference on Artificial Neural Networks.
@@ -125,7 +125,9 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.ordinal_classification import OrdinalTemporalDictionaryEnsemble
+    >>> from aeon.classification.ordinal_classification import (
+        OrdinalTemporalDictionaryEnsemble
+    )
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
@@ -609,7 +611,8 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualOrdinalTDE(BaseClassifier):
-    """Single O-TDE classifier, an ordinal version of the IndividualTDE algorithm from [2]_.
+    """Single O-TDE classifier, an ordinal version of the IndividualTDE algorithm
+    from [2]_.
 
     Base classifier for the O-TDE classifier. Implementation of single O-TDE base model
     from [1]_.
@@ -681,10 +684,10 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and 
+    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
         Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
-        IWANN 2023. 17th International Work-Conference on Artificial Neural Networks- IWANN 2023
+        IWANN 2023. 17th International Work-Conference on Artificial Neural Networks.
     ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
@@ -692,7 +695,9 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.ordinal_classification import IndividualOrdinalTDE
+    >>> from aeon.classification.ordinal_classification import (
+        IndividualOrdinalTDE
+    )
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
