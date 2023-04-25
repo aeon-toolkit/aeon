@@ -16,7 +16,7 @@ from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
 from aeon.distances._euclidean import (
     euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
+    euclidean_pairwise_distance
 )
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
@@ -1570,7 +1570,7 @@ def pairwise_distance(
     _y = _make_3d_series(y)
     if metric in NEW_DISTANCES:
         if metric == "euclidean":
-            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+            return euclidean_pairwise_distance(_x, _y)
         elif metric == "squared":
             return squared_from_multiple_to_multiple_distance(_x, _y)
         elif metric == "dtw":

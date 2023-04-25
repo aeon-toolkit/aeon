@@ -9,8 +9,6 @@ __all__ = [
     "squared_from_multiple_to_multiple_distance",
     "euclidean_distance",
     "euclidean_pairwise_distance",
-    "euclidean_from_single_to_multiple_distance",
-    "euclidean_from_multiple_to_multiple_distance",
     "dtw_distance",
     "dtw_pairwise_distance",
     "dtw_from_single_to_multiple_distance",
@@ -76,8 +74,6 @@ from aeon.distances._dtw import (
 )
 from aeon.distances._euclidean import (
     euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
-    euclidean_from_single_to_multiple_distance,
     euclidean_pairwise_distance,
 )
 from aeon.distances._squared import (
