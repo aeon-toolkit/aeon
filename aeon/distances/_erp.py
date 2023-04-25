@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""Edit real penalty (erp) distance between two time series.
 
-ERP, first proposed in [1]_, attempts align time series
+ERP, first proposed in [1]_, attempts to align time series
 by better considering how indexes are carried forward through the cost matrix.
 Usually in the dtw cost matrix, if an alignment can't be found the previous value
 is carried forward. Erp instead proposes the idea of gaps or sequences of points
@@ -15,7 +15,7 @@ In Proceedings of the Thirtieth international conference on Very large data base
 """
 __author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 from numba import njit
@@ -30,15 +30,23 @@ from aeon.distances._euclidean import _univariate_euclidean_distance
 
 @njit(cache=True, fastmath=True)
 def erp_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        g: Union[float, np.ndarray] = 0.0
 ) -> float:
     """Compute the ERP distance between two time series.
 
-    ERP, first proposed in [1]_, attempts align time series
+    ERP, first proposed in [1]_, attempts to align time series
     by better considering how indexes are carried forward through the cost matrix.
     Usually in the dtw cost matrix, if an alignment can't be found the previous value
     is carried forward. Erp instead proposes the idea of gaps or sequences of points
     that have no matches. These gaps are then punished based on their distance from 'g'.
+
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -51,8 +59,9 @@ def erp_distance(
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=0.
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------
@@ -98,9 +107,17 @@ def erp_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        g: Union[float, np.ndarray] = 0.0
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
+    
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -113,8 +130,9 @@ def erp_cost_matrix(
     window: float, defaults=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=0.
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------
@@ -165,14 +183,20 @@ def erp_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _erp_distance(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+        x: np.ndarray,
+        y: np.ndarray,
+        bounding_matrix: np.ndarray,
+        g: Union[float, np.ndarray]
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _erp_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float
+        x: np.ndarray,
+        y: np.ndarray,
+        bounding_matrix: np.ndarray,
+        g: Union[float, np.ndarray]
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -199,9 +223,14 @@ def _erp_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def _precompute_g(x: np.ndarray, g: float) -> Tuple[np.ndarray, float]:
+def _precompute_g(
+        x: np.ndarray, g: Union[float, np.ndarray]
+) -> Tuple[np.ndarray, float]:
     gx_distance = np.zeros(x.shape[1])
-    g_arr = np.full(x.shape[0], g)
+    if isinstance(g, float):
+        g_arr = np.full(x.shape[0], g)
+    else:
+        g_arr = g
     x_sum = 0
 
     for i in range(x.shape[1]):
@@ -213,9 +242,14 @@ def _precompute_g(x: np.ndarray, g: float) -> Tuple[np.ndarray, float]:
 
 @njit(cache=True, fastmath=True)
 def erp_pairwise_distance(
-    X: np.ndarray, window: float = None, g: float = 0.0
+    X: np.ndarray, window: float = None, g: Union[float, np.ndarray] = None
 ) -> np.ndarray:
     """Compute the erp pairwise distance between a set of time series.
+    
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -225,8 +259,9 @@ def erp_pairwise_distance(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=None
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------
@@ -258,7 +293,9 @@ def erp_pairwise_distance(
 
 
 @njit(cache=True, fastmath=True)
-def _erp_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
+def _erp_pairwise_distance(
+        X: np.ndarray, window: float, g: Union[float, np.ndarray]
+) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
     bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
@@ -273,9 +310,17 @@ def _erp_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray
 
 @njit(cache=True, fastmath=True)
 def erp_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        g: Union[float, np.ndarray] = 0.0
 ) -> np.ndarray:
     """Compute the erp distance between a single time series and multiple.
+    
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -287,8 +332,9 @@ def erp_from_single_to_multiple_distance(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=0.
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------
@@ -321,7 +367,7 @@ def erp_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _erp_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray, y: np.ndarray, window: float, g: Union[float, np.ndarray]
 ) -> np.ndarray:
     n_instances = y.shape[0]
     distances = np.zeros(n_instances)
@@ -335,11 +381,19 @@ def _erp_from_single_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        g: Union[float, np.ndarray] = 0.0
 ) -> np.ndarray:
     """Compute the erp distance between two sets of time series.
 
     If x and y are the same then you should use erp_pairwise_distance.
+    
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -352,8 +406,9 @@ def erp_from_multiple_to_multiple_distance(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=0.
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------
@@ -391,7 +446,7 @@ def erp_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def _erp_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray, y: np.ndarray, window: float, g: Union[float, np.ndarray]
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -406,9 +461,17 @@ def _erp_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def erp_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.0
+        x: np.ndarray,
+        y: np.ndarray,
+        window: float = None,
+        g: Union[float, np.ndarray] = 0.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the erp alignment path between two time series.
+    
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
+    standard deviation of the training data. When there is > 1 channel, g should
+    be a np.ndarray where the nth value is the standard deviation of the nth
+    channel. 
 
     Parameters
     ----------
@@ -421,8 +484,9 @@ def erp_alignment_path(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.
-        The reference value to penalise gaps. The default is 0.
+    g: float or np.ndarray of shape (n_channels), defaults=0.
+        The reference value to penalise gaps. The default is 0. If it is an array
+        then it must be the length of the number of channels in x and y.
 
     Returns
     -------

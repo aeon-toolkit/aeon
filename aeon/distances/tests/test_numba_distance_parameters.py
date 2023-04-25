@@ -51,6 +51,18 @@ def _test_distance_params(
         i += 1
         results_to_fill.append(curr_results)
 
+    if distance_str == "erp":
+        param_dict = {"g": np.array([0.5])}
+        first_uni = distance_func(x_univ, y_univ, **param_dict)
+        second_uni = distance(x_univ, y_univ, metric=distance_str, **param_dict)
+        param_dict = {"g": np.array(list(range(10)))}
+        first_multi = distance_func(x_multi, y_multi, **param_dict)
+        second_multi = distance(x_multi, y_multi, metric=distance_str, **param_dict)
+        assert first_uni == pytest.approx(second_uni)
+        assert first_multi == pytest.approx(second_multi)
+
+
+
 
 BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
