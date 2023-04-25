@@ -34,7 +34,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
     presented in [2]_.
 
     Overview: Input "n" series length "m" with "d" dimensions.
-    O-TDE performs parameter selection to build the ensemble members based on a Gaussian process
+    O-TDE performs parameter selection to build the ensemble members based on a Gaussian process 
     which is intended to predict Mean Absolute Error (MAE) values for specific O-TDE 
     parameters configurations. Then, the best performing members are selected and used to build the
     final ensemble.
@@ -185,7 +185,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
         self._word_lengths = [16, 14, 12, 10, 8]
         self._norm_options = [True, False]
         self._levels = [1, 2, 3]
-        self._igb_options = [True] # Only True in ordinal version
+        self._igb_options = [True]  # Only True in ordinal version
         self._alphabet_size = 4
         self._weight_sum = 0
         self._prev_parameters_x = []
@@ -293,7 +293,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
                 )
                 preds = gp.predict(scaler.transform(possible_parameters))
                 parameters = possible_parameters.pop(
-                    rng.choice(np.flatnonzero(preds == preds.min())) ##### CAMBIADO MAX POR MIN
+                    rng.choice(np.flatnonzero(preds == preds.min()))
                 )
 
             subsample = rng.choice(
@@ -310,7 +310,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
                 max_dims=self.max_dims,
                 typed_dict=self.typed_dict,
                 n_jobs=self._threads_to_use,
-                random_state=self.random_state
+                random_state=self.random_state,
             )
             tde.fit(X_subsample, y_subsample)
             tde._subsample = subsample
@@ -320,10 +320,10 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
                 tde,
                 y_subsample,
                 subsample_size,
-                100 if num_classifiers < self.max_ensemble_size else highest_mae
+                100 if num_classifiers < self.max_ensemble_size else highest_mae,
             )
 
-            w = 1/(1 + abs(tde._mae))
+            w = 1 / (1 + abs(tde._mae))
             if w >= 0:
                 weight = math.pow(w, 4)
             else:
@@ -559,7 +559,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
                 if self.save_train_predictions:
                     tde._train_predictions.append(c)
 
-        mae = absolute_error/train_size
+        mae = absolute_error / train_size
         if mae > highest_mae:
             return 100
         return mae
@@ -847,7 +847,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
                     n_jobs=self._threads_to_use,
-                    random_state=self.random_state
+                    random_state=self.random_state,
                 )
             )
             self._transformers[0].fit(X, y)
@@ -976,7 +976,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         dims = []
         fin_transformers = []
-        mae_min_threshold = (1 + (1 - self.dim_threshold))
+        mae_min_threshold = 1 + (1 - self.dim_threshold)
         for i in range(self.n_dims_):
             if maes[i] <= min_mae * mae_min_threshold:
                 dims.append(i)
@@ -1034,6 +1034,7 @@ def histogram_intersection(first, second):
         for word, val_a in first.items():
             val_b = second.get(word, 0)
             sim += min(val_a, val_b)
+            
         return sim
     elif isinstance(first, Dict):
         return _histogram_intersection_dict(first, second)
