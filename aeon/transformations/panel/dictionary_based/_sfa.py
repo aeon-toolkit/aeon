@@ -59,8 +59,8 @@ class SFA(BaseTransformer):
     norm:                boolean, default = False
         mean normalise words by dropping first fourier coefficient
 
-    binning_method:      {"equi-depth", "equi-width", "information-gain", "information-gain-mae", "kmeans"},
-                            default="equi-depth"
+    binning_method:      {"equi-depth", "equi-width", "information-gain",
+        "information-gain-mae", "kmeans"}, default="equi-depth"
         the binning method used to derive the breakpoints.
 
     anova:               boolean, default = False
