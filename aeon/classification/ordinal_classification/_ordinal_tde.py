@@ -610,7 +610,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualOrdinalTDE(BaseClassifier):
-    """Single O-TDE classifier, an ordinal version of the IndividualTDE algorithm from [2]_.
+    """Single O-TDE classifier, an ordinal version of the IndividualTDE from [2]_.
 
     Base classifier for the O-TDE classifier. Implementation of single O-TDE base model
     from [1]_.
