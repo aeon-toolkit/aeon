@@ -264,9 +264,9 @@ def _load_provided_dataset(
     if isinstance(X, list):
         loaded_type = "np-list"
     elif isinstance(X, np.ndarray):
-        if X.ndims == 2:
+        if X.ndim == 2:
             loaded_type = "numpy2D"
-        elif X.ndims == 3:
+        elif X.ndim == 3:
             loaded_type = "numpy3D"
         else:
             raise ValueError(f" Loaded numpy arrays must be 2D or 3D, saw {X.ndims}")
@@ -275,9 +275,15 @@ def _load_provided_dataset(
 
     if return_X_y:
         X = convert(X, from_type=loaded_type, to_type=return_type)
-        return X, y
+        if return_meta:
+            return X, y, meta_data
+        else:
+            return X, y
     else:  # TODO: do this better
         X = convert(X, from_type=loaded_type, to_type="nested_univ")
         X["class_val"] = pd.Series(y)
         X = convert(X, from_type="nested_univ", to_type=return_type)
-        return X
+        if return_meta:
+            return X, meta_data
+        else:
+            return X

@@ -115,7 +115,7 @@ def load_TSC_dataset(
     return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
 
-def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
+def load_gunpoint(split=None, return_X_y=True, return_type="numpy3D"):
     """Load the GunPoint univariate time series classification problem.
 
     Parameters
@@ -253,7 +253,7 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     return _load_dataset(name, split, return_X_y, return_type=return_type)
 
 
-def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
+def load_unit_test(split=None, return_X_y=True, return_type="numpy3D"):
     """
     Load UnitTest data.
 
