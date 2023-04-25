@@ -2101,6 +2101,15 @@
         "code",
         "doc"
        ]
+    },
+    {
+       "login": "RafaAyGar",
+       "name": "Rafael Ayllón-Gavilán",
+       "avatar_url": "https://avatars.githubusercontent.com/u/37343008?s=400&u=bbd9c00c6045adf11cd9376e6db1d959565c27c6&v=4",
+       "profile": "https://github.com/RafaAyGar",
+       "contributions": [
+        "code"
+       ]
     }
   ]
 }
