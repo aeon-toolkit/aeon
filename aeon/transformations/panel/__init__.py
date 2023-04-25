@@ -17,6 +17,7 @@ __all__ = [
     "SlidingWindowSegmenter",
     "RandomIntervalSegmenter",
     "RandomShapeletTransform",
+    "RandomDilatedShapeletTransform",
     "ShapeletTransform",
     "SlopeTransformer",
     "SupervisedIntervals",
@@ -29,6 +30,9 @@ from aeon.transformations.panel.catch22 import Catch22
 from aeon.transformations.panel.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
+)
+from aeon.transformations.panel.dilated_shapelet_transform import (
+    RandomDilatedShapeletTransform,
 )
 from aeon.transformations.panel.dwt import DWTTransformer
 from aeon.transformations.panel.hog1d import HOG1DTransformer
