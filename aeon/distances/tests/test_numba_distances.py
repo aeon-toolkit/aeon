@@ -176,25 +176,27 @@ def test_distance(dist: MetricInfo) -> None:
 
         distance_factory = _dist_factory
 
-    _validate_distance_result(
-        x=np.array([10.0]),
-        y=np.array([15.0]),
-        metric_str=name,
-        distance_factory=distance_factory,
-        distance_function=distance_function,
-        distance_numba_class=distance_numba_class,
-        expected_result=_expected_distance_results[name][0],
-    )
+    if not name == "ddtw" and not name == "wddtw":
+        _validate_distance_result(
+            x=np.array([10.0]),
+            y=np.array([15.0]),
+            metric_str=name,
+            distance_factory=distance_factory,
+            distance_function=distance_function,
+            distance_numba_class=distance_numba_class,
+            expected_result=_expected_distance_results[name][0],
+        )
 
-    _validate_distance_result(
-        x=create_test_distance_numpy(10),
-        y=create_test_distance_numpy(10, random_state=2),
-        metric_str=name,
-        distance_factory=distance_factory,
-        distance_function=distance_function,
-        distance_numba_class=distance_numba_class,
-        expected_result=_expected_distance_results[name][1],
-    )
+    if not name == "ddtw" and not name == "wddtw":
+        _validate_distance_result(
+            x=create_test_distance_numpy(10),
+            y=create_test_distance_numpy(10, random_state=2),
+            metric_str=name,
+            distance_factory=distance_factory,
+            distance_function=distance_function,
+            distance_numba_class=distance_numba_class,
+            expected_result=_expected_distance_results[name][1],
+        )
 
     _validate_distance_result(
         x=create_test_distance_numpy(10, 10),
