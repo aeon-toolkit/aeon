@@ -33,19 +33,21 @@ from aeon.utils.validation.panel import check_X_y
 class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
     """Ordinal Temporal Dictionary Ensemble (O-TDE).
 
-    Implementation of the dictionary based Ordinal Temporal Dictionary Ensemble as described
-    in [1]_. This method is an ordinal adaptation of the Temporal Dictionary Ensemble (TDE)
-    presented in [2]_.
+    Implementation of the dictionary based Ordinal Temporal Dictionary
+    Ensemble as described in [1]_. This method is an ordinal adaptation
+    of the Temporal Dictionary Ensemble (TDE) presented in [2]_.
 
     Overview: Input "n" series length "m" with "d" dimensions.
-    O-TDE performs parameter selection to build the ensemble members based on a Gaussian process
-    which is intended to predict Mean Absolute Error (MAE) values for specific O-TDE
-    parameters configurations. Then, the best performing members are selected and used to build the
+    O-TDE performs parameter selection to build the ensemble members
+    based on a Gaussian process which is intended to predict Mean
+    Absolute Error (MAE) values for specific O-TDE parameters configurations.
+    Then, the best performing members are selected and used to build the
     final ensemble.
 
     fit involves finding "n" histograms.
 
-    predict uses 1 nearest neighbor with the histogram intersection distance function.
+    predict uses 1 nearest neighbor with the histogram intersection distance
+    function.
 
     Parameters
     ----------
@@ -112,10 +114,11 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and Cesar Hervas-Martinez
+    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and 
+        Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
-        IWANN 2023. 17th International Work-Conference on Artificial Neural Networks- IWANN 2023
-    ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+        IWANN 2023. 17th International Work-Conference on Artificial Neural Networks.
+    ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall.
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.
@@ -612,7 +615,10 @@ class IndividualOrdinalTDE(BaseClassifier):
     from [1]_.
 
     Overview: input "n" series of length "m" and IndividualOrdinalTDE performs a SFA
-    transform to form a sparse dictionary of discretised words. The binning thresholds are obtained from a DecisionTreeRegressor which considers as splitting criterion the friedman mse metric. Then, histograms are formed from the discretised words for each time series.
+    transform to form a sparse dictionary of discretised words. The binning thresholds
+    are obtained from a DecisionTreeRegressor which considers as splitting criterion
+    the friedman mse metric. Then, histograms are formed from the discretised words for
+    each time series.
 
     fit involves finding "n" histograms.
 
@@ -675,7 +681,8 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and Cesar Hervas-Martinez
+    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and 
+        Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
         IWANN 2023. 17th International Work-Conference on Artificial Neural Networks- IWANN 2023
     ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
