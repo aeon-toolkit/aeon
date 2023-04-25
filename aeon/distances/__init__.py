@@ -41,6 +41,12 @@ __all__ = [
     "lcss_from_multiple_to_multiple_distance",
     "lcss_alignment_path",
     "lcss_cost_matrix",
+    "erp_distance",
+    "erp_pairwise_distance",
+    "erp_from_single_to_multiple_distance",
+    "erp_from_multiple_to_multiple_distance",
+    "erp_alignment_path",
+    "erp_cost_matrix",
     "distance",
     "distance_factory",
     "pairwise_distance",
@@ -125,4 +131,12 @@ from aeon.distances._wdtw import (
     wdtw_from_multiple_to_multiple_distance,
     wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances._erp import (
+    erp_distance,
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_pairwise_distance,
+    erp_from_single_to_multiple_distance,
+    erp_from_multiple_to_multiple_distance,
 )
