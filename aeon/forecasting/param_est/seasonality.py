@@ -3,7 +3,7 @@
 """Parameter estimators for seasonality."""
 
 __author__ = ["fkiraly"]
-__all__ = ["SeasonalityACF"]
+__all__ = ["SeasonalityACF", "SeasonalityACFqstat"]
 
 import numpy as np
 
@@ -258,7 +258,7 @@ class SeasonalityACFqstat(BaseParamFitter):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACFqstat
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACFqstat
     >>> X = load_airline().diff()[1:]
     >>> sp_est = SeasonalityACFqstat(candidate_sp=[3, 7, 12])  # doctest: +SKIP
     >>> sp_est.fit(X)  # doctest: +SKIP

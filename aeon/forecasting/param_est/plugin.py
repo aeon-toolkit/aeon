@@ -62,7 +62,7 @@ class PluginParamsForecaster(_DelegatedForecaster):
     12
 
     using dictionary to plug "foo" parameter into "sp"
-    >>> from aeon.param_est.fixed import FixedParams
+    >>> from aeon.forecasting.param_est.fixed import FixedParams
     >>> sp_plugin = PluginParamsForecaster(
     ...     FixedParams({"foo": 12}), NaiveForecaster(), params={"foo": "sp"}
     ... )  # doctest: +SKIP
