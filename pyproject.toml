@@ -133,11 +133,6 @@ file = "LICENSE"
 requires = ["setuptools>61", "wheel", "toml", "build"]
 build-backend = "setuptools.build_meta"
 
-[tool.nbqa.exclude]
-black = "^docs/examples/"
-flake8 = "^docs/examples/"
-isort = "^docs/examples/"
-
 [tool.setuptools]
 zip-safe = true
 
@@ -154,3 +149,50 @@ aeon = [
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
+
+[tool.pytest.ini_options]
+# ignore certain folders and pytest warnings
+addopts = '''
+    --ignore build_tools
+    --ignore examples
+    --ignore docs
+    --doctest-modules
+    --durations 10
+    --timeout 600
+    --cov aeon
+    --cov-report xml
+    --cov-report html
+    --showlocals
+    --matrixdesign True
+    -n auto
+'''
+filterwarnings = '''
+    ignore::UserWarning
+    ignore:numpy.dtype size changed
+    ignore:numpy.ufunc size changed
+'''
+
+[tool.check-manifest]
+ignore = [
+    ".binder/**",
+    ".all-contributorsrc",
+    ".coveragerc",
+    "examples/**",
+    "build_tools/**",
+    "__check_build/**",
+    "docs/**",
+    "Makefile",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+    "*.yaml",
+    "*.yml",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+
+[tool.nbqa.exclude]
+black = "^docs/examples/"
+flake8 = "^docs/examples/"
+isort = "^docs/examples/"
