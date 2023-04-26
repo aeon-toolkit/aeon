@@ -7,7 +7,7 @@ IndividualOrdinalTDE and Ordinal TDE.
 
 __author__ = ["RafaelAyllon"]
 __all__ = [
-    "OrdinalTemporalDictionaryEnsemble",
+    "OrdinalTDE",
     "IndividualOrdinalTDE",
     "histogram_intersection",
 ]
@@ -30,7 +30,7 @@ from aeon.transformations.panel.dictionary_based import SFA
 from aeon.utils.validation.panel import check_X_y
 
 
-class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
+class OrdinalTDE(BaseClassifier):
     """Ordinal Temporal Dictionary Ensemble (O-TDE).
 
     Implementation of the dictionary based Ordinal Temporal Dictionary
@@ -125,19 +125,17 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.ordinal_classification import (
-        OrdinalTemporalDictionaryEnsemble
-    )
+    >>> from aeon.classification.ordinal_classification import OrdinalTDE
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = OrdinalTemporalDictionaryEnsemble(
+    >>> clf = OrdinalTDE(
     ...     n_parameter_samples=10,
     ...     max_ensemble_size=3,
     ...     randomly_selected_params=5,
     ... )
     >>> clf.fit(X_train, y_train)
-    OrdinalTemporalDictionaryEnsemble(...)
+    OrdinalTDE(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -200,7 +198,7 @@ class OrdinalTemporalDictionaryEnsemble(BaseClassifier):
         self._prev_parameters_x = []
         self._prev_parameters_y = []
 
-        super(OrdinalTemporalDictionaryEnsemble, self).__init__()
+        super(OrdinalTDE, self).__init__()
 
     def _fit(self, X, y):
         """Fit an ensemble on cases (X,y), where y is the target variable.
@@ -693,9 +691,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.ordinal_classification import (
-        IndividualOrdinalTDE
-    )
+    >>> from aeon.classification.ordinal_classification import IndividualOrdinalTDE
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
@@ -1048,8 +1044,6 @@ def histogram_intersection(first, second):
         for word, val_a in first.items():
             val_b = second.get(word, 0)
             sim += min(val_a, val_b)
-            
-            
         return sim
     elif isinstance(first, Dict):
         return _histogram_intersection_dict(first, second)
