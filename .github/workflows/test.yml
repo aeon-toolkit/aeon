@@ -9,20 +9,25 @@ on:
       - main
 
 jobs:
+  cancel-previous-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          workflow_id: ${{ github.event.workflow.id }}
+
   code-quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
-      - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
-        with:
-          output: " "
+      - uses: tj-actions/changed-files@v35.9.0
+        id: changed-files
       - name: List changed files
-        run: echo '${{ steps.file_changes.outputs.files}}'
+        run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
       - uses: pre-commit/action@v3.0.0
         with:
-          extra_args: --files ${{ steps.file_changes.outputs.files}}
+          extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
       - name: Check for missing init files
         run: build_tools/fail_on_missing_init_files.sh
         shell: bash
