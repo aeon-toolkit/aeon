@@ -8,8 +8,11 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import (
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
+)
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_min_return_path
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
@@ -95,7 +98,10 @@ class _EdrDistance(NumbaDistance):
                 else:
                     _epsilon = epsilon
                 cost_matrix = _edr_cost_matrix(_x, _y, _bounding_matrix, _epsilon)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 distance = float(cost_matrix[-1, -1] / max(_x.shape[1], _y.shape[1]))
                 return path, distance, cost_matrix
 
@@ -110,7 +116,10 @@ class _EdrDistance(NumbaDistance):
                 else:
                     _epsilon = epsilon
                 cost_matrix = _edr_cost_matrix(_x, _y, _bounding_matrix, _epsilon)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 distance = float(cost_matrix[-1, -1] / max(_x.shape[1], _y.shape[1]))
                 return path, distance
 
