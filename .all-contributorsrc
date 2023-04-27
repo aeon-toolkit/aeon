@@ -160,14 +160,19 @@
       "login": "MatthewMiddlehurst",
       "name": "Matthew Middlehurst",
       "avatar_url": "https://avatars0.githubusercontent.com/u/25731235?v=4",
-      "profile": "http://www.timeseriesclassification.com",
+      "profile": "https://github.com/MatthewMiddlehurst",
       "contributions": [
+        "bug",
         "code",
+        "data",
         "doc",
+        "design",
+        "example",
+        "infra",
+        "maintenance",
         "test",
         "tutorial",
-        "review",
-        "bug"
+        "review"
       ]
     },
     {
@@ -1255,6 +1260,7 @@
     {
       "login": "xloem",
       "name": "patiently pending world peace",
+      "avatar_url": "https://avatars.githubusercontent.com/u/279585?v=4",
       "profile": "https://github.com/xloem",
       "contributions": [
         "code"
@@ -1693,6 +1699,7 @@
     {
       "login": "mariamjabara",
       "name": "Mariam Jabara",
+      "avatar_url": "https://avatars.githubusercontent.com/u/38568292?v=4",
       "profile": "https://github.com/mariamjabara",
       "contributions": [
         "code"
@@ -1729,6 +1736,7 @@
     {
       "login": "jelc53",
       "name": "Julian Cooper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30467615?v=4",
       "profile": "https://github.com/jelc53",
       "contributions": [
         "code",
@@ -1738,6 +1746,7 @@
     {
       "login": "benheid",
       "name": "Benedikt Heidrich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9725296?v=4",
       "profile": "https://github.com/benheid",
       "contributions": [
         "code"
@@ -1746,6 +1755,7 @@
     {
       "login": "AnH0ang",
       "name": "An Hoang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46025351?v=4",
       "profile": "https://github.com/AnH0ang",
       "contributions": [
         "bug",
@@ -1765,6 +1775,7 @@
     {
       "login": "kcc-lion",
       "name": "Kai Lion",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54307609?v=4",
       "profile": "https://github.com/kcc-lion",
       "contributions": [
         "code",
@@ -1775,6 +1786,7 @@
     {
       "login": "bugslayer-332",
       "name": "Arepalli Yashwanth Reddy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89122324?v=4",
       "profile": "https://github.com/bugslayer-332",
       "contributions": [
         "code",
@@ -1794,6 +1806,7 @@
     {
       "login": "jasmineliaw",
       "name": "Jasmine Liaw",
+      "avatar_url": "https://avatars.githubusercontent.com/u/93530957?v=4",
       "profile": "https://github.com/jasmineliaw",
       "contributions": [
         "code"
@@ -1802,6 +1815,7 @@
     {
       "login": "topher-lo",
       "name": "Christopher Lo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46541035?v=4",
       "profile": "https://github.com/topher-lo",
       "contributions": [
         "code",
@@ -1811,6 +1825,7 @@
     {
       "login": "arampuria19",
       "name": "Akshat Rampuria",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85577835?v=4",
       "profile": "https://github.com/arampuria19",
       "contributions": [
         "doc"
@@ -1856,6 +1871,7 @@
     {
       "login": "jorenham",
       "name": "Joren Hammudoglu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6208662?v=4",
       "profile": "https://github.com/jorenham",
       "contributions": [
         "infra"
@@ -1864,6 +1880,7 @@
     {
       "login": "wolph",
       "name": "Rick van Hattem",
+      "avatar_url": "https://avatars.githubusercontent.com/u/270571?v=4",
       "profile": "https://github.com/wolph",
       "contributions": [
         "infra"
@@ -1917,6 +1934,7 @@
     {
       "login": "benjaminbluhm",
       "name": "Benjamin Bluhm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/40917599?v=4",
       "profile": "https://github.com/benjaminbluhm",
       "contributions": [
         "code",
@@ -1927,6 +1945,7 @@
     {
       "login": "VyomkeshVyas",
       "name": "Vyomkesh Vyas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110027694?v=4",
       "profile": "https://github.com/VyomkeshVyas",
       "contributions": [
         "code",
@@ -2035,7 +2054,7 @@
     {
       "login": "mgorlin",
       "name": "Margaret Gorlin",
-      "avatar_url": "",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23091594?v=4",
       "profile": "https://www.linkedin.com/in/margaret-gorlin/",
       "contributions": [
         "code",
