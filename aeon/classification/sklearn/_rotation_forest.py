@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """A rotation forest (RotF) vector classifier.
 
-A rotation Forest sktime implementation for continuous values only. Fits sklearn
+A rotation Forest aeon implementation for continuous values only. Fits sklearn
 conventions.
 """
 
@@ -31,7 +31,7 @@ class RotationForest(BaseEstimator):
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base classifier for
-    transformation based appraoches such as ShapeletTransformClassifier, this sktime
+    transformation based appraoches such as ShapeletTransformClassifier, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -103,7 +103,6 @@ class RotationForest(BaseEstimator):
     --------
     >>> from aeon.classification.sklearn import RotationForest
     >>> from aeon.datasets import load_unit_test
-    >>> from aeon.datatypes._panel._convert import from_nested_to_3d_numpy
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RotationForest(n_estimators=10)

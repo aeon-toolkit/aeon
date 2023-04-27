@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Metrics classes to assess performance on forecasting task.
 
 Classes named as ``*Score`` return a value to maximize: the higher the better.
@@ -86,9 +86,9 @@ def _coerce_to_df(obj):
 
 
 class BaseForecastingErrorMetric(BaseMetric):
-    """Base class for defining forecasting error metrics in sktime.
+    """Base class for defining forecasting error metrics in aeon.
 
-    Extends sktime's BaseMetric to the forecasting interface. Forecasting error
+    Extends aeon's BaseMetric to the forecasting interface. Forecasting error
     metrics measure the error (loss) between forecasts and true values.
 
     `multioutput` and `multilevel` parameters can be used to control averaging
@@ -133,14 +133,14 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         Parameters
         ----------
-        y_true : time series in sktime compatible data container format
+        y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Panel scitype: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-        y_pred :time series in sktime compatible data container format
+        y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
 
@@ -166,14 +166,14 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         Parameters
         ----------
-        y_true : time series in sktime compatible data container format
+        y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Panel scitype: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-        y_pred :time series in sktime compatible data container format
+        y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
 
@@ -229,14 +229,14 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         Parameters
         ----------
-        y_true : time series in sktime compatible data container format
+        y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Panel scitype: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-        y_pred :time series in sktime compatible data container format
+        y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
 
@@ -297,14 +297,14 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         Parameters
         ----------
-        y_true : time series in sktime compatible data container format
+        y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Panel scitype: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-        y_pred :time series in sktime compatible data container format
+        y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
 
@@ -342,14 +342,14 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         Parameters
         ----------
-        y_true : time series in sktime compatible data container format
+        y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Panel scitype: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
-        y_pred :time series in sktime compatible data container format
+        y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
 

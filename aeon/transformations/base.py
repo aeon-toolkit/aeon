@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for transformers.
 
@@ -129,7 +129,7 @@ class BaseTransformer(BaseEstimator):
     }
 
     # allowed mtypes for transformers - Series and Panel
-    ALLOWED_INPUT_MTYPES = [
+    ALLOWED_INPUT_TYPES = [
         "pd.Series",
         "pd.DataFrame",
         "np.ndarray",
@@ -140,6 +140,7 @@ class BaseTransformer(BaseEstimator):
         # "pd-wide",
         # "pd-long",
         "df-list",
+        "np-list",
         "pd_multiindex_hier",
     ]
 
@@ -157,13 +158,13 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.transformations.compose import TransformerPipeline
 
@@ -187,13 +188,13 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformerPipeline object, concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.transformations.compose import TransformerPipeline
 
@@ -212,7 +213,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer or sktime MultiplexTransformer
+        other: `aeon` transformer or aeon MultiplexTransformer
 
         Returns
         -------
@@ -233,13 +234,13 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         FeatureUnion object, concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.transformations.compose import FeatureUnion
 
@@ -258,13 +259,13 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         FeatureUnion object, concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-FeatureUnion `sktime` transformers
+            not nested, contains only non-FeatureUnion `aeon` transformers
         """
         from aeon.transformations.compose import FeatureUnion
 
@@ -366,7 +367,7 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -417,7 +418,7 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -494,7 +495,7 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -546,11 +547,9 @@ class BaseTransformer(BaseEstimator):
 
         # convert to output mtype
         if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
+            Xt = self._convert_output(Xt, metadata=metadata)
 
-        return X_out
+        return Xt
 
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
@@ -574,7 +573,7 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -635,7 +634,7 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to sktime mtype format specifications, for further details see
+                subject to aeon mtype format specifications, for further details see
                     examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -744,9 +743,9 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : object of sktime compatible time series type
+        X : object of aeon compatible time series type
             can be Series, Panel, Hierarchical
-        y : None (default), or object of sktime compatible time series type
+        y : None (default), or object of aeon compatible time series type
             can be Series, Panel, Hierarchical
         return_metadata : bool, optional, default=False
             whether to return the metadata return object
@@ -829,7 +828,7 @@ class BaseTransformer(BaseEstimator):
         y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        ALLOWED_MTYPES = self.ALLOWED_INPUT_MTYPES
+        ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
 
         # checking X
         X_valid, msg, X_metadata = check_is_scitype(
@@ -840,15 +839,15 @@ class BaseTransformer(BaseEstimator):
         )
 
         msg_invalid_input = (
-            f"must be in an sktime compatible format, "
+            f"must be in an aeon compatible format, "
             f"of scitype Series, Panel or Hierarchical, "
-            f"for instance a pandas.DataFrame with sktime compatible time indices, "
-            f"or with MultiIndex and last(-1) level an sktime compatible time index. "
+            f"for instance a pandas.DataFrame with aeon compatible time indices, "
+            f"or with MultiIndex and last(-1) level an aeon compatible time index. "
             f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
             # f"See the transformers tutorial examples/05_transformers.ipynb, or"
             f" See the data format tutorial examples/AA_datatypes_and_datasets.ipynb. "
-            f"If you think the data is already in an sktime supported input format, "
-            f"run sktime.datatypes.check_raise(data, mtype) to diagnose the error, "
+            f"If you think the data is already in an aeon supported input format, "
+            f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
             f"where mtype is the string of the type specification you want. "
             f"Error message for checked mtypes, in format [mtype: message], as follows:"
         )
@@ -1049,7 +1048,7 @@ class BaseTransformer(BaseEstimator):
                 if not valid:
                     raise TypeError(
                         f"_transform output of {type(self)} does not comply "
-                        "with sktime mtype specifications. See datatypes.MTYPE_REGISTER"
+                        "with aeon mtype specifications. See datatypes.MTYPE_REGISTER"
                         " for mtype specifications. Returned error message:"
                         f" {msg}. Returned object: {Xt}"
                     )

@@ -197,7 +197,7 @@ class SupervisedTimeSeriesForest(BaseClassifier):
         ----------
         X : The training input samples. array-like or sparse matrix of shape
         = [n_test_instances, series_length]
-            If a Pandas data frame is passed (sktime format) a check is
+            If a Pandas data frame is passed (aeon format) a check is
             performed that it only has one column.
             If not, an exception is thrown, since this classifier does not
             yet have

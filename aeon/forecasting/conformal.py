@@ -3,7 +3,7 @@
 
 Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __all__ = ["ConformalIntervals"]
 __author__ = ["fkiraly", "bethrice44"]
@@ -338,10 +338,10 @@ class ConformalIntervals(BaseForecaster):
         Parameters
         ----------
         y : pd.Series or pd.DataFrame
-            sktime compatible time series to use in computing residuals matrix
+            aeon compatible time series to use in computing residuals matrix
         X : pd.DataFrame
-            sktime compatible exogeneous time series to use in forecasts
-        forecaster : sktime compatible forecaster
+            aeon compatible exogeneous time series to use in forecasts
+        forecaster : aeon compatible forecaster
             forecaster to use in computing the sliding residuals
         initial_window : float, int or None, optional (default=max(10, 0.1*len(y)))
             Defines the size of the initial training window

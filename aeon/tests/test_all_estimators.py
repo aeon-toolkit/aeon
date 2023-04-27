@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Suite of tests for all estimators.
 
 adapted from scikit-learn's estimator_checks
@@ -94,7 +94,7 @@ def subsample_by_version_os(x):
 
 
 class BaseFixtureGenerator:
-    """Fixture generator for base testing functionality in sktime.
+    """Fixture generator for base testing functionality in aeon.
 
     Test classes inheriting from this and not overriding pytest_generate_tests
         will have estimator and scenario fixtures parametrized out of the box.
@@ -727,7 +727,7 @@ class QuickTester:
 
 
 class TestAllObjects(BaseFixtureGenerator, QuickTester):
-    """Package level tests for all sktime objects."""
+    """Package level tests for all aeon objects."""
 
     estimator_type_filter = "object"
 
@@ -1060,7 +1060,7 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
 
 
 class TestAllEstimators(BaseFixtureGenerator, QuickTester):
-    """Package level tests for all sktime estimators, i.e., objects with fit."""
+    """Package level tests for all aeon estimators, i.e., objects with fit."""
 
     def test_fit_updates_state(self, estimator_instance, scenario):
         """Check fit/update state change."""
@@ -1085,19 +1085,16 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             ), f"Estimator: {estimator} does not initiate attribute: {attr} to False"
 
         fitted_estimator = scenario.run(estimator_instance, method_sequence=["fit"])
+        # Check fit returns self
+        assert (
+            fitted_estimator is estimator_instance
+        ), f"Estimator: {estimator_instance} does not return self when calling fit"
 
         # Check 0s_fitted attribute is updated correctly to False after calling fit
         for attr in attrs:
             assert getattr(
                 fitted_estimator, attr
             ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
-
-    def test_fit_returns_self(self, estimator_instance, scenario):
-        """Check that fit returns self."""
-        fit_return = scenario.run(estimator_instance, method_sequence=["fit"])
-        assert (
-            fit_return is estimator_instance
-        ), f"Estimator: {estimator_instance} does not return self when calling fit"
 
     def test_raises_not_fitted_error(self, estimator_instance, scenario, method_nsc):
         """Check exception raised for non-fit method calls to unfitted estimators.

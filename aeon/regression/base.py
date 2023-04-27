@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Abstract base class for time series regressors.
 
@@ -52,8 +52,7 @@ class BaseRegressor(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict, support for X?
-        #    it should be either "numpy3D" or "nested_univ" (nested pd.DataFrame)
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -82,7 +81,7 @@ class BaseRegressor(BaseEstimator, ABC):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -121,11 +120,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
             or of any other supported Panel mtype
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
             indices correspond to instance indices in X
 
@@ -175,11 +171,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
             or of any other supported Panel mtype
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -202,11 +195,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances, n_dimensions, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
+            or of any other supported type
                 for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels (gnr truth)
             indices correspond to instance indices in X
 
@@ -231,10 +221,7 @@ class BaseRegressor(BaseEstimator, ABC):
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
             indices correspond to instance indices in X
 
@@ -259,10 +246,7 @@ class BaseRegressor(BaseEstimator, ABC):
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -356,8 +340,7 @@ class BaseRegressor(BaseEstimator, ABC):
 
         Returns
         -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a pd.DataFrame (nested) or 3D np.ndarray
+        X : input X converted to type in "X_inner_mtype" tag, default 3D np.ndarray
             Checked and possibly converted input data
         """
         inner_type = self.get_tag("X_inner_mtype")
@@ -381,7 +364,7 @@ def _check_regressor_input(
 
     Parameters
     ----------
-    X : check whether conformant with any sktime Panel mtype specification
+    X : check whether conformant with any aeon Panel mtype specification
     y : check whether a pd.Series or np.array
     enforce_min_instances : int, optional (default=1)
         check there are a minimum number of instances.

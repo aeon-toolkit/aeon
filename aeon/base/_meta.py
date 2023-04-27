@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements meta estimator for estimators composed of other estimators."""
 
 __author__ = ["mloning, fkiraly"]
@@ -452,8 +452,8 @@ class _HeterogenousMetaEstimator:
 
         Parameters
         ----------
-        self : `sktime` estimator, instance of composite_class (when this is invoked)
-        other : `sktime` estimator, should inherit from composite_class or base_class
+        self : `aeon` estimator, instance of composite_class (when this is invoked)
+        other : `aeon` estimator, should inherit from composite_class or base_class
             otherwise, `NotImplemented` is returned
         base_class : estimator base class assumed as base class for self, other,
             and estimator components of composite_class, in case of concatenation

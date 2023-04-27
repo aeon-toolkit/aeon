@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for BaseForecaster API points.
 
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 
 __author__ = ["mloning", "kejsitake", "fkiraly"]
@@ -138,7 +138,7 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
-    """Module level tests for all sktime forecasters."""
+    """Module level tests for all aeon forecasters."""
 
     def test_get_fitted_params(self, estimator_instance, scenario):
         """Test get_fitted_params."""
@@ -197,37 +197,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         except NotImplementedError as e:
             msg = str(e).lower()
             assert "exogenous" in msg
-
-    # todo: refactor with scenarios. Need to override fh and scenario args for this.
-    @pytest.mark.parametrize(
-        "index_fh_comb", VALID_INDEX_FH_COMBINATIONS, ids=index_fh_comb_names
-    )
-    @pytest.mark.parametrize("fh_int", TEST_FHS, ids=[f"fh={fh}" for fh in TEST_FHS])
-    def test_predict_time_index(
-        self, estimator_instance, n_columns, index_fh_comb, fh_int
-    ):
-        """Check that predicted time index matches forecasting horizon."""
-        index_type, fh_type, is_relative = index_fh_comb
-        if fh_type == "timedelta":
-            return None
-            # todo: ensure check_estimator works with pytest.skip like below
-            # pytest.skip(
-            #    "ForecastingHorizon with timedelta values "
-            #     "is currently experimental and not supported everywhere"
-            # )
-        y_train = _make_series(
-            n_columns=n_columns, index_type=index_type, n_timepoints=50
-        )
-        cutoff = get_cutoff(y_train, return_index=True)
-        fh = _make_fh(cutoff, fh_int, fh_type, is_relative)
-
-        try:
-            estimator_instance.fit(y_train, fh=fh)
-            y_pred = estimator_instance.predict()
-            _assert_correct_pred_time_index(y_pred.index, cutoff, fh=fh_int)
-            _assert_correct_columns(y_pred, y_train)
-        except NotImplementedError:
-            pass
 
     @pytest.mark.parametrize(
         "index_fh_comb", VALID_INDEX_FH_COMBINATIONS, ids=index_fh_comb_names

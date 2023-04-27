@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 """VECM Forecaster."""
 
@@ -71,10 +71,10 @@ class VECM(_StatsModelsAdapter):
     ... columns=list("AB"),
     ... index=pd.PeriodIndex(index))
     >>> train, test = temporal_train_test_split(df)
-    >>> sktime_model = VECM()  # doctest: +SKIP
+    >>> aeon_model = VECM()  # doctest: +SKIP
     >>> fh = ForecastingHorizon([1, 3, 4, 5, 7, 9])
-    >>> _ = sktime_model.fit(train, fh=fh)  # doctest: +SKIP
-    >>> fc2 = sktime_model.predict(fh=fh)  # doctest: +SKIP
+    >>> _ = aeon_model.fit(train, fh=fh)  # doctest: +SKIP
+    >>> fc2 = aeon_model.predict(fh=fh)  # doctest: +SKIP
     """
 
     _tags = {
@@ -271,10 +271,8 @@ class VECM(_StatsModelsAdapter):
             for v_idx in range(len(var_names)):
                 values.append(y_lower[0][v_idx])
                 values.append(y_upper[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "lower"), :] = (y_lower[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "upper"), :] = (y_upper[0][v_idx])
         pred_int = pd.DataFrame(
-            [values], index=fh.to_absolute(self.cutoff), columns=int_idx
+            [values], index=fh.to_absolute(self.cutoff).to_pandas(), columns=int_idx
         )
 
         return pred_int

@@ -8,9 +8,12 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
-from aeon.distances._distance_alignment_paths import compute_twe_return_path
+from aeon.distances._alignment_paths import (
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
+)
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances.base import DistanceCallable, NumbaDistance
-from aeon.distances.lower_bounding import resolve_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -39,8 +42,6 @@ class _TweDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         lmbda: float = 1.0,
         nu: float = 0.001,
         p: int = 2,
@@ -62,14 +63,6 @@ class _TweDistance(NumbaDistance):
         window: Float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         lmbda: float, defaults = 1.0
             A constant penalty that punishes the editing efforts. Must be >= 1.0.
         nu: float, defaults = 0.001
@@ -91,10 +84,9 @@ class _TweDistance(NumbaDistance):
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
             If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
         )
 
         if return_cost_matrix is True:
@@ -105,7 +97,10 @@ class _TweDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float, np.ndarray]:
                 cost_matrix = _twe_cost_matrix(_x, _y, _bounding_matrix, lmbda, nu, p)
-                path = compute_twe_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -116,7 +111,10 @@ class _TweDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float]:
                 cost_matrix = _twe_cost_matrix(_x, _y, _bounding_matrix, lmbda, nu, p)
-                path = compute_twe_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 return path, cost_matrix[-1, -1]
 
         return numba_twe_distance_alignment_path
@@ -126,8 +124,6 @@ class _TweDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         lmbda: float = 1.0,
         nu: float = 0.001,
         p: int = 2,
@@ -147,14 +143,6 @@ class _TweDistance(NumbaDistance):
         window: Float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         lmbda: float, defaults = 1.0
             A constant penalty that punishes the editing efforts. Must be >= 1.0.
         nu: float, defaults = 0.001
@@ -175,13 +163,9 @@ class _TweDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
         """
-        x = pad_ts(x)
-        y = pad_ts(y)
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
+        _bounding_matrix = create_bounding_matrix(
+            x.shape[1] + 1, y.shape[1] + 1, window
         )
 
         @njit(cache=True)
@@ -266,7 +250,7 @@ def _twe_cost_matrix(
 
     for i in range(1, x_size):
         for j in range(1, y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 # Deletion in x
                 # Euclidean distance to x[:, i - 1] and y[:, i]
                 deletion_x_euclid_dist = 0
@@ -307,4 +291,4 @@ def _twe_cost_matrix(
 
                 # Choose the operation with the minimal cost and update DP Matrix
                 cost_matrix[i, j] = min(del_x, del_y, match)
-    return cost_matrix
+    return cost_matrix[1:, 1:]

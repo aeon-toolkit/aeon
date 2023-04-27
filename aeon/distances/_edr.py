@@ -8,13 +8,16 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
-from aeon.distances._distance_alignment_paths import compute_min_return_path
+from aeon.distances._alignment_paths import (
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_min_return_path,
+)
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances.lower_bounding import resolve_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -42,8 +45,6 @@ class _EdrDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         epsilon: float = None,
         **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
@@ -63,14 +64,6 @@ class _EdrDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         epsilon : float, defaults = None
             Matching threshold to determine if two subsequences are considered close
             enough to be considered 'common'. If not specified as per the original paper
@@ -88,13 +81,8 @@ class _EdrDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If epsilon is not a float.
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if epsilon is not None and not isinstance(epsilon, float):
             raise ValueError("The value of epsilon must be a float.")
@@ -110,7 +98,10 @@ class _EdrDistance(NumbaDistance):
                 else:
                     _epsilon = epsilon
                 cost_matrix = _edr_cost_matrix(_x, _y, _bounding_matrix, _epsilon)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 distance = float(cost_matrix[-1, -1] / max(_x.shape[1], _y.shape[1]))
                 return path, distance, cost_matrix
 
@@ -125,7 +116,10 @@ class _EdrDistance(NumbaDistance):
                 else:
                     _epsilon = epsilon
                 cost_matrix = _edr_cost_matrix(_x, _y, _bounding_matrix, _epsilon)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
+                path = compute_min_return_path(temp_cm)
                 distance = float(cost_matrix[-1, -1] / max(_x.shape[1], _y.shape[1]))
                 return path, distance
 
@@ -136,8 +130,6 @@ class _EdrDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: float = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         epsilon: float = None,
         **kwargs: Any,
     ) -> DistanceCallable:
@@ -155,14 +147,6 @@ class _EdrDistance(NumbaDistance):
         window: float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         epsilon : float, defaults = None
             Matching threshold to determine if two subsequences are considered close
             enough to be considered 'common'. If not specified as per the original paper
@@ -180,13 +164,9 @@ class _EdrDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
-            If epsilon is not a float.
+          If
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if epsilon is not None and not isinstance(epsilon, float):
             raise ValueError("The value of epsilon must be a float.")
@@ -238,7 +218,7 @@ def _edr_cost_matrix(
     cost_matrix = np.zeros((x_size + 1, y_size + 1))
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
-            if np.isfinite(bounding_matrix[i - 1, j - 1]):
+            if bounding_matrix[i - 1, j - 1]:
                 curr_dist = 0
                 for k in range(dimensions):
                     curr_dist += (x[k][i - 1] - y[k][j - 1]) * (

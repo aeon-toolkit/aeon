@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implement dataset splitting for model evaluation and selection."""
 
 __all__ = [
@@ -348,7 +348,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format,
+        y : pd.Index or time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             Index of time series to split, or time series to split
             If time series, considered as index of equivalent pandas type container:
@@ -378,7 +378,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format
+        y : pd.Index or time series in aeon compatible time series format
             Time series to split, or index of time series to split
 
         Yields
@@ -399,7 +399,7 @@ class BaseSplitter(BaseObject):
         Parameters
         ----------
         y : pd.MultiIndex, with last level time-like
-            as used in pd_multiindex and pd_multiindex_hier sktime mtypes
+            as used in pd_multiindex and pd_multiindex_hier aeon mtypes
 
         Yields
         ------
@@ -430,7 +430,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format,
+        y : pd.Index or time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             Time series to split, or index of time series to split
 
@@ -451,16 +451,16 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : time series in sktime compatible time series format,
+        y : time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             e.g., pd.Series, pd.DataFrame, np.ndarray
             Time series to split, or index of time series to split
 
         Yields
         ------
-        train : time series of same sktime mtype as `y`
+        train : time series of same aeon mtype as `y`
             training series in the split
-        test : time series of same sktime mtype as `y`
+        test : time series of same aeon mtype as `y`
             test series in the split
         """
         y, y_orig_mtype = self._check_y(y)
@@ -477,7 +477,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format (any)
+        y : pd.Index or time series in aeon compatible time series format (any)
             Index of time series to split, or time series to split
             If time series, considered as index of equivalent pandas type container:
                 pd.DataFrame, pd.Series, pd-multiindex, or pd_multiindex_hier mtype
@@ -499,11 +499,11 @@ class BaseSplitter(BaseObject):
         Parameters
         ----------
         y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), optional (default=None)
-            Time series to check, must conform with one of the sktime type conventions.
+            Time series to check, must conform with one of the aeon type conventions.
 
         Returns
         -------
-        y_inner : time series y coerced to one of the sktime pandas based mtypes:
+        y_inner : time series y coerced to one of the aeon pandas based mtypes:
             pd.DataFrame, pd.Series, pd-multiindex, pd_multiindex_hier
             returns pd.Series only if y was pd.Series, otherwise a pandas.DataFrame
         y_mtype : original mtype of y
@@ -534,28 +534,28 @@ class BaseSplitter(BaseObject):
         )
         if allow_index:
             msg = (
-                "y must be a pandas.Index, or a time series in an sktime compatible "
+                "y must be a pandas.Index, or a time series in an aeon compatible "
                 "format, of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
+                "for instance a pandas.DataFrame with aeon compatible time indices, "
+                "or with MultiIndex and last(-1) level an aeon compatible time index."
                 f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
                 "See the forecasting tutorial examples/01_forecasting.ipynb, or"
                 " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
-                "If you think y is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(y, mtype) to diagnose the error, "
+                "If you think y is already in an aeon supported input format, "
+                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
         else:
             msg = (
-                "y must be in an sktime compatible format, "
+                "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
+                "for instance a pandas.DataFrame with aeon compatible time indices, "
+                "or with MultiIndex and last(-1) level an aeon compatible time index."
                 f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
                 "See the forecasting tutorial examples/01_forecasting.ipynb, or"
                 " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
-                "If you think y is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(y, mtype) to diagnose the error, "
+                "If you think y is already in an aeon supported input format, "
+                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
         if not y_valid:

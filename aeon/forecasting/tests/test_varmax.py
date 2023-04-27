@@ -22,11 +22,16 @@ df = pd.DataFrame(
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
+    not all(
+        (
+            _check_soft_dependencies("statsmodels", severity="none"),
+            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+        )
+    ),
     reason="skip test if required soft dependency not available",
 )
 def test_VARMAX_against_statsmodels():
-    """Compares Sktime's and Statsmodel's VARMAX.
+    """Compares aeon's and Statsmodel's VARMAX.
 
     with default variables.
     """
@@ -35,10 +40,10 @@ def test_VARMAX_against_statsmodels():
     train, _ = temporal_train_test_split(df.astype("float64"))
     y = train[["A", "B"]]
 
-    sktime_model = VARMAX()
+    aeon_model = VARMAX()
     fh = ForecastingHorizon([1, 3, 4, 5, 7, 9])
-    sktime_model.fit(y)
-    y_pred = sktime_model.predict(fh=fh)
+    aeon_model.fit(y)
+    y_pred = aeon_model.predict(fh=fh)
 
     stats = _VARMAX(y)
     stats_fit = stats.fit()
@@ -50,11 +55,16 @@ def test_VARMAX_against_statsmodels():
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
+    not all(
+        (
+            _check_soft_dependencies("statsmodels", severity="none"),
+            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+        )
+    ),
     reason="skip test if required soft dependency not available",
 )
 def test_VARMAX_against_statsmodels_with_exog():
-    """Compares Sktime's and Statsmodel's VARMAX.
+    """Compares aeon's and Statsmodel's VARMAX.
 
     with exogenous input.
     """
@@ -66,9 +76,9 @@ def test_VARMAX_against_statsmodels_with_exog():
     fh = ForecastingHorizon([1, 2, 3, 4, 5, 6])
     assert len(fh) == len(X_test)
 
-    sktime_model = VARMAX()
-    sktime_model.fit(y_train, X=X_train)
-    y_pred = sktime_model.predict(fh=fh, X=X_test)
+    aeon_model = VARMAX()
+    aeon_model.fit(y_train, X=X_train)
+    y_pred = aeon_model.predict(fh=fh, X=X_test)
 
     stats = _VARMAX(y_train, exog=X_train)
     stats_fit = stats.fit()

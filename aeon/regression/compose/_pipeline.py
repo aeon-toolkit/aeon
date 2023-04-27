@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Pipeline with a regressor."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -18,7 +18,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """Pipeline of transformers and a regressor.
 
     The `RegressorPipeline` compositor chains transformers and a single regressor.
-    The pipeline is constructed with a list of sktime transformers, plus a regressor,
+    The pipeline is constructed with a list of aeon transformers, plus a regressor,
         i.e., estimators following the BaseTransformer resp BaseRegressor interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
@@ -52,17 +52,17 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Parameters
     ----------
-    regressor : sktime regressor, i.e., estimator inheriting from BaseRegressor
+    regressor : aeon regressor, i.e., estimator inheriting from BaseRegressor
         this is a "blueprint" regressor, state does not change when `fit` is called
-    transformers : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
-    regressor_ : sktime regressor, clone of regressor in `regressor`
+    regressor_ : aeon regressor, clone of regressor in `regressor`
         this clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
@@ -156,7 +156,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -241,7 +241,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         if "regressor" in kwargs.keys():
             if not isinstance(kwargs["regressor"], BaseRegressor):
-                raise TypeError('"regressor" arg must be an sktime regressor')
+                raise TypeError('"regressor" arg must be an aeon regressor')
         trafo_keys = self._get_params("_transformers", deep=True).keys()
         regr_keys = self.regressor.get_params(deep=True).keys()
         trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)
@@ -303,7 +303,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     The `SklearnRegressorPipeline` chains transformers and an single regressor.
         Similar to `RegressorPipeline`, but uses a tabular `sklearn` regressor.
-    The pipeline is constructed with a list of sktime transformers, plus a regressor,
+    The pipeline is constructed with a list of aeon transformers, plus a regressor,
         i.e., transformers following the BaseTransformer interface,
         regressor follows the `scikit-learn` regressor interface.
     The transformer list can be unnamed - a simple list of transformers -
@@ -331,7 +331,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
             inside the list of names leading up to it (inclusive)
 
     `SklearnRegressorPipeline` can also be created by using the magic multiplication
-        between `sktime` transformers and `sklearn` regressors,
+        between `aeon` transformers and `sklearn` regressors,
             and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
             for instance, `my_trafo1 * my_trafo2 * my_reg`
             will result in the same object as  obtained from the constructor
@@ -343,15 +343,15 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     ----------
     regressor : sklearn regressor, i.e., inheriting from sklearn RegressorMixin
         this is a "blueprint" regressor, state does not change when `fit` is called
-    transformers : list of sktime transformers, or
-        list of tuples (str, transformer) of sktime transformers
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
         these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
     regressor_ : sklearn regressor, clone of regressor in `regressor`
         this clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of sktime transformers
+    transformers_ : list of tuples (str, transformer) of aeon transformers
         clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
@@ -439,7 +439,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns

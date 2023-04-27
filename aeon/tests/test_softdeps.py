@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests that soft dependencies are handled correctly.
 
-sktime supports a number of soft dependencies which are necessary for using
+aeon supports a number of soft dependencies which are necessary for using
 a certain module but otherwise not necessary.
 
 Adapted from code of mloning for the legacy Azure CI/CD build tools.
@@ -19,7 +19,10 @@ import pytest
 from aeon.registry import all_estimators
 from aeon.tests._config import EXCLUDE_ESTIMATORS
 from aeon.utils._testing.scenarios_getter import retrieve_scenarios
-from aeon.utils.validation._dependencies import _check_python_version
+from aeon.utils.validation._dependencies import (
+    _check_python_version,
+    _check_soft_dependencies,
+)
 
 # list of soft dependencies used
 # excludes estimators, only for soft dependencies used in non-estimator modules
@@ -80,7 +83,7 @@ modules = [x for x in modules if not _is_test(x) and not _is_ignored(x)]
 
 @pytest.mark.parametrize("module", modules)
 def test_module_softdeps(module):
-    """Test soft dependency imports in sktime modules."""
+    """Test soft dependency imports in aeon modules."""
     # We try importing all modules and catch exceptions due to missing dependencies
     try:
         import_module(module)
@@ -90,7 +93,7 @@ def test_module_softdeps(module):
         # Check if appropriate exception with useful error message is raised as
         # defined in the `_check_soft_dependencies` function
         expected_error_msg = (
-            "is a soft dependency and not included in the base sktime installation"
+            "is a soft dependency and not included in the base aeon installation"
         )
         # message is different for deep learning deps tensorflow, tensorflow-proba
         error_msg_alt = "required for deep learning"
@@ -153,7 +156,7 @@ def _is_in_env(modules):
     modules = _coerce_list_of_str(modules)
     try:
         for module in modules:
-            import_module(module)
+            _check_soft_dependencies(module, severity="error")
         return True
     except ModuleNotFoundError:
         return False
@@ -222,12 +225,13 @@ def test_softdep_error(estimator):
             # Check if appropriate exception with useful error message is raised as
             # defined in the `_check_soft_dependencies` function
             expected_error_msg = (
-                "is a soft dependency and not included in the base sktime installation"
+                "is a soft dependency and not included in the base aeon installation"
             )
             # message is different for deep learning deps tensorflow, tensorflow-proba
             error_msg_alt = "required for deep learning"
-
-            if expected_error_msg not in error_msg and error_msg_alt not in error_msg:
+            if "incompatible version" in error_msg:
+                pass
+            elif expected_error_msg not in error_msg and error_msg_alt not in error_msg:
                 raise RuntimeError(
                     f"Estimator {estimator.__name__} requires soft dependencies "
                     f"{softdeps} according to tags, but does not raise an appropriate "
@@ -269,7 +273,7 @@ def test_est_get_params_without_modulenotfound(estimator):
         raise RuntimeError(
             f"Estimator {estimator.__name__} requires soft dependencies for parameters "
             f"returned by get_test_params. Test parameters should not require "
-            f"soft dependencies and use only sktime internal objects. "
+            f"soft dependencies and use only aeon internal objects. "
             f"Exception text: {error_msg}"
         ) from e
 

@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
 """Catch22 Classifier.
 
-Pipeline classifier using the Catch22 transformer and an estimator.
+Pipeline classifier using the Catch22 transformer and an estimator (default
+RandomForest).
 """
 
-__author__ = ["MatthewMiddlehurst", "RavenRudi", "fkiraly"]
+__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
 __all__ = ["Catch22Classifier"]
 
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import make_pipeline
 
 from aeon.base._base import _clone_estimator
-from aeon.classification._delegate import _DelegatedClassifier
-from aeon.pipeline import make_pipeline
+from aeon.classification import BaseClassifier
 from aeon.transformations.panel.catch22 import Catch22
 
 
-class Catch22Classifier(_DelegatedClassifier):
+class Catch22Classifier(BaseClassifier):
     """Canonical Time-series Characteristics (catch22) classifier.
 
     This classifier simply transforms the input data using the Catch22 [1]
     transformer and builds a provided estimator using the transformed data.
 
-    Shorthand for the pipeline `Catch22(outlier_norm, replace_nans) * estimator`
 
     Parameters
     ----------
@@ -39,22 +40,13 @@ class Catch22Classifier(_DelegatedClassifier):
     random_state : int or None, optional, default=None
         Seed for random, integer.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
-    estimator_ : ClassifierPipeline
-        Catch22Classifier as a ClassifierPipeline, fitted to data internally
-
     See Also
     --------
     Catch22
 
     Notes
     -----
-    Authors `catch22ForestClassifier <https://github.com/chlubba/sktime-catch22>`_.
+    Authors `catch22ForestClassifier <https://github.com/chlubba/aeon-catch22>`_.
 
     For the Java version, see `tsml <https://github.com/uea-machine-learning/tsml/blob
     /master/src/main/java/tsml/classifiers/hybrids/Catch22Classifier.java>`_.
@@ -70,8 +62,8 @@ class Catch22Classifier(_DelegatedClassifier):
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = Catch22Classifier(
     ...     estimator=RandomForestClassifier(n_estimators=5),
     ...     outlier_norm=True,
@@ -98,26 +90,78 @@ class Catch22Classifier(_DelegatedClassifier):
         self.outlier_norm = outlier_norm
         self.replace_nans = replace_nans
         self.estimator = estimator
-
         self.n_jobs = n_jobs
         self.random_state = random_state
-
         super(Catch22Classifier, self).__init__()
 
-        transformer = Catch22(
+    def _fit(self, X, y):
+        """Fit Catch22Classifier to training data.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
+
+        Returns
+        -------
+        self :
+            Reference to self.
+        """
+        self._transformer = Catch22(
             outlier_norm=self.outlier_norm, replace_nans=self.replace_nans
         )
-
-        if estimator is None:
-            estimator = RandomForestClassifier(n_estimators=200)
-
-        estimator = _clone_estimator(estimator, random_state)
-
-        m = getattr(estimator, "n_jobs", None)
+        if self.estimator is None:
+            self._estimator = RandomForestClassifier(n_estimators=200)
+        else:
+            self._estimator = self.estimator
+        self._estimator = _clone_estimator(self._estimator, self.random_state)
+        m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            self.estimator.n_jobs = self.n_jobs
+        self._pipeline = make_pipeline(self._transformer, self._estimator)
+        self._pipeline.fit(X, y)
+        return self
 
-        self.estimator_ = make_pipeline(transformer, estimator)
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances]
+            Predicted class labels.
+        """
+        return self._pipeline.predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predicts labels probabilities for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        X_new = self._transformer.transform(X)
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(X_new)
+        else:
+            dists = np.zeros((X.shape[0], self.n_classes_))
+            preds = self._estimator.predict(X_new)
+            for i in range(0, X.shape[0]):
+                dists[i, np.where(self.classes_ == preds[i])] = 1
+            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for using tbats forecasters in sktime framework."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implements adapter for using tbats forecasters in aeon framework."""
 
 __author__ = ["mloning", "aiwalter", "k1m190r"]
 __all__ = ["_TbatsAdapter"]
@@ -49,7 +49,7 @@ class _TbatsAdapter(BaseForecaster):
         self.n_jobs = n_jobs
         self.multiprocessing_start_method = multiprocessing_start_method
         self.context = context
-        # custom sktime args
+        # custom aeon args
         self._forecaster = None
         self._yname = None  # .fit(y) -> y.name
 

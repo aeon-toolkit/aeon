@@ -4,6 +4,7 @@
 __all__ = ["TSCStrategy", "TSRStrategy"]
 __author__ = ["mloning", "sajaysurya"]
 
+import numpy as np
 import pandas as pd
 from joblib import dump, load
 from sklearn.base import ClassifierMixin, RegressorMixin
@@ -12,7 +13,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base import BaseEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.forecasting.base._sktime import BaseForecaster
+from aeon.forecasting.base._aeon import BaseForecaster
 from aeon.regression.base import BaseRegressor
 
 # TODO implement task-strategy-estimator compatibility lookup registry using
@@ -141,7 +142,7 @@ class BaseStrategy(BaseEstimator):
     @staticmethod
     def _validate_data(data):
         """Validate input data."""
-        if not isinstance(data, pd.DataFrame):
+        if not isinstance(data, pd.DataFrame) and not isinstance(data, np.ndarray):
             raise ValueError(f"Data must be pandas DataFrame, but found: {type(data)}")
 
         # TODO add input checks for contents, ie all cells be pandas Series,
@@ -166,7 +167,7 @@ class BaseStrategy(BaseEstimator):
         Returns
         -------
         strategy:
-            sktime strategy
+            aeon strategy
         """
         return load(path)
 

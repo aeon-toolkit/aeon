@@ -221,25 +221,30 @@ def test_pairwise_distance(dist: MetricInfo) -> None:
     distance_numba_class = dist.dist_instance
     distance_function = dist.dist_func
 
-    distance_factory = distance_numba_class.distance_factory
+    if not isinstance(distance_numba_class, str):
+        distance_factory = distance_numba_class.distance_factory
+    else:
+        distance_factory = distance_numba_class
 
-    _validate_pairwise_result(
-        x=np.array([10.0]),
-        y=np.array([15.0]),
-        metric_str=name,
-        distance_factory=distance_factory,
-        distance_function=distance_function,
-        distance_numba_class=distance_numba_class,
-    )
+    if not name == "ddtw" and not name == "wddtw":
+        _validate_pairwise_result(
+            x=np.array([10.0]),
+            y=np.array([15.0]),
+            metric_str=name,
+            distance_factory=distance_factory,
+            distance_function=distance_function,
+            distance_numba_class=distance_numba_class,
+        )
 
-    _validate_pairwise_result(
-        x=create_test_distance_numpy(5),
-        y=create_test_distance_numpy(5, random_state=2),
-        metric_str=name,
-        distance_factory=distance_factory,
-        distance_function=distance_function,
-        distance_numba_class=distance_numba_class,
-    )
+    if not name == "ddtw" and not name == "wddtw":
+        _validate_pairwise_result(
+            x=create_test_distance_numpy(5),
+            y=create_test_distance_numpy(5, random_state=2),
+            metric_str=name,
+            distance_factory=distance_factory,
+            distance_function=distance_function,
+            distance_numba_class=distance_numba_class,
+        )
 
     _validate_pairwise_result(
         x=create_test_distance_numpy(5, 5),

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for forecaster scitype.
 
@@ -55,7 +55,7 @@ from aeon.datatypes import (
     scitype_to_mtype,
     update_data,
 )
-from aeon.forecasting.base import ForecastingHorizon
+from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
@@ -124,14 +124,14 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformedTargetForecaster object,
             concatenation of `self` (first) with `other` (last).
-            not nested, contains only non-TransformerPipeline `sktime` transformers
+            not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
         from aeon.transformations.base import BaseTransformer
@@ -155,14 +155,14 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformedTargetForecaster object,
             concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` steps
+            not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
         from aeon.transformations.base import BaseTransformer
@@ -186,14 +186,14 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
         -------
         TransformedTargetForecaster object,
             concatenation of `other` (first) with `self` (last).
-            not nested, contains only non-TransformerPipeline `sktime` steps
+            not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import ForecastingPipeline
         from aeon.transformations.base import BaseTransformer
@@ -217,7 +217,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        other: `sktime` forecaster or sktime MultiplexForecaster
+        other: `aeon` forecaster or aeon MultiplexForecaster
 
         Returns
         -------
@@ -292,7 +292,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster.
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -314,7 +314,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if self.get_tag("requires-fh-in-fit"), must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
@@ -378,7 +378,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), X.index must contain fh.index
@@ -386,7 +386,7 @@ class BaseForecaster(BaseEstimator):
 
         Returns
         -------
-        y_pred : time series in sktime compatible data container format
+        y_pred : time series in aeon compatible data container format
             Point forecasts at fh, with same index as fh
             y_pred has same type as the y that has been passed most recently:
                 Series, Panel, Hierarchical scitype, same format (see above)
@@ -431,7 +431,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster.
             y can be in one of the following formats:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -453,7 +453,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
@@ -461,7 +461,7 @@ class BaseForecaster(BaseEstimator):
 
         Returns
         -------
-        y_pred : time series in sktime compatible data container format
+        y_pred : time series in aeon compatible data container format
             Point forecasts at fh, with same index as fh
             y_pred has same type as the y that has been passed most recently:
                 Series, Panel, Hierarchical scitype, same format (see above)
@@ -513,7 +513,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index
@@ -535,7 +535,7 @@ class BaseForecaster(BaseEstimator):
                 f"{self.__class__.__name__} does not have the capability to return "
                 "quantile predictions. If you "
                 "think this estimator should have the capability, please open "
-                "an issue on sktime."
+                "an issue on aeon."
             )
         self.check_is_fitted()
 
@@ -589,7 +589,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index
@@ -616,7 +616,7 @@ class BaseForecaster(BaseEstimator):
                 f"{self.__class__.__name__} does not have the capability to return "
                 "prediction intervals. If you "
                 "think this estimator should have the capability, please open "
-                "an issue on sktime."
+                "an issue on aeon."
             )
         self.check_is_fitted()
 
@@ -659,7 +659,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
@@ -693,7 +693,7 @@ class BaseForecaster(BaseEstimator):
                 f"{self.__class__.__name__} does not have the capability to return "
                 "variance predictions. If you "
                 "think this estimator should have the capability, please open "
-                "an issue on sktime."
+                "an issue on aeon."
             )
         self.check_is_fitted()
         # input checks
@@ -731,7 +731,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index
@@ -757,7 +757,7 @@ class BaseForecaster(BaseEstimator):
                 f"{self.__class__.__name__} does not have the capability to return "
                 "fully probabilistic predictions. If you "
                 "think this estimator should have the capability, please open "
-                "an issue on sktime."
+                "an issue on aeon."
             )
 
         if hasattr(self, "_is_vectorized") and self._is_vectorized:
@@ -767,7 +767,7 @@ class BaseForecaster(BaseEstimator):
 
         msg = (
             "tensorflow-probability must be installed for fully probabilistic forecasts"
-            "install `sktime` deep learning dependencies by `pip install sktime[dl]`"
+            "install `aeon` deep learning dependencies by `pip install aeon[dl]`"
         )
         _check_dl_dependencies(msg)
 
@@ -807,7 +807,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -826,7 +826,7 @@ class BaseForecaster(BaseEstimator):
             For further details:
                 on usage, see forecasting tutorial examples/01_forecasting.ipynb
                 on specification of formats, examples/AA_datatypes_and_datasets.ipynb
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
@@ -888,7 +888,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -912,7 +912,7 @@ class BaseForecaster(BaseEstimator):
             default = ExpandingWindowSplitter with `initial_window=1` and defaults
                 = individual data points in y/X are added and forecast one-by-one,
                 `initial_window = 1`, `step_length = 1` and `fh = 1`
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
             Exogeneous time series for updating and forecasting
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
@@ -932,7 +932,7 @@ class BaseForecaster(BaseEstimator):
         y_pred : object that tabulates point forecasts from multiple split batches
             format depends on pairs (cutoff, absolute horizon) forecast overall
             if collection of absolute horizon points is unique:
-                type is time series in sktime compatible data container format
+                type is time series in aeon compatible data container format
                 cutoff is suppressed in output
                 has same type as the y that has been passed most recently:
                 Series, Panel, Hierarchical scitype, same format (see above)
@@ -994,7 +994,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -1016,7 +1016,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
@@ -1025,7 +1025,7 @@ class BaseForecaster(BaseEstimator):
 
         Returns
         -------
-        y_pred : time series in sktime compatible data container format
+        y_pred : time series in aeon compatible data container format
             Point forecasts at fh, with same index as fh
             if fh was relative, index is relative to cutoff after update with y
             y_pred has same type as the y that has been passed most recently:
@@ -1091,7 +1091,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
             Time series with ground truth observations, to compute residuals to.
             Must have same type, dimension, and indices as expected return of predict.
             if None, the y seen so far (self._y) are used, in particular:
@@ -1104,7 +1104,7 @@ class BaseForecaster(BaseEstimator):
 
         Returns
         -------
-        y_res : time series in sktime compatible data container format
+        y_res : time series in aeon compatible data container format
             Forecast residuals at fh, with same index as fh
             y_res has same type as the y that has been passed most recently:
                 Series, Panel, Hierarchical scitype, same format (see above)
@@ -1181,7 +1181,7 @@ class BaseForecaster(BaseEstimator):
 
         See Also
         --------
-        :meth:`sktime.performance_metrics.forecasting.mean_absolute_percentage_error`
+        :meth:`aeon.performance_metrics.forecasting.mean_absolute_percentage_error`
         """
         # no input checks needed here, they will be performed
         # in predict and loss function
@@ -1344,14 +1344,14 @@ class BaseForecaster(BaseEstimator):
                 y, scitype=ALLOWED_SCITYPES, return_metadata=True, var_name="y"
             )
             msg = (
-                "y must be in an sktime compatible format, "
+                "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
+                "for instance a pandas.DataFrame with aeon compatible time indices, "
+                "or with MultiIndex and last(-1) level an aeon compatible time index."
                 " See the forecasting tutorial examples/01_forecasting.ipynb, or"
                 " the data format tutorial examples/AA_datatypes_and_datasets.ipynb,"
-                "If you think y is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(y, mtype) to diagnose the error, "
+                "If you think y is already in an aeon supported input format, "
+                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
                 "Possible mtype specification strings are as follows. "
             )
@@ -1391,14 +1391,14 @@ class BaseForecaster(BaseEstimator):
             )
 
             msg = (
-                "X must be either None, or in an sktime compatible format, "
+                "X must be either None, or in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
+                "for instance a pandas.DataFrame with aeon compatible time indices, "
+                "or with MultiIndex and last(-1) level an aeon compatible time index."
                 " See the forecasting tutorial examples/01_forecasting.ipynb, or"
                 " the data format tutorial examples/AA_datatypes_and_datasets.ipynb"
-                "If you think X is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(X, mtype) to diagnose the error, "
+                "If you think X is already in an aeon supported input format, "
+                "run aeon.datatypes.check_raise(X, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for X. "
                 "Possible mtype specification strings are as follows. "
             )
@@ -1601,7 +1601,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : sktime compatible time series data container
+        y : aeon compatible time series data container
             must be of one of the following mtypes:
                 pd.Series, pd.DataFrame, np.ndarray, of Series scitype
                 pd.multiindex, numpy3D, nested_univ, df-list, of Panel scitype
@@ -2238,7 +2238,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : time series in sktime compatible data container format
+        y : time series in aeon compatible data container format
                 Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
@@ -2258,7 +2258,7 @@ class BaseForecaster(BaseEstimator):
                 on usage, see forecasting tutorial examples/01_forecasting.ipynb
                 on specification of formats, examples/AA_datatypes_and_datasets.ipynb
         cv : temporal cross-validation generator, optional (default=None)
-        X : time series in sktime compatible format, optional (default=None)
+        X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),

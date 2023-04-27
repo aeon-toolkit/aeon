@@ -7,7 +7,6 @@ __all__ = ["MiniRocketMultivariate"]
 import multiprocessing
 
 import numpy as np
-import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.base import BaseTransformer
@@ -24,13 +23,14 @@ class MiniRocketMultivariate(BaseTransformer):
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels.
+        Number of random convolutional kernels.
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     See Also
     --------
@@ -46,13 +46,13 @@ class MiniRocketMultivariate(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.panel.rocket import Rocket
+     >>> from aeon.transformations.panel.rocket import MiniRocketMultivariate
      >>> from aeon.datasets import load_basic_motions
      >>> X_train, y_train = load_basic_motions(split="train")
      >>> X_test, y_test = load_basic_motions(split="test")
      >>> trf = MiniRocketMultivariate(num_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocketMultivariate(...)
+     MiniRocketMultivariate(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """
@@ -60,13 +60,10 @@ class MiniRocketMultivariate(BaseTransformer):
     _tags = {
         "univariate-only": False,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(
@@ -92,7 +89,7 @@ class MiniRocketMultivariate(BaseTransformer):
         else:
             self.random_state_ = random_state
 
-        super(MiniRocketMultivariate, self).__init__()
+        super(MiniRocketMultivariate, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
@@ -144,7 +141,7 @@ class MiniRocketMultivariate(BaseTransformer):
         set_num_threads(n_jobs)
         X_ = _transform_multi(X, self.parameters)
         set_num_threads(prev_threads)
-        return pd.DataFrame(X_)
+        return X_
 
 
 @njit(

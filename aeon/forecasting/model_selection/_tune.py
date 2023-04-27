@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements grid search functionality to tune forecasters."""
 
 __author__ = ["mloning"]
@@ -309,7 +309,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
     Parameters
     ----------
     forecaster : estimator object
-        The estimator should implement the sktime or scikit-learn estimator
+        The estimator should implement the aeon or scikit-learn estimator
         interface. Either the estimator must contain a "score" function,
         or a scoring function must be passed.
     cv : cross-validation generator or an iterable
@@ -563,7 +563,7 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
     Parameters
     ----------
     forecaster : estimator object
-        The estimator should implement the sktime or scikit-learn estimator
+        The estimator should implement the aeon or scikit-learn estimator
         interface. Either the estimator must contain a "score" function,
         or a scoring function must be passed.
     cv : cross-validation generator or an iterable

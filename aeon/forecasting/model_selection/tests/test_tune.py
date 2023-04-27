@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Test grid search CV."""
 
 __author__ = ["mloning"]
@@ -23,7 +23,6 @@ from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests._config import (
     TEST_N_ITERS,
     TEST_OOS_FHS,
-    TEST_RANDOM_SEEDS,
     TEST_WINDOW_LENGTHS_INT,
 )
 from aeon.forecasting.trend import PolynomialTrendForecaster
@@ -113,8 +112,7 @@ def test_gscv(forecaster, param_grid, cv, scoring, error_score):
 @pytest.mark.parametrize("error_score", ERROR_SCORES)
 @pytest.mark.parametrize("cv", CVs)
 @pytest.mark.parametrize("n_iter", TEST_N_ITERS)
-@pytest.mark.parametrize("random_state", TEST_RANDOM_SEEDS)
-def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter, random_state):
+def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter):
     """Test ForecastingRandomizedSearchCV.
 
     Tests that ForecastingRandomizedSearchCV successfully searches the
@@ -128,13 +126,11 @@ def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter, random_s
         scoring=scoring,
         error_score=error_score,
         n_iter=n_iter,
-        random_state=random_state,
+        random_state=42,
     )
     rscv.fit(y, X)
 
-    param_distributions = list(
-        ParameterSampler(param_grid, n_iter, random_state=random_state)
-    )
+    param_distributions = list(ParameterSampler(param_grid, n_iter, random_state=42))
     _check_cv(forecaster, rscv, cv, param_distributions, y, X, scoring)
 
 

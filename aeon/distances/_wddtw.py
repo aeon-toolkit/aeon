@@ -8,16 +8,15 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import DerivativeCallable, average_of_slope
-from aeon.distances._distance_alignment_paths import compute_min_return_path
-from aeon.distances._numba_utils import is_no_python_compiled_callable
 from aeon.distances._wdtw import _weighted_cost_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances.lower_bounding import resolve_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -36,8 +35,6 @@ class _WddtwDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: int = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         compute_derivative: DerivativeCallable = average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
@@ -58,14 +55,6 @@ class _WddtwDistance(NumbaDistance):
         window: int, defaults = None
             Integer that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding).
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding).
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         compute_derivative: Callable[[np.ndarray], np.ndarray],
                                 defaults = average slope difference
             Callable that computes the derivative. If none is provided the average of
@@ -87,25 +76,14 @@ class _WddtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
             If the compute derivative callable is not no_python compiled.
             If the value of g is not a float
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if not isinstance(g, float):
             raise ValueError(
                 f"The value of g must be a float. The current value is {g}"
-            )
-
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
             )
 
         if return_cost_matrix is True:
@@ -118,7 +96,7 @@ class _WddtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -131,7 +109,7 @@ class _WddtwDistance(NumbaDistance):
                 _x = compute_derivative(_x)
                 _y = compute_derivative(_y)
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1]
 
         return numba_wddtw_distance_alignment_path
@@ -141,8 +119,6 @@ class _WddtwDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: int = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         compute_derivative: DerivativeCallable = average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
@@ -161,14 +137,6 @@ class _WddtwDistance(NumbaDistance):
         window: int, defaults = None
             Integer that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding).
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding).
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         compute_derivative: Callable[[np.ndarray], np.ndarray],
                                 defaults = average slope difference
             Callable that computes the derivative. If none is provided the average of
@@ -190,25 +158,14 @@ class _WddtwDistance(NumbaDistance):
         ValueError
             If the input time series is not a numpy array.
             If the input time series doesn't have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
             If the compute derivative callable is not no_python compiled.
             If the value of g is not a float
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if not isinstance(g, float):
             raise ValueError(
                 f"The value of g must be a float. The current value is {g}"
-            )
-
-        if not is_no_python_compiled_callable(compute_derivative):
-            raise ValueError(
-                f"The derivative callable must be no_python compiled. The name"
-                f"of the callable that must be compiled is "
-                f"{compute_derivative.__name__}"
             )
 
         @njit(cache=True)

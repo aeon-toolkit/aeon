@@ -52,16 +52,14 @@ class BaseClassifier(BaseEstimator, ABC):
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _X_metadata         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers
-    0...``n_classes_``-1.
+        0...``n_classes_``-1.
     _threads_to_use     : number of threads to use in ``fit`` as determined by
-    ``n_jobs``.
+        ``n_jobs``.
     _estimator_type     : string required by sklearn, set to "classifier"
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # Currently, it should be "numpy3D". Unequal
-        # length support through "nested_univ" is no longer supported, will be
-        # reintroduced with lists of numpy.
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -95,7 +93,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        other: `sktime` transformer, must inherit from BaseTransformer
+        other: `aeon` transformer, must inherit from BaseTransformer
             otherwise, `NotImplemented` is returned
 
         Returns
@@ -130,12 +128,10 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -202,12 +198,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
+        X : 3D np.array of shape (n_instances, n_channels, series_length)
+            or 2D np.array of shape (n_instances, series_length)
 
         Returns
         -------
@@ -231,16 +223,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
+        X : 3D np.array of shape (n_cases, n_channels, series_length)
+            or 2D np.array of shape (n_cases, series_length)
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape (n_cases, n_classes) - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
@@ -271,16 +259,11 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of dimensions, equal length series)
-                of shape [n_instances, n_dimensions, series_length]
+        X : 3D np.array (any number of channels, equal length series)
+                of shape [n_instances, n_channels, series_length]
             or 2D np.array (univariate, equal length series)
                 of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of dimensions, equal or unequal length series)
-            or of any other supported Panel mtype
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-                for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        y : 1D np.ndarray of int, of shape [n_instances] - class labels (ground truth)
+        y : 1D np.ndarray of shape [n_instances] - class labels (ground truth)
             indices correspond to instance indices in X
 
         Returns
@@ -311,9 +294,6 @@ class BaseClassifier(BaseEstimator, ABC):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return super().get_test_params(parameter_set=parameter_set)
 
@@ -327,11 +307,7 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -343,10 +319,11 @@ class BaseClassifier(BaseEstimator, ABC):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
+        ending in "_".
         """
         ...
 
+    @abstractmethod
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
 
@@ -356,21 +333,14 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------
         y : 1D np.array of int, of shape [n_instances] - predicted class labels
             indices correspond to instance indices in X
         """
-        y_proba = self._predict_proba(X)
-        y_pred = y_proba.argmax(axis=1)
-
-        return y_pred
+        ...
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -383,11 +353,7 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------
@@ -461,40 +427,35 @@ class BaseClassifier(BaseEstimator, ABC):
         if unequal and not allow_unequal:
             problems += ["unequal length series"]
 
-        # construct error message
-        problems_and = " and ".join(problems)
-        problems_or = " or ".join(problems)
-        msg = (
-            f"Data seen by {self_name} instance has {problems_and}, "
-            f"but this {self_name} instance cannot handle {problems_or}. "
-            f"Calls with {problems_or} may result in error or unreliable results."
-        )
+        if problems:
+            # construct error message
+            problems_and = " and ".join(problems)
+            problems_or = " or ".join(problems)
+            msg = (
+                f"Data seen by {self_name} instance has {problems_and}, "
+                f"but this {self_name} instance cannot handle {problems_or}. "
+                f"Calls with {problems_or} may result in error or unreliable results."
+            )
 
-        # raise exception or warning with message
-        # if self is composite, raise a warning, since passing could be fine
-        #   see discussion in PR 2366 why
-        if len(problems) > 0:
             if self.is_composite():
                 warn(msg)
             else:
                 raise ValueError(msg)
 
     def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
+        """Convert to inner type.
 
         Parameters
         ----------
         self : this classifier
-        X : pd.DataFrame or np.ndarray. Input time series.
+        X : np.ndarray. Input time series.
 
         Returns
         -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a pd.DataFrame (nested) or 3D np.ndarray
+        X : input X converted to type in "X_inner_mtype" (3D np.ndarray)
             Checked and possibly converted input data
         """
         inner_type = self.get_tag("X_inner_mtype")
-        # convert pd.DataFrame
         X = convert_to(
             X,
             to_type=inner_type,
@@ -530,9 +491,7 @@ class BaseClassifier(BaseEstimator, ABC):
         if not X_valid:
             raise TypeError(
                 f"X is not of a supported input data type."
-                f"X must be in a supported mtype format for Panel, found {type(X)}"
-                f"Use datatypes.check_is_mtype to check conformance "
-                "with specifications."
+                f"X must be in a supported data type, found {type(X)}."
             )
         n_cases = X_metadata["n_instances"]
         if n_cases < enforce_min_instances:
@@ -555,12 +514,11 @@ class BaseClassifier(BaseEstimator, ABC):
                     f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
                     f"{n_labels}"
                 )
-            if isinstance(y, np.ndarray):
-                if y.ndim > 1:
-                    raise ValueError(
-                        f"np.ndarray y must be 1-dimensional, "
-                        f"but found {y.ndim} dimensions"
-                    )
+            if isinstance(y, np.ndarray) and y.ndim > 1:
+                raise ValueError(
+                    f"np.ndarray y must be 1-dimensional, "
+                    f"but found {y.ndim} dimensions"
+                )
             # warn if only a single class label is seen
             # this should not raise exception since this can occur by train subsampling
             if len(np.unique(y)) == 1:
@@ -587,10 +545,8 @@ class BaseClassifier(BaseEstimator, ABC):
         X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged
         y: np.ndarray
         """
-        if isinstance(X, np.ndarray):
-            # Force 2D numpy to be 3D numpy for interface consistency.
-            if X.ndim == 2:
-                X = X.reshape(X.shape[0], 1, X.shape[1])
+        if isinstance(X, np.ndarray) and X.ndim == 2:
+            X = X.reshape(X.shape[0], 1, X.shape[1])
         if y is not None and isinstance(y, pd.Series):
             # y should be a numpy array, although we allow Series for user convenience
             y = pd.Series.to_numpy(y)

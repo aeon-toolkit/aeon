@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for panel transformers of time series augmentation."""
 
 import numpy as np
@@ -11,9 +11,8 @@ from aeon.transformations.series import augmenter as aug
 
 
 def _load_test_data():
-    X, y = load_basic_motions(return_type="nested_univ")
-    X1 = X.iloc[0, 1]
-    return X1
+    X, y = load_basic_motions()
+    return pd.Series(X[0][1])
 
 
 def _calc_checksum(X):

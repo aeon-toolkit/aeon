@@ -5,7 +5,7 @@ Useful for building estimators where all but one or a few methods are delegated.
 For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 __all__ = ["_DelegatedRegressor"]
@@ -50,11 +50,8 @@ class _DelegatedRegressor(BaseRegressor):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
             indices correspond to instance indices in X
 
@@ -81,11 +78,8 @@ class _DelegatedRegressor(BaseRegressor):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------

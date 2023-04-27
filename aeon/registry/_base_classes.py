@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Register of estimator base classes corresponding to sktime scitypes.
+"""Register of estimator base classes corresponding to aeon scitypes.
 
 This module exports the following:
 
@@ -40,8 +40,8 @@ from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.model_selection._split import BaseSplitter
+from aeon.forecasting.param_est.base import BaseParamFitter
 from aeon.networks.base import BaseDeepNetwork
-from aeon.param_est.base import BaseParamFitter
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer

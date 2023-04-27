@@ -15,8 +15,8 @@ HEADERS = {
 if os.getenv("GITHUB_TOKEN") is not None:
     HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
 
-OWNER = "sktime"
-REPO = "sktime"
+OWNER = "aeon-toolkit"
+REPO = "aeon"
 GITHUB_REPOS = "https://api.github.com/repos"
 
 
@@ -66,7 +66,7 @@ def fetch_pull_requests_since_last_release() -> List[Dict]:  # noqa
         all_pulls.extend(
             [p for p in pulls if parser.parse(p["merged_at"]) > published_at]
         )
-        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls)
+        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls) or len(pulls) == 0
         page += 1
     return all_pulls
 
@@ -141,9 +141,9 @@ def render_changelog(prs, assigned):  # noqa
 
 if __name__ == "__main__":
     categories = [
-        {"title": "Enhancements", "labels": ["feature", "enhancement"]},
-        {"title": "Fixes", "labels": ["bug", "fix", "bugfix"]},
-        {"title": "Maintenance", "labels": ["maintenance", "chore"]},
+        {"title": "Enhancements", "labels": ["enhancement"]},
+        {"title": "Fixes", "labels": ["bug"]},
+        {"title": "Maintenance", "labels": ["maintenance"]},
         {"title": "Refactored", "labels": ["refactor"]},
         {"title": "Documentation", "labels": ["documentation"]},
     ]

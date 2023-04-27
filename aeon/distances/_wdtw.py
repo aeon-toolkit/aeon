@@ -8,13 +8,13 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
-from aeon.distances._distance_alignment_paths import compute_min_return_path
+from aeon.distances._alignment_paths import compute_min_return_path
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
     NumbaDistance,
 )
-from aeon.distances.lower_bounding import resolve_bounding_matrix
 
 # Warning occurs when using large time series (i.e. 1000x1000)
 warnings.simplefilter("ignore", category=NumbaWarning)
@@ -51,8 +51,6 @@ class _WdtwDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: int = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         g: float = 0.05,
         **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
@@ -72,14 +70,6 @@ class _WdtwDistance(NumbaDistance):
         window: Float, defaults = None
             Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         g: float, defaults = 0.
             Constant that controls the curvature (slope) of the function; that is, g
             controls the level of penalisation for the points with larger phase
@@ -97,22 +87,14 @@ class _WdtwDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
             If the value of g is not a float
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
-
         if not isinstance(g, float):
             raise ValueError(
                 f"The value of g must be a float. The current value is {g}"
             )
 
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if return_cost_matrix is True:
 
@@ -122,7 +104,7 @@ class _WdtwDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float, np.ndarray]:
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1], cost_matrix
 
         else:
@@ -133,7 +115,7 @@ class _WdtwDistance(NumbaDistance):
                 _y: np.ndarray,
             ) -> Tuple[List, float]:
                 cost_matrix = _weighted_cost_matrix(_x, _y, _bounding_matrix, g)
-                path = compute_min_return_path(cost_matrix, _bounding_matrix)
+                path = compute_min_return_path(cost_matrix)
                 return path, cost_matrix[-1, -1]
 
         return numba_wdtw_distance_alignment_path
@@ -143,8 +125,6 @@ class _WdtwDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: int = None,
-        itakura_max_slope: float = None,
-        bounding_matrix: np.ndarray = None,
         g: float = 0.05,
         **kwargs: Any,
     ) -> DistanceCallable:
@@ -159,14 +139,6 @@ class _WdtwDistance(NumbaDistance):
         window: float, defaults = None
             Integer that is the radius of the sakoe chiba window (if using Sakoe-Chiba
             lower bounding). Must be between 0 and 1.
-        itakura_max_slope: float, defaults = None
-            Gradient of the slope for itakura parallelogram (if using Itakura
-            Parallelogram lower bounding). Must be between 0 and 1.
-        bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-            Custom bounding matrix to use. If defined then other lower_bounding params
-            are ignored. The matrix should be structure so that indexes considered in
-            bound should be the value 0. and indexes outside the bounding matrix should
-            be infinity.
         g: float, defaults = 0.
             Constant that controls the curvature (slope) of the function; that is, g
             controls the level of penalisation for the points with larger phase
@@ -185,13 +157,9 @@ class _WdtwDistance(NumbaDistance):
         ValueError
             If the input time series are not numpy array.
             If the input time series do not have exactly 2 dimensions.
-            If the sakoe_chiba_window_radius is not an integer.
-            If the itakura_max_slope is not a float or int.
             If the value of g is not a float
         """
-        _bounding_matrix = resolve_bounding_matrix(
-            x, y, window, itakura_max_slope, bounding_matrix
-        )
+        _bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
 
         if not isinstance(g, float):
             raise ValueError(
@@ -245,7 +213,7 @@ def _weighted_cost_matrix(
 
     for i in range(x_size):
         for j in range(y_size):
-            if np.isfinite(bounding_matrix[i, j]):
+            if bounding_matrix[i, j]:
                 sum = 0
                 for k in range(dimensions):
                     sum += (x[k][i] - y[k][j]) * (x[k][i] - y[k][j])

@@ -117,28 +117,23 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
             estimators = chain(estimators, [self._remainder])
 
         for name, estimator, channel in estimators:
-            if replace_strings:
-                # skip in case of 'drop'
-                if estimator == "drop":
-                    continue
-                elif _is_empty_channel_selection(channel):
-                    continue
-
+            if replace_strings and (
+                estimator == "drop"
+                or estimator != "drop"
+                and _is_empty_channel_selection(channel)
+            ):
+                continue
             yield name, estimator, channel
 
     def _fit(self, X, y):
-        # the data passed in could be an array of dataframes?
         """Fit all estimators, fit the data.
 
         Parameters
         ----------
-        X : array-like or DataFrame of shape [n_samples, n_channels,
-        n_length]
-            Input data, of which specified subsets are used to fit the
-            transformations.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
-        y : array-like, shape (n_samples, ...), optional
-            Targets for supervised learning.
+        y : array-like, shape = [n_instances]
+            The class labels.
 
         """
         if self.estimators is None or len(self.estimators) == 0:
@@ -175,8 +170,7 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X using 'soft' voting."""
-        avg = np.average(self._collect_probas(X), axis=0)
-        return avg
+        return np.average(self._collect_probas(X), axis=0)
 
     def _predict(self, X) -> np.ndarray:
         maj = np.argmax(self.predict_proba(X), axis=1)
@@ -282,21 +276,20 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             TimeSeriesForestClassifier as TSFC,
         )
 
-        if parameter_set == "results_comparison":
-            cboss = ContractableBOSS(
-                n_parameter_samples=4, max_ensemble_size=2, random_state=0
-            )
-            cif = CanonicalIntervalForest(
-                n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
-            )
-            return {"estimators": [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]}
-        else:
+        if parameter_set != "results_comparison":
             return {
                 "estimators": [
                     ("tsf1", TSFC(n_estimators=2), 0),
                     ("tsf2", TSFC(n_estimators=2), 0),
                 ]
             }
+        cboss = ContractableBOSS(
+            n_parameter_samples=4, max_ensemble_size=2, random_state=0
+        )
+        cif = CanonicalIntervalForest(
+            n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
+        )
+        return {"estimators": [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]}
 
 
 def _get_channel(X, key):
@@ -333,22 +326,17 @@ def _get_channel(X, key):
             "strings, or boolean mask is allowed"
         )
 
-    # ensure that pd.DataFrame is returned rather than
-    # pd.Series
     if isinstance(key, (int, str)):
         key = [key]
 
-    if channel_names:
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError(
-                f"X must be a pd.DataFrame if channel names are "
-                f"specified, but found: {type(X)}"
-            )
-        return X.loc[:, key]
-    else:
-        if isinstance(X, np.ndarray):
-            return X[:, key]
-        return X.iloc[:, key]
+    if not channel_names:
+        return X[:, key] if isinstance(X, np.ndarray) else X.iloc[:, key]
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(
+            f"X must be a pd.DataFrame if channel names are "
+            f"specified, but found: {type(X)}"
+        )
+    return X.loc[:, key]
 
 
 def _check_key_type(key, superclass):
@@ -403,11 +391,11 @@ def _get_channel_indices(X, key):
     elif _check_key_type(key, str):
         try:
             all_columns = list(X.columns)
-        except AttributeError:
+        except AttributeError as e:
             raise ValueError(
                 "Specifying the columns using strings is only "
                 "supported for pandas DataFrames"
-            )
+            ) from e
         if isinstance(key, str):
             columns = [key]
         elif isinstance(key, slice):

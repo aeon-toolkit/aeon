@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for objects and fittable objects.
 
@@ -67,9 +67,9 @@ from aeon.exceptions import NotFittedError
 
 
 class BaseObject(_BaseEstimator):
-    """Base class for parametric objects with tags sktime.
+    """Base class for parametric objects with tags aeon.
 
-    Extends scikit-learn's BaseEstimator to include sktime interface for tags.
+    Extends scikit-learn's BaseEstimator to include aeon interface for tags.
     """
 
     def __init__(self):
@@ -865,7 +865,7 @@ class TagAliaserMixin:
             if tag_name in cls.alias_dict.keys():
                 version = cls.deprecate_dict[tag_name]
                 new_tag = cls.alias_dict[tag_name]
-                msg = f"tag {tag_name!r} will be removed in sktime version {version}"
+                msg = f"tag {tag_name!r} will be removed in aeon version {version}"
                 if new_tag != "":
                     msg += (
                         f" and replaced by {new_tag!r}, please use {new_tag!r} instead"
@@ -876,9 +876,9 @@ class TagAliaserMixin:
 
 
 class BaseEstimator(BaseObject):
-    """Base class for defining estimators in sktime.
+    """Base class for defining estimators in aeon.
 
-    Extends sktime's BaseObject to include basic functionality for fittable estimators.
+    Extends aeon's BaseObject to include basic functionality for fittable estimators.
     """
 
     def __init__(self):
@@ -956,7 +956,7 @@ class BaseEstimator(BaseObject):
             else:
                 return x
 
-        # add all nested parameters from components that are sktime BaseObject
+        # add all nested parameters from components that are aeon BaseObject
         c_dict = self._components()
         for c, comp in c_dict.items():
             if isinstance(comp, BaseEstimator) and comp._is_fitted:

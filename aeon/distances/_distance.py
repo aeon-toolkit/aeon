@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "TonyBagnall"]
 
-
 from typing import Any, Callable, Union
 
 import numpy as np
 from numba import njit
 
 from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
-from aeon.distances._dtw import _DtwDistance
+from aeon.distances._dtw import (
+    dtw_alignment_path,
+    dtw_distance,
+    dtw_from_multiple_to_multiple_distance,
+)
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
-from aeon.distances._euclidean import _EuclideanDistance
+from aeon.distances._euclidean import (
+    euclidean_distance,
+    euclidean_from_multiple_to_multiple_distance,
+)
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -24,7 +30,10 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import _SquaredDistance
+from aeon.distances._squared import (
+    squared_distance,
+    squared_from_multiple_to_multiple_distance,
+)
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import _WdtwDistance
@@ -41,8 +50,6 @@ def erp_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     g: float = 0.0,
     **kwargs: Any,
 ) -> float:
@@ -63,15 +70,6 @@ def erp_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     g: float, defaults = 0.
         The reference value to penalise gaps.
     kwargs: Any
@@ -86,7 +84,6 @@ def erp_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -94,7 +91,6 @@ def erp_distance(
         NumbaDistance.
         If the metric type cannot be determined
         If g is not a float.
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -116,8 +112,6 @@ def erp_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "g": g,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -129,8 +123,6 @@ def edr_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     epsilon: float = None,
     **kwargs: Any,
 ) -> float:
@@ -153,14 +145,6 @@ def edr_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d array), defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     epsilon : float, defaults = None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -179,14 +163,12 @@ def edr_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -210,8 +192,6 @@ def edr_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "epsilon": epsilon,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -223,8 +203,6 @@ def lcss_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     epsilon: float = 1.0,
     **kwargs: Any,
 ) -> float:
@@ -247,15 +225,6 @@ def lcss_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     epsilon : float, defaults = 1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'.
@@ -273,14 +242,12 @@ def lcss_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -291,8 +258,6 @@ def lcss_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "epsilon": epsilon,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -304,8 +269,6 @@ def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     compute_derivative: DerivativeCallable = average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
@@ -335,15 +298,6 @@ def wddtw_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     compute_derivative: Callable[[np.ndarray], np.ndarray],
                             defaults = average slope difference
         Callable that computes the derivative. If none is provided the average of the
@@ -364,7 +318,6 @@ def wddtw_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -373,7 +326,6 @@ def wddtw_distance(
         If the metric type cannot be determined
         If the compute derivative callable is not no_python compiled.
         If the value of g is not a float
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -395,8 +347,6 @@ def wddtw_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "compute_derivative": compute_derivative,
         "g": g,
     }
@@ -409,8 +359,6 @@ def wdtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
     g: float = 0.05,
     **kwargs: Any,
 ) -> float:
@@ -439,15 +387,6 @@ def wdtw_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     g: float, defaults = 0.
         Constant that controls the curvature (slope) of the function; that is, g
         controls the level of penalisation for the points with larger phase
@@ -464,14 +403,12 @@ def wdtw_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -493,8 +430,6 @@ def wdtw_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "g": g,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -506,8 +441,6 @@ def ddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
     compute_derivative: DerivativeCallable = average_of_slope,
     **kwargs: Any,
 ) -> float:
@@ -535,15 +468,6 @@ def ddtw_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     compute_derivative: Callable[[np.ndarray], np.ndarray],
                             defaults = average slope difference
         Callable that computes the derivative. If none is provided the average of the
@@ -560,7 +484,6 @@ def ddtw_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -569,7 +492,6 @@ def ddtw_distance(
         If a resolved metric or compute derivative callable is not no_python compiled.
         If the metric type cannot be determined
         If the compute derivative callable is not no_python compiled.
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -592,8 +514,6 @@ def ddtw_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "compute_derivative": compute_derivative,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -601,103 +521,11 @@ def ddtw_distance(
     return distance(x, y, metric="ddtw", **format_kwargs)
 
 
-def dtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
-    **kwargs: Any,
-) -> float:
-    r"""Compute the dynamic time warping (DTW) distance between two time series.
-
-    Originally proposed in [1]_ DTW computes the distance between two time series by
-    considering their alignments during the calculation. This is done by measuring
-    the pointwise distance (normally using Euclidean) between all elements of the two
-    time series and then using dynamic programming to find the warping path
-    that minimises the total pointwise distance between realigned series.
-
-    Mathematically dtw can be defined as:
-
-    .. math::
-        dtw(x, y) = \sqrt{\sum_{(i, j) \in \pi} \|x_{i} - y_{j}\|^2}
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Dtw distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-        If both window and itakura_max_slope are set
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> dtw_distance(x_1d, y_1d)
-    58.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> dtw_distance(x_2d, y_2d)
-    512.0
-
-    References
-    ----------
-    .. [1] H. Sakoe, S. Chiba, "Dynamic programming algorithm optimization for
-           spoken word recognition," IEEE Transactions on Acoustics, Speech and
-           Signal Processing, vol. 26(1), pp. 43--49, 1978.
-    """
-    format_kwargs = {
-        "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="dtw", **format_kwargs)
-
-
 def msm_distance(
     x: np.ndarray,
     y: np.ndarray,
     c: float = 1.0,
     window: float = None,
-    itakura_max_slope: float = None,
-    bounding_matrix: np.ndarray = None,
     **kwargs: dict,
 ) -> float:
     """Compute the move-split-merge distance.
@@ -721,14 +549,6 @@ def msm_distance(
     window: Float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Must be between 0 and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Must be between 0 and 1.
-    bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should
-        be infinity.
     kwargs: any
         extra kwargs.
 
@@ -756,8 +576,6 @@ def msm_distance(
     format_kwargs = {
         "c": c,
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
     }
     format_kwargs = {**format_kwargs, **kwargs}
 
@@ -768,8 +586,6 @@ def twe_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
     lmbda: float = 1.0,
     nu: float = 0.001,
     p: int = 2,
@@ -793,15 +609,6 @@ def twe_distance(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     nu: float, defaults = 0.001
@@ -821,7 +628,6 @@ def twe_distance(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -829,7 +635,6 @@ def twe_distance(
         NumbaDistance.
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     Examples
     --------
@@ -852,8 +657,6 @@ def twe_distance(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "lmbda": lmbda,
         "nu": nu,
         "p": p,
@@ -863,203 +666,11 @@ def twe_distance(
     return distance(x, y, metric="twe", **format_kwargs)
 
 
-def squared_distance(x: np.ndarray, y: np.ndarray, **kwargs: Any) -> float:
-    r"""Compute the squared distance between two time series.
-
-    The squared distance between two time series is defined as:
-
-    .. math::
-        sd(x, y) = \sum_{i=1}^{n} (x_i - y_i)^2
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    kwargs: Any
-        Extra kwargs. For squared there are none however, this is kept for
-        consistency.
-
-    Returns
-    -------
-    float
-        Squared distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> squared_distance(x_1d, y_1d)
-    64.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> squared_distance(x_2d, y_2d)
-    512.0
-    """
-    return distance(x, y, metric="squared", **kwargs)
-
-
-def euclidean_distance(x: np.ndarray, y: np.ndarray, **kwargs: Any) -> float:
-    r"""Compute the Euclidean distance between two time series.
-
-    Euclidean distance is supported for 1d, 2d and 3d arrays.
-
-    The Euclidean distance between two time series of length m is the square root of
-    the squared distance and is defined as:
-
-    .. math::
-        ed(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    kwargs: Any
-        Extra kwargs. For euclidean there are none however, this is kept for
-        consistency.
-
-    Returns
-    -------
-    float
-        Euclidean distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> euclidean_distance(x_1d, y_1d)
-    8.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> euclidean_distance(x_2d, y_2d)
-    22.627416997969522
-    """
-    return distance(x, y, metric="euclidean", **kwargs)
-
-
-def dtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    r"""Compute the dynamic time warping (DTW) alignment path.
-
-    Originally proposed in [1]_ DTW computes the distance between two time series by
-    considering their alignments during the calculation. This is done by measuring
-    the pointwise distance (normally using Euclidean) between all elements of the two
-    time series and then using dynamic programming to find the warping path
-    that minimises the total pointwise distance between realigned series.
-
-    Mathematically dtw can be defined as:
-
-    .. math::
-        dtw(x, y) = \sqrt{\sum_{(i, j) \in \pi} \|x_{i} - y_{j}\|^2}
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the dtw alignment path.
-    float
-        Dtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-        If both window and itakura_max_slope are set
-
-    References
-    ----------
-    .. [1] H. Sakoe, S. Chiba, "Dynamic programming algorithm optimization for
-           spoken word recognition," IEEE Transactions on Acoustics, Speech and
-           Signal Processing, vol. 26(1), pp. 43--49, 1978.
-    """
-    format_kwargs = {
-        "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="dtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
 def wdtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
     g: float = 0.05,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1090,15 +701,6 @@ def wdtw_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     g: float, defaults = 0.
         Constant that controls the curvature (slope) of the function; that is, g
         controls the level of penalisation for the points with larger phase
@@ -1120,14 +722,12 @@ def wdtw_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1137,8 +737,6 @@ def wdtw_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "g": g,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -1153,8 +751,6 @@ def ddtw_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: np.ndarray = None,
     compute_derivative: DerivativeCallable = average_of_slope,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1184,15 +780,6 @@ def ddtw_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     compute_derivative: Callable[[np.ndarray], np.ndarray],
                             defaults = average slope difference
         Callable that computes the derivative. If none is provided the average of the
@@ -1214,7 +801,6 @@ def ddtw_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -1223,7 +809,6 @@ def ddtw_alignment_path(
         If a resolved metric or compute derivative callable is not no_python compiled.
         If the metric type cannot be determined
         If the compute derivative callable is not no_python compiled.
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1233,8 +818,6 @@ def ddtw_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "compute_derivative": compute_derivative,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -1249,8 +832,6 @@ def wddtw_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     compute_derivative: DerivativeCallable = average_of_slope,
     g: float = 0.0,
     **kwargs: Any,
@@ -1282,15 +863,6 @@ def wddtw_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     compute_derivative: Callable[[np.ndarray], np.ndarray],
                             defaults = average slope difference
         Callable that computes the derivative. If none is provided the average of the
@@ -1316,7 +888,6 @@ def wddtw_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -1325,7 +896,6 @@ def wddtw_alignment_path(
         If the metric type cannot be determined
         If the compute derivative callable is not no_python compiled.
         If the value of g is not a float
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1335,8 +905,6 @@ def wddtw_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "compute_derivative": compute_derivative,
         "g": g,
     }
@@ -1352,8 +920,6 @@ def edr_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     epsilon: float = None,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1378,14 +944,6 @@ def edr_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d array), defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     epsilon : float, defaults = None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -1408,14 +966,12 @@ def edr_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1427,8 +983,6 @@ def edr_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "epsilon": epsilon,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -1443,8 +997,6 @@ def erp_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     g: float = 0.0,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1467,15 +1019,6 @@ def erp_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     g: float, defaults = 0.
         The reference value to penalise gaps.
     kwargs: Any
@@ -1495,7 +1038,6 @@ def erp_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 3 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -1503,7 +1045,6 @@ def erp_alignment_path(
         NumbaDistance.
         If the metric type cannot be determined
         If g is not a float.
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1513,8 +1054,6 @@ def erp_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "g": g,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -1529,8 +1068,6 @@ def lcss_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: Union[float, None] = None,
-    itakura_max_slope: Union[float, None] = None,
-    bounding_matrix: Union[np.ndarray, None] = None,
     epsilon: float = 1.0,
     **kwargs: Any,
 ) -> AlignmentPathReturn:
@@ -1555,15 +1092,6 @@ def lcss_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     epsilon : float, defaults = 1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'.
@@ -1586,14 +1114,12 @@ def lcss_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
         If a metric object (instance of class) is provided and doesn't inherit from
         NumbaDistance.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1604,8 +1130,6 @@ def lcss_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "epsilon": epsilon,
     }
     format_kwargs = {**format_kwargs, **kwargs}
@@ -1621,8 +1145,6 @@ def msm_alignment_path(
     return_cost_matrix: bool = False,
     c: float = 1.0,
     window: float = None,
-    itakura_max_slope: float = None,
-    bounding_matrix: np.ndarray = None,
     **kwargs: dict,
 ) -> AlignmentPathReturn:
     """Compute the move-split-merge alignment path.
@@ -1648,14 +1170,6 @@ def msm_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Must be between 0 and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Must be between 0 and 1.
-    bounding_matrix: np.ndarray (2d array of shape (m1,m2)), defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should
-        be infinity.
     kwargs: any
         extra kwargs.
 
@@ -1688,8 +1202,6 @@ def msm_alignment_path(
     format_kwargs = {
         "c": c,
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
     }
     format_kwargs = {**format_kwargs, **kwargs}
 
@@ -1703,8 +1215,6 @@ def twe_alignment_path(
     y: np.ndarray,
     return_cost_matrix: bool = False,
     window: float = None,
-    itakura_max_slope: float = None,
-    bounding_matrix: np.ndarray = None,
     lmbda: float = 1.0,
     nu: float = 0.001,
     p: int = 2,
@@ -1728,15 +1238,6 @@ def twe_alignment_path(
     window: float, defaults = None
         Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
         lower bounding). Value must be between 0. and 1.
-    itakura_max_slope: float, defaults = None
-        Gradient of the slope for itakura parallelogram (if using Itakura
-        Parallelogram lower bounding). Value must be between 0. and 1.
-    bounding_matrix: np.ndarray (2d of size mxn where m is len(x) and n is len(y)),
-                                    defaults = None
-        Custom bounding matrix to use. If defined then other lower_bounding params
-        are ignored. The matrix should be structure so that indexes considered in
-        bound should be the value 0. and indexes outside the bounding matrix should be
-        infinity.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     nu: float, defaults = 0.001
@@ -1763,7 +1264,6 @@ def twe_alignment_path(
     ------
     ValueError
         If the sakoe_chiba_window_radius is not a float.
-        If the itakura_max_slope is not a float.
         If the value of x or y provided is not a numpy array.
         If the value of x or y has more than 2 dimensions.
         If a metric string provided, and is not a defined valid string.
@@ -1771,7 +1271,6 @@ def twe_alignment_path(
         NumbaDistance.
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined
-        If both window and itakura_max_slope are set
 
     References
     ----------
@@ -1781,8 +1280,6 @@ def twe_alignment_path(
     """
     format_kwargs = {
         "window": window,
-        "itakura_max_slope": itakura_max_slope,
-        "bounding_matrix": bounding_matrix,
         "lmbda": lmbda,
         "nu": nu,
         "p": p,
@@ -1792,6 +1289,9 @@ def twe_alignment_path(
     return distance_alignment_path(
         x, y, metric="twe", return_cost_matrix=return_cost_matrix, **format_kwargs
     )
+
+
+NEW_DISTANCES = ["squared", "euclidean", "dtw"]
 
 
 def distance(
@@ -1873,6 +1373,13 @@ def distance(
     float
         Distance between the x and y.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "squared":
+            return squared_distance(x, y)
+        elif metric == "euclidean":
+            return euclidean_distance(x, y)
+        elif metric == "dtw":
+            return dtw_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1939,6 +1446,13 @@ def distance_factory(
         If a resolved metric is not no_python compiled.
         If the metric type cannot be determined.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "squared":
+            return squared_distance
+        elif metric == "euclidean":
+            return euclidean_distance
+        elif metric == "dtw":
+            return dtw_distance
     global dist_callable
 
     if x is None:
@@ -2054,6 +1568,14 @@ def pairwise_distance(
     if y is None:
         y = x
     _y = _make_3d_series(y)
+    if metric in NEW_DISTANCES:
+        if metric == "euclidean":
+            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+        elif metric == "squared":
+            return squared_from_multiple_to_multiple_distance(_x, _y)
+        elif metric == "dtw":
+            return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
         metric, _x[0], _y[0], _METRIC_INFOS, **kwargs
@@ -2130,6 +1652,9 @@ def distance_alignment_path(
         Optional return only given if return_cost_matrix = True.
         Cost matrix used to compute the distance.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "dtw":
+            return dtw_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -2204,6 +1729,9 @@ def distance_alignment_path_factory(
     Callable[[np.ndarray, np.ndarray], Union[np.ndarray, np.ndarray]]
         Callable for the distance path.
     """
+    if metric in NEW_DISTANCES:
+        if metric == "dtw":
+            return dtw_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -2227,12 +1755,6 @@ def distance_alignment_path_factory(
 
 _METRIC_INFOS = [
     MetricInfo(
-        canonical_name="euclidean",
-        aka={"euclidean", "ed", "euclid", "pythagorean"},
-        dist_func=euclidean_distance,
-        dist_instance=_EuclideanDistance(),
-    ),
-    MetricInfo(
         canonical_name="erp",
         aka={"erp", "edit distance with real penalty"},
         dist_func=erp_distance,
@@ -2252,19 +1774,6 @@ _METRIC_INFOS = [
         dist_func=lcss_distance,
         dist_instance=_LcssDistance(),
         dist_alignment_path_func=lcss_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="squared",
-        aka={"squared"},
-        dist_func=squared_distance,
-        dist_instance=_SquaredDistance(),
-    ),
-    MetricInfo(
-        canonical_name="dtw",
-        aka={"dtw", "dynamic time warping"},
-        dist_func=dtw_distance,
-        dist_instance=_DtwDistance(),
-        dist_alignment_path_func=dtw_alignment_path,
     ),
     MetricInfo(
         canonical_name="ddtw",
@@ -2312,13 +1821,10 @@ _METRICS_NAMES = list(_METRICS.keys())
 
 ALL_DISTANCES = (
     ddtw_distance,
-    dtw_distance,
     edr_distance,
     erp_distance,
-    euclidean_distance,
     lcss_distance,
     msm_distance,
-    squared_distance,
     wddtw_distance,
     wdtw_distance,
     twe_distance,

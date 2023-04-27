@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Sklearn related typing and inheritance checking utility."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 from inspect import isclass
 
@@ -29,9 +29,9 @@ def is_sklearn_estimator(obj):
         obj = type(obj)
 
     is_in_sklearn = issubclass(obj, SklearnBaseEstimator)
-    is_in_sktime = issubclass(obj, BaseObject)
+    is_in_aeon = issubclass(obj, BaseObject)
 
-    is_sklearn_est = is_in_sklearn and not is_in_sktime
+    is_sklearn_est = is_in_sklearn and not is_in_aeon
     return is_sklearn_est
 
 

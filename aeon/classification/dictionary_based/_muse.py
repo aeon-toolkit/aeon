@@ -168,8 +168,8 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
         y : array-like, shape = [n_instances]
             The class labels.
 
@@ -262,8 +262,7 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
@@ -278,8 +277,7 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------

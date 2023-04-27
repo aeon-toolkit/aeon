@@ -342,7 +342,7 @@ def convert_from_dictionary(ts_dict):
             "Series2": [3.0,2.0,1.0,3.0,2.0],
         }
     or multivariate, e.g.
-    to sktime pandas format
+    to aeon pandas format
     TODO: Adapt for multivariate
     """
     panda = pd.DataFrame(ts_dict)
@@ -489,6 +489,73 @@ def from_nested_to_long_adp(obj, store=None):
 
 
 convert_dict[("nested_univ", "pd-long", "Panel")] = from_nested_to_long_adp
+
+
+def from_nplist_to_nested(np_list, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    n_cases = len(np_list)
+    n_channels = np_list[0].shape[0]
+    df = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
+    for i in range(n_cases):
+        for j in range(n_channels):
+            data = pd.Series(np_list[i][j])
+            df.iloc[i][j] = data
+    return df
+
+
+convert_dict[("np-list", "nested_univ", "Panel")] = from_nplist_to_nested
+
+
+def from_nested_to_nplist(nested_df, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    list = []
+    n_cases = nested_df.shape[0]
+    for i in range(n_cases):
+        one_case = nested_df.iloc[i, :].values.tolist()
+        list.append(np.array(one_case))
+    return list
+
+
+convert_dict[("nested_univ", "np-list", "Panel")] = from_nested_to_nplist
+
+
+def from_dflist_to_nplist(df_list, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    list = []
+    n_cases = len(df_list)
+    for i in range(n_cases):
+        one_case = df_list[i]
+        list.append(np.array(one_case))
+    return list
+
+
+convert_dict[("df-list", "np-list", "Panel")] = from_dflist_to_nplist
+
+
+def from_multi_index_to_nplist(pd_multi, store=None):
+    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    df_list = from_multiindex_to_dflist()
+    np_list = from_dflist_to_nplist(df_list)
+    return np_list
+
+
+convert_dict[("pd_multiindex", "np-list", "Panel")] = from_multi_index_to_nplist
+
+
+def from_nplist_to_multiindex(np_list, store=None):
+    nested_univ = from_nplist_to_nested(np_list)
+    return from_nested_to_multi_index(nested_univ)
+
+
+convert_dict[("np-list", "pd-multiindex", "Panel")] = from_nplist_to_multiindex
+
+
+def from_multiindex_to_nplist(multi_ind, store=None):
+    nested_univ = from_multi_index_to_nested_adp(multi_ind)
+    return from_nested_to_nplist(nested_univ)
+
+
+convert_dict[("pd-multiindex", "np-list", "Panel")] = from_multiindex_to_nplist
 
 
 def from_long_to_nested(
@@ -778,8 +845,9 @@ def from_nested_to_multi_index(X, instance_index=None, time_index=None):
 
         # create the right MultiIndex and assign to X_mi
         idx_df = X[[c]].applymap(lambda x: x.index).explode(c)
-        idx_df = idx_df.set_index(c, append=True)
-        X_col.index = idx_df.index.set_names([instance_index, time_index])
+        index = pd.MultiIndex.from_arrays([idx_df.index, idx_df[c].values])
+        index = index.set_names([instance_index, time_index])
+        X_col.index = index
 
         X_mi[[c]] = X_col
 

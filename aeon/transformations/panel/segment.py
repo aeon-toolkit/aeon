@@ -389,10 +389,17 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     Returns
     -------
-        df : pandas dataframe of shape
-             [n_instances, n_timepoints]
+        np.array [n_instances, n_timepoints, window_length]
 
     Proposed in the ShapeDTW algorithm.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.transformations.panel.segment import SlidingWindowSegmenter
+    >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
+    >>> seggy = SlidingWindowSegmenter(window_length=4)
+    >>> data2 = seggy.fit_transform(data)
     """
 
     _tags = {
@@ -401,32 +408,32 @@ class SlidingWindowSegmenter(BaseTransformer):
         "scitype:transform-input": "Series",
         # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(self, window_length=5):
         self.window_length = window_length
-        super(SlidingWindowSegmenter, self).__init__()
+        super(SlidingWindowSegmenter, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform time series.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to be transformed
+        X : 3D np.ndarray of shape = [n_cases, 1, series_length]
+            collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        dims: a pandas data frame of shape = [n_instances, n_timepoints]
+        X : 3D np.ndarray of shape = [n_cases, series_length, window_length]
+            windowed series
         """
         # get the number of attributes and instances
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
+        if X.shape[1] > 1:
+            raise ValueError("Segmenter does not support multivariate")
         X = X.squeeze(1)
 
         n_timepoints = X.shape[1]
@@ -447,17 +454,7 @@ class SlidingWindowSegmenter(BaseTransformer):
         # Extract subsequences
         for i in range(n_instances):
             subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
-
-        # Convert this into a panda's data frame
-        df = pd.DataFrame()
-        for i in range(len(subsequences)):
-            inst = subsequences[i]
-            data = []
-            for j in range(len(inst)):
-                data.append(pd.Series(inst[j]))
-            df[i] = data
-
-        return df.transpose()
+        return np.array(subsequences)
 
     def _extract_subsequences(self, instance, n_timepoints):
         """Extract a set of subsequences from a list of instances.

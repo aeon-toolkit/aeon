@@ -13,7 +13,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.signature_based._checks import _handle_sktime_signatures
+from aeon.transformations.panel.signature_based._checks import _handle_aeon_signatures
 from aeon.transformations.panel.signature_based._signature_method import (
     SignatureTransformer,
 )
@@ -146,16 +146,15 @@ class SignatureClassifier(BaseClassifier):
             [("signature_method", self.signature_method), ("classifier", classifier)]
         )
 
-    # Handle the sktime fit checks and convert to a tensor
-    @_handle_sktime_signatures(check_fitted=False)
+    # Handle the aeon fit checks and convert to a tensor
+    @_handle_aeon_signatures(check_fitted=False)
     def _fit(self, X, y):
         """Fit an estimator using transformed data from the SignatureTransformer.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_dims]
-            Nested dataframe with univariate time-series in cells.
-        y : array-like, shape = [n_instances] The class labels.
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        y : array-like, shape = (n_instances) The class labels.
 
         Returns
         -------
@@ -169,14 +168,14 @@ class SignatureClassifier(BaseClassifier):
 
         return self
 
-    # Handle the sktime predict checks and convert to tensor format
-    @_handle_sktime_signatures(check_fitted=True, force_numpy=True)
+    # Handle the aeon predict checks and convert to tensor format
+    @_handle_aeon_signatures(check_fitted=True, force_numpy=True)
     def _predict(self, X) -> np.ndarray:
         """Predict class values of n_instances in X.
 
         Parameters
         ----------
-        X : pd.DataFrame of shape (n_instances, n_dims)
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
 
         Returns
         -------
@@ -185,14 +184,14 @@ class SignatureClassifier(BaseClassifier):
         """
         return self.pipeline.predict(X)
 
-    # Handle the sktime predict checks and convert to tensor format
-    @_handle_sktime_signatures(check_fitted=True, force_numpy=True)
+    # Handle the aeon predict checks and convert to tensor format
+    @_handle_aeon_signatures(check_fitted=True, force_numpy=True)
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n_instances in X.
 
         Parameters
         ----------
-        X : pd.DataFrame of shape (n_instances, n_dims)
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
 
         Returns
         -------
