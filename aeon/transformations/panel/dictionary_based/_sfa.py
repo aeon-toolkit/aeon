@@ -499,7 +499,7 @@ class SFA(BaseTransformer):
                 breakpoints[i][bp] = sys.float_info.max
 
         return np.sort(breakpoints, axis=1)
-    
+
     def _igb_mae(self, dft, y):
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
         clf = DecisionTreeRegressor(
