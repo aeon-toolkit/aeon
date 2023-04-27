@@ -23,7 +23,6 @@ class Catch22Classifier(BaseClassifier):
     This classifier simply transforms the input data using the Catch22 [1]
     transformer and builds a provided estimator using the transformed data.
 
-
     Parameters
     ----------
     outlier_norm : bool, optional, default=False
