@@ -3,11 +3,11 @@
 """Parameter estimators for seasonality."""
 
 __author__ = ["fkiraly"]
-__all__ = ["SeasonalityACF"]
+__all__ = ["SeasonalityACF", "SeasonalityACFqstat"]
 
 import numpy as np
 
-from aeon.param_est.base import BaseParamFitter
+from aeon.forecasting.param_est.base import BaseParamFitter
 
 
 class SeasonalityACF(BaseParamFitter):
@@ -58,7 +58,7 @@ class SeasonalityACF(BaseParamFitter):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>>
     >>> X = load_airline().diff()[1:]  # doctest: +SKIP
     >>> sp_est = SeasonalityACF()  # doctest: +SKIP
@@ -72,7 +72,7 @@ class SeasonalityACF(BaseParamFitter):
     Series should be stationary before applying ACF.
     To pipeline SeasonalityACF with the Differencer, use the ParamFitterPipeline:
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>> from aeon.transformations.series.difference import Differencer
     >>>
     >>> X = load_airline()  # doctest: +SKIP
@@ -258,7 +258,7 @@ class SeasonalityACFqstat(BaseParamFitter):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.param_est.seasonality import SeasonalityACFqstat
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACFqstat
     >>> X = load_airline().diff()[1:]
     >>> sp_est = SeasonalityACFqstat(candidate_sp=[3, 7, 12])  # doctest: +SKIP
     >>> sp_est.fit(X)  # doctest: +SKIP

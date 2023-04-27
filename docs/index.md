@@ -153,14 +153,13 @@ installation
 get_started
 api_reference
 examples.md
-get_involved
-users
 ```
 
 ```{toctree}
 :caption: Developing aeon
 :hidden:
 
+get_involved
 developers
 ```
 
@@ -170,4 +169,11 @@ developers
 
 contributors.md
 about.md
+```
+
+```{toctree}
+:caption: Other
+:hidden:
+
+users
 ```

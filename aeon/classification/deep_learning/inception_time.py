@@ -539,25 +539,15 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         X : array-like of shape = (n_instances, n_channels, series_length)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = (n_instances)
             The training data class labels.
-        input_checks : boolean
-            whether to check the X and y parameters
-        validation_X : a nested pd.Dataframe, or array-like of shape =
-        (n_instances, series_length, n_channels)
-            The validation samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-            Unless strictly defined by the user via callbacks (such as
-            EarlyStopping), the presence or state of the validation
-            data does not alter training in any way. Predictions at each epoch
-            are stored in the model's fit history.
-        validation_y : array-like, shape = [n_instances]
-            The validation class labels.
 
         Returns
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -575,13 +565,23 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.verbose:
             self.model_.summary()
 
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
         self.history = self.model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=self.callbacks,
+            callbacks=self.callbacks_,
         )
 
         return self
