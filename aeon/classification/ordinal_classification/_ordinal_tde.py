@@ -192,7 +192,7 @@ class OrdinalTDE(BaseClassifier):
         self._word_lengths = [16, 14, 12, 10, 8]
         self._norm_options = [True, False]
         self._levels = [1, 2, 3]
-        self._igb_options = [True]  # Only True in ordinal version
+        self._igb_options = [True]  # No "equi-depth" in ordinal version
         self._alphabet_size = 4
         self._weight_sum = 0
         self._prev_parameters_x = []
@@ -321,7 +321,7 @@ class OrdinalTDE(BaseClassifier):
             )
             tde.fit(X_subsample, y_subsample)
             tde._subsample = subsample
-            
+
             tde._mae = self._individual_train_mae(
                 tde,
                 y_subsample,
