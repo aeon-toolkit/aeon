@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-HMM Annotation Estimator.
+HMM annotation Estimator.
 
 Implements a basic Hidden Markov Model (HMM) as an annotation estimator.
 To read more about the algorithm, check out the `HMM wikipedia page

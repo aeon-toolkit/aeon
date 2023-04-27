@@ -44,6 +44,7 @@ extensions = [
     "nbsphinx",  # integrates example notebooks
     "sphinx_design",
     "sphinx_issues",
+    "sphinx_copybutton",
     "myst_parser",
 ]
 
@@ -87,9 +88,6 @@ exclude_patterns = [
 
 add_module_names = False
 
-# The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
-
 # see http://stackoverflow.com/q/12206334/562769
 numpydoc_show_class_members = True
 # this is needed for some reason...
@@ -116,6 +114,9 @@ add_function_parentheses = False
 
 # Link to GitHub repo for github_issues extension
 issues_github_path = "aeon-toolkit/aeon"
+
+# sphinx-copybutton configuration
+copybutton_exclude = ".linenos, .gp, .go"
 
 # MyST Parser configuration
 
@@ -261,6 +262,7 @@ html_theme_options = {
     ],
 }
 
+# logos
 html_logo = "images/logo/aeon-logo-blue-2-compact.png"
 html_favicon = "images/logo/aeon-favicon.ico"
 

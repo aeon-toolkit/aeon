@@ -150,7 +150,7 @@ Transformation
 :hidden:
 
 installation
-get_started
+getting_started.md
 api_reference
 examples.md
 get_involved
