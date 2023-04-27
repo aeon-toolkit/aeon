@@ -62,19 +62,20 @@ simultaneously be CoCC members.
 
 ## Decision-Making Process
 
-Decisions about the future of the project are made publicly to allow discussion with
-all members of the community. All non-sensitive project management discussion takes
-place on the contributors channel on the project Slack and/or the issue tracker.
-Occasionally, sensitive discussion and votes such as appointments will occur in private
-Slack channels.
+Decisions about the future of the project are announced publicly to allow discussion
+with all members of the community, ideally with the whole process from proposal to
+implementation remaining fully visible, barring sensitive topics. All non-sensitive
+project management discussion takes place on the contributors channel on the project
+Slack and/or the issue tracker. Occasionally, sensitive discussion and votes such as
+appointments will occur in private Slack channels.
 
 For most decisions a consensus seeking process of all interested contributors is used.
 Contributors try to find a resolution that has no open objections among Core Developers.
-If a reasonable amount of time has passed since the last change to a proposed
-contribution, the proposal has at least one approval (+1) and no rejections (-1) from
-Core Developers, it can be approved by lazy consensus. If a change is rejected, it is
-expected that some form of explanation and description of conditions (if any) to
-withdraw the rejection is provided.
+If a reasonable amount of time (at least 7-days for non-trivial changes) has passed
+since the last change to a proposed contribution, the proposal has at least one approval
+(+1) and no rejections (-1) from Core Developers, it can be approved by lazy consensus.
+If a change is rejected, it is expected that some form of explanation and description
+of conditions (if any) to withdraw the rejection is provided.
 
 At any point during the discussion, any Core Developer in favour of a change can call
 for a vote, which will conclude two weeks from the call for the vote. Any vote must be
