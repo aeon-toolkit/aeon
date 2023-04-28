@@ -4,8 +4,6 @@
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr"]
 __all__ = ["ResNetClassifier"]
 
-from copy import deepcopy
-
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -185,6 +183,8 @@ class ResNetClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -194,14 +194,26 @@ class ResNetClassifier(BaseDeepClassifier):
         self.model_ = self.build_model(self.input_shape, self.n_classes_)
         if self.verbose:
             self.model_.summary()
+
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
         self.history = self.model_.fit(
             X,
             y_onehot,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=deepcopy(self.callbacks) if self.callbacks else [],
+            callbacks=self.callbacks_,
         )
+
         return self
 
     @classmethod
