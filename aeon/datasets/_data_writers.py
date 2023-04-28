@@ -6,7 +6,6 @@ import textwrap
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_io import _write_header
 from aeon.datatypes import check_is_scitype, convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X, check_X_y
@@ -228,7 +227,7 @@ def write_ndarray_to_tsfile(
     file.close()
 
 
-def write_panel_to_tsfile(
+def write_collection_to_tsfile(
     data, path, target=None, problem_name="sample_data", header=None
 ):
     """Write an aeon multi-instance dataset to text file in .ts format.
@@ -502,3 +501,43 @@ def write_tabular_transformation_to_arff(
             file.write(",?")
         file.write("\n")  # open a new line
     file.close()
+
+
+def _write_header(
+    path,
+    problem_name,
+    univariate,
+    equal_length,
+    series_length,
+    class_label,
+    fold,
+    comment,
+):
+    # create path if not exist
+    dirt = f"{str(path)}/{str(problem_name)}/"
+    try:
+        os.makedirs(dirt)
+    except os.error:
+        pass  # raises os.error if path already exists
+    # create ts file in the path
+    file = open(f"{dirt}{str(problem_name)}{fold}.ts", "w")
+    # write comment if any as a block at start of file
+    if comment is not None:
+        file.write("\n# ".join(textwrap.wrap("# " + comment)))
+        file.write("\n")
+
+    """ Writes the header info for a ts file"""
+    file.write(f"@problemName {problem_name}\n")
+    file.write("@timestamps false\n")
+    file.write(f"@univariate {str(univariate).lower()}\n")
+    file.write(f"@equalLength {str(equal_length).lower()}\n")
+    if series_length > 0 and equal_length:
+        file.write(f"@seriesLength {series_length}\n")
+    # write class label line
+    if class_label is not None:
+        space_separated_class_label = " ".join(str(label) for label in class_label)
+        file.write(f"@classLabel true {space_separated_class_label}\n")
+    else:
+        file.write("@classLabel false\n")
+    file.write("@data\n")
+    return file

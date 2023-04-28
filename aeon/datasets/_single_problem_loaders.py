@@ -32,7 +32,6 @@ __all__ = [
     "load_acsf1",
     "load_unit_test",
     "load_uschange",
-    "load_TSC_dataset",
     "load_PBS_dataset",
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
@@ -48,71 +47,12 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_io import _load_dataset, load_tsf_to_dataframe
-from aeon.datasets._data_loader import _load_provided_dataset
+from aeon.datasets._data_dataframe_loaders import load_tsf_to_dataframe
+from aeon.datasets._data_loaders import _load_dataset, _load_provided_dataset
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
-
-
-def load_TSC_dataset(
-    name, split=None, return_X_y=True, return_type="auto", extract_path=None
-):
-    """Load dataset from UCR UEA time series archive.
-
-    Downloads and extracts dataset if not already downloaded. Data is assumed to be
-    in the standard .ts format: each row is a (possibly multivariate) time series.
-    Each dimension is separated by a colon, each value in a series is comma
-    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
-    a univariate equal length problem, BasicMotions an equal length multivariate
-    problem.
-
-    Parameters
-    ----------
-    name : str
-        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
-        this function will look in the extract_path first, and if it is not present,
-        attempt to download the data from www.timeseriesclassification.com, saving it to
-        the extract_path.
-    split : None or str{"train", "test"}, default=None
-        Whether to load the train or test partition of the problem. By default it
-        loads both into a single dataset, otherwise it looks only for files of the
-        format <name>_TRAIN.ts or <name>_TEST.ts.
-    return_X_y : bool, optional (default=True)
-        it returns two objects, if False, it appends the class labels to the dataframe.
-    return_type: str, default="auto""
-        valid collection data type.
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (n_cases, n_channels,
-            series_length)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (n_cases, series_length)
-            "np-list": list of len n_cases, of  2D (n_channels, series_length)
-        If "auto" it will load numpy3D for equal length, list of 2D numpy for unequal.
-        For a list of other supported types, see datatypes.MTYPE_REGISTER
-       Exception is raised if the data cannot be stored in the requested type.
-    extract_path : str, optional (default=None)
-        the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
-        e.g. C:/Temp or relative, e.g. Temp or ./Temp.
-
-    Returns
-    -------
-    X:  The time series data, of type return_type, or if return_type is none,
-        3D numpy for equal length (n_cases, n_channels, series_length) for
-        the problem with n_cases rows and either
-        n_dimensions or n_dimensions+1 columns. Columns 1 to n_dimensions are the
-        series associated with each case. If return_X_y is False, column
-        n_dimensions+1 contains the class labels/target variable.
-    y: numpy array, optional
-        The class labels for each case in X, returned separately if return_X_y is
-        True, or appended to X if False
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_TSC_dataset
-    >>> X, y = load_TSC_dataset(name="ArrowHead", return_type="numpy3d")
-    """
-    return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
 
 def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):

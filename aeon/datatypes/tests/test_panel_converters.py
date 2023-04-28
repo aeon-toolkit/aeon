@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datasets import generate_example_long_table, make_multi_index_dataframe
+from aeon.datasets import make_example_long_table, make_example_multi_index_dataframe
 from aeon.datatypes._adapter import convert_from_multiindex_to_listdataset
 from aeon.datatypes._panel._check import are_columns_nested, is_nested_dataframe
 from aeon.datatypes._panel._convert import (
@@ -108,8 +108,8 @@ def test_from_3d_numpy_to_2d_array(n_instances, n_columns, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_multi_index_to_3d_numpy(n_instances, n_columns, n_timepoints):
     """Test from_multi_index_to_3d_numpy for correctness."""
-    mi_df = make_multi_index_dataframe(
-        n_instances=n_instances, n_timepoints=n_timepoints, n_columns=n_columns
+    mi_df = make_example_multi_index_dataframe(
+        n_instances=n_instances, series_length=n_timepoints, n_channels=n_columns
     )
 
     array = from_multi_index_to_3d_numpy(mi_df)
@@ -148,8 +148,8 @@ def test_from_3d_numpy_to_multi_index(n_instances, n_columns, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_multi_index_to_nested(n_instances, n_columns, n_timepoints):
     """Test from_multi_index_to_nested for correctness."""
-    mi_df = make_multi_index_dataframe(
-        n_instances=n_instances, n_timepoints=n_timepoints, n_columns=n_columns
+    mi_df = make_example_multi_index_dataframe(
+        n_instances=n_instances, series_length=n_timepoints, n_channels=n_columns
     )
     nested_df = from_multi_index_to_nested(
         mi_df, instance_index="case_id", cells_as_numpy=False
@@ -187,8 +187,8 @@ def test_is_nested_dataframe(n_instances, n_columns, n_timepoints):
     zero_df = pd.DataFrame(np.zeros_like(nested))
     nested_heterogenous = pd.concat([zero_df, nested], axis=1)
 
-    mi_df = make_multi_index_dataframe(
-        n_instances=n_instances, n_timepoints=n_timepoints, n_columns=n_columns
+    mi_df = make_example_multi_index_dataframe(
+        n_instances=n_instances, series_length=n_timepoints, n_channels=n_columns
     )
 
     assert not is_nested_dataframe(array)
@@ -215,8 +215,8 @@ def test_from_2d_array_to_nested(n_instances, n_columns, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_long_to_nested(n_instances, n_columns, n_timepoints):
     """Test from_long_to_nested for correctness."""
-    X_long = generate_example_long_table(
-        num_cases=n_instances, series_len=n_timepoints, num_dims=n_columns
+    X_long = make_example_long_table(
+        n_cases=n_instances, series_length=n_timepoints, n_channels=n_columns
     )
     nested_df = from_long_to_nested(X_long)
 

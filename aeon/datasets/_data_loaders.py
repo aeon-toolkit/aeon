@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
+import shutil
+import tempfile
+import zipfile
+from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
 
+from aeon.datasets._data_dataframe_loaders import MODULE
+from aeon.datasets.tsc_dataset_names import _list_available_datasets
 from aeon.datatypes import convert
 
 VALID_RETURN_TYPES = ["numpy3d", "numpy2d", "np3d", "np2d", "np_list", "nested_univ"]
 DIRNAME = "data"
-MODULE = os.path.dirname(__file__)
+# MODULE = os.path.dirname(__file__)
 
 
 # Return appropriate return_type in case an alias was used
@@ -161,7 +167,8 @@ def _load_data(file, meta_data):
 def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
-    return_meta_data=True,
+    return_meta_data=False,
+    return_type=None,
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -170,7 +177,8 @@ def load_from_tsfile(
     full_file_path_and_name : string
     replace_missing_vals_with : string, default="NaN"
     return_meta_data : boolean, default=True
-
+    return_type : string default = None. Refactor name
+        if "numpy2D" and data equal length univariate, will squeeze into 2D
     Returns
     -------
     data: Union[np.ndarray,pd.DataFrame].
@@ -183,6 +191,7 @@ def load_from_tsfile(
     ------
     IOError if the load fails
     """
+    return_type = _alias_datatype_check(return_type)
     # Check file ends in .ts, if not, insert
     if not full_file_path_and_name.endswith(".ts"):
         full_file_path_and_name = full_file_path_and_name + ".ts"
@@ -194,6 +203,15 @@ def load_from_tsfile(
         data, y, meta_data = _load_data(file, meta_data)
         if meta_data["equallength"]:
             data = np.array(data)
+    # All this is for backward compatibility and can be deprecated in time
+    if meta_data["equallength"]:
+        if return_type == "numpyflat" and data.shape[1] == 1:
+            data = data.squeeze()
+        elif return_type == "nested_univ":  # for backward compatibility
+            data = convert(data, from_type="numpy3D", to_type="nested_univ")
+    elif return_type == "nested_univ":
+        data = convert(data, from_type="np-list", to_type="nested_univ")
+
     if return_meta_data:
         return data, y, meta_data
     return data, y
@@ -292,3 +310,125 @@ def _load_provided_dataset(
         X["class_val"] = pd.Series(y)
         X = convert(X, from_type="nested_univ", to_type=return_type)
         return X
+
+
+def _download_and_extract(url, extract_path=None):
+    """
+    Download and unzip datasets (helper function).
+
+    This code was modified from
+    https://github.com/tslearn-team/tslearn/blob
+    /775daddb476b4ab02268a6751da417b8f0711140/tslearn/datasets.py#L28
+
+    Parameters
+    ----------
+    url : string
+        Url pointing to file to download
+    extract_path : string, optional (default: None)
+        path to extract downloaded zip to, None defaults
+        to aeon/datasets/data
+
+    Returns
+    -------
+    extract_path : string or None
+        if successful, string containing the path of the extracted file, None
+        if it wasn't successful
+    """
+    file_name = os.path.basename(url)
+    dl_dir = tempfile.mkdtemp()
+    zip_file_name = os.path.join(dl_dir, file_name)
+    urlretrieve(url, zip_file_name)
+
+    if extract_path is None:
+        extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
+    else:
+        extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
+
+    try:
+        if not os.path.exists(extract_path):
+            os.makedirs(extract_path)
+        zipfile.ZipFile(zip_file_name, "r").extractall(extract_path)
+        shutil.rmtree(dl_dir)
+        return extract_path
+    except zipfile.BadZipFile:
+        shutil.rmtree(dl_dir)
+        if os.path.exists(extract_path):
+            shutil.rmtree(extract_path)
+        raise zipfile.BadZipFile(
+            "Could not unzip dataset. Please make sure the URL is valid."
+        )
+
+
+def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=None):
+    """Load time series classification datasets (helper function).
+
+    Parameters
+    ----------
+    name : string, file name to load from
+    split: None or one of "TRAIN", "TEST", optional (default=None)
+        Whether to load the train or test instances of the problem.
+        By default it loads both train and test instances (in a single container).
+    return_X_y: bool, optional (default=True)
+        If True, returns (features, target) separately instead of a single
+        dataframe with columns for features and the target.
+    return_data_type : str, optional, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d.
+        "np-list": for unequal length series that cannot be storeed in numpy arrays
+        if None returns either numpy3D for equal length or  "np-list" for unequal
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
+
+    Returns
+    -------
+    X: Data stored in specified `return_type`
+        The time series data for the problem, with n instances
+    y: 1D numpy array of length n, only returned if return_X_y if True
+        The class labels for each time series instance in X
+        If return_X_y is False, y is appended to X instead.
+    """
+    # Allow user to have non standard extract path
+    if extract_path is not None:
+        local_module = os.path.dirname(extract_path)
+        local_dirname = extract_path
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    if name not in _list_available_datasets(extract_path):
+        if extract_path is None:
+            local_dirname = "local_data"
+        if not os.path.exists(os.path.join(local_module, local_dirname)):
+            os.makedirs(os.path.join(local_module, local_dirname))
+        if name not in _list_available_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            # Dataset is not already present in the datasets directory provided.
+            # If it is not there, download and install it.
+            url = "https://timeseriesclassification.com/Downloads/%s.zip" % name
+            # This also tests the validitiy of the URL, can't rely on the html
+            # status code as it always returns 200
+            try:
+                _download_and_extract(
+                    url,
+                    extract_path=extract_path,
+                )
+            except zipfile.BadZipFile as e:
+                raise ValueError(
+                    f"Invalid dataset name ={name} is not available on extract path ="
+                    f"{extract_path}. Nor is it available on "
+                    f"https://timeseriesclassification.com/.",
+                ) from e
+
+    return _load_provided_dataset(
+        name, split, return_X_y, return_type, local_module, local_dirname
+    )
