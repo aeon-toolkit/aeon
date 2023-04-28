@@ -26,7 +26,7 @@ jobs:
 
       - uses: peter-evans/create-pull-request@v5
         with:
-          commit-message: "[skip ci] Automated CONTRIBUTORS.md update"
+          commit-message: "Automated CONTRIBUTORS.md update"
           branch: update_contributors
           title: "[MNT] Automated CONTRIBUTORS.md update"
           body: "Automated update to CONTRIBUTORS.md caused by an update to the .all-contributorsrc file."
