@@ -29,7 +29,7 @@ class MLPClassifier(BaseDeepClassifier):
         whether to output extra information
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
+    optimizer       : keras.optimizer, default=keras.optimizers.Adadelta(),
     metrics         : list of strings, default=["accuracy"],
     activation      : string or a tf callable, default="sigmoid"
         Activation function used in the output linear layer.
@@ -37,8 +37,6 @@ class MLPClassifier(BaseDeepClassifier):
         https://keras.io/api/layers/activations/
     use_bias        : boolean, default = True
         whether the layer uses a bias vector.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
 
     Notes
     -----
@@ -128,9 +126,7 @@ class MLPClassifier(BaseDeepClassifier):
         )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
-            if self.optimizer is None
-            else self.optimizer
+            keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
         )
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
