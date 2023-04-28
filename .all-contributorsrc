@@ -2091,6 +2091,16 @@
           "bug",
           "doc"
          ]
-      }
+      },
+    {
+       "login": "baraline",
+       "name": "Antoine Guillaume",
+       "avatar_url": "https://avatars.githubusercontent.com/u/10759117",
+       "profile": "https://github.com/baraline",
+       "contributions": [
+        "code",
+        "doc"
+       ]
+    }
   ]
 }
