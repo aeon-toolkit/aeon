@@ -55,7 +55,7 @@ from aeon.datatypes import (
     scitype_to_mtype,
     update_data,
 )
-from aeon.forecasting.base import ForecastingHorizon
+from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
