@@ -5,11 +5,8 @@ import numpy as np
 import pytest
 
 """Test functions for data writing."""
-from aeon.datasets import (
-    _load_provided_dataset,
-    load_from_tsfile,
-    write_collection_to_tsfile,
-)
+from aeon.datasets import load_from_tsfile, write_collection_to_tsfile
+from aeon.datasets._data_loaders import _load_provided_dataset
 
 
 @pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])

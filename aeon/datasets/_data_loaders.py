@@ -267,16 +267,18 @@ def _load_provided_dataset(
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X, y, meta_data = load_from_tsfile(abspath)
+        X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_train, y_train, meta_data = load_from_tsfile(abspath)
+        X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_test, y_test, meta_data_test = load_from_tsfile(abspath)
+        X_test, y_test, meta_data_test = load_from_tsfile(
+            abspath, return_meta_data=True
+        )
         # TODO Check meta data matches
         if meta_data["equallength"]:
             X = np.concatenate([X_train, X_test])
@@ -308,7 +310,7 @@ def _load_provided_dataset(
     else:  # TODO: do this better
         X = convert(X, from_type=loaded_type, to_type="nested_univ")
         X["class_val"] = pd.Series(y)
-        X = convert(X, from_type="nested_univ", to_type=return_type)
+        #        X = convert(X, from_type="nested_univ", to_type=return_type)
         return X
 
 

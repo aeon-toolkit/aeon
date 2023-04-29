@@ -33,10 +33,11 @@ UNEQUAL_LENGTH_PROBLEMS = [
 
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
 def test_load_dataframe(loader):
-    """Test unequal length baked in TSC problems load into nested pd.DataFrames."""
+    """Test unequal length baked in TSC problems load into List of numpy."""
     # should work for all
     X, y = loader()
-    assert isinstance(X, pd.DataFrame)
+    assert isinstance(X, list)
+    assert isinstance(X[0], np.ndarray)
     assert isinstance(y, np.ndarray)
     assert y.ndim == 1
     X = loader(return_X_y=False)

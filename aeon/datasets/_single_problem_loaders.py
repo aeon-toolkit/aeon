@@ -427,7 +427,7 @@ def load_plaid(split=None, return_X_y=True):
     >>> from aeon.datasets import load_plaid
     >>> X, y = load_plaid()
     """
-    return _load_dataset("PLAID", split, return_X_y, return_type="nested_univ")
+    return _load_dataset("PLAID", split, return_X_y)
 
 
 def load_japanese_vowels(split=None, return_X_y=True):
