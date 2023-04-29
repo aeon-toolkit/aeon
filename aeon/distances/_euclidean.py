@@ -101,6 +101,18 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
     array([[ 0.        ,  5.29150262, 10.44030651],
            [ 5.29150262,  0.        ,  5.19615242],
            [10.44030651,  5.19615242,  0.        ]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> euclidean_pairwise_distance(X, y)
+    array([[17.32050808, 22.5166605 , 27.71281292],
+           [12.12435565, 17.32050808, 22.5166605 ],
+           [ 6.92820323, 12.12435565, 17.32050808]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> euclidean_pairwise_distance(X, y_univariate)
+    array([[3.00000000e+01, 3.01555508e+09,            nan]])
     """
     if y is None:
         # To self
@@ -125,24 +137,27 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
         raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     else:
         # Single to multiple
-        smallest_dim_ts = X if X.ndim <= y.ndim else y
-        largest_dim_ts = X if X.ndim > y.ndim else y
-
-        if largest_dim_ts.ndim == 3 and smallest_dim_ts.ndim == 2:
-            _x = smallest_dim_ts.reshape(
-                (smallest_dim_ts.shape[0], 1, smallest_dim_ts.shape[1])
-            )
+        if X.ndim == 3 and y.ndim == 2:
+            _y = y.reshape((1, y.shape[0], y.shape[1]))
             return _euclidean_from_multiple_to_multiple_distance(
-                _x, largest_dim_ts
+                X, _y
             )
-        elif largest_dim_ts.ndim == 2 and smallest_dim_ts.ndim == 1:
-            _x = smallest_dim_ts.reshape((1, 1, smallest_dim_ts.shape[0]))
-            _y = largest_dim_ts.reshape(
-                (largest_dim_ts.shape[0], 1, largest_dim_ts.shape[1])
+        if y.ndim == 3 and X.ndim == 2:
+            _x = X.reshape((1, X.shape[0], X.shape[1]))
+            return _euclidean_from_multiple_to_multiple_distance(
+                _x, y
             )
+        if X.ndim == 2 and y.ndim == 1:
+            _x = X.reshape((X.shape[0], 1, X.shape[1]))
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _euclidean_from_multiple_to_multiple_distance(_x, _y)
+        if y.ndim == 2 and X.ndim == 1:
+            _x = X.reshape((1, 1, X.shape[0]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return _euclidean_from_multiple_to_multiple_distance(_x, _y)
         else:
             raise ValueError("x and y must be 2D or 3D arrays")
+
 
 
 @njit(cache=True, fastmath=True)
@@ -168,5 +183,7 @@ def _euclidean_from_multiple_to_multiple_distance(
 
     for i in range(n_instances):
         for j in range(m_instances):
+            test = x[i]
+            test1 = y[j]
             distances[i, j] = euclidean_distance(x[i], y[j])
     return distances

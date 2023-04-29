@@ -10,7 +10,7 @@ from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_s
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_distance,
-    dtw_from_multiple_to_multiple_distance,
+    dtw_pairwise_distance
 )
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
@@ -32,7 +32,7 @@ from aeon.distances._resolve_metric import (
 )
 from aeon.distances._squared import (
     squared_distance,
-    squared_from_multiple_to_multiple_distance,
+    squared_pairwise_distance
 )
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
@@ -1572,9 +1572,9 @@ def pairwise_distance(
         if metric == "euclidean":
             return euclidean_pairwise_distance(_x, _y)
         elif metric == "squared":
-            return squared_from_multiple_to_multiple_distance(_x, _y)
+            return squared_pairwise_distance(_x, _y)
         elif metric == "dtw":
-            return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return dtw_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(

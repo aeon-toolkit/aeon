@@ -72,17 +72,18 @@ def _validate_single_to_multiple_result(
 ):
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
-    expected_size = len(y)
+    test = single_to_multiple_result.shape
 
+    expected_size = len(y)
     if y.ndim == 1:
         expected_size = 1
 
     assert isinstance(single_to_multiple_result, np.ndarray)
-    assert single_to_multiple_result.shape[0] == expected_size
+    assert single_to_multiple_result.shape[-1] == expected_size
 
-    for i in range(len(y)):
+    for i in range(single_to_multiple_result.shape[-1]):
         curr_y = y[i]
-        curr = single_to_multiple_result[i]
+        curr = single_to_multiple_result[0, i]
         dist = distance(x, curr_y)
         assert dist == curr
 
@@ -119,7 +120,7 @@ def test_multiple_to_multiple_distances(dist):
         np.array([15.0]),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_multiple_to_multiple_result(
@@ -127,7 +128,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     # Multivariate tests
@@ -136,7 +137,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     # Dataset tests
@@ -145,7 +146,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, 1, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_multiple_to_multiple_result(
@@ -153,7 +154,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     # Unequal length tests
@@ -162,7 +163,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(2, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_multiple_to_multiple_result(
@@ -170,7 +171,7 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, 2, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_multiple_to_multiple_result(
@@ -178,9 +179,9 @@ def test_multiple_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, 2, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["multiple_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
-
+new_distance = ["euclidean", "dtw"]
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
@@ -190,7 +191,7 @@ def test_new_single_to_multiple_distances(dist):
         np.array([[15.0]]),
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_single_to_multiple_result(
@@ -198,7 +199,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(2, 1, 5, random_state=2)[0],
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_single_to_multiple_result(
@@ -206,7 +207,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(5, 1, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     # Multivariate tests
@@ -215,7 +216,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     # Unequal length tests
@@ -224,7 +225,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(2, 1, 5, random_state=2)[0],
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_single_to_multiple_result(
@@ -232,7 +233,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(2, 1, 2, random_state=2)[0],
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_single_to_multiple_result(
@@ -240,7 +241,7 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, 5, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
 
     _validate_single_to_multiple_result(
@@ -248,5 +249,5 @@ def test_new_single_to_multiple_distances(dist):
         create_test_distance_numpy(5, 5, 2, random_state=2),
         dist["name"],
         dist["distance"],
-        dist["single_to_multiple_distance"],
+        dist["pairwise_distance"],
     )
