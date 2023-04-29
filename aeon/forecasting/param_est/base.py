@@ -87,7 +87,7 @@ class BaseParamFitter(BaseEstimator):
         -------
         BaseParamFitter object, concatenation of `other` (first) with `self` (last).
         """
-        from aeon.param_est.compose import ParamFitterPipeline
+        from aeon.forecasting.param_est.compose import ParamFitterPipeline
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
         from aeon.transformations.series.adapt import TabularToSeriesAdaptor

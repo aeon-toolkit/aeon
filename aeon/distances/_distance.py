@@ -10,19 +10,12 @@ from aeon.distances._ddtw import (
     average_of_slope,
     ddtw_alignment_path,
     ddtw_distance,
-    ddtw_from_multiple_to_multiple_distance,
+    ddtw_pairwise_distance,
 )
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_distance,
-    dtw_from_multiple_to_multiple_distance,
-)
+from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
-from aeon.distances._euclidean import (
-    euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
-)
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -35,10 +28,7 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import (
-    squared_distance,
-    squared_from_multiple_to_multiple_distance,
-)
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import (
@@ -1260,15 +1250,15 @@ def pairwise_distance(
     _y = _make_3d_series(y)
     if metric in NEW_DISTANCES:
         if metric == "euclidean":
-            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+            return euclidean_pairwise_distance(_x, _y)
         elif metric == "squared":
-            return squared_from_multiple_to_multiple_distance(_x, _y)
+            return squared_pairwise_distance(_x, _y)
         elif metric == "dtw":
-            return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return dtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "ddtw":
-            return ddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return ddtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "wdtw":
-            return wdtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return wdtw_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -1430,7 +1420,7 @@ def distance_alignment_path_factory(
     if metric in NEW_DISTANCES:
         if metric == "dtw":
             return dtw_alignment_path
-        elif metric == "ddtw":
+        if metric == "ddtw":
             return ddtw_alignment_path
         elif metric == "wdtw":
             return wdtw_alignment_path
@@ -1478,6 +1468,13 @@ _METRIC_INFOS = [
         dist_alignment_path_func=lcss_alignment_path,
     ),
     MetricInfo(
+        canonical_name="wdtw",
+        aka={"wdtw", "weighted dynamic time warping"},
+        dist_func=wdtw_distance,
+        dist_instance=_WdtwDistance(),
+        dist_alignment_path_func=wdtw_alignment_path,
+    ),
+    MetricInfo(
         canonical_name="wddtw",
         aka={"wddtw", "weighted derivative dynamic time warping"},
         dist_func=wddtw_distance,
@@ -1513,5 +1510,6 @@ ALL_DISTANCES = (
     lcss_distance,
     msm_distance,
     wddtw_distance,
+    wdtw_distance,
     twe_distance,
 )

@@ -9,7 +9,6 @@ Get Involved
 
    get_involved/contributing
    get_involved/mentoring
-   get_involved/meetups
    get_involved/code_of_conduct
    get_involved/governance
 
@@ -54,42 +53,6 @@ If you get stuck, please don’t hesitate to chat with us or raise an issue.
             :expand:
 
             Mentoring
-
-    .. grid-item-card::
-        :text-align: center
-
-        Sponsoring
-
-        ^^^
-
-        Fund aeon maintenance and development.
-
-        +++
-
-        .. button-link:: https://opencollective.com/aeon
-            :color: primary
-            :click-parent:
-            :expand:
-
-            Donate
-
-    .. grid-item-card::
-        :text-align: center
-
-        Meet-ups
-
-        ^^^
-
-        Join our discussions, tutorials, workshops and sprints!
-
-        +++
-
-        .. button-ref:: meetups
-            :color: primary
-            :click-parent:
-            :expand:
-
-            Participate
 
     .. grid-item-card::
         :text-align: center

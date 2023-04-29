@@ -152,13 +152,18 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 
 
 @njit(cache=True, fastmath=True)
-def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
+def ddtw_pairwise_distance(
+    X: np.ndarray, y: np.ndarray = None, window: float = None
+) -> np.ndarray:
     """Compute the ddtw pairwise distance between a set of time series.
 
     Parameters
     ----------
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -172,26 +177,75 @@ def ddtw_pairwise_distance(X: np.ndarray, window: float = None) -> np.ndarray:
     Raises
     ------
     ValueError
-        If x and y are not 2D or 3D arrays.
+        If X is not 2D or 3D array when only passing X.
+        If X and y are not 1D, 2D or 3D arrays when passing both X and y.
         If n_timepoints is less than 2.
 
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import ddtw_pairwise_distance
-    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[49, 58, 61]], [[73, 82, 99]]])
     >>> ddtw_pairwise_distance(X)
-    array([[0.    , 1.    , 3.0625],
-           [1.    , 0.    , 0.5625],
-           [3.0625, 0.5625, 0.    ]])
-    """
-    if X.ndim == 3:
-        return _ddtw_pairwise_distance(X, window)
-    if X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-        return _ddtw_pairwise_distance(_X, window)
+    array([[  0.  ,  42.25, 100.  ],
+           [ 42.25,   0.  ,  12.25],
+           [100.  ,  12.25,   0.  ]])
 
-    raise ValueError("x and y must be 2D or 3D arrays")
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[19, 12, 39]],[[40, 51, 69]], [[79, 28, 91]]])
+    >>> y = np.array([[[110, 15, 123]],[[14, 150, 116]], [[9917, 118, 29]]])
+    >>> ddtw_pairwise_distance(X, y)
+    array([[2.09306250e+03, 8.46400000e+03, 5.43611290e+07],
+           [3.24900000e+03, 6.52056250e+03, 5.45271481e+07],
+           [4.73062500e+02, 1.34560000e+04, 5.40078010e+07]])
+
+    >>> X = np.array([[[10, 22, 399]],[[41, 500, 1316]], [[117, 18, 9]]])
+    >>> y_univariate = np.array([[100, 11, 199],[10, 15, 26], [170, 108, 1119]])
+    >>> ddtw_pairwise_distance(X, y_univariate)
+    array([[ 15129.    ],
+           [322624.    ],
+           [  3220.5625]])
+    """
+    if y is None:
+        # To self
+        if X.ndim == 3:
+            return _ddtw_pairwise_distance(X, window)
+        if X.ndim == 2:
+            _X = X.reshape((X.shape[0], 1, X.shape[1]))
+            return _ddtw_pairwise_distance(_X, window)
+        raise ValueError("x and y must be 2D or 3D arrays")
+    elif y.ndim == X.ndim:
+        # Multiple to multiple
+        if y.ndim == 3 and X.ndim == 3:
+            return _ddtw_from_multiple_to_multiple_distance(X, y, window)
+        if y.ndim == 2 and X.ndim == 2:
+            _x = X.reshape((X.shape[0], 1, X.shape[1]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
+        if y.ndim == 1 and X.ndim == 1:
+            _x = X.reshape((1, 1, X.shape[0]))
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    else:
+        # Single to multiple
+        if X.ndim == 3 and y.ndim == 2:
+            _y = y.reshape((1, y.shape[0], y.shape[1]))
+            return _ddtw_from_multiple_to_multiple_distance(X, _y, window)
+        if y.ndim == 3 and X.ndim == 2:
+            _x = X.reshape((1, X.shape[0], X.shape[1]))
+            return _ddtw_from_multiple_to_multiple_distance(_x, y, window)
+        if X.ndim == 2 and y.ndim == 1:
+            _x = X.reshape((X.shape[0], 1, X.shape[1]))
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
+        if y.ndim == 2 and X.ndim == 1:
+            _x = X.reshape((1, 1, X.shape[0]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
+        else:
+            raise ValueError("x and y must be 2D or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)
@@ -212,123 +266,6 @@ def _ddtw_pairwise_distance(X: np.ndarray, window: float) -> np.ndarray:
             distances[j, i] = distances[i, j]
 
     return distances
-
-
-@njit(cache=True, fastmath=True)
-def ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
-) -> np.ndarray:
-    """Compute the ddtw distance between a single time series and multiple.
-
-    Parameters
-    ----------
-    x: np.ndarray, (n_channels, n_timepoints) or (n_timepoints,)
-        Single time series.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints)
-        A collection of time series instances.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-
-    Returns
-    -------
-    np.ndarray (n_instances)
-        ddtw distance between the collection of instances in y and the time series x.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 2D or 3D arrays.
-        If n_timepoints or m_timepoints are less than 2.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import ddtw_from_single_to_multiple_distance
-    >>> x = np.array([[1, 2, 3, 6]])
-    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
-    >>> ddtw_from_single_to_multiple_distance(x, y)
-    array([0.25  , 2.25  , 5.0625])
-    """
-    if y.ndim == 3 and x.ndim == 2:
-        return _ddtw_from_single_to_multiple_distance(x, y, window)
-    if y.ndim == 2 and x.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _ddtw_from_single_to_multiple_distance(_x, _y, window)
-    else:
-        raise ValueError("x and y must be 2D or 3D arrays")
-
-
-@njit(cache=True, fastmath=True)
-def _ddtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float
-) -> np.ndarray:
-    n_instances = y.shape[0]
-    distances = np.zeros(n_instances)
-    bounding_matrix = create_bounding_matrix(x.shape[1] - 2, y.shape[2] - 2, window)
-
-    x = average_of_slope(x)
-    for i in range(n_instances):
-        distances[i] = _dtw_distance(x, average_of_slope(y[i]), bounding_matrix)
-
-    return distances
-
-
-@njit(cache=True, fastmath=True)
-def ddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None
-) -> np.ndarray:
-    """Compute the ddtw distance between two sets of time series.
-
-    If x and y are the same then you should use ddtw_pairwise_distance.
-
-    Parameters
-    ----------
-    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,)
-        A collection of time series instances.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-
-    Returns
-    -------
-    np.ndarray (n_instances, m_instances)
-        ddtw distance between two collections of time series, x and y.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 2D or 3D arrays.
-        If n_timepoints or m_timepoints are less than 2.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import ddtw_from_multiple_to_multiple_distance
-    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
-    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
-    >>> ddtw_from_multiple_to_multiple_distance(x, y)
-    array([[ 7.5625, 14.0625,  5.0625],
-           [12.25  , 20.25  ,  9.    ],
-           [36.    , 49.    , 30.25  ]])
-    """
-    if y.ndim == 3 and x.ndim == 3:
-        return _ddtw_from_multiple_to_multiple_distance(x, y, window)
-    if y.ndim == 2 and x.ndim == 2:
-        _x = x.reshape((x.shape[0], 1, x.shape[1]))
-        _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
-    if y.ndim == 1 and x.ndim == 1:
-        _x = x.reshape((1, 1, x.shape[0]))
-        _y = y.reshape((1, 1, y.shape[0]))
-        return _ddtw_from_multiple_to_multiple_distance(_x, _y, window)
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)

@@ -8,9 +8,9 @@ import pytest
 
 from aeon.datasets import load_airline
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.param_est.fixed import FixedParams
-from aeon.param_est.plugin import PluginParamsForecaster
-from aeon.param_est.seasonality import SeasonalityACF
+from aeon.forecasting.param_est.fixed import FixedParams
+from aeon.forecasting.param_est.plugin import PluginParamsForecaster
+from aeon.forecasting.param_est.seasonality import SeasonalityACF
 from aeon.transformations.series.difference import Differencer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
