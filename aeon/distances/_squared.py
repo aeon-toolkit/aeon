@@ -106,6 +106,21 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
     array([[  0.,  28., 109.],
            [ 28.,   0.,  27.],
            [109.,  27.,   0.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> squared_pairwise_distance(X, y)
+    array([[300., 507., 768.],
+           [147., 300., 507.],
+           [ 48., 147., 300.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> squared_pairwise_distance(X, y_univariate)
+    array([[300.],
+           [147.],
+           [ 48.]])
+
     """
     if y is None:
         # To self

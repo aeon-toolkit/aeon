@@ -111,7 +111,9 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     >>> euclidean_pairwise_distance(X, y_univariate)
-    array([[3.00000000e+01, 3.01555508e+09,            nan]])
+    array([[17.32050808],
+           [12.12435565],
+           [ 6.92820323]])
     """
     if y is None:
         # To self
