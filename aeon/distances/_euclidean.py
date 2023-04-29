@@ -2,7 +2,6 @@
 __author__ = ["chrisholder", "tonybagnall"]
 
 import numpy as np
-import xxlimited
 from numba import njit
 
 from aeon.distances._squared import _univariate_squared_distance, squared_distance
@@ -139,14 +138,10 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
         # Single to multiple
         if X.ndim == 3 and y.ndim == 2:
             _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _euclidean_from_multiple_to_multiple_distance(
-                X, _y
-            )
+            return _euclidean_from_multiple_to_multiple_distance(X, _y)
         if y.ndim == 3 and X.ndim == 2:
             _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _euclidean_from_multiple_to_multiple_distance(
-                _x, y
-            )
+            return _euclidean_from_multiple_to_multiple_distance(_x, y)
         if X.ndim == 2 and y.ndim == 1:
             _x = X.reshape((X.shape[0], 1, X.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
@@ -157,7 +152,6 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
             return _euclidean_from_multiple_to_multiple_distance(_x, _y)
         else:
             raise ValueError("x and y must be 2D or 3D arrays")
-
 
 
 @njit(cache=True, fastmath=True)
@@ -175,7 +169,7 @@ def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _euclidean_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -183,7 +177,5 @@ def _euclidean_from_multiple_to_multiple_distance(
 
     for i in range(n_instances):
         for j in range(m_instances):
-            test = x[i]
-            test1 = y[j]
             distances[i, j] = euclidean_distance(x[i], y[j])
     return distances

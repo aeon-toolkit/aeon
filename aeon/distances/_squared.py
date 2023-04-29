@@ -132,14 +132,10 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
         # Single to multiple
         if X.ndim == 3 and y.ndim == 2:
             _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(
-                X, _y
-            )
+            return _squared_from_multiple_to_multiple_distance(X, _y)
         if y.ndim == 3 and X.ndim == 2:
             _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(
-                _x, y
-            )
+            return _squared_from_multiple_to_multiple_distance(_x, y)
         if X.ndim == 2 and y.ndim == 1:
             _x = X.reshape((X.shape[0], 1, X.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
@@ -163,6 +159,7 @@ def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
             distances[j, i] = distances[i, j]
 
     return distances
+
 
 @njit(cache=True, fastmath=True)
 def _squared_from_multiple_to_multiple_distance(

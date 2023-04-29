@@ -208,7 +208,7 @@ def _dtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def dtw_pairwise_distance(
-        X: np.ndarray, y: np.ndarray = None, window: float = None
+    X: np.ndarray, y: np.ndarray = None, window: float = None
 ) -> np.ndarray:
     """Compute the dtw pairwise distance between a set of time series.
 
@@ -282,14 +282,10 @@ def dtw_pairwise_distance(
         # Single to multiple
         if X.ndim == 3 and y.ndim == 2:
             _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(
-                X, _y, window
-            )
+            return _dtw_from_multiple_to_multiple_distance(X, _y, window)
         if y.ndim == 3 and X.ndim == 2:
             _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(
-                _x, y, window
-            )
+            return _dtw_from_multiple_to_multiple_distance(_x, y, window)
         if X.ndim == 2 and y.ndim == 1:
             _x = X.reshape((X.shape[0], 1, X.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
@@ -300,9 +296,6 @@ def dtw_pairwise_distance(
             return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
         else:
             raise ValueError("x and y must be 2D or 3D arrays")
-
-
-
 
 
 @njit(cache=True, fastmath=True)
@@ -318,6 +311,7 @@ def _dtw_pairwise_distance(X: np.ndarray, window: float) -> np.ndarray:
 
     return distances
 
+
 @njit(cache=True, fastmath=True)
 def _dtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float
@@ -332,6 +326,7 @@ def _dtw_from_multiple_to_multiple_distance(
             distances[i, j] = _dtw_distance(x[i], y[j], bounding_matrix)
     return distances
 
+
 @njit(cache=True, fastmath=True)
 def _dtw_from_single_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float
@@ -344,6 +339,7 @@ def _dtw_from_single_to_multiple_distance(
         distances[i] = _dtw_distance(x, y[i], bounding_matrix)
 
     return np.array([distances])
+
 
 @njit(cache=True, fastmath=True)
 def dtw_alignment_path(

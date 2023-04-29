@@ -7,10 +7,10 @@ from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_pairwise_result(
-        x: np.ndarray,
-        name,  # This will be used in a later pr
-        distance,
-        pairwise_distance,
+    x: np.ndarray,
+    name,  # This will be used in a later pr
+    distance,
+    pairwise_distance,
 ):
     multiple_to_multiple_result = pairwise_distance(x)
 
@@ -33,11 +33,11 @@ def _validate_pairwise_result(
 
 
 def _validate_multiple_to_multiple_result(
-        x,
-        y,
-        name,  # This will be used in a later pr
-        distance,
-        multiple_to_multiple_distance,
+    x,
+    y,
+    name,  # This will be used in a later pr
+    distance,
+    multiple_to_multiple_distance,
 ):
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
@@ -64,15 +64,13 @@ def _validate_multiple_to_multiple_result(
 
 
 def _validate_single_to_multiple_result(
-        x,
-        y,
-        name,  # This will be used in a later pr
-        distance,
-        single_to_multiple_distance,
+    x,
+    y,
+    name,  # This will be used in a later pr
+    distance,
+    single_to_multiple_distance,
 ):
     single_to_multiple_result = single_to_multiple_distance(x, y)
-
-    test = single_to_multiple_result.shape
 
     expected_size = len(y)
     if y.ndim == 1:
@@ -181,7 +179,10 @@ def test_multiple_to_multiple_distances(dist):
         dist["distance"],
         dist["pairwise_distance"],
     )
+
+
 new_distance = ["euclidean", "dtw"]
+
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):

@@ -7,17 +7,10 @@ import numpy as np
 from numba import njit
 
 from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_distance,
-    dtw_pairwise_distance
-)
+from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
-from aeon.distances._euclidean import (
-    euclidean_distance,
-    euclidean_pairwise_distance
-)
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -30,10 +23,7 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import (
-    squared_distance,
-    squared_pairwise_distance
-)
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import _WdtwDistance
