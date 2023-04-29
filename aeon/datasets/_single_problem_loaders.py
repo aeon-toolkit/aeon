@@ -1137,4 +1137,11 @@ def load_covid_3month(split=None, return_X_y=True):
     =Covid3Month
     """
     name = "Covid3Month"
-    return _load_dataset(name, split, return_X_y)
+    loaded_dataset = _load_dataset(name, split, return_X_y)
+    if return_X_y:
+        X, y = loaded_dataset
+        y = y.astype(float)
+        return X, y
+    else:
+        loaded_dataset["class_val"] = loaded_dataset["class_val"].astype(float)
+        return loaded_dataset
