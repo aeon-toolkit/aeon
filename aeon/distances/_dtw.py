@@ -330,20 +330,6 @@ def _dtw_from_multiple_to_multiple_distance(
 
 
 @njit(cache=True, fastmath=True)
-def _dtw_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float
-) -> np.ndarray:
-    n_instances = y.shape[0]
-    distances = np.zeros(n_instances)
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
-
-    for i in range(n_instances):
-        distances[i] = _dtw_distance(x, y[i], bounding_matrix)
-
-    return np.array([distances])
-
-
-@njit(cache=True, fastmath=True)
 def dtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
