@@ -229,6 +229,8 @@ def dtw_pairwise_distance(
     np.ndarray (n_instances, n_instances)
         dtw pairwise matrix between the instances of X.
 
+    Raises
+    ------
     ValueError
         If X is not 2D or 3D array when only passing X.
         If X and y are not 1D, 2D or 3D arrays when passing both X and y.

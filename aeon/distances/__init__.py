@@ -17,8 +17,6 @@ __all__ = [
     "ddtw_cost_matrix",
     "wdtw_distance",
     "wdtw_pairwise_distance",
-    "wdtw_from_single_to_multiple_distance",
-    "wdtw_from_multiple_to_multiple_distance",
     "wdtw_cost_matrix",
     "wdtw_alignment_path",
     "distance",
@@ -80,7 +78,5 @@ from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-    wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
 )

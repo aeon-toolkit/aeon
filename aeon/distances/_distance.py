@@ -34,7 +34,7 @@ from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
+    wdtw_pairwise_distance,
 )
 from aeon.distances.base import (
     AlignmentPathReturn,
@@ -1468,13 +1468,6 @@ _METRIC_INFOS = [
         dist_alignment_path_func=lcss_alignment_path,
     ),
     MetricInfo(
-        canonical_name="wdtw",
-        aka={"wdtw", "weighted dynamic time warping"},
-        dist_func=wdtw_distance,
-        dist_instance=_WdtwDistance(),
-        dist_alignment_path_func=wdtw_alignment_path,
-    ),
-    MetricInfo(
         canonical_name="wddtw",
         aka={"wddtw", "weighted derivative dynamic time warping"},
         dist_func=wddtw_distance,
@@ -1510,6 +1503,5 @@ ALL_DISTANCES = (
     lcss_distance,
     msm_distance,
     wddtw_distance,
-    wdtw_distance,
     twe_distance,
 )

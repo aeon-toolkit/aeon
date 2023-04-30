@@ -22,8 +22,6 @@ from aeon.distances import (
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-    wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
@@ -58,8 +56,6 @@ DISTANCES = [
         "name": "wdtw",
         "distance": wdtw_distance,
         "pairwise_distance": wdtw_pairwise_distance,
-        "single_to_multiple_distance": wdtw_from_single_to_multiple_distance,
-        "multiple_to_multiple_distance": wdtw_from_multiple_to_multiple_distance,
         "cost_matrix": wdtw_cost_matrix,
         "alignment_path": wdtw_alignment_path,
     },
