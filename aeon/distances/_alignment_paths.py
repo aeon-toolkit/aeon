@@ -91,11 +91,11 @@ def compute_lcss_return_path(
     path = []
 
     while i > 0 and j > 0:
-        if bounding_matrix[i - 1, j - 1]:
+        if bounding_matrix[i, j]:
             if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
                 path.append((i - 1, j - 1))
                 i, j = (i - 1, j - 1)
-            elif cost_matrix[i - 1][j] > cost_matrix[i - 1][j]:
+            elif cost_matrix[i - 1, j] > cost_matrix[i, j - 1]:
                 i = i - 1
             else:
                 j = j - 1

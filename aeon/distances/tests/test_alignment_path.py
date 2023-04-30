@@ -2,6 +2,7 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
+from tslearn.metrics import lcss_path
 
 from aeon.distances.tests._utils import create_test_distance_numpy
 from aeon.distances.tests.test_new_distances import DISTANCES
@@ -19,6 +20,13 @@ def _validate_cost_matrix_result(
     assert isinstance(alignment_path_result, tuple)
     assert isinstance(alignment_path_result[0], list)
     assert isinstance(alignment_path_result[1], float)
+
+    if name == "lcss":
+        tslearn_lcss_path = lcss_path(x, y, eps=1.0)
+        alignment_equal = alignment_path_result[0] == tslearn_lcss_path[0]
+        dist_equal = alignment_path_result[1] == tslearn_lcss_path[1]
+        joe = ""
+
 
     distance_result = distance(x, y)
     assert_almost_equal(alignment_path_result[1], distance_result)
