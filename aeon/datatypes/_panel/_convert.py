@@ -492,7 +492,7 @@ convert_dict[("nested_univ", "pd-long", "Panel")] = from_nested_to_long_adp
 
 
 def from_nplist_to_nested(np_list, store=None):
-    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
+    """Convert from a a list of 2D numpy to nested pd.DataFrame ."""
     n_cases = len(np_list)
     n_channels = np_list[0].shape[0]
     df = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
@@ -504,6 +504,16 @@ def from_nplist_to_nested(np_list, store=None):
 
 
 convert_dict[("np-list", "nested_univ", "Panel")] = from_nplist_to_nested
+
+
+def from_nplist_to_df_list(np_list, store=None):
+    """Convert from a list of 2D numpy to list of dataframes."""
+    nested = from_nplist_to_nested(np_list)
+    dflist = from_nested_to_df_list_adp(nested)
+    return dflist
+
+
+convert_dict[("np-list", "df-list", "Panel")] = from_nplist_to_df_list
 
 
 def from_nested_to_nplist(nested_df, store=None):

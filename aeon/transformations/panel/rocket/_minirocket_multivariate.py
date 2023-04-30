@@ -96,7 +96,7 @@ class MiniRocketMultivariate(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -123,7 +123,7 @@ class MiniRocketMultivariate(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -543,7 +543,7 @@ def _fit_multi(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
     if seed is not None:
         np.random.seed(seed)
 
-    _, n_columns, n_timepoints = X.shape
+    _, n_channels, n_timepoints = X.shape
 
     num_kernels = 84
 
@@ -558,7 +558,7 @@ def _fit_multi(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
     num_dilations = len(dilations)
     num_combinations = num_kernels * num_dilations
 
-    max_num_channels = min(n_columns, 9)
+    max_num_channels = min(n_channels, 9)
     max_exponent = np.log2(max_num_channels + 1)
 
     num_channels_per_combination = (
@@ -572,7 +572,7 @@ def _fit_multi(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
         num_channels_this_combination = num_channels_per_combination[combination_index]
         num_channels_end = num_channels_start + num_channels_this_combination
         channel_indices[num_channels_start:num_channels_end] = np.random.choice(
-            n_columns, num_channels_this_combination, replace=False
+            n_channels, num_channels_this_combination, replace=False
         )
 
         num_channels_start = num_channels_end
