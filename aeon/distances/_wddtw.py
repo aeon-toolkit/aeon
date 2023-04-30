@@ -17,7 +17,7 @@ from aeon.distances._ddtw import average_of_slope
 from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wddtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
@@ -70,7 +70,7 @@ def wddtw_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
     >>> wddtw_distance(x, y)
-    981.3337504836303
+    981.3337504836304
 
     References
     ----------
@@ -99,7 +99,7 @@ def wddtw_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wddtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -170,7 +170,7 @@ def wddtw_cost_matrix(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wddtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
 ) -> np.ndarray:
@@ -265,7 +265,7 @@ def wddtw_pairwise_distance(
             raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wddtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -285,7 +285,7 @@ def _wddtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarr
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _wddtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
@@ -311,7 +311,7 @@ def _wddtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def wddtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
