@@ -19,7 +19,7 @@ from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 @njit(cache=True)
 def wddtw_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
     r"""Compute the wddtw distance between two time series.
 
@@ -101,7 +101,7 @@ def wddtw_distance(
 
 @njit(cache=True)
 def wddtw_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wddtw cost matrix between two time series.
 
@@ -172,7 +172,7 @@ def wddtw_cost_matrix(
 
 @njit(cache=True)
 def wddtw_pairwise_distance(
-        X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
+    X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
 ) -> np.ndarray:
     """Compute the wddtw pairwise distance between a set of time series.
 
@@ -287,7 +287,7 @@ def _wddtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarr
 
 @njit(cache=True)
 def _wddtw_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray, y: np.ndarray, window: float, g: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -313,7 +313,7 @@ def _wddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True)
 def wddtw_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the wddtw alignment path between two time series.
 
