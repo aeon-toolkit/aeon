@@ -73,13 +73,13 @@ from aeon.distances._dtw import (
     dtw_pairwise_distance,
 )
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._lcss import (
     lcss_alignment_path,
     lcss_cost_matrix,
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,

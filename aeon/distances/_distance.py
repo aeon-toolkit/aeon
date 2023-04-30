@@ -18,7 +18,7 @@ from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_dis
 from aeon.distances._lcss import (
     lcss_alignment_path,
     lcss_distance,
-    lcss_pairwise_distance
+    lcss_pairwise_distance,
 )
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
