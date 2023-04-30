@@ -6,7 +6,7 @@ __author__ = ["fkiraly"]
 __all__ = ["FixedParams"]
 
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES
-from aeon.param_est.base import BaseParamFitter
+from aeon.forecasting.param_est.base import BaseParamFitter
 
 
 class FixedParams(BaseParamFitter):

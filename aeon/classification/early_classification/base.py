@@ -571,7 +571,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         Returns
         -------
         X : input X converted to type in "X_inner_mtype" tag
-                usually a pd.DataFrame (nested) or 3D np.ndarray
+                usually a 3D np.ndarray
             Checked and possibly converted input data
         """
         _convert_X = BaseClassifier._convert_X
