@@ -44,7 +44,7 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
@@ -116,7 +116,7 @@ def lcss_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -184,7 +184,7 @@ def lcss_cost_matrix(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
@@ -194,7 +194,7 @@ def _lcss_distance(
     return 1 - float(distance / min(x.shape[1], y.shape[1]))
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
@@ -219,7 +219,7 @@ def _lcss_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
@@ -318,7 +318,7 @@ def lcss_pairwise_distance(
             raise ValueError("x and y must be 2D or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -332,7 +332,7 @@ def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float, epsilon: float
 ) -> np.ndarray:
@@ -347,7 +347,7 @@ def _lcss_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
