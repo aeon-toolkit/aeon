@@ -272,24 +272,24 @@ def wdtw_pairwise_distance(
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> wdtw_pairwise_distance(X)
-    array([[  0.,  26., 108.],
-           [ 26.,   0.,  26.],
-           [108.,  26.,   0.]])
+    array([[ 0.        , 12.61266072, 51.97594869],
+           [12.61266072,  0.        , 12.61266072],
+           [51.97594869, 12.61266072,  0.        ]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
     >>> wdtw_pairwise_distance(X, y)
-    array([[300., 507., 768.],
-           [147., 300., 507.],
-           [ 48., 147., 300.]])
+    array([[144.37763524, 243.99820355, 369.60674621],
+           [ 70.74504127, 144.37763524, 243.99820355],
+           [ 23.10042164,  70.74504127, 144.37763524]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     >>> wdtw_pairwise_distance(X, y_univariate)
-    array([[300.],
-           [147.],
-           [ 48.]])
+    array([[144.37763524],
+           [ 70.74504127],
+           [ 23.10042164]])
     """
     if y is None:
         # To self
