@@ -83,8 +83,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-format pandas dataframe with shape(n,d),
-        or numpy ndarray with shape(n,d,m)
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -112,7 +111,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-format pandas dataframe or array-like, shape (n, d)
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------

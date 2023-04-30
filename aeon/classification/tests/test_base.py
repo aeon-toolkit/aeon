@@ -206,14 +206,14 @@ def _create_unequal_length_nested_dataframe(cases=5, dimensions=1, length=10):
     return testy
 
 
-MTYPES = ["numpy3D", "pd-multiindex", "df-list", "numpyflat"]
+INPUT_TYPES = ["numpy3D", "pd-multiindex", "df-list", "numpyflat"]
 
 
-@pytest.mark.parametrize("mtype", MTYPES)
-def test_input_conversion_fit_predict(mtype):
+@pytest.mark.parametrize("input_type", INPUT_TYPES)
+def test_input_conversion_fit_predict(input_type):
     """Test that base class lets all valid input types through."""
     y = _make_classification_y()
-    X = _make_panel(return_mtype=mtype)
+    X = _make_panel(return_mtype=input_type)
 
     clf = DummyClassifier()
     clf.fit(X, y)

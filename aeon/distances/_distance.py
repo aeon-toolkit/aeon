@@ -7,17 +7,10 @@ import numpy as np
 from numba import njit
 
 from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_distance,
-    dtw_from_multiple_to_multiple_distance,
-)
+from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import _ErpDistance
-from aeon.distances._euclidean import (
-    euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
-)
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import _LcssDistance
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -30,10 +23,7 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import (
-    squared_distance,
-    squared_from_multiple_to_multiple_distance,
-)
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import _WddtwDistance
 from aeon.distances._wdtw import _WdtwDistance
@@ -1570,11 +1560,11 @@ def pairwise_distance(
     _y = _make_3d_series(y)
     if metric in NEW_DISTANCES:
         if metric == "euclidean":
-            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+            return euclidean_pairwise_distance(_x, _y)
         elif metric == "squared":
-            return squared_from_multiple_to_multiple_distance(_x, _y)
+            return squared_pairwise_distance(_x, _y)
         elif metric == "dtw":
-            return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return dtw_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
