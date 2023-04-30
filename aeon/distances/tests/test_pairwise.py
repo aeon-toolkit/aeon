@@ -113,7 +113,7 @@ def test_pairwise_distance(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_multiple_to_multiple_distances(dist):
     # Univariate tests
-    if dist["name"] != "ddtw":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_multiple_to_multiple_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -189,7 +189,7 @@ new_distance = ["euclidean", "dtw"]
 def test_new_single_to_multiple_distances(dist):
     # Univariate tests
 
-    if dist["name"] != "ddtw":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_single_to_multiple_result(
             np.array([10.0]),
             np.array([[15.0]]),
