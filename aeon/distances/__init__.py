@@ -5,34 +5,22 @@ __all__ = [
     "create_bounding_matrix",
     "squared_distance",
     "squared_pairwise_distance",
-    "squared_from_single_to_multiple_distance",
-    "squared_from_multiple_to_multiple_distance",
     "euclidean_distance",
     "euclidean_pairwise_distance",
-    "euclidean_from_single_to_multiple_distance",
-    "euclidean_from_multiple_to_multiple_distance",
     "dtw_distance",
     "dtw_pairwise_distance",
-    "dtw_from_single_to_multiple_distance",
-    "dtw_from_multiple_to_multiple_distance",
     "dtw_cost_matrix",
     "dtw_alignment_path",
     "ddtw_distance",
     "ddtw_pairwise_distance",
-    "ddtw_from_single_to_multiple_distance",
-    "ddtw_from_multiple_to_multiple_distance",
     "ddtw_alignment_path",
     "ddtw_cost_matrix",
     "wdtw_distance",
     "wdtw_pairwise_distance",
-    "wdtw_from_single_to_multiple_distance",
-    "wdtw_from_multiple_to_multiple_distance",
     "wdtw_cost_matrix",
     "wdtw_alignment_path",
     "wddtw_distance",
     "wddtw_pairwise_distance",
-    "wddtw_from_single_to_multiple_distance",
-    "wddtw_from_multiple_to_multiple_distance",
     "wddtw_alignment_path",
     "wddtw_cost_matrix",
     "distance",
@@ -59,8 +47,6 @@ from aeon.distances._ddtw import (
     ddtw_alignment_path,
     ddtw_cost_matrix,
     ddtw_distance,
-    ddtw_from_multiple_to_multiple_distance,
-    ddtw_from_single_to_multiple_distance,
     ddtw_pairwise_distance,
 )
 from aeon.distances._distance import (
@@ -84,35 +70,19 @@ from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
-    dtw_from_multiple_to_multiple_distance,
-    dtw_from_single_to_multiple_distance,
     dtw_pairwise_distance,
 )
-from aeon.distances._euclidean import (
-    euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
-    euclidean_from_single_to_multiple_distance,
-    euclidean_pairwise_distance,
-)
-from aeon.distances._squared import (
-    squared_distance,
-    squared_from_multiple_to_multiple_distance,
-    squared_from_single_to_multiple_distance,
-    squared_pairwise_distance,
-)
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
     wddtw_distance,
-    wddtw_from_multiple_to_multiple_distance,
-    wddtw_from_single_to_multiple_distance,
     wddtw_pairwise_distance,
 )
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
-    wdtw_from_single_to_multiple_distance,
     wdtw_pairwise_distance,
 )
