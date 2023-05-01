@@ -19,8 +19,6 @@ DIRNAME = "data"
 
 # Return appropriate return_type in case an alias was used
 def _alias_datatype_check(return_type):
-    if return_type is None:
-        return_type = "np-list"
     if return_type in ["numpy2d", "numpy2D", "np2d", "np2D"]:
         return_type = "numpyflat"
     if return_type in ["numpy3d", "np3d", "np3D"]:
@@ -199,8 +197,9 @@ def load_from_tsfile(
     with open(full_file_path_and_name, "r", encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
-        # if equal load to 3D numpy
+        # load into list of numpy
         data, y, meta_data = _load_data(file, meta_data)
+        # if equal load to 3D numpy
         if meta_data["equallength"]:
             data = np.array(data)
     # All this is for backward compatibility and can be deprecated in time
@@ -263,21 +262,28 @@ def _load_provided_dataset(
     """
     if isinstance(split, str):
         split = split.upper()
+    # This is also called in load_from_tsfile, but we need the value here and it
+    # is required in load_from_tsfile since it is public
+    return_type = _alias_datatype_check(return_type)
 
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
+        X, y, meta_data = load_from_tsfile(
+            abspath, return_meta_data=True, return_type=return_type
+        )
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
+        X_train, y_train, meta_data = load_from_tsfile(
+            abspath, return_meta_data=True, return_type=return_type
+        )
 
         fname = name + "_TEST.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
-            abspath, return_meta_data=True
+            abspath, return_meta_data=True, return_type=return_type
         )
         # TODO Check meta data matches
         if meta_data["equallength"]:
@@ -291,7 +297,6 @@ def _load_provided_dataset(
 
     #    return_type = _alias_datatype_check(return_type)
     #    # Check its a valid type, warn if not?
-    return_type = _alias_datatype_check(return_type)
     if isinstance(X, list):
         loaded_type = "np-list"
     elif isinstance(X, np.ndarray):
@@ -301,11 +306,21 @@ def _load_provided_dataset(
             loaded_type = "numpy3D"
         else:
             raise ValueError(f" Loaded numpy arrays must be 2D or 3D, saw {X.ndims}")
+    elif isinstance(X, pd.DataFrame):
+        loaded_type = "nested_univ"
     else:
-        raise ValueError(f" Loaded collection must be numpy or list, saw {type(X)}")
+        raise ValueError(
+            f" Loaded collection must be numpy, list or dataframe, saw" f" {type(X)}"
+        )
 
+    if return_type is None:
+        if meta_data["equallength"]:
+            return_type = "numpy3D"
+        else:
+            return_type = "np-list"
     if return_X_y:
-        X = convert(X, from_type=loaded_type, to_type=return_type)
+        if loaded_type != return_type:
+            X = convert(X, from_type=loaded_type, to_type=return_type)
         return X, y
     else:  # TODO: do this better
         X = convert(X, from_type=loaded_type, to_type="nested_univ")

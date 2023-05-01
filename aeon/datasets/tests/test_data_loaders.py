@@ -41,10 +41,10 @@ def test_load_provided_dataset(return_X_y, return_type):
         assert isinstance(y, np.ndarray)
     else:
         X = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
-    if return_type == "numpy3D":
-        assert isinstance(X, np.ndarray)
-    elif return_type == "nested_univ":
+    if not return_X_y or return_type == "nested_univ":
         assert isinstance(X, pd.DataFrame)
+    elif return_type == "numpy3D":
+        assert isinstance(X, np.ndarray)
 
     # Check whether object is same mtype or not, via bool
 
@@ -61,7 +61,7 @@ def test_load_from_tsfile():
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
-    X, y = load_from_tsfile(data_path, return_type="np2D", return_meta_data=False)
+    X, y = load_from_tsfile(data_path, return_type="numpy2D", return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 2
     assert X.shape == (20, 24) and y.shape == (20,)
