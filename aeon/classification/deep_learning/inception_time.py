@@ -572,8 +572,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
-                tf.keras.callbacks.ModelCheckpoint(file_path=self.file_path + \
-                 "best_model.hdf5", monitor="loss", save_best_only=True)
+                tf.keras.callbacks.ModelCheckpoint(
+                    file_path=self.file_path + "best_model.hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
             ]
             if self.callbacks is None
             else self.callbacks
@@ -590,8 +593,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + "best_model.hdf5",
-                compile=False
+                self.file_path + "best_model.hdf5", compile=False
             )
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
