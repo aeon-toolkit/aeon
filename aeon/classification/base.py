@@ -376,11 +376,11 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : any object (to check/convert)
-            should be of a supported Panel mtype or 2D numpy.ndarray
+            should be of a supported Collection type or 2D numpy.ndarray
 
         Returns
         -------
-        X: an object of a supported Panel mtype, numpy3D if X was a 2D numpy.ndarray
+        X: an object of a supported Collection type, numpy3D if X was a 2D numpy.ndarray
 
         Raises
         ------

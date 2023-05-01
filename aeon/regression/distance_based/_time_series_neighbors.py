@@ -43,7 +43,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
                                 metric='mpdist', metric_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
             output must be mxn array if X is array of m Series, X2 of n Series
-        can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
     distance_params : dict, optional. default = None.
         dictionary for metric parameters , in case that distance is a str
 
@@ -89,9 +88,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
-        y : {array-like, sparse matrix}
-            Target values of shape = [n_samples]
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
         """
         if isinstance(self.distance, str):
             if self.distance_params is None:
@@ -110,11 +110,12 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
 
         Returns
         -------
-        y : array of shape [n_samples] or [n_samples, n_outputs]
+        y : array of shape [n_instances]
             Target values for each data sample.
         """
         self.check_is_fitted()
@@ -133,7 +134,8 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : aeon-compatible data format, Panel or Series, with n_samples series
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
 
         Returns
         -------
