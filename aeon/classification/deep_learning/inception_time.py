@@ -4,6 +4,8 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+from copy import deepcopy
+
 import numpy as np
 from sklearn.utils import check_random_state
 
@@ -57,11 +59,11 @@ class InceptionTimeClassifier(BaseClassifier):
             the dilation rate of convolutions in each inception
             module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception
             module, if not a list,
             the same is used in all inception modules
@@ -91,7 +93,7 @@ class InceptionTimeClassifier(BaseClassifier):
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = './'
+        file_path           : str, default = "./"
             file_path when saving model_Checkpoint callback
         random_state        : int, default = 0
             seed to any needed random actions.
@@ -350,11 +352,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         dilation_rate       : int or list of int, default = 1,
             the dilation rate of convolutions in each inception module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
@@ -381,7 +383,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = './'
+        file_path           : str, default = "./"
             file_path when saving model_Checkpoint callback
         random_state        : int, default = 0
             seed to any needed random actions.
@@ -560,22 +562,24 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
             mini_batch_size = self.batch_size
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
 
         self.callbacks_ = (
             [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
+                ),
+                tf.keras.callbacks.ModelCheckpoint(file_path=self.file_path + \
+                 "best_model.hdf5", monitor="loss", save_best_only=True)
             ]
             if self.callbacks is None
             else self.callbacks
         )
 
-        self.history = self.model_.fit(
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
@@ -583,6 +587,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=self.callbacks_,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + "best_model.hdf5",
+                compile=False
+            )
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
 
         return self
 
