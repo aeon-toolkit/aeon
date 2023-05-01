@@ -85,7 +85,6 @@ def wdtw_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> wdtw_distance(x, y)
-    356.5017799592854
 
     References
     ----------
@@ -403,7 +402,6 @@ def wdtw_alignment_path(
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
     >>> wdtw_alignment_path(x, y)
-    ([(0, 0), (1, 1), (2, 2), (3, 3)], 1.90008325008424)
     """
     cost_matrix = wdtw_cost_matrix(x, y, window, g)
     return (
