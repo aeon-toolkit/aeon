@@ -22,10 +22,17 @@ def _validate_cost_matrix_result(
     assert isinstance(alignment_path_result[1], float)
 
     if name == "lcss":
-        tslearn_lcss_path = lcss_path(x, y, eps=1.0)
-        alignment_equal = alignment_path_result[0] == tslearn_lcss_path[0]
-        dist_equal = alignment_path_result[1] == tslearn_lcss_path[1]
-        joe = ""
+        if x.ndim != 3 and y.ndim != 3:
+            tslearn_x = x
+            tslearn_y = y
+            if x.ndim == 2:
+                tslearn_x = x.reshape((x.shape[1], x.shape[0]))
+            if x.ndim == 2:
+                tslearn_y = y.reshape((y.shape[1], y.shape[0]))
+            tslearn_lcss_path = lcss_path(tslearn_x, tslearn_y, eps=1.0)
+            alignment_equal = alignment_path_result[0] == tslearn_lcss_path[0]
+            dist_equal = alignment_path_result[1] == tslearn_lcss_path[1]
+            joe = ""
 
 
     distance_result = distance(x, y)
