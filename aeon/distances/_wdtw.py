@@ -402,6 +402,7 @@ def wdtw_alignment_path(
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
     >>> wdtw_alignment_path(x, y)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 1.90008325008424)
     """
     cost_matrix = wdtw_cost_matrix(x, y, window, g)
     return (
