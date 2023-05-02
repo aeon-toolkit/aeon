@@ -293,7 +293,7 @@ def _load_provided_dataset(
     elif meta_data["equallength"]:
         if return_type == "numpyflat" and X.shape[1] == 1:
             X = X.squeeze()
-    if return_type is not None and loaded_type != return_type:
+    elif return_type is not None and loaded_type != return_type:
         X = convert(X, from_type=loaded_type, to_type=return_type)
     if return_X_y:
         return X, y

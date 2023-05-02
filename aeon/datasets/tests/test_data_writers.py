@@ -64,7 +64,7 @@ def test_write_dataframe_to_ts(dataset_name):
         suffix="_TRAIN",
     )
     # load data back from the ts file into dataframe
-    load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
+    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
     newX, newy = load_from_tsfile_to_dataframe(load_path)
     # check if the dataframes are the same
     #    assert_frame_equal(newX, X)
