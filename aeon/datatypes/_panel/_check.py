@@ -136,7 +136,7 @@ def _has_nans(arr):
 
 def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
     if not isinstance(np_list, list):
-        msg = f"{var_name} must be list of 1D or 2D np.ndarray, found {type(np_list)}"
+        msg = f"{var_name} must be list of np.ndarray, found {type(np_list)}"
         return _ret(False, msg, None, return_metadata)
 
     n = len(np_list)
@@ -150,11 +150,11 @@ def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
     bad_inds = [
         i
         for i in range(n)
-        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim < 3
+        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim == 2
     ]
 
     if len(bad_inds) > 0:
-        msg = f"{var_name}[i] must be of type 1D or 2D np.ndarray, not at i={bad_inds}"
+        msg = f"{var_name}[i] must be of type 2D np.ndarray, not at i={bad_inds}"
         return _ret(False, msg, None, return_metadata)
     metadata = dict()
     if return_metadata:
