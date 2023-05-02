@@ -6,7 +6,10 @@ import pytest
 
 """Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_loaders import _load_provided_dataset
+from aeon.datasets._data_loaders import (
+    _load_provided_dataset,
+    load_from_tsfile_to_dataframe,
+)
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
 
 
@@ -54,19 +57,15 @@ def test_write_dataframe_to_ts(dataset_name):
     # output the dataframe in a ts file
     _write_dataframe_to_tsfile(
         X=X,
-        path=f"./Temp{dataset_name}/",
+        path=f"./Temp/{dataset_name}/",
         y=y,
         problem_name=dataset_name,
         equal_length=True,
         suffix="_TRAIN",
     )
-    # load data back from the ts file
-
-
-#    load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
-
-
-#    newX, newy = _load_from_tsfile_to_dataframe(load_path)
-# check if the dataframes are the same
-#    assert_frame_equal(newX, X)
-#    assert np.array_equal(y, newy)
+    # load data back from the ts file into dataframe
+    load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
+    newX, newy = load_from_tsfile_to_dataframe(load_path)
+    # check if the dataframes are the same
+    #    assert_frame_equal(newX, X)
+    assert np.array_equal(y, newy)
