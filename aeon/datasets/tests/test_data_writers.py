@@ -44,7 +44,7 @@ def test_write_to_tsfile_unequal_length(dataset_name):
     assert len(X) == len(newX)
     assert X[0][0][0] == newX[0][0][0]
     assert np.array_equal(y, newy)
-    shutil.rmtree(f"./Temp/{dataset_name}/")
+    shutil.rmtree("./Temp")
 
 
 @pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
@@ -69,4 +69,4 @@ def test_write_dataframe_to_ts(dataset_name):
     # check if the dataframes are the same
     #    assert_frame_equal(newX, X)
     assert np.array_equal(y, newy)
-    shutil.rmtree(f"./Temp/{dataset_name}")
+    shutil.rmtree("./Temp/")
