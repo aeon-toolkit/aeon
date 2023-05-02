@@ -86,7 +86,7 @@ DIST_PARAMS = {
     "ddtw": BASIC_BOUNDING_PARAMS,
     "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
-    "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}, {"p": 4}],
+    "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
 }
 
 

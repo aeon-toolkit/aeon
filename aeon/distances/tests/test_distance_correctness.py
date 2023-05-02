@@ -58,7 +58,7 @@ unit_test_distances = {
     "edr": [1.0, 0.58333, 0.125],
     "ddtw": [80806.0, 76289.0625, 76289.0625],
     "wddtw": [38144.53125, 19121.4927, 1.34957],
-    "twe": [242.001, 628.0029999999999, 3387.044],
+    "twe": [137.001, 567.0029999999999, 3030.036000000001],
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
@@ -71,7 +71,7 @@ basic_motions_distances = {
     "lcss": [1.0, 0.26, 0.05],
     "ddtw": [297.18771, 160.51311645984856, 160.29823],
     "wddtw": [80.149117, 1.458858, 0.0],
-    "twe": [1.325876246546281, 14.759114523578294, 218.21301289250758],
+    "twe": [1.001, 12.620531031063596, 173.3596688781867],
 }
 
 
@@ -155,7 +155,7 @@ def test_univariate_correctness():
         d2 = wddtw_distance(cases1[1], cases2[1], g=distance_parameters["wddtw"][j])
         assert_almost_equal(d, unit_test_distances["wddtw"][j], 4)
         assert d == d2
-        d = twe_distance(cases1[0], cases2[1], window=distance_parameters["twe"][j])
+        d = twe_distance(cases1[0], cases2[0], window=distance_parameters["twe"][j])
         d2 = twe_distance(cases1[1], cases2[1], window=distance_parameters["twe"][j])
         twe_uni.append(d)
         assert_almost_equal(d, unit_test_distances["twe"][j], 4)
