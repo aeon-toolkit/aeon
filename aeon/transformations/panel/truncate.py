@@ -116,5 +116,5 @@ class TruncationTransformer(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        params = {"lower": 5}
+        params = {"truncated_length": 5}
         return params
