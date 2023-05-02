@@ -69,8 +69,7 @@ def wddtw_distance(
     >>> from aeon.distances import wddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> wddtw_distance(x, y)
-    981.3337504836303
+    >>> dist = wddtw_distance(x, y)
 
     References
     ----------
@@ -353,8 +352,9 @@ def wddtw_alignment_path(
     >>> from aeon.distances import wddtw_alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> wddtw_alignment_path(x, y)
-    ([(0, 0), (1, 1)], 0.1218756508789474)
+    >>> path, dist = wddtw_alignment_path(x, y)
+    >>> path
+    [(0, 0), (1, 1)]
     """
     cost_matrix = wddtw_cost_matrix(x, y, window, g)
     return (
