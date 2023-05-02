@@ -18,10 +18,10 @@ import aeon
 from aeon.datasets import (
     generate_example_long_table,
     load_from_long_to_dataframe,
-    load_from_tsfile,
+    load_from_tsfile_old,
     load_from_tsfile_to_dataframe,
+    load_TSC_dataset,
     load_tsf_to_dataframe,
-    load_UCR_UEA_dataset,
     load_uschange,
     write_dataframe_to_tsfile,
     write_panel_to_tsfile,
@@ -52,8 +52,8 @@ def test_write_panel_to_tsfile_equal_length(dataset_name, return_type):
     X, y = _load_provided_dataset(dataset_name, split="TRAIN", return_type=return_type)
     write_panel_to_tsfile(data=X, path="./Temp", target=y, problem_name=dataset_name)
     load_path = f"./Temp/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile(
-        full_file_path_and_name=load_path, return_data_type=return_type
+    newX, newy = load_from_tsfile_old(
+        full_file_path_and_name=load_path, return_type=return_type
     )
     assert np.array_equal(y, newy)
     shutil.rmtree("./Temp")
@@ -73,8 +73,8 @@ def test_write_panel_to_tsfile_unequal_length(dataset_name):
         data=X, path=f"./Temp{dataset_name}/", target=y, problem_name=dataset_name
     )
     load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile(
-        full_file_path_and_name=load_path, return_data_type="nested_univ"
+    newX, newy = load_from_tsfile_old(
+        full_file_path_and_name=load_path, return_type="nested_univ"
     )
     assert np.array_equal(y, newy)
     shutil.rmtree(f"./Temp{dataset_name}")
@@ -112,13 +112,13 @@ def test_load_from_tsfile():
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
-    X, y = load_from_tsfile(data_path, return_data_type="np2D")
-    X2 = load_from_tsfile(data_path, return_y=False, return_data_type="np2D")
+    X, y = load_from_tsfile_old(data_path, return_type="np2D")
+    X2 = load_from_tsfile_old(data_path, return_y=False, return_type="np2D")
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 2 and X2.ndim == 2
     assert X.shape == (20, 24) and y.shape == (20,)
     assert X[0][0] == 573.0
-    X2 = load_from_tsfile(data_path, return_y=False, return_data_type="numpy3D")
+    X2 = load_from_tsfile_old(data_path, return_y=False, return_type="numpy3D")
     assert isinstance(X2, np.ndarray)
     assert X2.ndim == 3
     assert X2.shape == (20, 1, 24)
@@ -127,11 +127,11 @@ def test_load_from_tsfile():
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
     data_path = MODULE + "/data/BasicMotions/BasicMotions_TRAIN.ts"
-    X, y = load_from_tsfile(data_path, return_data_type="numpy3d")
+    X, y = load_from_tsfile_old(data_path, return_type="numpy3d")
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
-    X, y = load_from_tsfile(data_path)
+    X, y = load_from_tsfile_old(data_path)
     assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6) and y.shape == (40,)
     assert isinstance(X.iloc[1, 2], pd.Series)
@@ -140,13 +140,13 @@ def test_load_from_tsfile():
     # Test 3.1: load univariate unequal length (PLAID), should return a one column
     # dataframe,
     data_path = MODULE + "/data/PLAID/PLAID_TRAIN.ts"
-    X, y = load_from_tsfile(full_file_path_and_name=data_path)
+    X, y = load_from_tsfile_old(full_file_path_and_name=data_path)
     assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
     assert X.shape == (537, 1) and y.shape == (537,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
     data_path = MODULE + "/data/JapaneseVowels/JapaneseVowels_TRAIN.ts"
-    X, y = load_from_tsfile(full_file_path_and_name=data_path)
+    X, y = load_from_tsfile_old(full_file_path_and_name=data_path)
     assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
     assert X.shape == (270, 12) and y.shape == (270,)
 
@@ -157,7 +157,7 @@ def test_load_UCR_UEA_dataset():
     Note this does not test whether download from timeseriesclassification.com works
     correctly, since this would make testing dependent on an external website.
     """
-    X, y = load_UCR_UEA_dataset(name="UnitTest")
+    X, y = load_TSC_dataset(name="UnitTest")
     assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
     assert X.shape == (42, 1) and y.shape == (42,)
 

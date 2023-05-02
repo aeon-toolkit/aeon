@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+import os
+
 import numpy as np
+import pandas as pd
 
-from aeon.datasets._data_io import load_from_tsfile_to_dataframe
+from aeon.datatypes import convert
 
-VALID_RETURN_TYPES = ["numpy3d", "numpy2d", "np3d", "np2d", "numpy_list", "nested_univ"]
+VALID_RETURN_TYPES = ["numpy3d", "numpy2d", "np3d", "np2d", "np_list", "nested_univ"]
+DIRNAME = "data"
+MODULE = os.path.dirname(__file__)
 
 
 def _load_header_info(file):
@@ -167,21 +172,118 @@ def load_from_tsfile(
     ------
     IOError if the load fails
     """
+    # Check file ends in .ts, if not, insert
+    if not full_file_path_and_name.endswith(".ts"):
+        full_file_path_and_name = full_file_path_and_name + ".ts"
     # Open file
     with open(full_file_path_and_name, "r", encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
         # if equal load to 3D numpy
+        data, y, meta_data = _load_data(file, meta_data)
         if meta_data["equallength"]:
-            data, y, meta_data = _load_data(file, meta_data)
-        # otherwise return dataframe for now, soon to be list of numpy
-        else:
-            data, y = load_from_tsfile_to_dataframe(
-                full_file_path_and_name=full_file_path_and_name,
-                return_separate_X_and_y=True,
-                replace_missing_vals_with=replace_missing_vals_with,
-            )
-            meta_data = {}
+            data = np.array(data)
     if return_meta_data:
         return data, y, meta_data
     return data, y
+
+
+def _load_provided_dataset(
+    name,
+    split=None,
+    return_X_y=True,
+    return_type=None,
+    local_module=MODULE,
+    local_dirname=DIRNAME,
+    return_meta=False,
+):
+    """Load baked in time series classification datasets (helper function).
+
+    Loads data from the provided files from aeon/datasets/data only.
+
+    Parameters
+    ----------
+    name : string, file name to load from
+    split: None or one of "TRAIN", "TEST", optional (default=None)
+        Whether to load the train or test instances of the problem.
+        By default it loads both train and test instances (in a single container).
+    return_X_y: bool, optional (default=True)
+        If True, returns (features, target) separately instead of a single
+        dataframe with columns for features and the target.
+    return_data_type : str, optional, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d. If None will load 3D numpy or list of numpy
+        There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not necessarily be supported longterm.
+    local_module: default = os.path.dirname(__file__),
+    local_dirname: default = "data"
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
+
+    Returns
+    -------
+    X: Data stored in specified `return_type`
+        The time series data for the problem, with n instances
+    y: 1D numpy array of length n, only returned if return_X_y if True
+        The class labels for each time series instance in X
+        If return_X_y is False, y is appended to X instead.
+    """
+    if isinstance(split, str):
+        split = split.upper()
+
+    if split in ("TRAIN", "TEST"):
+        fname = name + "_" + split + ".ts"
+        abspath = os.path.join(local_module, local_dirname, name, fname)
+        X, y, meta_data = load_from_tsfile(abspath)
+    # if split is None, load both train and test set
+    elif split is None:
+        fname = name + "_TRAIN.ts"
+        abspath = os.path.join(local_module, local_dirname, name, fname)
+        X_train, y_train, meta_data = load_from_tsfile(abspath)
+
+        fname = name + "_TEST.ts"
+        abspath = os.path.join(local_module, local_dirname, name, fname)
+        X_test, y_test, meta_data_test = load_from_tsfile(abspath)
+        # TODO Check meta data matches
+        if meta_data["equallength"]:
+            X = np.concatenate([X_train, X_test])
+        else:
+            X = X_train + X_test
+        y = np.concatenate([y_train, y_test])
+
+    else:
+        raise ValueError("Invalid `split` value =", split)
+
+    #    return_type = _alias_datatype_check(return_type)
+    #    # Check its a valid type, warn if not?
+
+    if isinstance(X, list):
+        loaded_type = "np-list"
+    elif isinstance(X, np.ndarray):
+        if X.ndim == 2:
+            loaded_type = "numpy2D"
+        elif X.ndim == 3:
+            loaded_type = "numpy3D"
+        else:
+            raise ValueError(f" Loaded numpy arrays must be 2D or 3D, saw {X.ndims}")
+    else:
+        raise ValueError(f" Loaded collection must be numpy or list, saw {type(X)}")
+
+    if return_X_y:
+        X = convert(X, from_type=loaded_type, to_type=return_type)
+        if return_meta:
+            return X, y, meta_data
+        else:
+            return X, y
+    else:  # TODO: do this better
+        X = convert(X, from_type=loaded_type, to_type="nested_univ")
+        X["class_val"] = pd.Series(y)
+        X = convert(X, from_type="nested_univ", to_type=return_type)
+        if return_meta:
+            return X, meta_data
+        else:
+            return X
