@@ -29,7 +29,7 @@ class TruncationTransformer(BaseTransformer):
     _tags = {
         "scitype:transform-output": "Series",
         "scitype:instancewise": False,
-        "X_inner_mtype": "np-list",
+        "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_mtype": "None",
         "fit_is_empty": False,
         "capability:unequal_length:removes": True,
@@ -56,7 +56,7 @@ class TruncationTransformer(BaseTransformer):
         Parameters
         ----------
         X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
-            where length_i can vary between time series.
+            where length_i can vary between time series or
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
