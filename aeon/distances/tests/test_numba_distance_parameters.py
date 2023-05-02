@@ -29,9 +29,15 @@ def _test_distance_params(
 
     i = 0
     for param_dict in param_list:
+        g_none = False
+        if distance_str == "erp" and "g" in param_dict and param_dict["g"] is None:
+            g_none = True
+
         j = 0
         curr_results = []
         for x, y in test_ts:
+            if g_none:
+                param_dict["g"] = np.std([x, y], axis=0).sum(axis=1)
             results = []
             curr_dist_fact = distance_factory(x, y, metric=distance_str, **param_dict)
             results.append(distance_func(x, y, **param_dict))
@@ -51,17 +57,15 @@ def _test_distance_params(
         i += 1
         results_to_fill.append(curr_results)
 
-    if distance_str == "erp":
-        param_dict = {"g": np.array([0.5])}
-        first_uni = distance_func(x_univ, y_univ, **param_dict)
-        second_uni = distance(x_univ, y_univ, metric=distance_str, **param_dict)
-        param_dict = {"g": np.array(list(range(10)))}
-        first_multi = distance_func(x_multi, y_multi, **param_dict)
-        second_multi = distance(x_multi, y_multi, metric=distance_str, **param_dict)
-        assert first_uni == pytest.approx(second_uni)
-        assert first_multi == pytest.approx(second_multi)
-
-
+    # if distance_str == "erp":
+    #     param_dict = {"g": np.array([0.5])}
+    #     first_uni = distance_func(x_univ, y_univ, **param_dict)
+    #     second_uni = distance(x_univ, y_univ, metric=distance_str, **param_dict)
+    #     param_dict = {"g": np.array(list(range(10)))}
+    #     first_multi = distance_func(x_multi, y_multi, **param_dict)
+    #     second_multi = distance(x_multi, y_multi, metric=distance_str, **param_dict)
+    #     assert first_uni == pytest.approx(second_uni)
+    #     assert first_multi == pytest.approx(second_multi)
 
 
 BASIC_BOUNDING_PARAMS = [
@@ -76,7 +80,7 @@ def _test_derivative(q: np.ndarray):
 
 DIST_PARAMS = {
     "dtw": BASIC_BOUNDING_PARAMS,
-    "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
+    "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}, {"g": None}],
     "edr": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "lcss": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "ddtw": BASIC_BOUNDING_PARAMS,

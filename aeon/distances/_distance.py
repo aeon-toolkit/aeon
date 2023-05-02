@@ -13,15 +13,8 @@ from aeon.distances._ddtw import (
 )
 from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
 from aeon.distances._edr import _EdrDistance
-from aeon.distances._erp import (
-    erp_alignment_path,
-    erp_distance,
-    erp_pairwise_distance,
-)
-from aeon.distances._euclidean import (
-    euclidean_distance,
-    euclidean_pairwise_distance,
-)
+from aeon.distances._erp import erp_alignment_path, erp_distance, erp_pairwise_distance
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import (
     lcss_alignment_path,
     lcss_distance,

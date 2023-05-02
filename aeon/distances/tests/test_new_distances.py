@@ -18,8 +18,6 @@ from aeon.distances import (
     erp_alignment_path,
     erp_cost_matrix,
     erp_distance,
-    erp_from_multiple_to_multiple_distance,
-    erp_from_single_to_multiple_distance,
     erp_pairwise_distance,
     euclidean_distance,
     euclidean_pairwise_distance,
@@ -91,8 +89,6 @@ DISTANCES = [
         "name": "erp",
         "distance": erp_distance,
         "pairwise_distance": erp_pairwise_distance,
-        "single_to_multiple_distance": erp_from_single_to_multiple_distance,
-        "multiple_to_multiple_distance": erp_from_multiple_to_multiple_distance,
         "cost_matrix": erp_cost_matrix,
         "alignment_path": erp_alignment_path,
     },
@@ -117,7 +113,6 @@ def _validate_distance_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distances(dist):
     # Test univariate
-
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_distance_result(
             np.array([10.0]),
