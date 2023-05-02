@@ -46,9 +46,9 @@ class PaddingTransformer(BaseTransformer):
         return max_length
 
     def _fit(self, X, y=None):
-        """Fit transformer to X and y.
+        """Fit padding transformer to X and y.
 
-        private _fit containing the core logic, called from fit
+        Calculates the max length in X unless padding length passed as an argument.
 
         Parameters
         ----------
