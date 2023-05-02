@@ -4,12 +4,11 @@ from typing import Callable, Dict, List
 
 import numpy as np
 import pytest
-from numba import njit
 
 from aeon.distances import distance
 from aeon.distances.tests._expected_results import _expected_distance_results_params
 from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances.tests.test_distances import DISTANCES
+from aeon.distances._distance import DISTANCES
 
 
 def _test_distance_params(

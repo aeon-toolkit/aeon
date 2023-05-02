@@ -4,111 +4,118 @@ __author__ = ["chrisholder", "TonyBagnall"]
 from typing import Any, Callable, Union, List, Tuple
 
 import numpy as np
-from numba import njit
 
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
     ddtw_distance,
     ddtw_pairwise_distance,
+    ddtw_cost_matrix
 )
-from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
-from aeon.distances._edr import edr_alignment_path, edr_distance, edr_pairwise_distance
-from aeon.distances._erp import erp_alignment_path, erp_distance, erp_pairwise_distance
+from aeon.distances._dtw import (
+    dtw_alignment_path,
+    dtw_distance,
+    dtw_pairwise_distance,
+    dtw_cost_matrix
+)
+from aeon.distances._edr import (
+    edr_alignment_path,
+    edr_distance,
+    edr_pairwise_distance,
+    edr_cost_matrix
+)
+from aeon.distances._erp import (
+    erp_alignment_path,
+    erp_distance,
+    erp_pairwise_distance,
+    erp_cost_matrix
+)
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import (
     lcss_alignment_path,
     lcss_distance,
     lcss_pairwise_distance,
+    lcss_cost_matrix
 )
-from aeon.distances._msm import msm_alignment_path, msm_distance, msm_pairwise_distance
+from aeon.distances._msm import (
+    msm_alignment_path,
+    msm_distance,
+    msm_pairwise_distance,
+    msm_cost_matrix
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
-from aeon.distances._twe import twe_alignment_path, twe_distance, twe_pairwise_distance
+from aeon.distances._twe import (
+    twe_alignment_path,
+    twe_distance,
+    twe_pairwise_distance,
+    twe_cost_matrix
+)
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_distance,
     wddtw_pairwise_distance,
+    wddtw_cost_matrix
 )
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_distance,
     wdtw_pairwise_distance,
+    wdtw_cost_matrix
 )
+
+DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
+AlignmentPathFunction = Callable[
+    [np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]
+]
+CostMatrixFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
+PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 
 
 def distance(
         x: np.ndarray,
         y: np.ndarray,
-        metric: Union[
-            str,
-            Callable[[np.ndarray, np.ndarray, Any], float],
-        ],
+        metric: Union[str, DistanceFunction],
         **kwargs: Any,
 ) -> float:
     """Compute the distance between two time series.
 
-    First the distance metric is 'resolved'. This means the metric that is passed
-    is resolved to a callable. The callable is then called with x and y and the
-    value is then returned.
-
     Parameters
     ----------
-    x: np.ndarray (1d or 2d array)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (1d or 2d array)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     metric: str or Callable
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
         'msm'
-
-        If callable then it has to be a distance factory or numba distance callable.
-        If you want to pass custom kwargs to the distance at runtime, use a distance
-        factory as it constructs the distance using the kwargs before distance
-        computation.
-        A distance callable takes the form (must be no_python compiled):
-        Callable[[np.ndarray, np.ndarray], float]
-
-        A distance factory takes the form (must return a no_python callable):
-        Callable[[np.ndarray, np.ndarray, bool, dict], Callable[[np.ndarray,
-        np.ndarray], float]].
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a float.
     kwargs: Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> distance(x_1d, y_1d, metric='dtw')
-    58.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> distance(x_2d, y_2d, metric='dtw')
-    512.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> distance(x_2d, y_2d, metric='dtw', window=0.5)
-    512.0
 
     Returns
     -------
     float
         Distance between the x and y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
+        If metric is not a valid string or callable.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> distance(x, y, metric="dtw")
+    768.0
     """
     if metric == "squared":
         return squared_distance(x, y)
@@ -141,88 +148,67 @@ def distance(
 def pairwise_distance(
         x: np.ndarray,
         y: np.ndarray = None,
-        metric: Union[
-            str,
-            Callable[[np.ndarray, np.ndarray, Any], float],
-        ] = "euclidean",
+        metric: Union[str, PairwiseFunction] = None,
         **kwargs: Any,
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
-    First the distance metric is 'resolved'. This means the metric that is passed
-    is resolved to a callable. The callable is then called with x and y and the
-    value is then returned. Then for each combination of x and y, the distance between
-    the values are computed resulting in a 2d pairwise matrix.
-
     Parameters
     ----------
-    x: np.ndarray (1d, 2d or 3d array)
-        First time series.
-    y: np.ndarray (1d, 2d or 3d array), defaults = None
-        Second time series. If not specified then y is set to the value of x.
-    metric: str or Callable, defaults = 'euclidean'
+    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+            (n_instances, n_timepoints)
+        A collection of time series instances.
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,), default=None
+        A collection of time series instances.
+    metric: str or Callable
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
-            'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
-            'lcss', 'edr', 'erp', 'msm'
-        If callable then it has to be a distance factory or numba distance callable.
-        If you want to pass custom kwargs to the distance at runtime, use a distance
-        factory as it constructs the distance using the kwargs before distance
-        computation.
-        A distance callable takes the form (must be no_python compiled):
-        Callable[[np.ndarray, np.ndarray], float]
-
-        A distance factory takes the form (must return a no_python callable):
-        Callable[[np.ndarray, np.ndarray, bool, dict], Callable[[np.ndarray,
-        np.ndarray], float]].
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a float.
     kwargs: Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
 
     Returns
     -------
-    np.ndarray (2d of size mxn where m is len(x) and n is len(y)).
-        Pairwise distance matrix between the two time series.
+    np.ndarray (n_instances, n_instances)
+        pairwise matrix between the instances of X.
 
     Raises
     ------
     ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined.
+        If X is not 2D or 3D array when only passing X.
+        If X and y are not 1D, 2D or 3D arrays when passing both X and y.
+        If metric is not a valid string or callable.
 
     Examples
     --------
     >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> pairwise_distance(x_1d, y_1d, metric='dtw')
-    array([[16., 25., 36., 49.],
-           [ 9., 16., 25., 36.],
-           [ 4.,  9., 16., 25.],
-           [ 1.,  4.,  9., 16.]])
+    >>> from aeon.distances import pairwise_distance
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> pairwise_distance(X, metric='dtw')
+    array([[  0.,  26., 108.],
+           [ 26.,   0.,  26.],
+           [108.,  26.,   0.]])
 
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> pairwise_distance(x_2d, y_2d, metric='dtw')
-    array([[256., 576.],
-           [ 58., 256.]])
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> pairwise_distance(X, y, metric='dtw')
+    array([[300., 507., 768.],
+           [147., 300., 507.],
+           [ 48., 147., 300.]])
 
-    >>> x_3d = np.array([[[1], [2], [3], [4]], [[5], [6], [7], [8]]])  # 3d array
-    >>> y_3d = np.array([[[9], [10], [11], [12]], [[13], [14], [15], [16]]])  # 3d array
-    >>> pairwise_distance(x_3d, y_3d, metric='dtw')
-    array([[256., 576.],
-           [ 64., 256.]])
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> pairwise_distance(x_2d, y_2d, metric='dtw', window=0.5)
-    array([[256., 576.],
-           [ 58., 256.]])
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> pairwise_distance(X, y_univariate, metric='dtw')
+    array([[300.],
+           [147.],
+           [ 48.]])
     """
     if metric == "euclidean":
         return euclidean_pairwise_distance(x, y)
@@ -252,46 +238,29 @@ def pairwise_distance(
         raise ValueError("Metric must be one of the supported strings or a callable")
 
 
-def distance_alignment_path(
+def alignment_path(
         x: np.ndarray,
         y: np.ndarray,
-        metric: Union[
-            str,
-            Callable[[np.ndarray, np.ndarray, Any], float],
-        ],
-        return_cost_matrix: bool = False,
+        metric: Union[str, AlignmentPathFunction],
         **kwargs: Any,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
-    First the distance metric is 'resolved'. This means the metric that is passed
-    is resolved to a callable. The callable is then called with x and y and the
-    value is then returned.
-
     Parameters
     ----------
-    x: np.ndarray (1d or 2d array)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (1d or 2d array)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
         Second time series.
     metric: str or Callable
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
         'msm'
-
-        If callable then it has to be a distance factory or numba distance callable.
-        If you want to pass custom kwargs to the distance at runtime, use a distance
-        factory as it constructs the distance using the kwargs before distance
-        computation.
-        A distance callable takes the form (must be no_python compiled):
-        Callable[[np.ndarray, np.ndarray], float]
-
-        A distance factory takes the form (must return a no_python callable):
-        Callable[[np.ndarray, np.ndarray, bool, dict], Callable[[np.ndarray,
-        np.ndarray], float]].
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a float.
     kwargs: Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -303,14 +272,22 @@ def distance_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The distance between the two time series.
+        The dtw distance betweeen the two time series.
 
     Raises
     ------
     ValueError
-        If x and y are not 1D, or 2D arrays.
-        If metric is not a valid string or callable.
+        If x and y are not 1D, 2D, or 3D arrays.
+        If metric is not one of the supported strings or a callable.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import alignment_path
+    >>> x = np.array([[1, 2, 3, 6]])
+    >>> y = np.array([[1, 2, 3, 4]])
+    >>> alignment_path(x, y, metric='dtw')
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     if metric == "dtw":
         return dtw_alignment_path(x, y, **kwargs)
@@ -334,3 +311,337 @@ def distance_alignment_path(
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
         raise ValueError("Metric must be one of the supported strings or a callable")
+
+
+def cost_matrix(
+        x: np.ndarray,
+        y: np.ndarray,
+        metric: Union[str, CostMatrixFunction],
+        **kwargs: Any,
+) -> np.ndarray:
+    """Compute the alignment path and distance between two time series.
+
+    Parameters
+    ----------
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
+            (n_instances, n_channels, n_timepoints)
+        First time series.
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
+            (m_instances, m_channels, m_timepoints)
+        Second time series.
+    metric: str or Callable
+        The distance metric to use.
+        If a string is given, the value must be one of the following strings:
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a float.
+    kwargs: Any
+        Arguments for metric. Refer to each metrics documentation for a list of
+        possible arguments.
+
+
+    Returns
+    -------
+    np.ndarray (n_timepoints, m_timepoints)
+        cost matrix between x and y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D, or 3D arrays.
+        If metric is not one of the supported strings or a callable.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import cost_matrix
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> cost_matrix(x, y, metric="dtw")
+    array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
+           [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
+           [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
+           [ 14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91.],
+           [ 30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.],
+           [ 55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.],
+           [ 91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.],
+           [140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.],
+           [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
+           [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
+    """
+    if metric == "dtw":
+        return dtw_cost_matrix(x, y, **kwargs)
+    elif metric == "ddtw":
+        return ddtw_cost_matrix(x, y, **kwargs)
+    elif metric == "wdtw":
+        return wdtw_cost_matrix(x, y, **kwargs)
+    elif metric == "wddtw":
+        return wddtw_cost_matrix(x, y, **kwargs)
+    elif metric == "lcss":
+        return lcss_cost_matrix(x, y, **kwargs)
+    elif metric == "erp":
+        return erp_cost_matrix(x, y, **kwargs)
+    elif metric == "edr":
+        return edr_cost_matrix(x, y, **kwargs)
+    elif metric == "twe":
+        return twe_cost_matrix(x, y, **kwargs)
+    elif metric == "msm":
+        return msm_cost_matrix(x, y, **kwargs)
+    else:
+        if isinstance(metric, Callable):
+            return metric(x, y, **kwargs)
+        raise ValueError("Metric must be one of the supported strings or a callable")
+
+
+def get_distance_function(
+        metric: Union[str, DistanceFunction]
+) -> DistanceFunction:
+    """Get the distance function for a given metric string or callable.
+
+    Parameters
+    ----------
+    metric: str or Callable
+        The distance metric to use.
+        If a string is given, the value must be one of the following strings:
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a float.
+
+    Returns
+    -------
+    Callable[[np.ndarray, np.ndarray, Any], float]
+        The distance function for the given metric.
+
+    Raises
+    ------
+    ValueError
+        If metric is not one of the supported strings or a callable.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_distance_function
+    >>> import numpy as np
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> dtw_dist_func = get_distance_function("dtw")
+    >>> dtw_dist_func(x, y, window=0.2)
+    874.0
+    """
+    return _resolve_key_from_distance(metric, "distance")
+
+
+def get_pairwise_distance_function(
+        metric: Union[str, PairwiseFunction]
+) -> PairwiseFunction:
+    """Get the pairwise distance function for a given metric string or callable.
+
+    Parameters
+    ----------
+    metric: str or Callable
+        The distance metric to use.
+        If a string is given, the value must be one of the following strings:
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a np.ndarray that is the pairwise distance
+        between each time series.
+
+    Returns
+    -------
+    Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
+        The pairwise distance function for the given metric.
+
+    Raises
+    ------
+    ValueError
+        If metric is not one of the supported strings or a callable.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_pairwise_distance_function
+    >>> import numpy as np
+    >>> x = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> dtw_pairwise_dist_func = get_pairwise_distance_function("dtw")
+    >>> dtw_pairwise_dist_func(x, y, window=0.2)
+    array([[300., 507., 768.],
+           [147., 300., 507.],
+           [ 48., 147., 300.]])
+    """
+    return _resolve_key_from_distance(metric, "pairwise_distance")
+
+
+def get_alignment_path_function(
+        metric: Union[str, AlignmentPathFunction]
+) -> AlignmentPathFunction:
+    """Get the alignment path function for a given metric string or callable.
+
+    Parameters
+    ----------
+    metric: str or Callable
+        The distance metric to use.
+        If a string is given, the value must be one of the following strings:
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a tuple where the first element is a list
+        of integers that represents the path through the cost matrix, and the second
+        element is the distance between the two time series.
+
+    Returns
+    -------
+    Callable[[np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]]
+        The alignment path function for the given metric.
+
+    Raises
+    ------
+    ValueError
+        If metric is not one of the supported strings or a callable.
+        If the metric doesn't have an alignment path function.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_alignment_path_function
+    >>> import numpy as np
+    >>> x = np.array([[1, 2, 3, 4, 5]])
+    >>> y = np.array([[11, 12, 13, 14, 15]])
+    >>> dtw_alignment_path_func = get_alignment_path_function("dtw")
+    >>> dtw_alignment_path_func(x, y, window=0.2)
+    ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 500.0)
+    """
+    return _resolve_key_from_distance(metric, "alignment_path")
+
+
+def get_cost_matrix_function(
+        metric: Union[str, CostMatrixFunction]
+) -> CostMatrixFunction:
+    """Get the cost matrix function for a given metric string or callable.
+
+    Parameters
+    ----------
+    metric: str or Callable
+        The distance metric to use.
+        If a string is given, the value must be one of the following strings:
+        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
+        'msm'
+        If a callable is given, the value must be a function that accepts two
+        numpy arrays and **kwargs returns a np.ndarray that is the cost matrix between
+        two time series.
+
+    Returns
+    -------
+    Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
+        The cost matrix function for the given metric.
+
+    Raises
+    ------
+    ValueError
+        If metric is not one of the supported strings or a callable.
+        If the metric doesn't have a cost matrix function.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_cost_matrix_function
+    >>> import numpy as np
+    >>> x = np.array([[1, 2, 3, 4, 5]])
+    >>> y = np.array([[11, 12, 13, 14, 15]])
+    >>> dtw_cost_matrix_func = get_cost_matrix_function("dtw")
+    >>> dtw_cost_matrix_func(x, y, window=0.2)
+    array([[100., 221.,  inf,  inf,  inf],
+           [181., 200., 321.,  inf,  inf],
+           [ inf, 262., 300., 421.,  inf],
+           [ inf,  inf, 343., 400., 521.],
+           [ inf,  inf,  inf, 424., 500.]])
+    """
+    return _resolve_key_from_distance(metric, "cost_matrix")
+
+
+def _resolve_key_from_distance(metric: str, key: str) -> Any:
+    dist = DISTANCES_DICT.get(metric)
+    if dist is None:
+        raise ValueError(f"Unknown metric {metric}")
+    dist_callable = dist.get(key)
+    if dist_callable is None:
+        raise ValueError(f"Metric {metric} does not have a {key} function")
+    return dist_callable
+
+
+DISTANCES = [
+    {
+        "name": "euclidean",
+        "distance": euclidean_distance,
+        "pairwise_distance": euclidean_pairwise_distance,
+    },
+    {
+        "name": "squared",
+        "distance": squared_distance,
+        "pairwise_distance": squared_pairwise_distance,
+    },
+    {
+        "name": "dtw",
+        "distance": dtw_distance,
+        "pairwise_distance": dtw_pairwise_distance,
+        "cost_matrix": dtw_cost_matrix,
+        "alignment_path": dtw_alignment_path,
+    },
+    {
+        "name": "ddtw",
+        "distance": ddtw_distance,
+        "pairwise_distance": ddtw_pairwise_distance,
+        "cost_matrix": ddtw_cost_matrix,
+        "alignment_path": ddtw_alignment_path,
+    },
+    {
+        "name": "wdtw",
+        "distance": wdtw_distance,
+        "pairwise_distance": wdtw_pairwise_distance,
+        "cost_matrix": wdtw_cost_matrix,
+        "alignment_path": wdtw_alignment_path,
+    },
+    {
+        "name": "wddtw",
+        "distance": wddtw_distance,
+        "pairwise_distance": wddtw_pairwise_distance,
+        "cost_matrix": wddtw_cost_matrix,
+        "alignment_path": wddtw_alignment_path,
+    },
+    {
+        "name": "lcss",
+        "distance": lcss_distance,
+        "pairwise_distance": lcss_pairwise_distance,
+        "cost_matrix": lcss_cost_matrix,
+        "alignment_path": lcss_alignment_path,
+    },
+    {
+        "name": "erp",
+        "distance": erp_distance,
+        "pairwise_distance": erp_pairwise_distance,
+        "cost_matrix": erp_cost_matrix,
+        "alignment_path": erp_alignment_path,
+    },
+    {
+        "name": "edr",
+        "distance": edr_distance,
+        "pairwise_distance": edr_pairwise_distance,
+        "cost_matrix": edr_cost_matrix,
+        "alignment_path": edr_alignment_path,
+    },
+    {
+        "name": "twe",
+        "distance": twe_distance,
+        "pairwise_distance": twe_pairwise_distance,
+        "cost_matrix": twe_cost_matrix,
+        "alignment_path": twe_alignment_path,
+    },
+    {
+        "name": "msm",
+        "distance": msm_distance,
+        "pairwise_distance": msm_pairwise_distance,
+        "cost_matrix": msm_cost_matrix,
+        "alignment_path": msm_alignment_path,
+    },
+]
+
+DISTANCES_DICT = {d["name"]: d for d in DISTANCES}

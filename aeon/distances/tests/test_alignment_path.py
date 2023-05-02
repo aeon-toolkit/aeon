@@ -4,7 +4,8 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances.tests.test_distances import DISTANCES
+from aeon.distances._distance import DISTANCES
+from aeon.distances import alignment_path as compute_alignment_path
 
 
 def _validate_cost_matrix_result(
@@ -19,6 +20,7 @@ def _validate_cost_matrix_result(
     assert isinstance(alignment_path_result, tuple)
     assert isinstance(alignment_path_result[0], list)
     assert isinstance(alignment_path_result[1], float)
+    assert compute_alignment_path(x, y, metric=name) == alignment_path_result
 
     distance_result = distance(x, y)
     assert_almost_equal(alignment_path_result[1], distance_result)

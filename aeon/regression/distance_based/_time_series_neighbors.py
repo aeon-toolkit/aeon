@@ -11,7 +11,7 @@ __all__ = ["KNeighborsTimeSeriesRegressor"]
 
 import numpy as np
 
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 from aeon.regression.base import BaseRegressor
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
@@ -94,12 +94,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Target values of shape = [n_samples]
         """
         if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
+            self.metric_ = get_distance_function(metric=self.distance)
 
         self.X_ = X
         self.y_ = y

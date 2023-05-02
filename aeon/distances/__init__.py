@@ -45,7 +45,12 @@ __all__ = [
     "msm_pairwise_distance",
     "distance",
     "pairwise_distance",
-    "distance_alignment_path",
+    "alignment_path",
+    "cost_matrix",
+    "get_cost_matrix_function",
+    "get_distance_function",
+    "get_pairwise_distance_function",
+    "get_alignment_path_function",
 ]
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
@@ -57,8 +62,13 @@ from aeon.distances._ddtw import (
 )
 from aeon.distances._distance import (
     distance,
-    distance_alignment_path,
+    alignment_path,
     pairwise_distance,
+    cost_matrix,
+    get_cost_matrix_function,
+    get_distance_function,
+    get_pairwise_distance_function,
+    get_alignment_path_function
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,
