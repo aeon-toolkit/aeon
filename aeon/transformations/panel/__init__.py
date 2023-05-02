@@ -52,4 +52,4 @@ from aeon.transformations.panel.shapelet_transform import (
 )
 from aeon.transformations.panel.slope import SlopeTransformer
 from aeon.transformations.panel.supervised_intervals import SupervisedIntervals
-from aeon.transformations.panel.truncation import TruncationTransformer
+from aeon.transformations.panel.truncate import TruncationTransformer
