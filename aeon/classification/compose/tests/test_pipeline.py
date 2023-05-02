@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal

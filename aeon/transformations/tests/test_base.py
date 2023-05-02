@@ -20,7 +20,7 @@ import pytest
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
 from aeon.transformations.compose import FitInTransform
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.panel.tsfresh import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,

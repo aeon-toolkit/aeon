@@ -16,7 +16,7 @@ from aeon.transformations.compose import (
     OptionalPassthrough,
     TransformerPipeline,
 )
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.boxcox import LogTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer

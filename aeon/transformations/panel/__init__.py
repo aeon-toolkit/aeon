@@ -39,7 +39,7 @@ from aeon.transformations.panel.dwt import DWTTransformer
 from aeon.transformations.panel.hog1d import HOG1DTransformer
 from aeon.transformations.panel.interpolate import TSInterpolator
 from aeon.transformations.panel.matrix_profile import MatrixProfile
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.panel.random_intervals import RandomIntervals
 from aeon.transformations.panel.reduce import Tabularizer, TimeBinner
 from aeon.transformations.panel.segment import (

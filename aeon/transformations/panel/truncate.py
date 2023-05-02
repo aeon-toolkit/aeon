@@ -51,12 +51,11 @@ class TruncationTransformer(BaseTransformer):
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
 
-        private _fit containing the core logic, called from fit
-
         Parameters
         ----------
         X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
-            where length_i can vary between time series or
+            where length_i can vary between time series or 3D numpy of equal length
+            series
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -95,10 +94,7 @@ class TruncationTransformer(BaseTransformer):
                 "Error: min_length of series \
                     is less than the one found when fit or set."
             )
-        Xt = []
-        for x in X:
-            Xt.append(x[:, : self.truncated_length_])
-        Xt = np.array(Xt)
+        Xt = np.array([x[:, : self.truncated_length_] for x in X])
         return Xt
 
     @classmethod

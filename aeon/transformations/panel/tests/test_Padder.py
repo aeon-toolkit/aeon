@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.transformations.panel.pad import PaddingTransformer
 
 
 def test_padding_equal_length():

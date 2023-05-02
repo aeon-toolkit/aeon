@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Padding transformer, pad unequal length panel to max length or fixed length."""
 import numpy as np
-import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
 
@@ -24,22 +23,27 @@ class PaddingTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": ["np-list", "numpy3D"],
+        "y_inner_mtype": "None",
         "fit_is_empty": False,
         "capability:unequal_length:removes": True,
-        # is transform result always guaranteed to be equal length (and series)?
     }
 
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
         super(PaddingTransformer, self).__init__()
+
+    @staticmethod
+    def _get_max_length(X):
+        max_length = X[0].shape[1]
+        for x in X:
+            if x.shape[1] > max_length:
+                max_length = x.shape[1]
+
+        return max_length
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -48,9 +52,9 @@ class PaddingTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
+            where length_i can vary between time series or 3D numpy of equal length
+            series
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -58,54 +62,49 @@ class PaddingTransformer(BaseTransformer):
         -------
         self : reference to self
         """
+        max_length = _get_max_length
         if self.pad_length is None:
-            n_instances, _ = X.shape
-            arr = [X.iloc[i, :].values for i in range(n_instances)]
-            self.pad_length_ = _get_max_length(arr)
+            self.pad_length_ = max_length
         else:
-            self.pad_length_ = self.pad_length
-
+            if self.pad_length < max_length:
+                self.pad_length_ = max_length
+            else:
+                self.pad_length_ = self.pad_length
         return self
-
-    def _create_pad(self, series):
-        out = np.full(self.pad_length_, self.fill_value, float)
-        out[: len(series)] = series.iloc[: len(series)]
-        return out
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
 
-        private _transform containing core logic, called from transform
-
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : list of [n_cases] 2D np.ndarray shape (n_channels, length_i)
+            where length_i can vary between time series or 3D numpy of equal length
+            series
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
-            transformed version of X
+        Xt : numpy3D array (n_cases, n_channels, self.pad_length_)
+            padded time series from X.
         """
-        n_instances, _ = X.shape
-
-        arr = [X.iloc[i, :].values for i in range(n_instances)]
-
-        max_length = _get_max_length(arr)
+        max_length = _get_max_length(X)
 
         if max_length > self.pad_length_:
             raise ValueError(
                 "Error: max_length of series \
                     is greater than the one found when fit or set."
             )
-
-        pad = [pd.Series([self._create_pad(series) for series in out]) for out in arr]
-        Xt = pd.DataFrame(pad).applymap(pd.Series)
-
+        # Calculate padding amounts
+        Xt = []
+        for x in X:
+            pad_width = ((0, 0), (0, self.pad_length_ - x.shape[1]))
+            # Pad the input array
+            padded_array = np.pad(
+                X, pad_width, mode="constant", constant_values=self.fill_value
+            )
+            Xt.append(padded_array)
+        Xt = np.array(Xt)
         return Xt
 
 
