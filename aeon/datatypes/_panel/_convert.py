@@ -145,22 +145,48 @@ def _check_equal_index(X):
     return indexes
 
 
-def from_3d_numpy_to_2d_array(X):
-    """Convert 2D NumPy Panel to 2D numpy Panel.
+def from_3d_numpy_to_np_list(X):
+    """Convert 3D np.darray to a list of 2D numpy.
 
-    Converts 3D numpy array (n_instances, n_columns, n_timepoints) to
-    a 2D numpy array with shape (n_instances, n_columns*n_timepoints)
+    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
+    a 2D numpy array with shape (n_instances, n_channels*n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
         The input 3d-NumPy array with shape
-        (n_instances, n_columns, n_timepoints)
+        (n_instances, n_channels, n_timepoints)
+
+    Returns
+    -------
+    list : list [n_instances] np.ndarray
+        A list of np.ndarray
+    """
+    np_list = []
+    for arr in X:
+        np_list.append(arr)
+    return np_list
+
+
+convert_dict[("numpy3D", "np-list", "Panel")] = from_3d_numpy_to_np_list
+
+
+def from_3d_numpy_to_2d_array(X):
+    """Convert 2D NumPy Panel to 2D numpy Panel.
+
+    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
+    a 2D numpy array with shape (n_instances, n_channels*n_timepoints)
+
+    Parameters
+    ----------
+    X : np.ndarray
+        The input 3d-NumPy array with shape
+        (n_instances, n_channels, n_timepoints)
 
     Returns
     -------
     array_2d : np.ndarray
-        A 2d-NumPy array with shape (n_instances, n_columns*n_timepoints)
+        A 2d-NumPy array with shape (n_instances, n_channels*n_timepoints)
     """
     array_2d = X.reshape(X.shape[0], -1)
     return array_2d
@@ -610,9 +636,9 @@ def from_long_to_nested(
     )
     X_nested = from_multi_index_to_nested(X_nested, instance_index=instance_column_name)
 
-    n_columns = X_nested.shape[1]
+    n_channels = X_nested.shape[1]
     if column_names is None:
-        X_nested.columns = _make_column_names(n_columns)
+        X_nested.columns = _make_column_names(n_channels)
 
     else:
         X_nested.columns = column_names
@@ -639,7 +665,7 @@ def from_multi_index_to_3d_numpy(X):
     """Convert pandas multi-index Panel to numpy 3D Panel.
 
     Convert panel data stored as pandas multi-index DataFrame to
-    Numpy 3-dimensional NumPy array (n_instances, n_columns, n_timepoints).
+    Numpy 3-dimensional NumPy array (n_instances, n_channels, n_timepoints).
 
     Parameters
     ----------
@@ -649,16 +675,16 @@ def from_multi_index_to_3d_numpy(X):
     Returns
     -------
     X_3d : np.ndarray
-        3-dimensional NumPy array (n_instances, n_columns, n_timepoints)
+        3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
     """
     if X.index.nlevels != 2:
         raise ValueError("Multi-index DataFrame should have 2 levels.")
 
     n_instances = len(X.index.get_level_values(0).unique())
     n_timepoints = len(X.index.get_level_values(1).unique())
-    n_columns = X.shape[1]
+    n_channels = X.shape[1]
 
-    X_3d = X.values.reshape(n_instances, n_timepoints, n_columns).swapaxes(1, 2)
+    X_3d = X.values.reshape(n_instances, n_timepoints, n_channels).swapaxes(1, 2)
 
     return X_3d
 
@@ -680,13 +706,13 @@ def from_3d_numpy_to_multi_index(
 ):
     """Convert 3D numpy Panel to pandas multi-index Panel.
 
-    Convert 3-dimensional NumPy array (n_instances, n_columns, n_timepoints)
+    Convert 3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
     to panel data stored as pandas multi-indexed DataFrame.
 
     Parameters
     ----------
     X : np.ndarray
-        3-dimensional NumPy array (n_instances, n_columns, n_timepoints)
+        3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
 
     instance_index : str
         Name of the multi-index level corresponding to the DataFrame's instances
@@ -704,14 +730,14 @@ def from_3d_numpy_to_multi_index(
         msg = " ".join(
             [
                 "Input should be 3-dimensional NumPy array with shape",
-                "(n_instances, n_columns, n_timepoints).",
+                "(n_instances, n_channels, n_timepoints).",
             ]
         )
         raise TypeError(msg)
 
-    n_instances, n_columns, n_timepoints = X.shape
+    n_instances, n_channels, n_timepoints = X.shape
     multi_index = pd.MultiIndex.from_product(
-        [range(n_instances), range(n_columns), range(n_timepoints)],
+        [range(n_instances), range(n_channels), range(n_timepoints)],
         names=["instances", "columns", "timepoints"],
     )
 
@@ -720,7 +746,7 @@ def from_3d_numpy_to_multi_index(
 
     # Assign column names
     if column_names is None:
-        X_mi.columns = _make_column_names(n_columns)
+        X_mi.columns = _make_column_names(n_channels)
 
     else:
         X_mi.columns = column_names
@@ -903,7 +929,7 @@ def from_nested_to_3d_numpy(X):
 
     Convert nested pandas DataFrame (with time series as pandas Series
     in cells) into NumPy ndarray with shape
-    (n_instances, n_columns, n_timepoints).
+    (n_instances, n_channels, n_timepoints).
 
     Parameters
     ----------
@@ -915,7 +941,7 @@ def from_nested_to_3d_numpy(X):
     X_3d : np.ndarrray
         3-dimensional NumPy array
     """
-    # n_columns = X.shape[1]
+    # n_channels = X.shape[1]
     nested_col_mask = [*are_columns_nested(X)]
 
     # If all the columns are nested in structure
@@ -947,7 +973,7 @@ convert_dict[("nested_univ", "numpy3D", "Panel")] = from_nested_to_3d_numpy_adp
 def from_3d_numpy_to_nested(X, column_names=None, cells_as_numpy=False):
     """Convert numpy 3D Panel to nested pandas Panel.
 
-    Convert NumPy ndarray with shape (n_instances, n_columns, n_timepoints)
+    Convert NumPy ndarray with shape (n_instances, n_channels, n_timepoints)
     into nested pandas DataFrame (with time series as pandas Series in cells)
 
     Parameters
@@ -967,19 +993,19 @@ def from_3d_numpy_to_nested(X, column_names=None, cells_as_numpy=False):
     -------
     df : pd.DataFrame
     """
-    n_instances, n_columns, n_timepoints = X.shape
+    n_instances, n_channels, n_timepoints = X.shape
     array_type = X.dtype
 
     container = np.array if cells_as_numpy else pd.Series
 
     if column_names is None:
-        column_names = _make_column_names(n_columns)
+        column_names = _make_column_names(n_channels)
 
     else:
-        if len(column_names) != n_columns:
+        if len(column_names) != n_channels:
             msg = " ".join(
                 [
-                    f"Input 3d Numpy array as {n_columns} columns,",
+                    f"Input 3d Numpy array as {n_channels} columns,",
                     f"but only {len(column_names)} names supplied",
                 ]
             )
