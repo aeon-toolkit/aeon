@@ -2,12 +2,20 @@
 """Distance computation."""
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = [
+    "create_bounding_matrix",
+    "squared_distance",
+    "squared_pairwise_distance",
+    "euclidean_distance",
+    "euclidean_pairwise_distance",
+    "dtw_distance",
+    "dtw_pairwise_distance",
+    "dtw_cost_matrix",
+    "dtw_alignment_path",
     "distance",
     "distance_factory",
     "pairwise_distance",
     "euclidean_distance",
     "squared_distance",
-    "dtw_distance",
     "ddtw_distance",
     "wdtw_distance",
     "wddtw_distance",
@@ -16,8 +24,6 @@ __all__ = [
     "msm_distance",
     "lcss_distance",
     "twe_distance",
-    "LowerBounding",
-    "dtw_alignment_path",
     "ddtw_alignment_path",
     "wdtw_alignment_path",
     "wddtw_alignment_path",
@@ -30,6 +36,7 @@ __all__ = [
     "twe_alignment_path",
 ]
 
+from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._distance import (
     ddtw_alignment_path,
     ddtw_distance,
@@ -37,19 +44,15 @@ from aeon.distances._distance import (
     distance_alignment_path,
     distance_alignment_path_factory,
     distance_factory,
-    dtw_alignment_path,
-    dtw_distance,
     edr_alignment_path,
     edr_distance,
     erp_alignment_path,
     erp_distance,
-    euclidean_distance,
     lcss_alignment_path,
     lcss_distance,
     msm_alignment_path,
     msm_distance,
     pairwise_distance,
-    squared_distance,
     twe_alignment_path,
     twe_distance,
     wddtw_alignment_path,
@@ -57,4 +60,11 @@ from aeon.distances._distance import (
     wdtw_alignment_path,
     wdtw_distance,
 )
-from aeon.distances.lower_bounding import LowerBounding
+from aeon.distances._dtw import (
+    dtw_alignment_path,
+    dtw_cost_matrix,
+    dtw_distance,
+    dtw_pairwise_distance,
+)
+from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
+from aeon.distances._squared import squared_distance, squared_pairwise_distance

@@ -34,7 +34,6 @@ from aeon.classification.interval_based import (
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.datatypes._panel._convert import from_nested_to_3d_numpy
 from aeon.transformations.panel.catch22 import Catch22
 from aeon.transformations.panel.catch22wrapper import Catch22Wrapper
 from aeon.transformations.panel.random_intervals import RandomIntervals

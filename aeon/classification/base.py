@@ -59,9 +59,7 @@ class BaseClassifier(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # Currently, it should be "numpy3D". Unequal
-        # length series through "nested_univ" is no longer supported, will be
-        # reintroduced with lists of numpy.
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -200,12 +198,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of channels, equal or unequal length series)
+        X : 3D np.array of shape (n_instances, n_channels, series_length)
+            or 2D np.array of shape (n_instances, series_length)
 
         Returns
         -------
@@ -229,16 +223,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or pd.DataFrame with each column a dimension, each cell a pd.Series
-                (any number of channels, equal or unequal length series)
+        X : 3D np.array of shape (n_cases, n_channels, series_length)
+            or 2D np.array of shape (n_cases, series_length)
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape (n_cases, n_classes) - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
@@ -386,11 +376,11 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : any object (to check/convert)
-            should be of a supported Panel mtype or 2D numpy.ndarray
+            should be of a supported Collection type or 2D numpy.ndarray
 
         Returns
         -------
-        X: an object of a supported Panel mtype, numpy3D if X was a 2D numpy.ndarray
+        X: an object of a supported Collection type, numpy3D if X was a 2D numpy.ndarray
 
         Raises
         ------
@@ -453,7 +443,7 @@ class BaseClassifier(BaseEstimator, ABC):
                 raise ValueError(msg)
 
     def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
+        """Convert to inner type.
 
         Parameters
         ----------

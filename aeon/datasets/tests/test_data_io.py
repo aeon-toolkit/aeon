@@ -17,7 +17,6 @@ from pandas.testing import assert_frame_equal
 import aeon
 from aeon.datasets import (
     generate_example_long_table,
-    load_basic_motions,
     load_from_long_to_dataframe,
     load_from_tsfile,
     load_from_tsfile_to_dataframe,
@@ -39,11 +38,11 @@ from aeon.datatypes import check_is_mtype, scitype_to_mtype
 MTYPE_LIST_PANEL = scitype_to_mtype("Panel")
 
 # Disabling test for these mtypes since they don't support certain functionality yet
-_TO_DISABLE = ["pd-long", "pd-wide", "numpyflat"]
+_TO_DISABLE = ["pd-long", "pd-wide", "numpyflat", "df-list", "pd-multiindex"]
 
 
 @pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3d"])
+@pytest.mark.parametrize("return_type", ["numpy3d"])
 def test_write_panel_to_tsfile_equal_length(dataset_name, return_type):
     """Test function to write a dataset.
 
@@ -82,9 +81,7 @@ def test_write_panel_to_tsfile_unequal_length(dataset_name):
 
 
 @pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize(
-    "return_type", [mtype for mtype in MTYPE_LIST_PANEL if mtype not in _TO_DISABLE]
-)
+@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D"])
 def test_load_provided_dataset(return_X_y, return_type):
     """Test function to check for proper loading.
 
@@ -92,41 +89,15 @@ def test_load_provided_dataset(return_X_y, return_type):
     """
     if return_X_y:
         X, y = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+        assert isinstance(y, np.ndarray)
     else:
         X = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+    if return_type == "numpy3D":
+        assert isinstance(X, np.ndarray)
+    elif return_type == "nested_univ":
+        assert isinstance(X, pd.DataFrame)
 
     # Check whether object is same mtype or not, via bool
-    valid, check_msg, _ = check_is_mtype(X, return_type, return_metadata=True)
-    msg = (
-        "load_basic_motions return has unexpected type on "
-        f"return_X_y = {return_X_y}, return_type = {return_type}. "
-        f"Error message returned by check_is_mtype: {check_msg}"
-    )
-    assert valid, msg
-
-
-@pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize(
-    "return_type", [mtype for mtype in MTYPE_LIST_PANEL if mtype not in _TO_DISABLE]
-)
-def test_load_basic_motions(return_X_y, return_type):
-    """Test load_basic_motions function to check for proper loading.
-
-    Check all possibilities of return_X_y and return_type.
-    """
-    if return_X_y:
-        X, y = load_basic_motions("TRAIN", return_X_y, return_type)
-    else:
-        X = load_basic_motions("TRAIN", return_X_y, return_type)
-
-    # Check whether object is same mtype or not, via bool
-    valid, check_msg, _ = check_is_mtype(X, return_type, return_metadata=True)
-    msg = (
-        "load_basic_motions return has unexpected type on "
-        f"return_X_y = {return_X_y}, return_type = {return_type}. "
-        f"Error message returned by check_is_mtype: {check_msg}"
-    )
-    assert valid, msg
 
 
 def test_load_from_tsfile():

@@ -131,21 +131,3 @@ Generally, release notes should follow the general pattern of previous release n
 * maintenance
 * bugfixes
 * all contributor credits
-
-
-Legacy build tools
-------------------
-
-We no longer use the legacy build tools using the make file.
-
-To run the legacy release workflow, e.g., for development purposes, run
-
-.. code:: bash
-
-   make release
-
-This calls
-`build_tools/make_release.py <https://github.com/aeon-toolkit/aeon/blob/main/build_tools/make_release.py>`__
-that will guide you through the release process.
-
-IMPORTANT: when running the legacy build tools, ensure to not accidentally push a release tag to the ``aeon`` repo.

@@ -7,11 +7,12 @@ import pytest
 from numba import njit
 
 from aeon.distances import distance, distance_factory
-from aeon.distances._distance import _METRIC_INFOS
+from aeon.distances._distance import _METRIC_INFOS, NEW_DISTANCES
 from aeon.distances._numba_utils import to_numba_timeseries
 from aeon.distances.base import MetricInfo
 from aeon.distances.tests._expected_results import _expected_distance_results_params
 from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _test_distance_params(
@@ -35,7 +36,10 @@ def _test_distance_params(
             curr_dist_fact = distance_factory(x, y, metric=distance_str, **param_dict)
             results.append(distance_func(x, y, **param_dict))
             results.append(distance(x, y, metric=distance_str, **param_dict))
-            results.append(curr_dist_fact(x, y))
+            if distance_str not in NEW_DISTANCES:
+                results.append(curr_dist_fact(x, y))
+            else:
+                results.append(curr_dist_fact(x, y, **param_dict))
             if distance_str in _expected_distance_results_params:
                 if _expected_distance_results_params[distance_str][i][j] is not None:
                     for result in results:
@@ -50,8 +54,6 @@ def _test_distance_params(
 
 BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
-    {"itakura_max_slope": 0.5},
-    {"bounding_matrix": np.zeros((10, 10))},
 ]
 
 
@@ -82,4 +84,14 @@ def test_distance_params(dist: MetricInfo):
             DIST_PARAMS[dist.canonical_name],
             dist.dist_func,
             dist.canonical_name,
+        )
+
+
+@pytest.mark.parametrize("dist", DISTANCES)
+def test_new_distance_params(dist):
+    if dist["name"] in DIST_PARAMS:
+        _test_distance_params(
+            DIST_PARAMS[dist["name"]],
+            dist["distance"],
+            dist["name"],
         )

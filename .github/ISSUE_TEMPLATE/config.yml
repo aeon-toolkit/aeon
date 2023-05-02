@@ -1,7 +1,13 @@
 contact_links:
-  - name: "\U0001F4AC All other questions and general chat"
-    url: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
-    about: Chat with the aeon community on Slack
-  - name: "\u2709\uFE0F Code of Conduct incident reporting"
+  - name: "\U0001F4AC Discussions"
+    url: https://github.com/aeon-toolkit/aeon/discussions/new/choose
+    about: If none of these options fit, your question or topic may be better suited to a discussion.
+  - name: "\U0001F4AC Slack"
+    url: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg
+    about: For all other questions and general chat, come chat with the aeon community on Slack!
+  - name: "\u2709\uFE0F Email"
+    url: https://mailxto.com/jbp3ave49x
+    about: Send an email to the aeon developers at contact@aeon-toolkit.org. Checked periodically.
+  - name: "\u2709\uFE0F CoC Report"
     url: https://www.aeon-toolkit.org/en/latest/get_involved/code_of_conduct.html#incident-reporting-guidelines
-    about: Report an incident to the Code of Conduct committee
+    about: Report an incident to the Code of Conduct Committee.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """Configuration file for the Sphinx documentation builder."""
@@ -23,28 +22,14 @@ github_tag = f"v{version}"
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-
-ON_READTHEDOCS = os.environ.get("READTHEDOCS") == "True"
-if not ON_READTHEDOCS:
-    sys.path.insert(0, os.path.abspath("../.."))
-
-# -- Project information -----------------------------------------------------
-project = "aeon"
-copyright = "BSD-3-Clause License"
-author = "aeon developers"
-
-# The full version, including alpha/beta/rc tags
-CURRENT_VERSION = f"v{aeon.__version__}"
-
-# If on readthedocs, and we're building the latest version, update tag to generate
-# correct links in notebooks
-if ON_READTHEDOCS:
-    READTHEDOCS_VERSION = os.environ.get("READTHEDOCS_VERSION")
-    if READTHEDOCS_VERSION == "latest":
-        CURRENT_VERSION = "main"
-
+# add these directories to sys.path here.
+on_readthedocs = os.environ.get("READTHEDOCS") == "True"
+if not on_readthedocs:
+    sys.path.insert(0, os.path.abspath(""))
+else:
+    rtd_version = os.environ.get("READTHEDOCS_VERSION")
+    if rtd_version == "latest":
+        github_tag = "main"
 
 # -- General configuration ---------------------------------------------------
 
@@ -52,8 +37,6 @@ if ON_READTHEDOCS:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
@@ -217,12 +200,12 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/",
     "light_css_variables": {
-        "color-brand-primary": "#D71414",
-        "color-brand-content": "#EB1414",
+        "color-brand-primary": "#005E80",
+        "color-brand-content": "#F05F05",
     },
     "dark_css_variables": {
-        "color-brand-primary": "#FF1414",
-        "color-brand-content": "#EB3C3C",
+        "color-brand-primary": "#00ACEB",
+        "color-brand-content": "#FB9456",
     },
     "footer_icons": [
         {
@@ -247,7 +230,7 @@ html_theme_options = {
         },
         {
             "name": "Twitter",
-            "url": "https://twitter.com/aeon_toolbox",
+            "url": "https://twitter.com/aeon_toolkit",
             "html": """
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                 <path d="M928 254.3c-30.6 13.2-63.9 22.7-98.2 26.4a170.1 170.1 0 0 0 75-94 336.64 336.64 0 0 1-108.2 41.2A170.1 170.1 0 0 0 672 174c-94.5 0-170.5 76.6-170.5 170.6 0 13.2 1.6 26.4 4.2 39.1-141.5-7.4-267.7-75-351.6-178.5a169.32 169.32 0 0 0-23.2 86.1c0 59.2 30.1 111.4 76 142.1a172 172 0 0 1-77.1-21.7v2.1c0 82.9 58.6 151.6 136.7 167.4a180.6 180.6 0 0 1-44.9 5.8c-11.1 0-21.6-1.1-32.2-2.6C211 652 273.9 701.1 348.8 702.7c-58.6 45.9-132 72.9-211.7 72.9-14.3 0-27.5-.5-41.2-2.1C171.5 822 261.2 850 357.8 850 671.4 850 843 590.2 843 364.7c0-7.4 0-14.8-.5-22.2 33.2-24.3 62.3-54.4 85.5-88.2z"></path>
@@ -278,8 +261,8 @@ html_theme_options = {
     ],
 }
 
-html_logo = "images/aeon-logo-horizontal.png"
-html_favicon = "images/aeon-favicon.ico"
+html_logo = "images/logo/aeon-logo-blue-2-compact.png"
+html_favicon = "images/logo/aeon-favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

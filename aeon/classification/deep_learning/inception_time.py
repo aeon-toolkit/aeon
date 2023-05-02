@@ -309,7 +309,7 @@ class InceptionTimeClassifier(BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_classifiers": 2,
+            "n_classifiers": 1,
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
@@ -317,14 +317,7 @@ class InceptionTimeClassifier(BaseClassifier):
             "use_bottleneck": True,
         }
 
-        param2 = {
-            "n_classifiers": 3,
-            "n_epochs": 12,
-            "batch_size": 6,
-            "use_bias": True,
-        }
-
-        return [param1, param2]
+        return [param1]
 
 
 class IndividualInceptionClassifier(BaseDeepClassifier):
@@ -535,30 +528,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # if user hasn't provided a custom ReduceLROnPlateau via init already,
-        # add the default from literature
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     ),
-        #     tf.keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks,
-        # ]
-
-        # if not any(
-        #     isinstance(callback, keras.callbacks.ReduceLROnPlateau)
-        #     for callback in self.callbacks
-        # ):
-        #     reduce_lr = keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     self.callbacks.append(reduce_lr)
-
         return model
 
     def _fit(self, X, y):
@@ -570,27 +539,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         X : array-like of shape = (n_instances, n_channels, series_length)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = (n_instances)
             The training data class labels.
-        input_checks : boolean
-            whether to check the X and y parameters
-        validation_X : a nested pd.Dataframe, or array-like of shape =
-        (n_instances, series_length, n_channels)
-            The validation samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-            Unless strictly defined by the user via callbacks (such as
-            EarlyStopping), the presence or state of the validation
-            data does not alter training in any way. Predictions at each epoch
-            are stored in the model's fit history.
-        validation_y : array-like, shape = [n_instances]
-            The validation class labels.
 
         Returns
         -------
         self : object
         """
-        rng = check_random_state(self.random_state)
-        self.random_state = rng.randint(0, np.iinfo(np.int32).max)
+        import tensorflow as tf
 
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
@@ -609,33 +565,26 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.verbose:
             self.model_.summary()
 
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
         self.history = self.model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=self.callbacks,
+            callbacks=self.callbacks_,
         )
 
         return self
-
-        #        self.save_trained_model()
-        #        self._is_fitted = True
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -666,11 +615,5 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "use_residual": False,
             "use_bottleneck": True,
         }
-
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
 
         return [param1]

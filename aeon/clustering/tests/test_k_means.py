@@ -149,8 +149,8 @@ def test_kmeans():
 )
 def test_kmeans_dba():
     """Test implementation of Kmeans using dba."""
-    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
-    X_test, y_test = load_basic_motions(split="test", return_type="nested_univ")
+    X_train, y_train = load_basic_motions(split="train")
+    X_test, y_test = load_basic_motions(split="test")
 
     num_test_values = 5
 
@@ -162,12 +162,12 @@ def test_kmeans_dba():
         init_algorithm="kmeans++",
         metric="dtw",
     )
-    train_predict = kmeans.fit_predict(X_train.head(num_test_values))
+    train_predict = kmeans.fit_predict(X_train[0:num_test_values])
     train_mean_score = metrics.rand_score(y_train[0:num_test_values], train_predict)
 
-    test_mean_result = kmeans.predict(X_test.head(num_test_values))
+    test_mean_result = kmeans.predict(X_test[0:num_test_values])
     mean_score = metrics.rand_score(y_test[0:num_test_values], test_mean_result)
-    proba = kmeans.predict_proba(X_test.head(num_test_values))
+    proba = kmeans.predict_proba(X_test[0:num_test_values])
 
     assert np.array_equal(test_mean_result, expected_results["dba"])
     assert mean_score == expected_score["dba"]
