@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+import os
 from copy import deepcopy
 
 import numpy as np
@@ -595,6 +596,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             self.model_ = tf.keras.models.load_model(
                 self.file_path + "best_model.hdf5", compile=False
             )
+            os.remove(self.file_path + "best_model.hdf5")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
