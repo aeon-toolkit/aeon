@@ -9,27 +9,23 @@ from numba import njit
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
     ddtw_distance,
-    ddtw_from_multiple_to_multiple_distance,
+    ddtw_pairwise_distance,
 )
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_distance,
-    dtw_from_multiple_to_multiple_distance,
-)
+from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
 from aeon.distances._edr import _EdrDistance
 from aeon.distances._erp import (
     erp_alignment_path,
     erp_distance,
-    erp_from_multiple_to_multiple_distance,
+    erp_pairwise_distance,
 )
 from aeon.distances._euclidean import (
     euclidean_distance,
-    euclidean_from_multiple_to_multiple_distance,
+    euclidean_pairwise_distance,
 )
 from aeon.distances._lcss import (
     lcss_alignment_path,
     lcss_distance,
-    lcss_from_multiple_to_multiple_distance,
+    lcss_pairwise_distance,
 )
 from aeon.distances._msm import _MsmDistance
 from aeon.distances._numba_utils import (
@@ -42,20 +38,17 @@ from aeon.distances._resolve_metric import (
     _resolve_dist_instance,
     _resolve_metric_to_factory,
 )
-from aeon.distances._squared import (
-    squared_distance,
-    squared_from_multiple_to_multiple_distance,
-)
+from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import _TweDistance
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_distance,
-    wddtw_from_multiple_to_multiple_distance,
+    wddtw_pairwise_distance,
 )
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_distance,
-    wdtw_from_multiple_to_multiple_distance,
+    wdtw_pairwise_distance,
 )
 from aeon.distances.base import (
     AlignmentPathReturn,
@@ -819,21 +812,21 @@ def pairwise_distance(
     _y = _make_3d_series(y)
     if metric in NEW_DISTANCES:
         if metric == "euclidean":
-            return euclidean_from_multiple_to_multiple_distance(_x, _y)
+            return euclidean_pairwise_distance(_x, _y)
         elif metric == "squared":
-            return squared_from_multiple_to_multiple_distance(_x, _y)
+            return squared_pairwise_distance(_x, _y)
         elif metric == "dtw":
-            return dtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return dtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "ddtw":
-            return ddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return ddtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "wdtw":
-            return wdtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return wdtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "wddtw":
-            return wddtw_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return wddtw_pairwise_distance(_x, _y, **kwargs)
         elif metric == "lcss":
-            return lcss_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return lcss_pairwise_distance(_x, _y, **kwargs)
         elif metric == "erp":
-            return erp_from_multiple_to_multiple_distance(_x, _y, **kwargs)
+            return erp_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(

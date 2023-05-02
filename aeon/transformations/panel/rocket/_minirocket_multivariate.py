@@ -46,7 +46,7 @@ class MiniRocketMultivariate(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.panel.rocket import Rocket
+     >>> from aeon.transformations.panel.rocket import MiniRocketMultivariate
      >>> from aeon.datasets import load_basic_motions
      >>> X_train, y_train = load_basic_motions(split="train")
      >>> X_test, y_test = load_basic_motions(split="test")

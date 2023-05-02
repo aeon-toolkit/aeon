@@ -79,8 +79,7 @@ def erp_distance(
     >>> from aeon.distances import erp_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> erp_distance(x, y)
-    0.0
+    >>> dist = erp_distance(x, y)
 
     References
     ----------

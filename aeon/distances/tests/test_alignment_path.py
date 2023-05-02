@@ -8,11 +8,11 @@ from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _validate_cost_matrix_result(
-    x: np.ndarray,
-    y: np.ndarray,
-    name,  # This will be used in a later pr
-    distance,
-    alignment_path,
+        x: np.ndarray,
+        y: np.ndarray,
+        name,  # This will be used in a later pr
+        distance,
+        alignment_path,
 ):
     alignment_path_result = alignment_path(x, y)
 

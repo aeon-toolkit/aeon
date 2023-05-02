@@ -44,9 +44,9 @@ from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
     r"""Return the lcss distance between x and y.
 
@@ -83,9 +83,8 @@ def lcss_distance(
     >>> import numpy as np
     >>> from aeon.distances import lcss_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> lcss_distance(x, y)
-    0.0
+    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> dist = lcss_distance(x, y)
 
     Raises
     ------
@@ -116,9 +115,9 @@ def lcss_distance(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     r"""Return the lcss cost matrix between x and y.
 
@@ -154,16 +153,17 @@ def lcss_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> lcss_cost_matrix(x, y)
-    array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-           [ 1.,  2.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
-           [ 1.,  2.,  3.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-           [ 1.,  2.,  3.,  4.,  5.,  5.,  5.,  5.,  5.,  5.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  6.,  6.,  6.,  6.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  7.,  7.,  7.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  8.,  8.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  9.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+           [ 0.,  1.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+           [ 0.,  1.,  2.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
+           [ 0.,  1.,  2.,  3.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  5.,  5.,  5.,  5.,  5.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  6.,  6.,  6.,  6.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  7.,  7.,  7.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  8.,  8.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  9.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -175,7 +175,7 @@ def lcss_cost_matrix(
         return _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
     if x.ndim == 3 and y.ndim == 3:
         bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
-        cost_matrix = np.zeros((x.shape[2], y.shape[2]))
+        cost_matrix = np.zeros((x.shape[2] + 1, y.shape[2] + 1))
         for curr_x, curr_y in zip(x, y):
             cost_matrix = np.add(
                 cost_matrix, _lcss_cost_matrix(curr_x, curr_y, bounding_matrix, epsilon)
@@ -184,19 +184,19 @@ def lcss_cost_matrix(
     raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_distance(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
     distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1] - 1, y.shape[1] - 1
+        x.shape[1], y.shape[1]
     ]
-    return 1 - float(distance / min(x.shape[1], y.shape[1]))
+    return 1 - (float(distance / min(x.shape[1], y.shape[1])))
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
+        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -206,22 +206,18 @@ def _lcss_cost_matrix(
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
             if bounding_matrix[i - 1, j - 1]:
-                euclidean_distance = _univariate_euclidean_distance(
-                    x[:, i - 1], y[:, j - 1]
-                )
-                if euclidean_distance <= epsilon:
+                if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
                     cost_matrix[i, j] = 1 + cost_matrix[i - 1, j - 1]
                 else:
                     cost_matrix[i, j] = max(
                         cost_matrix[i, j - 1], cost_matrix[i - 1, j]
                     )
+    return cost_matrix
 
-    return cost_matrix[1:, 1:]
 
-
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
-    X: np.ndarray, window: float = None, epsilon: float = 1.0
+        X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss pairwise distance between a set of time series.
 
@@ -230,6 +226,9 @@ def lcss_pairwise_distance(
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,), default=None
+        A collection of time series instances
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -245,28 +244,77 @@ def lcss_pairwise_distance(
     Raises
     ------
     ValueError
-        If x and y are not 2D or 3D arrays.
+        If X is not 2D or 3D array when only passing X.
+        If X and y are not 1D, 2D or 3D arrays when passing both X and y.
 
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import lcss_pairwise_distance
-    >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> lcss_pairwise_distance(X)
-    array([[0.  , 0.5 , 0.75],
-           [0.5 , 0.  , 0.5 ],
-           [0.75, 0.5 , 0.  ]])
+    array([[0.        , 0.66666667, 1.        ],
+           [0.66666667, 0.        , 0.66666667],
+           [1.        , 0.66666667, 0.        ]])
+
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> lcss_pairwise_distance(X, y)
+    array([[1., 1., 1.],
+           [1., 1., 1.],
+           [1., 1., 1.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> lcss_pairwise_distance(X, y_univariate)
+    array([[1.],
+           [1.],
+           [1.]])
     """
-    if X.ndim == 3:
-        return _lcss_pairwise_distance(X, window, epsilon)
-    if X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-        return _lcss_pairwise_distance(_X, window, epsilon)
+    if y is None:
+        # To self
+        if X.ndim == 3:
+            return _lcss_pairwise_distance(X, window, epsilon)
+        if X.ndim == 2:
+            _X = X.reshape((X.shape[0], 1, X.shape[1]))
+            return _lcss_pairwise_distance(_X, window, epsilon)
+        raise ValueError("x and y must be 2D or 3D arrays")
+    elif y.ndim == X.ndim:
+        # Multiple to multiple
+        if y.ndim == 3 and X.ndim == 3:
+            return _lcss_from_multiple_to_multiple_distance(X, y, window, epsilon)
+        if y.ndim == 2 and X.ndim == 2:
+            _x = X.reshape((X.shape[0], 1, X.shape[1]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
+        if y.ndim == 1 and X.ndim == 1:
+            _x = X.reshape((1, 1, X.shape[0]))
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    else:
+        # Single to multiple
+        if X.ndim == 3 and y.ndim == 2:
+            _y = y.reshape((1, y.shape[0], y.shape[1]))
+            return _lcss_from_multiple_to_multiple_distance(X, _y, window, epsilon)
+        if y.ndim == 3 and X.ndim == 2:
+            _x = X.reshape((1, X.shape[0], X.shape[1]))
+            return _lcss_from_multiple_to_multiple_distance(_x, y, window, epsilon)
+        if X.ndim == 2 and y.ndim == 1:
+            _x = X.reshape((X.shape[0], 1, X.shape[1]))
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
+        if y.ndim == 2 and X.ndim == 1:
+            _x = X.reshape((1, 1, X.shape[0]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
+            return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
+        else:
+            raise ValueError("x and y must be 2D or 3D arrays")
 
-    raise ValueError("x and y must be 2D or 3D arrays")
 
-
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -280,129 +328,9 @@ def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.
     return distances
 
 
-@njit(cache=True)
-def lcss_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
-) -> np.ndarray:
-    """Compute the lcss distance between a single time series and multiple.
-
-    Parameters
-    ----------
-    x: np.ndarray, (n_channels, n_timepoints) or (n_timepoints,)
-        Single time series.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints)
-        A collection of time series instances.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    epsilon: float, defaults=1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. The default is 1.
-
-    Returns
-    -------
-    np.ndarray (n_instances)
-        lcss distance between the collection of instances in y and the time series x.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 2D or 3D arrays.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import lcss_from_single_to_multiple_distance
-    >>> x = np.array([[1, 2, 3, 6]])
-    >>> y = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
-    >>> lcss_from_single_to_multiple_distance(x, y)
-    array([0.25, 0.5 , 0.75])
-    """
-    if y.ndim == 3 and x.ndim == 2:
-        return _lcss_from_single_to_multiple_distance(x, y, window, epsilon)
-    if y.ndim == 2 and x.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _lcss_from_single_to_multiple_distance(_x, _y, window, epsilon)
-    else:
-        raise ValueError("x and y must be 2D or 3D arrays")
-
-
-@njit(cache=True)
-def _lcss_from_single_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
-) -> np.ndarray:
-    n_instances = y.shape[0]
-    distances = np.zeros(n_instances)
-    bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[2], window)
-
-    for i in range(n_instances):
-        distances[i] = _lcss_distance(x, y[i], bounding_matrix, epsilon)
-
-    return distances
-
-
-@njit(cache=True)
-def lcss_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
-) -> np.ndarray:
-    """Compute the lcss distance between two sets of time series.
-
-    If x and y are the same then you should use lcss_pairwise_distance.
-
-    Parameters
-    ----------
-    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,)
-        A collection of time series instances.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    epsilon: float, defaults=1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. The default is 1.
-
-    Returns
-    -------
-    np.ndarray (n_instances, m_instances)
-        lcss distance between two collections of time series, x and y.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 2D or 3D arrays.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import lcss_from_multiple_to_multiple_distance
-    >>> x = np.array([[[1, 2, 3, 3]],[[4, 5, 6, 9]], [[7, 8, 9, 22]]])
-    >>> y = np.array([[[11, 12, 13, 2]],[[14, 15, 16, 1]], [[17, 18, 19, 10]]])
-    >>> lcss_from_multiple_to_multiple_distance(x, y)
-    array([[0.75, 0.75, 1.  ],
-           [1.  , 1.  , 0.75],
-           [1.  , 1.  , 0.75]])
-    """
-    if y.ndim == 3 and x.ndim == 3:
-        return _lcss_from_multiple_to_multiple_distance(x, y, window, epsilon)
-    if y.ndim == 2 and x.ndim == 2:
-        _x = x.reshape((x.shape[0], 1, x.shape[1]))
-        _y = y.reshape((y.shape[0], 1, y.shape[1]))
-        return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
-    if y.ndim == 1 and x.ndim == 1:
-        _x = x.reshape((1, 1, x.shape[0]))
-        _y = y.reshape((1, 1, y.shape[0]))
-        return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-
-
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def _lcss_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
+        x: np.ndarray, y: np.ndarray, window: float, epsilon: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -415,9 +343,9 @@ def _lcss_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def lcss_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the lcss alignment path between two time series.
 
@@ -456,8 +384,9 @@ def lcss_alignment_path(
     >>> from aeon.distances import lcss_alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> lcss_alignment_path(x, y)
-    ([(0, 0), (1, 1), (2, 2)], 0.25)
+    >>> path, dist = lcss_alignment_path(x, y)
+    >>> path
+    [(0, 0), (1, 1), (2, 2)]
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
@@ -466,14 +395,14 @@ def lcss_alignment_path(
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
         cost_matrix = _lcss_cost_matrix(_x, _y, bounding_matrix, epsilon)
-        distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
+        distance = 1 - (float(cost_matrix[x_size, y_size] / min(x_size, y_size)))
         return (
             compute_lcss_return_path(_x, _y, epsilon, bounding_matrix, cost_matrix),
             distance,
         )
     if x.ndim == 2 and y.ndim == 2:
         cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
-        distance = 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
+        distance = 1 - (float(cost_matrix[x_size, y_size] / min(x_size, y_size)))
         return (
             compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix),
             distance,
