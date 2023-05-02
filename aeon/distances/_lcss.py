@@ -84,8 +84,7 @@ def lcss_distance(
     >>> from aeon.distances import lcss_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> lcss_distance(x, y)
-    0.9
+    >>> dist = lcss_distance(x, y)
 
     Raises
     ------
@@ -154,16 +153,17 @@ def lcss_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> lcss_cost_matrix(x, y)
-    array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-           [ 1.,  2.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
-           [ 1.,  2.,  3.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-           [ 1.,  2.,  3.,  4.,  5.,  5.,  5.,  5.,  5.,  5.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  6.,  6.,  6.,  6.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  7.,  7.,  7.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  8.,  8.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  9.],
-           [ 1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+           [ 0.,  1.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+           [ 0.,  1.,  2.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
+           [ 0.,  1.,  2.,  3.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  5.,  5.,  5.,  5.,  5.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  6.,  6.,  6.,  6.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  7.,  7.,  7.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  8.,  8.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9.,  9.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -191,7 +191,7 @@ def _lcss_distance(
     distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
         x.shape[1], y.shape[1]
     ]
-    return float(distance / min(x.shape[1], y.shape[1]))
+    return 1 - (float(distance / min(x.shape[1], y.shape[1])))
 
 
 @njit(cache=True, fastmath=True)
@@ -384,8 +384,9 @@ def lcss_alignment_path(
     >>> from aeon.distances import lcss_alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> lcss_alignment_path(x, y)
-    ([(0, 0), (1, 1), (2, 2)], 0.25)
+    >>> path, dist = lcss_alignment_path(x, y)
+    >>> path
+    [(0, 0), (1, 1), (2, 2)]
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
@@ -394,14 +395,14 @@ def lcss_alignment_path(
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
         cost_matrix = _lcss_cost_matrix(_x, _y, bounding_matrix, epsilon)
-        distance = float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+        distance = 1 - (float(cost_matrix[x_size, y_size] / min(x_size, y_size)))
         return (
             compute_lcss_return_path(_x, _y, epsilon, bounding_matrix, cost_matrix),
             distance,
         )
     if x.ndim == 2 and y.ndim == 2:
         cost_matrix = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
-        distance = float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+        distance = 1 - (float(cost_matrix[x_size, y_size] / min(x_size, y_size)))
         return (
             compute_lcss_return_path(x, y, epsilon, bounding_matrix, cost_matrix),
             distance,

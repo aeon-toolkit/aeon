@@ -87,11 +87,11 @@ def compute_lcss_return_path(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    i, j = (x_size - 1, y_size - 1)
+    i, j = (x_size, y_size)
     path = []
 
     while i > 0 and j > 0:
-        if bounding_matrix[i, j]:
+        if bounding_matrix[i - 1, j - 1]:
             if _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1]) <= epsilon:
                 path.append((i - 1, j - 1))
                 i, j = (i - 1, j - 1)
