@@ -15,8 +15,10 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
+    load_from_arff_to_dataframe,
     load_from_long_to_dataframe,
     load_from_tsfile_to_dataframe,
+    load_from_ucr_tsv_to_dataframe,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -24,7 +26,12 @@ from aeon.datasets._data_generators import (
     _convert_tsf_to_hierarchical,
     make_example_long_table,
 )
-from aeon.datasets._data_loaders import MODULE, _load_provided_dataset, load_from_tsfile
+from aeon.datasets._data_loaders import (
+    DIRNAME,
+    MODULE,
+    _load_provided_dataset,
+    load_from_tsfile,
+)
 from aeon.datatypes import check_is_mtype
 
 
@@ -56,7 +63,7 @@ def test_load_from_tsfile():
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
     3. Univariate and multivariate unequal length (PLAID) return X as DataFrame
     """
-    data_path = MODULE + "/data/UnitTest/UnitTest_TRAIN.ts"
+    data_path = MODULE + "/" + DIRNAME + "/UnitTest/UnitTest_TRAIN.ts"
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
@@ -116,7 +123,7 @@ _CHECKS = {
 
 
 @pytest.mark.parametrize("dataset", sorted(_CHECKS.keys()))
-def test_data_loaders(dataset):
+def test_forecasting_data_loaders(dataset):
     """
     Assert if datasets are loaded correctly.
 
@@ -1334,3 +1341,20 @@ def test_convert_tsf_to_multiindex(freq):
         _convert_tsf_to_hierarchical(input_df, metadata, freq=freq),
         check_dtype=False,
     )
+
+
+def test_load_from_ucr_tsv_to_dataframe():
+    """Test that GunPoint is the same when loaded from .ts and .tsv"""
+    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
+    X2, y2 = load_from_ucr_tsv_to_dataframe(data_path)
+    y = y.astype(np.float)
+    assert np.array_equal(y, y2)
+
+
+def test_load_from_arff_to_dataframe():
+    """Test that GunPoint is the same when loaded from .ts and .arff"""
+    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
+    X2, y2 = load_from_arff_to_dataframe(data_path)
+    assert np.array_equal(y, y2)

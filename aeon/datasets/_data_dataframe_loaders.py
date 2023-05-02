@@ -646,7 +646,7 @@ def load_from_arff_to_dataframe(
         associated class values.
     """
     instance_list = []
-    class_val_list = []
+    y = []
     data_started = False
     is_multi_variate = False
     is_first_case = True
@@ -673,7 +673,7 @@ def load_from_arff_to_dataframe(
                     if is_multi_variate:
                         if has_class_labels:
                             line, class_val = line.split("',")
-                            class_val_list.append(class_val.strip())
+                            y.append(class_val.strip())
                         dimensions = line.split("\\n")
                         dimensions[0] = dimensions[0].replace("'", "")
 
@@ -704,22 +704,22 @@ def load_from_arff_to_dataframe(
                                     ]
                                 )
                             )
-                            class_val_list.append(line_parts[-1].strip())
+                            y.append(line_parts[-1].strip())
                         else:
                             instance_list[0].append(
                                 pd.Series(
                                     [float(i) for i in line_parts[: len(line_parts)]]
                                 )
                             )
-    x_data = pd.DataFrame(dtype=np.float32)
+    X = pd.DataFrame(dtype=np.float32)
     for dim in range(len(instance_list)):
-        x_data["dim_" + str(dim)] = instance_list[dim]
+        X["dim_" + str(dim)] = instance_list[dim]
     if has_class_labels:
         if return_separate_X_and_y:
-            return x_data, np.asarray(class_val_list)
+            return X, np.asarray(y)
         else:
-            x_data["class_vals"] = pd.Series(class_val_list)
-    return x_data
+            X["class_vals"] = pd.Series(y)
+    return X
 
 
 def load_from_ucr_tsv_to_dataframe(
