@@ -29,9 +29,9 @@ def _validate_cost_matrix_result(
 
     if name == "lcss":
         if x.ndim != 3:
-            distance = 1 - (float(
-                cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1])
-            ))
+            distance = 1 - (
+                float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
+            )
             assert_almost_equal(distance, distance_result)
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)

@@ -46,7 +46,7 @@ from aeon.distances._euclidean import _univariate_euclidean_distance
 
 @njit(cache=True, fastmath=True)
 def lcss_distance(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
     r"""Return the lcss distance between x and y.
 
@@ -117,7 +117,7 @@ def lcss_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     r"""Return the lcss cost matrix between x and y.
 
@@ -186,17 +186,15 @@ def lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _lcss_distance(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1], y.shape[1]
-    ]
+    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1], y.shape[1]]
     return 1 - (float(distance / min(x.shape[1], y.shape[1])))
 
 
 @njit(cache=True, fastmath=True)
 def _lcss_cost_matrix(
-        x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -217,7 +215,7 @@ def _lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
-        X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
+    X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
     """Compute the lcss pairwise distance between a set of time series.
 
@@ -330,7 +328,7 @@ def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.
 
 @njit(cache=True, fastmath=True)
 def _lcss_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, window: float, epsilon: float
+    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -345,7 +343,7 @@ def _lcss_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_alignment_path(
-        x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the lcss alignment path between two time series.
 
