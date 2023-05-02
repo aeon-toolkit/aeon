@@ -38,13 +38,13 @@ def test_write_to_tsfile_unequal_length(dataset_name):
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
     X, y = _load_provided_dataset(dataset_name, split="TRAIN")
-    write_to_tsfile(X=X, path=f"./Temp{dataset_name}/", y=y, problem_name=dataset_name)
-    load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}.ts"
+    write_to_tsfile(X=X, path=f"./Temp/{dataset_name}/", y=y, problem_name=dataset_name)
+    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}.ts"
     newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
     assert len(X) == len(newX)
     assert X[0][0][0] == newX[0][0][0]
     assert np.array_equal(y, newy)
-    shutil.rmtree(f"./Temp{dataset_name}")
+    shutil.rmtree("./Temp")
 
 
 @pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
@@ -69,3 +69,4 @@ def test_write_dataframe_to_ts(dataset_name):
     # check if the dataframes are the same
     #    assert_frame_equal(newX, X)
     assert np.array_equal(y, newy)
+    shutil.rmtree("./Temp/")

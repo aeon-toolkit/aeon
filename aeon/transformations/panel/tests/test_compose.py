@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Tests for panel compositors."""
+"""Tests for collection composers."""
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.datasets import load_basic_motions
 from aeon.transformations.panel.compose import ColumnTransformer
 from aeon.transformations.panel.reduce import Tabularizer
+from aeon.utils._testing.panel import make_classification_problem
 
 
 def test_ColumnTransformer_pipeline():
     """Test pipeline with ColumnTransformer."""
-    X_train, y_train = load_basic_motions(split="train", return_type="nested_univ")
-    X_test, y_test = load_basic_motions(split="test", return_type="nested_univ")
+    X_train, y_train = make_classification_problem(n_columns=2)
+    X_test, y_test = make_classification_problem(n_columns=2)
 
     # using Identity function transformations (transform series to series)
     def id_func(X):
