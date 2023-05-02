@@ -61,7 +61,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     .. math::
         dtw(x, y) = \sqrt{\sum_{(i, j) \in \pi} \|x_{i} - y_{j}\|^2}
 
-    # Parameters
+    Parameters
     ----------
     x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
             (n_instances, n_channels, n_timepoints)

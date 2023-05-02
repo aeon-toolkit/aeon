@@ -12,7 +12,7 @@ from aeon.distances._ddtw import (
     ddtw_pairwise_distance,
 )
 from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
-from aeon.distances._edr import _EdrDistance
+from aeon.distances._edr import edr_alignment_path, edr_distance, edr_pairwise_distance
 from aeon.distances._erp import erp_alignment_path, erp_distance, erp_pairwise_distance
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import (
@@ -50,86 +50,6 @@ from aeon.distances.base import (
     MetricInfo,
     NumbaDistance,
 )
-
-
-def edr_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    epsilon: float = None,
-    **kwargs: Any,
-) -> float:
-    """Compute the Edit distance for real sequences (EDR) between two series.
-
-    EDR computes the minimum number of elements (as a percentage) that must be removed
-    from x and y so that the sum of the distance between the remaining signal elements
-    lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
-
-    The value returned will be between 0 and 1 per time series. The value will
-    represent as a percentage of elements that must be removed for the time series to
-    be an exact match.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = None
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. If not specified as per the original paper
-        epsilon is set to a quarter of the maximum standard deviation.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Edr distance between the x and y. The value will be between 0.0 and 1.0
-        where 0.0 is an exact match between time series (i.e. they are the same) and
-        1.0 where there are no matching subsequences.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> edr_distance(x_1d, y_1d)
-    1.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> edr_distance(x_2d, y_2d)
-    1.0
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="edr", **format_kwargs)
 
 
 def msm_distance(
@@ -275,83 +195,6 @@ def twe_distance(
     format_kwargs = {**format_kwargs, **kwargs}
 
     return distance(x, y, metric="twe", **format_kwargs)
-
-
-def edr_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    epsilon: float = None,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the Edit distance for real sequences (EDR) alignment path.
-
-    EDR computes the minimum number of elements (as a percentage) that must be removed
-    from x and y so that the sum of the distance between the remaining signal elements
-    lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
-
-    The value returned will be between 0 and 1 per time series. The value will
-    represent as a percentage of elements that must be removed for the time series to
-    be an exact match.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = None
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. If not specified as per the original paper
-        epsilon is set to a quarter of the maximum standard deviation.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the edr alignment path.
-    float
-        Edr distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="edr", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
 
 
 def msm_alignment_path(
@@ -506,7 +349,17 @@ def twe_alignment_path(
     )
 
 
-NEW_DISTANCES = ["squared", "euclidean", "dtw", "ddtw", "wdtw", "wddtw", "lcss", "erp"]
+NEW_DISTANCES = [
+    "squared",
+    "euclidean",
+    "dtw",
+    "ddtw",
+    "wdtw",
+    "wddtw",
+    "lcss",
+    "erp",
+    "edr",
+]
 
 
 def distance(
@@ -605,6 +458,8 @@ def distance(
             return lcss_distance(x, y, **kwargs)
         elif metric == "erp":
             return erp_distance(x, y, **kwargs)
+        elif metric == "edr":
+            return edr_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -688,6 +543,8 @@ def distance_factory(
             return lcss_distance
         elif metric == "erp":
             return erp_distance
+        elif metric == "edr":
+            return edr_distance
     global dist_callable
 
     if x is None:
@@ -820,6 +677,8 @@ def pairwise_distance(
             return lcss_pairwise_distance(_x, _y, **kwargs)
         elif metric == "erp":
             return erp_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "edr":
+            return edr_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -910,6 +769,8 @@ def distance_alignment_path(
             return lcss_alignment_path(x, y, **kwargs)
         elif metric == "erp":
             return erp_alignment_path(x, y, **kwargs)
+        elif metric == "edr":
+            return edr_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -997,6 +858,8 @@ def distance_alignment_path_factory(
             return lcss_alignment_path
         elif metric == "erp":
             return erp_alignment_path
+        elif metric == "edr":
+            return edr_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1019,13 +882,6 @@ def distance_alignment_path_factory(
 
 
 _METRIC_INFOS = [
-    MetricInfo(
-        canonical_name="edr",
-        aka={"edr", "edit distance for real sequences"},
-        dist_func=edr_distance,
-        dist_instance=_EdrDistance(),
-        dist_alignment_path_func=edr_alignment_path,
-    ),
     MetricInfo(
         canonical_name="msm",
         aka={"msm", "move-split-merge"},
@@ -1050,7 +906,6 @@ _METRIC_CALLABLES = dict(
 _METRICS_NAMES = list(_METRICS.keys())
 
 ALL_DISTANCES = (
-    edr_distance,
     msm_distance,
     twe_distance,
 )

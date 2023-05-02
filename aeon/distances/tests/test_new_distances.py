@@ -15,6 +15,10 @@ from aeon.distances import (
     dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
+    edr_alignment_path,
+    edr_cost_matrix,
+    edr_distance,
+    edr_pairwise_distance,
     erp_alignment_path,
     erp_cost_matrix,
     erp_distance,
@@ -91,6 +95,13 @@ DISTANCES = [
         "pairwise_distance": erp_pairwise_distance,
         "cost_matrix": erp_cost_matrix,
         "alignment_path": erp_alignment_path,
+    },
+    {
+        "name": "edr",
+        "distance": edr_distance,
+        "pairwise_distance": edr_pairwise_distance,
+        "cost_matrix": edr_cost_matrix,
+        "alignment_path": edr_alignment_path,
     },
 ]
 
