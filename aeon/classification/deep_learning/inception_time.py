@@ -568,7 +568,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
-        self.file_name_ = str(np.random.randint(low=0, high=1e12, size=1)[0])
+        self.file_name_ = str(np.random.randint(low=0, high=1e9, size=1)[0])
 
         self.callbacks_ = (
             [
