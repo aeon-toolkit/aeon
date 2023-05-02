@@ -573,7 +573,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    file_path=self.file_path + "best_model.hdf5",
+                    filepath=self.file_path + "best_model.hdf5",
                     monitor="loss",
                     save_best_only=True,
                 ),
