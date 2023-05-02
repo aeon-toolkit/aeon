@@ -31,10 +31,7 @@ __all__ = [
     "load_unit_test_tsf",
     "load_solar",
     "load_covid_3month",
-    # Writers from _data_writers.py
-    "write_dataframe_to_tsfile",
-    "write_ndarray_to_tsfile",
-    "write_collection_to_tsfile",
+    "write_to_tsfile",
     "write_results_to_uea_format",
     "write_tabular_transformation_to_arff",
     "make_example_long_table",
@@ -54,11 +51,9 @@ from aeon.datasets._data_generators import (
 )
 from aeon.datasets._data_loaders import load_from_tsfile
 from aeon.datasets._data_writers import (
-    write_collection_to_tsfile,
-    write_dataframe_to_tsfile,
-    write_ndarray_to_tsfile,
     write_results_to_uea_format,
     write_tabular_transformation_to_arff,
+    write_to_tsfile,
 )
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,

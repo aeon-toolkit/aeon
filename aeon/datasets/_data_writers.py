@@ -11,24 +11,24 @@ from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X, check_X_y
 
 
-def write_dataframe_to_tsfile(
-    data,
+def _write_dataframe_to_tsfile(
+    X,
     path,
     problem_name="sample_data",
     class_label=None,
-    class_value_list=None,
+    y=None,
     equal_length=False,
     series_length=-1,
     missing_values="NaN",
     comment=None,
-    fold="",
+    suffix="",
 ):
     """
     Output a dataset in dataframe format to .ts file.
 
     Parameters
     ----------
-    data: pandas dataframe
+    X: pandas dataframe
         The dataset in a dataframe to be written as a ts file
         which must be of the structure specified in the documentation
         examples/loading_data.ipynb.
@@ -45,7 +45,7 @@ def write_dataframe_to_tsfile(
     class_label: list of str or None, default=None
         The problems class labels to show the possible class values for in the file
         header, optional.
-    class_value_list: list, ndarray or None, default=None
+    y: list, ndarray or None, default=None
         The class values for each case, optional.
     equal_length: bool, default=False
         Indicates whether each series is of equal length.
@@ -55,7 +55,7 @@ def write_dataframe_to_tsfile(
         Representation for missing values.
     comment: str or None, default=None
         Comment text to be inserted before the header in a block.
-    fold: str or None, default=None
+    suffix: str or None, default=None
         Addon at the end of the filename, i.e. _TRAIN or _TEST.
 
     Returns
@@ -67,11 +67,9 @@ def write_dataframe_to_tsfile(
     This version currently does not support writing timestamp data.
     """
     # ensure data provided is a dataframe
-    if not isinstance(data, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(data)}")
-    data_valid, _, metadata = check_is_scitype(
-        data, scitype="Panel", return_metadata=True
-    )
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
+    data_valid, _, metadata = check_is_scitype(X, scitype="Panel", return_metadata=True)
     if not data_valid:
         raise ValueError("DataFrame provided is not a valid type")
     if equal_length != metadata["is_equal_length"]:
@@ -81,27 +79,27 @@ def write_dataframe_to_tsfile(
         )
     if equal_length:
         # Convert to [cases][dimensions][length] numpy.
-        data = convert_to(
-            data,
+        X = convert_to(
+            X,
             to_type="numpy3D",
             as_scitype="Panel",
             store_behaviour="freeze",
         )
-        write_ndarray_to_tsfile(
-            data,
+        _write_ndarray_to_tsfile(
+            X,
             path,
             problem_name=problem_name,
             class_label=class_label,
-            class_value_list=class_value_list,
+            class_value_list=y,
             equal_length=equal_length,
-            series_length=data.shape[2],
+            series_length=X.shape[2],
             missing_values=missing_values,
             comment=comment,
-            fold=fold,
+            fold=suffix,
         )
     else:  # Write by iterating over dataframe
-        if class_value_list is not None and class_label is None:
-            class_label = np.unique(class_value_list)
+        if y is not None and class_label is None:
+            class_label = np.unique(y)
         file = _write_header(
             path,
             problem_name,
@@ -109,20 +107,20 @@ def write_dataframe_to_tsfile(
             metadata["is_equal_length"],
             series_length,
             class_label,
-            fold,
+            suffix,
             comment,
         )
-        n_cases, n_dimensions = data.shape
+        n_cases, n_dimensions = X.shape
         for i in range(0, n_cases):
             for j in range(0, n_dimensions):
-                series = data.iloc[i, j]
+                series = X.iloc[i, j]
                 for k in range(0, series.size - 1):
                     file.write(f"{series[k]},")
                 file.write(f"{series[series.size-1]}:")
-            file.write(f"{class_value_list[i]}\n")
+            file.write(f"{y[i]}\n")
 
 
-def write_ndarray_to_tsfile(
+def _write_ndarray_to_tsfile(
     data,
     path,
     problem_name="sample_data",
@@ -143,7 +141,7 @@ def write_ndarray_to_tsfile(
         The dataset in a 3d ndarray to be written as a ts file
         which must be of the structure specified in the documentation
         examples/loading_data.ipynb.
-        (n_instances, n_columns, n_timepoints)
+        (n_instances, n_channels, n_timepoints)
     path: str
         The full path to output the ts file to.
     problem_name: str, default="sample_data"
@@ -227,62 +225,130 @@ def write_ndarray_to_tsfile(
     file.close()
 
 
-def write_collection_to_tsfile(
-    data, path, target=None, problem_name="sample_data", header=None
-):
-    """Write an aeon multi-instance dataset to text file in .ts format.
+def write_to_tsfile(X, path, y=None, problem_name="sample_data", header=None):
+    """Write an aeon collection of time series to text file in .ts format.
 
     Write metadata and data stored in aeon compatible data set to file.
-    A description of the ts format is in docs/api_reference/data_format.rst
+    A description of the ts format is in examples/load_data.ipynb.
+
+    Note that this file is structured to still support the
 
     Parameters
     ----------
-    data : Panel.
-        dataset containing multiple time series instances, referred to as a Panel in
-        aeon.
-        Series can univariate, multivariate, equal or unequal length
-    path : String.
+    X : np.ndarray (n_cases, n_channels, series_length) or list of np.ndarray[
+    n_cases] or pd.DataFrame with (n_cases,n_channels), each cell a pd.Series
+        Collection of time series: univariate, multivariate, equal or unequal length.
+    path : string.
         Location of the directory to write file
-    target: None or ndarray, default = None
+    y: None or ndarray, default = None
         Response variable, discrete for classification, continuous for regression
         None if clustering.
-    problem_name : String, default = "sample_data"
+    problem_name : string, default = "sample_data"
         The file is written to <path>/<problem_name>/<problem_name>.ts
-    header: String, default = None
+    header: string, default = None
         Optional text at the top of the file that is ignored when loading.
     """
-    data_valid, _, data_metadata = check_is_scitype(
-        data, scitype="Panel", return_metadata=True
-    )
-    if not data_valid:
-        raise TypeError(" Wrong input data type ", type(data))
-    if data_metadata["is_equal_length"]:
-        # check class labels
-        data = convert_to(
-            data,
-            to_type="numpy3D",
-            as_scitype="Panel",
-            store_behaviour="freeze",
-        )
-        series_length = data.shape[2]
-        write_ndarray_to_tsfile(
-            data,
-            path,
-            problem_name=problem_name,
-            class_value_list=target,
-            equal_length=True,
-            series_length=series_length,
-            comment=header,
-        )
+    if not (
+        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(pd.DataFrame)
+    ):
+        raise TypeError(" Wrong input data type ", type(X))
+    if isinstance(X, np.ndarray) or isinstance(X, list):
+        _write_data_to_tsfile(X, path, problem_name, y=y)
     else:
-        write_dataframe_to_tsfile(
-            data,
+        _write_dataframe_to_tsfile(
+            X,
             path,
             problem_name=problem_name,
-            class_value_list=target,
+            y=y,
             equal_length=False,
             comment=header,
         )
+
+
+def _write_data_to_tsfile(
+    X,
+    path,
+    problem_name,
+    y=None,
+    missing_values="NaN",
+    comment=None,
+    suffix="",
+):
+    """
+    Output a dataset in ndarray format to .ts file.
+
+    Parameters
+    ----------
+    X: Union[list, np.ndarray]
+        time series collection, either a 3d ndarray  (n_cases, n_channels,
+        n_timepoints) or a list of [n_cases] 2d numpy arrays (possibly variable
+        length)
+    path: str
+        The full path to output the ts file to.
+    problem_name: str
+        The problemName to print in the header of the ts file and also the name of
+        the file.
+    y: list, ndarray or None, default=None
+        The class values for each case, optional.
+    missing_values: str, default="NaN"
+        Representation for missing values.
+    comment: str or None, default=None
+        Comment text to be inserted before the header in a block.
+    suffix: str or None, default=None
+        Addon at the end of the filename, i.e. _TRAIN or _TEST.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This version currently does not support writing timestamp data.
+    """
+    # ensure data provided is a ndarray
+    if not isinstance(X, np.ndarray) and not isinstance(X, list):
+        raise ValueError("Data provided must be a ndarray or a list")
+    if y is not None:
+        class_label = np.unique(y)
+        # ensure number of cases is same as the class value list
+        if len(X) != len(y):
+            raise IndexError(
+                "The number of cases is not the same as the number of  class values"
+            )
+    n_cases = len(X)
+    n_channels = len(X[0])
+    univariate = n_channels == 1
+    equal_length = True
+    if isinstance(X, list):
+        length = len(X[0][0])
+        for i in range(1, n_cases):
+            if length != len(X[i][0]):
+                equal_length = False
+                break
+    series_length = -1
+    if equal_length:
+        series_length = len(X[0][0])
+    file = _write_header(
+        path,
+        problem_name,
+        univariate,
+        equal_length,
+        series_length,
+        class_label,
+        suffix,
+        comment,
+    )
+    for i in range(n_cases):
+        for j in range(n_channels):
+            series = ",".join(
+                [str(num) if not np.isnan(num) else missing_values for num in X[i][j]]
+            )
+            file.write(str(series))
+            file.write(":")
+        if y is not None:
+            file.write(str(y[i]))
+        file.write("\n")
+    file.close()
 
 
 def write_results_to_uea_format(
@@ -513,12 +579,12 @@ def _write_header(
     fold,
     comment,
 ):
-    # create path if not exist
+    # create path if it does not exist
     dirt = f"{str(path)}/{str(problem_name)}/"
     try:
-        os.makedirs(dirt)
+        os.makedirs(dirt, exist_ok=True)
     except os.error:
-        pass  # raises os.error if path already exists
+        pass  # raises os.error if the directory cannot be accessed or created
     # create ts file in the path
     file = open(f"{dirt}{str(problem_name)}{fold}.ts", "w")
     # write comment if any as a block at start of file

@@ -166,7 +166,6 @@ def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_meta_data=False,
-    return_type=None,
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -175,21 +174,23 @@ def load_from_tsfile(
     full_file_path_and_name : string
     replace_missing_vals_with : string, default="NaN"
     return_meta_data : boolean, default=True
-    return_type : string default = None. Refactor name
-        if "numpy2D" and data equal length univariate, will squeeze into 2D
+
     Returns
     -------
-    data: Union[np.ndarray,pd.DataFrame].
-        time series data, np.ndarray if equal length, data frame if not.
-    y : target variable.
-    meta_data : dict.
-        dictionary of characteristics.
+    data: Union[np.ndarray,list]
+        time series data, np.ndarray (n_cases, n_channels, series_length) if equal
+        length time series, list of [n_cases] np.ndarray (n_channels, series_length)
+        if unequal length series.
+    y : target variable, np.ndarray of string or int
+    meta_data : dict (optional).
+        dictionary of characteristics, with keys
+        "problemname" (string), booleans: "timestamps", "missing", "univariate",
+        "equallength", "classlabel", "targetlabel" and "class_values": [],
 
     Raises
     ------
-    IOError if the load fails
+    IOError if the load fails.
     """
-    return_type = _alias_datatype_check(return_type)
     # Check file ends in .ts, if not, insert
     if not full_file_path_and_name.endswith(".ts"):
         full_file_path_and_name = full_file_path_and_name + ".ts"
@@ -202,15 +203,6 @@ def load_from_tsfile(
         # if equal load to 3D numpy
         if meta_data["equallength"]:
             data = np.array(data)
-    # All this is for backward compatibility and can be deprecated in time
-    if meta_data["equallength"]:
-        if return_type == "numpyflat" and data.shape[1] == 1:
-            data = data.squeeze()
-        elif return_type == "nested_univ":  # for backward compatibility
-            data = convert(data, from_type="numpy3D", to_type="nested_univ")
-    elif return_type == "nested_univ":
-        data = convert(data, from_type="np-list", to_type="nested_univ")
-
     if return_meta_data:
         return data, y, meta_data
     return data, y
@@ -269,63 +261,46 @@ def _load_provided_dataset(
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X, y, meta_data = load_from_tsfile(
-            abspath, return_meta_data=True, return_type=return_type
-        )
+        X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
-        X_train, y_train, meta_data = load_from_tsfile(
-            abspath, return_meta_data=True, return_type=return_type
-        )
+        X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
         abspath = os.path.join(local_module, local_dirname, name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
-            abspath, return_meta_data=True, return_type=return_type
+            abspath, return_meta_data=True
         )
-        # TODO Check meta data matches
         if meta_data["equallength"]:
             X = np.concatenate([X_train, X_test])
         else:
             X = X_train + X_test
         y = np.concatenate([y_train, y_test])
-
     else:
         raise ValueError("Invalid `split` value =", split)
 
-    #    return_type = _alias_datatype_check(return_type)
-    #    # Check its a valid type, warn if not?
+    # All this is to allow for the user to configure to load into different data
+    # structures. Its all for backward compatibility.
     if isinstance(X, list):
         loaded_type = "np-list"
-    elif isinstance(X, np.ndarray):
-        if X.ndim == 2:
-            loaded_type = "numpy2D"
-        elif X.ndim == 3:
-            loaded_type = "numpy3D"
-        else:
-            raise ValueError(f" Loaded numpy arrays must be 2D or 3D, saw {X.ndims}")
-    elif isinstance(X, pd.DataFrame):
-        loaded_type = "nested_univ"
     else:
-        raise ValueError(
-            f" Loaded collection must be numpy, list or dataframe, saw" f" {type(X)}"
-        )
+        loaded_type = "numpy3D"
 
-    if return_type is None:
-        if meta_data["equallength"]:
-            return_type = "numpy3D"
-        else:
-            return_type = "np-list"
+    if return_type == "nested_univ":
+        X = convert(X, from_type="np-list", to_type="nested_univ")
+        loaded_type = "nested_univ"
+    elif meta_data["equallength"]:
+        if return_type == "numpyflat" and X.shape[1] == 1:
+            X = X.squeeze()
+    if return_type is not None and loaded_type != return_type:
+        X = convert(X, from_type=loaded_type, to_type=return_type)
     if return_X_y:
-        if loaded_type != return_type:
-            X = convert(X, from_type=loaded_type, to_type=return_type)
         return X, y
-    else:  # TODO: do this better
+    else:  # TODO: do this better, do we want it all in dataframes?
         X = convert(X, from_type=loaded_type, to_type="nested_univ")
         X["class_val"] = pd.Series(y)
-        #        X = convert(X, from_type="nested_univ", to_type=return_type)
         return X
 
 
