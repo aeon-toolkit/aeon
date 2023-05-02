@@ -119,33 +119,3 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     else:
         _x = x
     return _x
-
-
-def debug_generated_jit_distance_function(func):
-    """Check if numba generated_jit function is active for a test.
-
-    When using generated_jit function and numba is active this creates a function that
-    returns the value of the returned callable. However, when numba isnt active
-    this isnt resolved so you just get the resolved callable back. This means that
-    these functions cant be tested without numba being active. This function wraps
-    generated_jit functions when numba isnt active so they can be used even when
-    numba isnt active.
-
-    Parameters
-    ----------
-    func: Callable
-        The function that could be a numba generated_jit.
-
-    Returns
-    -------
-    Callable
-        The function that is wrapped if numba isnt active.
-    """
-    if "NUMBA_DISABLE_JIT" in os.environ and os.environ["NUMBA_DISABLE_JIT"] == "1":
-
-        def dist_callable(x, y):
-            inner_callable = func(x, y)
-            return inner_callable(x, y)
-
-        return dist_callable
-    return func

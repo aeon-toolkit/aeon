@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 from numba import njit
 
-from aeon.distances.base import DistanceCallable, NumbaDistance
 from aeon.distances.tests._utils import create_test_distance_numpy
 
 

@@ -44,9 +44,7 @@ __all__ = [
     "msm_cost_matrix",
     "msm_pairwise_distance",
     "distance",
-    "distance_factory",
     "pairwise_distance",
-    "distance_alignment_path_factory",
     "distance_alignment_path",
 ]
 
@@ -60,8 +58,6 @@ from aeon.distances._ddtw import (
 from aeon.distances._distance import (
     distance,
     distance_alignment_path,
-    distance_alignment_path_factory,
-    distance_factory,
     pairwise_distance,
 )
 from aeon.distances._dtw import (
