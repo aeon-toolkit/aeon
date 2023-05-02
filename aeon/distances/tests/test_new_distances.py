@@ -29,6 +29,10 @@ from aeon.distances import (
     lcss_cost_matrix,
     lcss_distance,
     lcss_pairwise_distance,
+    msm_alignment_path,
+    msm_cost_matrix,
+    msm_distance,
+    msm_pairwise_distance,
     squared_distance,
     squared_pairwise_distance,
     twe_alignment_path,
@@ -113,6 +117,13 @@ DISTANCES = [
         "pairwise_distance": twe_pairwise_distance,
         "cost_matrix": twe_cost_matrix,
         "alignment_path": twe_alignment_path,
+    },
+    {
+        "name": "msm",
+        "distance": msm_distance,
+        "pairwise_distance": msm_pairwise_distance,
+        "cost_matrix": msm_cost_matrix,
+        "alignment_path": msm_alignment_path,
     },
 ]
 

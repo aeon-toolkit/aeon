@@ -20,7 +20,7 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
-from aeon.distances._msm import _MsmDistance
+from aeon.distances._msm import msm_alignment_path, msm_distance, msm_pairwise_distance
 from aeon.distances._numba_utils import (
     _compute_pairwise_distance,
     _make_3d_series,
@@ -47,142 +47,8 @@ from aeon.distances.base import (
     AlignmentPathReturn,
     DistanceAlignmentPathCallable,
     DistanceCallable,
-    MetricInfo,
     NumbaDistance,
 )
-
-
-def msm_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    c: float = 1.0,
-    window: float = None,
-    **kwargs: dict,
-) -> float:
-    """Compute the move-split-merge distance.
-
-    This metric uses as building blocks three fundamental operations: Move, Split,
-    and Merge. A Move operation changes the value of a single element, a Split
-    operation converts a single element into two consecutive elements, and a Merge
-    operation merges two consecutive elements into one. Each operation has an
-    associated cost, and the MSM distance between two time series is defined to be
-    the cost of the cheapest sequence of operations that transforms the first time
-    series into the second one.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    c: float, default = 1.0
-        Cost for split or merge operation.
-    window: Float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Must be between 0 and 1.
-    kwargs: any
-        extra kwargs.
-
-    Returns
-    -------
-    float
-        Msm distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-    References
-    ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
-    """
-    format_kwargs = {
-        "c": c,
-        "window": window,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="msm", **format_kwargs)
-
-
-def msm_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    c: float = 1.0,
-    window: float = None,
-    **kwargs: dict,
-) -> AlignmentPathReturn:
-    """Compute the move-split-merge alignment path.
-
-    This metric uses as building blocks three fundamental operations: Move, Split,
-    and Merge. A Move operation changes the value of a single element, a Split
-    operation converts a single element into two consecutive elements, and a Merge
-    operation merges two consecutive elements into one. Each operation has an
-    associated cost, and the MSM distance between two time series is defined to be
-    the cost of the cheapest sequence of operations that transforms the first time
-    series into the second one.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    c: float, default = 1.0
-        Cost for split or merge operation.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Must be between 0 and 1.
-    kwargs: any
-        extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the msm alignment path.
-    float
-        Msm distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-    References
-    ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
-    """
-    format_kwargs = {
-        "c": c,
-        "window": window,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="msm", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
 
 NEW_DISTANCES = [
     "squared",
@@ -195,6 +61,7 @@ NEW_DISTANCES = [
     "erp",
     "edr",
     "twe",
+    "msm",
 ]
 
 
@@ -298,6 +165,8 @@ def distance(
             return edr_distance(x, y, **kwargs)
         elif metric == "twe":
             return twe_distance(x, y, **kwargs)
+        elif metric == "msm":
+            return msm_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -385,6 +254,8 @@ def distance_factory(
             return edr_distance
         elif metric == "twe":
             return twe_distance
+        elif metric == "msm":
+            return msm_distance
     global dist_callable
 
     if x is None:
@@ -521,6 +392,8 @@ def pairwise_distance(
             return edr_pairwise_distance(_x, _y, **kwargs)
         elif metric == "twe":
             return twe_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "msm":
+            return msm_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -615,6 +488,8 @@ def distance_alignment_path(
             return edr_alignment_path(x, y, **kwargs)
         elif metric == "twe":
             return twe_alignment_path(x, y, **kwargs)
+        elif metric == "msm":
+            return msm_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -706,6 +581,8 @@ def distance_alignment_path_factory(
             return edr_alignment_path
         elif metric == "twe":
             return twe_alignment_path
+        elif metric == "msm":
+            return msm_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -727,15 +604,7 @@ def distance_alignment_path_factory(
     return dist_callable
 
 
-_METRIC_INFOS = [
-    MetricInfo(
-        canonical_name="msm",
-        aka={"msm", "move-split-merge"},
-        dist_func=msm_distance,
-        dist_instance=_MsmDistance(),
-        dist_alignment_path_func=msm_alignment_path,
-    ),
-]
+_METRIC_INFOS = []
 
 _METRICS = {info.canonical_name: info for info in _METRIC_INFOS}
 _METRIC_ALIAS = dict((alias, info) for info in _METRIC_INFOS for alias in info.aka)
@@ -744,4 +613,4 @@ _METRIC_CALLABLES = dict(
 )
 _METRICS_NAMES = list(_METRICS.keys())
 
-ALL_DISTANCES = (msm_distance,)
+ALL_DISTANCES = ()
