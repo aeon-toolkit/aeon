@@ -29,6 +29,10 @@ Learning on Temporal Data
 
 __author__ = ["Tony Bagnall"]
 
+import os
+
+from aeon.datasets._data_dataframe_loaders import MODULE
+
 """ 128 UCR univariatetime series classification problems [1]"""
 univariate = [
     "ACSF1",
@@ -158,7 +162,6 @@ univariate = [
     "WordSynonyms",
     "Worms",
     "WormsTwoClass",
-    "IOError",
 ]
 
 """ 33 UEA multivariate time series classification problems [2]"""
@@ -378,3 +381,34 @@ multivariate_unequal_length = [
     "JapaneseVowels",
     "SpokenArabicDigits",
 ]
+
+
+def _list_available_datasets(extract_path):
+    """Return a list of all the currently downloaded datasets.
+
+    To count as available, each directory <dir_name> in the extract_path must contain
+    files called <dir_name>_TRAIN.ts and <dir_name>_TEST.ts.
+
+    Parameters
+    ----------
+    extract_path: string
+        root directory where to look for files, if None defaults to aeon/datasets/data
+
+    Returns
+    -------
+    datasets : List
+        List of the names of datasets downloaded
+
+    """
+    if extract_path is None:
+        data_dir = os.path.join(MODULE, "data")
+    else:
+        data_dir = extract_path
+    datasets = []
+    for name in os.listdir(data_dir):
+        sub_dir = os.path.join(data_dir, name)
+        if os.path.isdir(sub_dir):
+            all_files = os.listdir(sub_dir)
+            if name + "_TRAIN.ts" in all_files and name + "_TEST.ts" in all_files:
+                datasets.append(name)
+    return datasets

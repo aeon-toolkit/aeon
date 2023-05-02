@@ -6,7 +6,6 @@ __author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achiev
 __all__ = []
 
 import os
-import shutil
 import tempfile
 
 import numpy as np
@@ -16,61 +15,24 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
-    generate_example_long_table,
+    load_from_arff_to_dataframe,
     load_from_long_to_dataframe,
-    load_from_tsfile_old,
     load_from_tsfile_to_dataframe,
-    load_TSC_dataset,
+    load_from_ucr_tsv_to_dataframe,
     load_tsf_to_dataframe,
     load_uschange,
-    write_dataframe_to_tsfile,
-    write_panel_to_tsfile,
 )
-from aeon.datasets._data_io import (
-    MODULE,
+from aeon.datasets._data_generators import (
     _convert_tsf_to_hierarchical,
+    make_example_long_table,
+)
+from aeon.datasets._data_loaders import (
+    DIRNAME,
+    MODULE,
     _load_provided_dataset,
+    load_from_tsfile,
 )
 from aeon.datatypes import check_is_mtype
-
-
-@pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-@pytest.mark.parametrize("return_type", ["numpy3d"])
-def test_write_panel_to_tsfile_equal_length(dataset_name, return_type):
-    """Test function to write a dataset.
-
-    Loads equal and unequal length problems into both data frames and numpy arrays,
-    writes locally, reloads, then compares all class labels. It then delete the files.
-    """
-    X, y = _load_provided_dataset(dataset_name, split="TRAIN", return_type=return_type)
-    write_panel_to_tsfile(data=X, path="./Temp", target=y, problem_name=dataset_name)
-    load_path = f"./Temp/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile_old(
-        full_file_path_and_name=load_path, return_type=return_type
-    )
-    assert np.array_equal(y, newy)
-    shutil.rmtree("./Temp")
-
-
-@pytest.mark.parametrize("dataset_name", ["PLAID", "JapaneseVowels"])
-def test_write_panel_to_tsfile_unequal_length(dataset_name):
-    """Test function to write a dataset.
-
-    Loads equal and unequal length problems into both data frames and numpy arrays,
-    writes locally, reloads, then compares all class labels. It then delete the files.
-    """
-    X, y = _load_provided_dataset(
-        dataset_name, split="TRAIN", return_type="nested_univ"
-    )
-    write_panel_to_tsfile(
-        data=X, path=f"./Temp{dataset_name}/", target=y, problem_name=dataset_name
-    )
-    load_path = f"./Temp{dataset_name}/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile_old(
-        full_file_path_and_name=load_path, return_type="nested_univ"
-    )
-    assert np.array_equal(y, newy)
-    shutil.rmtree(f"./Temp{dataset_name}")
 
 
 @pytest.mark.parametrize("return_X_y", [True, False])
@@ -85,10 +47,10 @@ def test_load_provided_dataset(return_X_y, return_type):
         assert isinstance(y, np.ndarray)
     else:
         X = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
-    if return_type == "numpy3D":
-        assert isinstance(X, np.ndarray)
-    elif return_type == "nested_univ":
+    if not return_X_y or return_type == "nested_univ":
         assert isinstance(X, pd.DataFrame)
+    elif return_type == "numpy3D":
+        assert isinstance(X, np.ndarray)
 
     # Check whether object is same mtype or not, via bool
 
@@ -97,21 +59,20 @@ def test_load_from_tsfile():
     """Test function for loading TS formats.
 
     Test
-    1. Univariate equal length (UnitTest) returns 2D numpy X, 1D numpy y
+    1. Univariate equal length (UnitTest) returns 3D numpy X, 1D numpy y
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
     3. Univariate and multivariate unequal length (PLAID) return X as DataFrame
     """
-    data_path = MODULE + "/data/UnitTest/UnitTest_TRAIN.ts"
+    data_path = MODULE + "/" + DIRNAME + "/UnitTest/UnitTest_TRAIN.ts"
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
-    X, y = load_from_tsfile_old(data_path, return_type="np2D")
-    X2 = load_from_tsfile_old(data_path, return_y=False, return_type="np2D")
+    X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
-    assert X.ndim == 2 and X2.ndim == 2
-    assert X.shape == (20, 24) and y.shape == (20,)
-    assert X[0][0] == 573.0
-    X2 = load_from_tsfile_old(data_path, return_y=False, return_type="numpy3D")
+    assert X.ndim == 3
+    assert X.shape == (20, 1, 24) and y.shape == (20,)
+    assert X[0][0][0] == 573.0
+    X2, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X2, np.ndarray)
     assert X2.ndim == 3
     assert X2.shape == (20, 1, 24)
@@ -120,39 +81,28 @@ def test_load_from_tsfile():
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
     data_path = MODULE + "/data/BasicMotions/BasicMotions_TRAIN.ts"
-    X, y = load_from_tsfile_old(data_path, return_type="numpy3d")
+    X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
-    X, y = load_from_tsfile_old(data_path)
-    assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
-    assert X.shape == (40, 6) and y.shape == (40,)
-    assert isinstance(X.iloc[1, 2], pd.Series)
-    assert X.iloc[1, 2].iloc[3] == -1.898794
+    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
+    assert X.ndim == 3
+    assert X.shape == (40, 6, 100) and y.shape == (40,)
+    assert X[1][2][3] == -1.898794
 
     # Test 3.1: load univariate unequal length (PLAID), should return a one column
     # dataframe,
     data_path = MODULE + "/data/PLAID/PLAID_TRAIN.ts"
-    X, y = load_from_tsfile_old(full_file_path_and_name=data_path)
-    assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
-    assert X.shape == (537, 1) and y.shape == (537,)
+    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    assert isinstance(X, list) and isinstance(y, np.ndarray)
+    assert len(X) == 537 and y.shape == (537,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
     data_path = MODULE + "/data/JapaneseVowels/JapaneseVowels_TRAIN.ts"
-    X, y = load_from_tsfile_old(full_file_path_and_name=data_path)
-    assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
-    assert X.shape == (270, 12) and y.shape == (270,)
-
-
-def test_load_UCR_UEA_dataset():
-    """Tests load_UCR_UEA_dataset correctly loads a baked in data set.
-
-    Note this does not test whether download from timeseriesclassification.com works
-    correctly, since this would make testing dependent on an external website.
-    """
-    X, y = load_TSC_dataset(name="UnitTest")
-    assert isinstance(X, pd.DataFrame) and isinstance(y, np.ndarray)
-    assert X.shape == (42, 1) and y.shape == (42,)
+    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    assert isinstance(X, list) and isinstance(y, np.ndarray)
+    assert len(X) == 270 and y.shape == (270,)
 
 
 _CHECKS = {
@@ -173,7 +123,7 @@ _CHECKS = {
 
 
 @pytest.mark.parametrize("dataset", sorted(_CHECKS.keys()))
-def test_data_loaders(dataset):
+def test_forecasting_data_loaders(dataset):
     """
     Assert if datasets are loaded correctly.
 
@@ -1086,7 +1036,7 @@ def test_load_from_tsfile_to_dataframe():
 def test_load_from_long_to_dataframe(tmpdir):
     """Test for loading from long to dataframe."""
     # create and save a example long-format file to csv
-    test_dataframe = generate_example_long_table()
+    test_dataframe = make_example_long_table()
     dataframe_path = tmpdir.join("data.csv")
     test_dataframe.to_csv(dataframe_path, index=False)
     # load and convert the csv to aeon-formatted data
@@ -1097,54 +1047,11 @@ def test_load_from_long_to_dataframe(tmpdir):
 def test_load_from_long_incorrect_format(tmpdir):
     """Test for loading from long with incorrect format."""
     with pytest.raises(ValueError):
-        dataframe = generate_example_long_table()
+        dataframe = make_example_long_table()
         dataframe.drop(dataframe.columns[[3]], axis=1, inplace=True)
         dataframe_path = tmpdir.join("data.csv")
         dataframe.to_csv(dataframe_path, index=False)
         load_from_long_to_dataframe(dataframe_path)
-
-
-@pytest.mark.parametrize("dataset", ["ItalyPowerDemand", "BasicMotions"])
-def test_write_dataframe_to_ts_success(tmp_path, dataset):
-    """Tests whether a dataset can be written by the .ts writer then read in."""
-    # load an example dataset
-    path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        f"datasets/data/{dataset}/{dataset}_TEST.ts",
-    )
-    test_X, test_y = load_from_tsfile_to_dataframe(path)
-    # output the dataframe in a ts file
-    write_dataframe_to_tsfile(
-        data=test_X,
-        path=tmp_path,
-        problem_name=dataset,
-        class_label=np.unique(test_y),
-        class_value_list=test_y,
-        equal_length=True,
-        comment="""
-          The data was derived from twelve monthly electrical power demand
-          time series from Italy and first used in the paper "Intelligent
-          Icons: Integrating Lite-Weight Data Mining and Visualization into
-          GUI Operating Systems". The classification task is to distinguish
-          days from Oct to March (inclusive) from April to September.
-        """,
-        fold="_transform",
-    )
-    # load data back from the ts file
-    result = f"{tmp_path}/{dataset}/{dataset}_transform.ts"
-    res_X, res_y = load_from_tsfile_to_dataframe(result)
-    # check if the dataframes are the same
-    assert_frame_equal(res_X, test_X)
-
-
-def test_write_dataframe_to_ts_fail(tmp_path):
-    """Tests if non-dataframes are handled correctly."""
-    with pytest.raises(ValueError, match="Data provided must be a DataFrame"):
-        write_dataframe_to_tsfile(
-            data=np.random.rand(3, 2),
-            path=str(tmp_path),
-            problem_name="GunPoint",
-        )
 
 
 @pytest.mark.parametrize(
@@ -1434,3 +1341,20 @@ def test_convert_tsf_to_multiindex(freq):
         _convert_tsf_to_hierarchical(input_df, metadata, freq=freq),
         check_dtype=False,
     )
+
+
+def test_load_from_ucr_tsv_to_dataframe():
+    """Test that GunPoint is the same when loaded from .ts and .tsv"""
+    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
+    X2, y2 = load_from_ucr_tsv_to_dataframe(data_path)
+    y = y.astype(np.float)
+    assert np.array_equal(y, y2)
+
+
+def test_load_from_arff_to_dataframe():
+    """Test that GunPoint is the same when loaded from .ts and .arff"""
+    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
+    X2, y2 = load_from_arff_to_dataframe(data_path)
+    assert np.array_equal(y, y2)

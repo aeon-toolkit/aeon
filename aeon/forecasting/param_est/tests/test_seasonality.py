@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.param_est.seasonality import SeasonalityACF, SeasonalityACFqstat
+from aeon.forecasting.param_est.seasonality import SeasonalityACF, SeasonalityACFqstat
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 

@@ -9,8 +9,11 @@ import numpy as np
 from numba import njit
 from numba.core.errors import NumbaWarning
 
+from aeon.distances._alignment_paths import (
+    _add_inf_to_out_of_bounds_cost_matrix,
+    compute_lcss_return_path,
+)
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._distance_alignment_paths import compute_lcss_return_path
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
     DistanceCallable,
@@ -112,13 +115,18 @@ class _LcssDistance(NumbaDistance):
                 x_size = _x.shape[1]
                 y_size = _y.shape[1]
                 cost_matrix = _sequence_cost_matrix(_x, _y, _bounding_matrix, epsilon)
-                distance = 1 - float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+                distance = 1 - float(
+                    cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size)
+                )
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
                 path = compute_lcss_return_path(
                     _x,
                     _y,
                     epsilon=epsilon,
                     bounding_matrix=_bounding_matrix,
-                    cost_matrix=cost_matrix,
+                    cost_matrix=temp_cm,
                 )
                 return path, distance, cost_matrix
 
@@ -132,13 +140,18 @@ class _LcssDistance(NumbaDistance):
                 x_size = _x.shape[1]
                 y_size = _y.shape[1]
                 cost_matrix = _sequence_cost_matrix(_x, _y, _bounding_matrix, epsilon)
-                distance = 1 - float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+                distance = 1 - float(
+                    cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size)
+                )
+                temp_cm = _add_inf_to_out_of_bounds_cost_matrix(
+                    cost_matrix, _bounding_matrix
+                )
                 path = compute_lcss_return_path(
                     _x,
                     _y,
                     epsilon=epsilon,
                     bounding_matrix=_bounding_matrix,
-                    cost_matrix=cost_matrix,
+                    cost_matrix=temp_cm,
                 )
                 return path, distance
 
@@ -195,7 +208,7 @@ class _LcssDistance(NumbaDistance):
             x_size = _x.shape[1]
             y_size = _y.shape[1]
             cost_matrix = _sequence_cost_matrix(_x, _y, _bounding_matrix, epsilon)
-            return 1 - float(cost_matrix[x_size, y_size] / min(x_size, y_size))
+            return 1 - float(cost_matrix[x_size - 1, y_size - 1] / min(x_size, y_size))
 
         return numba_lcss_distance
 
@@ -242,4 +255,4 @@ def _sequence_cost_matrix(
                     cost_matrix[i, j] = max(
                         cost_matrix[i, j - 1], cost_matrix[i - 1, j]
                     )
-    return cost_matrix
+    return cost_matrix[1:, 1:]

@@ -103,7 +103,6 @@ class RotationForest(BaseEstimator):
     --------
     >>> from aeon.classification.sklearn import RotationForest
     >>> from aeon.datasets import load_unit_test
-    >>> from aeon.datatypes._panel._convert import from_nested_to_3d_numpy
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RotationForest(n_estimators=10)

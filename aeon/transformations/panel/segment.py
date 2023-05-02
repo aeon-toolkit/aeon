@@ -395,8 +395,8 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     Examples
     --------
+    >>> from aeon.datasets import load_unit_test
     >>> from aeon.transformations.panel.segment import SlidingWindowSegmenter
-    >>> import numpy as np
     >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
     >>> seggy = SlidingWindowSegmenter(window_length=4)
     >>> data2 = seggy.fit_transform(data)

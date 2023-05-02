@@ -4,7 +4,6 @@ __author__ = ["AyushmannSeth", "mloning"]
 
 import numpy as np
 import pytest
-from sklearn.model_selection import train_test_split
 
 from aeon.datasets import load_unit_test
 from aeon.datatypes import convert
@@ -38,33 +37,9 @@ def test_tsfresh_extractor(default_fc_parameters):
     not _check_soft_dependencies("tsfresh", severity="none"),
     reason="skip test if required soft dependency tsfresh not available",
 )
-def test_docs_tsfresh_extractor():
-    """Test whether doc example runs through."""
-    X, y = load_unit_test(return_type="nested_univ")
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
-    ts_eff = TSFreshFeatureExtractor(
-        default_fc_parameters="efficient", disable_progressbar=True
-    )
-    ts_eff.fit_transform(X_train)
-    features_to_calc = [
-        "dim_0__quantile__q_0.6",
-        "dim_0__longest_strike_above_mean",
-        "dim_0__variance",
-    ]
-    ts_custom = TSFreshFeatureExtractor(
-        kind_to_fc_parameters=features_to_calc, disable_progressbar=True
-    )
-    ts_custom.fit_transform(X_train)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
-    reason="skip test if required soft dependency tsfresh not available",
-)
 def test_kind_tsfresh_extractor():
     """Test extractor returns an array of expected num of cols."""
-    X, y = load_unit_test(return_type="nested_univ")
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    X, y = load_unit_test(split="TRAIN")
     features_to_calc = [
         "dim_0__quantile__q_0.6",
         "dim_0__longest_strike_above_mean",
@@ -73,5 +48,5 @@ def test_kind_tsfresh_extractor():
     ts_custom = TSFreshFeatureExtractor(
         kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     )
-    Xts_custom = ts_custom.fit_transform(X_train)
+    Xts_custom = ts_custom.fit_transform(X)
     assert Xts_custom.shape[1] == len(features_to_calc)
