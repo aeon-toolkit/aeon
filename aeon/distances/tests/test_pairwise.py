@@ -3,9 +3,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
-from aeon.distances._distance import DISTANCES
 from aeon.distances import pairwise_distance as compute_pairwise_distance
+from aeon.distances._distance import DISTANCES
+from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
 
 
 def _validate_pairwise_result(
@@ -20,9 +20,7 @@ def _validate_pairwise_result(
 
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
-    assert np.array_equal(
-        pairwise_result, compute_pairwise_distance(x, metric=name)
-    )
+    assert np.array_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
     if name != "lcss" and name != "edr":
         assert np.array_equal(
             pairwise_result, compute_pairwise_distance(x, metric=distance)
@@ -63,7 +61,8 @@ def _validate_multiple_to_multiple_result(
     )
     if name != "lcss" and name != "edr":
         assert np.array_equal(
-            multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+            multiple_to_multiple_result,
+            compute_pairwise_distance(x, y, metric=distance),
         )
 
     x = _make_3d_series(x)

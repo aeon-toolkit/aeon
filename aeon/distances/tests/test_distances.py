@@ -7,11 +7,9 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import distance as compute_distance
+from aeon.distances._distance import DISTANCES
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances._distance import DISTANCES
-
-
 
 
 def _validate_distance_result(

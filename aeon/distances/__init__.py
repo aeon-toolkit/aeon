@@ -61,14 +61,14 @@ from aeon.distances._ddtw import (
     ddtw_pairwise_distance,
 )
 from aeon.distances._distance import (
-    distance,
     alignment_path,
-    pairwise_distance,
     cost_matrix,
+    distance,
+    get_alignment_path_function,
     get_cost_matrix_function,
     get_distance_function,
     get_pairwise_distance_function,
-    get_alignment_path_function
+    pairwise_distance,
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,

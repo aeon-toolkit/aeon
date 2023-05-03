@@ -3,9 +3,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances._distance import DISTANCES
 from aeon.distances import alignment_path as compute_alignment_path
+from aeon.distances._distance import DISTANCES
+from aeon.distances.tests._utils import create_test_distance_numpy
 
 
 def _validate_cost_matrix_result(

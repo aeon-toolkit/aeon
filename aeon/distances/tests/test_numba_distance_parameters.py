@@ -6,13 +6,13 @@ import numpy as np
 import pytest
 
 from aeon.distances import distance
+from aeon.distances._distance import DISTANCES
 from aeon.distances.tests._expected_results import _expected_distance_results_params
 from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances._distance import DISTANCES
 
 
 def _test_distance_params(
-        param_list: List[Dict], distance_func: Callable, distance_str: str
+    param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
     x_univ = create_test_distance_numpy(10, 1).reshape((1, 10))
     y_univ = create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))

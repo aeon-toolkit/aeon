@@ -1,65 +1,65 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import Any, Callable, Union, List, Tuple
+from typing import Any, Callable, List, Tuple, Union
 
 import numpy as np
 
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
+    ddtw_cost_matrix,
     ddtw_distance,
     ddtw_pairwise_distance,
-    ddtw_cost_matrix
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,
+    dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
-    dtw_cost_matrix
 )
 from aeon.distances._edr import (
     edr_alignment_path,
+    edr_cost_matrix,
     edr_distance,
     edr_pairwise_distance,
-    edr_cost_matrix
 )
 from aeon.distances._erp import (
     erp_alignment_path,
+    erp_cost_matrix,
     erp_distance,
     erp_pairwise_distance,
-    erp_cost_matrix
 )
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import (
     lcss_alignment_path,
+    lcss_cost_matrix,
     lcss_distance,
     lcss_pairwise_distance,
-    lcss_cost_matrix
 )
 from aeon.distances._msm import (
     msm_alignment_path,
+    msm_cost_matrix,
     msm_distance,
     msm_pairwise_distance,
-    msm_cost_matrix
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
+    twe_cost_matrix,
     twe_distance,
     twe_pairwise_distance,
-    twe_cost_matrix
 )
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
+    wddtw_cost_matrix,
     wddtw_distance,
     wddtw_pairwise_distance,
-    wddtw_cost_matrix
 )
 from aeon.distances._wdtw import (
     wdtw_alignment_path,
+    wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
-    wdtw_cost_matrix
 )
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -71,10 +71,10 @@ PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 
 
 def distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: Union[str, DistanceFunction],
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: Union[str, DistanceFunction],
+    **kwargs: Any,
 ) -> float:
     """Compute the distance between two time series.
 
@@ -144,10 +144,10 @@ def distance(
 
 
 def pairwise_distance(
-        x: np.ndarray,
-        y: np.ndarray = None,
-        metric: Union[str, DistanceFunction] = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray = None,
+    metric: Union[str, DistanceFunction] = None,
+    **kwargs: Any,
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -296,7 +296,7 @@ def _custom_func_pairwise(
 
 
 def _custom_pairwise_distance(
-        X: np.ndarray, dist_func: DistanceFunction, **kwargs
+    X: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -310,7 +310,7 @@ def _custom_pairwise_distance(
 
 
 def _custom_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
+    x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -323,10 +323,10 @@ def _custom_from_multiple_to_multiple_distance(
 
 
 def alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: str,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: str,
+    **kwargs: Any,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
@@ -391,10 +391,10 @@ def alignment_path(
 
 
 def cost_matrix(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: str,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: str,
+    **kwargs: Any,
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
 
@@ -464,9 +464,7 @@ def cost_matrix(
         raise ValueError("Metric must be one of the supported strings")
 
 
-def get_distance_function(
-        metric: Union[str, DistanceFunction]
-) -> DistanceFunction:
+def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
     """Get the distance function for a given metric string or callable.
 
     Parameters
@@ -503,7 +501,7 @@ def get_distance_function(
 
 
 def get_pairwise_distance_function(
-        metric: Union[str, PairwiseFunction]
+    metric: Union[str, PairwiseFunction]
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given metric string or callable.
 
@@ -543,9 +541,7 @@ def get_pairwise_distance_function(
     return _resolve_key_from_distance(metric, "pairwise_distance")
 
 
-def get_alignment_path_function(
-        metric: str
-) -> AlignmentPathFunction:
+def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     """Get the alignment path function for a given metric string or callable.
 
     Parameters
@@ -578,9 +574,7 @@ def get_alignment_path_function(
     return _resolve_key_from_distance(metric, "alignment_path")
 
 
-def get_cost_matrix_function(
-        metric: str
-) -> CostMatrixFunction:
+def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     """Get the cost matrix function for a given metric string or callable.
 
     Parameters
