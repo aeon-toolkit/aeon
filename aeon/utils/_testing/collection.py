@@ -4,16 +4,210 @@
 
 __author__ = ["mloning", "fkiraly"]
 __all__ = [
+    "make_3d_test_data",
+    "make_2d_test_data",
+    "make_unequal_length_test_data",
     "make_nested_df_classification_data",
     "make_nested_dataframe_regression_problem",
     "make_transformer_problem",
 ]
+
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_random_state
 
 from aeon.datatypes import convert
+
+
+def make_3d_test_data(
+    n_samples: int = 10,
+    n_channels: int = 1,
+    series_length: int = 12,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Randomly generate 3D data for testing.
+
+    Will ensure there is at least one sample per label.
+
+    Parameters
+    ----------
+    n_samples : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    series_length : int
+        The number of features/series length to generate.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from tsml.utils.testing import generate_3d_test_data
+    >>> data, labels = generate_3d_test_data(
+    ...     n_samples=20,
+    ...     n_channels=2,
+    ...     series_length=10,
+    ...     n_labels=3,
+    ... )
+    """
+    rng = np.random.RandomState(random_state)
+    X = n_labels * rng.uniform(size=(n_samples, n_channels, series_length))
+    y = X[:, 0, 0].astype(int)
+
+    for i in range(n_labels):
+        if len(y) > i:
+            X[i, 0, 0] = i
+            y[i] = i
+    X = X * (y[:, None, None] + 1)
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    return X, y
+
+
+def make_2d_test_data(
+    n_samples: int = 10,
+    series_length: int = 8,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Randomly generate 2D data for testing.
+
+    Will ensure there is at least one sample per label.
+
+    Parameters
+    ----------
+    n_samples : int
+        The number of samples to generate.
+    series_length : int
+        The number of features/series length to generate.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 2D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from tsml.utils.testing import generate_2d_test_data
+    >>> data, labels = generate_2d_test_data(
+    ...     n_samples=20,
+    ...     series_length=10,
+    ...     n_labels=3,
+    ... )
+    """
+    rng = np.random.RandomState(random_state)
+    X = n_labels * rng.uniform(size=(n_samples, series_length))
+    y = X[:, 0].astype(int)
+
+    for i in range(n_labels):
+        if len(y) > i:
+            X[i, 0] = i
+            y[i] = i
+    X = X * (y[:, None] + 1)
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    return X, y
+
+
+def make_unequal_length_test_data(
+    n_samples: int = 10,
+    n_channels: int = 1,
+    min_series_length: int = 6,
+    max_series_length: int = 8,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+) -> Tuple[List[np.ndarray], np.ndarray]:
+    """Randomly generate unequal length 3D data for testing.
+
+    Will ensure there is at least one sample per label.
+
+    Parameters
+    ----------
+    n_samples : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    min_series_length : int
+        The minimum number of features/series length to generate for invidiaul series.
+    max_series_length : int
+        The maximum number of features/series length to generate for invidiaul series.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : list of np.ndarray
+        Randomly generated unequal length 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from tsml.utils.testing import generate_unequal_test_data
+    >>> data, labels = generate_unequal_test_data(
+    ...     n_samples=20,
+    ...     n_channels=2,
+    ...     min_series_length=8,
+    ...     max_series_length=12,
+    ...     n_labels=3,
+    ... )
+    """
+    rng = np.random.RandomState(random_state)
+    X = []
+    y = np.zeros(n_samples, dtype=np.int32)
+
+    for i in range(n_samples):
+        series_length = rng.randint(min_series_length, max_series_length + 1)
+        x = n_labels * rng.uniform(size=(n_channels, series_length))
+        label = x[0, 0].astype(int)
+        if i < n_labels and n_samples > i:
+            x[0, 0] = i
+            label = i
+        x = x * (label + 1)
+
+        X.append(x)
+        y[i] = label
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    return X, y
 
 
 def _make_panel(
