@@ -1,7 +1,11 @@
+This is a page to display the contributors to the `aeon` project. To add your
+contribution, edit the [.all-contributorsrc](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc)
+file or use the [All Contributors Bot](https://allcontributors.org/docs/en/bot/usage).
+
 ```{include} ../CONTRIBUTORS.md
 ```
 
-# GitHub Contributors
+## GitHub Contributors
 
 Made with [contrib.rocks](https://contrib.rocks).
 
