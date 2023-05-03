@@ -1105,6 +1105,17 @@ def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
         If True, returns (features, target) separately instead of a single
         dataframe with columns for
         features and the target.
+    return_type: valid Panel mtype str or None, optional (default=None="numpy3d")
+        Memory data format specification to return X in, None = "nested_univ" type.
+        str can be any supported aeon Panel mtype,
+            for list of mtypes, see datatypes.MTYPE_REGISTER
+            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+        commonly used specifications:
+            "nested_univ: nested pd.DataFrame, pd.Series in cells
+            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
+            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
+            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
+        Exception is raised if the data cannot be stored in the requested type.
 
     Returns
     -------
