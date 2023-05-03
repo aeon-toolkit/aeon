@@ -13,5 +13,5 @@ Made with [contrib.rocks](https://contrib.rocks).
   <img src="https://contrib.rocks/image?repo=aeon-toolkit/aeon&max=500" />
 </a>
 
-Thanks to all our contributors. If you are interested in contributiong to `aeon`,
+Thanks to all our contributors. If you are interested in contributing to `aeon`,
 see our [contributing guidelines](contributing).
