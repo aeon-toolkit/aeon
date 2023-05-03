@@ -66,10 +66,6 @@ class RotationForestRegressor(BaseEstimator):
 
     Attributes
     ----------
-    classes_ : list
-        The unique class labels in the training set.
-    n_classes_ : int
-        The number of unique classes in the training set.
     n_instances_ : int
         The number of train cases in the training set.
     n_atts_ : int
@@ -101,10 +97,10 @@ class RotationForestRegressor(BaseEstimator):
 
     Examples
     --------
-    >>> from aeon.classification.sklearn import RotationForestRegressor
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> from aeon.regression.sklearn import RotationForestRegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
+    >>> X_test, y_test = load_covid_3month(split="test", return_type="numpy2d")
     >>> clf = RotationForestRegressor(n_estimators=10)
     >>> clf.fit(X_train, y_train)
     RotationForestRegressor(...)
@@ -145,7 +141,7 @@ class RotationForestRegressor(BaseEstimator):
         X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
             The training data.
         y : array-like, shape = [n_instances]
-            The class labels.
+            The output values.
 
         Returns
         -------
@@ -252,7 +248,7 @@ class RotationForestRegressor(BaseEstimator):
         Returns
         -------
         y : array-like, shape = [n_instances]
-            Predicted class labels.
+            Predicted output values.
         """
         if not self._is_fitted:
             raise NotFittedError(
@@ -322,7 +318,7 @@ class RotationForestRegressor(BaseEstimator):
             raise ValueError("Currently only works with saved transform data from fit.")
 
         p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._train_probas_for_estimator)(
+            delayed(self._train_preds_for_estimator)(
                 y,
                 i,
             )
@@ -343,7 +339,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return results
 
-    def _fit_estimator(self, X, X_cls_split, y, idx):
+    def _fit_estimator(self, X, y, idx):
         rs = 255 if self.random_state == 0 else self.random_state
         rs = (
             None
