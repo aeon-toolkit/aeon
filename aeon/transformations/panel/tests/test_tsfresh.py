@@ -34,12 +34,12 @@ def test_tsfresh_extractor(default_fc_parameters):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
+    #    not _check_soft_dependencies("tsfresh", severity="none"),
     reason="skip test if required soft dependency tsfresh not available",
 )
 def test_kind_tsfresh_extractor():
     """Test extractor returns an array of expected num of cols."""
-    X, y = load_unit_test(split="TRAIN")
+    X, y = load_unit_test()
     features_to_calc = [
         "dim_0__quantile__q_0.6",
         "dim_0__longest_strike_above_mean",
