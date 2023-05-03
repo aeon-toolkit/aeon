@@ -25,6 +25,8 @@ def _validate_distance_result(
     assert isinstance(dist_result, float)
     assert_almost_equal(dist_result, expected_result)
     assert dist_result == compute_distance(x, y, metric=name)
+    if name != "lcss" and name != "edr":
+        assert dist_result == compute_distance(x, y, metric=distance)
 
     dist_result_to_self = distance(x, x)
     assert isinstance(dist_result_to_self, float)

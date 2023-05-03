@@ -23,6 +23,10 @@ def _validate_pairwise_result(
     assert np.array_equal(
         pairwise_result, compute_pairwise_distance(x, metric=name)
     )
+    if name != "lcss" and name != "edr":
+        assert np.array_equal(
+            pairwise_result, compute_pairwise_distance(x, metric=distance)
+        )
 
     x = _make_3d_series(x)
 
@@ -57,6 +61,10 @@ def _validate_multiple_to_multiple_result(
     assert np.array_equal(
         multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
+    if name != "lcss" and name != "edr":
+        assert np.array_equal(
+            multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+        )
 
     x = _make_3d_series(x)
     y = _make_3d_series(y)
@@ -90,6 +98,10 @@ def _validate_single_to_multiple_result(
     assert np.array_equal(
         single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
+    if name != "lcss" and name != "edr":
+        assert np.array_equal(
+            single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+        )
 
     for i in range(single_to_multiple_result.shape[-1]):
         curr_y = y[i]
