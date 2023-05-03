@@ -8,6 +8,15 @@ __all__ = ["PaddingTransformer"]
 __author__ = ["abostrom"]
 
 
+def _get_max_length(X):
+    max_length = X[0].shape[1]
+    for x in X:
+        if x.shape[1] > max_length:
+            max_length = x.shape[1]
+
+    return max_length
+
+
 class PaddingTransformer(BaseTransformer):
     """Padding panel of unequal length time series to equal, fixed length.
 
@@ -36,15 +45,6 @@ class PaddingTransformer(BaseTransformer):
         self.fill_value = fill_value
         super(PaddingTransformer, self).__init__()
 
-    @staticmethod
-    def _get_max_length(X):
-        max_length = X[0].shape[1]
-        for x in X:
-            if x.shape[1] > max_length:
-                max_length = x.shape[1]
-
-        return max_length
-
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.
 
@@ -62,7 +62,7 @@ class PaddingTransformer(BaseTransformer):
         -------
         self : reference to self
         """
-        max_length = _get_max_length
+        max_length = _get_max_length(X)
         if self.pad_length is None:
             self.pad_length_ = max_length
         else:
@@ -106,10 +106,3 @@ class PaddingTransformer(BaseTransformer):
             Xt.append(padded_array)
         Xt = np.array(Xt)
         return Xt
-
-
-def _get_max_length(X):
-    def get_length(input):
-        return max(map(lambda series: len(series), input))
-
-    return max(map(get_length, X))
