@@ -80,11 +80,9 @@ def distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     metric: str or Callable
         The distance metric to use.
@@ -105,7 +103,7 @@ def distance(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D, or 2D arrays.
         If metric is not a valid string or callable.
 
     Examples
@@ -334,11 +332,9 @@ def alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     metric: str
         The distance metric to use. The value must be one of the following strings:
@@ -360,7 +356,7 @@ def alignment_path(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D, or 2D arrays.
         If metric is not one of the supported strings or a callable.
 
     Examples
@@ -404,11 +400,9 @@ def cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     metric: str or Callable
         The distance metric to use. The value must be one of the following strings:
@@ -427,7 +421,7 @@ def cost_matrix(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D, or 2D arrays.
         If metric is not one of the supported strings or a callable.
 
     Examples

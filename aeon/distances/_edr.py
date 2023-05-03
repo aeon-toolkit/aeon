@@ -44,11 +44,9 @@ def edr_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -66,7 +64,7 @@ def edr_distance(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D or 2D arrays.
 
     Examples
     --------
@@ -92,13 +90,7 @@ def edr_distance(
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
         return _edr_distance(x, y, bounding_matrix, epsilon)
-    if x.ndim == 3 and y.ndim == 3:
-        distance = 0
-        bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
-        for curr_x, curr_y in zip(x, y):
-            distance += _edr_distance(curr_x, curr_y, bounding_matrix, epsilon)
-        return distance
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
@@ -109,11 +101,9 @@ def edr_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -131,7 +121,7 @@ def edr_cost_matrix(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D or 2D arrays.
 
     Examples
     --------
@@ -159,15 +149,7 @@ def edr_cost_matrix(
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
         return _edr_cost_matrix(x, y, bounding_matrix, epsilon)
-    if x.ndim == 3 and y.ndim == 3:
-        bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
-        cost_matrix = np.zeros((x.shape[2], y.shape[2]))
-        for curr_x, curr_y in zip(x, y):
-            cost_matrix = np.add(
-                cost_matrix, _edr_cost_matrix(curr_x, curr_y, bounding_matrix, epsilon)
-            )
-        return cost_matrix
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
@@ -345,11 +327,9 @@ def edr_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -371,7 +351,7 @@ def edr_alignment_path(
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D or 2D arrays.
 
     Examples
     --------

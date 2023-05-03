@@ -31,7 +31,7 @@ def _validate_distance_result(
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
-def test_new_distances(dist):
+def test_distances(dist):
     # Test univariate
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_distance_result(
@@ -50,14 +50,6 @@ def test_new_distances(dist):
         _expected_distance_results[dist["name"]][1],
     )
 
-    _validate_distance_result(
-        create_test_distance_numpy(2, 1, 10)[0],
-        create_test_distance_numpy(2, 1, 10, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][1],
-    )
-
     # Test multivariate
     _validate_distance_result(
         create_test_distance_numpy(10, 10),
@@ -66,16 +58,6 @@ def test_new_distances(dist):
         dist["distance"],
         _expected_distance_results[dist["name"]][2],
     )
-    if len(_expected_distance_results[dist["name"]]) < 3:
-        _expected_distance_results[dist["name"]] = list(range(0, 10))
-
-    _validate_distance_result(
-        create_test_distance_numpy(10, 10, 10),
-        create_test_distance_numpy(10, 10, 10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][3],
-    )
 
     # Test unequal length
     _validate_distance_result(
@@ -83,7 +65,7 @@ def test_new_distances(dist):
         create_test_distance_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
-        _expected_distance_results[dist["name"]][4],
+        _expected_distance_results[dist["name"]][3],
     )
 
     _validate_distance_result(
@@ -91,13 +73,5 @@ def test_new_distances(dist):
         create_test_distance_numpy(10, 10, random_state=2),
         dist["name"],
         dist["distance"],
-        _expected_distance_results[dist["name"]][5],
-    )
-
-    _validate_distance_result(
-        create_test_distance_numpy(10, 10, 5),
-        create_test_distance_numpy(10, 10, 10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][6],
+        _expected_distance_results[dist["name"]][4],
     )

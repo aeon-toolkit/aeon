@@ -49,14 +49,6 @@ def test_cost_matrix(dist):
         dist["alignment_path"],
     )
 
-    _validate_cost_matrix_result(
-        create_test_distance_numpy(2, 1, 10)[0],
-        create_test_distance_numpy(2, 1, 10, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["alignment_path"],
-    )
-
     # Test multivariate
     _validate_cost_matrix_result(
         create_test_distance_numpy(10, 10),
@@ -65,15 +57,6 @@ def test_cost_matrix(dist):
         dist["distance"],
         dist["alignment_path"],
     )
-
-    if dist["name"] != "lcss":
-        _validate_cost_matrix_result(
-            create_test_distance_numpy(10, 10, 10),
-            create_test_distance_numpy(10, 10, 10, random_state=2),
-            dist["name"],
-            dist["distance"],
-            dist["alignment_path"],
-        )
 
     # Test unequal length
     _validate_cost_matrix_result(
@@ -91,12 +74,3 @@ def test_cost_matrix(dist):
         dist["distance"],
         dist["alignment_path"],
     )
-
-    if dist["name"] != "lcss":
-        _validate_cost_matrix_result(
-            create_test_distance_numpy(10, 10, 5),
-            create_test_distance_numpy(10, 10, 10, random_state=2),
-            dist["name"],
-            dist["distance"],
-            dist["alignment_path"],
-        )

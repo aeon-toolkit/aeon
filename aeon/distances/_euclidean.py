@@ -18,11 +18,9 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
 
     Returns
@@ -33,7 +31,7 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D or 2D arrays.
 
     Examples
     --------
@@ -48,12 +46,7 @@ def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
         return _univariate_euclidean_distance(x, y)
     if x.ndim == 2 and y.ndim == 2:
         return _euclidean_distance(x, y)
-    if x.ndim == 3 and y.ndim == 3:
-        distance = 0
-        for curr_x, curr_y in zip(x, y):
-            distance += _euclidean_distance(curr_x, curr_y)
-        return distance
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
