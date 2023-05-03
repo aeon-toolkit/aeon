@@ -227,7 +227,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         m = getattr(self._estimator, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
@@ -321,7 +321,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
             )
 
     @classmethod
