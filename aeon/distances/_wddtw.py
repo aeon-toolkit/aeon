@@ -10,7 +10,7 @@ from numba.core.errors import NumbaWarning
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._ddtw import DerivativeCallable, average_of_slope
+from aeon.distances._ddtw import average_of_slope
 from aeon.distances._wdtw import _weighted_cost_matrix
 from aeon.distances.base import (
     DistanceAlignmentPathCallable,
@@ -35,7 +35,7 @@ class _WddtwDistance(NumbaDistance):
         y: np.ndarray,
         return_cost_matrix: bool = False,
         window: int = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
+        compute_derivative=average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
     ) -> DistanceAlignmentPathCallable:
@@ -119,7 +119,7 @@ class _WddtwDistance(NumbaDistance):
         x: np.ndarray,
         y: np.ndarray,
         window: int = None,
-        compute_derivative: DerivativeCallable = average_of_slope,
+        compute_derivative=average_of_slope,
         g: float = 0.0,
         **kwargs: Any,
     ) -> DistanceCallable:

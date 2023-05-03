@@ -17,7 +17,10 @@ def _validate_cost_matrix_result(
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
-    assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
+    if name == "ddtw" or name == "wddtw":
+        assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
+    else:
+        assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
 
     distance_result = distance(x, y)
 
@@ -30,13 +33,14 @@ def test_cost_matrix(dist):
         return
 
     # Test univariate
-    _validate_cost_matrix_result(
-        np.array([10.0]),
-        np.array([15.0]),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_cost_matrix_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            dist["cost_matrix"],
+        )
 
     _validate_cost_matrix_result(
         create_test_distance_numpy(10),
