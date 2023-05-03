@@ -14,6 +14,8 @@ def test_ColumnTransformer_pipeline():
     """Test pipeline with ColumnTransformer."""
     X_train, y_train = make_classification_problem(n_columns=2)
     X_test, y_test = make_classification_problem(n_columns=2)
+    X_train.columns = ["dim_0", "dim_1"]
+    X_test.columns = ["dim_0", "dim_1"]
 
     # using Identity function transformations (transform series to series)
     def id_func(X):
