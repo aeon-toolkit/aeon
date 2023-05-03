@@ -1348,7 +1348,7 @@ def test_load_from_ucr_tsv_to_dataframe():
     X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
     X2, y2 = load_from_ucr_tsv_to_dataframe(data_path)
-    y = y.astype(np.float)
+    y = y.astype(float)
     assert np.array_equal(y, y2)
 
 
