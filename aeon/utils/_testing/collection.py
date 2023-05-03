@@ -2,7 +2,7 @@
 """Utility functions for generating collections of time series."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["mloning", "fkiraly"]
+__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "make_3d_test_data",
     "make_2d_test_data",
