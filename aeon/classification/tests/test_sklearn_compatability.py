@@ -86,7 +86,8 @@ COMPOSITE_ESTIMATORS = [
 
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 def test_sklearn_cross_validation(data_args):
-    """Test sklearn cross-validation works with aeon panel data and classifiers."""
+    """Test sklearn cross-validation works with aeon time series data and
+    classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
     fit_args = make_classification_problem(**data_args)
 
@@ -97,7 +98,7 @@ def test_sklearn_cross_validation(data_args):
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("cross_validation_method", CROSS_VALIDATION_METHODS)
 def test_sklearn_cross_validation_iterators(data_args, cross_validation_method):
-    """Test if sklearn cross-validation iterators can handle aeon panel data."""
+    """Test if sklearn cross-validation iterators can handle aeon time series data."""
     fit_args = make_classification_problem(**data_args)
     groups = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 
@@ -108,7 +109,7 @@ def test_sklearn_cross_validation_iterators(data_args, cross_validation_method):
 @pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("parameter_tuning_method", PARAMETER_TUNING_METHODS)
 def test_sklearn_parameter_tuning(data_args, parameter_tuning_method):
-    """Test if sklearn parameter tuners can handle aeon panel data and classifiers."""
+    """Test if sklearn parameter tuners can handle aeon data and classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
     fit_args = make_classification_problem(**data_args)
