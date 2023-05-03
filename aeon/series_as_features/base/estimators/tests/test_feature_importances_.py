@@ -11,9 +11,9 @@ from aeon.classification.compose._ensemble import ComposableTimeSeriesForestClas
 from aeon.transformations.panel.segment import IntervalSegmenter
 from aeon.transformations.panel.summarize._extract import RandomIntervalFeatureExtractor
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
+from aeon.utils._testing.collection import make_3d_test_data
 
-X_train = np.ones((20, 2, 30))
-y_train = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+X_train, y_train = make_3d_test_data(n_samples=20, n_channels=2, series_length=30)
 
 
 @pytest.mark.xfail(reason="array dimension mismatch since 1.2.0, see #3930")
