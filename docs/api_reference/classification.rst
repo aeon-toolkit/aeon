@@ -92,7 +92,7 @@ Feature-based
     :template: class.rst
 
     Catch22Classifier
-    FreshPRINCE
+    FreshPRINCEClassifier
     MatrixProfileClassifier
     RandomIntervalClassifier
     SignatureClassifier

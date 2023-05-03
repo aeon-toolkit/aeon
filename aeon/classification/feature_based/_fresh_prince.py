@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""FreshPRINCE Classifier.
+"""FreshPRINCEClassifier.
 
 Pipeline classifier using the full set of TSFresh features and a RotationForest
 classifier.
 """
 
 __author__ = ["MatthewMiddlehurst"]
-__all__ = ["FreshPRINCE"]
+__all__ = ["FreshPRINCEClassifier"]
 
 import numpy as np
 
@@ -16,7 +16,7 @@ from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
-class FreshPRINCE(BaseClassifier):
+class FreshPRINCEClassifier(BaseClassifier):
     """Fresh Pipeline with RotatIoN forest Classifier.
 
     This classifier simply transforms the input data using the TSFresh [1]_
@@ -96,7 +96,7 @@ class FreshPRINCE(BaseClassifier):
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCE, self).__init__()
+        super(FreshPRINCEClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -203,7 +203,7 @@ class FreshPRINCE(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            FreshPRINCE provides the following special sets:
+            FreshPRINCEClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
