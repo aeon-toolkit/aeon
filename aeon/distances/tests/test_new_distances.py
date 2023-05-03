@@ -19,6 +19,10 @@ from aeon.distances import (
     euclidean_pairwise_distance,
     squared_distance,
     squared_pairwise_distance,
+    wddtw_alignment_path,
+    wddtw_cost_matrix,
+    wddtw_distance,
+    wddtw_pairwise_distance,
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
@@ -58,6 +62,13 @@ DISTANCES = [
         "pairwise_distance": wdtw_pairwise_distance,
         "cost_matrix": wdtw_cost_matrix,
         "alignment_path": wdtw_alignment_path,
+    },
+    {
+        "name": "wddtw",
+        "distance": wddtw_distance,
+        "pairwise_distance": wddtw_pairwise_distance,
+        "cost_matrix": wddtw_cost_matrix,
+        "alignment_path": wddtw_alignment_path,
     },
 ]
 
