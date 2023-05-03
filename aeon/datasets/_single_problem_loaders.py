@@ -1093,7 +1093,7 @@ def load_solar(
                 return y
 
 
-def load_covid_3month(split=None, return_X_y=True):
+def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
     """Load dataset of last three months confirmed covid cases.
 
     Parameters
@@ -1137,7 +1137,7 @@ def load_covid_3month(split=None, return_X_y=True):
     =Covid3Month
     """
     name = "Covid3Month"
-    loaded_dataset = _load_dataset(name, split, return_X_y)
+    loaded_dataset = _load_dataset(name, split, return_X_y, return_type)
     if return_X_y:
         X, y = loaded_dataset
         y = y.astype(float)
