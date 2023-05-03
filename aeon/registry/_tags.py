@@ -80,7 +80,8 @@ ESTIMATOR_TAG_REGISTER = [
         "estimator",
         "bool",
         "when running the estimator multiple times is it the same performance?",
-    )(
+    ),
+    (
         "skip-inverse-transform",
         "transformer",
         "bool",
