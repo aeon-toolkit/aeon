@@ -76,6 +76,11 @@ ESTIMATOR_TAG_REGISTER = [
         "can the estimator handle missing data (NA, np.nan) in inputs?",
     ),
     (
+        "non-deterministic",
+        "estimator",
+        "bool",
+        "when running the estimator multiple times is it the same performance?",
+    )(
         "skip-inverse-transform",
         "transformer",
         "bool",
