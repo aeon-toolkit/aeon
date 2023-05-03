@@ -14,8 +14,8 @@ from pandas.testing import assert_series_equal
 from aeon.datatypes import check_is_mtype, convert
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
+from aeon.utils._testing.collection import _make_panel
 from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.panel import _make_panel
 from aeon.utils._testing.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

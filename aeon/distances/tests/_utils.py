@@ -6,7 +6,7 @@ from typing import Callable
 import numpy as np
 
 from aeon.datatypes import convert_to
-from aeon.utils._testing.panel import _make_panel_X
+from aeon.utils._testing.collection import _make_nested_dataframe_X
 from aeon.utils._testing.series import _make_series
 
 
@@ -59,7 +59,7 @@ def create_test_distance_numpy(
 
 def _create_test_distances(n_instance, n_columns, n_timepoints, random_state=1):
     if n_instance > 1:
-        return _make_panel_X(
+        return _make_nested_dataframe_X(
             n_instances=n_instance,
             n_columns=n_columns,
             n_timepoints=n_timepoints,

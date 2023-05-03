@@ -20,8 +20,8 @@ import pandas as pd
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base import BaseForecaster
+from aeon.utils._testing.collection import _make_nested_dataframe_X
 from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.panel import _make_panel_X
 from aeon.utils._testing.scenarios import TestScenario
 from aeon.utils._testing.series import _make_series
 
@@ -233,7 +233,7 @@ class ForecasterFitPredictMultivariateWithX(ForecasterTestScenario):
     default_method_sequence = ["fit", "predict"]
 
 
-y_panel = _make_panel_X(
+y_panel = _make_nested_dataframe_X(
     n_instances=3,
     n_timepoints=10,
     n_columns=1,

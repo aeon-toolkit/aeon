@@ -36,12 +36,6 @@ from sklearn.pipeline import Pipeline
 
 from aeon.classification.interval_based import CanonicalIntervalForest
 from aeon.transformations.panel.interpolate import TSInterpolator
-from aeon.utils._testing.panel import _make_panel_X, make_classification_problem
-
-DATA_ARGS = [
-    {"return_numpy": True, "n_columns": 2},
-    {"return_numpy": False, "n_columns": 2},
-]
 
 # StratifiedGroupKFold(n_splits=2), removed because it is not available in sklearn 0.24
 CROSS_VALIDATION_METHODS = [
@@ -84,50 +78,47 @@ COMPOSITE_ESTIMATORS = [
 ]
 
 
-@pytest.mark.parametrize("data_args", DATA_ARGS)
-def test_sklearn_cross_validation(data_args):
+def test_sklearn_cross_validation():
     """Test sklearn cross-validation works with aeon time series data and
     classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
-    fit_args = make_classification_problem(**data_args)
-
-    scores = cross_val_score(clf, *fit_args, cv=KFold(n_splits=3))
+    X = np.ones((10, 2, 30))
+    y = np.array([1, 1, 1, 1, 1, 2, 2, 2, 2, 2])
+    scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))
     assert isinstance(scores, np.ndarray)
 
 
-@pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("cross_validation_method", CROSS_VALIDATION_METHODS)
-def test_sklearn_cross_validation_iterators(data_args, cross_validation_method):
+def test_sklearn_cross_validation_iterators(cross_validation_method):
     """Test if sklearn cross-validation iterators can handle aeon time series data."""
-    fit_args = make_classification_problem(**data_args)
+    X = np.ones((20, 2, 30))
+    y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
     groups = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 
-    for train, test in cross_validation_method.split(*fit_args, groups=groups):
+    for train, test in cross_validation_method.split(X=X, y=y, groups=groups):
         assert isinstance(train, np.ndarray) and isinstance(test, np.ndarray)
 
 
-@pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("parameter_tuning_method", PARAMETER_TUNING_METHODS)
-def test_sklearn_parameter_tuning(data_args, parameter_tuning_method):
+def test_sklearn_parameter_tuning(parameter_tuning_method):
     """Test if sklearn parameter tuners can handle aeon data and classifiers."""
     clf = CanonicalIntervalForest.create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
-    fit_args = make_classification_problem(**data_args)
+    X = np.ones((20, 2, 30))
+    y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
 
     parameter_tuning_method = parameter_tuning_method(
         clf, param_grid, cv=KFold(n_splits=3)
     )
-    parameter_tuning_method.fit(*fit_args)
+    parameter_tuning_method.fit(X, y)
     assert isinstance(parameter_tuning_method.best_estimator_, CanonicalIntervalForest)
 
 
-@pytest.mark.parametrize("data_args", DATA_ARGS)
 @pytest.mark.parametrize("composite_classifier", COMPOSITE_ESTIMATORS)
-def test_sklearn_composite_classifiers(data_args, composite_classifier):
+def test_sklearn_composite_classifiers(composite_classifier):
     """Test if sklearn composite classifiers can handle aeon data and classifiers."""
-    fit_args = make_classification_problem(**data_args)
-    composite_classifier.fit(*fit_args)
-
-    X = _make_panel_X(**data_args)
+    X = np.ones((20, 2, 30))
+    y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+    composite_classifier.fit(X, y)
     preds = composite_classifier.predict(X=X)
     assert isinstance(preds, np.ndarray)

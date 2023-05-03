@@ -7,7 +7,7 @@ from timeit import default_timer as timer
 
 import pandas as pd
 
-from aeon.utils._testing.panel import make_classification_problem
+from aeon.utils._testing.collection import make_nested_df_classification_data
 
 
 def profile_classifier(
@@ -75,7 +75,7 @@ def profile_classifier(
     time_fit_list = []
     time_pred_list = []
     for n_inst, n_tp, _rep in grid:
-        X, y = make_classification_problem(n_instances=n_inst, n_timepoints=n_tp)
+        X, y = make_nested_df_classification_data(n_instances=n_inst, n_timepoints=n_tp)
 
         est_i = est.clone()
 

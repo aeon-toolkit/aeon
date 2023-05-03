@@ -9,7 +9,7 @@ import pytest
 
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
-from aeon.utils._testing.panel import _make_classification_y, _make_panel
+from aeon.utils._testing.collection import _make_classification_y, _make_panel
 
 
 class _DummyClassifier(BaseClassifier):

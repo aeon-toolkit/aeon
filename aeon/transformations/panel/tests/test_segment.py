@@ -9,7 +9,7 @@ from aeon.transformations.panel.segment import (
     _rand_intervals_fixed_n,
     _rand_intervals_rand_n,
 )
-from aeon.utils._testing.panel import _make_nested_from_array
+from aeon.utils._testing.collection import _make_nested_from_array
 
 N_ITER = 10
 

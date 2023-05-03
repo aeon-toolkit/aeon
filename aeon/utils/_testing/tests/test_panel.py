@@ -9,10 +9,10 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import check_is_mtype
-from aeon.utils._testing.panel import (
+from aeon.utils._testing.collection import (
     _make_panel,
-    make_classification_problem,
-    make_regression_problem,
+    make_nested_dataframe_regression_problem,
+    make_nested_df_classification_data,
 )
 
 N_INSTANCES = [10, 15]
@@ -74,7 +74,7 @@ def test_make_panel(n_instances, n_columns, n_timepoints, return_mtype):
 def test_make_classification_problem(
     n_instances, n_columns, n_timepoints, n_classes, return_numpy
 ):
-    X, y = make_classification_problem(
+    X, y = make_nested_df_classification_data(
         n_instances=n_instances,
         n_classes=n_classes,
         n_columns=n_columns,
@@ -94,7 +94,7 @@ def test_make_classification_problem(
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("return_numpy", [True, False])
 def test_make_regression_problem(n_instances, n_columns, n_timepoints, return_numpy):
-    X, y = make_regression_problem(
+    X, y = make_nested_dataframe_regression_problem(
         n_instances=n_instances,
         n_columns=n_columns,
         n_timepoints=n_timepoints,

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Utility functions for generating panel data and learning task scenarios."""
+"""Utility functions for generating collections of time series."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning", "fkiraly"]
 __all__ = [
-    "make_classification_problem",
-    "make_regression_problem",
+    "make_nested_df_classification_data",
+    "make_nested_dataframe_regression_problem",
     "make_transformer_problem",
 ]
 
@@ -74,7 +74,7 @@ def _make_panel(
     return X
 
 
-def _make_panel_X(
+def _make_nested_dataframe_X(
     n_instances=20,
     n_columns=1,
     n_timepoints=20,
@@ -123,7 +123,7 @@ def _make_classification_y(
         return pd.Series(y)
 
 
-def make_classification_problem(
+def make_nested_df_classification_data(
     n_instances=20,
     n_columns=1,
     n_timepoints=20,
@@ -135,7 +135,7 @@ def make_classification_problem(
     y = _make_classification_y(
         n_instances, n_classes, return_numpy=return_numpy, random_state=random_state
     )
-    X = _make_panel_X(
+    X = _make_nested_dataframe_X(
         n_columns=n_columns,
         n_timepoints=n_timepoints,
         return_numpy=return_numpy,
@@ -146,7 +146,7 @@ def make_classification_problem(
     return X, y
 
 
-def make_regression_problem(
+def make_nested_dataframe_regression_problem(
     n_instances=20,
     n_columns=1,
     n_timepoints=20,
@@ -157,7 +157,7 @@ def make_regression_problem(
     y = _make_regression_y(
         n_instances, random_state=random_state, return_numpy=return_numpy
     )
-    X = _make_panel_X(
+    X = _make_nested_dataframe_X(
         n_columns=n_columns,
         n_timepoints=n_timepoints,
         return_numpy=return_numpy,
@@ -177,7 +177,7 @@ def make_clustering_problem(
     """Make Clustering Problem."""
     # Can only currently support univariate so converting
     # to univaritate for the time being
-    return _make_panel_X(
+    return _make_nested_dataframe_X(
         n_instances=n_instances,
         n_columns=n_columns,
         n_timepoints=n_timepoints,
@@ -209,7 +209,7 @@ def make_transformer_problem(
         else:
             X = pd.DataFrame(X[0])
     else:
-        X = _make_panel_X(
+        X = _make_nested_dataframe_X(
             n_instances=n_instances,
             n_columns=n_columns,
             n_timepoints=n_timepoints,

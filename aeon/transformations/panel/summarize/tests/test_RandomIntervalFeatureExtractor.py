@@ -11,9 +11,9 @@ from aeon.transformations.compose import FeatureUnion
 from aeon.transformations.panel.reduce import Tabularizer
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
-from aeon.utils._testing.panel import (
+from aeon.utils._testing.collection import (
     _make_nested_from_array,
-    make_classification_problem,
+    make_nested_df_classification_data,
 )
 from aeon.utils.slope_and_trend import _slope
 
@@ -40,7 +40,7 @@ def test_output_format_dim(n_instances, n_timepoints, n_intervals, features):
 @pytest.mark.parametrize("bad_n_intervals", [0, "abc", 1.1, -1])
 def test_bad_n_intervals(bad_n_intervals):
     """Check that exception is raised for bad input args."""
-    X, y = make_classification_problem()
+    X = np.ones(shape=(10, 4, 20))
     with pytest.raises(ValueError):
         RandomIntervalFeatureExtractor(n_intervals=bad_n_intervals).fit(X)
 
@@ -50,7 +50,7 @@ def test_bad_n_intervals(bad_n_intervals):
 )
 def test_bad_features(bad_features):
     """Test that ValueError is raised for bad features."""
-    X, y = make_classification_problem()
+    X = np.ones(shape=(10, 4, 20))
     with pytest.raises(ValueError):
         RandomIntervalFeatureExtractor(n_intervals=bad_features).fit(X)
 
@@ -60,7 +60,7 @@ def test_bad_features(bad_features):
 @pytest.mark.parametrize("n_intervals", [1, 3, "log", "sqrt", "random"])
 def test_results(n_instances, n_timepoints, n_intervals):
     """Check specific results."""
-    X, _ = make_classification_problem(
+    X, _ = make_nested_df_classification_data(
         n_instances=n_instances, n_timepoints=n_timepoints, return_numpy=True
     )
     transformer = RandomIntervalFeatureExtractor(
@@ -84,18 +84,18 @@ def test_results(n_instances, n_timepoints, n_intervals):
 def test_different_implementations():
     """Test against equivalent pipelines."""
     random_state = 1233
-    X_train, y_train = make_classification_problem()
+    X = np.ones(shape=(10, 4, 20))
 
     # Compare with chained transformations.
     tran1 = RandomIntervalSegmenter(n_intervals=1, random_state=random_state)
     tran2 = FunctionTransformer(func=np.mean, validate=False)
     t_chain = tran1 * tran2
-    A = t_chain.fit_transform(X_train)
+    A = t_chain.fit_transform(X)
 
     tran = RandomIntervalFeatureExtractor(
         n_intervals=1, features=[np.mean], random_state=random_state
     )
-    B = tran.fit_transform(X_train)
+    B = tran.fit_transform(X)
 
     np.testing.assert_array_almost_equal(A, B)
 
@@ -104,7 +104,7 @@ def test_different_implementations():
 def test_different_pipelines():
     """Compare with transformer pipeline using TSFeatureUnion."""
     random_state = 1233
-    X_train, y_train = make_classification_problem()
+    X_train, y_train = make_nested_df_classification_data()
     steps = [
         (
             "segment",

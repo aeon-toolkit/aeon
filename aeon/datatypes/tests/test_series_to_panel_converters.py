@@ -8,7 +8,7 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.utils._testing.panel import _make_panel
+from aeon.utils._testing.collection import _make_panel
 from aeon.utils._testing.series import _make_series
 
 
