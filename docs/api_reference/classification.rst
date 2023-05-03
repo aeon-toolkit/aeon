@@ -159,7 +159,7 @@ sklearn
     :template: class.rst
 
     ContinuousIntervalTree
-    RotationForest
+    RotationForestClassifier
 
 Base
 ----

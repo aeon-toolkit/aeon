@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """FreshPRINCEClassifier.
 
-Pipeline classifier using the full set of TSFresh features and a RotationForest
-classifier.
+Pipeline classifier using the full set of TSFresh features and a
+RotationForestClassifier.
 """
 
 __author__ = ["MatthewMiddlehurst"]
@@ -11,7 +11,7 @@ __all__ = ["FreshPRINCEClassifier"]
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn import RotationForest
+from aeon.classification.sklearn import RotationForestClassifier
 from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
@@ -20,8 +20,8 @@ class FreshPRINCEClassifier(BaseClassifier):
     """Fresh Pipeline with RotatIoN forest Classifier.
 
     This classifier simply transforms the input data using the TSFresh [1]_
-    transformer with comprehensive features and builds a RotationForest estimator using
-    the transformed data.
+    transformer with comprehensive features and builds a RotationForestClassifier
+    estimator using the transformed data.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         Set of TSFresh features to be extracted, options are "minimal", "efficient" or
         "comprehensive".
     n_estimators : int, default=200
-        Number of estimators for the RotationForest ensemble.
+        Number of estimators for the RotationForestClassifier ensemble.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -50,12 +50,12 @@ class FreshPRINCEClassifier(BaseClassifier):
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshClassifier, RotationForest
+    TSFreshFeatureExtractor, TSFreshClassifier, RotationForestClassifier
 
     References
     ----------
     .. [1] Christ, Maximilian, et al. "Time series feature extraction on basis of
-        scalable hypothesis tests (tsfresh–a python package)." Neurocomputing 307
+        scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
     """
@@ -120,7 +120,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         """
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
-        self._rotf = RotationForest(
+        self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
             n_jobs=self._threads_to_use,

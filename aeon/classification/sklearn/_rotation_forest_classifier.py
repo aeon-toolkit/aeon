@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""A rotation forest (RotF) vector classifier.
+"""A Rotation Forest (RotF) vector classifier.
 
-A rotation Forest aeon implementation for continuous values only. Fits sklearn
+A Rotation Forest aeon implementation for continuous values only. Fits sklearn
 conventions.
 """
 
 __author__ = ["MatthewMiddlehurst"]
-__all__ = ["RotationForest"]
+__all__ = ["RotationForestClassifier"]
 
 import time
 
@@ -23,7 +23,7 @@ from aeon.exceptions import NotFittedError
 from aeon.utils.validation import check_n_jobs
 
 
-class RotationForest(BaseEstimator):
+class RotationForestClassifier(BaseEstimator):
     """A rotation forest (RotF) vector classifier.
 
     Implementation of the Rotation Forest classifier described in Rodriguez et al
@@ -101,13 +101,13 @@ class RotationForest(BaseEstimator):
 
     Examples
     --------
-    >>> from aeon.classification.sklearn import RotationForest
+    >>> from aeon.classification.sklearn import RotationForestClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RotationForest(n_estimators=10)
+    >>> clf = RotationForestClassifier(n_estimators=10)
     >>> clf.fit(X_train, y_train)
-    RotationForest(...)
+    RotationForestClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -135,7 +135,7 @@ class RotationForest(BaseEstimator):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        super(RotationForest, self).__init__()
+        super(RotationForestClassifier, self).__init__()
 
     def fit(self, X, y):
         """Fit a forest of trees on cases (X,y), where y is the target variable.
@@ -163,7 +163,7 @@ class RotationForest(BaseEstimator):
             X = X.to_numpy()
         elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
             raise ValueError(
-                "RotationForest is not a time series classifier. "
+                "RotationForestClassifier is not a time series classifier. "
                 "A valid sklearn input such as a 2d numpy array is required."
                 "Sparse input formats are currently not supported."
             )
@@ -303,7 +303,7 @@ class RotationForest(BaseEstimator):
             X = X.to_numpy()
         elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
             raise ValueError(
-                "RotationForest is not a time series classifier. "
+                "RotationForestClassifier is not a time series classifier. "
                 "A valid sklearn input such as a 2d numpy array is required."
                 "Sparse input formats are currently not supported."
             )
@@ -342,7 +342,7 @@ class RotationForest(BaseEstimator):
             X = X.to_numpy()
         elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
             raise ValueError(
-                "RotationForest is not a time series classifier. "
+                "RotationForestClassifier is not a time series classifier. "
                 "A valid sklearn input such as a 2d numpy array is required."
                 "Sparse input formats are currently not supported."
             )
