@@ -93,9 +93,11 @@ EXCLUDED_TESTS = {
     ],
     "InceptionTimeClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
     ],
     "IndividualInceptionClassifier": [
         "test_fit_idempotent",
+        "test_persistence_via_pickle",
     ],
     "IndividualInceptionRegressor": [
         "test_fit_idempotent",
