@@ -171,8 +171,11 @@ def load_from_tsfile(
     Parameters
     ----------
     full_file_path_and_name : string
+        full path of the file to load, .ts extension is assumed.
     replace_missing_vals_with : string, default="NaN"
+        issing values in the file are replaces with this value
     return_meta_data : boolean, default=True
+        return a dictionary with the meta data loaded from the file
 
     Returns
     -------
@@ -241,7 +244,7 @@ def _load_provided_dataset(
 
     Raises
     ------
-    Raise ValueException if the requested return type is not supported
+    Raise ValueError if the requested return type is not supported
 
     Returns
     -------

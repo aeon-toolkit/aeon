@@ -19,7 +19,7 @@ def make_example_long_table(n_cases=50, n_channels=2, series_length=20):
 
     Returns
     -------
-    DataFrame
+    DataFrame containing random data in long format.
     """
     rows_per_case = series_length * n_channels
     total_rows = n_cases * series_length * n_channels
