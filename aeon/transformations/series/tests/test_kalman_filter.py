@@ -332,10 +332,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         ),
     ],
 )
-@pytest.mark.skipif(
-    not _check_soft_dependencies("filterpy", severity="none"),
-    reason="skip test if required soft dependencie filterpy not available",
-)
 @pytest.mark.parametrize(
     "classes, params, measurements",
     [  # test case 1 -
