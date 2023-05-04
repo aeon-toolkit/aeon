@@ -338,8 +338,7 @@ Filtering and denoising
     :toctree: auto_generated/
     :template: class.rst
 
-    KalmanFilterTransformerPK
-    KalmanFilterTransformerFP
+    KalmanFilterTransformer
 
 .. currentmodule:: aeon.transformations.series.theta
 
