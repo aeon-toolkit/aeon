@@ -38,7 +38,7 @@ def _print_array(test_name, array):
 
 if __name__ == "__main__":
     _print_array(
-        "FreshPRINCEClassifier - Covid3Month",
+        "FreshPRINCERegressor - Covid3Month",
         _reproduce_regression_covid_3month(
             FreshPRINCERegressor(
                 default_fc_parameters="minimal",
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         ),
     )
     _print_array(
-        "FreshPRINCEClassifier - CardanoSentiment",
+        "FreshPRINCERegressor - CardanoSentiment",
         _reproduce_regression_cardano_sentiment(
             FreshPRINCERegressor(
                 default_fc_parameters="minimal",
