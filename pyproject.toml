@@ -106,10 +106,9 @@ docs = [
     "numpydoc",
     "furo",
     "sphinx_issues>=3.0.1",
-    "sphinx-gallery>=0.11.1",
     "sphinx-design>=0.3.0",
-    # sphinx has <6 because of shinx-design
-    "sphinx>=5.0.0,<6",
+    "sphinx-copybutton",
+    "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
     "tabulate",
 ]
 
