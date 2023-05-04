@@ -33,11 +33,11 @@ class BaseSeriesAnnotator(BaseEstimator):
     Parameters
     ----------
     fmt : str {"dense", "sparse"}, optional (default="dense")
-        Annotation output format:
+        annotation output format:
         * If "sparse", a sub-series of labels for only the outliers in X is returned,
         * If "dense", a series of labels for all values in X is returned.
     labels : str {"indicator", "score"}, optional (default="indicator")
-        Annotation output labels:
+        annotation output labels:
         * If "indicator", returned values are boolean, indicating whether a value is an
         outlier,
         * If "score", returned values are floats, giving the outlier score.
