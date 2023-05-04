@@ -1156,3 +1156,70 @@ def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
     else:
         loaded_dataset["class_val"] = loaded_dataset["class_val"].astype(float)
         return loaded_dataset
+
+
+def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
+    """Load dataset of historical sentiment data for Cardano cryptocurrency.
+
+    Parameters
+    ----------
+    split: None or str{"train", "test"}, optional (default=None)
+        Whether to load the train or test partition of the problem. By
+        default, it loads both.
+    return_X_y: bool, optional (default=True)
+        If True, returns (features, target) separately instead of a single
+        dataframe with columns for
+        features and the target.
+    return_type: valid Panel mtype str or None, optional (default=None="numpy3d")
+        Memory data format specification to return X in, None = "nested_univ" type.
+        str can be any supported aeon Panel mtype,
+            for list of mtypes, see datatypes.MTYPE_REGISTER
+            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+        commonly used specifications:
+            "nested_univ: nested pd.DataFrame, pd.Series in cells
+            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
+            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
+            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
+        Exception is raised if the data cannot be stored in the requested type.
+
+    Returns
+    -------
+    X: pd.DataFrame with m rows and c columns
+        The time series data for the problem with m cases and c dimensions
+    y: numpy array
+        The regression values for each case in X
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_cardano_sentiment
+    >>> X, y = load_cardano_sentiment()
+
+    Notes
+    -----
+    Dimensionality:     multivariate
+    Series length:      24
+    Train cases:        74
+    Test cases:         33
+    Number of classes:  -
+
+    By combining historical sentiment data for Cardano cryptocurrency, extracted from
+    EODHistoricalData and made available on Kaggle, with historical price data for the
+    same cryptocurrency, extracted from CryptoDataDownload, we created the
+    CardanoSentiment dataset, with 107 instances. The predictors are hourly close price
+    (in USD) and traded volume during a day, resulting in 2-dimensional time series of
+    length 24. The response variable is the normalized sentiment score on the day
+    spanned by the timepoints.
+
+    EODHistoricalData: https://perma.cc/37GN-BMRL
+    CryptoDataDownload: https://perma.cc/4M79-7QY4
+    Dataset details: https://arxiv.org/pdf/2305.01429.pdf
+    """
+    name = "CardanoSentiment"
+    loaded_dataset = _load_dataset(name, split, return_X_y, return_type)
+    if return_X_y:
+        X, y = loaded_dataset
+        y = y.astype(float)
+        return X, y
+    else:
+        loaded_dataset["class_val"] = loaded_dataset["class_val"].astype(float)
+        return loaded_dataset
