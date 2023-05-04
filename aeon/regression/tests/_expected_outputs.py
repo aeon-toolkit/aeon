@@ -7,7 +7,7 @@ import numpy as np
 covid_3month_preds = dict()
 
 # predict results on CardanoSentiment data
-cardano_sentiment_proba = dict()
+cardano_sentiment_preds = dict()
 
 
 covid_3month_preds["FreshPRINCERegressor"] = np.array(
@@ -24,7 +24,7 @@ covid_3month_preds["FreshPRINCERegressor"] = np.array(
         0.03036,
     ]
 )
-cardano_sentiment_proba["FreshPRINCERegressor"] = np.array(
+cardano_sentiment_preds["FreshPRINCERegressor"] = np.array(
     [
         0.39238,
         0.35529,

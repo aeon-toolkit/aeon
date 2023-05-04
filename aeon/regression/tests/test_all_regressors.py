@@ -7,12 +7,12 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 import numpy as np
 import pytest
 
-from aeon.classification.tests._expected_outputs import (
+from aeon.datasets import load_cardano_sentiment, load_covid_3month
+from aeon.datatypes import check_is_scitype
+from aeon.regression.tests._expected_outputs import (
     cardano_sentiment_preds,
     covid_3month_preds,
 )
-from aeon.datasets import load_appliances_energy, load_covid_3month
-from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.scenarios_classification import (
@@ -117,7 +117,7 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         y_preds = estimator_instance.predict(X_test[indices])
 
         # assert probabilities are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=2)
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=5)
 
     def test_regressor_on_cardano_sentiment(self, estimator_class):
         """Test regressor on cardano sentiment data."""
@@ -140,15 +140,15 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
             estimator_instance.set_params(random_state=0)
 
         # load unit test data
-        X_train, y_train = load_appliances_energy(split="train")
-        X_test, y_test = load_appliances_energy(split="test")
+        X_train, y_train = load_cardano_sentiment(split="train")
+        X_test, y_test = load_cardano_sentiment(split="test")
 
         indices_train = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
         indices_test = np.random.RandomState(4).choice(len(y_test), 10, replace=False)
 
         # train classifier and predict probas
         estimator_instance.fit(X_train[indices_train], y_train[indices_train])
-        y_proba = estimator_instance.predict(X_test[indices_test])
+        y_preds = estimator_instance.predict(X_test[indices_test])
 
         # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_preds, decimal=2)
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=5)
