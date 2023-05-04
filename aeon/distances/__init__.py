@@ -23,6 +23,10 @@ __all__ = [
     "wddtw_pairwise_distance",
     "wddtw_alignment_path",
     "wddtw_cost_matrix",
+    "lcss_distance",
+    "lcss_pairwise_distance",
+    "lcss_alignment_path",
+    "lcss_cost_matrix",
     "distance",
     "distance_factory",
     "pairwise_distance",
@@ -31,9 +35,7 @@ __all__ = [
     "edr_distance",
     "erp_distance",
     "msm_distance",
-    "lcss_distance",
     "twe_distance",
-    "lcss_alignment_path",
     "msm_alignment_path",
     "erp_alignment_path",
     "edr_alignment_path",
@@ -58,8 +60,6 @@ from aeon.distances._distance import (
     edr_distance,
     erp_alignment_path,
     erp_distance,
-    lcss_alignment_path,
-    lcss_distance,
     msm_alignment_path,
     msm_distance,
     pairwise_distance,
@@ -73,6 +73,12 @@ from aeon.distances._dtw import (
     dtw_pairwise_distance,
 )
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
+from aeon.distances._lcss import (
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_distance,
+    lcss_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._wddtw import (
     wddtw_alignment_path,

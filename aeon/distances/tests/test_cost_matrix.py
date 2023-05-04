@@ -19,12 +19,22 @@ def _validate_cost_matrix_result(
     assert isinstance(cost_matrix_result, np.ndarray)
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
+    elif name == "lcss":
+        # lcss cm is one larger than the input
+        assert cost_matrix_result.shape == (x.shape[-1] + 1, y.shape[-1] + 1)
     else:
         assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
 
     distance_result = distance(x, y)
 
-    assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
+    if name == "lcss":
+        if x.ndim != 3:
+            distance = 1 - (
+                float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
+            )
+            assert_almost_equal(distance, distance_result)
+    else:
+        assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
