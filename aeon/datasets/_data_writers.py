@@ -274,8 +274,7 @@ def _write_data_to_tsfile(
     comment=None,
     suffix="",
 ):
-    """
-    Output a dataset in ndarray format to .ts file.
+    """Output a dataset in ndarray format to .ts file.
 
     Parameters
     ----------
@@ -482,8 +481,7 @@ def write_tabular_transformation_to_arff(
     fold="",
     fit_transform=True,
 ):
-    """
-    Transform a dataset using a tabular transformer and write the result to a arff file.
+    """Transform a dataset using a tabular trans. and write the result to a arff file.
 
     Parameters
     ----------
