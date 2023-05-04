@@ -549,6 +549,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import time
+
         import tensorflow as tf
 
         y_onehot = self.convert_y_to_keras(y)
@@ -568,9 +570,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
-        self.file_name_ = "".join(
-            [str(i) for i in np.random.choice(a=np.arange(100), replace=True, size=20)]
-        )
+        self.file_name_ = str(time.time_ns())
 
         self.callbacks_ = (
             [
