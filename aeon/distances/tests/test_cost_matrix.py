@@ -17,11 +17,28 @@ def _validate_cost_matrix_result(
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
-    assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
+    if name == "ddtw" or name == "wddtw":
+        assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
+    elif name == "lcss":
+        # lcss cm is one larger than the input
+        assert cost_matrix_result.shape == (x.shape[-1] + 1, y.shape[-1] + 1)
+    else:
+        assert cost_matrix_result.shape == (x.shape[-1], y.shape[-1])
 
     distance_result = distance(x, y)
 
-    assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
+    if name == "lcss":
+        if x.ndim != 3:
+            distance = 1 - (
+                float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
+            )
+            assert_almost_equal(distance, distance_result)
+    elif name == "edr":
+        if x.ndim != 3:
+            distance = float(cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1]))
+            assert_almost_equal(distance, distance_result)
+    else:
+        assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -30,13 +47,14 @@ def test_cost_matrix(dist):
         return
 
     # Test univariate
-    _validate_cost_matrix_result(
-        np.array([10.0]),
-        np.array([15.0]),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_cost_matrix_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            dist["cost_matrix"],
+        )
 
     _validate_cost_matrix_result(
         create_test_distance_numpy(10),

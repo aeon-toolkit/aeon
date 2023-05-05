@@ -29,9 +29,15 @@ def _test_distance_params(
 
     i = 0
     for param_dict in param_list:
+        g_none = False
+        if distance_str == "erp" and "g" in param_dict and param_dict["g"] is None:
+            g_none = True
+
         j = 0
         curr_results = []
         for x, y in test_ts:
+            if g_none:
+                param_dict["g"] = np.std([x, y], axis=0).sum(axis=1)
             results = []
             curr_dist_fact = distance_factory(x, y, metric=distance_str, **param_dict)
             results.append(distance_func(x, y, **param_dict))
@@ -40,6 +46,7 @@ def _test_distance_params(
                 results.append(curr_dist_fact(x, y))
             else:
                 results.append(curr_dist_fact(x, y, **param_dict))
+
             if distance_str in _expected_distance_results_params:
                 if _expected_distance_results_params[distance_str][i][j] is not None:
                     for result in results:
@@ -64,15 +71,14 @@ def _test_derivative(q: np.ndarray):
 
 DIST_PARAMS = {
     "dtw": BASIC_BOUNDING_PARAMS,
-    "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
+    "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}, {"g": None}],
     "edr": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
     "lcss": BASIC_BOUNDING_PARAMS + [{"epsilon": 0.5}],
-    "ddtw": BASIC_BOUNDING_PARAMS + [{"compute_derivative": _test_derivative}],
-    "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 0.5}],
-    "wddtw": BASIC_BOUNDING_PARAMS
-    + [{"compute_derivative": _test_derivative}]
-    + [{"g": 0.5}],
-    "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}, {"p": 4}],
+    "ddtw": BASIC_BOUNDING_PARAMS,
+    "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
+    "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
+    "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
+    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
 }
 
 

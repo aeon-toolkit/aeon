@@ -118,7 +118,7 @@ class Catch22Wrapper(BaseTransformer):
 
         self._transform_features = None
 
-        super(Catch22Wrapper, self).__init__()
+        super(Catch22Wrapper, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform data into the Catch22 features.
@@ -178,8 +178,8 @@ class Catch22Wrapper(BaseTransformer):
 
         if self.replace_nans:
             c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
-
-        return c22_list
+        c22_np = np.array(c22_list)
+        return c22_np
 
     def _transform_case(self, X, f_idx, features):
         c22 = np.zeros(len(f_idx) * len(X))

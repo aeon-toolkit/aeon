@@ -5,9 +5,8 @@
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 
-from warnings import warn
 
-from aeon.datatypes._panel._convert import from_nested_to_long
+from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -21,7 +20,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
     _tags = {
         "scitype:transform-output": "Primitives",
         "fit_is_empty": True,
-        "X_inner_mtype": "nested_univ",
+        "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "scitype:instancewise": True,
         "python_dependencies": "tsfresh",
@@ -274,17 +273,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             each cell of Xt contains pandas.Series
             transformed version of X
         """
-        # tsfresh requires unique index, returns only values for
-        # unique index values
-        if X.index.nunique() < X.shape[0]:
-            warn(
-                "tsfresh requires a unique index, but found "
-                "non-unique. To avoid this warning, please make sure the index of X "
-                "contains only unique values."
-            )
-            X = X.reset_index(drop=True)
-
-        Xt = from_nested_to_long(X)
+        Xt = from_3d_numpy_to_long(X)
 
         # lazy imports to avoid hard dependency
         from tsfresh import extract_features
@@ -297,11 +286,8 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-
-        # When using the long input format, tsfresh seems to sort the index,
-        # here we make sure we return the dataframe in the sort order as the
-        # input data
-        return Xt.reindex(X.index)
+        #        return Xt.reindex(X.index)
+        return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -621,7 +607,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        Xt = Xt.reindex(X.index)
+        #       Xt = Xt.reindex(X.index)
 
         return Xt
 

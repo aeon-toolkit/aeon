@@ -9,17 +9,6 @@ All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators
 using ``estimator_types="regressor"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
-Composition
------------
-
-.. currentmodule:: aeon.regression.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ComposableTimeSeriesForestRegressor
-
 Deep learning
 -------------
 

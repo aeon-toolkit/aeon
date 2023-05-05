@@ -6,13 +6,21 @@ from typing import Any, Callable, Union
 import numpy as np
 from numba import njit
 
-from aeon.distances._ddtw import DerivativeCallable, _DdtwDistance, average_of_slope
+from aeon.distances._ddtw import (
+    ddtw_alignment_path,
+    ddtw_distance,
+    ddtw_pairwise_distance,
+)
 from aeon.distances._dtw import dtw_alignment_path, dtw_distance, dtw_pairwise_distance
-from aeon.distances._edr import _EdrDistance
-from aeon.distances._erp import _ErpDistance
+from aeon.distances._edr import edr_alignment_path, edr_distance, edr_pairwise_distance
+from aeon.distances._erp import erp_alignment_path, erp_distance, erp_pairwise_distance
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._lcss import _LcssDistance
-from aeon.distances._msm import _MsmDistance
+from aeon.distances._lcss import (
+    lcss_alignment_path,
+    lcss_distance,
+    lcss_pairwise_distance,
+)
+from aeon.distances._msm import msm_alignment_path, msm_distance, msm_pairwise_distance
 from aeon.distances._numba_utils import (
     _compute_pairwise_distance,
     _make_3d_series,
@@ -24,1264 +32,37 @@ from aeon.distances._resolve_metric import (
     _resolve_metric_to_factory,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
-from aeon.distances._twe import _TweDistance
-from aeon.distances._wddtw import _WddtwDistance
-from aeon.distances._wdtw import _WdtwDistance
+from aeon.distances._twe import twe_alignment_path, twe_distance, twe_pairwise_distance
+from aeon.distances._wddtw import (
+    wddtw_alignment_path,
+    wddtw_distance,
+    wddtw_pairwise_distance,
+)
+from aeon.distances._wdtw import (
+    wdtw_alignment_path,
+    wdtw_distance,
+    wdtw_pairwise_distance,
+)
 from aeon.distances.base import (
     AlignmentPathReturn,
     DistanceAlignmentPathCallable,
     DistanceCallable,
-    MetricInfo,
     NumbaDistance,
 )
 
-
-def erp_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> float:
-    """Compute the Edit distance for real penalty (ERP) distance between two series.
-
-    ERP, first proposed in [1]_, attempts align time series
-    by better considering how indexes are carried forward through the cost matrix.
-    Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. Erp instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from 'g'.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    g: float, defaults = 0.
-        The reference value to penalise gaps.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        ERP distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If g is not a float.
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> erp_distance(x_1d, y_1d)
-    16.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> erp_distance(x_2d, y_2d)
-    45.254833995939045
-
-    References
-    ----------
-    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-    In Proceedings of the Thirtieth international conference on Very large data bases
-     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
-    """
-    format_kwargs = {
-        "window": window,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="erp", **format_kwargs)
-
-
-def edr_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    epsilon: float = None,
-    **kwargs: Any,
-) -> float:
-    """Compute the Edit distance for real sequences (EDR) between two series.
-
-    EDR computes the minimum number of elements (as a percentage) that must be removed
-    from x and y so that the sum of the distance between the remaining signal elements
-    lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
-
-    The value returned will be between 0 and 1 per time series. The value will
-    represent as a percentage of elements that must be removed for the time series to
-    be an exact match.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = None
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. If not specified as per the original paper
-        epsilon is set to a quarter of the maximum standard deviation.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Edr distance between the x and y. The value will be between 0.0 and 1.0
-        where 0.0 is an exact match between time series (i.e. they are the same) and
-        1.0 where there are no matching subsequences.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> edr_distance(x_1d, y_1d)
-    1.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> edr_distance(x_2d, y_2d)
-    1.0
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="edr", **format_kwargs)
-
-
-def lcss_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    epsilon: float = 1.0,
-    **kwargs: Any,
-) -> float:
-    """Compute the longest common subsequence (LCSS) score between two time series.
-
-    LCSS attempts to find the longest common sequence between two time series and
-    returns a value that is the percentage that longest common sequence assumes.
-    Originally present in [1]_, LCSS is computed by matching indexes that are
-    similar up until a defined threshold (epsilon).
-
-    The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
-    are exactly the same and 1.0 means they are complete opposites.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = 1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Lcss distance between x and y. The value returned will be between 0.0 and 1.0,
-        where 0.0 means the two time series are exactly the same and 1.0 means they
-        are complete opposites.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="lcss", **format_kwargs)
-
-
-def wddtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> float:
-    r"""Compute the weighted derivative dynamic time warping (WDDTW) distance.
-
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
-
-    Formally the derivative is calculated as:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Wddtw distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-        If the value of g is not a float
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> wddtw_distance(x_1d, y_1d)
-    0.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> wddtw_distance(x_2d, y_2d)
-    0.0
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="wddtw", **format_kwargs)
-
-
-def wdtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    g: float = 0.05,
-    **kwargs: Any,
-) -> float:
-    """Compute the weighted dynamic time warping (WDTW) distance between time series.
-
-    First proposed in [1]_, WDTW adds a  adds a multiplicative weight penalty based on
-    the warping distance. This means that time series with lower phase difference have
-    a smaller weight imposed (i.e less penalty imposed) and time series with larger
-    phase difference have a larger weight imposed (i.e. larger penalty imposed).
-
-    Formally this can be described as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(x_{i} - y_{j})||
-
-    Where d_w is the distance with a the weight applied to it for points i, j, where
-    w(|i-j|) is a positive weight between the two points x_i and y_j.
-
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Wdtw distance between the x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    Examples
-    --------
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> wdtw_distance(x_1d, y_1d)
-    27.975712863958133
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> wdtw_distance(x_2d, y_2d)
-    243.2106560107827
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="wdtw", **format_kwargs)
-
-
-def ddtw_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    **kwargs: Any,
-) -> float:
-    r"""Compute the derivative dynamic time warping (DDTW) distance between time series.
-
-    DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
-    improve on dtw by better account for the 'shape' of the time series.
-    This is done by considering y axis data points as higher level features of 'shape'.
-    To do this the first derivative of the sequence is taken, and then using this
-    derived sequence a dtw computation is done.
-
-    The default derivative used is:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Where q is the original time series and d_q is the derived time series.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Ddtw distance between the x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric or compute derivative callable is not no_python compiled.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> ddtw_distance(x_1d, y_1d)
-    0.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> ddtw_distance(x_2d, y_2d)
-    0.0
-
-    References
-    ----------
-    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
-        First SIAM International Conference on Data Mining.
-        1. 10.1137/1.9781611972719.1.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="ddtw", **format_kwargs)
-
-
-def msm_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    c: float = 1.0,
-    window: float = None,
-    **kwargs: dict,
-) -> float:
-    """Compute the move-split-merge distance.
-
-    This metric uses as building blocks three fundamental operations: Move, Split,
-    and Merge. A Move operation changes the value of a single element, a Split
-    operation converts a single element into two consecutive elements, and a Merge
-    operation merges two consecutive elements into one. Each operation has an
-    associated cost, and the MSM distance between two time series is defined to be
-    the cost of the cheapest sequence of operations that transforms the first time
-    series into the second one.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    c: float, default = 1.0
-        Cost for split or merge operation.
-    window: Float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Must be between 0 and 1.
-    kwargs: any
-        extra kwargs.
-
-    Returns
-    -------
-    float
-        Msm distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-    References
-    ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
-    """
-    format_kwargs = {
-        "c": c,
-        "window": window,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="msm", **format_kwargs)
-
-
-def twe_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: Union[float, None] = None,
-    lmbda: float = 1.0,
-    nu: float = 0.001,
-    p: int = 2,
-    **kwargs: Any,
-) -> float:
-    """Time Warp Edit (TWE) distance between two time series.
-
-    The Time Warp Edit (TWE) distance is a distance measure for discrete time series
-    matching with time 'elasticity'. In comparison to other distance measures, (e.g.
-    DTW (Dynamic Time Warping) or LCS (Longest Common Subsequence Problem)), TWE is a
-    metric. Its computational time complexity is O(n^2), but can be drastically reduced
-    in some specific situation by using a corridor to reduce the search space. Its
-    memory space complexity can be reduced to O(n). It was first proposed in [1].
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    lmbda: float, defaults = 1.0
-        A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    nu: float, defaults = 0.001
-        A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
-    p: int, defaults = 2
-        Order of the p-norm for local cost.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    float
-        Dtw distance between x and y.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x_1d = np.array([1, 2, 3, 4])  # 1d array
-    >>> y_1d = np.array([5, 6, 7, 8])  # 1d array
-    >>> twe_distance(x_1d, y_1d)
-    28.0
-
-    >>> x_2d = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2d array
-    >>> y_2d = np.array([[9, 10, 11, 12], [13, 14, 15, 16]])  # 2d array
-    >>> twe_distance(x_2d, y_2d)
-    78.37353236814714
-
-    References
-    ----------
-    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
-    Intelligence. 31 (2): 306–318.
-    """
-    format_kwargs = {
-        "window": window,
-        "lmbda": lmbda,
-        "nu": nu,
-        "p": p,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance(x, y, metric="twe", **format_kwargs)
-
-
-def wdtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    g: float = 0.05,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the weighted dynamic time warping (wdtw) alignment path.
-
-    First proposed in [1]_, WDTW adds a  adds a multiplicative weight penalty based on
-    the warping distance. This means that time series with lower phase difference have
-    a smaller weight imposed (i.e less penalty imposed) and time series with larger
-    phase difference have a larger weight imposed (i.e. larger penalty imposed).
-
-    Formally this can be described as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(x_{i} - y_{j})||
-
-    Where d_w is the distance with a the weight applied to it for points i, j, where
-    w(|i-j|) is a positive weight between the two points x_i and y_j.
-
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the wdtw alignment path.
-    float
-        Wdtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="wdtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def ddtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    r"""Compute the derivative dynamic time warping (DDTW) alignment path.
-
-    DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
-    improve on dtw by better account for the 'shape' of the time series.
-    This is done by considering y axis data points as higher level features of 'shape'.
-    To do this the first derivative of the sequence is taken, and then using this
-    derived sequence a dtw computation is done.
-
-    The default derivative used is:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Where q is the original time series and d_q is the derived time series.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the ddtw alignment path.
-    float
-        Ddtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric or compute derivative callable is not no_python compiled.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-
-    References
-    ----------
-    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
-        First SIAM International Conference on Data Mining.
-        1. 10.1137/1.9781611972719.1.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="ddtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def wddtw_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    compute_derivative: DerivativeCallable = average_of_slope,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    r"""Compute the weighted derivative dynamic time warping (WDDTW) alignment path.
-
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
-
-    Formally the derivative is calculated as:
-
-    .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    compute_derivative: Callable[[np.ndarray], np.ndarray],
-                            defaults = average slope difference
-        Callable that computes the derivative. If none is provided the average of the
-        slope between two points used.
-    g: float, defaults = 0.
-        Constant that controls the curvature (slope) of the function; that is, g
-        controls the level of penalisation for the points with larger phase
-        difference.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the wddtw alignment path.
-    float
-        Wddtw distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If the compute derivative callable is not no_python compiled.
-        If the value of g is not a float
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
-    """
-    format_kwargs = {
-        "window": window,
-        "compute_derivative": compute_derivative,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="wddtw", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def edr_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    epsilon: float = None,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the Edit distance for real sequences (EDR) alignment path.
-
-    EDR computes the minimum number of elements (as a percentage) that must be removed
-    from x and y so that the sum of the distance between the remaining signal elements
-    lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
-
-    The value returned will be between 0 and 1 per time series. The value will
-    represent as a percentage of elements that must be removed for the time series to
-    be an exact match.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = None
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. If not specified as per the original paper
-        epsilon is set to a quarter of the maximum standard deviation.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the edr alignment path.
-    float
-        Edr distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="edr", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def erp_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    g: float = 0.0,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the Edit distance for real penalty (ERP) alignment path.
-
-    ERP, first proposed in [1]_, attempts align time series
-    by better considering how indexes are carried forward through the cost matrix.
-    Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. Erp instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from 'g'.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    g: float, defaults = 0.
-        The reference value to penalise gaps.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the erp alignment path.
-    float
-        Erp distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 3 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-        If g is not a float.
-
-    References
-    ----------
-    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-    In Proceedings of the Thirtieth international conference on Very large data bases
-     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
-    """
-    format_kwargs = {
-        "window": window,
-        "g": g,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="erp", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def lcss_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: Union[float, None] = None,
-    epsilon: float = 1.0,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Compute the longest common subsequence (LCSS) alignment path.
-
-    LCSS attempts to find the longest common sequence between two time series and
-    returns a value that is the percentage that longest common sequence assumes.
-    Originally present in [1]_, LCSS is computed by matching indexes that are
-    similar up until a defined threshold (epsilon).
-
-    The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
-    are exactly the same and 1.0 means they are complete opposites.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    epsilon : float, defaults = 1.
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the lcss alignment path.
-    float
-        Lcss distance between x and y. The value returned will be between 0.0 and 1.0,
-        where 0.0 means the two time series are exactly the same and 1.0 means they
-        are complete opposites.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
-    """
-    format_kwargs = {
-        "window": window,
-        "epsilon": epsilon,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="lcss", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def msm_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    c: float = 1.0,
-    window: float = None,
-    **kwargs: dict,
-) -> AlignmentPathReturn:
-    """Compute the move-split-merge alignment path.
-
-    This metric uses as building blocks three fundamental operations: Move, Split,
-    and Merge. A Move operation changes the value of a single element, a Split
-    operation converts a single element into two consecutive elements, and a Merge
-    operation merges two consecutive elements into one. Each operation has an
-    associated cost, and the MSM distance between two time series is defined to be
-    the cost of the cheapest sequence of operations that transforms the first time
-    series into the second one.
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    return_cost_matrix: bool, defaults = False
-        Boolean that when true will also return the cost matrix.
-    c: float, default = 1.0
-        Cost for split or merge operation.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Must be between 0 and 1.
-    kwargs: any
-        extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the msm alignment path.
-    float
-        Msm distance between x and y.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-    References
-    ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
-    """
-    format_kwargs = {
-        "c": c,
-        "window": window,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="msm", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-def twe_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    return_cost_matrix: bool = False,
-    window: float = None,
-    lmbda: float = 1.0,
-    nu: float = 0.001,
-    p: int = 2,
-    **kwargs: Any,
-) -> AlignmentPathReturn:
-    """Time Warp Edit (TWE) distance between two time series.
-
-    The Time Warp Edit (TWE) distance is a distance measure for discrete time series
-    matching with time 'elasticity'. In comparison to other distance measures, (e.g.
-    DTW (Dynamic Time Warping) or LCS (Longest Common Subsequence Problem)), TWE is a
-    metric. Its computational time complexity is O(n^2), but can be drastically reduced
-    in some specific situation by using a corridor to reduce the search space. Its
-    memory space complexity can be reduced to O(n). It was first proposed in [1].
-
-    Parameters
-    ----------
-    x: np.ndarray (1d or 2d array)
-        First time series.
-    y: np.ndarray (1d or 2d array)
-        Second time series.
-    window: float, defaults = None
-        Float that is the radius of the sakoe chiba window (if using Sakoe-Chiba
-        lower bounding). Value must be between 0. and 1.
-    lmbda: float, defaults = 1.0
-        A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    nu: float, defaults = 0.001
-        A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
-    p: int, defaults = 2
-        Order of the p-norm for local cost.
-    kwargs: Any
-        Extra kwargs.
-
-    Returns
-    -------
-    list[tuple]
-        List of tuples containing the twe alignment path.
-    float
-        Twe distance between x and y. The value returned will be between 0.0 and 1.0,
-        where 0.0 means the two time series are exactly the same and 1.0 means they
-        are complete opposites.
-    np.ndarray (of shape (len(x), len(y)).
-        Optional return only given if return_cost_matrix = True.
-        Cost matrix used to compute the distance.
-
-    Raises
-    ------
-    ValueError
-        If the sakoe_chiba_window_radius is not a float.
-        If the value of x or y provided is not a numpy array.
-        If the value of x or y has more than 2 dimensions.
-        If a metric string provided, and is not a defined valid string.
-        If a metric object (instance of class) is provided and doesn't inherit from
-        NumbaDistance.
-        If a resolved metric is not no_python compiled.
-        If the metric type cannot be determined
-
-    References
-    ----------
-    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
-    Intelligence. 31 (2): 306–318.
-    """
-    format_kwargs = {
-        "window": window,
-        "lmbda": lmbda,
-        "nu": nu,
-        "p": p,
-    }
-    format_kwargs = {**format_kwargs, **kwargs}
-
-    return distance_alignment_path(
-        x, y, metric="twe", return_cost_matrix=return_cost_matrix, **format_kwargs
-    )
-
-
-NEW_DISTANCES = ["squared", "euclidean", "dtw"]
+NEW_DISTANCES = [
+    "squared",
+    "euclidean",
+    "dtw",
+    "ddtw",
+    "wdtw",
+    "wddtw",
+    "lcss",
+    "erp",
+    "edr",
+    "twe",
+    "msm",
+]
 
 
 def distance(
@@ -1370,6 +151,22 @@ def distance(
             return euclidean_distance(x, y)
         elif metric == "dtw":
             return dtw_distance(x, y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_distance(x, y, **kwargs)
+        elif metric == "wdtw":
+            return wdtw_distance(x, y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_distance(x, y, **kwargs)
+        elif metric == "lcss":
+            return lcss_distance(x, y, **kwargs)
+        elif metric == "erp":
+            return erp_distance(x, y, **kwargs)
+        elif metric == "edr":
+            return edr_distance(x, y, **kwargs)
+        elif metric == "twe":
+            return twe_distance(x, y, **kwargs)
+        elif metric == "msm":
+            return msm_distance(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1443,6 +240,22 @@ def distance_factory(
             return euclidean_distance
         elif metric == "dtw":
             return dtw_distance
+        elif metric == "ddtw":
+            return ddtw_distance
+        elif metric == "wdtw":
+            return wdtw_distance
+        elif metric == "wddtw":
+            return wddtw_distance
+        elif metric == "lcss":
+            return lcss_distance
+        elif metric == "erp":
+            return erp_distance
+        elif metric == "edr":
+            return edr_distance
+        elif metric == "twe":
+            return twe_distance
+        elif metric == "msm":
+            return msm_distance
     global dist_callable
 
     if x is None:
@@ -1565,6 +378,22 @@ def pairwise_distance(
             return squared_pairwise_distance(_x, _y)
         elif metric == "dtw":
             return dtw_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "wdtw":
+            return wdtw_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "lcss":
+            return lcss_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "erp":
+            return erp_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "edr":
+            return edr_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "twe":
+            return twe_pairwise_distance(_x, _y, **kwargs)
+        elif metric == "msm":
+            return msm_pairwise_distance(_x, _y, **kwargs)
 
     symmetric = np.array_equal(_x, _y)
     _metric_callable = _resolve_metric_to_factory(
@@ -1645,6 +474,22 @@ def distance_alignment_path(
     if metric in NEW_DISTANCES:
         if metric == "dtw":
             return dtw_alignment_path(x, y, **kwargs)
+        elif metric == "ddtw":
+            return ddtw_alignment_path(x, y, **kwargs)
+        elif metric == "wdtw":
+            return wdtw_alignment_path(x, y, **kwargs)
+        elif metric == "wddtw":
+            return wddtw_alignment_path(x, y, **kwargs)
+        elif metric == "lcss":
+            return lcss_alignment_path(x, y, **kwargs)
+        elif metric == "erp":
+            return erp_alignment_path(x, y, **kwargs)
+        elif metric == "edr":
+            return edr_alignment_path(x, y, **kwargs)
+        elif metric == "twe":
+            return twe_alignment_path(x, y, **kwargs)
+        elif metric == "msm":
+            return msm_alignment_path(x, y, **kwargs)
     _x = to_numba_timeseries(x)
     _y = to_numba_timeseries(y)
 
@@ -1722,6 +567,22 @@ def distance_alignment_path_factory(
     if metric in NEW_DISTANCES:
         if metric == "dtw":
             return dtw_alignment_path
+        elif metric == "ddtw":
+            return ddtw_alignment_path
+        elif metric == "wdtw":
+            return wdtw_alignment_path
+        elif metric == "wddtw":
+            return wddtw_alignment_path
+        elif metric == "lcss":
+            return lcss_alignment_path
+        elif metric == "erp":
+            return erp_alignment_path
+        elif metric == "edr":
+            return edr_alignment_path
+        elif metric == "twe":
+            return twe_alignment_path
+        elif metric == "msm":
+            return msm_alignment_path
     if x is None:
         x = np.zeros((1, 10))
     if y is None:
@@ -1743,64 +604,7 @@ def distance_alignment_path_factory(
     return dist_callable
 
 
-_METRIC_INFOS = [
-    MetricInfo(
-        canonical_name="erp",
-        aka={"erp", "edit distance with real penalty"},
-        dist_func=erp_distance,
-        dist_instance=_ErpDistance(),
-        dist_alignment_path_func=erp_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="edr",
-        aka={"edr", "edit distance for real sequences"},
-        dist_func=edr_distance,
-        dist_instance=_EdrDistance(),
-        dist_alignment_path_func=edr_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="lcss",
-        aka={"lcss", "longest common subsequence"},
-        dist_func=lcss_distance,
-        dist_instance=_LcssDistance(),
-        dist_alignment_path_func=lcss_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="ddtw",
-        aka={"ddtw", "derivative dynamic time warping"},
-        dist_func=ddtw_distance,
-        dist_instance=_DdtwDistance(),
-        dist_alignment_path_func=ddtw_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="wdtw",
-        aka={"wdtw", "weighted dynamic time warping"},
-        dist_func=wdtw_distance,
-        dist_instance=_WdtwDistance(),
-        dist_alignment_path_func=wdtw_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="wddtw",
-        aka={"wddtw", "weighted derivative dynamic time warping"},
-        dist_func=wddtw_distance,
-        dist_instance=_WddtwDistance(),
-        dist_alignment_path_func=wddtw_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="msm",
-        aka={"msm", "move-split-merge"},
-        dist_func=msm_distance,
-        dist_instance=_MsmDistance(),
-        dist_alignment_path_func=msm_alignment_path,
-    ),
-    MetricInfo(
-        canonical_name="twe",
-        aka={"twe", "time warped edit"},
-        dist_func=twe_distance,
-        dist_instance=_TweDistance(),
-        dist_alignment_path_func=twe_alignment_path,
-    ),
-]
+_METRIC_INFOS = []
 
 _METRICS = {info.canonical_name: info for info in _METRIC_INFOS}
 _METRIC_ALIAS = dict((alias, info) for info in _METRIC_INFOS for alias in info.aka)
@@ -1809,13 +613,4 @@ _METRIC_CALLABLES = dict(
 )
 _METRICS_NAMES = list(_METRICS.keys())
 
-ALL_DISTANCES = (
-    ddtw_distance,
-    edr_distance,
-    erp_distance,
-    lcss_distance,
-    msm_distance,
-    wddtw_distance,
-    wdtw_distance,
-    twe_distance,
-)
+ALL_DISTANCES = ()
