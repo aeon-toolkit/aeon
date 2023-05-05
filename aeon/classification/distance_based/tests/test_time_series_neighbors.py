@@ -33,7 +33,7 @@ expected_correct_window = {
     "euclidean": 19,
     "dtw": 21,
     "wdtw": 21,
-    "msm": 10,
+    "msm": 20,
     "erp": 19,
     "edr": 20,
     "lcss": 12,

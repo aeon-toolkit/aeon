@@ -40,25 +40,26 @@ distance_parameters = {
     "dtw": [0.0, 0.1, 1.0],  # window
     "wdtw": [0.0, 0.1, 1.0],  # parameter g
     "wddtw": [0.0, 0.1, 1.0],  # parameter g
-    "msm": [0.0, 0.1, 1.0],  # parameter c
     "erp": [0.0, 0.1, 1.0],  # window
     "lcss": [0.0, 50.0, 200.0],  # espilon
     "edr": [0.0, 50.0, 200.0],  # espilon
     "ddtw": [0.0, 0.1, 1.0],  # window
     "twe": [0.0, 0.1, 1.0],  # window
+    "msm": [0.0, 0.2, 3.0],  # parameter c
 }
 unit_test_distances = {
     "euclidean": 619.7959,
     "squared": 384147.0,
     "dtw": [384147.0, 315012.0, 275854.0],
     "wdtw": [137927.0, 68406.15849, 2.2296],
-    "msm": [1515.0, 1516.4, 1529.0],
     "erp": [168.0, 1107.0, 2275.0],
     "lcss": [1.0, 0.45833, 0.08333],
     "edr": [1.0, 0.58333, 0.125],
     "ddtw": [80806.0, 76289.0625, 76289.0625],
     "wddtw": [38144.53125, 19121.4927, 1.34957],
     "twe": [137.001, 567.0029999999999, 3030.036000000001],
+    "msm_ind": [1515.0, 1517.8000000000004, 1557.0],  # msm with independent distance
+    "msm_dep": [1897.0, 1898.6000000000001, 1921.0],  # msm with dependent distance
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
@@ -72,6 +73,10 @@ basic_motions_distances = {
     "ddtw": [297.18771, 160.51311645984856, 160.29823],
     "wddtw": [80.149117, 1.458858, 0.0],
     "twe": [1.001, 12.620531031063596, 173.3596688781867],
+    # msm with independent distance
+    "msm_ind": [84.36021099999999, 140.13788899999997, 262.6939920000001],
+    # msm with dependent distance
+    "msm_dep": [33.068257441993, 71.14080843368329, 190.73978686253804],
 }
 
 
@@ -84,7 +89,6 @@ def test_multivariate_correctness():
     assert_almost_equal(d, basic_motions_distances["euclidean"], 4)
     d = squared_distance(case1, case2)
     assert_almost_equal(d, basic_motions_distances["squared"], 4)
-    twe_mult = []
     for j in range(0, 3):
         d = dtw_distance(case1, case2, window=distance_parameters["dtw"][j])
         assert_almost_equal(d, basic_motions_distances["dtw"][j], 4)
@@ -101,8 +105,13 @@ def test_multivariate_correctness():
         d = wddtw_distance(case1, case2, g=distance_parameters["wddtw"][j])
         assert_almost_equal(d, basic_motions_distances["wddtw"][j], 4)
         d = twe_distance(case1, case2, window=distance_parameters["twe"][j])
-        twe_mult.append(d)
         assert_almost_equal(d, basic_motions_distances["twe"][j], 4)
+        d = msm_distance(case1, case2, c=distance_parameters["msm"][j])
+        assert_almost_equal(d, basic_motions_distances["msm_ind"][j], 4)
+        d = msm_distance(
+            case1, case2, c=distance_parameters["msm"][j], independent=False
+        )
+        assert_almost_equal(d, basic_motions_distances["msm_dep"][j], 4)
 
 
 def test_univariate_correctness():
@@ -121,7 +130,6 @@ def test_univariate_correctness():
     d2 = squared_distance(cases1[1], cases2[1])
     assert_almost_equal(d, unit_test_distances["squared"], 4)
     assert d == d2
-    twe_uni = []
     for j in range(0, 3):
         d = dtw_distance(cases1[0], cases2[0], window=distance_parameters["dtw"][j])
         d2 = dtw_distance(cases1[1], cases2[1], window=distance_parameters["dtw"][j])
@@ -134,10 +142,6 @@ def test_univariate_correctness():
         d = lcss_distance(cases1[0], cases2[0], epsilon=distance_parameters["lcss"][j])
         d2 = lcss_distance(cases1[1], cases2[1], epsilon=distance_parameters["lcss"][j])
         assert_almost_equal(d, unit_test_distances["lcss"][j], 4)
-        assert d == d2
-        d = msm_distance(cases1[0], cases2[0], c=distance_parameters["msm"][j])
-        d2 = msm_distance(cases1[1], cases2[1], c=distance_parameters["msm"][j])
-        assert_almost_equal(d, unit_test_distances["msm"][j], 4)
         assert d == d2
         d = erp_distance(cases1[0], cases2[0], window=distance_parameters["erp"][j])
         d2 = erp_distance(cases1[1], cases2[1], window=distance_parameters["erp"][j])
@@ -157,6 +161,17 @@ def test_univariate_correctness():
         assert d == d2
         d = twe_distance(cases1[0], cases2[0], window=distance_parameters["twe"][j])
         d2 = twe_distance(cases1[1], cases2[1], window=distance_parameters["twe"][j])
-        twe_uni.append(d)
         assert_almost_equal(d, unit_test_distances["twe"][j], 4)
+        assert d == d2
+        d = msm_distance(cases1[0], cases2[0], c=distance_parameters["msm"][j])
+        d2 = msm_distance(cases1[1], cases2[1], c=distance_parameters["msm"][j])
+        assert_almost_equal(d, unit_test_distances["msm_ind"][j], 4)
+        assert d == d2
+        d = msm_distance(
+            cases1[0], cases2[0], c=distance_parameters["msm"][j], independent=False
+        )
+        d2 = msm_distance(
+            cases1[1], cases2[1], c=distance_parameters["msm"][j], independent=False
+        )
+        assert_almost_equal(d, unit_test_distances["msm_dep"][j], 4)
         assert d == d2

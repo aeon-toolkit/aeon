@@ -7,11 +7,10 @@
   "files": [
     "CONTRIBUTORS.md"
   ],
-  "imageSize": 100,
-  "contributorsPerLine": 9,
+  "imageSize": 80,
+  "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
-  "skipCi": true,
   "contributors": [
     {
       "login": "fkiraly",
