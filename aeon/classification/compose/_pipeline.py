@@ -127,6 +127,11 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             "capability:multithreading": False,
         }
         self.set_tags(**tags_to_set)
+        if unequal:
+            tags_to_set = {
+                "X_inner_mtype": ["np-list", "numpy3D"],
+            }
+            self.set_tags(**tags_to_set)
 
     @property
     def _transformers(self):

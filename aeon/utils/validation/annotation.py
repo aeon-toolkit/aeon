@@ -12,7 +12,7 @@ def check_fmt(fmt):
     Parameters
     ----------
     fmt : str {"sparse", "dense"}
-        Annotation format
+        annotation format
 
     Returns
     -------
@@ -30,7 +30,7 @@ def check_labels(labels):
     Parameters
     ----------
     labels : str {"indicator", "score", "int_label"}
-        Annotation labels
+        annotation labels
 
     Returns
     -------

@@ -514,18 +514,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             n_channels is assumed to be 1.
         y : np.ndarray of shape (n_instances)
             The training data target values.
-        input_checks : boolean
-            whether to check the X and y parameters
-        validation_X : a nested pd.Dataframe, or array-like of shape =
-        (n_instances, series_length, n_channels)
-            The validation samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-            Unless strictly defined by the user via callbacks (such as
-            EarlyStopping), the presence or state of the validation
-            data does not alter training in any way. Predictions at each epoch
-            are stored in the model's fit history.
-        validation_y : array-like, shape = [n_instances]
-            The validation target values.
 
         Returns
         -------
