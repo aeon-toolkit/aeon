@@ -19,8 +19,8 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
+from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import FitInTransform
-from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.panel.tsfresh import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
@@ -119,6 +119,26 @@ def test_series_in_series_out_supported_fit_in_transform():
     # todo: possibly, add mtype check, use metadata return
 
 
+class _DummyTransformer(BaseTransformer):
+    """Dummy transformer."""
+
+    _tags = {
+        "scitype:transform-input": "Series",
+        # what is the scitype of X: Series, or Panel
+        "scitype:transform-output": "Series",
+        # what scitype is returned: Primitives, Series, Panel
+        "scitype:instancewise": False,  # is this an instance-wise transform?
+        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "fit_is_empty": False,
+        "capability:unequal_length:removes": True,
+        # is transform result always guaranteed to be equal length (and series)?
+    }
+
+    def __init__(self):
+        super(_DummyTransformer, self).__init__()
+
+
 def test_series_in_series_out_not_supported_but_panel():
     """Test that fit/transform runs and returns the correct output type.
 
@@ -133,7 +153,7 @@ def test_series_in_series_out_not_supported_but_panel():
     X output from fit/transform should be Series
     """
     # one example for a transformer which supports Panel internally but not Series
-    cls = PaddingTransformer
+    cls = _DummyTransformer
     est = cls.create_test_instance()
     # ensure cls is a good example, if this fails, choose another example
     #   (if this changes, it may be due to implementing more scitypes)
@@ -166,7 +186,7 @@ def test_panel_in_panel_out_supported():
     X output from fit/transform should be Panel
     """
     # one example for a transformer which supports Panel internally
-    cls = PaddingTransformer
+    cls = _DummyTransformer
     est = cls.create_test_instance()
     # ensure cls is a good example, if this fails, choose another example
     #   (if this changes, it may be due to implementing more scitypes)
