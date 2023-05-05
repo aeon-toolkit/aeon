@@ -23,6 +23,14 @@ class TruncationTransformer(BaseTransformer):
 
     Example
     -------
+    >>> from aeon.transformations.panel import TruncationTransformer
+    >>> import numpy as np
+    >>> X = []
+    >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
+    >>> truncator = TruncationTransformer(truncated_length=10)
+    >>> X2 = truncator.fit_transform(X)
+    >>> X2.shape
+    (10, 4, 10)
 
     """
 
@@ -32,6 +40,7 @@ class TruncationTransformer(BaseTransformer):
         "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_mtype": "None",
         "fit_is_empty": False,
+        "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
 
