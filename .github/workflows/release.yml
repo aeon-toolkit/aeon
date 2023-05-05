@@ -97,7 +97,7 @@ jobs:
             bitness: 64
             platform_id: win_amd64
           - os: windows-2022
-            python: 310
+            python: 311
             python-version: '3.11'
             bitness: 64
             platform_id: win_amd64
