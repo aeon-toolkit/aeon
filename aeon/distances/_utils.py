@@ -3,17 +3,33 @@ import numpy as np
 from numba import njit
 
 
-def reshape_distance_ts(arr: np.ndarray):
-    if arr.ndim == 2:
-        return arr.reshape((1, arr.shape[0], arr.shape[1]))
-    elif arr.ndim == 1:
-        return arr.reshape((1, 1, arr.shape[0]))
-    raise ValueError("Time series must be 1D or 2D")
-
 @njit(cache=True, fastmath=True)
 def reshape_pairwise_to_multiple(
         x: np.ndarray, y: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Reshape two collection of time series for pairwise distance computation.
+
+    Parameters
+    ----------
+    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+            (n_instances, n_timepoints) or (n_timepoints,)
+        A collection of time series instances.
+    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+            (m_instances, m_timepoints) or (m_timepoints,)
+        A collection of time series instances.
+
+    Returns
+    -------
+    np.ndarray,
+        Reshaped x.
+    np.ndarray
+        Reshaped y.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D, 2D or 3D arrays.
+    """
     if x.ndim == y.ndim:
         if y.ndim == 3 and x.ndim == 3:
             return x, y
