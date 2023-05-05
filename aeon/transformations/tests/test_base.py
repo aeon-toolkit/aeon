@@ -15,19 +15,14 @@ __all__ = []
 
 from inspect import isclass
 
+import numpy as np
 import pandas as pd
-import pytest
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import FitInTransform
-from aeon.transformations.panel.tsfresh import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
 from aeon.transformations.series.boxcox import BoxCoxTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.summarize import SummaryTransformer
 from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
@@ -37,10 +32,6 @@ from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformSeriesUnivariate,
 )
 from aeon.utils._testing.series import _make_series
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-# other scenarios that might be needed later in development:
-# TransformerFitTransformPanelUnivariateWithClassY,
 
 
 def inner_X_scitypes(est):
@@ -55,88 +46,19 @@ def inner_X_scitypes(est):
     return X_inner_scitypes
 
 
-def test_series_in_series_out_supported():
-    """Test that fit/transform runs and returns the correct output type.
-
-    Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
-        "fit_is_empty" = False
-        "X_inner_mtype" supports "Series
-
-    X input to fit/transform has Series scitype
-    X ouput from fit/transform should be Series
-    """
-    # one example for a transformer which supports Series internally
-    cls = BoxCoxTransformer
-    est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
-    assert "Series" in inner_X_scitypes(est)
-    assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
-
-    # scenario in which series are passed to fit/transform
-    scenario = TransformerFitTransformSeriesUnivariate()
-    Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
-    # todo: possibly, add mtype check, use metadata return
-
-
-def test_series_in_series_out_supported_fit_in_transform():
-    """Test that fit/transform runs and returns the correct output type.
-
-    Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
-        "fit_is_empty" = True
-        "X_inner_mtype" supports "Series"
-
-    X input to fit/transform has Series scitype
-    X output from fit/transform should be Series
-    """
-    # one example for a transformer which supports Series internally
-    cls = ExponentTransformer
-    est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
-    assert "Series" in inner_X_scitypes(est)
-    assert est.get_class_tag("fit_is_empty")
-    assert est.get_class_tag("scitype:transform-input") == "Series"
-    assert est.get_class_tag("scitype:transform-output") == "Series"
-
-    # scenario in which series are passed to fit/transform
-    scenario = TransformerFitTransformSeriesUnivariate()
-    Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
-    # todo: possibly, add mtype check, use metadata return
-
-
-class _DummyTransformer(BaseTransformer):
-    """Dummy transformer."""
-
+class _DummyOne(BaseTransformer):
     _tags = {
         "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",
         "fit_is_empty": False,
-        "capability:unequal_length:removes": True,
-        # is transform result always guaranteed to be equal length (and series)?
     }
 
     def __init__(self):
-        super(_DummyTransformer, self).__init__()
+        super(_DummyOne, self).__init__()
+
+    def _transform(self, X, y=None):
+        return X
 
 
 def test_series_in_series_out_not_supported_but_panel():
@@ -152,25 +74,18 @@ def test_series_in_series_out_not_supported_but_panel():
     X input to fit/transform has Series scitype
     X output from fit/transform should be Series
     """
-    # one example for a transformer which supports Panel internally but not Series
-    cls = _DummyTransformer
+    cls = _DummyOne
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Panel" in inner_X_scitypes(est)
     assert "Series" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Series"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
 
     valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
     assert valid, "fit.transform does not return a Series when given a Series"
-    # todo: possibly, add mtype check, use metadata return
 
 
 def test_panel_in_panel_out_supported():
@@ -185,24 +100,52 @@ def test_panel_in_panel_out_supported():
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Panel
     """
-    # one example for a transformer which supports Panel internally
-    cls = _DummyTransformer
+    cls = _DummyOne
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Panel" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Series"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
     assert valid, "fit.transform does not return a Panel when given a Panel"
-    # todo: possibly, add mtype check, use metadata return
+
+
+class _DummyTwo(BaseTransformer):
+    _tags = {
+        "scitype:transform-input": "Series",
+        "scitype:transform-output": "Series",
+        "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "fit_is_empty": False,
+    }
+
+    def _transform(self, X, y=None):
+        return X
+
+
+def test_series_in_series_out_supported():
+    """Test that fit/transform runs and returns the correct output type.
+
+    Setting: transformer has tags
+        "scitype:transform-input" = "Series"
+        "scitype:transform-output" = "Series"
+        "fit_is_empty" = False
+        "X_inner_mtype" supports "Series
+
+    X input to fit/transform has Series scitype
+    X ouput from fit/transform should be Series
+    """
+    cls = _DummyTwo
+    est = cls.create_test_instance()
+    assert "Series" in inner_X_scitypes(est)
+    assert not est.get_tag("fit_is_empty")
+    assert est.get_tag("scitype:transform-input") == "Series"
+    assert est.get_tag("scitype:transform-output") == "Series"
+    scenario = TransformerFitTransformSeriesUnivariate()
+    Xt = scenario.run(est, method_sequence=["fit", "transform"])
+    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
+    assert valid, "fit.transform does not return a Series when given a Series"
 
 
 def test_panel_in_panel_out_not_supported_but_series():
@@ -217,26 +160,67 @@ def test_panel_in_panel_out_not_supported_but_series():
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Panel
     """
-    # one example for a transformer which supports Series internally but not Panel
-    cls = BoxCoxTransformer
+    cls = _DummyTwo
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Series" in inner_X_scitypes(est)
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Series"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
     assert valid, "fit.transform does not return a Panel when given a Panel"
-    # todo: possibly, add mtype check, use metadata return
+
+
+class _DummyThree(BaseTransformer):
+    _tags = {
+        "scitype:transform-input": "Series",
+        "scitype:transform-output": "Series",
+        "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "fit_is_empty": True,
+    }
+
+    def _transform(self, X, y=None):
+        return X
+
+
+def test_series_in_series_out_supported_fit_in_transform():
+    """Test that fit/transform runs and returns the correct output type.
+
+    Setting: transformer has tags
+        "scitype:transform-input" = "Series"
+        "scitype:transform-output" = "Series"
+        "fit_is_empty" = True
+        "X_inner_mtype" supports "Series"
+
+    X input to fit/transform has Series scitype
+    X output from fit/transform should be Series
+    """
+    cls = _DummyThree
+    est = cls.create_test_instance()
+    assert "Series" in inner_X_scitypes(est)
+    assert est.get_class_tag("fit_is_empty")
+    assert est.get_class_tag("scitype:transform-input") == "Series"
+    assert est.get_class_tag("scitype:transform-output") == "Series"
+    scenario = TransformerFitTransformSeriesUnivariate()
+    Xt = scenario.run(est, method_sequence=["fit", "transform"])
+    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
+    assert valid, "fit.transform does not return a Series when given a Series"
+
+
+class _DummyFour(BaseTransformer):
+    _tags = {
+        "scitype:transform-input": "Series",
+        "scitype:transform-output": "Primitives",
+        "X_inner_mtype": ["pd.DataFrame"],
+        "y_inner_mtype": "None",
+        "fit_is_empty": True,
+    }
+
+    def _transform(self, X, y=None):
+        return np.array([0])
 
 
 def test_series_in_primitives_out_supported_fit_in_transform():
@@ -251,24 +235,16 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     X input to fit/transform has Series scitype
     X output from fit/transform should be Table
     """
-    # one example for a transformer which supports Series internally
-    cls = SummaryTransformer
+    cls = _DummyFour
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Series" in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
     assert valid, "fit.transform does not return a Table when given a Series"
-    # todo: possibly, add mtype check, use metadata return
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
 
@@ -285,34 +261,34 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Table
     """
-    # one example for a transformer which supports Series internally but not Panel
-    cls = SummaryTransformer
+    cls = _DummyFour
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Series" in inner_X_scitypes(est)
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
     assert valid, "fit.transform does not return a Table when given a Panel"
-    # todo: possibly, add mtype check, use metadata return
     # length of Xt should be seven = number of samples in the scenario
     assert len(Xt) == 7
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
-    reason="skip test if required soft dependency tsfresh not available",
-)
+class _DummyFive(BaseTransformer):
+    _tags = {
+        "scitype:transform-input": "Series",
+        "scitype:transform-output": "Primitives",
+        "X_inner_mtype": ["numpy3D"],
+        "fit_is_empty": True,
+    }
+
+    def _transform(self, X, y=None):
+        return np.array([0])
+
+
 def test_series_in_primitives_out_not_supported_fit_in_transform():
     """Test that fit/transform runs and returns the correct output type.
 
@@ -325,33 +301,34 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
     X input to fit/transform has Series scitype
     X output from fit/transform should be Table
     """
-    # one example for a transformer which supports Panel internally but not Series
-    cls = TSFreshFeatureExtractor
+    cls = _DummyFive
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Panel" in inner_X_scitypes(est)
     assert "Series" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
     assert valid, "fit.transform does not return a Table when given a Series"
-    # todo: possibly, add mtype check, use metadata return
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tsfresh", severity="none"),
-    reason="skip test if required soft dependency tsfresh not available",
-)
+class _DummySix(BaseTransformer):
+    _tags = {
+        "scitype:transform-input": "Series",
+        "scitype:transform-output": "Primitives",
+        "X_inner_mtype": ["numpy3D"],
+        "fit_is_empty": False,
+        "requires_y": True,
+    }
+
+    def _transform(self, X, y=None):
+        return np.zeros(len(X))
+
+
 def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     """Test that fit/transform runs and returns the correct output type.
 
@@ -365,25 +342,17 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Table
     """
-    # one example for a transformer which supports Panel internally
-    cls = TSFreshRelevantFeatureExtractor
+    cls = _DummySix
     est = cls.create_test_instance()
-    # ensure cls is a good example, if this fails, choose another example
-    #   (if this changes, it may be due to implementing more scitypes)
-    #   (then this is not a failure of cls, but we need to choose another example)
     assert "Panel" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("requires_y")
     assert est.get_tag("scitype:transform-input") == "Series"
     assert est.get_tag("scitype:transform-output") == "Primitives"
-
-    # scenario in which series are passed to fit/transform
     scenario = TransformerFitTransformPanelUnivariateWithClassYOnlyFit()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
     assert valid, "fit.transform does not return a Table when given a Panel"
-    # todo: possibly, add mtype check, use metadata return
     # length of Xt should be seven = number of samples in the scenario
     assert len(Xt) == 7
 
@@ -650,31 +619,3 @@ def test_vectorize_reconstruct_unique_columns():
     t = Detrender.create_test_instance()
     Xt = t.fit_transform(X)
     assert set(Xt.columns) == set([0, 1])
-
-
-def test_vectorize_reconstruct_correct_hierarchy():
-    """Tests correct transform return index in hierarchical case for primitives output.
-
-    Tests that the row index is as expected if rows are vectorized over,
-    by a transform that returns Primitives.
-    The row index of transform return should be identical to the input,
-    with temporal index level removed
-
-    Raises
-    ------
-    AssertionError if output index is not as expected.
-    """
-    from aeon.transformations.series.summarize import SummaryTransformer
-    from aeon.utils._testing.hierarchical import _make_hierarchical
-
-    # hierarchical data with 2 variables and 2 levels
-    X = _make_hierarchical(n_columns=2)
-
-    summary_trafo = SummaryTransformer()
-
-    # this produces a pandas DataFrame with more rows and columns
-    # rows should correspond to different instances in X
-    Xt = summary_trafo.fit_transform(X)
-
-    # check that Xt.index is the same as X.index with time level dropped and made unique
-    assert (X.index.droplevel(-1).unique() == Xt.index).all()
