@@ -16,6 +16,8 @@ import pandas as pd
 from aeon.datatypes import check_is_scitype, convert_to
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+
+# from aeon.forecasting.base._base import _format_moving_cutoff_predictions
 from aeon.forecasting.model_selection import BaseSplitter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
@@ -489,3 +491,7 @@ def cv_predict(
     strategy: Literal["refit", "update", "no-update_params"],
 ) -> pd.DataFrame:
     """Placeholders docstring."""
+    # borrow from _predict_moving_cutoff
+    # use _format_moving_cutoff_predictions func
+    # use the backend stuff from evaluate for parallel preds
+    # maybe reformat _evaluate_window to be _predict_window

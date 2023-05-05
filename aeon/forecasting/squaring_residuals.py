@@ -159,7 +159,9 @@ class SquaringResiduals(BaseForecaster):
         y = convert_to(y, "pd.Series")
         cv = ExpandingWindowSplitter(initial_window=self.initial_window, fh=fh_rel)
         self._forecaster_.fit(y=y.iloc[: self.initial_window], X=X)
-        y_pred = self._forecaster_.update_predict(y=y, cv=cv, X=X, update_params=True)
+        y_pred = self._forecaster_._predict_moving_cutoff(
+            y=y, cv=cv, X=X, update_params=True
+        )
 
         for step_ahead in fh_rel:
             if isinstance(y.index, pd.DatetimeIndex):
@@ -187,7 +189,7 @@ class SquaringResiduals(BaseForecaster):
                 residuals = residuals**2
             else:
                 residuals = residuals.abs()
-            # residuals.index = y_step_index
+
             if isinstance(residuals.index, pd.DatetimeIndex):
                 residuals = residuals.asfreq(y.index.freq)
 
