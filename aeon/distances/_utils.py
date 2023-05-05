@@ -1,11 +1,13 @@
+# -*- coding: utf-8 -*-
 from typing import Tuple
+
 import numpy as np
 from numba import njit
 
 
 @njit(cache=True, fastmath=True)
 def reshape_pairwise_to_multiple(
-        x: np.ndarray, y: np.ndarray
+    x: np.ndarray, y: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Reshape two collection of time series for pairwise distance computation.
 
