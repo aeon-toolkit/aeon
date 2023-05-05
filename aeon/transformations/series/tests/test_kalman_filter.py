@@ -150,7 +150,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_3_3_dynamic,
                 state_dim=3,
-                estimate_matrices=["measurement_function", "initial_state"],
+                estimate_matrices=None,
             ),
             create_data((ts, 3)),
         ),
@@ -159,14 +159,14 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         (dict(params_3_3_static, state_dim=3), create_data((ts, 3))),
         # all matrix parameters will be estimated using em algorithm.
         (
-            dict(params_3_3_static, state_dim=3, estimate_matrices="all"),
+            dict(params_3_3_static, state_dim=3, estimate_matrices=None),
             create_data((ts, 3)),
         ),
         # test case 3 -
         #   state_dim = 2, measurement_dim = 3, params - params_2_3_,
         #   b is set with random ndarray of shape (2,).
         (
-            dict(params_2_3_, state_dim=2, transition_offsets=create_data(2)),
+            dict(params_2_3_, state_dim=2),
             create_data((ts, 3)),
         ),
         # b, d and R will be estimated using em algorithm.
@@ -174,12 +174,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_2_3_,
                 state_dim=2,
-                transition_offsets=create_data(2),
-                estimate_matrices=[
-                    "measurement_offsets",
-                    "transition_offsets",
-                    "measurement_noise",
-                ],
+                estimate_matrices=None,
             ),
             create_data((ts, 3)),
         ),
@@ -188,7 +183,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         (dict(state_dim=3), create_data((ts, 1), missing_values=True)),
         # F and Q will be estimated using em algorithm.
         (
-            dict(state_dim=3, estimate_matrices=["state_transition", "process_noise"]),
+            dict(state_dim=3, estimate_matrices=None),
             create_data((ts, 1), missing_values=True),
         ),
         # test 5 -
@@ -198,8 +193,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_1_1_arrays,
                 state_dim=1,
-                transition_offsets=create_data(1),
-                measurement_offsets=create_data(1),
             ),
             create_data((ts, 1)),
         ),
@@ -208,41 +201,27 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_1_1_arrays,
                 state_dim=1,
-                estimate_matrices=["initial_state_covariance"],
-                transition_offsets=create_data(1),
-                measurement_offsets=create_data(1),
+                estimate_matrices=None,
             ),
             create_data((ts, 1)),
         ),
         # test case 6 -
         #   state_dim = 1, measurement_dim = 1, params - params_1_1_lists
         #   b and d each set with a list of random ndarrays.
-        #   transition_offsets (aka b) - each element of b is of shape
-        #   (1,), b.length == 10.
-        #   measurement_offsets (aka d) - each element of d is of shape
-        #   (1,), d.length == 10.
         (
             dict(
                 params_1_1_lists,
                 state_dim=1,
-                transition_offsets=rand_list(1),
-                measurement_offsets=rand_list(1),
             ),
             create_data((ts, 1), missing_values=True),
         ),
         # test case 7 -
         #   state_dim = 3, measurement_dim = 1, params - params_3_1_lists
         #   b and d each set with a list of random ndarrays.
-        #   transition_offsets (aka b) - each element of b is of shape
-        #   (3,), b.length == 10.
-        #   measurement_offsets (aka d) - each element of d is of shape
-        #   (1,), d.length == 10.
         (
             dict(
                 params_3_1_lists,
                 state_dim=3,
-                transition_offsets=rand_list(3),
-                measurement_offsets=rand_list(1),
             ),
             create_data((ts, 1), missing_values=True),
         ),
@@ -262,7 +241,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_3_3_dynamic,
                 state_dim=3,
-                estimate_matrices=["measurement_function", "initial_state"],
+                estimate_matrices=None,
             ),
             create_data((ts, 3)),
         ),
@@ -275,14 +254,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_3_3_static,
                 state_dim=3,
-                estimate_matrices=[
-                    "state_transition",
-                    "process_noise",
-                    "measurement_noise",
-                    "measurement_function",
-                    "initial_state",
-                    "initial_state_covariance",
-                ],
+                estimate_matrices=None,
             ),
             create_data((ts, 3), missing_values=True),
         ),
@@ -292,8 +264,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # test case 4 -
         #   state_dim = 3, measurement_dim = 1, params are None,
         #   all matrix parameters will be estimated using em algorithm.
-        #   transition_offsets (aka b) - set with random ndarray of shape (3,).
-        #   measurement_offsets (aka d) - set with random ndarray of shape (1,).
         # test case 5 -
         #   state_dim = 2, measurement_dim = 4, params are None,
         #   H and Q will be estimated using em algorithm.
@@ -305,12 +275,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_1_1_arrays,
                 state_dim=1,
-                estimate_matrices=[
-                    "measurement_noise",
-                    "measurement_function",
-                    "initial_state",
-                    "initial_state_covariance",
-                ],
+                estimate_matrices=None,
             ),
             create_data((ts, 1)),
         ),
@@ -326,7 +291,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_3_1_lists,
                 state_dim=3,
-                estimate_matrices=["initial_state", "initial_state_covariance"],
+                estimate_matrices=None,
             ),
             create_data((ts, 1)),
         ),
@@ -344,7 +309,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_3_3_dynamic,
                 state_dim=3,
-                estimate_matrices=["sstate_transition", "process_noise"],
+                estimate_matrices=None,
             ),
             create_data((ts, 3)),
         ),
@@ -359,8 +324,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # test case 4 -
         #   state_dim = 2, measurement_dim = 3, params - params_2_3_
         # bad input:
-        # typo in element of `estimate_matrices` : transition_offset instead of
-        # transition_offsets
         # test case 5 -
         #   state_dim = 3, measurement_dim = 5, params - are None
         #   except state_transition.
@@ -372,25 +335,21 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # bad input:
         # typo in element of `estimate_matrices` : measurement_functions instead
         # of measurement_function
-        # bad input:
-        # KalmanFilterTransformer does not estimate matrix transition_offsets.
         (
             [KalmanFilterTransformer],
-            dict(state_dim=4, estimate_matrices=["transition_offsets"]),
+            dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
-        # bad input:
-        # KalmanFilterTransformer does not estimate matrix measurement_offsets.
         (
             [KalmanFilterTransformer],
-            dict(state_dim=4, estimate_matrices=["measurement_offsets"]),
+            dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
         # bad input:
         # KalmanFilterTransformer does not estimate matrix control_transition.
         (
             [KalmanFilterTransformer],
-            dict(state_dim=4, estimate_matrices=["control_transition"]),
+            dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
         # test case 7 -
@@ -403,11 +362,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             dict(
                 params_1_1_arrays,
                 state_dim=1,
-                estimate_matrices=[
-                    "state_transition",
-                    "initial_state_mean",
-                    "initial_state_covariance",
-                ],
+                estimate_matrices=None,
             ),
             create_data((ts, 1)),
         ),
@@ -422,7 +377,7 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
             [KalmanFilterTransformer],
             dict(
                 state_dim=2,
-                estimate_matrices=["measurement_noise", "covariance"],
+                estimate_matrices=None,
                 state_transition=create_data((3, 3)),
                 measurement_function=create_data((2, 3)),
             ),
@@ -460,7 +415,7 @@ def test_bad_inputs(classes, params, measurements):
                 params_3_3_dynamic,
                 state_dim=3,
                 control_transition=create_data((3, 3)),
-                estimate_matrices=["measurement_function", "initial_state"],
+                estimate_matrices=None,
             ),
             create_data((ts, 3)),
             create_data((ts, 3)),
@@ -482,7 +437,7 @@ def test_bad_inputs(classes, params, measurements):
             dict(
                 params_3_3_static,
                 state_dim=3,
-                estimate_matrices="all",
+                estimate_matrices=None,
                 control_transition=create_data((3, 1)),
             ),
             create_data((ts, 3)),
@@ -494,7 +449,7 @@ def test_bad_inputs(classes, params, measurements):
         (dict(params_2_3_, state_dim=2), create_data((ts, 3)), create_data((ts, 4))),
         # R will be estimated using em algorithm.
         (
-            dict(params_2_3_, state_dim=2, estimate_matrices=["measurement_noise"]),
+            dict(params_2_3_, state_dim=2, estimate_matrices=None),
             create_data((ts, 3)),
             None,
         ),
@@ -510,7 +465,7 @@ def test_bad_inputs(classes, params, measurements):
         ),
         # F and Q will be estimated using em algorithm.
         (
-            dict(state_dim=3, estimate_matrices=["state_transition", "process_noise"]),
+            dict(state_dim=3, estimate_matrices=None),
             create_data((ts, 1), missing_values=True),
             None,
         ),
@@ -534,7 +489,7 @@ def test_bad_inputs(classes, params, measurements):
             dict(
                 params_1_1_arrays,
                 state_dim=1,
-                estimate_matrices=["initial_state_covariance"],
+                estimate_matrices=None,
                 control_transition=rand_list((1, 1)),
             ),
             create_data((ts, 1)),
