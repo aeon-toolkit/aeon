@@ -46,6 +46,7 @@ def _test_distance_params(
                 results.append(curr_dist_fact(x, y))
             else:
                 results.append(curr_dist_fact(x, y, **param_dict))
+
             if distance_str in _expected_distance_results_params:
                 if _expected_distance_results_params[distance_str][i][j] is not None:
                     for result in results:
@@ -56,16 +57,6 @@ def _test_distance_params(
             j += 1
         i += 1
         results_to_fill.append(curr_results)
-
-    # if distance_str == "erp":
-    #     param_dict = {"g": np.array([0.5])}
-    #     first_uni = distance_func(x_univ, y_univ, **param_dict)
-    #     second_uni = distance(x_univ, y_univ, metric=distance_str, **param_dict)
-    #     param_dict = {"g": np.array(list(range(10)))}
-    #     first_multi = distance_func(x_multi, y_multi, **param_dict)
-    #     second_multi = distance(x_multi, y_multi, metric=distance_str, **param_dict)
-    #     assert first_uni == pytest.approx(second_uni)
-    #     assert first_multi == pytest.approx(second_multi)
 
 
 BASIC_BOUNDING_PARAMS = [
@@ -87,6 +78,7 @@ DIST_PARAMS = {
     "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
+    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
 }
 
 
