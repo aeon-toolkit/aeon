@@ -7,14 +7,42 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import (
+    ddtw_alignment_path,
+    ddtw_cost_matrix,
+    ddtw_distance,
+    ddtw_pairwise_distance,
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
+    edr_alignment_path,
+    edr_cost_matrix,
+    edr_distance,
+    edr_pairwise_distance,
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_distance,
+    erp_pairwise_distance,
     euclidean_distance,
     euclidean_pairwise_distance,
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_distance,
+    lcss_pairwise_distance,
     squared_distance,
     squared_pairwise_distance,
+    twe_alignment_path,
+    twe_cost_matrix,
+    twe_distance,
+    twe_pairwise_distance,
+    wddtw_alignment_path,
+    wddtw_cost_matrix,
+    wddtw_distance,
+    wddtw_pairwise_distance,
+    wdtw_alignment_path,
+    wdtw_cost_matrix,
+    wdtw_distance,
+    wdtw_pairwise_distance,
 )
 from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
@@ -37,6 +65,55 @@ DISTANCES = [
         "cost_matrix": dtw_cost_matrix,
         "alignment_path": dtw_alignment_path,
     },
+    {
+        "name": "ddtw",
+        "distance": ddtw_distance,
+        "pairwise_distance": ddtw_pairwise_distance,
+        "cost_matrix": ddtw_cost_matrix,
+        "alignment_path": ddtw_alignment_path,
+    },
+    {
+        "name": "wdtw",
+        "distance": wdtw_distance,
+        "pairwise_distance": wdtw_pairwise_distance,
+        "cost_matrix": wdtw_cost_matrix,
+        "alignment_path": wdtw_alignment_path,
+    },
+    {
+        "name": "wddtw",
+        "distance": wddtw_distance,
+        "pairwise_distance": wddtw_pairwise_distance,
+        "cost_matrix": wddtw_cost_matrix,
+        "alignment_path": wddtw_alignment_path,
+    },
+    {
+        "name": "lcss",
+        "distance": lcss_distance,
+        "pairwise_distance": lcss_pairwise_distance,
+        "cost_matrix": lcss_cost_matrix,
+        "alignment_path": lcss_alignment_path,
+    },
+    {
+        "name": "erp",
+        "distance": erp_distance,
+        "pairwise_distance": erp_pairwise_distance,
+        "cost_matrix": erp_cost_matrix,
+        "alignment_path": erp_alignment_path,
+    },
+    {
+        "name": "edr",
+        "distance": edr_distance,
+        "pairwise_distance": edr_pairwise_distance,
+        "cost_matrix": edr_cost_matrix,
+        "alignment_path": edr_alignment_path,
+    },
+    {
+        "name": "twe",
+        "distance": twe_distance,
+        "pairwise_distance": twe_pairwise_distance,
+        "cost_matrix": twe_cost_matrix,
+        "alignment_path": twe_alignment_path,
+    },
 ]
 
 
@@ -58,13 +135,14 @@ def _validate_distance_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distances(dist):
     # Test univariate
-    _validate_distance_result(
-        np.array([10.0]),
-        np.array([15.0]),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][0],
-    )
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        _validate_distance_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][0],
+        )
 
     _validate_distance_result(
         create_test_distance_numpy(10),
