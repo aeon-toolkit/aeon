@@ -57,8 +57,8 @@ def make_3d_test_data(
 
     Examples
     --------
-    >>> from tsml.utils.testing import generate_3d_test_data
-    >>> data, labels = generate_3d_test_data(
+    >>> from aeon.utils._testing.collection import make_3d_test_data
+    >>> data, labels = make_3d_test_data(
     ...     n_samples=20,
     ...     n_channels=2,
     ...     series_length=10,
@@ -115,8 +115,8 @@ def make_2d_test_data(
 
     Examples
     --------
-    >>> from tsml.utils.testing import generate_2d_test_data
-    >>> data, labels = generate_2d_test_data(
+    >>> from aeon.utils._testing.collection import make_2d_test_data
+    >>> data, labels = make_2d_test_data(
     ...     n_samples=20,
     ...     series_length=10,
     ...     n_labels=3,
@@ -178,8 +178,8 @@ def make_unequal_length_test_data(
 
     Examples
     --------
-    >>> from tsml.utils.testing import generate_unequal_test_data
-    >>> data, labels = generate_unequal_test_data(
+    >>> from aeon.utils._testing.collection import make_unequal_length_test_data
+    >>> data, labels = make_unequal_length_test_data(
     ...     n_samples=20,
     ...     n_channels=2,
     ...     min_series_length=8,
@@ -236,9 +236,6 @@ def _make_panel(
     random_state : None (default) or int
         if int is passed, will be used in numpy RandomState for generation
     return_mtype : str, aeon Panel mtype str, default="pd-multiindex"
-        see aeon.datatypes.MTYPE_LIST_PANEL for a full list of admissible strings
-        see aeon.datatypes.MTYPE_REGISTER for an short explanation of formats
-        see examples/AA_datatypes_and_datasets.ipynb for a full specification
 
     Returns
     -------
