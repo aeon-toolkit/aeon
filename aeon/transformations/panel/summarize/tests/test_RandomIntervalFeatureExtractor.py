@@ -13,6 +13,7 @@ from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
 from aeon.utils._testing.collection import (
     _make_nested_from_array,
+    make_3d_test_data,
     make_nested_df_classification_data,
 )
 from aeon.utils.slope_and_trend import _slope
@@ -84,7 +85,7 @@ def test_results(n_instances, n_timepoints, n_intervals):
 def test_different_implementations():
     """Test against equivalent pipelines."""
     random_state = 1233
-    X = np.ones(shape=(10, 4, 20))
+    X = make_3d_test_data()
 
     # Compare with chained transformations.
     tran1 = RandomIntervalSegmenter(n_intervals=1, random_state=random_state)
