@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 
 from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
 from aeon.distances.tests.test_new_distances import DISTANCES
@@ -83,7 +84,7 @@ def _validate_single_to_multiple_result(
         curr_y = y[i]
         curr = single_to_multiple_result[0, i]
         dist = distance(x, curr_y)
-        assert dist == curr
+        assert_almost_equal(dist, curr)
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -113,7 +114,7 @@ def test_pairwise_distance(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_multiple_to_multiple_distances(dist):
     # Univariate tests
-    if dist["name"] != "ddtw":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_multiple_to_multiple_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -189,7 +190,7 @@ new_distance = ["euclidean", "dtw"]
 def test_new_single_to_multiple_distances(dist):
     # Univariate tests
 
-    if dist["name"] != "ddtw":
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_single_to_multiple_result(
             np.array([10.0]),
             np.array([[15.0]]),

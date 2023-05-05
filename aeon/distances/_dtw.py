@@ -61,7 +61,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     .. math::
         dtw(x, y) = \sqrt{\sum_{(i, j) \in \pi} \|x_{i} - y_{j}\|^2}
 
-    # Parameters
+    Parameters
     ----------
     x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
             (n_instances, n_channels, n_timepoints)
@@ -229,6 +229,8 @@ def dtw_pairwise_distance(
     np.ndarray (n_instances, n_instances)
         dtw pairwise matrix between the instances of X.
 
+    Raises
+    ------
     ValueError
         If X is not 2D or 3D array when only passing X.
         If X and y are not 1D, 2D or 3D arrays when passing both X and y.
