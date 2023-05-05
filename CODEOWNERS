@@ -20,7 +20,7 @@ aeon/classification/dummy.py @ZiyaoWei
 aeon/classification/early_classification/_probability_threshold.py @MatthewMiddlehurst
 aeon/classification/early_classification/_teaser.py @patrickzib @MatthewMiddlehurst
 aeon/classification/feature_based/_catch22_classifier.py @MatthewMiddlehurst @TonyBagnall
-aeon/classification/feature_based/_fresh_prince.py @MatthewMiddlehurst @TonyBagnall
+aeon/classification/feature_based/_fresh_prince_classifier.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/feature_based/_matrix_profile_classifier.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/feature_based/_random_interval_classifier.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/feature_based/_signature_classifier.py @jambo6
