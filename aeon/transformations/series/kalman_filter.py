@@ -424,7 +424,6 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     ...     state_dim=state_dim,
     ...     measurement_noise=np.eye(measurement_dim),
     ...     denoising=True,
-    ...     estimate_matrices='measurement_noise'
     ...     )
     >>> Xt = transformer.fit_transform(X=X, y=control_variable)  # doctest: +SKIP
 
@@ -446,7 +445,6 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     >>> transformer = kf.KalmanFilterTransformer(  # doctest: +SKIP
     ...     state_dim=state_dim,
     ...     state_transition=np.random.rand(time_steps, state_dim, state_dim),
-    ...     estimate_matrices=['initial_state', 'initial_state_covariance']
     ...     )
     >>> Xt = transformer.fit_transform(X=X, y=control_variable)  # doctest: +SKIP
     """
