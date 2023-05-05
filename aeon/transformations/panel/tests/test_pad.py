@@ -34,3 +34,13 @@ def test_padding_fill_value_transformer():
 
     assert X_padded.shape == (X.shape[0], X.shape[1], 120)
     assert X_padded[0][0][100] == 42
+
+
+def test_padding_fill_unequal_length():
+    X = []
+    for i in range(10):
+        X.append(np.random.random((10, 15 + i)))
+    padding_transformer = PaddingTransformer(pad_length=120, fill_value=42)
+    X_padded = padding_transformer.fit_transform(X)
+    assert isinstance(X_padded, np.ndarray)
+    assert X_padded.shape == (len(X), X[0].shape[0], 120)

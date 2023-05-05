@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Padding transformer, pad unequal length panel to max length or fixed length."""
+"""Padding transformer, pad unequal length time series to max length or fixed length."""
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
 
 __all__ = ["PaddingTransformer"]
-__author__ = ["abostrom"]
+__author__ = ["abostrom", "TonyBagnall"]
 
 
 def _get_max_length(X):
@@ -18,17 +18,32 @@ def _get_max_length(X):
 
 
 class PaddingTransformer(BaseTransformer):
-    """Padding panel of unequal length time series to equal, fixed length.
+    """Pad unequal length time series to equal, fixed length.
 
-    Pads the input dataset to either a optional fixed length
-    (longer than the longest series).
-    Or finds the max length series across all series and dimensions and
+    Pads the input dataset to either fixed length (at least as long as the longest
+    series) or finds the max length series across all series and channels and
     pads to that with zeroes.
 
     Parameters
     ----------
-    pad_length  : int, optional (default=None) length to pad the series too.
-                if None, will find the longest sequence and use instead.
+    pad_length  : int or None, default=None
+        length to pad the series too. if None, will find the longest sequence and use
+        instead. If the pad_length passed is less than the max length, it is reset to
+        max length.
+
+    fill_value : int, default = 0
+        value to pad with.
+
+    Example
+    -------
+    >>> from aeon.transformations.panel import PaddingTransformer
+    >>> import numpy as np
+    >>> X = []
+    >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
+    >>> padder = PaddingTransformer(pad_length=200, fill_value =42)
+    >>> X2 = padder.fit_transform(X)
+    >>> X2.shape
+    (10, 4, 200)
     """
 
     _tags = {
@@ -37,13 +52,14 @@ class PaddingTransformer(BaseTransformer):
         "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_mtype": "None",
         "fit_is_empty": False,
+        "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
 
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        super(PaddingTransformer, self).__init__()
+        super(PaddingTransformer, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.
