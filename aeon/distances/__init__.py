@@ -27,21 +27,27 @@ __all__ = [
     "lcss_pairwise_distance",
     "lcss_alignment_path",
     "lcss_cost_matrix",
+    "erp_distance",
+    "erp_pairwise_distance",
+    "erp_alignment_path",
+    "erp_cost_matrix",
+    "edr_distance",
+    "edr_pairwise_distance",
+    "edr_alignment_path",
+    "edr_cost_matrix",
+    "twe_distance",
+    "twe_pairwise_distance",
+    "twe_alignment_path",
+    "twe_cost_matrix",
+    "msm_distance",
+    "msm_alignment_path",
+    "msm_cost_matrix",
+    "msm_pairwise_distance",
     "distance",
     "distance_factory",
     "pairwise_distance",
-    "euclidean_distance",
-    "squared_distance",
-    "edr_distance",
-    "erp_distance",
-    "msm_distance",
-    "twe_distance",
-    "msm_alignment_path",
-    "erp_alignment_path",
-    "edr_alignment_path",
     "distance_alignment_path_factory",
     "distance_alignment_path",
-    "twe_alignment_path",
 ]
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
@@ -56,21 +62,25 @@ from aeon.distances._distance import (
     distance_alignment_path,
     distance_alignment_path_factory,
     distance_factory,
-    edr_alignment_path,
-    edr_distance,
-    erp_alignment_path,
-    erp_distance,
-    msm_alignment_path,
-    msm_distance,
     pairwise_distance,
-    twe_alignment_path,
-    twe_distance,
 )
 from aeon.distances._dtw import (
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
+)
+from aeon.distances._edr import (
+    edr_alignment_path,
+    edr_cost_matrix,
+    edr_distance,
+    edr_pairwise_distance,
+)
+from aeon.distances._erp import (
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_distance,
+    erp_pairwise_distance,
 )
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
 from aeon.distances._lcss import (
@@ -79,7 +89,19 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._msm import (
+    msm_alignment_path,
+    msm_cost_matrix,
+    msm_distance,
+    msm_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
+from aeon.distances._twe import (
+    twe_alignment_path,
+    twe_cost_matrix,
+    twe_distance,
+    twe_pairwise_distance,
+)
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
