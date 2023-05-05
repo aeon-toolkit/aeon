@@ -1,0 +1,16 @@
+# Credit to https://stackoverflow.com/a/61574295
+
+name: main auto-sync
+
+on:
+  schedule:
+    - cron:  '30 5 * * *'
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tgymnich/fork-sync@v1.8
+        with:
+          base: main
+          head: main
