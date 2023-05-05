@@ -44,6 +44,7 @@ from numba import njit
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
+from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
 @njit(cache=True, fastmath=True)
@@ -251,37 +252,8 @@ def dtw_pairwise_distance(
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _dtw_pairwise_distance(_X, window)
         raise ValueError("x and y must be 2D or 3D arrays")
-    elif y.ndim == X.ndim:
-        # Multiple to multiple
-        if y.ndim == 3 and X.ndim == 3:
-            return _dtw_from_multiple_to_multiple_distance(X, y, window)
-        if y.ndim == 2 and X.ndim == 2:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
-        if y.ndim == 1 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    else:
-        # Single to multiple
-        if X.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(X, _y, window)
-        if y.ndim == 3 and X.ndim == 2:
-            _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(_x, y, window)
-        if X.ndim == 2 and y.ndim == 1:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
-        if y.ndim == 2 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
-        else:
-            raise ValueError("x and y must be 2D or 3D arrays")
+    _x, _y = reshape_pairwise_to_multiple(X, y)
+    return _dtw_from_multiple_to_multiple_distance(_x, _y, window)
 
 
 @njit(cache=True, fastmath=True)

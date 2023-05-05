@@ -49,6 +49,7 @@ from aeon.distances._twe import (
     twe_distance,
     twe_pairwise_distance,
 )
+from aeon.distances._utils import reshape_pairwise_to_multiple
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
@@ -250,49 +251,8 @@ def _custom_func_pairwise(
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _custom_pairwise_distance(_X, dist_func, **kwargs)
         raise ValueError("x and y must be 2D or 3D arrays")
-    elif y.ndim == X.ndim:
-        # Multiple to multiple
-        if y.ndim == 3 and X.ndim == 3:
-            return _custom_from_multiple_to_multiple_distance(X, y, dist_func, **kwargs)
-        if y.ndim == 2 and X.ndim == 2:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _custom_from_multiple_to_multiple_distance(
-                _x, _y, dist_func, **kwargs
-            )
-        if y.ndim == 1 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _custom_from_multiple_to_multiple_distance(
-                _x, _y, dist_func, **kwargs
-            )
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    else:
-        # Single to multiple
-        if X.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _custom_from_multiple_to_multiple_distance(
-                X, _y, dist_func, **kwargs
-            )
-        if y.ndim == 3 and X.ndim == 2:
-            _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _custom_from_multiple_to_multiple_distance(
-                _x, y, dist_func, **kwargs
-            )
-        if X.ndim == 2 and y.ndim == 1:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _custom_from_multiple_to_multiple_distance(
-                _x, _y, dist_func, **kwargs
-            )
-        if y.ndim == 2 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _custom_from_multiple_to_multiple_distance(
-                _x, _y, dist_func, **kwargs
-            )
-        else:
-            raise ValueError("x and y must be 2D or 3D arrays")
+    _x, _y = reshape_pairwise_to_multiple(X, y)
+    return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
 
 
 def _custom_pairwise_distance(
