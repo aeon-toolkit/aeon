@@ -1,0 +1,18 @@
+# Credit to https://stackoverflow.com/a/61574295
+
+name: main auto-sync
+
+on:
+  schedule:
+    - cron:  '30 5,17 * * *'
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tgymnich/fork-sync@v1.8
+        with:
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
+          base: main
+          head: main
+          auto_approve: true
