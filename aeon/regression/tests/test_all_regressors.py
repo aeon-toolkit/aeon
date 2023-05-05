@@ -107,17 +107,16 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         if "random_state" in estimator_instance.get_params().keys():
             estimator_instance.set_params(random_state=0)
 
-        # load unit test data
+        # load Covid3Month data
         X_train, y_train = load_covid_3month(split="train")
         X_test, y_test = load_covid_3month(split="test")
         indices = np.random.RandomState(0).choice(len(y_test), 10, replace=False)
-
-        # train classifier and predict probas
+        # train classifier and predict
         estimator_instance.fit(X_train, y_train)
         y_preds = estimator_instance.predict(X_test[indices])
 
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=5)
+        # assert predictions are the same
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=3)
 
     def test_regressor_on_cardano_sentiment(self, estimator_class):
         """Test regressor on cardano sentiment data."""

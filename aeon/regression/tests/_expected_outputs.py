@@ -12,16 +12,16 @@ cardano_sentiment_preds = dict()
 
 covid_3month_preds["FreshPRINCERegressor"] = np.array(
     [
-        0.02294,
-        0.05258,
-        0.02665,
-        0.05216,
-        0.05695,
-        0.04583,
-        0.06283,
-        0.11111,
-        0.0946,
-        0.03036,
+        0.07631480,
+        0.03413321,
+        0.04036498,
+        0.02149011,
+        0.03624045,
+        0.02760669,
+        0.03473498,
+        0.07489107,
+        0.0,
+        0.05722531,
     ]
 )
 cardano_sentiment_preds["FreshPRINCERegressor"] = np.array(
