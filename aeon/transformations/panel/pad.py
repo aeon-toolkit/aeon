@@ -97,11 +97,11 @@ class PaddingTransformer(BaseTransformer):
             )
         # Calculate padding amounts
         Xt = []
-        for x in X:
-            pad_width = ((0, 0), (0, self.pad_length_ - x.shape[1]))
+        for series in X:
+            pad_width = ((0, 0), (0, self.pad_length_ - series.shape[1]))
             # Pad the input array
             padded_array = np.pad(
-                X, pad_width, mode="constant", constant_values=self.fill_value
+                series, pad_width, mode="constant", constant_values=self.fill_value
             )
             Xt.append(padded_array)
         Xt = np.array(Xt)
