@@ -732,8 +732,8 @@ def test_bad_inputs(classes, params, measurements):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("filterpy", severity="none"),
-    reason="skip test if required soft dependency filterpy not available",
+    not _check_soft_dependencies("pykalman", "filterpy", severity="none"),
+    reason="skip test if required soft dependencies pykalman, filterpy not available",
 )
 @pytest.mark.parametrize(
     "params, measurements, y",
