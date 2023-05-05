@@ -27,6 +27,7 @@ __all__ = [
 ]
 
 from aeon.transformations.panel.catch22 import Catch22
+from aeon.transformations.panel.catch22wrapper import Catch22Wrapper
 from aeon.transformations.panel.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
