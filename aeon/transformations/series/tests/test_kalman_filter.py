@@ -126,12 +126,12 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
     )
 
     matrices = {
-        "Fs": [adapter.F_] * n if adapter.F_.ndim == 2 else [f for f in adapter.F_],
-        "Qs": [adapter.Q_] * n if adapter.Q_.ndim == 2 else [q for q in adapter.Q_],
-        "Rs": [adapter.R_] * n if adapter.R_.ndim == 2 else [r for r in adapter.R_],
-        "Hs": [adapter.H_] * n if adapter.H_.ndim == 2 else [h for h in adapter.H_],
-        "Bs": [G] * n if G.ndim == 2 else [g for g in G],
-        "us": None if y is None else ([y] * n if y.ndim == 1 else [_y for _y in y]),
+        "Fs": [adapter.F_] * n if adapter.F_.ndim == 2 else list(adapter.F_),
+        "Qs": [adapter.Q_] * n if adapter.Q_.ndim == 2 else list(adapter.Q_),
+        "Rs": [adapter.R_] * n if adapter.R_.ndim == 2 else list(adapter.R_),
+        "Hs": [adapter.H_] * n if adapter.H_.ndim == 2 else list(adapter.H_),
+        "Bs": [G] * n if G.ndim == 2 else list(G),
+        "us": None if y is None else [y] * n if y.ndim == 1 else list(y),
         "x": adapter.X0_,
         "P": adapter.P0_,
     }
@@ -232,12 +232,11 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
     reason="skip test if required soft dependencie filterpy not available",
 )
 @pytest.mark.parametrize(
-    "classes, params, measurements",
+    "params, measurements",
     [  # test case 1 -
         #   state_dim = 3, measurement_dim = 3, params - params_3_3_dynamic,
         #   X0 and H will be estimated using em algorithm.
         (
-            [KalmanFilterTransformer],
             dict(
                 params_3_3_dynamic,
                 state_dim=3,
@@ -250,7 +249,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         #   all matrix parameters will be estimated using em algorithm.
         # test FilterPy
         (
-            [KalmanFilterTransformer],
             dict(
                 params_3_3_static,
                 state_dim=3,
@@ -271,7 +269,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         #   state_dim = 1, measurement_dim = 1, params - params_1_1_arrays
         # test FilterPy, R, H, X0 and P0 will be estimated using em algorithm.
         (
-            [KalmanFilterTransformer],
             dict(
                 params_1_1_arrays,
                 state_dim=1,
@@ -287,7 +284,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         #   X0 and P0 will be estimated using em algorithm.
         # test FilterPy
         (
-            [KalmanFilterTransformer],
             dict(
                 params_3_1_lists,
                 state_dim=3,
@@ -298,14 +294,13 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
     ],
 )
 @pytest.mark.parametrize(
-    "classes, params, measurements",
+    "params, measurements",
     [  # test case 1 -
         #   state_dim = 3, measurement_dim = 3, params - params_3_3_dynamic
         # bad input :
         # typo in element of `estimate_matrices` : sstate_transition instead of
         # state_transition
         (
-            [KalmanFilterTransformer],
             dict(
                 params_3_3_dynamic,
                 state_dim=3,
@@ -336,19 +331,16 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # typo in element of `estimate_matrices` : measurement_functions instead
         # of measurement_function
         (
-            [KalmanFilterTransformer],
             dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
         (
-            [KalmanFilterTransformer],
             dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
         # bad input:
         # KalmanFilterTransformer does not estimate matrix control_transition.
         (
-            [KalmanFilterTransformer],
             dict(state_dim=4, estimate_matrices=None),
             create_data((ts, 4), missing_values=True),
         ),
@@ -358,7 +350,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # typo in element of `estimate_matrices` : initial_state_mean
         # instead of initial_state
         (
-            [KalmanFilterTransformer],
             dict(
                 params_1_1_arrays,
                 state_dim=1,
@@ -374,7 +365,6 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         # wrong H shape: set to ndarray of shape (2, 3) when should be
         # (10, 3, 2) or (3, 2)
         (
-            [KalmanFilterTransformer],
             dict(
                 state_dim=2,
                 estimate_matrices=None,
@@ -385,22 +375,19 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
         ),
     ],
 )
-def test_bad_inputs(classes, params, measurements):
+def test_bad_inputs(params, measurements):
     """Test adapter bad inputs error handling.
 
-    Call `fit` of input adapter/s, and pass if ValueError
-    was thrown.
-    This test is useful for the KalmanFilterTransformer.
+    Call `fit` of input adapter/s, and pass if ValueError was thrown.
     """
     with pytest.raises(ValueError):
-        for _class in classes:
-            adapter = _class(**params)
-            adapter.fit(X=measurements)
+        adapter = KalmanFilterTransformer(**params)
+        adapter.fit(X=measurements)
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("pykalman", "filterpy", severity="none"),
-    reason="skip test if required soft dependencies pykalman, filterpy not available",
+    not _check_soft_dependencies("filterpy", severity="none"),
+    reason="skip test if required soft dependency filterpy not available",
 )
 @pytest.mark.parametrize(
     "params, measurements, y",

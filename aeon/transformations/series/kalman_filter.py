@@ -85,7 +85,7 @@ def _validate_param_shape(param_name, matrix_shape, actual_shape, time_steps=Non
             )
     else:
         matrices_shape = (time_steps, *matrix_shape)
-        if not (actual_shape == matrix_shape or actual_shape == matrices_shape):
+        if actual_shape not in [matrix_shape, matrices_shape]:
             raise ValueError(
                 f"Shape of parameter `{param_name}` is: {actual_shape}, but should be: "
                 f"{matrix_shape} or {matrices_shape}."
@@ -108,9 +108,7 @@ def _init_matrix(matrices, transform_func, default_val):
         transformed_matrices : np.ndarray
             matrices as np.ndarray
     """
-    if matrices is None:
-        return default_val
-    return transform_func(matrices)
+    return default_val if matrices is None else transform_func(matrices)
 
 
 class BaseKalmanFilter:
@@ -231,7 +229,7 @@ class BaseKalmanFilter:
             shapes : dict
                 Dictionary with default shape of each matrix parameter
         """
-        shapes = {
+        return {
             "F": (state_dim, state_dim),
             "Q": (state_dim, state_dim),
             "R": (measurement_dim, measurement_dim),
@@ -239,7 +237,6 @@ class BaseKalmanFilter:
             "X0": (state_dim,),
             "P0": (state_dim, state_dim),
         }
-        return shapes
 
     def _get_init_values(self, measurement_dim, state_dim):
         """Initialize matrix parameters to default values and returns them.
@@ -673,8 +670,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        params = {"state_dim": 2}
-        return params
+        return {"state_dim": 2}
 
     def _get_iter_t_matrices(self, X, G, u, t, time_steps, shapes):
         """Extract data to be used at time step 't' of the Kalman filter iterations.
