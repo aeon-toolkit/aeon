@@ -43,7 +43,7 @@ class TSInterpolator(BaseTransformer):
         "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_mtype": "None",
         "capability:multivariate": True,
-        "capability:unequal": True,
+        "capability:unequal_length": True,
         "fit_is_empty": True,
     }
 
