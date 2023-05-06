@@ -4,6 +4,8 @@ __author__ = ["chrisholder", "tonybagnall"]
 import numpy as np
 from numba import njit
 
+from aeon.distances._utils import reshape_pairwise_to_multiple
+
 
 @njit(cache=True, fastmath=True)
 def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
@@ -15,11 +17,9 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,) or
-            (n_instances, n_channels, n_timepoints)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,) or
-            (m_instances, m_channels, m_timepoints)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
 
     Returns
@@ -30,7 +30,7 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     Raises
     ------
     ValueError
-        If x and y are not 1D, 2D, or 3D arrays.
+        If x and y are not 1D or 2D arrays.
 
     Examples
     --------
@@ -45,12 +45,7 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
         return _univariate_squared_distance(x, y)
     if x.ndim == 2 and y.ndim == 2:
         return _squared_distance(x, y)
-    if x.ndim == 3 and y.ndim == 3:
-        distance = 0
-        for curr_x, curr_y in zip(x, y):
-            distance += _squared_distance(curr_x, curr_y)
-        return distance
-    raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+    raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
@@ -126,41 +121,12 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
         # To self
         if X.ndim == 3:
             return _squared_pairwise_distance(X)
-        if X.ndim == 2:
+        elif X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _squared_pairwise_distance(_X)
-        raise ValueError("x and y must be 2D or 3D arrays")
-    elif y.ndim == X.ndim:
-        # Multiple to multiple
-        if y.ndim == 3 and X.ndim == 3:
-            return _squared_from_multiple_to_multiple_distance(X, y)
-        if y.ndim == 2 and X.ndim == 2:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(_x, _y)
-        if y.ndim == 1 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _squared_from_multiple_to_multiple_distance(_x, _y)
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    else:
-        # Single to multiple
-        if X.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(X, _y)
-        if y.ndim == 3 and X.ndim == 2:
-            _x = X.reshape((1, X.shape[0], X.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(_x, y)
-        if X.ndim == 2 and y.ndim == 1:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _squared_from_multiple_to_multiple_distance(_x, _y)
-        if y.ndim == 2 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _squared_from_multiple_to_multiple_distance(_x, _y)
-        else:
-            raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("X must be 2D or 3D array")
+    _x, _y = reshape_pairwise_to_multiple(X, y)
+    return _squared_from_multiple_to_multiple_distance(_x, _y)
 
 
 @njit(cache=True, fastmath=True)
