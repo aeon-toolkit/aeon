@@ -4,8 +4,6 @@
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
-from copy import deepcopy
-
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -177,19 +175,6 @@ class FCNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     ),
-        #     tf.keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks,
-        # ]
-
         return model
 
     def _fit(self, X, y):
@@ -206,6 +191,8 @@ class FCNClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -221,30 +208,26 @@ class FCNClassifier(BaseDeepClassifier):
         else:
             mini_batch_size = self.batch_size
 
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
         self.history = self.model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=deepcopy(self.callbacks) if self.callbacks else [],
+            callbacks=self.callbacks_,
         )
 
         return self
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -274,11 +257,6 @@ class FCNClassifier(BaseDeepClassifier):
             "use_bias": False,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
         test_params = [param1]
 
         return test_params

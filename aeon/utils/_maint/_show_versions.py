@@ -10,9 +10,9 @@ adapted from :func:`sklearn.show_versions`
 __author__ = ["mloning"]
 __all__ = ["show_versions"]
 
-import importlib
 import platform
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 
 def _get_sys_info():
@@ -67,13 +67,8 @@ def _get_deps_info():
 
     for modname in deps:
         try:
-            if modname in sys.modules:
-                mod = sys.modules[modname]
-            else:
-                mod = importlib.import_module(modname)
-            ver = get_version(mod)
-            deps_info[modname] = ver
-        except ImportError:
+            deps_info[modname] = version(modname)
+        except PackageNotFoundError:
             deps_info[modname] = None
 
     return deps_info
