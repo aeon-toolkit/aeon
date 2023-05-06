@@ -16,3 +16,4 @@ jobs:
           base: main
           head: main
           auto_approve: true
+          ignore_fail: true
