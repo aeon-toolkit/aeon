@@ -12,7 +12,7 @@ __all__ = ["KNeighborsTimeSeriesClassifier"]
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -101,12 +101,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class labels.
         """
         if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
+            self.metric_ = get_distance_function(metric=self.distance)
 
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
