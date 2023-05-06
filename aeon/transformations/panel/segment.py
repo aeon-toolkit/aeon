@@ -3,21 +3,17 @@
 import math
 
 import numpy as np
-import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.datatypes._panel._convert import (
-    _concat_nested_arrays,
-    _get_column_names,
-    _get_time_index,
-)
+from aeon.datatypes._panel._convert import _get_time_index
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_window_length
-from aeon.utils.validation.panel import check_X
 
 
 class IntervalSegmenter(BaseTransformer):
     """Interval segmentation transformer.
+
+    Segments an equal
 
     Parameters
     ----------
@@ -33,15 +29,13 @@ class IntervalSegmenter(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "scitype:instancewise": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
+        "fit_is_empty": False,
         "capability:unequal_length:removes": True,
-        # is transform result always guaranteed to be equal length (and series)?
+        "capability:multivariate": False,
     }
 
     def __init__(self, intervals=10):
@@ -52,13 +46,12 @@ class IntervalSegmenter(BaseTransformer):
 
     def _fit(self, X, y=None):
         """
-        Fit transformer, generating random interval indices.
+        Fit transformer, generating fixed interval indices.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+            collection of time series to transform
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -66,21 +59,26 @@ class IntervalSegmenter(BaseTransformer):
         -------
         self : an instance of self.
         """
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
+        n_instances, n_channels, series_length = X.shape
+        if n_channels > 1:
+            raise ValueError(
+                f"IntervalSegmenter only works with univariate series, "
+                f"data with {n_channels} was passed"
+            )
 
-        n_instances, n_columns, n_timepoints = X.shape
-        self.input_shape_ = n_instances, n_columns, n_timepoints
+        self.input_shape_ = n_instances, n_channels, series_length
 
-        self._time_index = np.arange(n_timepoints)
+        self._time_index = np.arange(series_length)
 
         if isinstance(self.intervals, np.ndarray):
             self.intervals_ = list(self.intervals)
 
         elif isinstance(self.intervals, (int, np.integer)):
-            if not self.intervals <= n_timepoints // 2:
+            if not self.intervals <= series_length // 2:
                 raise ValueError(
-                    "The number of intervals must be half the number of time points"
-                    " or less"
+                    f"The number of intervals must be half the number of time points "
+                    f"or less. Interval length ={self.intervals}, series length ="
+                    f" {series_length}"
                 )
             self.intervals_ = np.array_split(self._time_index, self.intervals)
 
@@ -111,28 +109,16 @@ class IntervalSegmenter(BaseTransformer):
           Transformed pandas DataFrame with same number of rows and one
           column for each generated interval.
         """
-        # Tabularise assuming series
-        # have equal indexes in any given column
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         # Segment into intervals.
-        # TODO generalise to non-equal-index cases
         intervals = []
-
-        # univariate, only a single column name
-        column_names = _get_column_names(X)[0]
-        new_column_names = []
         for interval in self.intervals_:
             start, end = interval[0], interval[-1]
-            if f"{column_names}_{start}_{end}" not in new_column_names:
-                interval = X[:, start:end]
-                intervals.append(interval)
-                new_column_names.append(f"{column_names}_{start}_{end}")
-
-        # Return nested pandas DataFrame.
-        Xt = pd.DataFrame(_concat_nested_arrays(intervals))
-        Xt.columns = new_column_names
+            interval = X[:, start : end + 1]
+            intervals.append(interval)
+        Xt = np.array(intervals)
+        Xt = Xt.transpose(1, 0, 2)
         return Xt
 
     @classmethod
@@ -364,10 +350,9 @@ def _rand_intervals_fixed_n(
 class SlidingWindowSegmenter(BaseTransformer):
     """Sliding window segmenter transformer.
 
-    This class is to transform a univariate series into a
-    multivariate one by extracting sets of subsequences.
-    It does this by firstly padding the time series on either end
-    floor(window_length/2) times. Then it performs a sliding
+    This class is to transform a univariate series into a multivariate one by
+    extracting sets of subsequences. It does this by firstly padding the time series
+    on either end floor(window_length/2) times. Then it performs a sliding
     window of size window_length and hop size 1.
 
     e.g. if window_length = 3
@@ -422,13 +407,13 @@ class SlidingWindowSegmenter(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, 1, series_length]
+        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D np.ndarray of shape = [n_cases, series_length, window_length]
+        X : 3D np.ndarray of shape = (n_cases, series_length, window_length)
             windowed series
         """
         # get the number of attributes and instances
