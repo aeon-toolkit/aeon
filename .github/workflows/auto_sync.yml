@@ -4,7 +4,7 @@ name: main auto-sync
 
 on:
   schedule:
-    - cron:  '30 5,17 * * *'
+    - cron:  '30 0,12 * * *'
 
 jobs:
   merge:
