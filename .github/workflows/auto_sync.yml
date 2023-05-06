@@ -10,10 +10,19 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     steps:
-      - uses: tgymnich/fork-sync@v1.8
-        with:
-          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
-          base: main
-          head: main
-          auto_approve: true
-          ignore_fail: true
+      - uses: actions/checkout@v3
+
+      - name: Merge upstream
+        run: |
+          git config --global user.name 'MatthewMiddlehurst'
+          git config --global user.email 'MatthewMiddlehurst@users.noreply.github.com'
+
+          git pull --unshallow
+
+          git remote add upstream https://github.com/aeon-toolkit/aeon.git
+          git fetch upstream
+
+          git checkout main
+          git merge --no-edit upstream/main
+
+          git push origin main --force
