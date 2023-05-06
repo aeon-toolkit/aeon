@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""tsfresh interface class."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""tsfresh interface class."""
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
-
 
 from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.panel.base import BaseCollectionTransformer
@@ -446,6 +445,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     _tags = {
         "scitype:instancewise": False,
         "requires_y": True,
+        "X_inner_mtype": "nested_univ",
         "y_inner_mtype": "pd_Series_Table",
         "fit_is_empty": False,
     }
