@@ -3,7 +3,7 @@
 """Kalman Filter Transformers.
 
 Series based transformers, based on Kalman Filter algorithm. Contains Base class
-and a transformer which is an Adapters for the external package
+and a transformer which is an adapter for the external package
 FilterPy.
 """
 
