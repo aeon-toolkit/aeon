@@ -3,9 +3,10 @@
 import math
 
 import numpy as np
+import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.datatypes._panel._convert import _get_time_index
+from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_window_length
 
@@ -113,12 +114,20 @@ class IntervalSegmenter(BaseTransformer):
 
         # Segment into intervals.
         intervals = []
+
+        # univariate, only a single column name
+        column_names = "channel1"
+        new_column_names = []
         for interval in self.intervals_:
             start, end = interval[0], interval[-1]
-            interval = X[:, start : end + 1]
-            intervals.append(interval)
-        Xt = np.array(intervals)
-        Xt = Xt.transpose(1, 0, 2)
+            if f"{column_names}_{start}_{end}" not in new_column_names:
+                interval = X[:, start : end + 1]
+                intervals.append(interval)
+                new_column_names.append(f"{column_names}_{start}_{end}")
+
+        # Return nested pandas DataFrame.
+        Xt = pd.DataFrame(_concat_nested_arrays(intervals))
+        Xt.columns = new_column_names
         return Xt
 
     @classmethod
