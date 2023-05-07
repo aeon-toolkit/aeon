@@ -59,41 +59,33 @@ class PlateauFinder(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
-        super(PlateauFinder, self).__init__()
+        super(PlateauFinder, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X.
 
         Parameters
         ----------
-        X : numpy3D array shape [n_cases, n_channels, series_length]
+        X : numpy3D array shape (n_cases, n_channels, series_length)
 
         Returns
         -------
-        X : numpy3D array shape [n_cases, n_channels, series_length]
+        X : pandas data frame
         """
-        # get column name
-        column_name = X.columns[0]
-
         self._starts = []
         self._lengths = []
 
         # find plateaus (segments of the same value)
-        for x in X.iloc[:, 0]:
-            x = np.asarray(x)
-
+        for x in X[:, 0]:
             # find indices of transition
             if np.isnan(self.value):
                 i = np.where(np.isnan(x), 1, 0)
@@ -122,7 +114,7 @@ class PlateauFinder(BaseTransformer):
         # put into dataframe
         Xt = pd.DataFrame()
         column_prefix = "%s_%s" % (
-            column_name,
+            "channel_",
             "nan" if np.isnan(self.value) else str(self.value),
         )
         Xt["%s_starts" % column_prefix] = pd.Series(self._starts)
