@@ -2,7 +2,7 @@
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Kalman Filter transformers unit tests."""
 
-__author__ = ["NoaBenAmi"]
+__author__ = ["NoaBenAmi", "hadifawaz1999", "lmmentel"]
 
 import numpy as np
 import pytest
