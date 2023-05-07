@@ -43,7 +43,7 @@ class IntervalSegmenter(BaseTransformer):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super(IntervalSegmenter, self).__init__()
+        super(IntervalSegmenter, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """
@@ -99,9 +99,8 @@ class IntervalSegmenter(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to be transformed
+        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+            collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
@@ -125,7 +124,7 @@ class IntervalSegmenter(BaseTransformer):
                 intervals.append(interval)
                 new_column_names.append(f"{column_names}_{start}_{end}")
 
-        # Return nested pandas DataFrame.
+        # Return pandas DataFrame.
         Xt = pd.DataFrame(_concat_nested_arrays(intervals))
         Xt.columns = new_column_names
         return Xt
@@ -187,7 +186,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
     """
 
     _tags = {
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "pd_Series_Table",
         # which mtypes do _fit/_predict support for y?
     }
@@ -206,9 +205,8 @@ class RandomIntervalSegmenter(IntervalSegmenter):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+            collection of time series to transform
         y : any container with method shape, optional, default=None
             y.shape[0] determines n_timepoints, 1 if None
 
@@ -239,13 +237,9 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.input_shape_ = X.shape
 
         # Retrieve time-series indexes from each column.
-        # TODO generalise to columns with series of unequal length
         self._time_index = _get_time_index(X)
 
         # Compute random intervals for each column.
-        # TODO if multiple columns are passed, introduce option to compute
-        #  one set of shared intervals,
-        #  or rely on ColumnTransformer?
         if self.n_intervals == "random":
             if self.min_length is not None or self.max_length is not None:
                 raise ValueError(
