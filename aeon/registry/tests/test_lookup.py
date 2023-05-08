@@ -16,7 +16,6 @@ VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
 # some scitypes have no associated tags yet
 SCITYPES_WITHOUT_TAGS = [
     "series-annotator",
-    "clusterer",
     "object",
     "splitter",
     "network",
