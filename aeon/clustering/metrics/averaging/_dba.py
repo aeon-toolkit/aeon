@@ -7,8 +7,8 @@ import numpy as np
 from numba import njit
 
 from aeon.clustering.metrics.medoids import medoids
-from aeon.distances import distance_alignment_path_factory
-from aeon.distances.base import DistanceAlignmentPathCallable
+from aeon.distances import get_alignment_path_function
+from aeon.distances._distance import AlignmentPathFunction
 
 
 def dba(
@@ -67,9 +67,7 @@ def dba(
         distance_metric=medoids_distance_metric,
         precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
     )
-    path_callable = distance_alignment_path_factory(
-        X[0], X[1], metric=averaging_distance_metric, **kwargs
-    )
+    path_callable = get_alignment_path_function(metric=averaging_distance_metric)
 
     cost_prev = np.inf
     for i in range(max_iters):
@@ -89,7 +87,7 @@ def dba(
 
 @njit(fastmath=True)
 def _dba_update(
-    center: np.ndarray, X: np.ndarray, path_callable: DistanceAlignmentPathCallable
+    center: np.ndarray, X: np.ndarray, path_callable: AlignmentPathFunction
 ) -> Tuple[np.ndarray, float]:
     """Perform an update iteration for dba.
 

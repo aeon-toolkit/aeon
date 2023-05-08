@@ -261,15 +261,14 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to transform
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
             transformed version of X
         """
         Xt = from_3d_numpy_to_long(X)
