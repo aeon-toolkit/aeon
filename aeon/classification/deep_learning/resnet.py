@@ -104,6 +104,7 @@ class ResNetClassifier(BaseDeepClassifier):
         metrics=None,
         batch_size=16,
         random_state=None,
+        file_path="./",
         activation="sigmoid",
         use_bias=True,
         optimizer=None,
@@ -119,6 +120,7 @@ class ResNetClassifier(BaseDeepClassifier):
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
+        self.file_path = file_path
         self.optimizer = optimizer
         self.history = None
         self._network = ResNetNetwork(random_state=random_state)

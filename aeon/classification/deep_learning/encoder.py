@@ -43,6 +43,8 @@ class EncoderClassifier(BaseDeepClassifier):
     fc_units        : int, default = 256
         specifying the number of units in the hiddent fully
         connected layer used in the EncoderNetwork
+    file_path           : str, default = "./"
+            file_path when saving model_Checkpoint callback
     random_state    : int, default = 0
         seed to any needed random actions
 

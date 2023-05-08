@@ -33,6 +33,8 @@ class MLPClassifier(BaseDeepClassifier):
         whether to output extra information
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
+    file_path           : str, default = "./"
+            file_path when saving model_Checkpoint callback
     optimizer       : keras.optimizer, default=keras.optimizers.Adadelta(),
     metrics         : list of strings, default=["accuracy"],
     activation      : string or a tf callable, default="sigmoid"
@@ -73,6 +75,7 @@ class MLPClassifier(BaseDeepClassifier):
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
+        file_path="./",
         random_state=None,
         activation="sigmoid",
         use_bias=True,
@@ -89,6 +92,7 @@ class MLPClassifier(BaseDeepClassifier):
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
+        self.file_path = file_path
         self.optimizer = optimizer
         self.history = None
         self._network = MLPNetwork(
