@@ -22,7 +22,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
 
 from aeon.datasets import write_results_to_uea_format
-from aeon.datasets._data_loader import load_from_tsfile as load_ts
+from aeon.datasets._data_loaders import load_from_tsfile as load_ts
 from aeon.utils.sampling import stratified_resample
 
 

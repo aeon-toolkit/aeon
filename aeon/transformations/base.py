@@ -140,6 +140,7 @@ class BaseTransformer(BaseEstimator):
         # "pd-wide",
         # "pd-long",
         "df-list",
+        "np-list",
         "pd_multiindex_hier",
     ]
 

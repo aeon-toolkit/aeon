@@ -11,8 +11,8 @@ from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.metrics.averaging import mean_average
-from aeon.distances import distance_factory, pairwise_distance
-from aeon.distances._ddtw import average_of_slope_transform
+from aeon.distances import get_distance_function, pairwise_distance
+from aeon.distances._ddtw import average_of_slope
 
 
 def _forgy_center_initializer(
@@ -281,9 +281,7 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
         else:
             self._distance_params = self.distance_params
 
-        self._distance_metric = distance_factory(
-            X[0], X[1], metric=self.metric, **self._distance_params
-        )
+        self._distance_metric = get_distance_function(metric=self.metric)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit time series clusterer to training data.
@@ -301,20 +299,7 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Fitted estimator.
         """
         self._check_params(X)
-        if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
-            if self.metric == "ddtw":
-                self._distance_metric = distance_factory(
-                    X[0], X[1], metric="dtw", **self._distance_params
-                )
-            else:
-                self._distance_metric = distance_factory(
-                    X[0], X[1], metric="wdtw", **self._distance_params
-                )
-        else:
-            self._distance_metric = distance_factory(
-                X[0], X[1], metric=self.metric, **self._distance_params
-            )
+        self._distance_metric = get_distance_function(metric=self.metric)
         best_centers = None
         best_inertia = np.inf
         best_labels = None
@@ -349,7 +334,10 @@ class TimeSeriesLloyds(BaseClusterer, ABC):
             Index of the cluster each time series in X belongs to.
         """
         if self.metric == "ddtw" or self.metric == "wddtw":
-            X = average_of_slope_transform(X)
+            derivative_X = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
+            for i in range(X.shape[0]):
+                derivative_X[i] = average_of_slope(X[i])
+            X = derivative_X
         return self._assign_clusters(X, self.cluster_centers_)[0]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:

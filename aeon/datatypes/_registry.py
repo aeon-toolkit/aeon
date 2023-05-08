@@ -100,7 +100,7 @@ __all__ = [
 
 SCITYPE_REGISTER = [
     ("Series", "uni- or multivariate time series"),
-    ("Panel", "panel of uni- or multivariate time series"),
+    ("Panel", "collection of uni- or multivariate time series"),
     ("Hierarchical", "hierarchical panel of time series with 3 or more levels"),
     ("Alignment", "series or sequence alignment"),
     ("Table", "data table with primitive column types"),

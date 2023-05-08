@@ -47,8 +47,8 @@ class PluginParamsForecaster(_DelegatedForecaster):
     --------
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.param_est.plugin import PluginParamsForecaster
-    >>> from aeon.param_est.seasonality import SeasonalityACF
+    >>> from aeon.forecasting.param_est.plugin import PluginParamsForecaster
+    >>> from aeon.forecasting.param_est.seasonality import SeasonalityACF
     >>> from aeon.transformations.series.difference import Differencer
     >>>
     >>> y = load_airline()  # doctest: +SKIP
@@ -62,7 +62,7 @@ class PluginParamsForecaster(_DelegatedForecaster):
     12
 
     using dictionary to plug "foo" parameter into "sp"
-    >>> from aeon.param_est.fixed import FixedParams
+    >>> from aeon.forecasting.param_est.fixed import FixedParams
     >>> sp_plugin = PluginParamsForecaster(
     ...     FixedParams({"foo": 12}), NaiveForecaster(), params={"foo": "sp"}
     ... )  # doctest: +SKIP
@@ -241,8 +241,8 @@ class PluginParamsForecaster(_DelegatedForecaster):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.param_est.fixed import FixedParams
-        from aeon.param_est.seasonality import SeasonalityACF
+        from aeon.forecasting.param_est.fixed import FixedParams
+        from aeon.forecasting.param_est.seasonality import SeasonalityACF
         from aeon.utils.validation._dependencies import _check_estimator_deps
 
         # use of dictionary to plug "foo" parameter into "sp", uses mock param_est
