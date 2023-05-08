@@ -430,6 +430,33 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     assert len(Xt) == 7
 
 
+def test_vectorize_reconstruct_correct_hierarchy():
+    """Tests correct transform return index in hierarchical case for primitives output.
+
+    Tests that the row index is as expected if rows are vectorized over,
+    by a transform that returns Primitives.
+    The row index of transform return should be identical to the input,
+    with temporal index level removed
+
+    Raises
+    ------
+    AssertionError if output index is not as expected.
+    """
+    from aeon.utils._testing.hierarchical import _make_hierarchical
+
+    # hierarchical data with 2 variables and 2 levels
+    X = _make_hierarchical(n_columns=2)
+
+    trafo = _DummyFour()
+
+    # this produces a pandas DataFrame with more rows and columns
+    # rows should correspond to different instances in X
+    Xt = trafo.fit_transform(X)
+
+    # check that Xt.index is the same as X.index with time level dropped and made unique
+    assert (X.index.droplevel(-1).unique() == Xt.index).all()
+
+
 class _DummyFive(BaseTransformer):
     _tags = {
         "scitype:transform-input": "Series",
