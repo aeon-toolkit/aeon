@@ -4,18 +4,14 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.transformations.compose import FeatureUnion
-from aeon.transformations.panel.reduce import Tabularizer
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
 from aeon.utils._testing.panel import (
     _make_nested_from_array,
     make_classification_problem,
 )
-from aeon.utils.slope_and_trend import _slope
 
 
 @pytest.mark.parametrize("n_instances", [1, 3])
@@ -98,45 +94,3 @@ def test_different_implementations():
     B = tran.fit_transform(X_train)
 
     np.testing.assert_array_almost_equal(A, B)
-
-
-@pytest.mark.xfail(reason="SeriesToPrimitivesTransformer will be deprecated, see 2179")
-def test_different_pipelines():
-    """Compare with transformer pipeline using TSFeatureUnion."""
-    random_state = 1233
-    X_train, y_train = make_classification_problem()
-    steps = [
-        (
-            "segment",
-            RandomIntervalSegmenter(n_intervals=1, random_state=random_state),
-        ),
-        (
-            "transform",
-            FeatureUnion(
-                [
-                    (
-                        "mean",
-                        Tabularizer(FunctionTransformer(func=np.mean, validate=False)),
-                    ),
-                    (
-                        "std",
-                        Tabularizer(FunctionTransformer(func=np.std, validate=False)),
-                    ),
-                    (
-                        "slope",
-                        Tabularizer(FunctionTransformer(func=_slope, validate=False)),
-                    ),
-                ]
-            ),
-        ),
-    ]
-    pipe = Pipeline(steps)
-    a = pipe.fit_transform(X_train)
-    tran = RandomIntervalFeatureExtractor(
-        n_intervals=1,
-        features=[np.mean, np.std, _slope],
-        random_state=random_state,
-    )
-    b = tran.fit_transform(X_train)
-    np.testing.assert_array_equal(a, b)
-    np.testing.assert_array_equal(pipe.steps[0][1].intervals_, tran.intervals_)
