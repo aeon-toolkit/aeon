@@ -145,7 +145,7 @@ def _check_equal_index(X):
     return indexes
 
 
-def from_3d_numpy_to_np_list(X):
+def from_3d_numpy_to_np_list(X, store=None):
     """Convert 3D np.darray to a list of 2D numpy.
 
     Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
@@ -172,7 +172,7 @@ convert_dict[("numpy3D", "np-list", "Panel")] = from_3d_numpy_to_np_list
 
 
 def from_3d_numpy_to_2d_array(X):
-    """Convert 2D NumPy Panel to 2D numpy Panel.
+    """Convert 3D np.ndarray to 2D.
 
     Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
     a 2D numpy array with shape (n_instances, n_channels*n_timepoints)
