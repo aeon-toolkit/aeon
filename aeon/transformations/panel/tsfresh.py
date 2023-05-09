@@ -31,7 +31,7 @@ class _TSFreshFeatureExtractor(BaseTransformer):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
+        show_warnings=False,
         disable_progressbar=False,
         impute_function=None,
         profiling=None,
@@ -232,8 +232,8 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,
@@ -261,15 +261,14 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to transform
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
             transformed version of X
         """
         Xt = from_3d_numpy_to_long(X)
@@ -364,7 +363,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         heuristics are used to find the optimal chunksize. If you get out of
         memory exceptions, you can try it with the dask distributor and a
         smaller chunksize.
-    show_warnings : bool, default=True
+    show_warnings : bool, default=False
         Show warnings during the feature extraction (needed for debugging of
         calculators).
     disable_progressbar : bool, default=False
@@ -457,8 +456,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,
