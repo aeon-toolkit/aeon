@@ -422,6 +422,7 @@ class ElbowClassPairwise(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.panel.channel_selection import ElbowClassPairwise
+    >>> import numpy as np
     >>> X = np.random.random((20,6,30))
     >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassPairwise()
