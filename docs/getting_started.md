@@ -42,7 +42,7 @@ least three dimensions (x,y,z co-ordinates). Different parts of `aeon`
 work with single series or collections of series. We commonly refer to the number of observations
 for a time series as ``n_timepoints`` or ``series_length``. If a series is
 multivariate, we refer to the dimensions as channels (to avoid
-confusion with the dimensions of array) and in code use ``n_dimensions``. We use the
+confusion with the dimensions of array) and in code use ``n_channels``. We use the
 terms case or instance when referring to a single time series contained in a
 collection. The size of a collection of time series is referred to as ``n_cases`` or
 ``n_instances``.
@@ -67,14 +67,14 @@ Freq: M, Name: Number of airline passengers, dtype: float64
 Forecasting refers to collections of time series as panels, and this terminology has
 made its way into ``aeon``, although it is not generally used in machine learning.
 Other parts of `aeon` primarily use numpy arrays to store series. A single series is
-modelled as a two dimensional numpy array of shape ``(n_channels``,``series_length)``.
+modelled as a two dimensional numpy array of shape ``(n_channels``,``n_timepoints)``.
 We tend to work with 2D numpy even if the series as univariate for consistency,
 although parts of ``aeon`` such as classification and distances work with 1D series,
 other parts of ``aeon`` such as transformers do not deal consistently with 1D numpy
 as univariate time series.
 
 Collections of time series (also referred to as datasets) are stored in three
-dimensional numpy ``(n_cases``,``n_channels``,``series_length)`` if the series are
+dimensional numpy ``(n_cases``,``n_channels``,``n_timepoints)`` if the series are
 equal length, or as
 a list of length ``[n_cases]`` of two dimensional numpy if series length varies.
 Note we assume series length is always the same for all channels of a single series.
