@@ -10,8 +10,6 @@ import pandas as pd
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-_check_soft_dependencies("pandas<2.0.0", severity="warning")
-
 
 class VARMAX(_StatsModelsAdapter):
     r"""Wrapper for statsmodels VARMAX model.
@@ -219,7 +217,6 @@ class VARMAX(_StatsModelsAdapter):
         "X-y-must-have-same-index": True,
         "enforce_index_type": None,
         "capability:pred_int": False,
-        "python_dependencies": "pandas<2.0.0",  # needs to be fixed with pandas==2.0.0
     }
 
     def __init__(
