@@ -16,10 +16,7 @@ import pandas as pd
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
-from aeon.utils._testing.collection import (
-    _make_classification_y,
-    _make_nested_dataframe_X,
-)
+from aeon.utils._testing.collection import _make_classification_y, _make_collection_X
 from aeon.utils._testing.estimator_checks import _make_primitives, _make_tabular_X
 from aeon.utils._testing.forecasting import _make_series
 from aeon.utils._testing.hierarchical import _make_hierarchical
@@ -151,7 +148,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
                 args = {"X": _make_tabular_X(n_instances=7, random_state=RAND_SEED)}
             elif p2p:
                 args = {
-                    "X": _make_nested_dataframe_X(
+                    "X": _make_collection_X(
                         n_instances=7, n_timepoints=N_T, random_state=RAND_SEED
                     )
                 }
@@ -172,8 +169,8 @@ class TransformerTestScenario(TestScenario, BaseObject):
 
 
 X_series = _make_series(n_timepoints=N_T, random_state=RAND_SEED)
-X_panel = _make_nested_dataframe_X(
-    n_instances=7, n_columns=1, n_timepoints=N_T, random_state=RAND_SEED
+X_panel = _make_collection_X(
+    n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
 )
 
 
@@ -241,17 +238,17 @@ class TransformerFitTransformSeriesUnivariateWithY(TransformerTestScenario):
 
 
 y3 = _make_classification_y(n_instances=9, n_classes=3)
-X_np = _make_nested_dataframe_X(
+X_np = _make_collection_X(
     n_instances=9,
-    n_columns=1,
+    n_channels=1,
     n_timepoints=N_T,
     all_positive=True,
     return_numpy=True,
     random_state=RAND_SEED,
 )
-X_test_np = _make_nested_dataframe_X(
+X_test_np = _make_collection_X(
     n_instances=9,
-    n_columns=1,
+    n_channels=1,
     n_timepoints=N_T,
     all_positive=True,
     return_numpy=True,
@@ -291,13 +288,13 @@ class TransformerFitTransformPanelUnivariate(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": _make_nested_dataframe_X(
-                n_instances=7, n_columns=1, n_timepoints=N_T, random_state=RAND_SEED
+            "X": _make_collection_X(
+                n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
         "transform": {
-            "X": _make_nested_dataframe_X(
-                n_instances=7, n_columns=1, n_timepoints=N_T, random_state=RAND_SEED
+            "X": _make_collection_X(
+                n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
     }
@@ -316,13 +313,13 @@ class TransformerFitTransformPanelMultivariate(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": _make_nested_dataframe_X(
-                n_instances=7, n_columns=2, n_timepoints=N_T, random_state=RAND_SEED
+            "X": _make_collection_X(
+                n_instances=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
         "transform": {
-            "X": _make_nested_dataframe_X(
-                n_instances=7, n_columns=2, n_timepoints=N_T, random_state=RAND_SEED
+            "X": _make_collection_X(
+                n_instances=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
     }
@@ -342,9 +339,9 @@ class TransformerFitTransformPanelUnivariateWithClassY(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": _make_nested_dataframe_X(
+            "X": _make_collection_X(
                 n_instances=7,
-                n_columns=1,
+                n_channels=1,
                 n_timepoints=N_T + 1,
                 all_positive=True,
                 random_state=RAND_SEED,
@@ -352,9 +349,9 @@ class TransformerFitTransformPanelUnivariateWithClassY(TransformerTestScenario):
             "y": _make_classification_y(n_instances=7, n_classes=2),
         },
         "transform": {
-            "X": _make_nested_dataframe_X(
+            "X": _make_collection_X(
                 n_instances=7,
-                n_columns=1,
+                n_channels=1,
                 n_timepoints=N_T + 1,
                 all_positive=True,
                 random_state=RAND_SEED,
@@ -378,11 +375,11 @@ class TransformerFitTransformPanelUnivariateWithClassYOnlyFit(TransformerTestSce
 
     args = {
         "fit": {
-            "X": _make_nested_dataframe_X(n_instances=7, n_columns=1, n_timepoints=N_T),
+            "X": _make_collection_X(n_instances=7, n_channels=1, n_timepoints=N_T),
             "y": _make_classification_y(n_instances=7, n_classes=2),
         },
         "transform": {
-            "X": _make_nested_dataframe_X(n_instances=7, n_columns=1, n_timepoints=N_T)
+            "X": _make_collection_X(n_instances=7, n_channels=1, n_timepoints=N_T)
         },
     }
     default_method_sequence = ["fit", "transform"]
@@ -420,11 +417,6 @@ class TransformerFitTransformHierarchicalMultivariate(TransformerTestScenario):
         "transform": {"X": _make_hierarchical(random_state=RAND_SEED + 1, n_columns=2)},
     }
     default_method_sequence = ["fit", "transform"]
-
-
-# todo: scenario for Panel X
-#   where test and training set has different n_instances or n_timepoints
-#   may need a tag that tells us whethe transformer can cope with this
 
 
 scenarios_transformers = [

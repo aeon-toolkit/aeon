@@ -7,9 +7,8 @@ __all__ = [
     "make_3d_test_data",
     "make_2d_test_data",
     "make_unequal_length_test_data",
-    "make_nested_df_classification_data",
-    "make_nested_dataframe_regression_problem",
-    "make_transformer_problem",
+    "make_nested_dataframe_data",
+    "make_clustering_data",
 ]
 
 from typing import List, Tuple, Union
@@ -22,24 +21,24 @@ from aeon.datatypes import convert
 
 
 def make_3d_test_data(
-    n_samples: int = 10,
+    n_cases: int = 10,
     n_channels: int = 1,
-    series_length: int = 12,
+    n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Randomly generate 3D data for testing.
+    """Randomly generate 3D X and y data for testing.
 
-    Will ensure there is at least one sample per label.
+    Will ensure there is at least one sample per label if a regression problems.
 
     Parameters
     ----------
-    n_samples : int
+    n_cases : int
         The number of samples to generate.
     n_channels : int
         The number of series channels to generate.
-    series_length : int
+    n_timepoints : int
         The number of features/series length to generate.
     n_labels : int
         The number of unique labels to generate.
@@ -59,14 +58,14 @@ def make_3d_test_data(
     --------
     >>> from aeon.utils._testing.collection import make_3d_test_data
     >>> data, labels = make_3d_test_data(
-    ...     n_samples=20,
+    ...     n_cases=20,
     ...     n_channels=2,
-    ...     series_length=10,
+    ...     n_timepoints=10,
     ...     n_labels=3,
     ... )
     """
     rng = np.random.RandomState(random_state)
-    X = n_labels * rng.uniform(size=(n_samples, n_channels, series_length))
+    X = n_labels * rng.uniform(size=(n_cases, n_channels, n_timepoints))
     y = X[:, 0, 0].astype(int)
 
     for i in range(n_labels):
@@ -83,8 +82,8 @@ def make_3d_test_data(
 
 
 def make_2d_test_data(
-    n_samples: int = 10,
-    series_length: int = 8,
+    n_cases: int = 10,
+    n_timepoints: int = 8,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
@@ -95,9 +94,9 @@ def make_2d_test_data(
 
     Parameters
     ----------
-    n_samples : int
+    n_cases : int
         The number of samples to generate.
-    series_length : int
+    n_timepoints : int
         The number of features/series length to generate.
     n_labels : int
         The number of unique labels to generate.
@@ -117,13 +116,13 @@ def make_2d_test_data(
     --------
     >>> from aeon.utils._testing.collection import make_2d_test_data
     >>> data, labels = make_2d_test_data(
-    ...     n_samples=20,
-    ...     series_length=10,
+    ...     n_cases=20,
+    ...     n_timepoints=10,
     ...     n_labels=3,
     ... )
     """
     rng = np.random.RandomState(random_state)
-    X = n_labels * rng.uniform(size=(n_samples, series_length))
+    X = n_labels * rng.uniform(size=(n_cases, n_timepoints))
     y = X[:, 0].astype(int)
 
     for i in range(n_labels):
@@ -140,7 +139,7 @@ def make_2d_test_data(
 
 
 def make_unequal_length_test_data(
-    n_samples: int = 10,
+    n_cases: int = 10,
     n_channels: int = 1,
     min_series_length: int = 6,
     max_series_length: int = 8,
@@ -148,13 +147,13 @@ def make_unequal_length_test_data(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
 ) -> Tuple[List[np.ndarray], np.ndarray]:
-    """Randomly generate unequal length 3D data for testing.
+    """Randomly generate unequal length X and y for testing.
 
-    Will ensure there is at least one sample per label.
+    Will ensure there is at least one sample per label if a classification problem.
 
     Parameters
     ----------
-    n_samples : int
+    n_cases : int
         The number of samples to generate.
     n_channels : int
         The number of series channels to generate.
@@ -180,7 +179,7 @@ def make_unequal_length_test_data(
     --------
     >>> from aeon.utils._testing.collection import make_unequal_length_test_data
     >>> data, labels = make_unequal_length_test_data(
-    ...     n_samples=20,
+    ...     n_cases=20,
     ...     n_channels=2,
     ...     min_series_length=8,
     ...     max_series_length=12,
@@ -189,13 +188,13 @@ def make_unequal_length_test_data(
     """
     rng = np.random.RandomState(random_state)
     X = []
-    y = np.zeros(n_samples, dtype=np.int32)
+    y = np.zeros(n_cases, dtype=np.int32)
 
-    for i in range(n_samples):
+    for i in range(n_cases):
         series_length = rng.randint(min_series_length, max_series_length + 1)
         x = n_labels * rng.uniform(size=(n_channels, series_length))
         label = x[0, 0].astype(int)
-        if i < n_labels and n_samples > i:
+        if i < n_labels and n_cases > i:
             x[0, 0] = i
             label = i
         x = x * (label + 1)
@@ -210,41 +209,41 @@ def make_unequal_length_test_data(
     return X, y
 
 
-def _make_panel(
+def _make_collection(
     n_instances=20,
-    n_columns=1,
+    n_channels=1,
     n_timepoints=20,
     y=None,
     all_positive=False,
     random_state=None,
-    return_mtype="pd-multiindex",
+    return_type="numpy3D",
 ):
-    """Generate aeon compatible test data, Panel data formats.
+    """Generate aeon compatible test data, data formats.
 
     Parameters
     ----------
     n_instances : int, optional, default=20
         number of instances per series in the panel
-    n_columns : int, optional, default=1
+    n_channels : int, optional, default=1
         number of variables in the time series
     n_timepoints : int, optional, default=20
         number of time points in each series
-    y : None (default), or 1D np.darray or 1D array-like, shape (n_instances, )
+    y : None (default), or 1D np.darray or 1D array-like, shape (n_cases, )
         if passed, return will be generated with association to y
     all_positive : bool, optional, default=False
         whether series contain only positive values when generated
     random_state : None (default) or int
         if int is passed, will be used in numpy RandomState for generation
-    return_mtype : str, aeon Panel mtype str, default="pd-multiindex"
+    return_type : str, aeon collection type, default="numpy3D"
 
     Returns
     -------
-    X : an aeon time series data container of mtype return_mtype
-        with n_instances instances, n_columns variables, n_timepoints time points
+    X : an aeon time series data container of type return_type
+        with n_cases instances, n_channels variables, n_timepoints time points
         generating distribution is all values i.i.d. normal with std 0.5
         if y is passed, i-th series values are additively shifted by y[i] * 100
     """
-    # If target variable y is given, we ignore n_instances and instead generate as
+    # If target variable y is given, we ignore n_cases and instead generate as
     # many instances as in the target variable
     if y is not None:
         y = np.asarray(y)
@@ -252,7 +251,7 @@ def _make_panel(
     rng = check_random_state(random_state)
 
     # Generate data as 3d numpy array
-    X = rng.normal(scale=0.5, size=(n_instances, n_columns, n_timepoints))
+    X = rng.normal(scale=0.5, size=(n_instances, n_channels, n_timepoints))
 
     # Generate association between data and target variable
     if y is not None:
@@ -261,13 +260,13 @@ def _make_panel(
     if all_positive:
         X = X**2
 
-    X = convert(X, from_type="numpy3D", to_type=return_mtype)
+    X = convert(X, from_type="numpy3D", to_type=return_type)
     return X
 
 
-def _make_nested_dataframe_X(
+def _make_collection_X(
     n_instances=20,
-    n_columns=1,
+    n_channels=1,
     n_timepoints=20,
     y=None,
     all_positive=False,
@@ -275,18 +274,18 @@ def _make_nested_dataframe_X(
     random_state=None,
 ):
     if return_numpy:
-        return_mtype = "numpy3D"
+        return_type = "numpy3D"
     else:
-        return_mtype = "nested_univ"
+        return_type = "nested_univ"
 
-    return _make_panel(
+    return _make_collection(
         n_instances=n_instances,
-        n_columns=n_columns,
+        n_channels=n_channels,
         n_timepoints=n_timepoints,
         y=y,
         all_positive=all_positive,
         random_state=random_state,
-        return_mtype=return_mtype,
+        return_type=return_type,
     )
 
 
@@ -303,7 +302,7 @@ def _make_classification_y(
     n_instances=20, n_classes=2, return_numpy=True, random_state=None
 ):
     if not n_instances > n_classes:
-        raise ValueError("n_instances must be bigger than n_classes")
+        raise ValueError("n_cases must be bigger than n_classes")
     rng = check_random_state(random_state)
     n_repeats = int(np.ceil(n_instances / n_classes))
     y = np.tile(np.arange(n_classes), n_repeats)[:n_instances]
@@ -314,106 +313,88 @@ def _make_classification_y(
         return pd.Series(y)
 
 
-def make_nested_df_classification_data(
-    n_instances=20,
-    n_columns=1,
-    n_timepoints=20,
-    n_classes=2,
-    return_numpy=False,
+def make_nested_dataframe_data(
+    n_cases: int = 20,
+    n_channels: int = 1,
+    n_timepoints: int = 20,
+    n_classes: int = 2,
+    classification: bool = True,
     random_state=None,
 ):
-    """Make Classification Problem."""
-    y = _make_classification_y(
-        n_instances, n_classes, return_numpy=return_numpy, random_state=random_state
-    )
-    X = _make_nested_dataframe_X(
-        n_columns=n_columns,
-        n_timepoints=n_timepoints,
-        return_numpy=return_numpy,
-        random_state=random_state,
-        y=y,
-    )
+    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
 
-    return X, y
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    n_timepoints : int
+        The number of features/series length to generate.
+    classification : bool
+        If True, the target will be discrete, otherwise a float.
+    random_state : int or None
+        Seed for random number generation.
 
-
-def make_nested_dataframe_regression_problem(
-    n_instances=20,
-    n_columns=1,
-    n_timepoints=20,
-    return_numpy=False,
-    random_state=None,
-):
-    """Make Regression Problem."""
-    y = _make_regression_y(
-        n_instances, random_state=random_state, return_numpy=return_numpy
-    )
-    X = _make_nested_dataframe_X(
-        n_columns=n_columns,
-        n_timepoints=n_timepoints,
-        return_numpy=return_numpy,
-        random_state=random_state,
-        y=y,
-    )
-    return X, y
-
-
-def make_clustering_problem(
-    n_instances=20,
-    n_columns=1,
-    n_timepoints=20,
-    return_numpy=False,
-    random_state=None,
-):
-    """Make Clustering Problem."""
-    # Can only currently support univariate so converting
-    # to univaritate for the time being
-    return _make_nested_dataframe_X(
-        n_instances=n_instances,
-        n_columns=n_columns,
-        n_timepoints=n_timepoints,
-        return_numpy=return_numpy,
-        random_state=random_state,
-    )
-
-
-def make_transformer_problem(
-    n_instances=20,
-    n_columns=1,
-    n_timepoints=20,
-    return_numpy=True,
-    random_state=None,
-    panel=True,
-):
-    """Make Transformer Problem."""
-    if not panel:
-        X = make_transformer_problem(
-            n_instances=n_instances,
-            n_columns=n_columns,
-            n_timepoints=n_timepoints,
-            return_numpy=True,
-            random_state=random_state,
-            panel=True,
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+    """
+    if classification:
+        """Make Classification Problem."""
+        y = _make_classification_y(
+            n_cases, n_classes, return_numpy=False, random_state=random_state
         )
-        if return_numpy:
-            X = X[0]
-        else:
-            X = pd.DataFrame(X[0])
     else:
-        X = _make_nested_dataframe_X(
-            n_instances=n_instances,
-            n_columns=n_columns,
-            n_timepoints=n_timepoints,
-            return_numpy=True,
-            random_state=random_state,
-        )
-        if not return_numpy:
-            arr = []
-            for data in X:
-                arr.append(pd.DataFrame(data))
-            X = arr
+        y = _make_regression_y(n_cases, return_numpy=False, random_state=random_state)
+    X = _make_collection_X(
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        return_numpy=False,
+        random_state=random_state,
+        y=y,
+    )
 
-    return X
+    return X, y
+
+
+def make_clustering_data(
+    n_cases: int = 20,
+    n_channels: int = 1,
+    n_timepoints: int = 20,
+    return_numpy: bool = True,
+    random_state=None,
+):
+    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    n_timepoints : int
+        The number of features/series length to generate.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+    """
+    return _make_collection_X(
+        n_instances=n_cases,
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        return_numpy=return_numpy,
+        random_state=random_state,
+    )
 
 
 def _make_nested_from_array(array, n_instances=20, n_columns=1):

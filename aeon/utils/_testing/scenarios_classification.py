@@ -18,10 +18,7 @@ from aeon.base import BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.regression.base import BaseRegressor
-from aeon.utils._testing.collection import (
-    _make_classification_y,
-    _make_nested_dataframe_X,
-)
+from aeon.utils._testing.collection import _make_classification_y, _make_collection_X
 from aeon.utils._testing.hierarchical import _make_hierarchical
 from aeon.utils._testing.scenarios import TestScenario
 
@@ -99,18 +96,14 @@ class ClassifierTestScenario(TestScenario, BaseObject):
 
 
 y = _make_classification_y(n_instances=10, random_state=RAND_SEED)
-X = _make_nested_dataframe_X(
-    n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y
-)
-X_test = _make_nested_dataframe_X(
-    n_instances=5, n_timepoints=20, random_state=RAND_SEED
-)
+X = _make_collection_X(n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y)
+X_test = _make_collection_X(n_instances=5, n_timepoints=20, random_state=RAND_SEED)
 
-X_multivariate = _make_nested_dataframe_X(
-    n_instances=10, n_columns=2, n_timepoints=20, random_state=RAND_SEED, y=y
+X_multivariate = _make_collection_X(
+    n_instances=10, n_channels=2, n_timepoints=20, random_state=RAND_SEED, y=y
 )
-X_test_multivariate = _make_nested_dataframe_X(
-    n_instances=5, n_columns=2, n_timepoints=20, random_state=RAND_SEED
+X_test_multivariate = _make_collection_X(
+    n_instances=5, n_channels=2, n_timepoints=20, random_state=RAND_SEED
 )
 
 
@@ -133,10 +126,10 @@ class ClassifierFitPredict(ClassifierTestScenario):
 
 
 y3 = _make_classification_y(n_instances=11, n_classes=3, random_state=RAND_SEED)
-X_np = _make_nested_dataframe_X(
+X_np = _make_collection_X(
     n_instances=11, n_timepoints=17, random_state=RAND_SEED, y=y3, return_numpy=True
 )
-X_test_np = _make_nested_dataframe_X(
+X_test_np = _make_collection_X(
     n_instances=6, n_timepoints=17, random_state=RAND_SEED, return_numpy=True
 )
 

@@ -9,10 +9,7 @@ __author__ = ["fkiraly"]
 __all__ = ["scenarios_clustering"]
 
 from aeon.base import BaseObject
-from aeon.utils._testing.collection import (
-    _make_nested_dataframe_X,
-    make_clustering_problem,
-)
+from aeon.utils._testing.collection import _make_collection_X, make_clustering_data
 from aeon.utils._testing.scenarios import TestScenario
 
 # random seed for generating data to keep scenarios exactly reproducible
@@ -56,8 +53,8 @@ class ClustererFitPredict(ClustererTestScenario):
     _tags = {"X_univariate": True, "is_enabled": True}
 
     args = {
-        "fit": {"X": make_clustering_problem(random_state=RAND_SEED)},
-        "predict": {"X": _make_nested_dataframe_X(random_state=RAND_SEED)},
+        "fit": {"X": make_clustering_data(random_state=RAND_SEED)},
+        "predict": {"X": _make_collection_X(random_state=RAND_SEED)},
     }
     default_method_sequence = ["fit", "predict"]
 
