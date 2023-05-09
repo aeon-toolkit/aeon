@@ -40,12 +40,12 @@ is a vector). For example, the heartbeat ECG reading from a single
 sensor is a univariate series, but a motion trace of from a smart watch would be multivariate, with at
 least three dimensions (x,y,z co-ordinates). Different parts of `aeon`
 work with single series or collections of series. We commonly refer to the number of observations
-for a time series as ``n_timepoints`` or ``series_length``. If a series is
+for a time series as `n_timepoints` or `series_length`. If a series is
 multivariate, we refer to the dimensions as channels (to avoid
-confusion with the dimensions of array) and in code use ``n_channels``. We use the
+confusion with the dimensions of array) and in code use `n_channels`. We use the
 terms case or instance when referring to a single time series contained in a
-collection. The size of a collection of time series is referred to as ``n_cases`` or
-``n_instances``.
+collection. The size of a collection of time series is referred to as `n_cases` or
+`n_instances`.
 
 Forecasting primarily uses pandas DataFrames and Series objects to store time series
 data. An example of data in thie format is the Airline dataset.
@@ -65,18 +65,18 @@ Period
 Freq: M, Name: Number of airline passengers, dtype: float64
 ```
 Forecasting refers to collections of time series as panels, and this terminology has
-made its way into ``aeon``, although it is not generally used in machine learning.
+made its way into `aeon`, although it is not generally used in machine learning.
 Other parts of `aeon` primarily use numpy arrays to store series. A single series is
-modelled as a two dimensional numpy array of shape ``(n_channels``,``n_timepoints)``.
+modelled as a two dimensional numpy array of shape `(n_channels`,`n_timepoints)`.
 We tend to work with 2D numpy even if the series as univariate for consistency,
-although parts of ``aeon`` such as classification and distances work with 1D series,
-other parts of ``aeon`` such as transformers do not deal consistently with 1D numpy
+although parts of `aeon` such as classification and distances work with 1D series,
+other parts of `aeon` such as transformers do not deal consistently with 1D numpy
 as univariate time series.
 
 Collections of time series (also referred to as datasets) are stored in three
-dimensional numpy ``(n_cases``,``n_channels``,``n_timepoints)`` if the series are
+dimensional numpy `(n_cases`,`n_channels`,`n_timepoints)` if the series are
 equal length, or as
-a list of length ``[n_cases]`` of two dimensional numpy if series length varies.
+a list of length `[n_cases]` of two dimensional numpy if series length varies.
 Note we assume series length is always the same for all channels of a single series.
 For supervised learning, we store the target variable as a numpy array. For
 regression, the target is a float. For classification, it can be float, int or string.
@@ -122,7 +122,7 @@ Like `scikit-learn`, forecasters use a fit and predict model, but the arguments 
 different. The simplest forecasting use case is when you have a single series and you
 want to build a model on that series (e.g. ARMA model) to predict values in the
 future. At their most basic, forecasters require a series to forecast for fit, and a
-forecast horizon (``fh``) to specify how many time steps ahead to make a forecast in
+forecast horizon (`fh`) to specify how many time steps ahead to make a forecast in
 predict. This code fits a [TrendForecaster](forecasting.trend.TrendForecaster) on our
 loaded data and predicts the next value in the series.
 
@@ -166,7 +166,7 @@ forecast horizon using the Series index.
 0.11725953222644162
 ```
 `aeon` has a rich functionality for forecasting, and supports a wide variety of use
-ases. To find out more about forecasting in `aeon`, you can explore through the
+cases. To find out more about forecasting in `aeon`, you can explore through the
 extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
@@ -179,14 +179,14 @@ non-collection transformers, and you may find unexpected outputs if you input a 
 treating it as multiple time series.
 
 The classification estimator interface should be familiar if you have worked with
-`scikit-learn`. In this example we fit a ``KNeighborsTimeSeriesClassifier``
-(classification.distance_based.KNeighborsTimeSeriesClassifier) with dynamic time
+`scikit-learn`. In this example we fit a `KNeighborsTimeSeriesClassifier`
+(https://github.com/aeon-toolkit/aeon/blob/main/aeon/classification/distance_based/_time_series_neighbors.py) with dynamic time
 warping (dtw) on our example data.
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-```{code-block} python
+``{code-block} python
 >>> X = [[1, 2, 3, 4, 5, 6, 7],  # 2D array example (univariate)
 ...      [4, 4, 4, 5, 6, 7, 3]]  # Two samples, one channel, seven series length
 >>> y = [0, 1]  # class labels for each sample
@@ -207,7 +207,7 @@ calculate accuracy on new data.
 
 All `aeon` classifiers can be used with `scikit-learn` functionality for e.g.
 model evaluation, parameter searching and pipelines. Explore the wide range of
-algorithm types available in ``aeon` in the [classification notebooks](examples.md#classification).
+algorithm types available in `aeon` in the [classification notebooks](examples.md#classification).
 
 ## Time Series Extrinsic Regression (TSER)
 
