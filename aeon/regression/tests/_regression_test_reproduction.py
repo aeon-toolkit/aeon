@@ -31,7 +31,7 @@ def _print_array(test_name, array):
     print(test_name)
     print("[")
     for value in array:
-        print(str(round(value, 5)), end="")
+        print(str(round(value, 4)), end="")
         print(",")
     print("]")
 

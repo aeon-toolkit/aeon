@@ -93,7 +93,7 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # retrieve expected predict_proba output, and skip test if not available
+        # retrieve expected preds output, and skip test if not available
         if classname in covid_3month_preds.keys():
             expected_preds = covid_3month_preds[classname]
         else:
@@ -110,24 +110,26 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         # load Covid3Month data
         X_train, y_train = load_covid_3month(split="train")
         X_test, y_test = load_covid_3month(split="test")
-        indices = np.random.RandomState(0).choice(len(y_test), 10, replace=False)
-        # train classifier and predict
-        estimator_instance.fit(X_train, y_train)
-        y_preds = estimator_instance.predict(X_test[indices])
+        indices_train = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
+        indices_test = np.random.RandomState(0).choice(len(y_test), 10, replace=False)
+
+        # train regressor and predict
+        estimator_instance.fit(X_train[indices_train], y_train[indices_train])
+        y_preds = estimator_instance.predict(X_test[indices_test])
 
         # assert predictions are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=3)
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)
 
     def test_regressor_on_cardano_sentiment(self, estimator_class):
         """Test regressor on cardano sentiment data."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # retrieve expected predict_proba output, and skip test if not available
+        # retrieve expected preds output, and skip test if not available
         if classname in cardano_sentiment_preds.keys():
             expected_preds = cardano_sentiment_preds[classname]
         else:
-            # skip test if no expected probas are registered
+            # skip test if no expected preds are registered
             return None
 
         # we only use the first estimator instance for testing
@@ -145,9 +147,9 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         indices_train = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
         indices_test = np.random.RandomState(4).choice(len(y_test), 10, replace=False)
 
-        # train classifier and predict probas
+        # train regressor and predict
         estimator_instance.fit(X_train[indices_train], y_train[indices_train])
         y_preds = estimator_instance.predict(X_test[indices_test])
 
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=5)
+        # assert predictions are the same
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)
