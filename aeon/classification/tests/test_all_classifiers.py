@@ -167,7 +167,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         This is important for compatibility with ensembles that sub-sample,
         as sub-sampling stochastically produces training sets with single class label.
         """
-        X, _ = make_3d_test_data(n_samples=10)
+        X, _ = make_3d_test_data(n_cases=10)
         y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
         error_msg = "single class label"
