@@ -10,7 +10,7 @@ from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
 from aeon.utils._testing.collection import (
     _make_nested_from_array,
-    make_nested_df_classification_data,
+    make_nested_dataframe_data,
 )
 
 
@@ -56,8 +56,8 @@ def test_bad_features(bad_features):
 @pytest.mark.parametrize("n_intervals", [1, 3, "log", "sqrt", "random"])
 def test_results(n_instances, n_timepoints, n_intervals):
     """Check specific results."""
-    X, _ = make_nested_df_classification_data(
-        n_instances=n_instances, n_timepoints=n_timepoints, return_numpy=True
+    X, _ = make_nested_dataframe_data(
+        n_cases=n_instances, n_timepoints=n_timepoints, return_numpy=True
     )
     transformer = RandomIntervalFeatureExtractor(
         n_intervals=n_intervals, features=[np.mean, np.std]
@@ -80,7 +80,7 @@ def test_results(n_instances, n_timepoints, n_intervals):
 def test_different_implementations():
     """Test against equivalent pipelines."""
     random_state = 1233
-    X, y = make_nested_df_classification_data(random_state=random_state)
+    X, y = make_nested_dataframe_data(random_state=random_state)
 
     # Compare with chained transformations.
     tran1 = RandomIntervalSegmenter(n_intervals=1, random_state=random_state)

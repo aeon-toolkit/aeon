@@ -9,10 +9,10 @@ from sklearn.tree import DecisionTreeClassifier
 
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-from aeon.utils._testing.collection import make_nested_df_classification_data
+from aeon.utils._testing.collection import make_nested_dataframe_data
 
 # load data
-X, y = make_nested_df_classification_data()
+X, y = make_nested_dataframe_data()
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
 

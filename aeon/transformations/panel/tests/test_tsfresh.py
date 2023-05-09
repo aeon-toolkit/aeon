@@ -8,7 +8,7 @@ import pytest
 from aeon.datasets import load_unit_test
 from aeon.datatypes import convert
 from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
-from aeon.utils._testing.collection import make_nested_df_classification_data
+from aeon.utils._testing.collection import make_nested_dataframe_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -19,7 +19,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize("default_fc_parameters", ["minimal"])
 def test_tsfresh_extractor(default_fc_parameters):
     """Test that mean feature of TSFreshFeatureExtract is identical with sample mean."""
-    X, _ = make_nested_df_classification_data()
+    X, _ = make_nested_dataframe_data()
 
     transformer = TSFreshFeatureExtractor(
         default_fc_parameters=default_fc_parameters, disable_progressbar=True
