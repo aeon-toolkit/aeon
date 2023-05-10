@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test scenarios for classification and regression.
 
-Contains TestScenario concrete children to run in tests for classifiers/regressirs.
+Contains TestScenario concrete children to run in tests for classifiers/regressors.
 """
 
 __author__ = ["fkiraly"]
@@ -108,7 +108,7 @@ X_test_multivariate = _make_collection_X(
 
 
 class ClassifierFitPredict(ClassifierTestScenario):
-    """Fit/predict with univariate panel X, nested_univ mtype, and labels y."""
+    """Fit/predict with univariate X, nested data frame data type, labels y."""
 
     _tags = {
         "X_univariate": True,
@@ -135,7 +135,7 @@ X_test_np = _make_collection_X(
 
 
 class ClassifierFitPredictNumpy(ClassifierTestScenario):
-    """Fit/predict with univariate panel X, numpy3D mtype, and labels y."""
+    """Fit/predict with univariate X, numpy3D data type, and labels y."""
 
     _tags = {
         "X_univariate": True,
@@ -179,7 +179,7 @@ X_unequal_length_test = _make_hierarchical(
 
 
 class ClassifierFitPredictUnequalLength(ClassifierTestScenario):
-    """Fit/predict with univariate panel X and labels y, unequal length series."""
+    """Fit/predict with univariate X and labels y, unequal length series."""
 
     _tags = {
         "X_univariate": True,
