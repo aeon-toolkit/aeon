@@ -51,7 +51,7 @@ def test_mul_sklearn_autoadapt():
 
     t1 = ExponentTransformer(power=2)
     t2 = StandardScaler()
-    c = RocketClassifier(num_kernels=50)
+    c = RocketClassifier(num_kernels=50, random_state=RAND_SEED)
 
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
