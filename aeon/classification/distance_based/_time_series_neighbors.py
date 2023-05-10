@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """KNN time series classification.
 
-This class is a KNN classifier which supports time series distance measures.
+A KNN classifier which supports time series distance measures.
 The class has hardcoded string references to numba based distances in aeon.distances.
-It can also be used with callables, or aeon (pairwise transformer) estimators.
+It can also be used with callable distance functions.
 """
 
 __author__ = ["TonyBagnall", "GuiArcencio"]
