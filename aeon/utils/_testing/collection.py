@@ -223,7 +223,7 @@ def _make_collection(
     Parameters
     ----------
     n_instances : int, optional, default=20
-        number of instances per series in the panel
+        number of instances per series in the collection
     n_channels : int, optional, default=1
         number of variables in the time series
     n_timepoints : int, optional, default=20
