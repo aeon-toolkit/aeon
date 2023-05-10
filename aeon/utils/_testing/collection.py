@@ -301,7 +301,7 @@ def _make_regression_y(n_instances=20, return_numpy=True, random_state=None):
 def _make_classification_y(
     n_instances=20, n_classes=2, return_numpy=True, random_state=None
 ):
-    if not n_instances > n_classes:
+    if not n_instances >= n_classes:
         raise ValueError("n_cases must be bigger than n_classes")
     rng = check_random_state(random_state)
     n_repeats = int(np.ceil(n_instances / n_classes))
