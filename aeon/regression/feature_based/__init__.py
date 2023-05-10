@@ -9,4 +9,4 @@ __all__ = [
     "FreshPRINCERegressor",
 ]
 
-from aeon.regression.feature_based._fresh_prince_regressor import FreshPRINCERegressor
+from aeon.regression.feature_based._fresh_prince import FreshPRINCERegressor
