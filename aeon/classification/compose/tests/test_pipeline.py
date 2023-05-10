@@ -12,22 +12,19 @@ from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
-from aeon.utils._testing.collection import (
-    _make_classification_y,
-    _make_nested_dataframe_X,
-)
+from aeon.utils._testing.collection import make_nested_dataframe_data
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
 
 def test_dunder_mul():
     """Test the mul dunder method."""
     RAND_SEED = 42
-    y = _make_classification_y(n_instances=10, random_state=RAND_SEED)
-    X = _make_nested_dataframe_X(
-        n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y
+    X, y = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
-    X_test = _make_nested_dataframe_X(
-        n_instances=5, n_timepoints=20, random_state=RAND_SEED
+
+    X_test, _ = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
 
     t1 = ExponentTransformer(power=4)
@@ -52,14 +49,13 @@ def test_dunder_mul():
 def test_mul_sklearn_autoadapt():
     """Test auto-adapter for sklearn in mul."""
     RAND_SEED = 42
-    y = _make_classification_y(n_instances=10, random_state=RAND_SEED)
-    X = _make_nested_dataframe_X(
-        n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y
-    )
-    X_test = _make_nested_dataframe_X(
-        n_instances=10, n_timepoints=20, random_state=RAND_SEED
+    X, y = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
 
+    X_test, _ = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
+    )
     t1 = ExponentTransformer(power=2)
     t2 = StandardScaler()
     c = KNeighborsTimeSeriesClassifier()

@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 
 from aeon.datatypes import convert_to
-from aeon.utils._testing.collection import _make_nested_dataframe_X
+from aeon.utils._testing.collection import make_clustering_data
 from aeon.utils._testing.series import _make_series
 
 
@@ -58,11 +58,8 @@ def create_test_distance_numpy(
 
 def _create_test_distances(n_instance, n_columns, n_timepoints, random_state=1):
     if n_instance > 1:
-        return _make_nested_dataframe_X(
-            n_instances=n_instance,
-            n_columns=n_columns,
-            n_timepoints=n_timepoints,
-            random_state=random_state,
+        return make_clustering_data(
+            n_cases=n_instance, n_channels=n_columns, random_state=random_state
         )
     else:
         return _make_series(n_timepoints, n_columns, random_state=random_state)

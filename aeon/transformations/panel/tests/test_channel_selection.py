@@ -6,7 +6,7 @@ from aeon.utils._testing.collection import make_3d_test_data
 
 def test_channel_selection():
     """Test channel selection on random nested data frame."""
-    X, y = make_3d_test_data(n_samples=10, n_channels=4, series_length=20)
+    X, y = make_3d_test_data(n_cases=10, n_channels=4, n_timepoints=20)
 
     ecp = ElbowClassPairwise()
 

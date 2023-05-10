@@ -206,7 +206,7 @@ def _create_unequal_length_nested_dataframe(cases=5, dimensions=1, length=10):
     return testy
 
 
-INPUT_TYPES = ["numpy3D", "pd-multiindex", "df-list", "numpyflat"]
+INPUT_TYPES = ["np-list", "numpy3D", "pd-multiindex", "df-list", "numpyflat"]
 
 
 @pytest.mark.parametrize("input_type", INPUT_TYPES)
