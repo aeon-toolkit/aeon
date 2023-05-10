@@ -7,6 +7,7 @@ __all__ = []
 
 from sklearn.preprocessing import StandardScaler
 
+from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.transformations.panel.pad import PaddingTransformer
@@ -30,7 +31,7 @@ def test_dunder_mul():
     t1 = ExponentTransformer(power=4)
     t2 = ExponentTransformer(power=0.25)
 
-    c = KNeighborsTimeSeriesClassifier()
+    c = DummyClassifier()
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
     t12c_3 = t1 * t2 * c
@@ -58,7 +59,7 @@ def test_mul_sklearn_autoadapt():
     )
     t1 = ExponentTransformer(power=2)
     t2 = StandardScaler()
-    c = KNeighborsTimeSeriesClassifier()
+    c = DummyClassifier()
 
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
