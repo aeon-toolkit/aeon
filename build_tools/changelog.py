@@ -106,9 +106,6 @@ def assign_prs(prs, categs: List[Dict[str, List[str]]]):  # noqa
             if not set(cat["labels"]).isdisjoint(set(pr_labels)):
                 assigned[cat["title"]].append(i)
 
-    #             if any(l.startswith("module") for l in pr_labels):
-    #                 print(i, pr_labels)
-
     assigned["Other"] = list(
         set(range(len(prs))) - {i for _, l in assigned.items() for i in l}
     )
@@ -147,6 +144,8 @@ if __name__ == "__main__":
         {"title": "Refactored", "labels": ["refactor"]},
         {"title": "Documentation", "labels": ["documentation"]},
     ]
+
+    os.environ["GITHUB_TOKEN"] = "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"
 
     pulls = fetch_pull_requests_since_last_release()
     print(f"Found {len(pulls)} merged PRs since last release")  # noqa
