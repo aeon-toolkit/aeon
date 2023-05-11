@@ -24,6 +24,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
+from aeon.distances._ddtw import average_of_slope
 from aeon.transformations.panel.summarize._extract import series_slope_derivative
 
 
@@ -149,7 +150,11 @@ class ElasticEnsemble(BaseClassifier):
         if self._distance_measures.__contains__(
             "ddtw"
         ) or self._distance_measures.__contains__("wddtw"):
-            der_X = series_slope_derivative(X)
+            der_X = []  # use list to allow for unequal length
+            for x in X:
+                der_X.append(average_of_slope(x))
+            if isinstance(X, np.ndarray):
+                der_X = np.array(der_X)
         else:
             der_X = None
 
@@ -324,18 +329,22 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, 1, series_length]
-            The data to make predictions for.
+        X : 3D np.array of shape = (n_instances, n_channels, n_timepoints)
+            or list of [n_instances] numpy arrays size n_channels, n_timepoints_i)
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = (n_instances, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
         if self._distance_measures.__contains__(
             "ddtw"
         ) or self._distance_measures.__contains__("wddtw"):
-            der_X = series_slope_derivative(X)
+            der_X = []  # use list to allow for unequal length
+            for x in X:
+                der_X.append(average_of_slope(x))
+            if isinstance(X, np.ndarray):
+                der_X = np.array(der_X)
         else:
             der_X = None
 
