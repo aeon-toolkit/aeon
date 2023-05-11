@@ -5,8 +5,8 @@ import pytest
 from aeon.transformations.panel.dictionary_based import SAX
 
 
-@pytest.mark.parametrize("n_segments", 8)
-@pytest.mark.parametrize("alphabet_size", 4)
+@pytest.mark.parametrize("n_segments", [8])
+@pytest.mark.parametrize("alphabet_size", [4])
 def test_equal_length_univariate_sax(n_segments, alphabet_size):
     X = np.random.normal(size=(10, 1, 100))
 
@@ -17,16 +17,15 @@ def test_equal_length_univariate_sax(n_segments, alphabet_size):
 
     sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
 
-    with pytest.raises(TypeError):
-        X_sax = sax.fit_transform(X=X)
+    X_sax = sax.fit_transform(X=X)
 
     assert X_sax.shape[-1] == X.shape[-1]
     assert len(sax.breakpoints) == 3
     assert len(sax.breakpoints_mid) == 4
 
 
-@pytest.mark.parametrize("n_segments", 8)
-@pytest.mark.parametrize("alphabet_size", 4)
+@pytest.mark.parametrize("n_segments", [8])
+@pytest.mark.parametrize("alphabet_size", [4])
 def test_equal_length_multivariate_sax(n_segments, alphabet_size):
     X = np.random.normal(size=(10, 3, 100))
 
@@ -37,8 +36,7 @@ def test_equal_length_multivariate_sax(n_segments, alphabet_size):
 
     sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
 
-    with pytest.raises(TypeError):
-        X_sax = sax.fit_transform(X=X)
+    X_sax = sax.fit_transform(X=X)
 
     assert X_sax.shape[-1] == X.shape[-1]
     assert X_sax.shape[1] == X.shape[1]
