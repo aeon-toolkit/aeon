@@ -121,6 +121,7 @@ def render_row(pr):  # noqa
     """Render a single row with PR in Myst Markdown format"""
     print(  # noqa
         "-",
+        pr["title"],
         "({pr}" + f"`{pr['number']}`)",
         "{user}" + f"`{pr['user']['login']}`",
     )
