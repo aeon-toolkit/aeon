@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
-__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
-__all__ = ["SAX"]
-
 import numpy as np
 import scipy.stats
-from numba import int64, njit, prange
+from numba import prange
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
+
+__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
 
 class SAX(BaseTransformer):
@@ -96,11 +95,38 @@ class SAX(BaseTransformer):
             distribution_params=self.distribution_params,
         )
 
-        return _inverse_sax_symbols(
-            _get_sax_symbols(X_paa=X_paa, breakpoints=self.breakpoints),
-            series_length=series_length,
-            breakpoints_mid=self.breakpoints_mid,
+        return self._inverse_sax_symbols(
+            self._get_sax_symbols(X_paa=X_paa), series_length=series_length
         )
+
+    def _get_sax_symbols(self, X_paa):
+        sax_symbols = np.zeros(X_paa.shape, dtype=int) - 1
+
+        for i_bp, bp in enumerate(self.breakpoints):
+            indices = np.logical_and(sax_symbols < 0, X_paa < bp)
+            sax_symbols[indices] = i_bp
+
+        sax_symbols[sax_symbols < 0] = self.alphabet_size - 1
+        # the -1 is because breakpoints have self.alphabet_size - 1 elements
+
+        return sax_symbols
+
+    def _inverse_sax_symbols(self, sax_symbols, series_length):
+        n_samples, n_channels, sax_length = sax_symbols.shape
+
+        segment_length = int(series_length / sax_length)
+        output_sax = np.zeros((n_samples, n_channels, series_length))
+
+        for i in prange(n_samples):
+            for _current_sax_index in prange(sax_length):
+                start_index = _current_sax_index * segment_length
+                stop_index = start_index + segment_length
+
+                output_sax[i, :, start_index:stop_index] = self.breakpoints_mid[
+                    np.expand_dims(sax_symbols[i, :, _current_sax_index], axis=-1)
+                ]
+
+        return output_sax
 
     def _generate_breakpoints(
         self, alphabet_size, distribution="Gaussian", distribution_params=None
@@ -140,47 +166,3 @@ class SAX(BaseTransformer):
         """
         params = {"n_segments": 10, "alphabet_size": 8}
         return params
-
-
-@njit("int64[:,:,:](float64[:,:,:],float64[:])", fastmath=True)
-def _get_sax_symbols(X_paa, breakpoints):
-    sax_symbols = np.zeros(X_paa.shape, dtype=int64) - 1
-    alphabet_size = breakpoints.shape[0] + 1
-
-    for i_bp, bp in enumerate(breakpoints):
-        indices = np.logical_and(sax_symbols < 0, X_paa < bp)
-        for i in prange(indices.shape[0]):
-            for j in prange(indices.shape[1]):
-                for k in prange(indices.shape[2]):
-                    if indices[i, j, k]:
-                        sax_symbols[i, j, k] = i_bp
-
-    for i in prange(sax_symbols.shape[0]):
-        for j in prange(sax_symbols.shape[1]):
-            for k in prange(sax_symbols.shape[2]):
-                if sax_symbols[i, j, k] < 0:
-                    sax_symbols[i, j, k] = alphabet_size - 1
-    # the -1 is because breakpoints have self.alphabet_size - 1 elements
-
-    return sax_symbols
-
-
-@njit("(float64[:,:,:])(int64[:,:,:],float64[:],int32)", fastmath=True)
-def _inverse_sax_symbols(sax_symbols, breakpoints_mid, series_length):
-    n_samples, n_channels, sax_length = sax_symbols.shape
-
-    segment_length = int(series_length / sax_length)
-    output_sax = np.zeros((n_samples, n_channels, series_length))
-
-    for i in prange(n_samples):
-        for _current_sax_index in prange(sax_length):
-            start_index = _current_sax_index * segment_length
-            stop_index = start_index + segment_length
-
-            for d in prange(n_channels):
-                for _index in prange(start_index, stop_index):
-                    output_sax[i, d, _index] = breakpoints_mid[
-                        sax_symbols[i, d, _current_sax_index]
-                    ]
-
-    return output_sax
