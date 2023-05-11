@@ -38,8 +38,20 @@ class SAX(BaseTransformer):
     -----
     This implementation is based on the one done by tslearn [1]
 
-    [1] https://github.com/tslearn-team/tslearn/blob/fa40028/tslearn/
-    piecewise/piecewise.py#L261-L501
+    References
+    ----------
+    .. [1] https://github.com/tslearn-team/tslearn/blob/fa40028/tslearn/
+       piecewise/piecewise.py#L261-L501
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel.dictionary_based import SAX
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> sax = SAX(n_segments=10, alphabet_size=8)
+    >>> X_train = sax.fit_transform(X_train)
+    >>> X_test = sax.fit_transform(X_test)
     """
 
     _tags = {
