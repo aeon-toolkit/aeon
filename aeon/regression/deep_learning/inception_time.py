@@ -4,6 +4,10 @@
 __author__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeRegressor"]
 
+import os
+import time
+from copy import deepcopy
+
 import numpy as np
 from sklearn.utils import check_random_state
 
@@ -519,6 +523,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         -------
         self : object
         """
+        import tensorflow as tf
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
@@ -533,19 +539,44 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
             mini_batch_size = self.batch_size
-        self.model_ = self.build_model(self.input_shape_)
+        self.training_model_ = self.build_model(self.input_shape_)
 
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
 
-        self.history = self.model_.fit(
+        self.file_name_ = str(time.time_ns())
+
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
+        self.history = self.training_model_.fit(
             X,
             y,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=self.callbacks,
+            callbacks=self.callbacks_,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
 
         return self
 
