@@ -28,13 +28,29 @@ def _der(x: np.ndarray):
 def series_slope_derivative(X: np.ndarray) -> np.ndarray:
     """Find the slope derivative of collection of time series.
 
+    takes any shape numpy array and finds the derivative of the last axis, padding
+    the first and last values so that the length stays the same
+
     Parameters
     ----------
-    X: np.ndarray shape (n_time_series, n_channels, series_length)
+    X: np.ndarray
 
     Returns
     -------
-    np.ndarray shape (n_time_series, n_channels, series_length)
+    np.ndarray same shape as X
+
+    Example
+    -------
+    >>> from aeon.transformations.panel.summarize import series_slope_derivative
+    >>> x=np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
+    >>> series_slope_derivative(x)
+    array([ 1. ,  1. ,  1. ,  1. ,  0.5, -1. , -1. , -1. , -1. ])
+    >>> x=np.array([[1, 2, 3, 4, 5], [5, 4, 3, 2, 1]])
+    >>> series_slope_derivative(x)
+    array([[ 1.,  1.,  1.,  1.,  1.],
+           [-1., -1., -1., -1., -1.]])
+    >>> x=np.random.random((10,3,50)) # 10 time series, 3 channels, length 50
+    >>> x2 = series_slope_derivative(x)
     """
     return np.apply_along_axis(_der, axis=-1, arr=X)
 

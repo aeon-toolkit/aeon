@@ -5,7 +5,7 @@ An ensemble of elastic nearest neighbour classifiers.
 """
 
 __author__ = ["jasonlines", "TonyBagnall"]
-__all__ = ["ElasticEnsemble", "series_slope_derivative"]
+__all__ = ["ElasticEnsemble"]
 
 import time
 from itertools import product
@@ -24,7 +24,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.distances._ddtw import average_of_slope
 from aeon.transformations.panel.summarize._extract import series_slope_derivative
 
 
@@ -90,8 +89,11 @@ class ElasticEnsemble(BaseClassifier):
     """
 
     _tags = {
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
+        "X_inner_mtype": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -152,7 +154,7 @@ class ElasticEnsemble(BaseClassifier):
         ) or self._distance_measures.__contains__("wddtw"):
             der_X = []  # use list to allow for unequal length
             for x in X:
-                der_X.append(average_of_slope(x))
+                der_X.append(series_slope_derivative(x))
             if isinstance(X, np.ndarray):
                 der_X = np.array(der_X)
         else:
@@ -342,7 +344,7 @@ class ElasticEnsemble(BaseClassifier):
         ) or self._distance_measures.__contains__("wddtw"):
             der_X = []  # use list to allow for unequal length
             for x in X:
-                der_X.append(average_of_slope(x))
+                der_X.append(series_slope_derivative(x))
             if isinstance(X, np.ndarray):
                 der_X = np.array(der_X)
         else:
