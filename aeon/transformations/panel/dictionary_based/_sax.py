@@ -33,6 +33,13 @@ class SAX(BaseTransformer):
         the parameters of the used distribution, if the used
         distribution is "Gaussian" and this parameter is None
         then the default setup is {"scale" : 1.0}
+
+    Notes
+    -----
+    This implementation is based on the one done by tslearn [1]
+
+    [1] https://github.com/tslearn-team/tslearn/blob/fa40028/tslearn/
+    piecewise/piecewise.py#L261-L501
     """
 
     _tags = {
