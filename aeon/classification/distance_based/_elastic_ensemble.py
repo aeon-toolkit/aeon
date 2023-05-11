@@ -126,9 +126,11 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = [n_instances, n_channels, series_length]
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
             The training input samples.
-        y : array-like, shape = [n_instances] The class labels.
+
+        y : array-like, shape = (n_cases) The class labels.
 
         Returns
         -------
@@ -331,12 +333,12 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = (n_instances, n_channels, n_timepoints)
-            or list of [n_instances] numpy arrays size n_channels, n_timepoints_i)
+        X : 3D np.array of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns
         -------
-        y : array-like, shape = (n_instances, n_classes_)
+        y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
         if self._distance_measures.__contains__(
@@ -377,12 +379,13 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, 1, series_length]
-            The data to make predictions for.
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
+            The training input samples.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = (n_cases) The class labels.
             Predicted class labels.
         """
         probas = self._predict_proba(X)
