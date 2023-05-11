@@ -6,5 +6,5 @@ To stay up-to-date with aeon releases, subscribe to aeon [here](https://librarie
 
 For upcoming changes and next releases, see our [milestones](https://github.com/aeon-toolkit/aeon/milestones). For our long-term plan, see our [roadmap](roadmap).
 
-- [Version 0.1.1](changelogs/v0.1#v0.1.1)
-- [Version 0.1.0](changelogs/v0.1#v0.1.0)
+- [Version 0.1.1](changelogs/v0.1.md#v0.1.1)
+- [Version 0.1.0](changelogs/v0.1.md#v0.1.0)
