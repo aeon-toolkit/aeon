@@ -50,7 +50,7 @@ aeon/networks/mlp.py @hadifawaz1999
 aeon/networks/inception.py @hadifawaz1999
 
 aeon/transformations/panel/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
-aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
 aeon/transformations/panel/dictionary_based/_sfa.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/panel/dictionary_based/_sfa_fast.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/panel/catch22.py @MatthewMiddlehurst
