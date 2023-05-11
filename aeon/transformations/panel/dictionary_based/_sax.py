@@ -110,7 +110,7 @@ class SAX(BaseTransformer):
                 stop_index = start_index + segment_length
 
                 output_sax[i, :, start_index:stop_index] = self.breakpoints_mid[
-                    sax_symbols[i, :, _current_sax_index]
+                    np.expand_dims(sax_symbols[i, :, _current_sax_index], axis=-1)
                 ]
 
         return output_sax
