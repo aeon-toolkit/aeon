@@ -145,8 +145,6 @@ if __name__ == "__main__":
         {"title": "Documentation", "labels": ["documentation"]},
     ]
 
-    os.environ["GITHUB_TOKEN"] = "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"
-
     pulls = fetch_pull_requests_since_last_release()
     print(f"Found {len(pulls)} merged PRs since last release")  # noqa
     assigned = assign_prs(pulls, categories)
