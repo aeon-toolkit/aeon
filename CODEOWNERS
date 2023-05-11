@@ -5,6 +5,7 @@
 
 
 aeon/regression/dummy/ @badrmarani
+aeon/regression/feature_based/_fresh_prince.py @dguijo
 
 aeon/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall

@@ -1032,7 +1032,10 @@ convert_dict[("numpy3D", "nested_univ", "Panel")] = from_3d_numpy_to_nested_adp
 
 
 def from_3d_numpy_to_long(X, store=None):
-    Xt = from_3d_numpy_to_nested(X)
+    channel_names = []
+    for i in range(X.shape[1]):
+        channel_names.append("dim_" + str(i))
+    Xt = from_3d_numpy_to_nested(X, column_names=channel_names)
     Xt = from_nested_to_long(Xt)
     return Xt
 

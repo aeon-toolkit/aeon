@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-"""FreshPRINCEClassifier.
+"""FreshPRINCERegressor.
 
-Pipeline classifier using the full set of TSFresh features and a
-RotationForestClassifier.
+Pipeline regressor using the full set of TSFresh features and a RotationForestRegressor
+regressor.
 """
 
-__author__ = ["MatthewMiddlehurst"]
-__all__ = ["FreshPRINCEClassifier"]
+__author__ = ["MatthewMiddlehurst", "DavidGuijo-Rubio"]
+__all__ = ["FreshPRINCERegressor"]
 
 import numpy as np
 
-from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn import RotationForestClassifier
+from aeon.regression.base import BaseRegressor
+from aeon.regression.sklearn import RotationForestRegressor
 from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
-class FreshPRINCEClassifier(BaseClassifier):
-    """Fresh Pipeline with RotatIoN forest Classifier.
+class FreshPRINCERegressor(BaseRegressor):
+    """Fresh Pipeline with RotatIoN forest Regressor.
 
-    This classifier simply transforms the input data using the TSFresh [1]_
-    transformer with comprehensive features and builds a RotationForestClassifier
+    This regressor simply transforms the input data using the TSFresh [1]_
+    transformer with comprehensive features and builds a RotationForestRegressor
     estimator using the transformed data.
 
     Parameters
@@ -29,7 +29,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         Set of TSFresh features to be extracted, options are "minimal", "efficient" or
         "comprehensive".
     n_estimators : int, default=200
-        Number of estimators for the RotationForestClassifier ensemble.
+        Number of estimators for the RotationForestRegressor ensemble.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -41,16 +41,9 @@ class FreshPRINCEClassifier(BaseClassifier):
     random_state : int or None, default=None
         Seed for random, integer.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
-
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshClassifier, RotationForestClassifier
+    TSFreshFeatureExtractor, TSFreshRegressor, RotationForestRegressor
 
     References
     ----------
@@ -96,7 +89,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCEClassifier, self).__init__()
+        super(FreshPRINCERegressor, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -120,7 +113,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         """
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
-        self._rotf = RotationForestClassifier(
+        self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
             n_jobs=self._threads_to_use,
@@ -153,26 +146,11 @@ class FreshPRINCEClassifier(BaseClassifier):
         Returns
         -------
         y : array-like, shape = [n_instances]
-            Predicted class labels.
+            Predicted output values.
         """
         return self._rotf.predict(self._tsfresh.transform(X))
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        return self._rotf.predict_proba(self._tsfresh.transform(X))
-
-    def _get_train_probs(self, X, y) -> np.ndarray:
+    def _get_train_preds(self, X, y) -> np.ndarray:
         self.check_is_fitted()
         X, y = check_X_y(X, y, coerce_to_numpy=True)
 
@@ -192,7 +170,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        return self._rotf._get_train_probs(self.transformed_data_, y)
+        return self._rotf._get_train_preds(self.transformed_data_, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -203,11 +181,11 @@ class FreshPRINCEClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            FreshPRINCEClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+            FreshPRINCERegressor provides the following special sets:
+                 "results_comparison" - used in some regressors to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-                "train_estimate" - used in some classifiers that set the
+                "train_estimate" - used in some regressors that set the
                     "capability:train_estimate" tag to True to allow for more efficient
                     testing when relevant parameters are available
 
