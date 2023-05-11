@@ -47,6 +47,7 @@ class SAX(BaseTransformer):
         "scitype:instancewise": True,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
+        "capability:multivariate": True,
     }
 
     def __init__(
