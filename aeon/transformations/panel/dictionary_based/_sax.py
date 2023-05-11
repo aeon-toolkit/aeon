@@ -152,6 +152,5 @@ class SAX(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        # small word length, window size for testing
-        params = {"word_length": 2, "window_size": 4}
+        params = {"n_segments": 10, "alphabet_size": 8}
         return params
