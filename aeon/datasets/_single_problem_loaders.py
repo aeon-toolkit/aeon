@@ -1040,7 +1040,7 @@ def load_solar(
                 return y
 
 
-def load_covid_3month(split=None, return_X_y=True):
+def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
     """Load dataset of last three months confirmed covid cases.
 
     Parameters
@@ -1052,6 +1052,8 @@ def load_covid_3month(split=None, return_X_y=True):
         If True, returns (features, target) separately instead of a single
         dataframe with columns for
         features and the target.
+    return_type: string, optional (default="numpy3d")
+        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Returns
     -------
@@ -1085,9 +1087,66 @@ def load_covid_3month(split=None, return_X_y=True):
     """
     name = "Covid3Month"
     if return_X_y:
-        X, y = _load_dataset(name, split, return_X_y)
+        X, y = _load_dataset(name, split, return_X_y, return_type)
         y = y.astype(float)
         return X, y
     else:
-        X = _load_dataset(name, split, return_X_y)
+        X = _load_dataset(name, split, return_X_y, return_type)
+        return X
+
+
+def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
+    """Load dataset of historical sentiment data for Cardano cryptocurrency.
+
+    Parameters
+    ----------
+    split: None or str{"train", "test"}, optional (default=None)
+        Whether to load the train or test partition of the problem. By
+        default, it loads both.
+    return_X_y: bool, optional (default=True)
+        If True, returns (features, target) separately instead of a single
+        dataframe with columns for
+        features and the target.
+    return_type: string, optional (default="numpy3d")
+        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
+
+    Returns
+    -------
+    X: pd.DataFrame with m rows and c columns
+        The time series data for the problem with m cases and c dimensions
+    y: numpy array
+        The regression values for each case in X
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_cardano_sentiment
+    >>> X, y = load_cardano_sentiment()
+
+    Notes
+    -----
+    Dimensionality:     multivariate
+    Series length:      24
+    Train cases:        74
+    Test cases:         33
+    Number of classes:  -
+
+    By combining historical sentiment data for Cardano cryptocurrency, extracted from
+    EODHistoricalData and made available on Kaggle, with historical price data for the
+    same cryptocurrency, extracted from CryptoDataDownload, we created the
+    CardanoSentiment dataset, with 107 instances. The predictors are hourly close price
+    (in USD) and traded volume during a day, resulting in 2-dimensional time series of
+    length 24. The response variable is the normalized sentiment score on the day
+    spanned by the timepoints.
+
+    EODHistoricalData: https://perma.cc/37GN-BMRL
+    CryptoDataDownload: https://perma.cc/4M79-7QY4
+    Dataset details: https://arxiv.org/pdf/2305.01429.pdf
+    """
+    name = "CardanoSentiment"
+    if return_X_y:
+        X, y = _load_dataset(name, split, return_X_y, return_type)
+        y = y.astype(float)
+        return X, y
+    else:
+        X = _load_dataset(name, split, return_X_y, return_type)
         return X
