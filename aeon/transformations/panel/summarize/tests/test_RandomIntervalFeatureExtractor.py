@@ -4,8 +4,11 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.preprocessing import FunctionTransformer
 
+from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
+from aeon.utils._testing.panel import make_classification_problem
 
 
 @pytest.mark.parametrize("n_instances", [1, 3])
@@ -66,3 +69,22 @@ def test_results(n_instances, n_timepoints, n_intervals):
 
         np.testing.assert_array_equal(actual_means, expected_mean)
         np.testing.assert_array_equal(actual_stds, expected_std)
+
+
+def test_different_implementations():
+    """Test against equivalent pipelines."""
+    random_state = 1233
+    X_train, y_train = make_classification_problem()
+
+    # Compare with chained transformations.
+    tran1 = RandomIntervalSegmenter(n_intervals=1, random_state=random_state)
+    tran2 = FunctionTransformer(func=np.mean, validate=False)
+    t_chain = tran1 * tran2
+    A = t_chain.fit_transform(X_train)
+
+    tran = RandomIntervalFeatureExtractor(
+        n_intervals=1, features=[np.mean], random_state=random_state
+    )
+    B = tran.fit_transform(X_train)
+
+    np.testing.assert_array_almost_equal(A, B)

@@ -100,12 +100,6 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:X",
-        "param_est",
-        "str",
-        "which scitypes does X internally support?",
-    ),
-    (
         "scitype:y",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
@@ -130,7 +124,7 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_mtype",
-        ["forecaster", "param_est"],
+        ["forecaster"],
         (
             "list",
             [
@@ -199,7 +193,6 @@ ESTIMATOR_TAG_REGISTER = [
         [
             "classifier",
             "early_classifier",
-            "param_est",
             "regressor",
         ],
         "bool",
@@ -224,7 +217,6 @@ ESTIMATOR_TAG_REGISTER = [
         [
             "classifier",
             "early_classifier",
-            "param_est",
             "regressor",
         ],
         "bool",
