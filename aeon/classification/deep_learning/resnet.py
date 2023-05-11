@@ -4,6 +4,10 @@
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr"]
 __all__ = ["ResNetClassifier"]
 
+import os
+import time
+from copy import deepcopy
+
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -100,6 +104,7 @@ class ResNetClassifier(BaseDeepClassifier):
         metrics=None,
         batch_size=16,
         random_state=None,
+        file_path="./",
         activation="sigmoid",
         use_bias=True,
         optimizer=None,
@@ -115,6 +120,7 @@ class ResNetClassifier(BaseDeepClassifier):
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
+        self.file_path = file_path
         self.optimizer = optimizer
         self.history = None
         self._network = ResNetNetwork(random_state=random_state)
@@ -190,22 +196,31 @@ class ResNetClassifier(BaseDeepClassifier):
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
+
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
+
+        self.file_name_ = str(time.time_ns())
 
         self.callbacks_ = (
             [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
+                ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
             ]
             if self.callbacks is None
             else self.callbacks
         )
 
-        self.history = self.model_.fit(
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=self.batch_size,
@@ -213,6 +228,14 @@ class ResNetClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=self.callbacks_,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
 
         return self
 
@@ -244,11 +267,6 @@ class ResNetClassifier(BaseDeepClassifier):
             "use_bias": False,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
         test_params = [param1]
 
         return test_params
