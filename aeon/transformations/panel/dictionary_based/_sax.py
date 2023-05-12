@@ -73,10 +73,15 @@ class SAX(BaseTransformer):
         self.n_segments = n_segments
         self.alphabet_size = alphabet_size
         self.distribution = distribution
+        self.series_length = None
+
+        self.distribution_params = distribution_params
 
         if self.distribution == "Gaussian":
-            self.distribution_params = (
-                dict(scale=1.0) if distribution_params is None else distribution_params
+            self.distribution_params_ = (
+                dict(scale=1.0)
+                if self.distribution_params is None
+                else self.distribution_params
             )
 
         else:
@@ -85,7 +90,7 @@ class SAX(BaseTransformer):
         self.breakpoints, self.breakpoints_mid = self._generate_breakpoints(
             alphabet_size=self.alphabet_size,
             distribution=self.distribution,
-            distribution_params=self.distribution_params,
+            distribution_params=self.distribution_params_,
         )
 
         super(SAX, self).__init__()
