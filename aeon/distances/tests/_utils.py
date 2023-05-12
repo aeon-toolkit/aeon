@@ -32,11 +32,12 @@ def create_test_distance_numpy(
         if > 1 instance then 3D array returned.
     """
     rng = check_random_state(random_state)
+    # Generate data as 3d numpy array
     if n_timepoints is None and n_columns is None:
-        return rng.random((1, n_instance))
+        return rng.normal(scale=0.5, size=(1, n_instance))
     if n_timepoints is None:
-        return rng.random((n_instance, n_columns))
-    return rng.random((n_instance, n_columns, n_timepoints))
+        return rng.normal(scale=0.5, size=(n_instance, n_columns))
+    return rng.normal(scale=0.5, size=(n_instance, n_columns, n_timepoints))
 
 
 def _time_distance(callable: Callable, average: int = 30, **kwargs):
