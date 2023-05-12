@@ -43,8 +43,7 @@ class PlateauFinder(BaseTransformer):
     """Plateau finder transformer.
 
     Transformer that finds segments of the same given value, plateau in
-    the time series, and
-    returns the starting indices and lengths.
+    the time series, and returns the starting indices and lengths.
 
     Parameters
     ----------
@@ -75,7 +74,7 @@ class PlateauFinder(BaseTransformer):
 
         Parameters
         ----------
-        X : numpy3D array shape (n_cases, n_channels, series_length)
+        X : numpy3D array shape (n_cases, 1, series_length)
 
         Returns
         -------
@@ -125,7 +124,12 @@ class PlateauFinder(BaseTransformer):
 
 
 class DerivativeSlopeTransformer(BaseTransformer):
-    """Derivative slope transformer."""
+    """Derivative slope transformer.
+
+    Transformer that finds the slope derivate by simply calling the method
+    `series_slope_derivative`. This function keeps the series the same length by
+    copying the first and last values with the second and last but one.
+    """
 
     _tags = {
         "fit_is_empty": True,
