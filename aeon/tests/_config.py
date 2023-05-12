@@ -34,11 +34,13 @@ EXCLUDED_TESTS = {
     # exclude
     "InceptionTimeClassifier": [
         "test_fit_deterministic",
-        "test_persistence_via_pickle" "test_save_estimators_to_file",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
     ],
     "InceptionTimeRegressor": [
         "test_fit_deterministic",
-        "test_persistence_via_pickle" "test_save_estimators_to_file",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
     ],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
