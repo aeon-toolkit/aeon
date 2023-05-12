@@ -388,11 +388,10 @@ def make_clustering_data(
     y : np.ndarray
         Randomly generated labels.
     """
-    return _make_collection_X(
-        n_instances=n_cases,
+    X, _ = make_3d_test_data(
+        n_cases=n_cases,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
-        return_numpy=return_numpy,
         random_state=random_state,
     )
 
