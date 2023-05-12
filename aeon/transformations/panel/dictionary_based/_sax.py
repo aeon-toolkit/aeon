@@ -3,7 +3,7 @@
 
 import numpy as np
 import scipy.stats
-from numba import prange
+from numba import njit, prange
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
@@ -60,6 +60,7 @@ class SAX(BaseTransformer):
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(
@@ -81,56 +82,115 @@ class SAX(BaseTransformer):
         else:
             raise NotImplementedError("still not added")
 
-        super(SAX, self).__init__()
-
-    def _transform(self, X, y=None):
-        _, _, series_length = X.shape
-
-        paa = PAA(n_intervals=self.n_segments)
-        X_paa = paa.fit_transform(X=X)
-
         self.breakpoints, self.breakpoints_mid = self._generate_breakpoints(
             alphabet_size=self.alphabet_size,
             distribution=self.distribution,
             distribution_params=self.distribution_params,
         )
 
-        return self._inverse_sax_symbols(
-            self._get_sax_symbols(X_paa=X_paa), series_length=series_length
-        )
+        super(SAX, self).__init__()
 
-    def _get_sax_symbols(self, X_paa):
-        sax_symbols = np.zeros(X_paa.shape, dtype=int) - 1
+    def _get_paa(self, X):
+        """Transform the input time seires to PAA segments.
 
-        for i_bp, bp in enumerate(self.breakpoints):
-            indices = np.logical_and(sax_symbols < 0, X_paa < bp)
-            sax_symbols[indices] = i_bp
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+            The input time series
 
-        sax_symbols[sax_symbols < 0] = self.alphabet_size - 1
-        # the -1 is because breakpoints have self.alphabet_size - 1 elements
+        Returns
+        -------
+        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
+        """
+        paa = PAA(n_intervals=self.n_segments)
+        X_paa = paa.fit_transform(X=X)
 
+        return X_paa
+
+    def _transform(self, X, y=None):
+        """Transform the input time seires to SAX symbols.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+            The input time series
+        y : np.ndarray of shape = (n_instances,), default = None
+            The labels are not used
+
+        Returns
+        -------
+        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation
+        """
+        self.series_length = int(X.shape[-1])
+        X_paa = self._get_paa(X=X)
+        sax_symbols = self._get_sax_symbols(X_paa=X_paa)
         return sax_symbols
 
-    def _inverse_sax_symbols(self, sax_symbols, series_length):
-        n_samples, n_channels, sax_length = sax_symbols.shape
+    def _get_sax_symbols(self, X_paa):
+        """Produce the SAX transformation.
 
-        segment_length = int(series_length / sax_length)
-        output_sax = np.zeros((n_samples, n_channels, series_length))
+        Parameters
+        ----------
+        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
 
-        for i in prange(n_samples):
-            for _current_sax_index in prange(sax_length):
-                start_index = _current_sax_index * segment_length
-                stop_index = start_index + segment_length
+        Returns
+        -------
+        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation using np.digitize
+        """
+        sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
+        return sax_symbols
 
-                output_sax[i, :, start_index:stop_index] = self.breakpoints_mid[
-                    np.expand_dims(sax_symbols[i, :, _current_sax_index], axis=-1)
-                ]
+    def _inverse_transform(self, X, y=None):
+        """Produce the inverse SAX transformation.
 
-        return output_sax
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation
+        y : np.ndarray of shape = (n_instances,), default = None
+            The labels are not used
+
+        Returns
+        -------
+        sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+            The inverse of sax transform
+        """
+        sax_inverse = _invert_sax_symbols(
+            sax_symbols=X,
+            series_length=self.series_length,
+            breakpoints_mid=self.breakpoints_mid,
+        )
+
+        return sax_inverse
 
     def _generate_breakpoints(
         self, alphabet_size, distribution="Gaussian", distribution_params=None
     ):
+        """Generate the breakpoints following a probability distribution.
+
+        Parameters
+        ----------
+        alphabet_size : int
+            The size of the alphabet, the number of breakpints is alphabet_size -1
+        distribution : str, default = "Gaussian"
+            The name of the distribution to follow when generating the breakpoints
+        distribution_params : dict, default = None,
+            The parameters of the chosen distribution, if the distribution is
+            chosen as Gaussian and this is left default to None then the params
+            used are "scale=1.0"
+
+        Returns
+        -------
+        breakpoints : np.ndarray of shape = (alphabet_size-1,)
+            The breakpoints to be used to generate the SAX symbols
+        breakpoints_mid : np.ndarray of shape = (alphabet_size,)
+            The middle breakpoints for each breakpoint interval used to produce
+            the inverse of SAX transformation
+        """
         if distribution == "Gaussian":
             breakpoints = scipy.stats.norm.ppf(
                 np.arange(1, alphabet_size, dtype=np.float64) / alphabet_size,
@@ -166,3 +226,41 @@ class SAX(BaseTransformer):
         """
         params = {"n_segments": 10, "alphabet_size": 8}
         return params
+
+
+@njit(parallel=True, fastmath=True)
+def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
+    """Produce the original time series using a Gaussian estimation.
+
+    In other words, try to inverse the SAX transformation.
+
+    Parameters
+    ----------
+    sax_symbols : np.ndarray(n_instances, n_channels, n_segments)
+        The sax output transformation
+    series_length : int
+        The original time series length
+    breakpoints_mid : np.ndarray(alphabet_size)
+        The Gaussian estimation of the value for each breakpoint interval
+
+    Returns
+    -------
+    sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+        The inverse of sax transform
+    """
+    n_samples, n_channels, sax_length = sax_symbols.shape
+
+    segment_length = int(series_length / sax_length)
+    sax_inverse = np.zeros((n_samples, n_channels, series_length))
+
+    for i in prange(n_samples):
+        for c in prange(n_channels):
+            for _current_sax_index in prange(sax_length):
+                start_index = _current_sax_index * segment_length
+                stop_index = start_index + segment_length
+
+                sax_inverse[i, :, start_index:stop_index] = breakpoints_mid[
+                    sax_symbols[i, c, _current_sax_index]
+                ]
+
+    return sax_inverse
