@@ -18,8 +18,10 @@ def test_equal_length_univariate_sax(n_segments, alphabet_size):
     sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
 
     X_sax = sax.fit_transform(X=X)
+    X_sax_inv = sax.inverse_transform(X=X_sax)
 
-    assert X_sax.shape[-1] == X.shape[-1]
+    assert X_sax.shape[-1] == n_segments
+    assert X_sax_inv.shape[-1] == X.shape[-1]
     assert len(sax.breakpoints) == 3
     assert len(sax.breakpoints_mid) == 4
 
@@ -37,8 +39,9 @@ def test_equal_length_multivariate_sax(n_segments, alphabet_size):
     sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
 
     X_sax = sax.fit_transform(X=X)
+    X_sax_inv = sax.inverse_transform(X=X_sax)
 
-    assert X_sax.shape[-1] == X.shape[-1]
-    assert X_sax.shape[1] == X.shape[1]
+    assert X_sax.shape[-1] == n_segments
+    assert X_sax_inv.shape[-1] == X.shape[-1]
     assert len(sax.breakpoints) == 3
     assert len(sax.breakpoints_mid) == 4
