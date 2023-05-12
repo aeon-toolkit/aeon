@@ -204,14 +204,6 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
 
         super(RandomIntervalSpectralEnsemble, self).__init__()
 
-    @property
-    def feature_importances_(self):
-        """Feature importance not supported for the RISE classifier."""
-        raise NotImplementedError(
-            "The impurity-based feature importances of "
-            "RandomIntervalSpectralForest is currently not supported."
-        )
-
     def _fit(self, X, y):
         """Build a forest of trees from the training set (X, y).
 

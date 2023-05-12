@@ -14,19 +14,19 @@ EXCLUDE_ESTIMATORS = [
     # PlateauFinder seems to be broken, see #2259
     "PlateauFinder",
     # below are removed due to mac failures we don't fully understand, see #3103
-    "HIVECOTEV1",
-    "HIVECOTEV2",
-    "RandomIntervalSpectralEnsemble",
     "RandomInvervals",
     "RandomIntervalSegmenter",
     "RandomIntervalFeatureExtractor",
-    "RandomIntervalClassifier",
+    #    "HIVECOTEV1",
+    #    "HIVECOTEV2",
+    #    "RandomIntervalSpectralEnsemble",
+    #    "RandomIntervalClassifier",
     "MiniRocket",
     "MatrixProfileTransformer",
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
-    "TapNetRegressor",
-    "TapNetClassifier",
-    "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
+    #    "TapNetRegressor",
+    #    "TapNetClassifier",
+    "ResNetClassifier",  # Needs to copy parameters to network, see #420
 ]
 
 

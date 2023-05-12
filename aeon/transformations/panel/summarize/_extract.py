@@ -68,6 +68,8 @@ class PlateauFinder(BaseTransformer):
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
+        self._starts = []
+        self._lengths = []
         super(PlateauFinder, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
@@ -81,9 +83,6 @@ class PlateauFinder(BaseTransformer):
         -------
         X : pandas data frame
         """
-        self._starts = []
-        self._lengths = []
-
         # find plateaus (segments of the same value)
         for x in X[:, 0]:
             # find indices of transition
