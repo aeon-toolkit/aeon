@@ -259,7 +259,7 @@ X_test_np = _make_collection_X(
 class TransformerFitTransformPanelUnivariateNumpyWithClassYOnlyFit(
     TransformerTestScenario
 ):
-    """Fit/predict with univariate panel X, numpy3D mtype, and labels y."""
+    """Fit/predict with univariate panel X, numpy3D input type, and labels y."""
 
     _tags = {
         "X_scitype": "Panel",

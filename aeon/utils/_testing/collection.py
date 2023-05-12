@@ -394,6 +394,7 @@ def make_clustering_data(
         n_timepoints=n_timepoints,
         random_state=random_state,
     )
+    return X
 
 
 def _make_nested_from_array(array, n_instances=20, n_columns=1):
