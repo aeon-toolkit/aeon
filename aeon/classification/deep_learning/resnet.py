@@ -132,7 +132,7 @@ class ResNetClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(ResNetClassifier, self).__init__()
+        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
         self.n_epochs = n_epochs
         self.callbacks = callbacks
         self.verbose = verbose
