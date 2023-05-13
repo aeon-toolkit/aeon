@@ -80,7 +80,11 @@ class EncoderClassifier(BaseDeepClassifier):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
+    _tags = {
+        "python_dependencies": ["tensorflow", "tensorflow_addons"],
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+    }
 
     def __init__(
         self,
