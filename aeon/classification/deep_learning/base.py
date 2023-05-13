@@ -28,6 +28,14 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     ----------
     batch_size : int, default = 40
         training batch size for the model
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
 
     Arguments
     ---------
