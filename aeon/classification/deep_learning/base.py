@@ -5,7 +5,14 @@ Abstract base class for the Keras neural network classifiers.
 The reason for this class between BaseClassifier and deep_learning classifiers is
 because we can generalise tags, _predict and _predict_proba
 """
-__author__ = ["James-Large", "ABostrom", "TonyBagnall", "aurunmpegasus", "achieveordie"]
+__author__ = [
+    "James-Large",
+    "ABostrom",
+    "TonyBagnall",
+    "aurunmpegasus",
+    "achieveordie",
+    "hadifawaz1999",
+]
 __all__ = ["BaseDeepClassifier"]
 
 from abc import ABC, abstractmethod
@@ -28,14 +35,9 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     ----------
     batch_size : int, default = 40
         training batch size for the model
-    save_last_model     : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
     last_file_name      : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
+        The name of the file of the last model, used
+        only if save_last_model_to_file is used
 
     Arguments
     ---------
@@ -54,14 +56,12 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self,
         batch_size=40,
         random_state=None,
-        save_last_model=False,
         last_file_name="last_model",
     ):
         super(BaseDeepClassifier, self).__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state
-        self.save_last_model = save_last_model
         self.last_file_name = last_file_name
         self.model_ = None
 
