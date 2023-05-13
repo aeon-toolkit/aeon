@@ -72,7 +72,7 @@ class SAX(BaseTransformer):
         self.n_segments = n_segments
         self.alphabet_size = alphabet_size
         self.distribution = distribution
-        self.series_length = None
+        self.series_length = 0
 
         self.distribution_params = distribution_params
 
