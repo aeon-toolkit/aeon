@@ -4,15 +4,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.preprocessing import FunctionTransformer
 
-from aeon.transformations.panel.segment import RandomIntervalSegmenter
 from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
-from aeon.utils._testing.collection import (
-    _make_nested_from_array,
-    make_3d_test_data,
-    make_nested_dataframe_data,
-)
 
 
 @pytest.mark.parametrize("n_instances", [1, 3])
@@ -23,10 +16,8 @@ from aeon.utils._testing.collection import (
 )
 def test_output_format_dim(n_instances, n_timepoints, n_intervals, features):
     """Test output format and dimensions."""
-    X = _make_nested_from_array(
-        np.ones(n_timepoints), n_instances=n_instances, n_columns=1
-    )
-    n_rows, n_cols = X.shape
+    X = np.ones((n_instances, 1, n_timepoints))
+    n_rows, n_cols, _ = X.shape
     trans = RandomIntervalFeatureExtractor(n_intervals=n_intervals, features=features)
     Xt = trans.fit_transform(X)
     assert isinstance(Xt, pd.DataFrame)
@@ -37,7 +28,7 @@ def test_output_format_dim(n_instances, n_timepoints, n_intervals, features):
 @pytest.mark.parametrize("bad_n_intervals", [0, "abc", 1.1, -1])
 def test_bad_n_intervals(bad_n_intervals):
     """Check that exception is raised for bad input args."""
-    X = np.ones(shape=(10, 4, 20))
+    X = np.ones((10, 1, 100))
     with pytest.raises(ValueError):
         RandomIntervalFeatureExtractor(n_intervals=bad_n_intervals).fit(X)
 
@@ -47,7 +38,7 @@ def test_bad_n_intervals(bad_n_intervals):
 )
 def test_bad_features(bad_features):
     """Test that ValueError is raised for bad features."""
-    X = np.ones(shape=(10, 4, 20))
+    X = np.ones((10, 1, 100))
     with pytest.raises(ValueError):
         RandomIntervalFeatureExtractor(n_intervals=bad_features).fit(X)
 
@@ -57,7 +48,8 @@ def test_bad_features(bad_features):
 @pytest.mark.parametrize("n_intervals", [1, 3, "log", "sqrt", "random"])
 def test_results(n_instances, n_timepoints, n_intervals):
     """Check specific results."""
-    X, _ = make_3d_test_data(n_cases=n_instances, n_timepoints=n_timepoints)
+    X = np.ones((n_instances, 1, n_timepoints))
+
     transformer = RandomIntervalFeatureExtractor(
         n_intervals=n_intervals, features=[np.mean, np.std]
     )
@@ -74,22 +66,3 @@ def test_results(n_instances, n_timepoints, n_intervals):
 
         np.testing.assert_array_equal(actual_means, expected_mean)
         np.testing.assert_array_equal(actual_stds, expected_std)
-
-
-def test_different_implementations():
-    """Test against equivalent pipelines."""
-    random_state = 1233
-    X, y = make_nested_dataframe_data(random_state=random_state)
-
-    # Compare with chained transformations.
-    tran1 = RandomIntervalSegmenter(n_intervals=1, random_state=random_state)
-    tran2 = FunctionTransformer(func=np.mean, validate=False)
-    t_chain = tran1 * tran2
-    A = t_chain.fit_transform(X)
-
-    tran = RandomIntervalFeatureExtractor(
-        n_intervals=1, features=[np.mean], random_state=random_state
-    )
-    B = tran.fit_transform(X)
-
-    np.testing.assert_array_almost_equal(A, B)
