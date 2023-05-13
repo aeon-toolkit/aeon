@@ -75,7 +75,7 @@ Quarter
 We commonly refer to the number of observations for a time series as `n_timepoints` or
 `series_length`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
-Dimensions may also be referref to as variables.
+Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
 `forecasting` and `annotation` modules will commonly use single series input, while
