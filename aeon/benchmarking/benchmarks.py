@@ -4,6 +4,7 @@
 Wraps kotsu benchmarking package.
 """
 from typing import Callable, Optional, Union
+from warnings import warn
 
 import pandas as pd
 
@@ -18,6 +19,7 @@ class BaseBenchmark:
     """
 
     def __init__(self):
+        warn("benchmarking is experimental and interfaces may change.")
         _check_soft_dependencies("kotsu")
         import kotsu
 
