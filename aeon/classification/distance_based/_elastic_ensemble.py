@@ -406,7 +406,7 @@ class ElasticEnsemble(BaseClassifier):
         }
 
     @staticmethod
-    def _get_100_param_options(distance_measure, train_x=None, data_dim_to_use=0):
+    def _get_100_param_options(distance_measure, train_x=None):
         def get_inclusive(min_val, max_val, num_vals):
             inc = (max_val - min_val) / (num_vals - 1)
             return np.arange(min_val, max_val + inc / 2, inc)
@@ -416,6 +416,8 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "wdtw" or distance_measure == "wddtw":
             return {"distance_params": [{"g": x / 100} for x in range(0, 100)]}
         elif distance_measure == "lcss":
+            if train_x is None:
+                raise ValueError(f"Error need train data for {distance_measure}")
             train_std = np.std(train_x)
             epsilons = get_inclusive(train_std * 0.2, train_std, 10)
             deltas = get_inclusive(0, 0.25, 10)
@@ -426,6 +428,8 @@ class ElasticEnsemble(BaseClassifier):
                 ]
             }
         elif distance_measure == "erp":
+            if train_x is None:
+                raise ValueError(f"Error need train data for {distance_measure}")
             train_std = np.std(train_x)
             band_sizes = get_inclusive(0, 0.25, 10)
             g_vals = get_inclusive(train_std * 0.2, train_std, 10)
