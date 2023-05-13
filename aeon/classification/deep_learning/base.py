@@ -46,11 +46,15 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self,
         batch_size=40,
         random_state=None,
+        save_last_model=False,
+        last_file_name="last_model",
     ):
         super(BaseDeepClassifier, self).__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state
+        self.save_last_model = save_last_model
+        self.last_file_name = last_file_name
         self.model_ = None
 
     @abstractmethod
@@ -129,18 +133,16 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         y = self.onehot_encoder.fit_transform(y)
         return y
 
-    def save_last_model_to_file(self, file_path, last_file_name):
+    def save_last_model_to_file(self, file_path="./"):
         """Save the last epoch of the trained deep learning model.
 
         Parameters
         ----------
-        file_path : str
+        file_path : str, default = "./"
             The directory where the model will be saved
-        last_file_name : str
-            The name of the last model, without the hdf5 extension
 
         Returns
         -------
         None
         """
-        self.model_.save(file_path + last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".hdf5")
