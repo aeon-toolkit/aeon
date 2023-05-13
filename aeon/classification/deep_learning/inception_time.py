@@ -493,7 +493,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     ):
         _check_dl_dependencies(severity="error")
         super(IndividualInceptionClassifier, self).__init__(
-            save_last_model=save_last_model, last_file_name=last_file_name
+            last_file_name=last_file_name
         )
         # predefined
         self.nb_filters = nb_filters
