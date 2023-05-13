@@ -60,7 +60,6 @@ class SAX(BaseTransformer):
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "capability:multivariate": True,
-        "capability:inverse_transform": True,
     }
 
     def __init__(
@@ -149,7 +148,7 @@ class SAX(BaseTransformer):
         sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
         return sax_symbols
 
-    def _inverse_transform(self, X, y=None):
+    def inverse_sax(self, X, y=None):
         """Produce the inverse SAX transformation.
 
         Parameters
