@@ -45,6 +45,24 @@ class EncoderClassifier(BaseDeepClassifier):
         connected layer used in the EncoderNetwork
     file_path           : str, default = "./"
             file_path when saving model_Checkpoint callback
+    save_best_model     : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name      : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
     random_state    : int, default = 0
         seed to any needed random actions
 
@@ -78,6 +96,10 @@ class EncoderClassifier(BaseDeepClassifier):
         fc_units=256,
         callbacks=None,
         file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
@@ -86,7 +108,7 @@ class EncoderClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(EncoderClassifier, self).__init__()
+        super(EncoderClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
@@ -99,6 +121,10 @@ class EncoderClassifier(BaseDeepClassifier):
 
         self.callbacks = callbacks
         self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.verbose = verbose
@@ -197,7 +223,9 @@ class EncoderClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
-        self.file_name_ = str(time.time_ns())
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
 
         self.callbacks_ = (
             [
@@ -224,9 +252,13 @@ class EncoderClassifier(BaseDeepClassifier):
             self.model_ = tf.keras.models.load_model(
                 self.file_path + self.file_name_ + ".hdf5", compile=False
             )
-            os.remove(self.file_path + self.file_name_ + ".hdf5")
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
 
         return self
 
