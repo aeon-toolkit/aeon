@@ -9,6 +9,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__all__ = ["SAX", "_invert_sax_symbols"]
 
 
 class SAX(BaseTransformer):
