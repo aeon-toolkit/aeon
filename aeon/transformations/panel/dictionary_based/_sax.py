@@ -92,8 +92,6 @@ class SAX(BaseTransformer):
             distribution_params=self.distribution_params_,
         )
 
-        self.series_length_ = None
-
         super(SAX, self).__init__()
 
     def _get_paa(self, X):
@@ -129,7 +127,6 @@ class SAX(BaseTransformer):
         sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
             The output of the SAX transformation
         """
-        self.series_length_ = int(X.shape[-1])
         X_paa = self._get_paa(X=X)
         sax_symbols = self._get_sax_symbols(X_paa=X_paa)
         return sax_symbols
@@ -150,7 +147,7 @@ class SAX(BaseTransformer):
         sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
         return sax_symbols
 
-    def inverse_sax(self, X, y=None):
+    def inverse_sax(self, X, original_length, y=None):
         """Produce the inverse SAX transformation.
 
         Parameters
@@ -167,7 +164,7 @@ class SAX(BaseTransformer):
         """
         sax_inverse = _invert_sax_symbols(
             sax_symbols=X,
-            series_length=self.series_length_,
+            series_length=original_length,
             breakpoints_mid=self.breakpoints_mid,
         )
 
