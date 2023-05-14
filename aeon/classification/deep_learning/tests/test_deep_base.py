@@ -30,7 +30,7 @@ def test_dummy_deep_classifier():
     import numpy as np
 
     dumpy_deep_clf = _DummyDeepClassifierEmpty()
-    dumpy_deep_clf.build_model()
+    dumpy_deep_clf.build_model(input_shape=(10, 1), n_classes=2)
     dumpy_deep_clf.fit(
-        X=np.random.normal(shape=(2, 1, 10)), y=np.random.choice([0, 1], size=(2,))
+        X=np.random.normal(shape=(10, 1, 10)), y=np.random.choice([0, 1], size=(10,))
     )
