@@ -28,17 +28,8 @@ __all__ = [
 
 from abc import ABCMeta, abstractmethod
 
-import pandas as pd
-
-from aeon.datatypes import (
-    check_is_mtype,
-    check_is_scitype,
-    convert_to,
-    mtype_to_scitype,
-    update_data,
-)
+from aeon.datatypes import check_is_scitype, convert_to, mtype_to_scitype, update_data
 from aeon.transformations.base import BaseTransformer, _coerce_to_list
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
@@ -63,11 +54,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         "nested_univ",
     ]
 
-    def __init__(self, _output_convert="auto"):
-        self._output_convert = _output_convert
-
-        super(BaseCollectionTransformer, self).__init__()
-        _check_estimator_deps(self)
+    def __init__(self):
+        super(BaseCollectionTransformer, self).__init__(_output_convert=False)
 
     def fit(self, X, y=None):
         """Fit transformer to X, optionally to y.
@@ -174,10 +162,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Xt = self._transform(X=X_inner, y=y_inner)
 
-        # convert to output mtype
-        if self._output_convert == "auto":
-            Xt = self._convert_output(Xt, metadata=metadata)
-
         return Xt
 
     def fit_transform(self, X, y=None):
@@ -243,10 +227,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         self._is_fitted = True
 
-        # convert to output mtype
-        if self._output_convert == "auto":
-            Xt = self._convert_output(Xt, metadata=metadata)
-
         return Xt
 
     def inverse_transform(self, X, y=None):
@@ -296,10 +276,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
-
-        # convert to output mtype
-        if self._output_convert == "auto":
-            Xt = self._convert_output(Xt, metadata=metadata, inverse=True)
 
         return Xt
 
@@ -527,91 +503,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     def _check_X(self, X=None):
         """Shorthand for _check_X_y with one argument X, see _check_X_y."""
         return self._check_X_y(X=X)[0]
-
-    def _convert_output(self, X, metadata, inverse=False):
-        """Convert transform or inverse_transform output to expected format.
-
-        Parameters
-        ----------
-        X : output of _transform or _vectorize("transform"), or inverse variants
-        metadata : dict, output of _check_X_y
-        inverse : bool, optional, default = False
-            whether conversion is for transform (False) or inverse_transform (True)
-
-        Returns
-        -------
-        Xt : final output of transform or inverse_transform
-        """
-        Xt = X
-        X_input_mtype = metadata["_X_mtype_last_seen"]
-        X_input_scitype = metadata["_X_input_scitype"]
-        _converter_store_X = metadata["_converter_store_X"]
-
-        if inverse:
-            # the output of inverse transform is equal to input of transform
-            output_scitype = self.get_tag("scitype:transform-input")
-        else:
-            output_scitype = self.get_tag("scitype:transform-output")
-
-        # now, in all cases, Xt is in the right scitype,
-        #   but not necessarily in the right mtype.
-        # additionally, Primitives may have an extra column
-
-        #   "case 1: scitype supported"
-        #   "case 2: higher scitype supported"
-        #   "case 3: requires vectorization"
-
-        if output_scitype == "Series":
-            # output mtype is input mtype
-            X_output_mtype = X_input_mtype
-
-            # exception to this: if the transformer outputs multivariate series,
-            #   we cannot convert back to pd.Series, do pd.DataFrame instead then
-            #   this happens only for Series, not Panel
-            if X_input_scitype == "Series":
-                valid, msg, metadata = check_is_mtype(
-                    Xt,
-                    ["pd.DataFrame", "pd.Series", "np.ndarray"],
-                    return_metadata=True,
-                )
-                if not valid:
-                    raise TypeError(
-                        f"_transform output of {type(self)} does not comply "
-                        "with aeon mtype specifications. See datatypes.MTYPE_REGISTER"
-                        " for mtype specifications. Returned error message:"
-                        f" {msg}. Returned object: {Xt}"
-                    )
-                if not metadata["is_univariate"] and X_input_mtype == "pd.Series":
-                    X_output_mtype = "pd.DataFrame"
-
-            Xt = convert_to(
-                Xt,
-                to_type=X_output_mtype,
-                as_scitype=X_input_scitype,
-                store=_converter_store_X,
-                store_behaviour="freeze",
-            )
-        elif output_scitype == "Primitives":
-            # we ensure the output is pd_DataFrame_Table
-            # & ensure the returned index is sensible
-            # for return index, we need to deal with last level, constant 0
-            if isinstance(Xt, (pd.DataFrame, pd.Series)):
-                # if index is multiindex, last level is constant 0
-                # and other levels are hierarchy
-                if isinstance(Xt.index, pd.MultiIndex):
-                    Xt.index = Xt.index.droplevel(-1)
-                # else this is only zeros and should be reset to RangeIndex
-                else:
-                    Xt = Xt.reset_index(drop=True)
-            Xt = convert_to(
-                Xt,
-                to_type="pd_DataFrame_Table",
-                as_scitype="Table",
-                # no converter store since this is not a "1:1 back-conversion"
-            )
-        # else output_scitype is "Panel" and no need for conversion
-
-        return Xt
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
