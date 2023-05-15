@@ -47,21 +47,19 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     # default tag values - these typically make the "safest" assumption
     _tags = {
         "scitype:transform-input": "Panel",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Panel",
-        # what scitype is returned: Primitives, Series, Panel
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
+        "capability:unequal_length": False,
     }
 
-    # allowed mtypes for transformers - Series and Panel
-    ALLOWED_INPUT_MTYPES = [
-        "nested_univ",
+    # allowed types for transformers - Series and Panel
+    ALLOWED_INPUT_TYPES = [
         "numpy3D",
         "numpyflat",
-        "pd-multiindex",
+        "np-list" "pd-multiindex",
         "df-list",
+        "nested_univ",
     ]
 
     def __init__(self, _output_convert="auto"):
