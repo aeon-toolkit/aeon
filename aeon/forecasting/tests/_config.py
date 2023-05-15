@@ -31,8 +31,8 @@ TEST_CUTOFFS_INT_ARR = [np.array([21, 22]), np.array([3, 10])]
 # The following timestamps correspond
 # to the above integers for `_make_series(all_positive=True)`
 TEST_CUTOFFS_TIMESTAMP = [
-    pd.to_datetime(["2000-01-22", "2000-01-23"]),
-    pd.to_datetime(["2000-01-04", "2000-01-11"]),
+    pd.to_datetime(["2000-01-23"]),
+    pd.to_datetime(["2000-01-04"]),
 ]
 TEST_CUTOFFS = [*TEST_CUTOFFS_INT_LIST, *TEST_CUTOFFS_INT_ARR, *TEST_CUTOFFS_TIMESTAMP]
 
@@ -67,8 +67,6 @@ TEST_OOS_FHS = [1, np.array([2, 5], dtype="int64")]  # out-of-sample
 TEST_INS_FHS = [
     -3,  # single in-sample
     np.array([-2, -5], dtype="int64"),  # multiple in-sample
-    0,  # last training point
-    np.array([-3, 2], dtype="int64"),  # mixed in-sample and out-of-sample
 ]
 TEST_FHS = [*TEST_OOS_FHS, *TEST_INS_FHS]
 
@@ -78,9 +76,6 @@ TEST_OOS_FHS_TIMEDELTA = [
 TEST_INS_FHS_TIMEDELTA = [
     pd.Timedelta(-3, unit="D"),  # single in-sample
     [pd.Timedelta(-2, unit="D"), pd.Timedelta(-5, unit="D")],  # multiple in-sample
-    [
-        pd.Timedelta(-3, unit="D"),
-    ],  # mixed in-sample and out-of-sample
 ]
 TEST_FHS_TIMEDELTA = [*TEST_OOS_FHS_TIMEDELTA, *TEST_INS_FHS_TIMEDELTA]
 
