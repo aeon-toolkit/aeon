@@ -64,6 +64,7 @@ all_extras = [
     "mne",
     "pmdarima>=1.8.0,!=1.8.1,<3.0.0",
     "prophet>=1.1",
+    "holidays<0.25",  # see https://github.com/facebook/prophet/issues/2430
     "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
