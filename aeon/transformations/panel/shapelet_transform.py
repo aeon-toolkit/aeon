@@ -151,7 +151,8 @@ class ShapeletTransform(BaseCollectionTransformer):
         self.remove_self_similar = remove_self_similar
         self.predefined_ig_rejection_level = 0.05
         self.shapelets = None
-        super(ShapeletTransform, self).__init__(_output_convert=False)
+
+        super(ShapeletTransform, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
@@ -1019,7 +1020,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._class_dictionary = {}
         self._sorted_indicies = []
 
-        super(RandomShapeletTransform, self).__init__(_output_convert=False)
+        super(RandomShapeletTransform, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
