@@ -57,7 +57,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     ALLOWED_INPUT_TYPES = [
         "numpy3D",
         "numpyflat",
-        "np-list" "pd-multiindex",
+        "np-list",
+        "pd-multiindex",
         "df-list",
         "nested_univ",
     ]
