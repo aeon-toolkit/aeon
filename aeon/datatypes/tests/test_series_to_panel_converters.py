@@ -8,7 +8,7 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.utils._testing.collection import make_3d_test_data, make_nested_dataframe_data
+from aeon.utils._testing.collection import make_3d_test_data
 from aeon.utils._testing.series import _make_series
 
 
@@ -38,8 +38,7 @@ def test_convert_numpy_panel_to_series():
 
 def test_convert_df_series_to_panel():
     """Test output format of series-to-panel for dataframe type input."""
-    X_series, _ = make_nested_dataframe_data(n_cases=2)
-
+    X_series = _make_series(n_columns=2, return_numpy=False)
     X_panel = convert_Series_to_Panel(X_series)
 
     assert isinstance(X_panel, list)
