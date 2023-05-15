@@ -47,7 +47,7 @@ class MiniRocket(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.panel.rocket import Rocket
+     >>> from aeon.transformations.panel.rocket import MiniRocket
      >>> from aeon.datasets import load_unit_test
      >>> X_train, y_train = load_unit_test(split="train")
      >>> X_test, y_test = load_unit_test(split="test")

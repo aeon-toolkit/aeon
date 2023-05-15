@@ -5,6 +5,7 @@
 
 
 aeon/regression/dummy/ @badrmarani
+aeon/regression/feature_based/_fresh_prince.py @dguijo
 
 aeon/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
@@ -56,6 +57,7 @@ aeon/transformations/panel/dictionary_based/_sfa_fast.py @patrickzib @MatthewMid
 aeon/transformations/panel/catch22.py @MatthewMiddlehurst
 aeon/transformations/panel/catch22wrapper.py @MatthewMiddlehurst
 aeon/transformations/panel/random_intervals.py @MatthewMiddlehurst
+aeon/transformations/panel/dilated_shapelet_transform.py @baraline
 aeon/transformations/panel/shapelet_transform.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/panel/supervised_intervals.py @MatthewMiddlehurst
 aeon/transformations/panel/rocket/ @angus924

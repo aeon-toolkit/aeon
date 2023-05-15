@@ -19,6 +19,7 @@ from aeon.classification.early_classification import (
 )
 from aeon.classification.feature_based import (
     Catch22Classifier,
+    FreshPRINCEClassifier,
     MatrixProfileClassifier,
     SignatureClassifier,
     SummaryClassifier,
@@ -34,7 +35,6 @@ from aeon.classification.interval_based import (
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.datatypes._panel._convert import from_nested_to_3d_numpy
 from aeon.transformations.panel.catch22 import Catch22
 from aeon.transformations.panel.catch22wrapper import Catch22Wrapper
 from aeon.transformations.panel.random_intervals import RandomIntervals
@@ -243,6 +243,26 @@ if __name__ == "__main__":
             Catch22Classifier(
                 estimator=RandomForestClassifier(n_estimators=10),
                 outlier_norm=True,
+                random_state=0,
+            )
+        ),
+    )
+    _print_array(
+        "FreshPRINCEClassifier - UnitTest",
+        _reproduce_classification_unit_test(
+            FreshPRINCEClassifier(
+                default_fc_parameters="minimal",
+                n_estimators=10,
+                random_state=0,
+            )
+        ),
+    )
+    _print_array(
+        "FreshPRINCEClassifier - BasicMotions",
+        _reproduce_classification_basic_motions(
+            FreshPRINCEClassifier(
+                default_fc_parameters="minimal",
+                n_estimators=10,
                 random_state=0,
             )
         ),

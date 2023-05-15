@@ -86,7 +86,7 @@ unit_test_proba["ElasticEnsemble"] = np.array(
         [1.0, 0.0],
         [0.0, 1.0],
         [1.0, 0.0],
-        [0.33333333, 0.66666667],
+        [0.66666667, 0.33333333],
         [1.0, 0.0],
         [0.66666667, 0.33333333],
         [0.0, 1.0],
@@ -120,6 +120,20 @@ unit_test_proba["Catch22Classifier"] = np.array(
         [0.2, 0.8],
         [0.8, 0.2],
         [0.8, 0.2],
+    ]
+)
+unit_test_proba["FreshPRINCEClassifier"] = np.array(
+    [
+        [0.2, 0.8],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
     ]
 )
 unit_test_proba["MatrixProfileClassifier"] = np.array(
@@ -373,6 +387,20 @@ basic_motions_proba["Catch22Classifier"] = np.array(
         [0.1, 0.0, 0.7, 0.2],
         [0.1, 0.7, 0.1, 0.1],
         [0.0, 0.9, 0.0, 0.1],
+    ]
+)
+basic_motions_proba["FreshPRINCEClassifier"] = np.array(
+    [
+        [0.0, 0.0, 0.1, 0.9],
+        [0.9, 0.0, 0.0, 0.1],
+        [0.0, 0.0, 0.8, 0.2],
+        [0.0, 0.9, 0.0, 0.1],
+        [0.0, 0.0, 0.2, 0.8],
+        [0.0, 0.0, 0.2, 0.8],
+        [0.5, 0.3, 0.0, 0.2],
+        [0.0, 0.0, 0.7, 0.3],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.1, 0.8, 0.0, 0.1],
     ]
 )
 basic_motions_proba["RandomIntervalClassifier"] = np.array(

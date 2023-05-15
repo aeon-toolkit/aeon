@@ -5,7 +5,6 @@ Nearest neighbour classifier that extracts shape features.
 """
 
 import numpy as np
-import pandas as pd
 
 # Tuning
 from sklearn.model_selection import GridSearchCV, KFold
@@ -15,8 +14,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.datatypes import convert
-from aeon.datatypes._panel._convert import from_3d_numpy_to_nested
 from aeon.transformations.panel.dictionary_based._paa import PAA
 from aeon.transformations.panel.dwt import DWTTransformer
 
@@ -138,7 +135,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of training data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - list of class labels of shape [n_instances].
 
         Returns
@@ -151,10 +148,10 @@ class ShapeDTW(BaseClassifier):
                 f"shape_descriptor_function must be an 'str'. Found "
                 f"{type(self.shape_descriptor_function).__name__} instead."
             )
-
         if self.metric_params is None:
-            self.metric_params = {}
-            _reset = True
+            self._metric_params = {}
+        else:
+            self._metric_params = self.metric_params
 
         # If the shape descriptor is 'compound',
         # calculate the appropriate weighting_factor
@@ -173,9 +170,6 @@ class ShapeDTW(BaseClassifier):
         self.knn = KNeighborsTimeSeriesClassifier(n_neighbors=self.n_neighbors)
         self.knn.fit(X, y)
         self.classes_ = self.knn.classes_
-        # Hack to pass the unit tests
-        if _reset:
-            self.metric_params = None
         return self
 
     def _calculate_weighting_factor_value(self, X, y):
@@ -188,14 +182,14 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - training data in a dataframe of shape [n_instances,1]
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - training data classes of shape [n_instances].
         """
-        self.metric_params = {k.lower(): v for k, v in self.metric_params.items()}
+        self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}
 
         # Get the weighting_factor if one is provided
-        if self.metric_params.get("weighting_factor") is not None:
-            self.weighting_factor = self.metric_params.get("weighting_factor")
+        if self._metric_params.get("weighting_factor") is not None:
+            self.weighting_factor = self._metric_params.get("weighting_factor")
         else:
             # Tune it otherwise
             self._param_matrix = {
@@ -224,11 +218,11 @@ class ShapeDTW(BaseClassifier):
                     + "shape_descriptor_functions must be a "
                     + "string array of length 2."
                 )
-            mp = self.metric_params
+            mp = self._metric_params
 
             grid = GridSearchCV(
                 estimator=ShapeDTW(
-                    n_neighbours=n,
+                    n_neighbors=n,
                     subsequence_length=sl,
                     shape_descriptor_function=sdf,
                     shape_descriptor_functions=sdfs,
@@ -248,13 +242,11 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        X = self.sw.transform(X)
-        # Temporary until conversion complete
-        X = from_3d_numpy_to_nested(X)
+        _X = self.sw.transform(X)
         # Feed X into the appropriate shape descriptor function
-        X = self._generate_shape_descriptors(X)
+        _X = self._generate_shape_descriptors(_X)
 
-        return X
+        return _X
 
     def _predict_proba(self, X) -> np.ndarray:
         """Perform predictions on the testing data X.
@@ -263,7 +255,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of testing data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
@@ -316,29 +308,22 @@ class ShapeDTW(BaseClassifier):
                 )
 
         # To hold the result of each transformer
-        dataFrames = []
-        col_names = list(range(len(data.columns)))
+        trans_data = []
 
         # Apply each transformer on the set of subsequences
         for t in self.transformer:
             if t is None:
                 # Do no transformations
-                dataFrames.append(data)
+                trans_data.append(data)
             else:
                 # Do the transformation and extract the resulting data frame.
                 t.fit(data)
                 newData = t.transform(data)
-                dataFrames.append(newData)
+                trans_data.append(newData)
 
-        # Combine the arrays into one dataframe
-        if self.shape_descriptor_function == "compound":
-            result = self._combine_data_frames(
-                dataFrames, self.weighting_factor, col_names
-            )
-        else:
-            result = dataFrames[0]
-            result.columns = col_names
-
+        result = trans_data[0]
+        for i in range(1, len(trans_data)):
+            result = np.concatenate((result, trans_data[i]), axis=1)
         return result
 
     def _get_transformer(self, tName):
@@ -358,7 +343,7 @@ class ShapeDTW(BaseClassifier):
 
         throws : ValueError if a shape descriptor doesn't exist.
         """
-        parameters = self.metric_params
+        parameters = self._metric_params
         tName = tName.lower()
         if parameters is None:
             parameters = {}
@@ -398,22 +383,23 @@ class ShapeDTW(BaseClassifier):
         if num_intervals is None and num_bins is None:
             return HOG1DTransformer(scaling_factor=scaling_factor)
         if num_intervals is None and scaling_factor is None:
-            return HOG1DTransformer(num_bins=num_bins)
+            return HOG1DTransformer(n_bins=num_bins)
         if num_bins is None and scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals)
+            return HOG1DTransformer(n_intervals=num_intervals)
+
         # 1 parameter is None
         if num_intervals is None:
-            return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
+            return HOG1DTransformer(scaling_factor=scaling_factor, n_bins=num_bins)
         if scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
+            return HOG1DTransformer(n_intervals=num_intervals, n_bins=num_bins)
         if num_bins is None:
             return HOG1DTransformer(
-                scaling_factor=scaling_factor, num_intervals=num_intervals
+                scaling_factor=scaling_factor, n_intervals=num_intervals
             )
         # All parameters are given
         return HOG1DTransformer(
-            num_intervals=num_intervals,
-            num_bins=num_bins,
+            n_intervals=num_intervals,
+            n_bins=num_bins,
             scaling_factor=scaling_factor,
         )
 
@@ -440,48 +426,3 @@ class ShapeDTW(BaseClassifier):
                     + " name is at the end of the metric "
                     + "parameter name."
                 )
-
-    def _combine_data_frames(self, dataFrames, weighting_factor, col_names):
-        """Combine two dataframes together into a single dataframe.
-
-        Used when the shape_descriptor_function is set to "compound".
-        """
-        first_desc = dataFrames[0]
-        second_desc = dataFrames[1]
-
-        first_desc_array = []
-        second_desc_array = []
-
-        # Convert the dataframes into arrays
-        for x in first_desc.columns:
-            first_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-        for x in second_desc.columns:
-            second_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-
-        # Concatenate the arrays together
-        res = []
-        for x in range(len(first_desc_array)):
-            dim1 = []
-            for y in range(len(first_desc_array[x])):
-                dim2 = []
-                dim2.extend(first_desc_array[x][y])
-                dim2.extend(second_desc_array[x][y] * weighting_factor)
-                dim1.append(dim2)
-            res.append(dim1)
-
-        res = np.asarray(res)
-
-        # Convert to pandas dataframe
-        df = pd.DataFrame()
-
-        for col in col_names:
-            colToAdd = []
-            for row in range(len(res[col])):
-                inst = res[col][row]
-                colToAdd.append(pd.Series(inst))
-            df[col] = colToAdd
-        return df

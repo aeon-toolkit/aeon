@@ -23,7 +23,7 @@ def create_bounding_matrix(x_size: int, y_size: int, window: float = None):
 
     Returns
     -------
-    np.ndarray
+    np.ndarray of shape (x_size, y_size)
         Bounding matrix where values in bound are True and values out of bounds are
         False.
 

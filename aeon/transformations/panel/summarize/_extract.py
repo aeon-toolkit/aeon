@@ -7,18 +7,43 @@ __author__ = ["mloning"]
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from numba import njit
 
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.segment import RandomIntervalSegmenter
+
+
+@njit(fastmath=True, cache=True)
+def _der(x: np.ndarray):
+    """Loop based Derivative Slope transform."""
+    m = len(x)
+    der = np.zeros(m)
+    for i in range(1, m - 1):
+        der[i] = ((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2.0)) / 2.0
+    der[0] = der[1]
+    der[m - 1] = der[m - 2]
+    return der
+
+
+def series_slope_derivative(X: np.ndarray) -> np.ndarray:
+    """Find the slope derivative of collection of time series.
+
+    Parameters
+    ----------
+    X: np.ndarray shape (n_time_series, n_channels, series_length)
+
+    Returns
+    -------
+    np.ndarray shape (n_time_series, n_channels, series_length)
+    """
+    return np.apply_along_axis(_der, axis=-1, arr=X)
 
 
 class PlateauFinder(BaseTransformer):
     """Plateau finder transformer.
 
     Transformer that finds segments of the same given value, plateau in
-    the time series, and
-    returns the starting indices and lengths.
+    the time series, and returns the starting indices and lengths.
 
     Parameters
     ----------
@@ -33,43 +58,33 @@ class PlateauFinder(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
-        super(PlateauFinder, self).__init__()
+        super(PlateauFinder, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_samples, n_columns]
-            Nested dataframe with time-series in cells.
+        X : numpy3D array shape (n_cases, 1, series_length)
 
         Returns
         -------
-        Xt : pandas DataFrame
-          Transformed pandas DataFrame
+        X : pandas data frame
         """
-        # get column name
-        column_name = X.columns[0]
-
         self._starts = []
         self._lengths = []
 
         # find plateaus (segments of the same value)
-        for x in X.iloc[:, 0]:
-            x = np.asarray(x)
-
+        for x in X[:, 0]:
             # find indices of transition
             if np.isnan(self.value):
                 i = np.where(np.isnan(x), 1, 0)
@@ -98,7 +113,7 @@ class PlateauFinder(BaseTransformer):
         # put into dataframe
         Xt = pd.DataFrame()
         column_prefix = "%s_%s" % (
-            column_name,
+            "channel_",
             "nan" if np.isnan(self.value) else str(self.value),
         )
         Xt["%s_starts" % column_prefix] = pd.Series(self._starts)
@@ -109,42 +124,24 @@ class PlateauFinder(BaseTransformer):
 
 
 class DerivativeSlopeTransformer(BaseTransformer):
-    """Derivative slope transformer."""
+    """Derivative slope transformer.
+
+    Transformer that finds the slope derivate by simply calling the method
+    `series_slope_derivative`. This function keeps the series the same length by
+    copying the first and last values with the second and last but one.
+    """
 
     _tags = {
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
-    # TODO add docstrings
     def _transform(self, X, y=None):
         """Transform X."""
-        num_cases, num_dim = X.shape
-        output_df = pd.DataFrame()
-        for dim in range(num_dim):
-            dim_data = X.iloc[:, dim]
-            out = self.row_wise_get_der(dim_data)
-            output_df["der_dim_" + str(dim)] = pd.Series(out)
-
-        return output_df
-
-    @staticmethod
-    def row_wise_get_der(X):
-        """Get derivatives."""
-
-        def get_der(x):
-            der = []
-            for i in range(1, len(x) - 1):
-                der.append(((x[i] - x[i - 1]) + ((x[i + 1] - x[i - 1]) / 2)) / 2)
-            return pd.Series([der[0]] + der + [der[-1]])
-
-        return [get_der(x) for x in X]
+        return series_slope_derivative(X)
 
 
 def _check_features(features):
@@ -195,13 +192,10 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
     _tags = {
         "fit_is_empty": False,
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",  # and for y?
+        "scitype:instancewise": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "pd_Series_Table",
     }
 
     def __init__(
@@ -217,7 +211,7 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
         self.max_length = max_length
         self.random_state = random_state
         self.features = features
-        super(RandomIntervalFeatureExtractor, self).__init__()
+        super(RandomIntervalFeatureExtractor, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """
@@ -225,19 +219,16 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame of shape [n_samples, n_features]
-            Input data
-        y : pandas Series, shape (n_samples, ...), optional
+        X: np.ndarray shape (n_time_series, 1, series_length)
+            The training input samples.
+        y : arraylike, shape (n_samples, ...), optional
             Targets for supervised learning.
 
         Returns
         -------
-        self : RandomIntervalSegmenter
+        self :
             This estimator
         """
-        # We use composition rather than inheritance here, because this transformer
-        # has a different transform type (returns tabular) compared to the
-        # RandomIntervalSegmenter (returns panel).
         self._interval_segmenter = RandomIntervalSegmenter(
             self.n_intervals, self.min_length, self.max_length, self.random_state
         )
@@ -256,8 +247,8 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
 
         Parameters
         ----------
-        X : nested pandas.DataFrame of shape [n_instances, n_features]
-            Nested dataframe with time-series in cells.
+        X: np.ndarray shape (n_time_series, 1, series_length)
+            The training input samples.
 
         Returns
         -------
@@ -268,7 +259,6 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
         # Check input of feature calculators, i.e list of functions to be
         # applied to time-series
         features = _check_features(self.features)
-        X = convert_to(X, "numpy3D")
 
         # Check that the input is of the same shape as the one passed
         # during fit.
@@ -296,7 +286,6 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
         i = 0
         drop_list = []
         for func in features:
-            # TODO generalise to series-to-series functions and function kwargs
             for start, end in intervals:
                 interval = X[:, :, start:end]
 
@@ -358,7 +347,7 @@ class FittedParamExtractor(BaseTransformer):
         "scitype:transform-output": "Primitives",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
     }
 
@@ -366,15 +355,15 @@ class FittedParamExtractor(BaseTransformer):
         self.forecaster = forecaster
         self.param_names = param_names
         self.n_jobs = n_jobs
-        super(FittedParamExtractor, self).__init__()
+        super(FittedParamExtractor, self).__init__(_output_convert=True)
 
     def _transform(self, X, y=None):
         """Transform X.
 
         Parameters
         ----------
-        X : pd.DataFrame
-            Univariate time series to transform.
+        X: np.ndarray shape (n_time_series, 1, series_length)
+            The training input samples.
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -444,9 +433,7 @@ class FittedParamExtractor(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.forecasting.exp_smoothing import ExponentialSmoothing
         from aeon.forecasting.trend import TrendForecaster
-        from aeon.utils.validation._dependencies import _check_estimator_deps
 
         # accessing a nested parameter
         params = [
@@ -455,15 +442,4 @@ class FittedParamExtractor(BaseTransformer):
                 "param_names": ["regressor__intercept"],
             }
         ]
-
-        # ExponentialSmoothing requires statsmodels
-        if _check_estimator_deps(ExponentialSmoothing, severity="none"):
-            # accessing a top level parameter
-            params = params + [
-                {
-                    "forecaster": ExponentialSmoothing(),
-                    "param_names": ["initial_level"],
-                }
-            ]
-
         return params

@@ -29,8 +29,19 @@ EXCLUDE_ESTIMATORS = [
     "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
 ]
 
-
 EXCLUDED_TESTS = {
+    # InceptionTimeClassifier contains deep learners, it isnt one itself, so still
+    # exclude
+    "InceptionTimeClassifier": [
+        "test_fit_deterministic",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+    ],
+    "InceptionTimeRegressor": [
+        "test_fit_deterministic",
+        "test_persistence_via_pickle",
+        "test_save_estimators_to_file",
+    ],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
     # known issue when X is passed, wrong time indices are returned, #1364
@@ -44,79 +55,6 @@ EXCLUDED_TESTS = {
         "test_classifier_on_unit_test_data",
         "test_classifier_on_basic_motions",
     ],
-    # TapNet fails due to Lambda layer, see #3539 and #3616
-    "TapNetClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-    ],
-    "TapNetRegressor": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-    ],
-    # `test_fit_idempotent` fails with `AssertionError`, see #3616
-    "ResNetClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_methods_have_no_side_effects",
-    ],
-    "CNNClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_methods_have_no_side_effects",
-    ],
-    "CNNRegressor": [
-        "test_fit_idempotent",
-    ],
-    "InceptionTimeRegressor": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-    ],
-    "EncoderClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_methods_have_no_side_effects",
-    ],
-    "FCNClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_methods_have_no_side_effects",
-    ],
-    "MLPClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_fit_does_not_overwrite_hyper_params",
-        "test_methods_have_no_side_effects",
-    ],
-    "InceptionTimeClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_methods_have_no_side_effects",
-    ],
-    "IndividualInceptionClassifier": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_methods_have_no_side_effects",
-    ],
-    "IndividualInceptionRegressor": [
-        "test_fit_idempotent",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-        "test_methods_have_no_side_effects",
-    ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
     "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
@@ -124,18 +62,18 @@ EXCLUDED_TESTS = {
     "ColumnTransformer": ["test_non_state_changing_method_contract"],
     # Early classifiers (EC) intentionally retain information from previous predict
     # calls for #1 (test_non_state_changing_method_contract).
-    # #2 (test_fit_idempotent), #3 (test_persistence_via_pickle) and #4
+    # #2 (test_fit_deterministic), #3 (test_persistence_via_pickle) and #4
     # (test_save_estimators_to_file) are due to predict/predict_proba returning two
     # items and that breaking assert_array_equal.
     "TEASER": [  # EC
         "test_non_state_changing_method_contract",
-        "test_fit_idempotent",
+        "test_fit_deterministic",
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
     "ProbabilityThresholdEarlyClassifier": [  # EC
         "test_non_state_changing_method_contract",
-        "test_fit_idempotent",
+        "test_fit_deterministic",
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],

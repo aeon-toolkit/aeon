@@ -5,9 +5,7 @@
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 
-from warnings import warn
-
-from aeon.datatypes._panel._convert import from_nested_to_long
+from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -19,14 +17,11 @@ class _TSFreshFeatureExtractor(BaseTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "scitype:instancewise": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
+        "fit_is_empty": True,
         "python_dependencies": "tsfresh",
     }
 
@@ -36,7 +31,7 @@ class _TSFreshFeatureExtractor(BaseTransformer):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
+        show_warnings=False,
         disable_progressbar=False,
         impute_function=None,
         profiling=None,
@@ -237,8 +232,8 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,
@@ -266,28 +261,17 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to transform
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
+        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+            input time series collection.
             transformed version of X
         """
-        # tsfresh requires unique index, returns only values for
-        # unique index values
-        if X.index.nunique() < X.shape[0]:
-            warn(
-                "tsfresh requires a unique index, but found "
-                "non-unique. To avoid this warning, please make sure the index of X "
-                "contains only unique values."
-            )
-            X = X.reset_index(drop=True)
-
-        Xt = from_nested_to_long(X)
+        Xt = from_3d_numpy_to_long(X)
 
         # lazy imports to avoid hard dependency
         from tsfresh import extract_features
@@ -300,11 +284,8 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-
-        # When using the long input format, tsfresh seems to sort the index,
-        # here we make sure we return the dataframe in the sort order as the
-        # input data
-        return Xt.reindex(X.index)
+        #        return Xt.reindex(X.index)
+        return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -382,7 +363,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         heuristics are used to find the optimal chunksize. If you get out of
         memory exceptions, you can try it with the dask distributor and a
         smaller chunksize.
-    show_warnings : bool, default=True
+    show_warnings : bool, default=False
         Show warnings during the feature extraction (needed for debugging of
         calculators).
     disable_progressbar : bool, default=False
@@ -475,8 +456,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,
@@ -626,7 +607,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        Xt = Xt.reindex(X.index)
+        #       Xt = Xt.reindex(X.index)
 
         return Xt
 

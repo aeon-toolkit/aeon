@@ -83,13 +83,12 @@ class MiniRocketMultivariateVariable(BaseTransformer):
     _tags = {
         "univariate-only": False,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "capability:unequal_length": True,
         "scitype:transform-labels": "None",
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "df-list",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "df-list",
+        "y_inner_mtype": "None",
         "requires_y": False,
     }
 
@@ -134,16 +133,12 @@ class MiniRocketMultivariateVariable(BaseTransformer):
 
         super(MiniRocketMultivariateVariable, self).__init__()
 
-    def _fit(self, X: List[pd.DataFrame], y=None):
+    def _fit(self, X: List[np.ndarray], y=None):
         """Fits dilations and biases to input time series.
 
         Parameters
         ----------
-        X : pd.DataFrame
-            Dataframe with n_instances-rows and n_dimensions-columns,
-            each cell containing a series_length-long array.
-            n_dimensions is equal across all instances in `X`, and
-            series_length is constant within each instance.
+        X : List of 2D np.ndarray
         y : ignored argument for interface compatibility
 
         Returns
