@@ -7,7 +7,6 @@ __all__ = ["MiniRocket"]
 import multiprocessing
 
 import numpy as np
-import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.base import BaseTransformer
@@ -32,6 +31,7 @@ class MiniRocket(BaseTransformer):
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     See Also
     --------
@@ -47,13 +47,13 @@ class MiniRocket(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.panel.rocket import Rocket
+     >>> from aeon.transformations.panel.rocket import MiniRocket
      >>> from aeon.datasets import load_unit_test
      >>> X_train, y_train = load_unit_test(split="train")
      >>> X_test, y_test = load_unit_test(split="test")
      >>> trf = MiniRocket(num_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocket(...)
+     MiniRocket(num_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """
@@ -61,13 +61,10 @@ class MiniRocket(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
     }
 
     def __init__(
@@ -82,14 +79,14 @@ class MiniRocket(BaseTransformer):
 
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(MiniRocket, self).__init__()
+        super(MiniRocket, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -139,7 +136,7 @@ class MiniRocket(BaseTransformer):
         set_num_threads(n_jobs)
         X_ = _transform(X, self.parameters)
         set_num_threads(prev_threads)
-        return pd.DataFrame(X_)
+        return X_
 
 
 @njit(

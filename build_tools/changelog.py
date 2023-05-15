@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""RestructuredText changelog generator."""
+"""Myst Markdown changelog generator."""
 
 import os
 from collections import defaultdict
@@ -15,13 +15,12 @@ HEADERS = {
 if os.getenv("GITHUB_TOKEN") is not None:
     HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
 
-OWNER = "aeon"
+OWNER = "aeon-toolkit"
 REPO = "aeon"
 GITHUB_REPOS = "https://api.github.com/repos"
 
-
 def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:  # noqa
-    "Fetch a page of pull requests"
+    """Fetch a page of pull requests"""
     params = {
         "base": "main",
         "state": "closed",
@@ -50,8 +49,7 @@ def fetch_latest_release():  # noqa
 
 
 def fetch_pull_requests_since_last_release() -> List[Dict]:  # noqa
-    "Fetch pull requests and filter based on merged date"
-
+    """Fetch pull requests and filter based on merged date"""
     release = fetch_latest_release()
     published_at = parser.parse(release["published_at"])
     print(  # noqa
@@ -66,13 +64,13 @@ def fetch_pull_requests_since_last_release() -> List[Dict]:  # noqa
         all_pulls.extend(
             [p for p in pulls if parser.parse(p["merged_at"]) > published_at]
         )
-        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls)
+        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls) or len(pulls) == 0
         page += 1
     return all_pulls
 
 
 def github_compare_tags(tag_left: str, tag_right: str = "HEAD"):  # noqa
-    "Compare commit between two tags"
+    """Compare commit between two tags"""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/compare/{tag_left}...{tag_right}"
     )
@@ -82,58 +80,60 @@ def github_compare_tags(tag_left: str, tag_right: str = "HEAD"):  # noqa
         raise ValueError(response.text, response.status_code)
 
 
-def render_contributors(prs: List, fmt: str = "rst"):  # noqa
-    "Find unique authors and print a list in  given format"
+EXCLUDED_USERS = ["github-actions[bot]"]
+
+def render_contributors(prs: List, fmt: str = "myst"):  # noqa
+    """Find unique authors and print a list in  given format"""
     authors = sorted({pr["user"]["login"] for pr in prs}, key=lambda x: x.lower())
 
-    header = "Contributors"
+    header = "Contributors\n"
     if fmt == "github":
         print(f"### {header}")  # noqa
-        print(", ".join(f"@{user}" for user in authors))  # noqa
-    elif fmt == "rst":
-        print(header)  # noqa
-        print("~" * len(header), end="\n\n")  # noqa
-        print(",\n".join(f":user:`{user}`" for user in authors))  # noqa
+        print(", ".join(f"@{user}" for user in authors if user not in EXCLUDED_USERS))  # noqa
+    elif fmt == "myst":
+        print(f"## {header}")  # noqa
+        print(",\n".join("{user}" + f"`{user}`" for user in authors if user not in EXCLUDED_USERS))  # noqa
 
 
 def assign_prs(prs, categs: List[Dict[str, List[str]]]):  # noqa
-    "Assign PR to categories based on labels"
+    """Assign PR to categories based on labels"""
     assigned = defaultdict(list)
 
     for i, pr in enumerate(prs):
         for cat in categs:
             pr_labels = [label["name"] for label in pr["labels"]]
+            if cat["title"] != "Not Included" and "no changelog" in pr_labels:
+                continue
             if not set(cat["labels"]).isdisjoint(set(pr_labels)):
                 assigned[cat["title"]].append(i)
-
-    #             if any(l.startswith("module") for l in pr_labels):
-    #                 print(i, pr_labels)
 
     assigned["Other"] = list(
         set(range(len(prs))) - {i for _, l in assigned.items() for i in l}
     )
 
+    if "Not Included" in assigned:
+        assigned.pop("Not Included")
+
     return assigned
 
 
 def render_row(pr):  # noqa
-    "Render a single row with PR in restructuredText format"
+    """Render a single row with PR in Myst Markdown format"""
     print(  # noqa
-        "*",
-        pr["title"].replace("`", "``"),
-        f"(:pr:`{pr['number']}`)",
-        f":user:`{pr['user']['login']}`",
+        "-",
+        pr["title"],
+        "({pr}" + f"`{pr['number']}`)",
+        "{user}" + f"`{pr['user']['login']}`",
     )
 
 
 def render_changelog(prs, assigned):  # noqa
     # sourcery skip: use-named-expression
-    "Render changelog"
+    """Render changelog"""
     for title, _ in assigned.items():
         pr_group = [prs[i] for i in assigned[title]]
         if pr_group:
-            print(f"\n{title}")  # noqa
-            print("~" * len(title), end="\n\n")  # noqa
+            print(f"\n## {title}\n")  # noqa
 
             for pr in sorted(pr_group, key=lambda x: parser.parse(x["merged_at"])):
                 render_row(pr)
@@ -141,11 +141,12 @@ def render_changelog(prs, assigned):  # noqa
 
 if __name__ == "__main__":
     categories = [
-        {"title": "Enhancements", "labels": ["feature", "enhancement"]},
-        {"title": "Fixes", "labels": ["bug", "fix", "bugfix"]},
-        {"title": "Maintenance", "labels": ["maintenance", "chore"]},
+        {"title": "Enhancements", "labels": ["enhancement"]},
+        {"title": "Fixes", "labels": ["bug"]},
+        {"title": "Maintenance", "labels": ["maintenance"]},
         {"title": "Refactored", "labels": ["refactor"]},
         {"title": "Documentation", "labels": ["documentation"]},
+        {"title": "Not Included", "labels": ["no changelog"]},  # this is deleted
     ]
 
     pulls = fetch_pull_requests_since_last_release()

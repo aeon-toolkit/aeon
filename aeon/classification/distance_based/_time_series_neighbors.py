@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """KNN time series classification.
 
-This class is a KNN classifier which supports time series distance measures.
+A KNN classifier which supports time series distance measures.
 The class has hardcoded string references to numba based distances in aeon.distances.
-It can also be used with callables, or aeon (pairwise transformer) estimators.
+It can also be used with callable distance functions.
 """
 
 __author__ = ["TonyBagnall", "GuiArcencio"]
@@ -12,7 +12,7 @@ __all__ = ["KNeighborsTimeSeriesClassifier"]
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -65,6 +65,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
 
@@ -95,17 +97,16 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
-        y : {array-like, sparse matrix}
-            Class labels of shape = [n_samples]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
+        y : array-like, shape = (n_cases)
+            The class labels.
         """
         if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
+            self.metric_ = get_distance_function(metric=self.distance)
 
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
@@ -116,18 +117,22 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        p : array of shape = [n_samples, n_classes]
+        p : array of shape = (n_cases, n_classes_)
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
         self.check_is_fitted()
 
-        preds = np.zeros((X.shape[0], len(self.classes_)))
-        for i in range(X.shape[0]):
+        preds = np.zeros((len(X), len(self.classes_)))
+        for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
             for id, w in zip(idx, weights):
                 predicted_class = self.y_[id]
@@ -142,17 +147,21 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible Panel data format, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        y : array of shape [n_samples] or [n_samples, n_outputs]
+        y : array of shape (n_cases)
             Class labels for each data sample.
         """
         self.check_is_fitted()
 
-        preds = np.empty(X.shape[0], dtype=self.classes_.dtype)
-        for i in range(X.shape[0]):
+        preds = np.empty(len(X), dtype=self.classes_.dtype)
+        for i in range(len(X)):
             scores = np.zeros(len(self.classes_))
             idx, weights = self._kneighbors(X[i])
             for id, w in zip(idx, weights):
@@ -170,7 +179,11 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : aeon-compatible data format, Panel or Series, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
@@ -179,9 +192,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ws : array
             Array representing the weights of each neighbor.
         """
-        distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
-        )
+        distances = np.array([self.metric_(X, self.X_[j]) for j in range(len(self.X_))])
 
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]

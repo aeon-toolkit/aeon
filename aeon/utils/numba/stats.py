@@ -483,3 +483,46 @@ def fisher_score(X, y):
         return 0
     else:
         return accum_numerator / accum_denominator
+
+
+@njit(cache=True, fastmath=True)
+def prime_up_to(n):
+    """Check if any number from one to n is a prime number the ones who are.
+
+    Parameters
+    ----------
+    n : int
+        Number up to which the search for prime number will go.
+
+    Returns
+    -------
+    array
+        Prime numbers up to n.
+    """
+    is_p = np.zeros(n + 1, dtype=np.bool_)
+    for i in range(n + 1):
+        is_p[i] = is_prime(i)
+    return np.where(is_p)[0]
+
+
+@njit(cache=True, fastmath=True)
+def is_prime(n):
+    """Check if the passed number is a prime number.
+
+    Parameters
+    ----------
+    n : int
+        A number to test
+
+    Returns
+    -------
+    bool
+        Wheter n is a prime number
+
+    """
+    if (n % 2 == 0 and n > 2) or n == 0 or n == 1:
+        return False
+    for i in range(3, int(n**0.5) + 1, 2):
+        if not n % i:
+            return False
+    return True

@@ -147,6 +147,14 @@ Shapelets, wavelets, and convolution
     ShapeletTransform
     RandomShapeletTransform
 
+.. currentmodule:: aeon.transformations.panel.dilated_shapelet_transform
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RandomDilatedShapeletTransform
+
 .. currentmodule:: aeon.transformations.panel.rocket
 
 .. autosummary::
@@ -330,8 +338,7 @@ Filtering and denoising
     :toctree: auto_generated/
     :template: class.rst
 
-    KalmanFilterTransformerPK
-    KalmanFilterTransformerFP
+    KalmanFilterTransformer
 
 .. currentmodule:: aeon.transformations.series.theta
 
@@ -534,7 +541,7 @@ Equal length transforms
 
 These transformations ensure all series in a panel have equal length
 
-.. currentmodule:: aeon.transformations.panel.padder
+.. currentmodule:: aeon.transformations.panel.pad
 
 .. autosummary::
     :toctree: auto_generated/
@@ -542,7 +549,7 @@ These transformations ensure all series in a panel have equal length
 
     PaddingTransformer
 
-.. currentmodule:: aeon.transformations.panel.truncation
+.. currentmodule:: aeon.transformations.panel.truncate
 
 .. autosummary::
     :toctree: auto_generated/

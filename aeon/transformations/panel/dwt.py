@@ -3,9 +3,7 @@
 import math
 
 import numpy as np
-import pandas as pd
 
-from aeon.datatypes import convert
 from aeon.transformations.base import BaseTransformer
 
 __author__ = "Vincent Nicholson"
@@ -18,23 +16,29 @@ class DWTTransformer(BaseTransformer):
 
     Parameters
     ----------
-    num_levels : int, number of levels to perform the Haar wavelet
+    n_levels : int, number of levels to perform the Haar wavelet
                  transformation.
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel import DWTTransformer
+    >>> import numpy as np
+    >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
+    >>> dwt = DWTTransformer(n_levels=2)
+    >>> data2 = dwt.fit_transform(data)
+
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
         "fit_is_empty": True,
     }
 
-    def __init__(self, num_levels=3):
-        self.num_levels = num_levels
+    def __init__(self, n_levels=3):
+        self.n_levels = n_levels
         super(DWTTransformer, self).__init__()
 
     def _transform(self, X, y=None):
@@ -42,49 +46,27 @@ class DWTTransformer(BaseTransformer):
 
         private _transform containing core logic, called from transform
 
-        Parameters
-        ----------
-        X : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of X must contain pandas.Series
-            Data to fit transform to
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+            collection of time series to transform
         y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
 
         Returns
         -------
-        Xt : nested pandas DataFrame of shape [n_instances, n_features]
-            each cell of Xt contains pandas.Series
-            transformed version of X
+        Xt : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+            collection of transformed time series
         """
+        n_instances, n_channels, n_timepoints = X.shape
+        _X = np.swapaxes(X, 0, 1)
         self._check_parameters()
 
-        # Get information about the dataframe
-        col_names = X.columns
+        # On each dimension, perform PAA
+        channels = []
+        for i in range(n_channels):
+            channels.append(self._extract_wavelet_coefficients(_X[i]))
+        result = np.array(channels)
+        result = np.swapaxes(result, 0, 1)
 
-        Xt = pd.DataFrame()
-        for x in col_names:
-            # Convert one of the columns in the dataframe to numpy array
-            arr = convert(
-                pd.DataFrame(X[x]),
-                from_type="nested_univ",
-                to_type="numpyflat",
-                as_scitype="Panel",
-            )
-
-            transformedData = self._extract_wavelet_coefficients(arr)
-
-            # Convert to a numpy array
-            transformedData = np.asarray(transformedData)
-
-            # Add it to the dataframe
-            colToAdd = []
-            for i in range(len(transformedData)):
-                inst = transformedData[i]
-                colToAdd.append(pd.Series(inst))
-
-            Xt[x] = colToAdd
-
-        return Xt
+        return result
 
     def _extract_wavelet_coefficients(self, data):
         """Extract wavelet coefficients of a 2d array of time series.
@@ -93,7 +75,7 @@ class DWTTransformer(BaseTransformer):
         from levels 1 to num_levels followed by the approximation
         coefficients of the highest level.
         """
-        num_levels = self.num_levels
+        num_levels = self.n_levels
         res = []
 
         for x in data:
@@ -123,14 +105,14 @@ class DWTTransformer(BaseTransformer):
         ------
         ValueError or TypeError if a parameters input is invalid.
         """
-        if isinstance(self.num_levels, int):
-            if self.num_levels <= -1:
+        if isinstance(self.n_levels, int):
+            if self.n_levels <= -1:
                 raise ValueError("num_levels must have the value" + "of at least 0")
         else:
             raise TypeError(
                 "num_levels must be an 'int'. Found"
                 + "'"
-                + type(self.num_levels).__name__
+                + type(self.n_levels).__name__
                 + "' instead."
             )
 

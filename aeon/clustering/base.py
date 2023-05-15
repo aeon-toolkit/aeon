@@ -29,9 +29,8 @@ class BaseClusterer(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
-        # this is either "numpy3D" or "nested_univ" (nested pd.DataFrame). Other
-        # types are allowable, see datatypes/panel/_registry.py for options.
+        "X_inner_mtype": "numpy3D",
+        # other types are allowable, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -52,10 +51,8 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : Training time series instances to cluster. np.ndarray (2d or 3d array of
-        shape (n_instances, series_length) or shape (n_instances, n_dimensions,
-        series_length)) or pd.DataFrame (where each column is a dimension, each cell
-        is a pd.Series (any number of dimensions, equal or unequal length series)).
-        Converted to type _tags["X_inner_mtype"]
+        shape (n_instances, series_length) or shape (n_instances, n_channels,
+        series_length)).
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -89,9 +86,7 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length)) or pd.DataFrame (where each
-            column is a dimension, each cell is a pd.Series (any number of dimensions,
-            equal or unequal length series)).
+            (n_instances, n_channels, series_length)).
             Time series instances to predict their cluster indexes.
         y: ignored, exists for API consistency reasons.
 
@@ -112,9 +107,7 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length)) or pd.DataFrame (where each
-            column is a dimension, each cell is a pd.Series (any number of dimensions,
-            equal or unequal length series)).
+            (n_instances, n_channels, series_length)).
             Time series instances to train clusterer and then have indexes each belong
             to return.
         y: ignored, exists for API consistency reasons.
@@ -138,12 +131,8 @@ class BaseClusterer(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-
 
         Returns
         -------
@@ -162,9 +151,7 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length)) or pd.DataFrame (where each
-            column is a dimension, each cell is a pd.Series (any number of dimensions,
-            equal or unequal length series)).
+            (n_instances, n_channels, series_length)).
             Time series instances to train clusterer and then have indexes each belong
             to return.
         y: ignored, exists for API consistency reasons.
@@ -189,11 +176,8 @@ class BaseClusterer(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            if self.get_tag("X_inner_mtype") = "nested_univ":
-                pd.DataFrame with each column a dimension, each cell a pd.Series
+                3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -223,10 +207,8 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances,n_dimensions,series_length)) or pd.Dataframe.
-            Time series instances to predict their cluster indexes. If data is not
-            equal length a pd.Dataframe given, if another other type of data a
-            np.ndarray given.
+            (n_instances,n_channels,series_length)).
+            Time series instances to predict their cluster indexes.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -243,9 +225,8 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances,n_dimensions,series_length)) or pd.Dataframe.
-            Training time series instances to cluster. If data is not equal length a
-            pd.Dataframe given, if another other type of data a np.ndarray given.
+            (n_instances,n_channels,series_length)).
+            Training time series instances to cluster.
 
         Returns
         -------
@@ -295,18 +276,7 @@ class BaseClusterer(BaseEstimator, ABC):
 
     @staticmethod
     def _initial_conversion(X: Any) -> TimeSeriesInstances:
-        """Format data as valid panel mtype of the data.
-
-        Parameters
-        ----------
-        X: Any
-            Data to convert to panel mtype.
-
-        Returns
-        -------
-        X: np.ndarray (at least 2d) or pd.Dataframe or List[pd.Dataframe]
-            Converted X.
-        """
+        """Convert 2D numpy to 3D if necessary."""
         if isinstance(X, np.ndarray) and X.ndim == 2:
             X = X.reshape(X.shape[0], 1, X.shape[1])
         return X
@@ -319,14 +289,12 @@ class BaseClusterer(BaseEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances,n_dimensions,series_length)) or nested pd.DataFrame (
-            n_instances,n_dimensions).
+            (n_instances,n_channels,series_length)).
             Training time series instances to cluster.
 
         Returns
         -------
-        X : np.ndarray (3d of shape (n_instances,n_dimensions,series_length)) or
-            pd.Dataframe (n_instances,n_dimensions).
+        X : np.ndarray (3d of shape (n_instances,n_channels,series_length)).
             Converted X ready for _fit.
 
         Raises
@@ -342,9 +310,7 @@ class BaseClusterer(BaseEstimator, ABC):
         if not X_valid:
             raise TypeError(
                 f"X is not of a supported input data type."
-                f"X must be of type np.ndarray or pd.DataFrame, found {type(X)}"
-                f"Use datatypes.check_is_mtype to check conformance with "
-                f"specifications."
+                f"X must be of type np.ndarray, found {type(X)}."
             )
         n_cases = X_metadata["n_instances"]
         if n_cases < enforce_min_instances:

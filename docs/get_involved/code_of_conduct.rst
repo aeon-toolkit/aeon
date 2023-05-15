@@ -39,7 +39,7 @@ aeon project including, but not limited to, in-person focus groups and
 workshops, and communications online via GitHub.
 
 The CoCC is responsible
-for enforcing the Code of Conduct. It can be reached via info@aeon-toolkit.org.
+for enforcing the Code of Conduct. It can be reached via contact@aeon-toolkit.org.
 
 Reports may be reviewed by other members of the core development team,
 unless there is a conflict of interest, and will be kept confidential.
@@ -155,7 +155,7 @@ details).
 
 This Code of Conduct is not intended as a static set of rules by which
 everyone must abide. Rather, you are invited to make suggestions for
-updates or clarifications by contacting the CoCC via info@aeon-toolkit.org
+updates or clarifications by contacting the CoCC via contact@aeon-toolkit.org
 or by making a pull request to this document on GitHub.
 
 3 Incident Reporting Guidelines

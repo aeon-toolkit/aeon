@@ -126,6 +126,51 @@ def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
 check_dict[("df-list", "Panel")] = check_dflist_panel
 
 
+def _has_nans(arr):
+    for a in arr:
+        if not isinstance(a[0][0], str):
+            if np.isnan(a).any():
+                return True
+    return False
+
+
+def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
+    if not isinstance(np_list, list):
+        msg = f"{var_name} must be list of np.ndarray, found {type(np_list)}"
+        return _ret(False, msg, None, return_metadata)
+
+    n = len(np_list)
+
+    bad_inds = [i for i in range(n) if not isinstance(np_list[i], np.ndarray)]
+
+    if len(bad_inds) > 0:
+        msg = f"{var_name}[i] must np.ndarray, but found other types at i={bad_inds}"
+        return _ret(False, msg, None, return_metadata)
+
+    bad_inds = [
+        i
+        for i in range(n)
+        if not isinstance(np_list[i], np.ndarray) and np_list[i].ndim == 2
+    ]
+
+    if len(bad_inds) > 0:
+        msg = f"{var_name}[i] must be of type 2D np.ndarray, not at i={bad_inds}"
+        return _ret(False, msg, None, return_metadata)
+    metadata = dict()
+    if return_metadata:
+        metadata = dict()
+        metadata["is_univariate"] = np_list[0].ndim == 1
+        metadata["n_instances"] = n
+        metadata["is_equally_spaced"] = False
+        metadata["is_equal_length"] = False
+        metadata["has_nans"] = False  # Temp, need to check for nans _has_nans(np_list)
+        return True, None, metadata
+    return True, None
+
+
+check_dict[("np-list", "Panel")] = check_nplist_panel
+
+
 def check_numpy3d_panel(obj, return_metadata=False, var_name="obj"):
     if not isinstance(obj, np.ndarray):
         msg = f"{var_name} must be a numpy.ndarray, found {type(obj)}"

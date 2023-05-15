@@ -8,8 +8,8 @@ __all__ = []
 from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.compose import ClassifierPipeline
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.classification.convolution_based import RocketClassifier
+from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
@@ -26,7 +26,7 @@ def test_dunder_mul():
     t1 = ExponentTransformer(power=4)
     t2 = ExponentTransformer(power=0.25)
 
-    c = KNeighborsTimeSeriesClassifier()
+    c = RocketClassifier(num_kernels=50)
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
     t12c_3 = t1 * t2 * c
@@ -51,7 +51,7 @@ def test_mul_sklearn_autoadapt():
 
     t1 = ExponentTransformer(power=2)
     t2 = StandardScaler()
-    c = KNeighborsTimeSeriesClassifier()
+    c = RocketClassifier(num_kernels=50, random_state=RAND_SEED)
 
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
@@ -69,7 +69,7 @@ def test_mul_sklearn_autoadapt():
 
 def test_missing_unequal_tag_inference():
     """Test that ClassifierPipeline infers missing/unequal tags correctly."""
-    c = KNeighborsTimeSeriesClassifier()
+    c = RocketClassifier(num_kernels=50)
     c1 = ExponentTransformer() * PaddingTransformer() * ExponentTransformer() * c
     c2 = ExponentTransformer() * ExponentTransformer() * c
     c3 = Imputer() * ExponentTransformer() * c

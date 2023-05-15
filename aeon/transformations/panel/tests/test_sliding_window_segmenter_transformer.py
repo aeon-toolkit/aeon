@@ -5,11 +5,9 @@ __authors__ = ["mloning"]
 
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from aeon.transformations.panel.segment import SlidingWindowSegmenter
-from aeon.utils._testing.panel import _make_nested_from_array
 
 
 # Check that exception is raised for bad window length.
@@ -18,56 +16,55 @@ from aeon.utils._testing.panel import _make_nested_from_array
 @pytest.mark.parametrize("bad_window_length", ["str", 1.2, -1.2, -1, {}])
 def test_bad_input_args(bad_window_length):
     """Test that bad inputs raise value error."""
-    X = _make_nested_from_array(np.ones(10), n_instances=10, n_columns=1)
-
+    X = np.ones(shape=(10, 1, 10))
     if not isinstance(bad_window_length, int):
         with pytest.raises(TypeError):
-            SlidingWindowSegmenter(window_length=bad_window_length).fit(X).transform(X)
+            SlidingWindowSegmenter(window_length=bad_window_length).fit_transform(X)
     else:
         with pytest.raises(ValueError):
-            SlidingWindowSegmenter(window_length=bad_window_length).fit(X).transform(X)
+            SlidingWindowSegmenter(window_length=bad_window_length).fit_transform(X)
 
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
     """Test correct output of SlidingWindowSegmenter."""
-    X = _make_nested_from_array(
-        np.array([1, 2, 3, 4, 5, 6]), n_instances=1, n_columns=1
-    )
-
+    X = np.array([[[1, 2, 3, 4, 5, 6]]])
     st = SlidingWindowSegmenter(window_length=1).fit(X)
     res = st.transform(X)
-    orig = convert_list_to_dataframe([[1.0], [2.0], [3.0], [4.0], [5.0], [6.0]])
-    assert check_if_dataframes_are_equal(res, orig)
+    orig = np.array([[[1.0], [2.0], [3.0], [4.0], [5.0], [6.0]]])
+    np.testing.assert_array_equal(res, orig)
 
     st = SlidingWindowSegmenter(window_length=5).fit(X)
     res = st.transform(X)
-    orig = convert_list_to_dataframe(
+    orig = np.array(
         [
-            [1.0, 1.0, 1.0, 2.0, 3.0],
-            [1.0, 1.0, 2.0, 3.0, 4.0],
-            [1.0, 2.0, 3.0, 4.0, 5.0],
-            [2.0, 3.0, 4.0, 5.0, 6.0],
-            [3.0, 4.0, 5.0, 6.0, 6.0],
-            [4.0, 5.0, 6.0, 6.0, 6.0],
+            [
+                [1.0, 1.0, 1.0, 2.0, 3.0],
+                [1.0, 1.0, 2.0, 3.0, 4.0],
+                [1.0, 2.0, 3.0, 4.0, 5.0],
+                [2.0, 3.0, 4.0, 5.0, 6.0],
+                [3.0, 4.0, 5.0, 6.0, 6.0],
+                [4.0, 5.0, 6.0, 6.0, 6.0],
+            ]
         ]
     )
-
-    assert check_if_dataframes_are_equal(res, orig)
+    np.testing.assert_array_equal(res, orig)
 
     st = SlidingWindowSegmenter(window_length=10).fit(X)
     res = st.transform(X)
-    orig = convert_list_to_dataframe(
+    orig = np.array(
         [
-            [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0],
-            [1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-            [1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0],
-            [1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0],
-            [1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0],
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+            [
+                [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+                [1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                [1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0],
+                [1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0],
+                [1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0],
+                [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+            ]
         ]
     )
-    assert check_if_dataframes_are_equal(res, orig)
+    np.testing.assert_array_equal(res, orig)
 
 
 @pytest.mark.parametrize(
@@ -75,41 +72,13 @@ def test_output_of_transformer():
 )
 def test_output_dimensions(time_series_length, window_length):
     """Test output dimensions of SlidingWindowSegmenter."""
-    X = _make_nested_from_array(
-        np.ones(time_series_length), n_instances=10, n_columns=1
-    )
-
-    st = SlidingWindowSegmenter(window_length=window_length).fit(X)
-    res = st.transform(X)
+    X = np.ones(shape=(10, 1, time_series_length))
+    st = SlidingWindowSegmenter(window_length=window_length)
+    res = st.fit_transform(X)
 
     # get the dimension of the generated dataframe.
-    corr_time_series_length = res.iloc[0, 0].shape[0]
-    num_rows = res.shape[0]
-    num_cols = res.shape[1]
+    n_cases, n_channels, series_length = res.shape
 
-    assert corr_time_series_length == window_length
-    assert num_rows == 10
-    assert num_cols == time_series_length
-
-
-def convert_list_to_dataframe(list_to_convert):
-    """Convert list into a pandas data frame."""
-    df = pd.DataFrame()
-    for i in range(len(list_to_convert)):
-        inst = list_to_convert[i]
-        data = []
-        data.append(pd.Series(inst))
-        df[i] = data
-
-    return df
-
-
-def check_if_dataframes_are_equal(df1, df2):
-    """Check that pandas DataFrames are equal."""
-    from pandas.testing import assert_frame_equal
-
-    try:
-        assert_frame_equal(df1, df2)
-        return True
-    except AssertionError:
-        return False
+    assert series_length == window_length
+    assert n_cases == 10
+    assert n_channels == time_series_length
