@@ -4,6 +4,8 @@
 __author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
+import os
+import time
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -190,16 +192,6 @@ class CNNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks
-        # ]
-
         return model
 
     def _fit(self, X, y):
@@ -216,39 +208,52 @@ class CNNClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
+
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
         if self.verbose:
-            self.model_.summary()
-        self.history = self.model_.fit(
+            self.training_model_.summary()
+
+        self.file_name_ = str(time.time_ns())
+
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=deepcopy(self.callbacks) if self.callbacks else [],
+            callbacks=self.callbacks_,
         )
 
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
+
         return self
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        # return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -278,12 +283,6 @@ class CNNClassifier(BaseDeepClassifier):
             "avg_pool_size": 4,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "kernel_size": 2,
-        #     "n_layers": 1,
-        # }
         test_params = [param1]
 
         return test_params

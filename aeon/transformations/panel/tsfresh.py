@@ -31,7 +31,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
+        show_warnings=False,
         disable_progressbar=False,
         impute_function=None,
         profiling=None,
@@ -232,8 +232,8 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,
@@ -363,7 +363,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         heuristics are used to find the optimal chunksize. If you get out of
         memory exceptions, you can try it with the dask distributor and a
         smaller chunksize.
-    show_warnings : bool, default=True
+    show_warnings : bool, default=False
         Show warnings during the feature extraction (needed for debugging of
         calculators).
     disable_progressbar : bool, default=False
@@ -455,8 +455,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         kind_to_fc_parameters=None,
         chunksize=None,
         n_jobs=1,
-        show_warnings=True,
-        disable_progressbar=False,
+        show_warnings=False,
+        disable_progressbar=True,
         impute_function=None,
         profiling=None,
         profiling_filename=None,

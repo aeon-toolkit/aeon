@@ -2,7 +2,7 @@
 """Rotation Forest test code."""
 import numpy as np
 
-from aeon.classification.sklearn import RotationForest
+from aeon.classification.sklearn import RotationForestClassifier
 from aeon.datasets import load_unit_test
 
 
@@ -11,7 +11,7 @@ def test_contracted_rotf():
     # load unit test data
     X_train, y_train = load_unit_test(split="train", return_type="numpy2d")
 
-    rotf = RotationForest(
+    rotf = RotationForestClassifier(
         time_limit_in_minutes=5,
         contract_max_n_estimators=5,
         save_transformed_data=True,
