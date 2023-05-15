@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Residual Network (ResNet) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr"]
+__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
 
 import os
@@ -119,30 +119,48 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+        n_residual_blocks=3,
+        n_conv_per_residual_block=3,
+        n_filters=None,
+        kernel_size=None,
+        strides=1,
+        dilation_rate=1,
+        padding="same",
+        activation="relu",
+        use_bias=True,
         n_epochs=1500,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
-        batch_size=16,
+        batch_size=64,
+        use_mini_batch_size=True,
         random_state=None,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
-        activation="sigmoid",
-        use_bias=True,
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
         super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
+        optimizer = (None,)
+        self.n_residual_blocks = n_residual_blocks
+        self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.activation = activation
+        self.strides = strides
+        self.dilation_rate = dilation_rate
         self.n_epochs = n_epochs
         self.callbacks = callbacks
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
@@ -153,7 +171,18 @@ class ResNetClassifier(BaseDeepClassifier):
         self.last_file_name = last_file_name
         self.optimizer = optimizer
         self.history = None
-        self._network = ResNetNetwork(random_state=random_state)
+        self._network = ResNetNetwork(
+            n_residual_blocks=self.n_residual_blocks,
+            n_conv_per_residual_block=self.n_conv_per_residual_block,
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            use_bias=self.use_bias,
+            activation=self.activation,
+            dilation_rate=self.dilation_rate,
+            padding=self.padding,
+            random_state=random_state,
+        )
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -252,10 +281,15 @@ class ResNetClassifier(BaseDeepClassifier):
             else self.callbacks
         )
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
@@ -297,12 +331,11 @@ class ResNetClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
+        param = {
             "n_epochs": 10,
             "batch_size": 4,
-            "use_bias": False,
         }
 
-        test_params = [param1]
+        test_params = [param]
 
         return test_params
