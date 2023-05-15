@@ -449,7 +449,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         metadata["_X_mtype_last_seen"] = X_mtype
         metadata["_X_input_scitype"] = X_scitype
 
-        if X_mtype not in self.ALLOWED_INPUT_MTYPES:
+        if X_mtype not in self.ALLOWED_INPUT_TYPES:
             raise TypeError("invalid input mtype for X")
 
         # check if univariate-only
