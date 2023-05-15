@@ -292,4 +292,4 @@ forecasting_scenarios_extended = [
     ForecasterFitPredictHierarchicalSimple,
 ]
 
-scenarios_forecasting = forecasting_scenarios_extended
+scenarios_forecasting = forecasting_scenarios_simple
