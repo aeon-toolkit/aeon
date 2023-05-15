@@ -1,38 +1,49 @@
 # -*- coding: utf-8 -*-
 """Time series interpolator/re-sampler."""
 import numpy as np
-import pandas as pd
-from scipy import interpolate
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["mloning"]
+__all__ = ["TSInterpolator"]
+__author__ = ["mloning", "TonyBagnall"]
 
 
 class TSInterpolator(BaseTransformer):
     """Time series interpolator/re-sampler.
 
     Transformer that rescales series for another number of points.
-    For each cell in dataframe transformer fits scipy linear interp1d
-    and samples user defined number of points. Points are generated
-    by numpy.linspace.
-
-    After transformation each cell will be a pd.Series of given length.
-    Indices of the pd.Series will be changed to integer indices.
+    For each series, np.interp  is fitted on each channel independently.
+    After transformation each series will be a 2D numpy array (n_channels, length).
 
     Parameters
     ----------
     length : integer, the length of time series to resize to.
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> # Unequal length collection of time series
+    >>> X_list = []
+    >>> for i in range(10): X_list.append(np.random.rand(5,10+i))
+    >>> # Equal length collection of time series
+    >>> X_array = np.random.rand(10,3,30)
+    >>> trans = TSInterpolator(length = 50)
+    >>> X_new = trans.fit_transform(X_list)
+    >>> X_new.shape
+    (10, 5, 50)
+    >>> X_new = trans.fit_transform(X_array)
+    >>> X_new.shape
+    (10, 3, 50)
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "X_inner_mtype": ["np-list", "numpy3D"],
+        "y_inner_mtype": "None",
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
         "fit_is_empty": True,
     }
 
@@ -47,43 +58,31 @@ class TSInterpolator(BaseTransformer):
             raise ValueError("resizing length must be integer and > 0")
 
         self.length = length
-        super(TSInterpolator, self).__init__()
-
-    def _resize_cell(self, cell):
-        """Resize a single array.
-
-        Resizes the array. Firstly 1d linear interpolation is fitted on
-           original array as y and numpy.linspace(0, 1, len(cell)) as x.
-           Then user defined number of points is sampled in
-           numpy.linspace(0, 1, length) and returned into cell as numpy array.
-
-        Parameters
-        ----------
-        cell : array-like
-
-        Returns
-        -------
-        numpy.array : with user defined size
-        """
-        f = interpolate.interp1d(list(np.linspace(0, 1, len(cell))), cell.to_numpy())
-        Xt = f(np.linspace(0, 1, self.length))
-        return pd.Series(Xt)
+        super(TSInterpolator, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Take series in each cell, train linear interpolation and samples n.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_samples, n_features]
-            Nested dataframe with time series in cells, following nested_univ format.
+        X : 3D np.ndarray of shape = (n_cases, n_channels, series_length) or
+            list size [n_cases] of 2D nump arrays, case i has shape (n_channels,
+            length_i). Collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        pandas DataFrame : Transformed pandas DataFrame of shape [n_samples, n_features]
-            follows nested_univ format
+        3D numpy array of shape (n_cases, n_channels, self.length)
         """
-        return X.applymap(self._resize_cell)
+        Xt = []
+        for x in X:
+            x_new = np.zeros((x.shape[0], self.length))
+            x2 = np.linspace(0, 1, x.shape[1])
+            x3 = np.linspace(0, 1, self.length)
+            for i, row in enumerate(x):
+                x_new[i] = np.interp(x3, x2, row)
+            Xt.append(x_new)
+        return np.array(Xt)
 
     @classmethod
     def get_test_params(cls):

@@ -372,7 +372,7 @@ class HIVECOTEV2(BaseClassifier):
         """
         from sklearn.ensemble import RandomForestClassifier
 
-        from aeon.classification.sklearn import RotationForest
+        from aeon.classification.sklearn import RotationForestClassifier
 
         if parameter_set == "results_comparison":
             return {
@@ -398,7 +398,7 @@ class HIVECOTEV2(BaseClassifier):
             return {
                 "time_limit_in_minutes": 5,
                 "stc_params": {
-                    "estimator": RotationForest(contract_max_n_estimators=1),
+                    "estimator": RotationForestClassifier(contract_max_n_estimators=1),
                     "contract_max_n_shapelet_samples": 5,
                     "max_shapelets": 5,
                     "batch_size": 5,
