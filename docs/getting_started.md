@@ -33,16 +33,16 @@ data are available. See [here](/examples/datasets/AA_datatypes_and_datasets.ipyn
 more information on input datatypes. For more information on the variety of estimators
 available for each task, see the [API](api_reference) and [examples](examples) pages.
 
-## Forecasting
+## Time Series Data
 
-Forecasting primarily uses pandas DataFrames and Series objects to store time series
-data. An example of data in thie format is the Airline dataset.
+A time series is a series of real valued data assumed to be ordered. A univariate
+time series is a singular series, where each observation is a single value. For example,
+the heartbeat ECG reading from a single sensor or the number of passengers using an
+airline per month would form a univariate series.
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
->>> y = load_airline()  # load an example series with timestamps
->>> type(y)
-<class 'pandas.core.series.Series'>
+>>> y = load_airline()  # load an example univariate series with timestamps
 >>> y.head()
 Period
 1960-08    606.0
@@ -52,6 +52,84 @@ Period
 1960-12    432.0
 Freq: M, Name: Number of airline passengers, dtype: float64
 ```
+
+A multivariate time series is made up of multiple series, where each observation is a
+vector of related recordings in the same time index. An examples would be a motion trace
+of from a smartwatch with at least three dimensions (X,Y,Z co-ordinates), or multiple
+financial statistics recorded over time. Single multivariate series input typically
+follows the shape `(n_timepoints, n_channels)`.
+
+```{code-block} python
+>>> from aeon.datasets import load_uschange
+>>> y, X = load_uschange("Quarter")  # load an example multivariate series
+>>> X.set_index(y).head()
+         Consumption    Income  Production   Savings  Unemployment
+Quarter
+1970 Q1     0.615986  0.972261   -2.452700  4.810312           0.9
+1970 Q2     0.460376  1.169085   -0.551525  7.287992           0.5
+1970 Q3     0.876791  1.553271   -0.358708  7.289013           0.5
+1970 Q4    -0.274245 -0.255272   -2.185455  0.985230           0.7
+1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
+```
+
+We commonly refer to the number of observations for a time series as `n_timepoints` or
+`series_length`. If a series is multivariate, we refer to the dimensions as channels
+(to avoid confusion with the dimensions of array) and in code use `n_channels`.
+Dimensions may also be referred to as variables.
+
+Different parts of `aeon` work with single series or collections of series. The
+`forecasting` and `annotation` modules will commonly use single series input, while
+`classification`, `regression` and `clustering` modules will use collections of time
+series. Collections of time series may also be referred to a Panels. Collections of
+time series will often be accompanied by an array of target variables.
+
+```{code-block} python
+>>> from aeon.datasets import load_italy_power_demand
+>>> X, y = load_italy_power_demand()  # load an example univariate collection
+>>> X.shape
+(1096, 1, 24)
+>>> X[:5, :, :5]
+[[[-0.71051757 -1.1833204  -1.3724416  -1.5930829  -1.4670021 ]]
+ [[-0.99300935 -1.4267865  -1.5798843  -1.6054006  -1.6309169 ]]
+ [[ 1.3190669   0.56977448  0.19512825 -0.08585642 -0.17951799]]
+ [[-0.81244429 -1.1575534  -1.4163852  -1.5314215  -1.5026624 ]]
+ [[-0.97284033 -1.3905178  -1.5367049  -1.6202404  -1.6202404 ]]]
+>>> y[:5]
+['1' '1' '2' '2' '1']
+```
+
+We use the terms case or instance when referring to a single time series
+contained in a collection. The size of a collection of time series is referred to as
+`n_cases` or `n_instances`. Collections of time typically follows the shape `
+(n_cases, n_channels, n_timepoints)` if the series are equal length, but `n_timepoints`
+may vary between cases.
+
+The datatypes used by modules also differ to match the use case. Module focusing
+on single series use cases will commonly use `pandas` `DataFrame` and `Series` objects
+to store time series data as shown in the first two examples. Modules focusing on
+collections on time series will commonly use `numpy` arrays or lists of arrays to
+store time series data.
+
+```{code-block} python
+>>>from aeon.datasets import load_basic_motions, load_plaid, load_japanese_vowels
+>>> X2, y2 = load_basic_motions()
+>>> X2.shape
+(80, 6, 100)
+>>> X3, y3 = load_plaid()  # example unequal length univariate collection
+>>> type(X3)
+<class 'list'>
+>>> len(X3)
+1074
+>>> X3[0].shape
+(1, 500)
+>>> X4, y4 = load_japanese_vowels()  # example unequal length mutlivariate collection
+>>> len(X4)
+640
+>>> X4[0].shape
+(12, 20)
+```
+
+## Forecasting
 
 The possible use cases for forecasting are more complex than with the other modules.
 Like `scikit-learn`, forecasters use a fit and predict model, but the arguments are
@@ -63,7 +141,9 @@ predict. This code fits a [TrendForecaster](forecasting.trend.TrendForecaster) o
 loaded data and predicts the next value in the series.
 
 ```{code-block} python
+>>> from aeon.datasets import load_airline
 >>> from aeon.forecasting.trend import TrendForecaster
+>>> y = load_airline()
 >>> forecaster = TrendForecaster()
 >>> forecaster.fit(y)  # fit the forecaster
 TrendForecaster()
@@ -102,41 +182,34 @@ forecast horizon using the Series index.
 0.11725953222644162
 ```
 
-In this getting started tutorial we assume a single series univariate input. `aeon`
-has a rich functionality for forecasting, and supports a wide variety of use
+`aeon` has a rich functionality for forecasting, and supports a wide variety of use
 cases. To find out more about forecasting in `aeon`, you can explore through the
 extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
 
-Classification generally use numpy arrays to store time series. For 2D input, the size
-should be (n_cases, series_length) and for 3D the size should be (n_cases, n_channels,
-series_length). Each case in our input data set is a time series.
+Classification generally use numpy arrays to store time series. We recommend storing
+time series for classification in 3D numpy arrays even if each time series is
+univariate. Classifiers will work with 2D input as you would expect from `scikit-learn`,
+but other packages may treat 2D input as a single multivariate series. This is the case
+for non-collection transformers, and you may find unexpected outputs if you input a 2D
+array treating it as multiple time series.
 
-```{code-block} python
->>> X = [[1, 2, 3, 4, 5, 6, 7],  # 2D array example (univariate)
-...      [4, 4, 4, 5, 6, 7, 3]]  # Two samples, one channel, seven series length
->>> X2 = [[[1, 2, 3, 4], [3, 8, 3, 8]],  # 3D array example (multivariate)
-...       [[5, 2, 1, 5], [3, 8, 3, 8]]]  # Two samples, two channels, four series length
->>> y = [0, 1]  # class labels for each sample
-```
-
-So, for example, `X1[0]` is a univariate time series of length seven, and `X2[0]` is a
-multivariate time series of length four which has three channels.
-
-By default, we recommend storing time series for classification in 3D numpy arrays even
-if each time series is univariate. Classifiers will work with 2D input, but other
-packages may treat 2D input as a single multivariate series. This is the case for
-non-collection transformers, and you may find unexpected outputs if you input a 2D array
-treating it as multiple time series.
+Note we assume series length is always the same for all channels of a single series
+regardless of input type. The target variable should be a `numpy` array of type `float`,
+`int` or `str`.
 
 The classification estimator interface should be familiar if you have worked with
 `scikit-learn`. In this example we fit a [KNeighborsTimeSeriesClassifier](classification.distance_based.KNeighborsTimeSeriesClassifier)
-on our example data.
+with dynamic time warping (dtw) on our example data.
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+``{code-block} python
+>>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
+...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
+>>> y = [0, 1]  # class labels for each sample
 >>> X = np.array(X)
 >>> y = np.array(y)
 >>> clf = KNeighborsTimeSeriesClassifier(distance="dtw")
@@ -154,13 +227,15 @@ calculate accuracy on new data.
 
 All `aeon` classifiers can be used with `scikit-learn` functionality for e.g.
 model evaluation, parameter searching and pipelines. Explore the wide range of
-algorithm types available in ``aeon` in the [classification notebooks](examples.md#classification).
+algorithm types available in `aeon` in the [classification notebooks](examples.md#classification).
 
 ## Time Series Extrinsic Regression (TSER)
 
 Time series extrinsic regression assumes that the target variable is continuous rather
 than discrete, as for classification. The same input data considerations apply from the
 classification section, and the modules function similarly.
+
+The target variable should be a `numpy` array of type `float`.
 
 "Time series regression" is a term commonly used in forecasting. To avoid confusion,
 the term "time series extrinsic regression" is commonly used to refer to the traditional
