@@ -192,16 +192,18 @@ ESTIMATOR_TAG_REGISTER = [
         "capability:multivariate",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
             "regressor",
         ],
         "bool",
-        "can the classifier classify time series with 2 or more variables?",
+        "can the estimator classify time series with 2 or more variables?",
     ),
     (
         "capability:unequal_length",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
             "regressor",
             "transformer",
@@ -216,11 +218,12 @@ ESTIMATOR_TAG_REGISTER = [
         "capability:missing_values",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
             "regressor",
         ],
         "bool",
-        "can the classifier handle missing data (NA, np.nan) in inputs?",
+        "can the estimator handle missing data (NA, np.nan) in inputs?",
     ),
     (
         "capability:unequal_length:removes",
