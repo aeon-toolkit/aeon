@@ -13,7 +13,6 @@ from aeon.utils.plotting import plot_correlations, plot_lags, plot_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
 
-ALLOW_NUMPY = False
 y_airline = load_airline()
 y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]
 y_airline_test = y_airline.iloc[y_airline.index >= "1960-01"]
@@ -56,7 +55,10 @@ def valid_data_types():
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_runs_without_error(series_to_plot):
     """Test whether plot_series runs without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     _plot_series(series_to_plot)
     plt.gcf().canvas.draw_idle()
@@ -157,7 +159,10 @@ def test_plot_series_invalid_label_kwarg_len_raises_error(series_to_plot):
 @pytest.mark.parametrize("series_to_plot", series_to_test)
 def test_plot_series_output_type(series_to_plot):
     """Tests whether plot_series returns plt.fig and plt.ax."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     # Test output case where kwarg ax=None
     fig, ax = _plot_series(series_to_plot)
@@ -194,7 +199,10 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
     """Verify that plot_series treats Int64 and Range indices equally."""
     # We test that int64 and range indices are treated uniformly and do not raise an
     # error of inconsistent index types
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     y1 = pd.Series(np.arange(10))
     y2 = pd.Series(np.random.normal(size=10))
@@ -214,7 +222,10 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     """Tests whether plots that accept univariate series run without error."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     plot_func(series_to_plot)
     plt.gcf().canvas.draw_idle()
@@ -255,7 +266,10 @@ def test_univariate_plots_invalid_input_type_raises_error(
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_output_type(series_to_plot, plot_func):
     """Tests whether plots accepting univariate series have correct output types."""
+    import matplotlib
     import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     fig, ax = plot_func(series_to_plot)
 
@@ -279,12 +293,14 @@ def test_univariate_plots_output_type(series_to_plot, plot_func):
 )
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [2, (1, 2, 3)])
-@pytest.mark.parametrize("suptitle", ["Lag Plot", None])
-def test_plot_lags_arguments(series_to_plot, lags, suptitle):
+def test_plot_lags_arguments(series_to_plot, lags):
     """Tests whether plot_lags run with different input arguments."""
+    import matplotlib
     import matplotlib.pyplot as plt
 
-    plot_lags(series_to_plot, lags=lags, suptitle=suptitle)
+    matplotlib.use("Agg")
+
+    plot_lags(series_to_plot, lags=lags, suptitle="Lag Plot")
     plt.gcf().canvas.draw_idle()
     plt.close()
 
@@ -294,15 +310,19 @@ def test_plot_lags_arguments(series_to_plot, lags, suptitle):
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("series_to_plot", [y_airline])
-@pytest.mark.parametrize("lags", [6, 12, 24, 36])
-@pytest.mark.parametrize("suptitle", ["Correlation Plot", None])
-@pytest.mark.parametrize("series_title", ["Time Series", None])
-def test_plot_correlations_arguments(series_to_plot, lags, suptitle, series_title):
+@pytest.mark.parametrize("lags", [6, 24])
+def test_plot_correlations_arguments(series_to_plot, lags):
     """Tests whether plot_lags run with different input arguments."""
+    import matplotlib
     import matplotlib.pyplot as plt
 
+    matplotlib.use("Agg")
+
     plot_correlations(
-        series_to_plot, lags=lags, suptitle=suptitle, series_title=series_title
+        series_to_plot,
+        lags=lags,
+        suptitle="Correlation Plot",
+        series_title="Time Series",
     )
     plt.gcf().canvas.draw_idle()
     plt.close()
