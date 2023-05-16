@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+from aeon.classification.convolution_based import RocketClassifier
 from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
@@ -77,7 +77,7 @@ def test_mul_sklearn_autoadapt():
 
 def test_missing_unequal_tag_inference():
     """Test that ClassifierPipeline infers missing/unequal tags correctly."""
-    c = KNeighborsTimeSeriesClassifier()
+    c = RocketClassifier(num_kernels=100)
     c1 = ExponentTransformer() * PaddingTransformer() * ExponentTransformer() * c
     c2 = ExponentTransformer() * ExponentTransformer() * c
     c3 = Imputer() * ExponentTransformer() * c
