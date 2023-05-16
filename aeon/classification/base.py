@@ -26,7 +26,6 @@ __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 
 import time
 from abc import ABC, abstractmethod
-from typing import final
 from warnings import warn
 
 import numpy as np
@@ -85,7 +84,6 @@ class BaseClassifier(BaseEstimator, ABC):
         super(BaseClassifier, self).__init__()
         _check_estimator_deps(self)
 
-    @final
     def fit(self, X, y):
         """Fit time series classifier to training data.
 
@@ -158,7 +156,6 @@ class BaseClassifier(BaseEstimator, ABC):
         self._is_fitted = True
         return self
 
-    @final
     def predict(self, X) -> np.ndarray:
         """Predicts labels for time series in X.
 
@@ -184,7 +181,6 @@ class BaseClassifier(BaseEstimator, ABC):
         # call internal _predict_proba
         return self._predict(X)
 
-    @final
     def predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
