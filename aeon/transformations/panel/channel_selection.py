@@ -279,11 +279,12 @@ class ElbowClassSum(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.panel.channel_selection import ElbowClassSum
-    >>> from aeon.utils._testing.panel import make_classification_problem
-    >>> X, y = make_classification_problem(n_columns=3, n_classes=3, random_state=42)
+    >>> import numpy as np
+    >>> X = np.random.random((20,6,30))
+    >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassSum()
     >>> cs.fit(X, y)
-    ElbowClassSum(...)
+    ElbowClassSum()
     >>> Xt = cs.transform(X)
     """
 
@@ -421,8 +422,9 @@ class ElbowClassPairwise(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.panel.channel_selection import ElbowClassPairwise
-    >>> from aeon.utils._testing.panel import make_classification_problem
-    >>> X, y = make_classification_problem(n_columns=3, n_classes=3, random_state=42)
+    >>> import numpy as np
+    >>> X = np.random.random((20,6,30))
+    >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassPairwise()
     >>> cs.fit(X, y)
     ElbowClassPairwise(...)
