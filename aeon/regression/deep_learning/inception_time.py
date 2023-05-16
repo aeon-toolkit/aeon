@@ -100,6 +100,24 @@ class InceptionTimeRegressor(BaseRegressor):
             list of tf.keras.callbacks.Callback objects.
         file_path           : str, default = './'
             file_path when saving model_Checkpoint callback
+        save_best_model     : bool, default = False
+            Whether or not to save the best model, if the
+            modelcheckpoint callback is used by default,
+            this condition, if True, will prevent the
+            automatic deletion of the best saved model from
+            file and the user can choose the file name
+        save_last_model     : bool, default = False
+            Whether or not to save the last model, last
+            epoch trained, using the base class method
+            save_last_model_to_file
+        best_file_name      : str, default = "best_model"
+            The name of the file of the best model, if
+            save_best_model is set to False, this parameter
+            is discarded
+        last_file_name      : str, default = "last_model"
+            The name of the file of the last model, if
+            save_last_model is set to False, this parameter
+            is discarded
         random_state        : int, default = 0
             seed to any needed random actions.
         verbose             : boolean, default = False
@@ -153,6 +171,10 @@ class InceptionTimeRegressor(BaseRegressor):
         use_custom_filters=True,
         output_activation="linear",
         file_path="./",
+        save_last_model=False,
+        save_best_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -185,6 +207,11 @@ class InceptionTimeRegressor(BaseRegressor):
 
         self.file_path = file_path
 
+        self.save_last_model = save_last_model
+        self.save_best_model = save_best_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+
         self.callbacks = callbacks
         self.random_state = random_state
         self.verbose = verbose
@@ -215,7 +242,7 @@ class InceptionTimeRegressor(BaseRegressor):
         self.regressors_ = []
         rng = check_random_state(self.random_state)
 
-        for _ in range(0, self.n_regressors):
+        for n in range(0, self.n_regressors):
             rgs = IndividualInceptionRegressor(
                 nb_filters=self.nb_filters,
                 nb_conv_per_layer=self.nb_conv_per_layer,
@@ -233,6 +260,10 @@ class InceptionTimeRegressor(BaseRegressor):
                 use_custom_filters=self.use_custom_filters,
                 output_activation=self.output_activation,
                 file_path=self.file_path,
+                save_best_model=self.save_best_model,
+                save_last_model=self.save_last_model,
+                best_file_name=self.best_file_name + str(n),
+                last_file_name=self.last_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -369,6 +400,24 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             list of tf.keras.callbacks.Callback objects.
         file_path           : str, default = './'
             file_path when saving model_Checkpoint callback
+        save_best_model     : bool, default = False
+            Whether or not to save the best model, if the
+            modelcheckpoint callback is used by default,
+            this condition, if True, will prevent the
+            automatic deletion of the best saved model from
+            file and the user can choose the file name
+        save_last_model     : bool, default = False
+            Whether or not to save the last model, last
+            epoch trained, using the base class method
+            save_last_model_to_file
+        best_file_name      : str, default = "best_model"
+            The name of the file of the best model, if
+            save_best_model is set to False, this parameter
+            is discarded
+        last_file_name      : str, default = "last_model"
+            The name of the file of the last model, if
+            save_last_model is set to False, this parameter
+            is discarded
         random_state        : int, default = 0
             seed to any needed random actions.
         verbose             : boolean, default = False
@@ -411,6 +460,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         use_custom_filters=True,
         output_activation="linear",
         file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -421,7 +474,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(IndividualInceptionRegressor, self).__init__()
+        super(IndividualInceptionRegressor, self).__init__(
+            last_file_name=last_file_name
+        )
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -443,6 +498,11 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.output_activation = output_activation
 
         self.file_path = file_path
+
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -544,7 +604,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         if self.verbose:
             self.training_model_.summary()
 
-        self.file_name_ = str(time.time_ns())
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
 
         self.callbacks_ = (
             [
@@ -574,9 +636,13 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             self.model_ = tf.keras.models.load_model(
                 self.file_path + self.file_name_ + ".hdf5", compile=False
             )
-            os.remove(self.file_path + self.file_name_ + ".hdf5")
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
 
         return self
 
