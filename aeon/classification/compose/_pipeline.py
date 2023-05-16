@@ -25,7 +25,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
+    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` being the output of `trafo[N]`,
@@ -45,22 +45,12 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
-    `ClassifierPipeline` can also be created by using the magic multiplication
-        on any classifier, i.e., if `my_clf` inherits from `BaseClassifier`,
-            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
-            for instance, `my_trafo1 * my_trafo2 * my_clf`
-            will result in the same object as  obtained from the constructor
-            `ClassifierPipeline(classifier=my_clf, transformers=[my_trafo1, my_trafo2])`
-        magic multiplication can also be used with (str, transformer) pairs,
-            as long as one element in the chain is a transformer
 
     Parameters
     ----------
     classifier : aeon classifier, i.e., estimator inheriting from BaseClassifier
-        this is a "blueprint" classifier, state does not change when `fit` is called
     transformers : list of aeon transformers, or
         list of tuples (str, transformer) of aeon transformers
-        these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
@@ -75,13 +65,13 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from aeon.transformations.panel.interpolate import TSInterpolator
-    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
+    ...     RocketClassifier(num_kernels=50), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -305,7 +295,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The `SklearnClassifierPipeline` chains transformers and an single classifier.
+    The `SklearnClassifierPipeline` chains transformers and a single classifier.
         Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
         i.e., transformers following the BaseTransformer interface,
@@ -339,22 +329,12 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
-    `SklearnClassifierPipeline` can also be created by using the magic multiplication
-        between `aeon` transformers and `sklearn` classifiers,
-            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
-            for instance, `my_trafo1 * my_trafo2 * my_clf`
-            will result in the same object as  obtained from the constructor
-            `SklearnClassifierPipeline(classifier=my_clf, transformers=[t1, t2])`
-        magic multiplication can also be used with (str, transformer) pairs,
-            as long as one element in the chain is a transformer
 
     Parameters
     ----------
     classifier : sklearn classifier, i.e., inheriting from sklearn ClassifierMixin
-        this is a "blueprint" classifier, state does not change when `fit` is called
     transformers : list of aeon transformers, or
         list of tuples (str, transformer) of aeon transformers
-        these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
