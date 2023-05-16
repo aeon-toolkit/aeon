@@ -26,6 +26,7 @@ __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 
 import time
 from abc import ABC, abstractmethod
+from typing import final
 from warnings import warn
 
 import numpy as np
@@ -84,16 +85,19 @@ class BaseClassifier(BaseEstimator, ABC):
         super(BaseClassifier, self).__init__()
         _check_estimator_deps(self)
 
+    @final
     def fit(self, X, y):
         """Fit time series classifier to training data.
 
         Parameters
         ----------
         X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
+                of shape (n_instances, n_channels, n_timepoints)
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+                of shape (n_instances, n_timepoints)
+            or list of np.array (any number of channels, uneequal length series)
+                of shape (n_channels, n_timepoints_i)
+        y : 1D np.array of shape (n_instances) - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -154,6 +158,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X) -> np.ndarray:
         """Predicts labels for time series in X.
 
@@ -179,6 +184,7 @@ class BaseClassifier(BaseEstimator, ABC):
         # call internal _predict_proba
         return self._predict(X)
 
+    @final
     def predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
