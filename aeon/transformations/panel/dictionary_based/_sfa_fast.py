@@ -360,9 +360,9 @@ class SFAFast(BaseTransformer):
             self.lower_bounding,
         )
 
-        # only save at fit
-        # if self.save_words:
-        #    self.words = words
+        # TODO only save at fit?
+        if self.save_words:
+            self.words = words
 
         # transform: applies the feature selection strategy
         empty_dict = Dict.empty(
