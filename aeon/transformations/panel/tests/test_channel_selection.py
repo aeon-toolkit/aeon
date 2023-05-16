@@ -1,28 +1,18 @@
 # -*- coding: utf-8 -*-
 """Channel selection test code."""
 from aeon.transformations.panel.channel_selection import ElbowClassPairwise
-from aeon.utils._testing.panel import make_classification_problem
+from aeon.utils._testing.collection import make_3d_test_data
 
 
 def test_channel_selection():
     """Test channel selection on random nested data frame."""
-    X_train, y_train = make_classification_problem(
-        n_instances=10, n_timepoints=10, n_columns=3, return_numpy=True
-    )
-    X_test, y_test = make_classification_problem(
-        n_instances=10, n_timepoints=10, n_columns=3, return_numpy=True
-    )
+    X, y = make_3d_test_data(n_cases=10, n_channels=4, n_timepoints=20)
 
     ecp = ElbowClassPairwise()
 
-    # shape of transformed data should be the same except for possibly dimensions
-    assert ecp.fit_transform(X_train, y_train).shape == (
-        X_train.shape[0],
-        len(ecp.channels_selected_idx),
-        X_train.shape[2],
-    )
-    assert ecp.transform(X_test).shape == (
-        X_test.shape[0],
-        len(ecp.channels_selected_idx),
-        X_test.shape[2],
-    )
+    ecp.fit(X, y)
+    Xt = ecp.transform(X, y)
+
+    # test shape of transformed data should be
+    # (n_samples, n_channels_selected, series_length)
+    assert Xt.shape == (X.shape[0], len(ecp.channels_selected_idx), X.shape[2])
