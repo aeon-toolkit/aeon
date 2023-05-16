@@ -5,6 +5,7 @@ __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999
 __all__ = ["InceptionTimeClassifier"]
 
 import os
+import time
 from copy import deepcopy
 
 import numpy as np
@@ -549,8 +550,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         self : object
         """
-        import time
-
         import tensorflow as tf
 
         y_onehot = self.convert_y_to_keras(y)

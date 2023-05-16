@@ -19,6 +19,7 @@ from aeon.classification.early_classification import (
 )
 from aeon.classification.feature_based import (
     Catch22Classifier,
+    FreshPRINCEClassifier,
     MatrixProfileClassifier,
     SignatureClassifier,
     SummaryClassifier,
@@ -242,6 +243,26 @@ if __name__ == "__main__":
             Catch22Classifier(
                 estimator=RandomForestClassifier(n_estimators=10),
                 outlier_norm=True,
+                random_state=0,
+            )
+        ),
+    )
+    _print_array(
+        "FreshPRINCEClassifier - UnitTest",
+        _reproduce_classification_unit_test(
+            FreshPRINCEClassifier(
+                default_fc_parameters="minimal",
+                n_estimators=10,
+                random_state=0,
+            )
+        ),
+    )
+    _print_array(
+        "FreshPRINCEClassifier - BasicMotions",
+        _reproduce_classification_basic_motions(
+            FreshPRINCEClassifier(
+                default_fc_parameters="minimal",
+                n_estimators=10,
                 random_state=0,
             )
         ),

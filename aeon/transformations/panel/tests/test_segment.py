@@ -1,17 +1,26 @@
 # -*- coding: utf-8 -*-
-"""Tests for RandomIntervalSegmenter."""
+"""Tests for IntervalSegmenter and RandomIntervalSegmenter."""
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.transformations.panel.segment import (
+    IntervalSegmenter,
     RandomIntervalSegmenter,
     _rand_intervals_fixed_n,
     _rand_intervals_rand_n,
 )
-from aeon.utils._testing.panel import _make_nested_from_array
+from aeon.utils._testing.collection import _make_nested_from_array
 
 N_ITER = 10
+
+
+@pytest.mark.parametrize("n_intervals", [1, 2, 5, 6, 50])
+def test_interval_segmenters(n_intervals):
+    X = np.ones((10, 1, 100))
+    trans = IntervalSegmenter(intervals=n_intervals)
+    Xt = trans.fit_transform(X)
+    assert Xt.shape[1] == n_intervals
 
 
 @pytest.mark.parametrize("n_instances", [1, 3])
@@ -19,10 +28,7 @@ N_ITER = 10
 @pytest.mark.parametrize("n_intervals", [0.1, 1.0, 1, 3, 10, "sqrt", "random", "log"])
 def test_output_format_dim(n_timepoints, n_instances, n_intervals):
     """Test output format and dimensions."""
-    X = _make_nested_from_array(
-        np.ones(n_timepoints), n_instances=n_instances, n_columns=1
-    )
-
+    X = np.random.random((n_instances, 1, n_timepoints))
     trans = RandomIntervalSegmenter(n_intervals=n_intervals)
     Xt = trans.fit_transform(X)
 

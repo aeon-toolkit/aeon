@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """Residual Network (ResNet) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr"]
+__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
+
+import os
+import time
+from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
@@ -93,31 +97,61 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+        n_residual_blocks=3,
+        n_conv_per_residual_block=3,
+        n_filters=None,
+        kernel_size=None,
+        strides=1,
+        dilation_rate=1,
+        padding="same",
+        activation="relu",
+        use_bias=True,
         n_epochs=1500,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
-        batch_size=16,
+        batch_size=64,
+        use_mini_batch_size=True,
         random_state=None,
-        activation="sigmoid",
-        use_bias=True,
+        file_path="./",
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
         super(ResNetClassifier, self).__init__()
+        self.n_residual_blocks = n_residual_blocks
+        self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.activation = activation
+        self.strides = strides
+        self.dilation_rate = dilation_rate
         self.n_epochs = n_epochs
         self.callbacks = callbacks
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
+        self.file_path = file_path
         self.optimizer = optimizer
         self.history = None
-        self._network = ResNetNetwork(random_state=random_state)
+        self._network = ResNetNetwork(
+            n_residual_blocks=self.n_residual_blocks,
+            n_conv_per_residual_block=self.n_conv_per_residual_block,
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            use_bias=self.use_bias,
+            activation=self.activation,
+            dilation_rate=self.dilation_rate,
+            padding=self.padding,
+            random_state=random_state,
+        )
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -190,29 +224,51 @@ class ResNetClassifier(BaseDeepClassifier):
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
+
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
+
+        self.file_name_ = str(time.time_ns())
 
         self.callbacks_ = (
             [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
+                ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
             ]
             if self.callbacks is None
             else self.callbacks
         )
 
-        self.history = self.model_.fit(
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
 
         return self
 
@@ -238,17 +294,11 @@ class ResNetClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
+        param = {
             "n_epochs": 10,
             "batch_size": 4,
-            "use_bias": False,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
-        test_params = [param1]
+        test_params = [param]
 
         return test_params
