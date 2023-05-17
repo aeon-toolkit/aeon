@@ -587,7 +587,7 @@ class SFAFast(BaseTransformer):
             criterion="entropy",
             max_depth=np.uint32(np.log2(self.alphabet_size)),
             max_leaf_nodes=self.alphabet_size,
-            random_state=1,
+            random_state=self.random_state,
         )
 
         for i in range(self.word_length_actual):
