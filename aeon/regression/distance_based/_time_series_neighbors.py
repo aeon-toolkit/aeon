@@ -123,7 +123,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         """
         self.check_is_fitted()
 
-        preds = np.empty(len(X), dtype=self.classes_.dtype)
+        preds = np.empty(len(X))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
             preds[i] = np.average(self.y_[idx], weights=weights)
