@@ -2107,7 +2107,9 @@
          "contributions": [
           "code",
           "bug",
-          "doc"
+          "doc",
+          "test",
+          "maintenance"
          ]
       },
     {
