@@ -12,11 +12,11 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.transformations.series.summarize import SummaryTransformer
 
 
-class RandomIntervals(BaseTransformer):
+class RandomIntervals(BaseCollectionTransformer):
     """Random interval feature transformer.
 
     Extracts intervals with random length, position and dimension from series in fit.
@@ -47,7 +47,6 @@ class RandomIntervals(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
         "scitype:transform-output": "Primitives",
         "scitype:instancewise": True,
         "X_inner_mtype": "numpy3D",
