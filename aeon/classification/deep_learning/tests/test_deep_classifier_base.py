@@ -2,6 +2,7 @@
 """Unit tests for classifiers deep learning base class functionality."""
 
 import os
+import time
 
 import pytest
 
@@ -14,10 +15,11 @@ __author__ = ["achieveordie", "hadifawaz1999"]
 class _DummyDeepClassifier(BaseDeepClassifier):
     """Dummy Deep Classifier for testing empty base deep class save utilities."""
 
-    def __init__(self):
-        super(_DummyDeepClassifier, self).__init__()
+    def __init__(self, last_file_name):
+        self.last_file_name = last_file_name
+        super(_DummyDeepClassifier, self).__init__(last_file_name=last_file_name)
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, n_classes):
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
@@ -52,8 +54,10 @@ class _DummyDeepClassifier(BaseDeepClassifier):
 def test_dummy_deep_classifier():
     import numpy as np
 
+    last_file_name = str(time.time_ns())
+
     # create a dummy deep classifier
-    dummy_deep_clf = _DummyDeepClassifier()
+    dummy_deep_clf = _DummyDeepClassifier(last_file_name=last_file_name)
 
     # test fit function on random data
     dummy_deep_clf.fit(
