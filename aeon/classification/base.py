@@ -33,6 +33,7 @@ import pandas as pd
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import check_is_scitype, convert_to
+from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -83,6 +84,44 @@ class BaseClassifier(BaseEstimator, ABC):
 
         super(BaseClassifier, self).__init__()
         _check_estimator_deps(self)
+
+    def __rmul__(self, other):
+        """Magic * method, return concatenated ClassifierPipeline, transformers on left.
+
+        Overloaded multiplication operation for classifiers. Implemented for `other`
+        being a transformer, otherwise returns `NotImplemented`.
+
+        Parameters
+        ----------
+        other: `aeon` transformer, must inherit from BaseTransformer
+            otherwise, `NotImplemented` is returned
+
+        Returns
+        -------
+        ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
+        """
+        from aeon.classification.compose import ClassifierPipeline
+        from aeon.transformations.base import BaseTransformer
+        from aeon.transformations.compose import TransformerPipeline
+        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
+
+        # behaviour is implemented only if other inherits from BaseTransformer
+        #  in that case, distinctions arise from whether self or other is a pipeline
+        #  todo: this can probably be simplified further with "zero length" pipelines
+        if isinstance(other, BaseTransformer):
+            # ClassifierPipeline already has the dunder method defined
+            if isinstance(self, ClassifierPipeline):
+                return other * self
+            # if other is a TransformerPipeline but self is not, first unwrap it
+            elif isinstance(other, TransformerPipeline):
+                return ClassifierPipeline(classifier=self, transformers=other.steps)
+            # if neither self nor other are a pipeline, construct a ClassifierPipeline
+            else:
+                return ClassifierPipeline(classifier=self, transformers=[other])
+        elif is_sklearn_transformer(other):
+            return TabularToSeriesAdaptor(other) * self
+        else:
+            return NotImplemented
 
     def fit(self, X, y):
         """Fit time series classifier to training data.

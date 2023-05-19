@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Pipeline with a classifier."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Pipeline with a classifier."""
+
+
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -10,7 +12,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
 
-__author__ = ["fkiraly"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
 
 
@@ -45,6 +47,14 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
+    `ClassifierPipeline` can also be created by using the magic multiplication
+        on any classifier, i.e., if `my_clf` inherits from `BaseClassifier`,
+            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
+            for instance, `my_trafo1 * my_trafo2 * my_clf`
+            will result in the same object as  obtained from the constructor
+            `ClassifierPipeline(classifier=my_clf, transformers=[my_trafo1, my_trafo2])`
+        magic multiplication can also be used with (str, transformer) pairs,
+            as long as one element in the chain is a transformer
 
     Parameters
     ----------
@@ -275,21 +285,16 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        # imports
-        from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.series.exponent import ExponentTransformer
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
-
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        return {
+            "transformers": [
+                ExponentTransformer(power=2),
+                ExponentTransformer(power=0.5),
+            ],
+            "classifier": KNeighborsTimeSeriesClassifier(),
+        }
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -329,6 +334,14 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
+    `SklearnClassifierPipeline` can also be created by using the magic multiplication
+        between `aeon` transformers and `sklearn` classifiers,
+            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
+            for instance, `my_trafo1 * my_trafo2 * my_clf`
+            will result in the same object as  obtained from the constructor
+            `SklearnClassifierPipeline(classifier=my_clf, transformers=[t1, t2])`
+        magic multiplication can also be used with (str, transformer) pairs,
+            as long as one element in the chain is a transformer
 
     Parameters
     ----------
@@ -575,19 +588,12 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         from sklearn.neighbors import KNeighborsClassifier
 
         from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
 
         # example with series-to-series transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        return {
+            "transformers": [
+                ExponentTransformer(power=2),
+                ExponentTransformer(power=0.5),
+            ],
+            "classifier": KNeighborsClassifier(),
+        }
