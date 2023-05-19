@@ -19,7 +19,6 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 
@@ -97,13 +96,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
     def _predict(self, X, **kwargs):
         probs = self._predict_proba(X, **kwargs)
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in probs
-            ]
-        )
+        return np.argmax(probs, axis=1)
 
     def _predict_proba(self, X, **kwargs):
         """Find probability estimates for each class for all cases in X.
@@ -126,7 +119,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         if probs.shape[1] == 1:
             # first column is probability of class 0 and second is of class 1
             probs = np.hstack([1 - probs, probs])
-        probs = probs / probs.sum(axis=1, keepdims=1)
+            probs = probs / probs.sum(axis=1, keepdims=1)
         return probs
 
     def convert_y_to_keras(self, y):
