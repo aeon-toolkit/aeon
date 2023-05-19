@@ -27,7 +27,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile()
+        model.compile(loss="mse")
 
         return model
 
