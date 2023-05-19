@@ -65,7 +65,7 @@ def plot_critical_difference(
     scores,
     labels,
     cliques=None,
-    is_errors=True,
+    errors=False,
     alpha=0.05,
     width=10,
     textspace=2.5,
@@ -93,72 +93,35 @@ def plot_critical_difference(
     ---------
         scores : np.array
             scores (either accuracies or errors) of dataset x strategy
-            (best strategy is in most left column)
-        labels : list of str
-            list with names of the strategies
-        cliques : lists of bit vectors,
+        labels : list of estimators
+            list with names of the estimators
+        cliques : lists of bit vectors, default = None
             e.g. [[0,1,1,1,0,0] [0,0,0,0,1,1]]
             statistically similiar cliques of strategies
             optional (default: None, in this case cliques will be computed)
-        is_errors : bool
+        errors : bool, default = False
             indicates whether scores are passed as errors (default) or accuracies
-        alpha : float (currently supported: 0.1, 0.05 or 0.01)
-            Alpha level for statistical tests (default: 0.05)
-        width : int
-           width in inches (default: 10)
+        alpha : float default = 0.05
+             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
+
+        width : int, default = 10
+           width in inches
         textspace : int
            space on figure sides (in inches) for the method names (default: 2.5)
-        reverse : bool
-           if set to 'True', the lowest rank is on the right (default: 'True')
+        reverse : bool, default = True
+           if set to 'True', the lowest rank is on the right
     """
     _check_soft_dependencies("matplotlib")
 
     import matplotlib.pyplot as plt
 
     # Helper Functions
-    def _nth(lst, n):
-        """Return only nth element in a list."""
-        n = _lloc(lst, n)
-        return [a[n] for a in lst]
-
-    def _lloc(lst, n):
-        """
-        List location in list of list structure.
-
-        Enable the use of negative locations:
-        -1 is the last element, -2 second last...
-        """
-        if n < 0:
-            return len(lst[0]) + n
-        else:
-            return n
-
-    def _rankpos(rank):
-        if not reverse:
-            a = rank - lowv
-        else:
-            a = highv - rank
-        return textspace + scalewidth / (highv - lowv) * a
-
-    def _line(lst, color="k", **kwargs):
-        """Input is a list of pairs of points."""
-        ax.plot(_wfl(_nth(lst, 0)), _hfl(_nth(lst, 1)), color=color, **kwargs)
-
-    def _text(x, y, s, *args, **kwargs):
-        ax.text(wf * x, hf * y, s, *args, **kwargs)
-
-    def _hfl(lst):
-        return [a * hf for a in lst]
-
-    def _wfl(lst):
-        return [a * wf for a in lst]
-
     # get number of datasets and strategies:
     n_datasets, n_strategies = scores.shape[0], scores.shape[1]
 
     # Step 1: rank data: best algorithm gets rank of 1 second best rank of 2...
     # in case of ties average ranks are assigned
-    if is_errors:
+    if errors:
         # low is good -> rank 1
         ranked_data = rankdata(scores, axis=1)
     else:
@@ -167,6 +130,15 @@ def plot_critical_difference(
 
     # Step 2: calculate average rank per strategy
     avranks = ranked_data.mean(axis=0)
+
+    # Sort labels
+    combined = zip(avranks, labels)
+    x = sorted(combined)
+    i = 0
+    for s, n in x:
+        avranks[i] = s
+        labels[i] = n
+        i = i + 1
 
     # Step 3 : check whether Friedman test is significant
     is_significant = _check_friedman(n_strategies, n_datasets, ranked_data, alpha)
@@ -389,17 +361,6 @@ def plot_critical_difference(
                 ]
                 * n_strategies
             ]
-        else:  # cliques were passed as argument
-            if cliques != [
-                [
-                    1,
-                ]
-                * n_strategies
-            ]:
-                raise ValueError(
-                    "No significant difference in Friedman test found. "
-                    "All strategies have to be in one clique."
-                )
 
     # Step 6 create the diagram:
     # check from where to where the axis has to go
@@ -431,6 +392,31 @@ def plot_critical_difference(
     ax.set_xlim(0, 1)
     ax.set_ylim(1, 0)
 
+    def _lloc(lst, n):
+        """
+        List location in list of list structure.
+
+        Enable the use of negative locations:
+        -1 is the last element, -2 second last...
+        """
+        if n < 0:
+            return len(lst[0]) + n
+        else:
+            return n
+
+    def _nth(lst, n):
+        n = _lloc(lst, n)
+        return [a[n] for a in lst]
+
+    def _hfl(lst):
+        return [a * hf for a in lst]
+
+    def _wfl(lst):
+        return [a * wf for a in lst]
+
+    def _line(lst, color="k", **kwargs):
+        ax.plot(_wfl(_nth(lst, 0)), _hfl(_nth(lst, 1)), color=color, **kwargs)
+
     # draw scale
     _line([(textspace, cline), (width - textspace, cline)], linewidth=2)
 
@@ -439,6 +425,13 @@ def plot_critical_difference(
     linewidth = 2.0
     linewidth_sign = 4.0
 
+    def _rankpos(rank):
+        if not reverse:
+            a = rank - lowv
+        else:
+            a = highv - rank
+        return textspace + scalewidth / (highv - lowv) * a
+
     # add ticks to scale
     tick = None
     for a in list(np.arange(lowv, highv, 0.5)) + [highv]:
@@ -446,6 +439,9 @@ def plot_critical_difference(
         if a == int(a):
             tick = bigtick
         _line([(_rankpos(a), cline - tick / 2), (_rankpos(a), cline)], linewidth=2)
+
+    def _text(x, y, s, *args, **kwargs):
+        ax.text(wf * x, hf * y, s, *args, **kwargs)
 
     for a in range(lowv, highv + 1):
         _text(
