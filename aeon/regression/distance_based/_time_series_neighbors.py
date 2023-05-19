@@ -83,6 +83,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             )
         self.weights = weights
 
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
+
         super(KNeighborsTimeSeriesRegressor, self).__init__()
 
     def _fit(self, X, y):
@@ -150,7 +154,12 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         ws : array
             Array representing the weights of each neighbor.
         """
-        distances = np.array([self.metric_(X, self.X_[j]) for j in range(len(self.X_))])
+        distances = np.array(
+            [
+                self.metric_(X, self.X_[j], **self._distance_params)
+                for j in range(self.X_.shape[0])
+            ]
+        )
 
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]
