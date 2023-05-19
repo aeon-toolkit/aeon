@@ -11,6 +11,16 @@ VALID_RESULT_TYPES = ["Accuracy", "AUROC", "BalancedAccuracy"]
 VALID_TASK_TYPES = ["Classification", "Clustering", "Regression"]
 
 
+def get_avialable_estimators(task="Classification"):
+    """Get a list of classifiers avialable for a specific task."""
+    path = (
+        f"https://timeseriesclassification.com/results/ReferenceResults/"
+        f"{task}/estimators.txt"
+    )
+    data = pd.read_csv(path)
+    return data
+
+
 def get_results_from_tsc_com(
     classifiers: list,
     datasets=UCR,
