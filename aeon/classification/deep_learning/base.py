@@ -101,7 +101,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         # probs and break the ties at the same time.
         probs = self._predict_proba(X, **kwargs)
         return np.argmax(
-            probs + np.linspace(0.0, 0.1, num=self.n_classes_).reshape((-1, 1)), axis=1
+            probs + np.linspace(0.0, 0.1, num=self.n_classes_).reshape((1, -1)), axis=1
         )
 
     def _predict_proba(self, X, **kwargs):
