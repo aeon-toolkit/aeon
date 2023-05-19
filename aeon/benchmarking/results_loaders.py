@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """Functions to load and collate results from timeseriesclassification.com."""
-__all__ = ["get_results_from_tsc_com", "get_array_from_tsc_com"]
+__all__ = [
+    "get_results_from_tsc_com",
+    "get_array_from_tsc_com",
+    "get_avialable_estimators",
+]
 
 import numpy as np
 import pandas as pd
@@ -55,7 +59,7 @@ def get_results_from_tsc_com(
     >>> cls = ["HC2"]
     >>> data = ["Chinatown", "Adiac"]
     >>> get_results_from_tsc_com(classifiers=cls, datasets=data)
-    [{'HC2': {'Chinatown': 0.9825072886297376, 'Adiac': 0.8107416879795396}}]
+    {'HC2': {'Chinatown': 0.9825072886297376, 'Adiac': 0.8107416879795396}}
     """
     if type not in VALID_RESULT_TYPES:
         raise ValueError(
@@ -123,6 +127,15 @@ def get_array_from_tsc_com(
     results: 2D numpy array, each column is a results for a classifier, each row a
     dataset.
     if include_missing == false, returns names: an aligned list of names of included
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_loaders import get_results_from_tsc_com
+    >>> cls = ["HC2", "FreshPRINCE"]
+    >>> data = ["Chinatown", "Adiac"]
+    >>> get_results_from_tsc_com(classifiers=cls, datasets=data)
+    (array([[0.98250729, 0.98250729],
+       [0.81074169, 0.84143223]]), ['Chinatown', 'Adiac'])
     """
     res_dicts = get_results_from_tsc_com(
         classifiers=classifiers,

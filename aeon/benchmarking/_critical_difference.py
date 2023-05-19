@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Standalone module to compute and plot critical difference diagrams."""
+"""Function to compute and plot critical difference diagrams."""
 
 __author__ = ["SveaMeyer13"]
 
@@ -14,7 +14,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 _check_soft_dependencies("matplotlib", severity="warning")
 
 
-def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
+def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
     """
     Check whether Friedman test is significant.
 
@@ -22,7 +22,7 @@ def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
 
     Arguments
     ---------
-    n_strategies : int
+    n_estimators : int
       number of strategies to evaluate
     n_datasets : int
       number of datasets classified per strategy
@@ -35,10 +35,10 @@ def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
       Indicates whether strategies differ significantly in terms of performance
       (according to Friedman test).
     """
-    if n_strategies < 3:
+    if n_estimators < 3:
         raise ValueError(
             "At least 3 sets of measurements must be given for Friedmann test, "
-            f"got {n_strategies}."
+            f"got {n_estimators}."
         )
 
     # calculate c to correct chisq for ties:
@@ -47,14 +47,14 @@ def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
         replist, repnum = find_repeats(ranked_data[i])
         for t in repnum:
             ties += t * (t * t - 1)
-    c = 1 - ties / (n_strategies * (n_strategies * n_strategies - 1) * n_datasets)
+    c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
 
     ssbn = np.sum(ranked_data.sum(axis=0) ** 2)
     chisq = (
-        12.0 / (n_strategies * n_datasets * (n_strategies + 1)) * ssbn
-        - 3 * n_datasets * (n_strategies + 1)
+        12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
+        - 3 * n_datasets * (n_estimators + 1)
     ) / c
-    p = distributions.chi2.sf(chisq, n_strategies - 1)
+    p = distributions.chi2.sf(chisq, n_estimators - 1)
     if p < alpha:
         is_significant = True
     else:
