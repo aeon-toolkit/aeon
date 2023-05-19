@@ -95,8 +95,14 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         return self.history.history if self.history is not None else None
 
     def _predict(self, X, **kwargs):
+        # If the probs gave the following for a samples [0.1, 0.45, 0.45]
+        # by doing the addition of the np.linspace, we change the values in an
+        # increasing manner to avoid changing the original ordering of the
+        # probs and break the ties at the same time.
         probs = self._predict_proba(X, **kwargs)
-        return np.argmax(probs, axis=1)
+        return np.argmax(
+            probs + np.linspace(0.0, 0.1, num=self.n_classes_).reshape((-1, 1)), axis=1
+        )
 
     def _predict_proba(self, X, **kwargs):
         """Find probability estimates for each class for all cases in X.
