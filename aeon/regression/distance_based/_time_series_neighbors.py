@@ -157,7 +157,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         distances = np.array(
             [
                 self.metric_(X, self.X_[j], **self._distance_params)
-                for j in range(self.X_.shape[0])
+                for j in range(len(self.X_))
             ]
         )
 
