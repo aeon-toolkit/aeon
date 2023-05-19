@@ -34,12 +34,15 @@ class _DummyDeepClassifier(BaseDeepClassifier):
     def _fit(self, X, y):
         X = X.transpose(0, 2, 1)
 
+        # test convert y to one hot vector
+        y_onehot = self.convert_y_to_keras(y)
+
         self.input_shape_ = X.shape[1:]
         self.model_ = self.build_model(self.input_shape_)
 
         self.history = self.model_.fit(
             X,
-            y,
+            y_onehot,
             batch_size=16,
             epochs=2,
         )
