@@ -68,7 +68,7 @@ def test_dummy_deep_regressor():
 
     dummy_deep_rg.save_last_model_to_file()
 
-    os.remove("./last_model.hdf5")
+    os.remove("./" + last_file_name + ".hdf5")
 
     # test summary of model
 
