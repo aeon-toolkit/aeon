@@ -66,6 +66,18 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         """
         ...
 
+    def summary(self):
+        """
+        Summary function to return the losses/metrics for model fit.
+
+        Returns
+        -------
+        history: dict or None,
+            Dictionary containing model's train/validation losses and metrics
+
+        """
+        return self.history.history if self.history is not None else None
+
     def _predict(self, X, **kwargs):
         """
         Find regression estimate for all cases in X.
