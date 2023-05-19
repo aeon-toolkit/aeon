@@ -2,6 +2,7 @@
 """Unit tests for regressors deep learning base class functionality."""
 
 import os
+import time
 
 import pytest
 
@@ -14,14 +15,15 @@ __author__ = ["achieveordie", "hadifawaz1999"]
 class _DummyDeepRegressor(BaseDeepRegressor):
     """Dummy Deep Regressor for testing empty base deep class save utilities."""
 
-    def __init__(self):
-        super(_DummyDeepRegressor, self).__init__()
+    def __init__(self, last_file_name):
+        self.last_file_name = last_file_name
+        super(_DummyDeepRegressor, self).__init__(last_file_name=last_file_name)
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape):
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        output_layer = tf.keras.layers.Dense(units=n_classes)(input_layer)
+        output_layer = tf.keras.layers.Dense(units=1)(input_layer)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -52,8 +54,10 @@ class _DummyDeepRegressor(BaseDeepRegressor):
 def test_dummy_deep_regressor():
     import numpy as np
 
+    last_file_name = str(time.time_ns())
+
     # create a dummy regressor
-    dummy_deep_rg = _DummyDeepRegressor()
+    dummy_deep_rg = _DummyDeepRegressor(last_file_name=last_file_name)
 
     # test fit function on random data
     dummy_deep_rg.fit(
