@@ -23,11 +23,12 @@ class _DummyDeepClassifier(BaseDeepClassifier):
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        output_layer = tf.keras.layers.Dense(units=n_classes)(input_layer)
+        gap = tf.keras.layers.GlobalAveragePooling1D()(input_layer)
+        output_layer = tf.keras.layers.Dense(units=n_classes, activation="softmax")(gap)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        model.compile(loss="categorical_crossentropy")
+        model.compile(loss=tf.keras.losses.categorical_crossentropy)
 
         return model
 

@@ -23,7 +23,8 @@ class _DummyDeepRegressor(BaseDeepRegressor):
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        output_layer = tf.keras.layers.Dense(units=1)(input_layer)
+        gap = tf.keras.layers.GlobalAveragePooling1D()(input_layer)
+        output_layer = tf.keras.layers.Dense(units=1)(gap)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
