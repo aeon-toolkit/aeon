@@ -8,6 +8,7 @@ import math
 import numpy as np
 from scipy.stats import distributions, find_repeats, rankdata
 
+from aeon.benchmarking.utils import get_qalpha
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("matplotlib", severity="warning")
@@ -25,7 +26,7 @@ def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
       number of strategies to evaluate
     n_datasets : int
       number of datasets classified per strategy
-    ranked_data : np.array (shape: n_strategies * n_datasets)
+    ranked_data : np.array (shape: n_estimators * n_datasets)
       rank of strategy on dataset
 
     Returns
@@ -61,11 +62,35 @@ def _check_friedman(n_strategies, n_datasets, ranked_data, alpha):
     return is_significant
 
 
+def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
+    """Find cliques using post hoc Nemenyi test."""
+    # Get critical value, there is an exact way now
+    qalpha = get_qalpha(alpha)
+    # calculate critical difference with Nemenyi
+    cd = qalpha[n_estimators] * np.sqrt(
+        n_estimators * (n_estimators + 1) / (6 * n_datasets)
+    )
+    # compute statistically similar cliques
+    cliques = np.tile(avranks, (n_estimators, 1)) - np.tile(
+        np.vstack(avranks.T), (1, n_estimators)
+    )
+    cliques[cliques < 0] = np.inf
+    cliques = cliques < cd
+    for i in range(n_estimators - 1, 0, -1):
+        if np.all(cliques[i - 1, cliques[i, :]] == cliques[i, cliques[i, :]]):
+            cliques[i, :] = 0
+
+    n = np.sum(cliques, 1)
+    cliques = cliques[n > 1, :]
+    return cliques
+
+
 def plot_critical_difference(
     scores,
     labels,
-    cliques=None,
     errors=False,
+    cliques=None,
+    clique_method="nemenyi",
     alpha=0.05,
     width=10,
     textspace=2.5,
@@ -95,15 +120,16 @@ def plot_critical_difference(
             scores (either accuracies or errors) of dataset x strategy
         labels : list of estimators
             list with names of the estimators
-        cliques : lists of bit vectors, default = None
-            e.g. [[0,1,1,1,0,0] [0,0,0,0,1,1]]
-            statistically similiar cliques of strategies
-            optional (default: None, in this case cliques will be computed)
         errors : bool, default = False
             indicates whether scores are passed as errors (default) or accuracies
         alpha : float default = 0.05
              Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
-
+        cliques : lists of bit vectors, default = None
+            e.g. [[0,1,1,1,0,0] [0,0,0,0,1,1]]
+            statistically similiar cliques of estimators
+            If none, cliques will be computed dependent on clique_method
+        clique_method : string, default = "nemenyi"
+            clique forming method, to include "nemenyi", "bonferonni" and "holme"
         width : int, default = 10
            width in inches
         textspace : int
@@ -117,7 +143,7 @@ def plot_critical_difference(
 
     # Helper Functions
     # get number of datasets and strategies:
-    n_datasets, n_strategies = scores.shape[0], scores.shape[1]
+    n_datasets, n_estimators = scores.shape[0], scores.shape[1]
 
     # Step 1: rank data: best algorithm gets rank of 1 second best rank of 2...
     # in case of ties average ranks are assigned
@@ -139,229 +165,24 @@ def plot_critical_difference(
         avranks[i] = s
         labels[i] = n
         i = i + 1
-
     # Step 3 : check whether Friedman test is significant
-    is_significant = _check_friedman(n_strategies, n_datasets, ranked_data, alpha)
-
-    # Step 4: If Friedman test is significant calculate critical difference as part of
-    # Nemenyi post-hoc test
-
+    is_significant = _check_friedman(n_estimators, n_datasets, ranked_data, alpha)
+    # Step 4: If Friedman test is significant find cliques
     if is_significant:
-        if alpha == 0.01:
-            qalpha = [
-                0.000,
-                2.576,
-                2.913,
-                3.113,
-                3.255,
-                3.364,
-                3.452,
-                3.526,
-                3.590,
-                3.646,
-                3.696,
-                3.741,
-                3.781,
-                3.818,
-                3.853,
-                3.884,
-                3.914,
-                3.941,
-                3.967,
-                3.992,
-                4.015,
-                4.037,
-                4.057,
-                4.077,
-                4.096,
-                4.114,
-                4.132,
-                4.148,
-                4.164,
-                4.179,
-                4.194,
-                4.208,
-                4.222,
-                4.236,
-                4.249,
-                4.261,
-                4.273,
-                4.285,
-                4.296,
-                4.307,
-                4.318,
-                4.329,
-                4.339,
-                4.349,
-                4.359,
-                4.368,
-                4.378,
-                4.387,
-                4.395,
-                4.404,
-                4.412,
-                4.420,
-                4.428,
-                4.435,
-                4.442,
-                4.449,
-                4.456,
-            ]
-
-        elif alpha == 0.05:
-            qalpha = [
-                0.000,
-                1.960,
-                2.344,
-                2.569,
-                2.728,
-                2.850,
-                2.948,
-                3.031,
-                3.102,
-                3.164,
-                3.219,
-                3.268,
-                3.313,
-                3.354,
-                3.391,
-                3.426,
-                3.458,
-                3.489,
-                3.517,
-                3.544,
-                3.569,
-                3.593,
-                3.616,
-                3.637,
-                3.658,
-                3.678,
-                3.696,
-                3.714,
-                3.732,
-                3.749,
-                3.765,
-                3.780,
-                3.795,
-                3.810,
-                3.824,
-                3.837,
-                3.850,
-                3.863,
-                3.876,
-                3.888,
-                3.899,
-                3.911,
-                3.922,
-                3.933,
-                3.943,
-                3.954,
-                3.964,
-                3.973,
-                3.983,
-                3.992,
-                4.001,
-                4.009,
-                4.017,
-                4.025,
-                4.032,
-                4.040,
-                4.046,
-            ]
-        elif alpha == 0.1:
-            qalpha = [
-                0.000,
-                1.645,
-                2.052,
-                2.291,
-                2.460,
-                2.589,
-                2.693,
-                2.780,
-                2.855,
-                2.920,
-                2.978,
-                3.030,
-                3.077,
-                3.120,
-                3.159,
-                3.196,
-                3.230,
-                3.261,
-                3.291,
-                3.319,
-                3.346,
-                3.371,
-                3.394,
-                3.417,
-                3.439,
-                3.459,
-                3.479,
-                3.498,
-                3.516,
-                3.533,
-                3.550,
-                3.567,
-                3.582,
-                3.597,
-                3.612,
-                3.626,
-                3.640,
-                3.653,
-                3.666,
-                3.679,
-                3.691,
-                3.703,
-                3.714,
-                3.726,
-                3.737,
-                3.747,
-                3.758,
-                3.768,
-                3.778,
-                3.788,
-                3.797,
-                3.806,
-                3.814,
-                3.823,
-                3.831,
-                3.838,
-                3.846,
-            ]
-            #
-        else:
-            raise Exception("alpha must be 0.01, 0.05 or 0.1")
-
         if cliques is None:
-            # calculate critical difference with Nemenyi
-            cd = qalpha[n_strategies] * np.sqrt(
-                n_strategies * (n_strategies + 1) / (6 * n_datasets)
-            )
-
-            # Step 5: compute statistically similar cliques
-            cliques = np.tile(avranks, (n_strategies, 1)) - np.tile(
-                np.vstack(avranks.T), (1, n_strategies)
-            )
-            cliques[cliques < 0] = np.inf
-            cliques = cliques < cd
-
-            for i in range(n_strategies - 1, 0, -1):
-                if np.all(cliques[i - 1, cliques[i, :]] == cliques[i, cliques[i, :]]):
-                    cliques[i, :] = 0
-
-            n = np.sum(cliques, 1)
-            cliques = cliques[n > 1, :]
-
+            if clique_method == "nemenyi":
+                cliques = nemenyi_cliques(n_estimators, n_datasets, avranks, alpha)
+            else:
+                raise ValueError(" Currently only nemenyi clique finding implemented")
     # If Friedman test is not significant everything has to be one clique
-    else:  # Friedman test is not significant
+    else:
         if cliques is None:
             cliques = [
                 [
                     1,
                 ]
-                * n_strategies
+                * n_estimators
             ]
-
     # Step 6 create the diagram:
     # check from where to where the axis has to go
     lowv = min(1, int(math.floor(min(avranks))))
@@ -377,7 +198,7 @@ def plot_critical_difference(
 
     # calculate heigh needed height
     minnotsignificant = max(2 * 0.2, linesblank)
-    height = cline + ((n_strategies + 1) / 2) * 0.2 + minnotsignificant + 0.2
+    height = cline + ((n_estimators + 1) / 2) * 0.2 + minnotsignificant + 0.2
 
     fig = plt.figure(figsize=(width, height))
     fig.set_facecolor("white")
