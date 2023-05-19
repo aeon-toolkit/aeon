@@ -66,7 +66,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self.model_ = None
 
     @abstractmethod
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, n_classes):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         Parameters
@@ -95,8 +95,8 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         """
         return self.history.history if self.history is not None else None
 
-    def _predict(self, X, **kwargs):
-        probs = self._predict_proba(X, **kwargs)
+    def _predict(self, X):
+        probs = self._predict_proba(X)
         rng = check_random_state(self.random_state)
         return np.array(
             [
@@ -105,7 +105,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
             ]
         )
 
-    def _predict_proba(self, X, **kwargs):
+    def _predict_proba(self, X):
         """Find probability estimates for each class for all cases in X.
 
         Parameters
@@ -120,7 +120,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         """
         # Transpose to work correctly with keras
         X = X.transpose((0, 2, 1))
-        probs = self.model_.predict(X, self.batch_size, **kwargs)
+        probs = self.model_.predict(X, self.batch_size)
 
         # check if binary classification
         if probs.shape[1] == 1:
