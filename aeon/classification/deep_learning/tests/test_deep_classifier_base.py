@@ -38,7 +38,7 @@ class _DummyDeepClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
 
         self.input_shape_ = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape_)
+        self.model_ = self.build_model(self.input_shape_, self.n_classes_)
 
         self.history = self.model_.fit(
             X,
