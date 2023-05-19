@@ -51,7 +51,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         self.model_ = None
 
     @abstractmethod
-    def build_model(self, input_shape, **kwargs):
+    def build_model(self, input_shape):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -78,7 +78,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         """
         return self.history.history if self.history is not None else None
 
-    def _predict(self, X, **kwargs):
+    def _predict(self, X):
         """
         Find regression estimate for all cases in X.
 
@@ -93,7 +93,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
             array of predictions of each instance
         """
         X = X.transpose((0, 2, 1))
-        y_pred = self.model_.predict(X, self.batch_size, **kwargs)
+        y_pred = self.model_.predict(X, self.batch_size)
         y_pred = np.squeeze(y_pred, axis=-1)
         return y_pred
 
