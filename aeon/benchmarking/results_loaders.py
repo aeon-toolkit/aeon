@@ -133,9 +133,9 @@ def get_array_from_tsc_com(
     >>> from aeon.benchmarking.results_loaders import get_results_from_tsc_com
     >>> cls = ["HC2", "FreshPRINCE"]
     >>> data = ["Chinatown", "Adiac"]
-    >>> get_results_from_tsc_com(classifiers=cls, datasets=data)
+    >>> get_array_from_tsc_com(classifiers=cls, datasets=data)
     (array([[0.98250729, 0.98250729],
-       [0.81074169, 0.84143223]]), ['Chinatown', 'Adiac'])
+           [0.81074169, 0.84143223]]), ['Chinatown', 'Adiac'])
     """
     res_dicts = get_results_from_tsc_com(
         classifiers=classifiers,
