@@ -140,3 +140,14 @@ def test_dba():
     assert isinstance(average_ts, np.ndarray)
     assert average_ts.shape == X_train[0].shape
     assert np.allclose(average_ts, expected_dba)
+
+
+def test_elastic_dba_variations():
+    distances = ["dtw", "ddtw", "wdtw", "wddtw", "erp", "edr", "twe", "msm"]
+    for dist in distances:
+        X_train = create_test_distance_numpy(10, 10, 10)
+
+        average_ts = dba(X_train, metric=dist, window=0.2)
+
+        assert isinstance(average_ts, np.ndarray)
+        assert average_ts.shape == X_train[0].shape
