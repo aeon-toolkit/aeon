@@ -149,19 +149,6 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         for i in range(self.n_clusters):
             curr_indexes = np.where(assignment_indexes == i)[0]
 
-            # if self.averaging_method == "dba":
-            #     distance_matrix = np.zeros((len(curr_indexes), len(curr_indexes)))
-            #     for j in range(len(curr_indexes)):
-            #         curr_j = curr_indexes[j]
-            #         for k in range(len(curr_indexes)):
-            #             distance_matrix[j, k] = self._precomputed_pairwise[
-            #                 curr_j, curr_indexes[k]
-            #             ]
-            #
-            #     self._average_params[
-            #         "precomputed_medoids_pairwise_distance"
-            #     ] = distance_matrix
-
             result = self._averaging_method(X[curr_indexes], **self._average_params)
             if result.shape[0] > 0:
                 new_centers[i, :] = result

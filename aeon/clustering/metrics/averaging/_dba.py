@@ -188,7 +188,7 @@ def _dba_update(
         for j, k in curr_alignment:
             alignment[:, k] += curr_ts[:, j]
             sum[k] += 1
-            cost += np.linalg.norm(curr_ts[:, j], center[:, k]) ** 2
+            cost += squared_distance(curr_ts[:, j], center[:, k])
 
     return alignment / sum, cost / X_timepoints
 
