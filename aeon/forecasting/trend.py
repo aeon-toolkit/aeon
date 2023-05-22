@@ -306,7 +306,10 @@ class PolynomialTrendForecaster(BaseForecaster):
 class STLForecaster(BaseForecaster):
     """Implements STLForecaster based on statsmodels.tsa.seasonal.MSTL implementation.
 
-    The STLForecaster applies the following algorithm, also see [1]_.
+    The `STLForecaster` is one of few forecasters that can handle multiple
+    seasonalities. Another forecasters of aeon that can handle multiple seasonalities
+    are `BATS` and `TBATS`. The `STLForecaster` applies the following algorithm
+    , also see [1]_.
 
     in `fit`:
     1. use `statsmodels` `MSTL` [2]_ to decompose the given series `y` into
