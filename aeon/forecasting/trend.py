@@ -6,6 +6,8 @@
 __author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
 __all__ = ["TrendForecaster", "PolynomialTrendForecaster", "STLForecaster"]
 
+from typing import List, Optional, Sequence, Union
+
 import pandas as pd
 from sklearn.base import clone
 from sklearn.linear_model import LinearRegression
@@ -302,12 +304,12 @@ class PolynomialTrendForecaster(BaseForecaster):
 
 
 class STLForecaster(BaseForecaster):
-    """Implements STLForecaster based on statsmodels.tsa.seasonal.STL implementation.
+    """Implements STLForecaster based on statsmodels.tsa.seasonal.MSTL implementation.
 
     The STLForecaster applies the following algorithm, also see [1]_.
 
     in `fit`:
-    1. use `statsmodels` `STL` [2]_ to decompose the given series `y` into
+    1. use `statsmodels` `MSTL` [2]_ to decompose the given series `y` into
         the three components: `trend`, `season` and `residuals`.
     2. fit clones of `forecaster_trend` to `trend`, `forecaster_seasonal` to `season`,
         and `forecaster_resid` to `residuals`, using `y`, `X`, `fh` from `fit`.
@@ -325,72 +327,86 @@ class STLForecaster(BaseForecaster):
 
     Parameters
     ----------
-    sp : int, optional, default=2. Passed to `statsmodels` `STL`.
-        Length of the seasonal period passed to `statsmodels` `STL`.
+    sp : int or list of int, optional, default=2. Passed to `statsmodels` `MSTL`.
+        Length of the seasonal period passed to `statsmodels` `MSTL`.
         (forecaster_seasonal, forecaster_resid) that are None. The
         default forecaster_trend does not get sp as trend is independent
         to seasonality.
-    seasonal : int, optional., default=7. Passed to `statsmodels` `STL`.
+    seasonal : int, optional., default=7. Passed to `statsmodels` `MSTL`.
         Length of the seasonal smoother. Must be an odd integer >=3, and should
         normally be >= 7 (default).
-    trend : {int, None}, optional, default=None. Passed to `statsmodels` `STL`.
+    trend : {int, None}, optional, default=None. Passed to `statsmodels` `MSTL`.
         Length of the trend smoother. Must be an odd integer. If not provided
         uses the smallest odd integer greater than
         1.5 * period / (1 - 1.5 / seasonal), following the suggestion in
         the original implementation.
-    low_pass : {int, None}, optional, default=None. Passed to `statsmodels` `STL`.
+    low_pass : {int, None}, optional, default=None. Passed to `statsmodels` `MSTL`.
         Length of the low-pass filter. Must be an odd integer >=3. If not
         provided, uses the smallest odd integer > period.
-    seasonal_deg : int, optional, default=1. Passed to `statsmodels` `STL`.
+    seasonal_deg : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Degree of seasonal LOESS. 0 (constant) or 1 (constant and trend).
-    trend_deg : int, optional, default=1. Passed to `statsmodels` `STL`.
+    trend_deg : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Degree of trend LOESS. 0 (constant) or 1 (constant and trend).
-    low_pass_deg : int, optional, default=1. Passed to `statsmodels` `STL`.
+    low_pass_deg : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Degree of low pass LOESS. 0 (constant) or 1 (constant and trend).
-    robust : bool, optional, default=False. Passed to `statsmodels` `STL`.
+    robust : bool, optional, default=False. Passed to `statsmodels` `MSTL`.
         Flag indicating whether to use a weighted version that is robust to
         some forms of outliers.
-    seasonal_jump : int, optional, default=1. Passed to `statsmodels` `STL`.
+    seasonal_jump : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Positive integer determining the linear interpolation step. If larger
         than 1, the LOESS is used every seasonal_jump points and linear
         interpolation is between fitted points. Higher values reduce
         estimation time.
-    trend_jump : int, optional, default=1. Passed to `statsmodels` `STL`.
+    trend_jump : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Positive integer determining the linear interpolation step. If larger
         than 1, the LOESS is used every trend_jump points and values between
         the two are linearly interpolated. Higher values reduce estimation
         time.
-    low_pass_jump : int, optional, default=1. Passed to `statsmodels` `STL`.
+    low_pass_jump : int, optional, default=1. Passed to `statsmodels` `MSTL`.
         Positive integer determining the linear interpolation step. If larger
         than 1, the LOESS is used every low_pass_jump points and values between
         the two are linearly interpolated. Higher values reduce estimation
         time.
-    inner_iter: int or None, optional, default=None. Passed to `statsmodels` `STL`.
+    inner_iter: int or None, optional, default=None. Passed to `statsmodels` `MSTL`.
         Number of iterations to perform in the inner loop. If not provided uses 2 if
-        robust is True, or 5 if not. This param goes into STL.fit() from statsmodels.
-    outer_iter: int or None, optional, default=None. Passed to `statsmodels` `STL`.
+        robust is True, or 5 if not. This param goes into MSTL.fit() from statsmodels.
+    outer_iter: int or None, optional, default=None. Passed to `statsmodels` `MSTL`.
         Number of iterations to perform in the outer loop. If not provided uses 15 if
-        robust is True, or 0 if not. This param goes into STL.fit() from statsmodels.
+        robust is True, or 0 if not. This param goes into MSTL.fit() from statsmodels.
+    windows : {int, array_like, None}, optional
+        Length of the seasonal smoothers for each corresponding period.
+        Must be an odd integer, and should normally be >= 7 (default). If None
+        then default values determined using 7 + 4 * np.arange(1, n + 1, 1)
+        where n is number of seasonal components.
+        Only used if `sp` is a list.
+    lmbda : {float, str, None}, optional
+        The lambda parameter for the Box-Cox transform to be applied to `endog`
+        prior to decomposition. If None, no transform is applied. If "auto", a
+        value will be estimated that maximizes the log-likelihood function.
+        Only used if `sp` is a list.
+    iterate : int, optional
+        Number of iterations to use to refine the seasonal component.
+        Only used if `sp` is a list.
     forecaster_trend : aeon forecaster, optional
         Forecaster to be fitted on trend_ component of the
-        STL, by default None. If None, then
+        MSTL, by default None. If None, then
         a NaiveForecaster(strategy="drift") is used.
     forecaster_seasonal : aeon forecaster, optional
         Forecaster to be fitted on seasonal_ component of the
-        STL, by default None. If None, then
+        MSTL, by default None. If None, then
         a NaiveForecaster(strategy="last") is used.
     forecaster_resid : aeon forecaster, optional
         Forecaster to be fitted on resid_ component of the
-        STL, by default None. If None, then
+        MSTL, by default None. If None, then
         a NaiveForecaster(strategy="mean") is used.
 
     Attributes
     ----------
-    trend_ : pd.Series
+    trend_ : pd.Seris, pd.DataFrame if `sp` is a list
         Trend component.
-    seasonal_ : pd.Series
+    seasonal_ : pd.Seris, pd.DataFrame if `sp` is a list
         Seasonal component.
-    resid_ : pd.Series
+    resid_ : pd.Seris, pd.DataFrame if `sp` is a list
         Residuals component.
     forecaster_trend_ : aeon forecaster
         Fitted trend forecaster.
@@ -434,7 +450,7 @@ class STLForecaster(BaseForecaster):
 
     def __init__(
         self,
-        sp=2,
+        sp: Union[int, List[int]] = 2,
         seasonal=7,
         trend=None,
         low_pass=None,
@@ -447,6 +463,9 @@ class STLForecaster(BaseForecaster):
         low_pass_jump=1,
         inner_iter=None,
         outer_iter=None,
+        windows: Optional[Union[int, Sequence[int]]] = None,
+        lmbda: Optional[Union[float, str]] = None,
+        iterate: int = 2,
         forecaster_trend=None,
         forecaster_seasonal=None,
         forecaster_resid=None,
@@ -464,6 +483,9 @@ class STLForecaster(BaseForecaster):
         self.low_pass_jump = low_pass_jump
         self.inner_iter = inner_iter
         self.outer_iter = outer_iter
+        self.windows = windows
+        self.lmbda = lmbda
+        self.iterate = iterate
         self.forecaster_trend = forecaster_trend
         self.forecaster_seasonal = forecaster_seasonal
         self.forecaster_resid = forecaster_resid
@@ -484,28 +506,42 @@ class STLForecaster(BaseForecaster):
         -------
         self : returns an instance of self.
         """
-        from statsmodels.tsa.seasonal import STL as _STL
+        from statsmodels.tsa.seasonal import MSTL as _MSTL
 
         from aeon.forecasting.naive import NaiveForecaster
 
-        self._stl = _STL(
-            y.values,
-            period=self.sp,
-            seasonal=self.seasonal,
-            trend=self.trend,
-            low_pass=self.low_pass,
-            seasonal_deg=self.seasonal_deg,
-            trend_deg=self.trend_deg,
-            low_pass_deg=self.low_pass_deg,
-            robust=self.robust,
-            seasonal_jump=self.seasonal_jump,
-            trend_jump=self.trend_jump,
-            low_pass_jump=self.low_pass_jump,
-        ).fit(inner_iter=self.inner_iter, outer_iter=self.outer_iter)
+        self._stl_kwargs = {
+            "seasonal": self.seasonal,
+            "trend": self.trend,
+            "low_pass": self.low_pass,
+            "seasonal_deg": self.seasonal_deg,
+            "trend_deg": self.trend_deg,
+            "low_pass_deg": self.low_pass_deg,
+            "robust": self.robust,
+            "seasonal_jump": self.seasonal_jump,
+            "trend_jump": self.trend_jump,
+            "low_pass_jump": self.low_pass_jump,
+            "inner_iter": self.inner_iter,
+            "outer_iter": self.outer_iter,
+        }
 
-        self.seasonal_ = pd.Series(self._stl.seasonal, index=y.index)
-        self.resid_ = pd.Series(self._stl.resid, index=y.index)
-        self.trend_ = pd.Series(self._stl.trend, index=y.index)
+        self._stl = _MSTL(
+            endog=y.values,
+            periods=self.sp,
+            windows=self.windows,
+            lmbda=self.lmbda,
+            iterate=self.iterate,
+            stl_kwargs=self._stl_kwargs,
+        ).fit()
+
+        self.seasonal_ = self._stl.seasonal
+        self.resid_ = self._stl.resid
+        self.trend_ = self._stl.trend
+
+        # set index of components to index of y
+        self.seasonal_.index = y.index
+        self.resid_.index = y.index
+        self.trend_.index = y.index
 
         self.forecaster_seasonal_ = (
             NaiveForecaster(sp=self.sp, strategy="last")
@@ -547,6 +583,13 @@ class STLForecaster(BaseForecaster):
         y_pred_seasonal = self.forecaster_seasonal_.predict(fh=fh, X=X)
         y_pred_trend = self.forecaster_trend_.predict(fh=fh, X=X)
         y_pred_resid = self.forecaster_resid_.predict(fh=fh, X=X)
+
+        # in case sp is a list: sum up columns from the vector forecasts
+        if isinstance(self.sp, list):
+            y_pred_seasonal = y_pred_seasonal.sum(axis=1)
+            y_pred_trend = y_pred_trend.sum(axis=1)
+            y_pred_resid = y_pred_resid.sum(axis=1)
+
         y_pred = y_pred_seasonal + y_pred_trend + y_pred_resid
         return y_pred
 
@@ -566,26 +609,21 @@ class STLForecaster(BaseForecaster):
         -------
         self : reference to self
         """
-        from statsmodels.tsa.seasonal import STL as _STL
+        from statsmodels.tsa.seasonal import MSTL as _MSTL
 
-        self._stl = _STL(
-            y.values,
-            period=self.sp,
-            seasonal=self.seasonal,
-            trend=self.trend,
-            low_pass=self.low_pass,
-            seasonal_deg=self.seasonal_deg,
-            trend_deg=self.trend_deg,
-            low_pass_deg=self.low_pass_deg,
-            robust=self.robust,
-            seasonal_jump=self.seasonal_jump,
-            trend_jump=self.trend_jump,
-            low_pass_jump=self.low_pass_jump,
-        ).fit(inner_iter=self.inner_iter, outer_iter=self.outer_iter)
+        self._stl = _MSTL(
+            endog=y.values,
+            periods=self.sp,
+            windows=self.windows,
+            lmbda=self.lmbda,
+            iterate=self.iterate,
+            stl_kwargs=self._stl_kwargs,
+        ).fit()
 
-        self.seasonal_ = pd.Series(self._stl.seasonal, index=y.index)
-        self.resid_ = pd.Series(self._stl.resid, index=y.index)
-        self.trend_ = pd.Series(self._stl.trend, index=y.index)
+        # set index of components to index of y
+        self.seasonal_.index = y.index
+        self.resid_.index = y.index
+        self.trend_.index = y.index
 
         self.forecaster_seasonal_.update(
             y=self.seasonal_, X=X, update_params=update_params
@@ -618,6 +656,21 @@ class STLForecaster(BaseForecaster):
             {},
             {
                 "sp": 3,
+                "seasonal": 7,
+                "trend": 5,
+                "seasonal_deg": 2,
+                "trend_deg": 2,
+                "robust": True,
+                "seasonal_jump": 2,
+                "trend_jump": 2,
+                "low_pass_jump": 2,
+                "forecaster_trend": NaiveForecaster(strategy="drift"),
+                "forecaster_seasonal": NaiveForecaster(sp=3),
+                "forecaster_resid": NaiveForecaster(strategy="mean"),
+            },
+            # test MSTL with list of sp
+            {
+                "sp": [3, 5],
                 "seasonal": 7,
                 "trend": 5,
                 "seasonal_deg": 2,
