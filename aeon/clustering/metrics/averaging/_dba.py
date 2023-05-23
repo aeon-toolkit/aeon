@@ -25,7 +25,6 @@ def dba(
     metric: str = "dtw",
     max_iters: int = 30,
     tol=1e-5,
-    medoids_distance_metric: str = "dtw",
     precomputed_medoids_pairwise_distance: np.ndarray = None,
     verbose: bool = False,
     **kwargs,
@@ -49,13 +48,13 @@ def dba(
     tol : float (default: 1e-5)
         Tolerance to use for early stopping: if the decrease in cost is lower
         than this value, the Expectation-Maximization procedure stops.
-    medoids_distance_metric: str, defaults = 'euclidean'
-        String that is the distance metric to use with medoids
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 defulats = None
         Precomputed medoids pairwise.
     verbose: bool, defaults = False
         Boolean that controls the verbosity.
+    **kwargs
+        Keyword arguments to pass to the distance metric.
 
     Returns
     -------
@@ -74,7 +73,7 @@ def dba(
     # center = X.mean(axis=0)
     center = medoids(
         X,
-        distance_metric=medoids_distance_metric,
+        distance_metric=metric,
         precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
         **kwargs,
     )
