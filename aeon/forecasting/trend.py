@@ -15,6 +15,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.compose import ColumnEnsembleForecaster, EnsembleForecaster
 
 
 def _get_X_numpy_int_from_pandas(x):
@@ -537,31 +538,65 @@ class STLForecaster(BaseForecaster):
             stl_kwargs=self._stl_kwargs,
         ).fit()
 
-        self.seasonal_ = self._stl.seasonal
-        self.resid_ = self._stl.resid
-        self.trend_ = self._stl.trend
+        if isinstance(self.sp, int):
+            self.seasonal_ = pd.Series(self._stl.seasonal, index=y.index)
+            self.resid_ = pd.Series(self._stl.resid, index=y.index)
+            self.trend_ = pd.Series(self._stl.trend, index=y.index)
+        else:
+            self.seasonal_ = pd.DataFrame(self._stl.seasonal, index=y.index)
+            self.resid_ = pd.DataFrame(self._stl.resid, index=y.index)
+            self.trend_ = pd.DataFrame(self._stl.trend, index=y.index)
 
-        # set index of components to index of y
-        self.seasonal_.index = y.index
-        self.resid_.index = y.index
-        self.trend_.index = y.index
-
-        self.forecaster_seasonal_ = (
-            NaiveForecaster(sp=self.sp, strategy="last")
-            if self.forecaster_seasonal is None
-            else self.forecaster_seasonal.clone()
-        )
-        # trend forecaster does not need sp
+        if isinstance(self.sp, int):
+            self.forecaster_seasonal_ = (
+                NaiveForecaster(sp=self.sp, strategy="last")
+                if self.forecaster_seasonal is None
+                else self.forecaster_seasonal.clone()
+            )
+        else:
+            if self.forecaster_seasonal is None:
+                self.forecaster_seasonal_ = ColumnEnsembleForecaster(
+                    [
+                        (f"sp_{sp}", NaiveForecaster(sp=sp, strategy="last"), idx)
+                        for idx, sp in enumerate(self.sp)
+                    ]
+                )
+            else:
+                # check that given forecaster is a vector forecaster
+                if self.forecaster_seasonal.get_tag("scitype:y") not in [
+                    "both",
+                    "multivariate",
+                ]:
+                    raise ValueError(
+                        """The forecaster_resid must be a vector forecaster if
+                        sp is a list, i.e. use ColumnEnsembleForecaster or VAR."""
+                    )
+                self.forecaster_seasonal_ = (
+                    self.forecaster_seasonal.clone()
+                )  # trend forecaster does not need sp
         self.forecaster_trend_ = (
             NaiveForecaster(strategy="drift")
             if self.forecaster_trend is None
             else self.forecaster_trend.clone()
         )
-        self.forecaster_resid_ = (
-            NaiveForecaster(sp=self.sp, strategy="mean")
-            if self.forecaster_resid is None
-            else self.forecaster_resid.clone()
-        )
+        if isinstance(self.sp, int):
+            self.forecaster_resid_ = (
+                NaiveForecaster(sp=self.sp, strategy="mean")
+                if self.forecaster_resid is None
+                else self.forecaster_resid.clone()
+            )
+        else:
+            if self.forecaster_resid is None:
+                self.forecaster_resid_ = EnsembleForecaster(
+                    [
+                        (f"sp_{sp}", NaiveForecaster(sp=sp, strategy="mean"))
+                        for sp in self.sp
+                    ]
+                )
+            else:
+                self.forecaster_resid_ = (
+                    self.forecaster_resid.clone()
+                )  # trend forecaster does not need sp
 
         # fitting forecasters to different components
         self.forecaster_seasonal_.fit(y=self.seasonal_, X=X, fh=fh)
