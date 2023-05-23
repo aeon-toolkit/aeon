@@ -563,7 +563,7 @@ class STLForecaster(BaseForecaster):
                     "multivariate",
                 ]:
                     raise ValueError(
-                        """The forecaster_resid must be a vector forecaster if
+                        """The forecaster_seasonal must be a vector forecaster if
                         sp is a list, i.e. use ColumnEnsembleForecaster or VAR."""
                     )
                 self.forecaster_seasonal_ = (
