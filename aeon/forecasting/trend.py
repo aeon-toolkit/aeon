@@ -652,9 +652,9 @@ class STLForecaster(BaseForecaster):
         ).fit()
 
         # set index of components to index of y
-        self.seasonal_.index = y.index
-        self.resid_.index = y.index
-        self.trend_.index = y.index
+        self.resid_ = pd.DataFrame(self._stl.resid, index=y.index)
+        self.trend_ = pd.DataFrame(self._stl.trend, index=y.index)
+        self.seasonal_ = pd.DataFrame(self._stl.seasonal, index=y.index)
 
         self.forecaster_seasonal_.update(
             y=self.seasonal_, X=X, update_params=update_params
