@@ -753,7 +753,7 @@ class Evaluator:
                 horizontalalignment="right",
             )
 
-        # group cliques of statistically similar classifiers
+        # group cliques of statistically similar estimators
         for i in range(np.size(clique, 0)):
             R = r[clique[i, :]]
             plt.plot(

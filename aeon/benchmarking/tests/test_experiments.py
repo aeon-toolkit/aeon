@@ -39,7 +39,7 @@ def test_run_clustering_experiment(tmp_path):
 
 
 def test_run_classification_experiment(tmp_path):
-    """Test running and saving results for classifiers.
+    """Test running and saving results for estimators.
 
     Currently it just checks the files have been created, then deletes them.
     """
