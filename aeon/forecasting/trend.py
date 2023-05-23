@@ -438,7 +438,7 @@ class STLForecaster(BaseForecaster):
     .. [1] R. B. Cleveland, W. S. Cleveland, J.E. McRae, and I. Terpenning (1990)
        STL: A Seasonal-Trend Decomposition Procedure Based on LOESS.
        Journal of Official Statistics, 6, 3-73.
-    .. [2] https://www.statsmodels.org/dev/generated/statsmodels.tsa.seasonal.STL.html
+    .. [2] https://www.statsmodels.org/devel/generated/statsmodels.tsa.seasonal.MSTL.html#statsmodels.tsa.seasonal.MSTL # noqa: E501
     """
 
     _tags = {
