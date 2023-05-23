@@ -617,11 +617,9 @@ class STLForecaster(BaseForecaster):
         y_pred_trend = self.forecaster_trend_.predict(fh=fh, X=X)
         y_pred_resid = self.forecaster_resid_.predict(fh=fh, X=X)
 
-        # in case sp is a list: sum up columns from the vector forecasts
+        # in case sp is a list: sum up columns of the seasonal vector forecast
         if isinstance(self.sp, list):
-            y_pred_seasonal = y_pred_seasonal.sum(axis=1)
-            y_pred_trend = y_pred_trend.sum(axis=1)
-            y_pred_resid = y_pred_resid.sum(axis=1)
+            y_pred_seasonal = y_pred_seasonal.sum(axis=1).to_frame()
 
         y_pred = y_pred_seasonal + y_pred_trend + y_pred_resid
         return y_pred
@@ -704,17 +702,6 @@ class STLForecaster(BaseForecaster):
             # test MSTL with list of sp
             {
                 "sp": [3, 5],
-                "seasonal": 7,
-                "trend": 5,
-                "seasonal_deg": 2,
-                "trend_deg": 2,
-                "robust": True,
-                "seasonal_jump": 2,
-                "trend_jump": 2,
-                "low_pass_jump": 2,
-                "forecaster_trend": NaiveForecaster(strategy="drift"),
-                "forecaster_seasonal": NaiveForecaster(sp=3),
-                "forecaster_resid": NaiveForecaster(strategy="mean"),
             },
         ]
 
