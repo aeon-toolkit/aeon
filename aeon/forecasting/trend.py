@@ -406,11 +406,11 @@ class STLForecaster(BaseForecaster):
 
     Attributes
     ----------
-    trend_ : pd.Seris, pd.DataFrame if `sp` is a list
+    trend_ :  pd.Series, pd.DataFrame if `sp` is a list
         Trend component.
-    seasonal_ : pd.Seris, pd.DataFrame if `sp` is a list
+    seasonal_ :  pd.Series, pd.DataFrame if `sp` is a list
         Seasonal component.
-    resid_ : pd.Seris, pd.DataFrame if `sp` is a list
+    resid_ :  pd.Series, pd.DataFrame if `sp` is a list
         Residuals component.
     forecaster_trend_ : aeon forecaster
         Fitted trend forecaster.
