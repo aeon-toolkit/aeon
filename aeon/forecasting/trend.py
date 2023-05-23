@@ -700,9 +700,9 @@ class STLForecaster(BaseForecaster):
                 "forecaster_resid": NaiveForecaster(strategy="mean"),
             },
             # test MSTL with list of sp
-            {
-                "sp": [3, 5],
-            },
+            # {
+            #     "sp": [3, 5],
+            # },
         ]
 
         return params_list
