@@ -156,14 +156,15 @@ def plot_critical_difference(
 
     # Step 2: calculate average rank per strategy
     avranks = ranked_data.mean(axis=0)
-
     # Sort labels
     combined = zip(avranks, labels)
+    temp_labels = []
+
     x = sorted(combined)
     i = 0
     for s, n in x:
         avranks[i] = s
-        labels[i] = n
+        temp_labels.append(n)
         i = i + 1
     # Step 3 : check whether Friedman test is significant
     is_significant = _check_friedman(n_estimators, n_datasets, ranked_data, alpha)
@@ -290,7 +291,7 @@ def plot_critical_difference(
             _text(
                 textspace + scalewidth + 0.2,
                 chei,
-                labels[i],
+                temp_labels[i],
                 ha="left",
                 va="center",
                 size=16,
@@ -315,7 +316,7 @@ def plot_critical_difference(
             _text(
                 textspace - 0.2,
                 chei,
-                labels[i],
+                temp_labels[i],
                 ha="right",
                 va="center",
                 size=16,
@@ -343,7 +344,7 @@ def plot_critical_difference(
             _text(
                 textspace - 0.2,
                 chei,
-                labels[i],
+                temp_labels[i],
                 ha="right",
                 va="center",
                 size=16,
@@ -368,7 +369,7 @@ def plot_critical_difference(
             _text(
                 textspace + scalewidth + 0.2,
                 chei,
-                labels[i],
+                temp_labels[i],
                 ha="left",
                 va="center",
                 size=16,
