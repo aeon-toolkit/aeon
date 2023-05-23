@@ -406,11 +406,11 @@ class STLForecaster(BaseForecaster):
 
     Attributes
     ----------
-    trend_ :  pd.Series, pd.DataFrame if `sp` is a list
+    trend_ :  pd.DataFrame
         Trend component.
-    seasonal_ :  pd.Series, pd.DataFrame if `sp` is a list
+    seasonal_ :  pd.DataFrame
         Seasonal component.
-    resid_ :  pd.Series, pd.DataFrame if `sp` is a list
+    resid_ :  pd.DataFrame
         Residuals component.
     forecaster_trend_ : aeon forecaster
         Fitted trend forecaster.
@@ -538,14 +538,9 @@ class STLForecaster(BaseForecaster):
             stl_kwargs=self._stl_kwargs,
         ).fit()
 
-        if isinstance(self.sp, int):
-            self.seasonal_ = pd.Series(self._stl.seasonal, index=y.index)
-            self.resid_ = pd.Series(self._stl.resid, index=y.index)
-            self.trend_ = pd.Series(self._stl.trend, index=y.index)
-        else:
-            self.seasonal_ = pd.DataFrame(self._stl.seasonal, index=y.index)
-            self.resid_ = pd.DataFrame(self._stl.resid, index=y.index)
-            self.trend_ = pd.DataFrame(self._stl.trend, index=y.index)
+        self.resid_ = pd.DataFrame(self._stl.resid, index=y.index)
+        self.trend_ = pd.DataFrame(self._stl.trend, index=y.index)
+        self.seasonal_ = pd.DataFrame(self._stl.seasonal, index=y.index)
 
         if isinstance(self.sp, int):
             self.forecaster_seasonal_ = (
