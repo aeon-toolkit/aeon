@@ -564,6 +564,11 @@ if __name__ == "__main__":
         test_X = s.fit_transform(test_X.T)
         test_X = test_X.T
 
+    average_params = {
+        "metric": distance,
+        **distance_params.copy()
+    }
+
     clst = TimeSeriesKMeans(
         n_clusters=len(set(train_Y)),
         metric=distance,
@@ -572,7 +577,7 @@ if __name__ == "__main__":
         n_init=1,
         max_iter=300,
         averaging_method="dba",
-        average_params=distance_params,
+        average_params=average_params,
         random_state=resample + 1,
     )
     print(f" Window parameters for {distance_params}")

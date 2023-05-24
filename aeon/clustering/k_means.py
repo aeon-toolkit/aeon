@@ -87,13 +87,6 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         self._average_params = average_params
         if self.average_params is None:
             self._average_params = {}
-        if averaging_method == "dba":
-            self._dba_medoids_distance_metric = "dtw"
-            self._precomputed_pairwise = None
-            if "medoids_distance_metric" in self._average_params:
-                self._dba_medoids_distance_metric = self._average_params[
-                    "medoids_distance_metric"
-                ]
 
         super(TimeSeriesKMeans, self).__init__(
             n_clusters,
@@ -106,27 +99,6 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
             random_state,
             distance_params,
         )
-
-    def _fit(self, X: np.ndarray, y=None) -> np.ndarray:
-        """Fit time series clusterer to training data.
-
-        Parameters
-        ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        self:
-            Fitted estimator.
-        """
-        if self.averaging_method == "dba":
-            self._precomputed_pairwise = pairwise_distance(
-                X, metric=self._dba_medoids_distance_metric, **self._average_params
-            )
-        return super()._fit(X, y)
 
     def _compute_new_cluster_centers(
         self, X: np.ndarray, assignment_indexes: np.ndarray
