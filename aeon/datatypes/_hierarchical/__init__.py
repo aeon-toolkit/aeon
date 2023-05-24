@@ -22,7 +22,6 @@ from aeon.datatypes._hierarchical._registry import (
 __all__ = [
     "check_dict_Hierarchical",
     "convert_dict_Hierarchical",
-    "infer_mtype_dict_Hierarchical",
     "MTYPE_LIST_HIERARCHICAL",
     "MTYPE_REGISTER_HIERARCHICAL",
     "example_dict_Hierarchical",

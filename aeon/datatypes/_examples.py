@@ -28,10 +28,12 @@ from aeon.datatypes._hierarchical import (
     example_dict_lossy_Hierarchical,
     example_dict_metadata_Hierarchical,
 )
-from aeon.datatypes._panel import (
-    example_dict_lossy_Panel,
-    example_dict_metadata_Panel,
-    example_dict_Panel,
+from aeon.datatypes._panel._examples import example_dict as example_dict_Panel
+from aeon.datatypes._panel._examples import (
+    example_dict_lossy as example_dict_lossy_Panel,
+)
+from aeon.datatypes._panel._examples import (
+    example_dict_metadata as example_dict_metadata_Panel,
 )
 from aeon.datatypes._proba import (
     example_dict_lossy_Proba,
