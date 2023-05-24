@@ -38,10 +38,17 @@ from aeon.datatypes._proba import (
     example_dict_metadata_Proba,
     example_dict_Proba,
 )
-from aeon.datatypes._series import (
-    example_dict_lossy_Series,
-    example_dict_metadata_Series,
-    example_dict_Series,
+# from aeon.datatypes._series._examples import (
+#     example_dict_lossy_Series,
+#     example_dict_metadata_Series,
+#     example_dict_Series,
+# )
+from aeon.datatypes._series._examples import example_dict as example_dict_Series
+from aeon.datatypes._series._examples import (
+    example_dict_lossy as example_dict_lossy_Series,
+)
+from aeon.datatypes._series._examples import (
+    example_dict_metadata as example_dict_metadata_Series,
 )
 from aeon.datatypes._table import (
     example_dict_lossy_Table,
