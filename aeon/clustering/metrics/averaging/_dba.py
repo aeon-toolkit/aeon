@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = ["chrisholder"]
 
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 from numba import njit
@@ -21,13 +21,13 @@ from aeon.distances import (
 
 
 def dba(
-        X: np.ndarray,
-        metric: str = "dtw",
-        max_iters: int = 30,
-        tol=1e-5,
-        precomputed_medoids_pairwise_distance: np.ndarray = None,
-        verbose: bool = False,
-        **kwargs,
+    X: np.ndarray,
+    metric: str = "dtw",
+    max_iters: int = 30,
+    tol=1e-5,
+    precomputed_medoids_pairwise_distance: np.ndarray = None,
+    verbose: bool = False,
+    **kwargs,
 ) -> np.ndarray:
     """Compute the dtw barycenter average of time series.
 
@@ -98,16 +98,16 @@ def dba(
 
 @njit(cache=True, fastmath=True)
 def _dba_update(
-        center: np.ndarray,
-        X: np.ndarray,
-        metric: str = "dtw",
-        window: float = None,
-        g: float = 0.0,
-        epsilon: float = None,
-        nu: float = 0.001,
-        lmbda: float = 1.0,
-        independent: bool = True,
-        c: float = 1.0,
+    center: np.ndarray,
+    X: np.ndarray,
+    metric: str = "dtw",
+    window: float = None,
+    g: float = 0.0,
+    epsilon: float = None,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
+    independent: bool = True,
+    c: float = 1.0,
 ) -> Tuple[np.ndarray, float]:
     """Perform an update iteration for dba.
 
@@ -144,17 +144,13 @@ def _dba_update(
         elif metric == "edr":
             curr_alignment, _ = edr_alignment_path(curr_ts, center, window, epsilon)
         elif metric == "twe":
-            curr_alignment, _ = twe_alignment_path(
-                curr_ts, center, window, nu, lmbda
-            )
+            curr_alignment, _ = twe_alignment_path(curr_ts, center, window, nu, lmbda)
         elif metric == "msm":
             curr_alignment, _ = msm_alignment_path(
                 curr_ts, center, window, independent, c
             )
         else:
-            raise ValueError(
-                f"Metric must be a known string, got {metric}"
-            )
+            raise ValueError(f"Metric must be a known string, got {metric}")
         for j, k in curr_alignment:
             alignment[:, k] += curr_ts[:, j]
             sum[k] += 1
