@@ -21,13 +21,13 @@ from aeon.distances import (
 
 
 def dba(
-    X: np.ndarray,
-    metric: str = "dtw",
-    max_iters: int = 30,
-    tol=1e-5,
-    precomputed_medoids_pairwise_distance: np.ndarray = None,
-    verbose: bool = False,
-    **kwargs,
+        X: np.ndarray,
+        metric: str = "dtw",
+        max_iters: int = 30,
+        tol=1e-5,
+        precomputed_medoids_pairwise_distance: np.ndarray = None,
+        verbose: bool = False,
+        **kwargs,
 ) -> np.ndarray:
     """Compute the dtw barycenter average of time series.
 
@@ -79,71 +79,11 @@ def dba(
     )
 
     cost_prev = np.inf
+    if metric == "wdtw" or metric == "wddtw":
+        if "g" not in kwargs:
+            kwargs["g"] = 0.05
     for i in range(max_iters):
-        if metric == "dtw":
-            center, cost = _dtw_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-            )
-        elif metric == "ddtw":
-            center, cost = _ddtw_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-            )
-        elif metric == "wdtw":
-            center, cost = _wdtw_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("g", 0.05),
-            )
-        elif metric == "wddtw":
-            center, cost = _wddtw_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("g", 0.05),
-            )
-        elif metric == "erp":
-            center, cost = _erp_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("g", 0.0),
-            )
-        elif metric == "edr":
-            center, cost = _edr_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("epsilon"),
-            )
-        elif metric == "twe":
-            center, cost = _twe_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("nu", 0.001),
-                kwargs.get("lmbda", 1.0),
-            )
-        elif metric == "msm":
-            center, cost = _msm_dba_update(
-                center,
-                X,
-                kwargs.get("window"),
-                kwargs.get("independent", True),
-                kwargs.get("c", 1.0),
-            )
-        else:
-            if isinstance(metric, Callable):
-                center, cost = _dba_update(center, X, metric)
-            else:
-                raise ValueError(
-                    f"Metric must be a known string or Callable, got {metric}"
-                )
-
+        center, cost = _dba_update(center, X, metric, **kwargs)
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
@@ -158,7 +98,16 @@ def dba(
 
 @njit(cache=True, fastmath=True)
 def _dba_update(
-    center: np.ndarray, X: np.ndarray, path_callable: Callable
+        center: np.ndarray,
+        X: np.ndarray,
+        metric: str = "dtw",
+        window: float = None,
+        g: float = 0.0,
+        epsilon: float = None,
+        nu: float = 0.001,
+        lmbda: float = 1.0,
+        independent: bool = True,
+        c: float = 1.0,
 ) -> Tuple[np.ndarray, float]:
     """Perform an update iteration for dba.
 
@@ -168,8 +117,7 @@ def _dba_update(
         Time series that is the current center (or average).
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
         Time series instances compute average from.
-    path_callable: Callable[Union[np.ndarray, np.ndarray], tuple[list[tuple], float]]
-        Callable that returns the distance path.
+
 
     Returns
     -------
@@ -177,341 +125,36 @@ def _dba_update(
         Time series that is the current iteration center (or average).
     """
     X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
+    sum = np.zeros(X_timepoints)
 
     alignment = np.zeros((X_dims, X_timepoints))
     cost = 0.0
     for i in range(X_size):
         curr_ts = X[i]
-        curr_alignment, _ = path_callable(curr_ts, center)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _dtw_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None
-) -> Tuple[np.ndarray, float]:
-    """Perform a dtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = dtw_alignment_path(curr_ts, center, window)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _ddtw_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None
-) -> Tuple[np.ndarray, float]:
-    """Perform a ddtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = ddtw_alignment_path(curr_ts, center, window)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _wdtw_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None, g: float = 0.05
-) -> Tuple[np.ndarray, float]:
-    """Perform a wdtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=0.05
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    g: float, defaults=0.05
-        Constant that controls the level of penalisation for the points with larger
-        phase difference.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = wdtw_alignment_path(curr_ts, center, window, g)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _wddtw_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None, g: float = 0.05
-) -> Tuple[np.ndarray, float]:
-    """Perform a wddtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    g: float, defaults=0.05
-        Constant that controls the level of penalisation for the points with larger
-        phase difference.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = wddtw_alignment_path(curr_ts, center, window, g)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _erp_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None, g: float = 0.0
-) -> Tuple[np.ndarray, float]:
-    """Perform a wddtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    g: float or np.ndarray of shape (n_channels), defaults=0.
-        The reference value to penalise gaps. The default is 0. If it is an array
-        then it must be the length of the number of channels in x and y. If a single
-        value is provided then that value is used across each channel.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = erp_alignment_path(curr_ts, center, window, g)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _edr_dba_update(
-    center: np.ndarray, X: np.ndarray, window: float = None, epsilon: float = None
-) -> Tuple[np.ndarray, float]:
-    """Perform a wddtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    epsilon : float, defaults = None
-        Matching threshold to determine if two subsequences are considered close
-        enough to be considered 'common'. If not specified as per the original paper
-        epsilon is set to a quarter of the maximum standard deviation.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = edr_alignment_path(curr_ts, center, window, epsilon)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _twe_dba_update(
-    center: np.ndarray,
-    X: np.ndarray,
-    window: float = None,
-    nu: float = 0.001,
-    lmbda: float = 1.0,
-) -> Tuple[np.ndarray, float]:
-    """Perform a wddtw update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    nu: float, defaults = 0.001
-        A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
-    lmbda: float, defaults = 1.0
-        A constant penalty that punishes the editing efforts. Must be >= 1.0.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = twe_alignment_path(curr_ts, center, window, nu, lmbda)
-        for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-            cost += squared_distance(curr_ts[:, j], center[:, k])
-
-    return alignment / sum, cost / X_timepoints
-
-
-@njit(cache=True, fastmath=True)
-def _msm_dba_update(
-    center: np.ndarray,
-    X: np.ndarray,
-    window: float = None,
-    independent: bool = True,
-    c: float = 1.0,
-) -> Tuple[np.ndarray, float]:
-    """Perform an update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-    window: float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
-    independent: bool, defaults=True
-        Whether to use the independent or dependent MSM distance. The
-        default is True (to use independent).
-    c: float, defaults=1.
-        Cost for split or merge operation. Default is 1.
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
-    X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros((X_timepoints))
-
-    alignment = np.zeros((X_dims, X_timepoints))
-    cost = 0.0
-    for i in range(X_size):
-        curr_ts = X[i]
-        curr_alignment, _ = msm_alignment_path(curr_ts, center, window, independent, c)
+        if metric == "dtw":
+            curr_alignment, _ = dtw_alignment_path(curr_ts, center, window)
+        elif metric == "ddtw":
+            curr_alignment, _ = ddtw_alignment_path(curr_ts, center, window)
+        elif metric == "wdtw":
+            curr_alignment, _ = wdtw_alignment_path(curr_ts, center, window, g)
+        elif metric == "wddtw":
+            curr_alignment, _ = wddtw_alignment_path(curr_ts, center, window, g)
+        elif metric == "erp":
+            curr_alignment, _ = erp_alignment_path(curr_ts, center, window, g)
+        elif metric == "edr":
+            curr_alignment, _ = edr_alignment_path(curr_ts, center, window, epsilon)
+        elif metric == "twe":
+            curr_alignment, _ = twe_alignment_path(
+                curr_ts, center, window, nu, lmbda
+            )
+        elif metric == "msm":
+            curr_alignment, _ = msm_alignment_path(
+                curr_ts, center, window, independent, c
+            )
+        else:
+            raise ValueError(
+                f"Metric must be a known string, got {metric}"
+            )
         for j, k in curr_alignment:
             alignment[:, k] += curr_ts[:, j]
             sum[k] += 1
