@@ -109,21 +109,6 @@ def _dba_update(
     independent: bool = True,
     c: float = 1.0,
 ) -> Tuple[np.ndarray, float]:
-    """Perform an update iteration for dba.
-
-    Parameters
-    ----------
-    center: np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current center (or average).
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        Time series instances compute average from.
-
-
-    Returns
-    -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the current iteration center (or average).
-    """
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
 
