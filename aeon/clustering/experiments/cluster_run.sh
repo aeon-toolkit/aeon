@@ -56,7 +56,7 @@ count=0
 clusterer="kmeans-dba"
 while read dataset; do
 #  squared dtw ddtw wdtw wddtw lcss erp edr msm twe
-  for distance in msm
+  for distance in dtw
   do
     for init in random
     do

@@ -9,7 +9,6 @@ from numpy.random import RandomState
 
 from aeon.clustering.metrics.averaging import _resolve_average_callable
 from aeon.clustering.partitioning import TimeSeriesLloyds
-from aeon.distances import pairwise_distance
 
 
 class TimeSeriesKMeans(TimeSeriesLloyds):

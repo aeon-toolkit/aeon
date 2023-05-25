@@ -534,7 +534,7 @@ if __name__ == "__main__":
         init = "random"
         results_dir = "/home/chris/Documents/Results/temp/"
         resample = 0
-        distance = "msm"
+        distance = "dtw"
         normalise = True
         tune = False
 
