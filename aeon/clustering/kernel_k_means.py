@@ -107,9 +107,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -146,9 +146,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Time series instances to predict their cluster indexes.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns

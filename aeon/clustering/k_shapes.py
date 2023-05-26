@@ -87,7 +87,7 @@ class TimeSeriesKShapes(BaseClusterer):
         Parameters
         ----------
         X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints) or (n_timepoints,)
+                (n_instances, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
@@ -122,7 +122,7 @@ class TimeSeriesKShapes(BaseClusterer):
         Parameters
         ----------
         X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints) or (n_timepoints,)
+                (n_instances, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
