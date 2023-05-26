@@ -123,19 +123,20 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         if self.verbose is True:
             verbose = 1
 
-        if self._tslearn_kernel_k_means is None:
-            self._tslearn_kernel_k_means = TsLearnKernelKMeans(
-                n_clusters=self.n_clusters,
-                kernel=self.kernel,
-                max_iter=self.max_iter,
-                tol=self.tol,
-                n_init=self.n_init,
-                kernel_params=self.kernel_params,
-                n_jobs=self.n_jobs,
-                verbose=verbose,
-                random_state=self.random_state,
-            )
-        self._tslearn_kernel_k_means.fit(X)
+        self._tslearn_kernel_k_means = TsLearnKernelKMeans(
+            n_clusters=self.n_clusters,
+            kernel=self.kernel,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            n_init=self.n_init,
+            kernel_params=self.kernel_params,
+            n_jobs=self.n_jobs,
+            verbose=verbose,
+            random_state=self.random_state,
+        )
+
+        _X = X.reshape((X.shape[0], X.shape[2], X.shape[1]))
+        self._tslearn_kernel_k_means.fit(_X)
         self.labels_ = self._tslearn_kernel_k_means.labels_
         self.inertia_ = self._tslearn_kernel_k_means.inertia_
         self.n_iter_ = self._tslearn_kernel_k_means.n_iter_
@@ -155,7 +156,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         np.ndarray (1d array of shape (n_instances,))
             Index of the cluster each time series in X belongs to.
         """
-        return self._tslearn_kernel_k_means.predict(X)
+        _X = X.reshape((X.shape[0], X.shape[2], X.shape[1]))
+        return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default") -> Dict:
