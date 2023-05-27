@@ -76,6 +76,7 @@ from aeon.datasets._single_problem_loaders import (
     load_plaid,
     load_shampoo_sales,
     load_solar,
+    load_TSC_dataset,
     load_unit_test,
     load_unit_test_tsf,
     load_uschange,

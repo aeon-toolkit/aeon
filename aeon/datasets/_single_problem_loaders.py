@@ -17,6 +17,7 @@ __author__ = [
 ]
 
 __all__ = [
+    "load_TSC_dataset",
     "load_airline",
     "load_plaid",
     "load_arrow_head",
@@ -53,6 +54,66 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
+
+
+def load_TSC_dataset(
+    name, split=None, return_X_y=True, return_type=None, extract_path=None
+):
+    """Load dataset from UCR UEA time series archive.
+
+    Downloads and extracts dataset if not already downloaded. Data is assumed to be
+    in the standard .ts format: each row is a (possibly multivariate) time series.
+    Each dimension is separated by a colon, each value in a series is comma
+    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
+    a univariate equal length problem, BasicMotions an equal length multivariate
+    problem.
+
+    Parameters
+    ----------
+    name : str
+        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
+        this function will look in the extract_path first, and if it is not present,
+        attempt to download the data from www.timeseriesclassification.com, saving it to
+        the extract_path.
+    split : None or str{"train", "test"}, optional (default=None)
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_X_y : bool, optional (default=False)
+        it returns two objects, if False, it appends the class labels to the dataframe.
+    return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
+        Memory data format specification to return X in, None = "nested_univ" type.
+        str can be any supported aeon Panel mtype,
+            for list of mtypes, see datatypes.MTYPE_REGISTER
+            for specifications, see examples/AA_datatypes_and_datasets.ipynb
+        commonly used specifications:
+            "nested_univ: nested pd.DataFrame, pd.Series in cells
+            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
+            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
+            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
+        Exception is raised if the data cannot be stored in the requested type.
+    extract_path : str, optional (default=None)
+        the path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp or relative, e.g. Temp or ./Temp.
+
+    Returns
+    -------
+    X: pd.DataFrame
+        The time series data for the problem with n_cases rows and either
+        n_dimensions or n_dimensions+1 columns. Columns 1 to n_dimensions are the
+        series associated with each case. If return_X_y is False, column
+        n_dimensions+1 contains the class labels/target variable.
+    y: numpy array, optional
+        The class labels for each case in X, returned separately if return_X_y is
+        True, or appended to X if False
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_UCR_UEA_dataset
+    >>> X, y = load_UCR_UEA_dataset(name="ArrowHead", return_type="numpy3d")
+    """
+    return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
 
 def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
