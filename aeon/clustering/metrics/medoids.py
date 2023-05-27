@@ -11,6 +11,7 @@ def medoids(
     X: np.ndarray,
     precomputed_pairwise_distance: np.ndarray = None,
     distance_metric: str = "dtw",
+    **kwargs,
 ):
     """Compute the medoids from a panel of time series.
 
@@ -23,6 +24,8 @@ def medoids(
         Precomputed pairwise distance between each time series in X.
     distance_metric: str, defaults = 'dtw'
         String of distance metric to compute.
+    **kwargs
+        Additional keyword arguments to pass to distance metric.
 
     Returns
     -------
@@ -33,7 +36,9 @@ def medoids(
         return X
 
     if precomputed_pairwise_distance is None:
-        precomputed_pairwise_distance = pairwise_distance(X, metric=distance_metric)
+        precomputed_pairwise_distance = pairwise_distance(
+            X, metric=distance_metric, **kwargs
+        )
 
     x_size = X.shape[0]
     distance_matrix = np.zeros((x_size, x_size))
