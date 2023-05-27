@@ -225,7 +225,7 @@ def _write_ndarray_to_tsfile(
     file.close()
 
 
-def write_to_tsfile(X, path, y=None, problem_name="sample_data", header=None):
+def write_to_tsfile(X, path, y=None, problem_name="sample_data.ts", header=None):
     """Write an aeon collection of time series to text file in .ts format.
 
     Write metadata and data stored in aeon compatible data set to file.
@@ -272,7 +272,7 @@ def _write_data_to_tsfile(
     y=None,
     missing_values="NaN",
     comment=None,
-    suffix="",
+    suffix=".ts",
 ):
     """Output a dataset in ndarray format to .ts file.
 
@@ -307,6 +307,7 @@ def _write_data_to_tsfile(
     # ensure data provided is a ndarray
     if not isinstance(X, np.ndarray) and not isinstance(X, list):
         raise ValueError("Data provided must be a ndarray or a list")
+    class_label = None
     if y is not None:
         class_label = np.unique(y)
         # ensure number of cases is same as the class value list
@@ -334,8 +335,8 @@ def _write_data_to_tsfile(
         equal_length,
         series_length,
         class_label,
-        suffix,
         comment,
+        suffix,
     )
     for i in range(n_cases):
         for j in range(n_channels):
@@ -574,17 +575,20 @@ def _write_header(
     equal_length,
     series_length,
     class_label,
-    fold,
     comment,
+    suffix="None",
 ):
     # create path if it does not exist
-    dirt = f"{str(path)}/{str(problem_name)}/"
+    dirt = f"{str(path)}/"
     try:
         os.makedirs(dirt, exist_ok=True)
     except os.error:
         pass  # raises os.error if the directory cannot be accessed or created
     # create ts file in the path
-    file = open(f"{dirt}{str(problem_name)}{fold}.ts", "w")
+    if suffix is None:
+        file = open(f"{dirt}{str(problem_name)}", "w")
+    else:
+        file = open(f"{dirt}{str(problem_name)}{suffix}", "w")
     # write comment if any as a block at start of file
     if comment is not None:
         file.write("\n# ".join(textwrap.wrap("# " + comment)))

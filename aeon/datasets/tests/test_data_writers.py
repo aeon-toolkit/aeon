@@ -11,38 +11,42 @@ from aeon.datasets._data_loaders import (
     load_from_tsfile_to_dataframe,
 )
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
+from aeon.utils._testing.collection import (
+    make_3d_test_data,
+    make_unequal_length_test_data,
+)
 
 
-@pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-def test_write_to_tsfile_equal_length(dataset_name):
+def test_write_to_tsfile_equal_length():
     """Test function to write a dataset.
 
     Loads equal and unequal length problems into both data frames and numpy arrays,
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
-    X, y = _load_provided_dataset(dataset_name, split="TRAIN")
-    write_to_tsfile(X=X, path="./Temp", y=y, problem_name=dataset_name)
-    load_path = f"./Temp/{dataset_name}/{dataset_name}.ts"
+    X, y = make_3d_test_data()
+    write_to_tsfile(X=X, path="./Temp/", y=y, problem_name="Testy")
+    load_path = "./Temp/Testy.ts"
     newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
     assert X.shape == newX.shape
     assert X[0][0][0] == newX[0][0][0]
+    y = y.astype(str)
     assert np.array_equal(y, newy)
     shutil.rmtree("./Temp")
 
 
-@pytest.mark.parametrize("dataset_name", ["PLAID", "JapaneseVowels"])
-def test_write_to_tsfile_unequal_length(dataset_name):
+def test_write_to_tsfile_unequal_length():
     """Test function to write a dataset.
 
     Loads equal and unequal length problems into both data frames and numpy arrays,
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
-    X, y = _load_provided_dataset(dataset_name, split="TRAIN")
-    write_to_tsfile(X=X, path=f"./Temp/{dataset_name}/", y=y, problem_name=dataset_name)
-    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}.ts"
+    X, y = make_unequal_length_test_data()
+    write_to_tsfile(X=X, path="./Temp/", y=y, problem_name="Testy2")
+    load_path = "./Temp/Testy2.ts"
     newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
     assert len(X) == len(newX)
     assert X[0][0][0] == newX[0][0][0]
+    y = y.astype(str)
     assert np.array_equal(y, newy)
     shutil.rmtree("./Temp")
 

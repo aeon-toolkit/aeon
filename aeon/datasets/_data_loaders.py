@@ -306,12 +306,19 @@ def _load_provided_dataset(
             X = X.squeeze()
     elif return_type is not None and loaded_type != return_type:
         X = convert(X, from_type=loaded_type, to_type=return_type)
+
     if return_X_y:
-        return X, y
+        if return_meta:
+            return X, y, meta_data
+        else:
+            return X, y
     else:  # TODO: do this better, do we want it all in dataframes?
         X = convert(X, from_type=loaded_type, to_type="nested_univ")
         X["class_val"] = pd.Series(y)
-        return X
+        if return_meta:
+            return X, meta_data
+        else:
+            return X
 
 
 def _download_and_extract(url, extract_path=None):
