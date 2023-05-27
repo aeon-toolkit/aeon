@@ -20,7 +20,7 @@ from aeon.distances import (
 )
 
 
-def dba(
+def elastic_barycenter_average(
     X: np.ndarray,
     metric: str = "dtw",
     max_iters: int = 30,
@@ -29,10 +29,9 @@ def dba(
     verbose: bool = False,
     **kwargs,
 ) -> np.ndarray:
-    """Compute the dtw barycenter average of time series.
+    """Compute the barycenter average of time series using a elastic distance.
 
-    This implements the 'petitjean' version (original) DBA algorithm [1]_.
-
+    This implements an adapted version of 'petitjean' (original) DBA algorithm [1]_.
 
     Parameters
     ----------
@@ -49,7 +48,7 @@ def dba(
         Tolerance to use for early stopping: if the decrease in cost is lower
         than this value, the Expectation-Maximization procedure stops.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
-                defulats = None
+                defaults = None
         Precomputed medoids pairwise.
     verbose: bool, defaults = False
         Boolean that controls the verbosity.
@@ -59,7 +58,7 @@ def dba(
     Returns
     -------
     np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the average of the collaction of instances provided.
+        Time series that is the average of the collection of instances provided.
 
     References
     ----------
@@ -83,7 +82,7 @@ def dba(
         if "g" not in kwargs:
             kwargs["g"] = 0.05
     for i in range(max_iters):
-        center, cost = _dba_update(center, X, metric, **kwargs)
+        center, cost = _ba_update(center, X, metric, **kwargs)
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
@@ -97,7 +96,7 @@ def dba(
 
 
 @njit(cache=True, fastmath=True)
-def _dba_update(
+def _ba_update(
     center: np.ndarray,
     X: np.ndarray,
     metric: str = "dtw",
