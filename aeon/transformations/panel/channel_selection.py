@@ -18,7 +18,7 @@ from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import distance as aeon_distance
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 
 
 def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
@@ -226,7 +226,7 @@ class ClassPrototype:
         return (prototypes, le.classes_)
 
 
-class ElbowClassSum(BaseTransformer):
+class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
     Overview: From the input of multivariate time series data, create a distance
@@ -279,19 +279,16 @@ class ElbowClassSum(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.panel.channel_selection import ElbowClassSum
-    >>> from aeon.utils._testing.panel import make_classification_problem
-    >>> X, y = make_classification_problem(n_columns=3, n_classes=3, random_state=42)
+    >>> import numpy as np
+    >>> X = np.random.random((20,6,30))
+    >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassSum()
     >>> cs.fit(X, y)
-    ElbowClassSum(...)
+    ElbowClassSum()
     >>> Xt = cs.transform(X)
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        # "scitype:transform-output": "Primitives",
-        # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": True,  # is this an instance-wise transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
@@ -368,7 +365,7 @@ class ElbowClassSum(BaseTransformer):
         return X[:, self.channels_selected_idx]
 
 
-class ElbowClassPairwise(BaseTransformer):
+class ElbowClassPairwise(BaseCollectionTransformer):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
     Overview: From the input of multivariate time series data, create a distance
@@ -421,8 +418,9 @@ class ElbowClassPairwise(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.panel.channel_selection import ElbowClassPairwise
-    >>> from aeon.utils._testing.panel import make_classification_problem
-    >>> X, y = make_classification_problem(n_columns=3, n_classes=3, random_state=42)
+    >>> import numpy as np
+    >>> X = np.random.random((20,6,30))
+    >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassPairwise()
     >>> cs.fit(X, y)
     ElbowClassPairwise(...)
@@ -430,9 +428,6 @@ class ElbowClassPairwise(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        # "scitype:transform-output": "Primitives",
         # what scitype is returned: Primitives, Series, Panel
         "scitype:instancewise": True,  # is this an instance-wise transform?
         "univariate-only": False,  # can the transformer handle multivariate X?

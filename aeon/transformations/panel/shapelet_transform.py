@@ -22,7 +22,7 @@ from sklearn import preprocessing
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import class_distribution
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
 
@@ -88,7 +88,7 @@ class _ShapeletPQ:
         return self._queue
 
 
-class ShapeletTransform(BaseTransformer):
+class ShapeletTransform(BaseCollectionTransformer):
     """Shapelet Transform.
 
     The original shapelet transform, as described in [1,2]. The transform performs a
@@ -127,11 +127,11 @@ class ShapeletTransform(BaseTransformer):
 
     _tags = {
         "scitype:transform-output": "Primitives",
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # and for y?
-        "requires_y": True,
-        "univariate-only": True,
         "fit_is_empty": False,
+        "univariate-only": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(
@@ -151,7 +151,8 @@ class ShapeletTransform(BaseTransformer):
         self.remove_self_similar = remove_self_similar
         self.predefined_ig_rejection_level = 0.05
         self.shapelets = None
-        super(ShapeletTransform, self).__init__(_output_convert=False)
+
+        super(ShapeletTransform, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
@@ -850,7 +851,7 @@ class ShapeletTransform(BaseTransformer):
         return sum_dist
 
 
-class RandomShapeletTransform(BaseTransformer):
+class RandomShapeletTransform(BaseCollectionTransformer):
     """Random Shapelet Transform.
 
     Implementation of the binary shapelet transform along the lines of [1]_[2]_, with
@@ -1019,7 +1020,7 @@ class RandomShapeletTransform(BaseTransformer):
         self._class_dictionary = {}
         self._sorted_indicies = []
 
-        super(RandomShapeletTransform, self).__init__(_output_convert=False)
+        super(RandomShapeletTransform, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
