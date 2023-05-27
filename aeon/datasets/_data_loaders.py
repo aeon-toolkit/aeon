@@ -85,7 +85,7 @@ def _load_header_info(file):
     return meta_data
 
 
-def _load_data(file, meta_data):
+def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     """Load data from a file with no header.
 
     this assumes each time series has the same number of channels, but allows unequal
@@ -115,7 +115,7 @@ def _load_data(file, meta_data):
     y_values = []
     for line in file:
         line = line.strip().lower()
-        line = line.replace("?", "NaN")
+        line = line.replace("?", replace_missing_vals_with)
         channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
@@ -165,6 +165,7 @@ def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_meta_data=False,
+    return_type="auto",
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -201,10 +202,17 @@ def load_from_tsfile(
         # Read in headers
         meta_data = _load_header_info(file)
         # load into list of numpy
-        data, y, meta_data = _load_data(file, meta_data)
-        # if equal load to 3D numpy
+        data, y, meta_data = _load_data(file, meta_data, replace_missing_vals_with)
+        # if equal load to 3D numpy or numpy2D
         if meta_data["equallength"]:
-            data = np.array(data)
+            if (
+                return_type == "auto"
+                or return_type == "numpy3D"
+                or return_type == "numpy2D"
+            ):
+                data = np.array(data)
+            if return_type == "numpy2D":
+                data = np.squeeze(data)
     if return_meta_data:
         return data, y, meta_data
     return data, y
