@@ -62,6 +62,7 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances.mpdist import mpdist
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 AlignmentPathFunction = Callable[
@@ -138,6 +139,8 @@ def distance(
         return twe_distance(x, y, **kwargs)
     elif metric == "msm":
         return msm_distance(x, y, **kwargs)
+    elif metric == "mpdist":
+        return mpdist(x, y, **kwargs)
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -231,6 +234,8 @@ def pairwise_distance(
         return twe_pairwise_distance(x, y, **kwargs)
     elif metric == "msm":
         return msm_pairwise_distance(x, y, **kwargs)
+    elif metric == "mpdist":
+        return _custom_func_pairwise(x, y, mpdist, **kwargs)
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
@@ -433,7 +438,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'mpdist'
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
 
@@ -573,6 +578,8 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
 
 
 def _resolve_key_from_distance(metric: str, key: str) -> Any:
+    if metric == "mpdist":
+        return mpdist
     dist = DISTANCES_DICT.get(metric)
     if dist is None:
         raise ValueError(f"Unknown metric {metric}")

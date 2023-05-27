@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
-"""tsfresh interface class."""
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""tsfresh interface class."""
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 
 from aeon.datatypes._panel._convert import from_3d_numpy_to_long
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("tsfresh", severity="warning")
 
 
-class _TSFreshFeatureExtractor(BaseTransformer):
+class _TSFreshFeatureExtractor(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
         "scitype:transform-output": "Primitives",
-        "scitype:instancewise": True,
+        "fit_is_empty": True,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
-        "fit_is_empty": True,
+        "scitype:instancewise": True,
         "python_dependencies": "tsfresh",
     }
 
@@ -442,12 +442,11 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "requires_y": True,  # does y need to be passed in fit?
-        "X_inner_mtype": "nested_univ",  # which mtypes do _fit/_predict support for X?
+        "scitype:instancewise": False,
+        "requires_y": True,
+        "X_inner_mtype": "nested_univ",
         "y_inner_mtype": "pd_Series_Table",
-        # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": False,
     }
 
     def __init__(
