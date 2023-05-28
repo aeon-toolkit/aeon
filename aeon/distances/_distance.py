@@ -122,23 +122,35 @@ def distance(
     elif metric == "euclidean":
         return euclidean_distance(x, y)
     elif metric == "dtw":
-        return dtw_distance(x, y, **kwargs)
+        return dtw_distance(x, y, kwargs.get("window"))
     elif metric == "ddtw":
-        return ddtw_distance(x, y, **kwargs)
+        return ddtw_distance(x, y, kwargs.get("window"))
     elif metric == "wdtw":
-        return wdtw_distance(x, y, **kwargs)
+        return wdtw_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "wddtw":
-        return wddtw_distance(x, y, **kwargs)
+        return wddtw_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "lcss":
-        return lcss_distance(x, y, **kwargs)
+        return lcss_distance(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
     elif metric == "erp":
-        return erp_distance(x, y, **kwargs)
+        return erp_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
     elif metric == "edr":
-        return edr_distance(x, y, **kwargs)
+        return edr_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
-        return twe_distance(x, y, **kwargs)
+        return twe_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("nu", 0.001),
+            kwargs.get("lmbda", 1.0),
+        )
     elif metric == "msm":
-        return msm_distance(x, y, **kwargs)
+        return msm_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("independent", True),
+            kwargs.get("c", 1.0),
+        )
     elif metric == "mpdist":
         return mpdist(x, y, **kwargs)
     else:
@@ -212,28 +224,44 @@ def pairwise_distance(
            [147.],
            [ 48.]])
     """
-    if metric == "euclidean":
-        return euclidean_pairwise_distance(x, y)
-    elif metric == "squared":
+    if metric == "squared":
         return squared_pairwise_distance(x, y)
+    elif metric == "euclidean":
+        return euclidean_pairwise_distance(x, y)
     elif metric == "dtw":
-        return dtw_pairwise_distance(x, y, **kwargs)
+        return dtw_pairwise_distance(x, y, kwargs.get("window"))
     elif metric == "ddtw":
-        return ddtw_pairwise_distance(x, y, **kwargs)
+        return ddtw_pairwise_distance(x, y, kwargs.get("window"))
     elif metric == "wdtw":
-        return wdtw_pairwise_distance(x, y, **kwargs)
+        return wdtw_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "wddtw":
-        return wddtw_pairwise_distance(x, y, **kwargs)
+        return wddtw_pairwise_distance(
+            x, y, kwargs.get("window"), kwargs.get("g", 0.05)
+        )
     elif metric == "lcss":
-        return lcss_pairwise_distance(x, y, **kwargs)
+        return lcss_pairwise_distance(
+            x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
+        )
     elif metric == "erp":
-        return erp_pairwise_distance(x, y, **kwargs)
+        return erp_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
     elif metric == "edr":
-        return edr_pairwise_distance(x, y, **kwargs)
+        return edr_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
-        return twe_pairwise_distance(x, y, **kwargs)
+        return twe_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("nu", 0.001),
+            kwargs.get("lmbda", 1.0),
+        )
     elif metric == "msm":
-        return msm_pairwise_distance(x, y, **kwargs)
+        return msm_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("independent", True),
+            kwargs.get("c", 1.0),
+        )
     elif metric == "mpdist":
         return _custom_func_pairwise(x, y, mpdist, **kwargs)
     else:
@@ -334,23 +362,37 @@ def alignment_path(
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     if metric == "dtw":
-        return dtw_alignment_path(x, y, **kwargs)
+        return dtw_alignment_path(x, y, kwargs.get("window"))
     elif metric == "ddtw":
-        return ddtw_alignment_path(x, y, **kwargs)
+        return ddtw_alignment_path(x, y, kwargs.get("window"))
     elif metric == "wdtw":
-        return wdtw_alignment_path(x, y, **kwargs)
+        return wdtw_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "wddtw":
-        return wddtw_alignment_path(x, y, **kwargs)
+        return wddtw_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "lcss":
-        return lcss_alignment_path(x, y, **kwargs)
+        return lcss_alignment_path(
+            x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
+        )
     elif metric == "erp":
-        return erp_alignment_path(x, y, **kwargs)
+        return erp_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
     elif metric == "edr":
-        return edr_alignment_path(x, y, **kwargs)
+        return edr_alignment_path(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
-        return twe_alignment_path(x, y, **kwargs)
+        return twe_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("nu", 0.001),
+            kwargs.get("lmbda", 1.0),
+        )
     elif metric == "msm":
-        return msm_alignment_path(x, y, **kwargs)
+        return msm_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("independent", True),
+            kwargs.get("c", 1.0),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -408,23 +450,35 @@ def cost_matrix(
            [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
     """
     if metric == "dtw":
-        return dtw_cost_matrix(x, y, **kwargs)
+        return dtw_cost_matrix(x, y, kwargs.get("window"))
     elif metric == "ddtw":
-        return ddtw_cost_matrix(x, y, **kwargs)
+        return ddtw_cost_matrix(x, y, kwargs.get("window"))
     elif metric == "wdtw":
-        return wdtw_cost_matrix(x, y, **kwargs)
+        return wdtw_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "wddtw":
-        return wddtw_cost_matrix(x, y, **kwargs)
+        return wddtw_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
     elif metric == "lcss":
-        return lcss_cost_matrix(x, y, **kwargs)
+        return lcss_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
     elif metric == "erp":
-        return erp_cost_matrix(x, y, **kwargs)
+        return erp_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
     elif metric == "edr":
-        return edr_cost_matrix(x, y, **kwargs)
+        return edr_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
-        return twe_cost_matrix(x, y, **kwargs)
+        return twe_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("nu", 0.001),
+            kwargs.get("lmbda", 1.0),
+        )
     elif metric == "msm":
-        return msm_cost_matrix(x, y, **kwargs)
+        return msm_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("independent", True),
+            kwargs.get("c", 1.0),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
