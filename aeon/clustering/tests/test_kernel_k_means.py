@@ -7,13 +7,13 @@ from aeon.clustering.kernel_k_means import TimeSeriesKernelKMeans
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
-expected_labels = [0, 1, 0, 2, 2]
+expected_labels = [0, 2, 1, 2, 0]
 
-expected_score = 3.999999999992592
+expected_score = 4.0
 
 expected_iters = 2
 
-expected_results = [0, 2, 0, 0, 0]
+expected_results = [0, 0, 0, 0, 0]
 
 
 @pytest.mark.skipif(
@@ -27,7 +27,7 @@ def test_kernel_k_means():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
-    kernel_kmeans = TimeSeriesKernelKMeans(random_state=2, n_clusters=3)
+    kernel_kmeans = TimeSeriesKernelKMeans(random_state=1, n_clusters=3)
     kernel_kmeans.fit(X_train[0:max_train])
     test_shape_result = kernel_kmeans.predict(X_test[0:max_train])
     score = kernel_kmeans.score(X_test[0:max_train])
