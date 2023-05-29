@@ -108,7 +108,7 @@ class TimeSeriesKShapes(BaseClusterer):
             init=self.init_algorithm,
         )
 
-        _X = X.reshape((X.shape[0], X.shape[2], X.shape[1]))
+        _X = X.swapaxes(1, 2)
 
         self._tslearn_k_shapes.fit(_X)
         self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
@@ -131,7 +131,7 @@ class TimeSeriesKShapes(BaseClusterer):
         np.ndarray (1d array of shape (n_instances,))
             Index of the cluster each time series in X belongs to.
         """
-        _X = X.reshape((X.shape[0], X.shape[2], X.shape[1]))
+        _X = X.swapaxes(1, 2)
         return self._tslearn_k_shapes.predict(_X)
 
     @classmethod
