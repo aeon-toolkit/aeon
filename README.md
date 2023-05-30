@@ -58,26 +58,24 @@ classification.
 import pandas as pd
 from aeon.forecasting.trend import TrendForecaster
 
->>> y = pd.Series([20.0, 40.0, 60.0, 80.0, 100.0])
-0     20.0
-1     40.0
-2     60.0
-3     80.0
-4    100.0
-dtype: float64
+y = pd.Series([20.0, 40.0, 60.0, 80.0, 100.0])
+>>> 0     20.0
+>>> 1     40.0
+>>> 2     60.0
+>>> 3     80.0
+>>> 4    100.0
+>>> dtype: float64
 
->>> forecaster = TrendForecaster()
->>> forecaster.fit(y)  # fit the forecaster
-TrendForecaster()
+forecaster = TrendForecaster()
+forecaster.fit(y)  # fit the forecaster
+>>> TrendForecaster()
 
->>> pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
-5    120.0
-6    140.0
-7    160.0
-dtype: float64
+pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
+>>> 5    120.0
+>>> 6    140.0
+>>> 7    160.0
+>>> dtype: float64
 ```
-
-
 
 ### Classification
 
@@ -95,13 +93,13 @@ y = np.array(y)
 
 clf = KNeighborsTimeSeriesClassifier(distance="dtw")
 clf.fit(X, y)  # fit the classifier on train data
-> KNeighborsTimeSeriesClassifier()
+>>> KNeighborsTimeSeriesClassifier()
 
 X_test = np.array(
     [[2, 2, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3], [5, 5, 5, 5, 5, 5], [6, 6, 6, 6, 6, 6]]
 )
 y_pred = clf.predict(X_test)  # make class predictions on new data
-> [0 0 1 1]
+>>> [0 0 1 1]
 ```
 
 ## 💬 Where to ask questions
