@@ -84,10 +84,9 @@ import numpy as np
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
 X = [[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-     [[5, 5, 4, 3, 2, 1]],  # Four samples, one channel, six series length
-     [[4, 4, 5, 6, 7, 8]],
+     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
      [[8, 7, 6, 5, 4, 4]]]
-y = [0, 0, 1, 1]  # class labels for each sample
+y = ['low', 'low', 'high']  # class labels for each sample
 X = np.array(X)
 y = np.array(y)
 
@@ -96,10 +95,10 @@ clf.fit(X, y)  # fit the classifier on train data
 >>> KNeighborsTimeSeriesClassifier()
 
 X_test = np.array(
-    [[2, 2, 2, 2, 2, 2], [3, 3, 3, 3, 3, 3], [5, 5, 5, 5, 5, 5], [6, 6, 6, 6, 6, 6]]
+    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
 )
 y_pred = clf.predict(X_test)  # make class predictions on new data
->>> [0 0 1 1]
+>>> ['low' 'high' 'high']
 ```
 
 ## 💬 Where to ask questions
