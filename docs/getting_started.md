@@ -4,7 +4,7 @@ The following information is designed to get users up and running with `aeon` qu
 If installation is required, please see our [installation guide](installation) for
 installing `aeon`.
 
-We assume basic familiarity with [scikit-learn](https://scikit-learn.org/stable/index.html)
+We assume basic familiarity with the [scikit-learn](https://scikit-learn.org/stable/index.html)
 package. If you are confused, you may want to view
 [their getting started guides](https://scikit-learn.org/stable/getting_started.html).
 
@@ -112,7 +112,7 @@ store time series data.
 
 ```{code-block} python
 >>>from aeon.datasets import load_basic_motions, load_plaid, load_japanese_vowels
->>> X2, y2 = load_basic_motions()
+>>> X2, y2 = load_basic_motions() # example equal length multivariate collection
 >>> X2.shape
 (80, 6, 100)
 >>> X3, y3 = load_plaid()  # example unequal length univariate collection
@@ -308,4 +308,190 @@ as time goes on.
 1949-04    0
 1949-05    0
 Freq: M, dtype: int32
+```
+
+## Transformers for Time Series Data
+
+Coming soon!
+
+## Transformers for Collections of Time Series
+
+Coming soon!
+
+## Pipelines for aeon estimators
+
+Like `scikit-learn`, `aeon` provides pipeline classes which can be used to chain
+transformations and estimators together. The simplest pipeline for forecasting is the
+[TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
+
+In the following example, we chain together a
+[BoxCoxTransformer](transformations.series.boxcox.BoxCoxTransformer),
+[Deseasonalizer](transformations.series.detrend.Deseasonalizer) and
+[ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
+yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.datasets import load_airline
+>>> from aeon.transformations.series.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.forecasting.arima import ARIMA
+>>> from aeon.forecasting.compose import TransformedTargetForecaster
+...
+>>> # Load airline data
+>>> y = load_airline()
+>>> # Create and fit the pipeline
+>>> pipe = TransformedTargetForecaster(
+...     steps=[
+...         ("boxcox", BoxCoxTransformer(sp=12)),
+...         ("deseasonaliser", Deseasonalizer(sp=12)),
+...         ("arima", ARIMA(order=(1, 1, 0))),
+...     ]
+... )
+>>> pipe.fit(y)
+>>> # Make predictions
+>>> pipe.predict(fh=np.arange(1, 13))
+1961-01    442.440026
+1961-02    433.548016
+1961-03    493.371215
+1961-04    484.284090
+1961-05    490.850617
+1961-06    555.134680
+1961-07    609.581248
+1961-08    611.345923
+1961-09    542.610868
+1961-10    482.452172
+1961-11    428.885045
+1961-12    479.297989
+Freq: M, dtype: float64
+```
+
+For most learning tasks including forecasting, the `aeon` [make_pipeline](pipeline.make_pipeline)
+function can be used to creating pipelines as well.
+
+```{code-block} python
+>>> from aeon.pipeline import make_pipeline
+>>> make_pipeline(
+...     BoxCoxTransformer(sp=12), Deseasonalizer(sp=12), ARIMA(order=(1, 1, 0))
+... )
+TransformedTargetForecaster(steps=[BoxCoxTransformer(sp=12),
+                                   Deseasonalizer(sp=12),
+                                   ARIMA(order=(1, 1, 0))])
+```
+
+For machine learning tasks such as classification, regression and clustering, the
+`scikit-learn` `make_pipeline` functionality can be used.
+
+The following example uses the [Catch22](transformations.panel.catch22.Catch22)
+feature extraction transformer and a random forest classifier to classify.
+
+```{code-block} python
+>>> from aeon.datasets import load_italy_power_demand
+>>> from aeon.transformations.panel import Catch22
+>>> from sklearn.ensemble import RandomForestClassifier
+>>> from sklearn.pipeline import make_pipeline
+>>> from sklearn.metrics import accuracy_score
+...
+>>> # Load the italy power demand dataset
+>>> X_train, y_train = load_italy_power_demand(split="train")
+>>> X_test, y_test = load_italy_power_demand(split="test")
+...
+>>> # Create and fit the pipeline
+>>> pipe = make_pipeline(
+...     Catch22(replace_nans=True),
+...     RandomForestClassifier(random_state=42),
+... )
+>>> pipe.fit(X_train, y_train)
+Pipeline(steps=[('catch22', Catch22(replace_nans=True)),
+                ('randomforestclassifier',
+                 RandomForestClassifier(random_state=42))])
+>>> # Make predictions like any other sklearn estimator
+>>> accuracy_score(pipe.predict(X_test), y_test)
+0.8989310009718173
+```
+
+## Parameter searching for aeon estimators
+
+Tools for selecting parameter values for `aeon` estimators are available. In the
+following example, we use a [ForecastingGridSearchCV](forecasting.model_selection.ForecastingGridSearchCV)
+to ARIMA order values for the forecasting pipeline we created in the previous example.
+
+```{code-block} python
+>>> import warnings
+>>> import numpy as np
+>>> from itertools import product
+>>> from sklearn.exceptions import ConvergenceWarning
+>>> from aeon.datasets import load_airline
+>>> from aeon.forecasting.compose import TransformedTargetForecaster
+>>> from aeon.forecasting.model_selection import (
+...     ExpandingWindowSplitter,
+...     ForecastingGridSearchCV,
+... )
+>>> from aeon.forecasting.arima import ARIMA
+>>> from aeon.transformations.series.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.series.detrend import Deseasonalizer
+...
+>>> y = load_airline()
+...
+>>> cv = ExpandingWindowSplitter(initial_window=120, fh=np.arange(1, 13))
+>>> arima_orders = list(product((0, 1, 2), (0, 1, 2), (0, 1, 2)))
+...
+>>> warnings.simplefilter("ignore", category=ConvergenceWarning)
+>>> gscv = ForecastingGridSearchCV(
+...     forecaster=TransformedTargetForecaster(
+...         steps=[
+...             ("boxcox", BoxCoxTransformer(sp=12)),
+...             ("deseasonaliser", Deseasonalizer(sp=12)),
+...             ("arima", ARIMA(order=(1, 1, 0))),
+...        ]
+...     ),
+...     param_grid={"arima__order": arima_orders},
+...     cv=cv,
+... )
+>>> gscv.fit(y)
+...
+>>> gscv.predict(fh=np.arange(1, 13))
+1961-01    443.073816
+1961-02    434.309107
+1961-03    494.198070
+1961-04    485.105623
+1961-05    491.684116
+1961-06    556.064082
+1961-07    610.591655
+1961-08    612.362761
+1961-09    543.533022
+1961-10    483.289701
+1961-11    429.645587
+1961-12    480.137248
+Freq: M, dtype: float64
+>>> gscv.best_params_["arima__order"]
+(0, 1, 1)
+```
+
+Like with pipelines, tasks such as classification, regression and clustering can use
+the available `scikit-learn` functionality.
+
+```{code-block} python
+>>> from sklearn.metrics import accuracy_score
+>>> from sklearn.model_selection import GridSearchCV, KFold
+>>> from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+>>> from aeon.datasets import load_italy_power_demand
+...
+>>> # Load the italy power demand dataset
+>>> X_train, y_train = load_italy_power_demand(split="train")
+>>> X_test, y_test = load_italy_power_demand(split="test")
+...
+>>> knn = KNeighborsTimeSeriesClassifier()
+>>> param_grid = {"n_neighbors": [1, 5], "distance": ["euclidean", "dtw"]}
+...
+>>> gscv = GridSearchCV(knn, param_grid, cv=KFold(n_splits=4))
+>>> gscv.fit(X_train, y_train)
+...
+>>> y_pred = gscv.predict(X_test)
+>>> y_pred[:6]
+['2' '2' '2' '2' '2' '1']
+>>> accuracy_score(y_test, y_pred)
+0.9523809523809523
+>>> gscv.best_params_
+{'distance': 'euclidean', 'n_neighbors': 5}
 ```
