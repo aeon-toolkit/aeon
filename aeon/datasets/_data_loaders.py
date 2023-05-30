@@ -165,6 +165,7 @@ def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_meta_data=False,
+    return_data_type="auto",
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -176,12 +177,17 @@ def load_from_tsfile(
         issing values in the file are replaces with this value
     return_meta_data : boolean, default=True
         return a dictionary with the meta data loaded from the file
+    return_data_type : string, default = "auto"
+        data type to convert to.
+        If "auto", returns numpy3D for equal length and list of numpy2D for unequal.
+        If "numpy2D", will squash a univariate equal length into a numpy2D (n_cases,
+        n_timepoints). Other options are available but not supported medium term.
 
     Returns
     -------
     data: Union[np.ndarray,list]
         time series data, np.ndarray (n_cases, n_channels, series_length) if equal
-        length time series, list of [n_cases] np.ndarray (n_channels, series_length)
+        length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
         if unequal length series.
     y : target variable, np.ndarray of string or int
     meta_data : dict (optional).
@@ -202,9 +208,14 @@ def load_from_tsfile(
         meta_data = _load_header_info(file)
         # load into list of numpy
         data, y, meta_data = _load_data(file, meta_data)
-        # if equal load to 3D numpy
-        if meta_data["equallength"]:
-            data = np.array(data)
+
+    # if equal load to 3D numpy
+    if meta_data["equallength"]:
+        data = np.array(data)
+        if return_data_type == "numpy2D" and meta_data["univariate"]:
+            data = data.squeeze()
+        # Here, can convert to dataframe etc if we really need it.
+
     if return_meta_data:
         return data, y, meta_data
     return data, y
@@ -287,7 +298,7 @@ def _load_provided_dataset(
     # structures. Its all for backward compatibility.
     if isinstance(X, list):
         loaded_type = "np-list"
-    else:
+    elif isinstance(X, np.ndarray):
         loaded_type = "numpy3D"
 
     if return_type == "nested_univ":
@@ -296,6 +307,7 @@ def _load_provided_dataset(
     elif meta_data["equallength"]:
         if return_type == "numpyflat" and X.shape[1] == 1:
             X = X.squeeze()
+            loaded_type = "numpyflat"
     elif return_type is not None and loaded_type != return_type:
         X = convert(X, from_type=loaded_type, to_type=return_type)
     if return_X_y:
