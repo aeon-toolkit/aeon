@@ -113,7 +113,12 @@ class SAX(BaseTransformer):
         return X_paa
 
     def _transform(self, X, y=None):
-        """Transform the input time seires to SAX symbols.
+        """Transform the input time series to SAX symbols.
+
+        This function will transform the input time series into a bag of
+        symbols. These symbols are represented as integer values pointing
+        to the indices of the breakpoint in the alphabet for each
+        segment produced by PAA.
 
         Parameters
         ----------
