@@ -2087,7 +2087,8 @@
         "avatar_url": "https://avatars.githubusercontent.com/u/47733489",
         "profile": "https://github.com/GuiArcencio",
         "contributions": [
-          "code"
+          "code",
+          "test"
         ]
       },
     {
@@ -2155,6 +2156,6 @@
       "contributions": [
         "code"
       ]
-    },
+    }
   ]
 }
