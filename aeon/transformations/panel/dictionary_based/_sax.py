@@ -9,6 +9,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__all__ = ["SAX", "_invert_sax_symbols"]
 
 
 class SAX(BaseTransformer):
@@ -79,7 +80,6 @@ class SAX(BaseTransformer):
         self.n_segments = n_segments
         self.alphabet_size = alphabet_size
         self.distribution = distribution
-        self.series_length = 0
 
         self.distribution_params = distribution_params
         self.znormalized = znormalized
@@ -143,7 +143,6 @@ class SAX(BaseTransformer):
         sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
             The output of the SAX transformation
         """
-        self.series_length = int(X.shape[-1])
         X_paa = self._get_paa(X=X)
         sax_symbols = self._get_sax_symbols(X_paa=X_paa)
         return sax_symbols
@@ -164,7 +163,7 @@ class SAX(BaseTransformer):
         sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
         return sax_symbols
 
-    def inverse_sax(self, X, y=None):
+    def inverse_sax(self, X, original_length, y=None):
         """Produce the inverse SAX transformation.
 
         Parameters
@@ -181,7 +180,7 @@ class SAX(BaseTransformer):
         """
         sax_inverse = _invert_sax_symbols(
             sax_symbols=X,
-            series_length=self.series_length,
+            series_length=original_length,
             breakpoints_mid=self.breakpoints_mid,
         )
 
