@@ -36,7 +36,7 @@ from aeon.datatypes import check_is_mtype
 
 
 @pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D"])
+@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D", "numpy2D"])
 def test_load_provided_dataset(return_X_y, return_type):
     """Test function to check for proper loading.
 
@@ -50,7 +50,9 @@ def test_load_provided_dataset(return_X_y, return_type):
     if not return_X_y or return_type == "nested_univ":
         assert isinstance(X, pd.DataFrame)
     elif return_type == "numpy3D":
-        assert isinstance(X, np.ndarray)
+        assert isinstance(X, np.ndarray) and X.ndim == 3
+    elif return_type == "numpy2D":
+        assert isinstance(X, np.ndarray) and X.ndim == 2
 
     # Check whether object is same mtype or not, via bool
 
