@@ -23,21 +23,22 @@ class SAX(BaseTransformer):
     Parameters
     ----------
     n_segments : int, default = 8,
-        number of segments for the PAA, each segement is represented
+        number of segments for the PAA, each segment is represented
         by a symbol
     alphabet_size : int, default = 4,
         size of the alphabet to be used to create the bag of words
     distribution : str, default = "Gaussian",
+        options={"Gaussian"}
         the distribution function to use when generating the
-        alphabet
+        alphabet. Currently only Gaussian is supported.
     distribution_params : dict, default = None,
         the parameters of the used distribution, if the used
         distribution is "Gaussian" and this parameter is None
         then the default setup is {"scale" : 1.0}
     znormalized : bool, default = True,
         this parameter is set to True when the input time series
-        are supposed to be z-nromalized, i.e. the mean of each
-        time series should b 0 and the standard deviation should be
+        are assume to be be z-normalized, i.e. the mean of each
+        time series should be 0 and the standard deviation should be
         equal to 1. If this parameter is set to False, the z-normalization
         is applied before the transformation.
 
@@ -92,7 +93,7 @@ class SAX(BaseTransformer):
             )
 
         else:
-            raise NotImplementedError("still not added")
+            raise NotImplementedError(self.distribution, "still not added")
 
         self.breakpoints, self.breakpoints_mid = self._generate_breakpoints(
             alphabet_size=self.alphabet_size,
@@ -103,7 +104,7 @@ class SAX(BaseTransformer):
         super(SAX, self).__init__()
 
     def _get_paa(self, X):
-        """Transform the input time seires to PAA segments.
+        """Transform the input time series to PAA segments.
 
         Parameters
         ----------
@@ -116,7 +117,7 @@ class SAX(BaseTransformer):
             The output of the PAA transformation
         """
         if not self.znormalized:
-            X = scipy.stats.zscore(X, axis=2)
+            X = scipy.stats.zscore(X, axis=-1)
 
         paa = PAA(n_intervals=self.n_segments)
         X_paa = paa.fit_transform(X=X)
@@ -249,7 +250,7 @@ class SAX(BaseTransformer):
 
 @njit(parallel=True, fastmath=True)
 def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
-    """Produce the original time series using a Gaussian estimation.
+    """Reconstruct the original time series using a Gaussian estimation.
 
     In other words, try to inverse the SAX transformation.
 
