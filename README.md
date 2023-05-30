@@ -54,7 +54,7 @@ classification.
 
 ### Forecasting
 
-```{code-block} python
+```python
 import pandas as pd
 from aeon.forecasting.trend import TrendForecaster
 
@@ -79,7 +79,7 @@ pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
 
 ### Classification
 
-```{code-block} python
+```python
 import numpy as np
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
