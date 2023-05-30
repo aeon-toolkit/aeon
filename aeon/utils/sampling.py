@@ -5,6 +5,7 @@ Used in experiments to get deterministic resamples.
 """
 
 import random
+from itertools import chain
 
 import numpy as np
 import pandas as pd
@@ -37,11 +38,12 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
     """
     random_state = check_random_state(random_state)
     all_labels = np.concatenate([y_train, y_test], axis=0)
-    all_data = (
-        pd.concat([X_train, X_test], ignore_index=True)
-        if isinstance(X_train, pd.DataFrame)
-        else np.concatenate([X_train, X_test], axis=0)
-    )
+    if isinstance(X_train, pd.DataFrame):
+        all_data = pd.concat([X_train, X_test], ignore_index=True)
+    elif isinstance(X_train, list):
+        all_data = list(x for x in chain(X_train, X_test))
+    else:  # 3D or 2D numpy
+        all_data = np.concatenate([X_train, X_test], axis=0)
 
     # count class occurrences
     unique_train, counts_train = np.unique(y_train, return_counts=True)
@@ -66,6 +68,9 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
         new_X_test = all_data.iloc[new_test_indices]
         new_X_train = new_X_train.reset_index(drop=True)
         new_X_test = new_X_test.reset_index(drop=True)
+    elif isinstance(X_train, list):
+        new_X_train = list(all_data[i] for i in new_train_indices)
+        new_X_test = list(all_data[i] for i in new_test_indices)
     else:
         new_X_train = all_data[new_train_indices]
         new_X_test = all_data[new_test_indices]
