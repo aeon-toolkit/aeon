@@ -65,7 +65,7 @@ def test_stratified_resample(input_type):
     y_test = np.array([0, 0, 0, 0, 0, 0, 0, 1, 1, 1])
 
     new_X_train, new_y_train, new_X_test, new_y_test = stratified_resample(
-        X_train, y_train, X_test, y_test, 0
+        X_train, y_train, X_test, y_test, random_state
     )
 
     # Valid return type
