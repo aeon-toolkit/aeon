@@ -76,4 +76,4 @@ def test_dummy_deep_classifier():
 
     # test summary of model
 
-    dummy_deep_clf.summary()
+    assert dummy_deep_clf.summary() is not None
