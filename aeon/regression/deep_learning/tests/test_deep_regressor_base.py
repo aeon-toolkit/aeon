@@ -73,4 +73,4 @@ def test_dummy_deep_regressor():
 
     # test summary of model
 
-    dummy_deep_rg.summary()
+    assert dummy_deep_rg.summary() is not None
