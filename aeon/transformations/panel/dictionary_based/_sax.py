@@ -33,6 +33,12 @@ class SAX(BaseTransformer):
         the parameters of the used distribution, if the used
         distribution is "Gaussian" and this parameter is None
         then the default setup is {"scale" : 1.0}
+    znormalized : bool, default = True,
+        this parameter is set to True when the input time series
+        are supposed to be z-nromalized, i.e. the mean of each
+        time series should b 0 and the standard deviation should be
+        equal to 1. If this parameter is set to False, the z-normalization
+        is applied before the transformation.
 
     Notes
     -----
@@ -68,6 +74,7 @@ class SAX(BaseTransformer):
         alphabet_size=4,
         distribution="Gaussian",
         distribution_params=None,
+        znormalized=True,
     ):
         self.n_segments = n_segments
         self.alphabet_size = alphabet_size
@@ -75,6 +82,7 @@ class SAX(BaseTransformer):
         self.series_length = 0
 
         self.distribution_params = distribution_params
+        self.znormalized = znormalized
 
         if self.distribution == "Gaussian":
             self.distribution_params_ = (
@@ -107,6 +115,9 @@ class SAX(BaseTransformer):
         X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
             The output of the PAA transformation
         """
+        if not self.znormalized:
+            X = scipy.stats.zscore(X, axis=2)
+
         paa = PAA(n_intervals=self.n_segments)
         X_paa = paa.fit_transform(X=X)
 
