@@ -369,7 +369,6 @@ def convert_from_dictionary(ts_dict):
         }
     or multivariate, e.g.
     to aeon pandas format
-    TODO: Adapt for multivariate
     """
     panda = pd.DataFrame(ts_dict)
     panda = panda.transpose()

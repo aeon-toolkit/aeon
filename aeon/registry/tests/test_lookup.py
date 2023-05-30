@@ -16,7 +16,6 @@ VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
 # some scitypes have no associated tags yet
 SCITYPES_WITHOUT_TAGS = [
     "series-annotator",
-    "clusterer",
     "object",
     "splitter",
     "network",
@@ -230,3 +229,21 @@ def test_scitype_inference(estimator_scitype):
     assert (
         inferred_scitype == estimator_scitype
     ), "one of scitype, _check_estimator_types is incorrect, these should be inverses"
+
+
+def test_list_tag_lookup():
+    """Check that all estimators can handle tags lists rather than single strings.
+
+    DummyClassifier has two internal datatypes, "numpy3D" and "np-list". This test
+    checks that DummyClassifier is returned with either of these argument.s
+    """
+    matches = all_estimators(
+        estimator_types="classifier", filter_tags={"X_inner_mtype": "np-list"}
+    )
+    names = [t[0] for t in matches]
+    assert "DummyClassifier" in names
+    matches = all_estimators(
+        estimator_types="classifier", filter_tags={"X_inner_mtype": "numpy3D"}
+    )
+    names = [t[0] for t in matches]
+    assert "DummyClassifier" in names

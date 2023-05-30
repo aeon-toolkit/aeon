@@ -7,13 +7,13 @@ from sklearn.preprocessing import FunctionTransformer
 
 from aeon.transformations.panel.compose import ColumnTransformer
 from aeon.transformations.panel.reduce import Tabularizer
-from aeon.utils._testing.panel import make_classification_problem
+from aeon.utils._testing.collection import make_nested_dataframe_data
 
 
 def test_ColumnTransformer_pipeline():
     """Test pipeline with ColumnTransformer."""
-    X_train, y_train = make_classification_problem(n_columns=2)
-    X_test, y_test = make_classification_problem(n_columns=2)
+    X_train, y_train = make_nested_dataframe_data(n_channels=2)
+    X_test, y_test = make_nested_dataframe_data(n_channels=2)
     X_train.columns = ["dim_0", "dim_1"]
     X_test.columns = ["dim_0", "dim_1"]
 
