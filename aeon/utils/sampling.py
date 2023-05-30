@@ -20,13 +20,13 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
 
     Parameters
     ----------
-    X_train : 3D np.array of shape = (n_instances, n_dimensions, series_length),
-    2D np.array of shape = (n_instances, series_length), or pd.DataFrame
+    X_train : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
         train data attributes.
     y_train : np.array
         train data class labels.
-    X_test : 3D np.array of shape = (n_instances, n_dimensions, series_length),
-    2D np.array of shape = (n_instances, series_length), or pd.DataFrame
+    X_test : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
         test data attributes.
     y_test : np.array
         test data class labels as np array.
@@ -71,7 +71,7 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
     elif isinstance(X_train, list):
         new_X_train = list(all_data[i] for i in new_train_indices)
         new_X_test = list(all_data[i] for i in new_test_indices)
-    else:
+    else:  # 3D or 2D numpy
         new_X_train = all_data[new_train_indices]
         new_X_test = all_data[new_test_indices]
 
