@@ -2,17 +2,14 @@
 import shutil
 
 import numpy as np
-import pytest
 
 """Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_loaders import (
-    _load_provided_dataset,
-    load_from_tsfile_to_dataframe,
-)
+from aeon.datasets._data_loaders import load_from_tsfile_to_dataframe
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
 from aeon.utils._testing.collection import (
     make_3d_test_data,
+    make_nested_dataframe_data,
     make_unequal_length_test_data,
 )
 
@@ -51,25 +48,21 @@ def test_write_to_tsfile_unequal_length():
     shutil.rmtree("./Temp")
 
 
-@pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-def test_write_dataframe_to_ts(dataset_name):
+def test_write_dataframe_to_ts():
     """Tests whether a dataset can be written by the .ts writer then read in."""
     # load an example dataset
-    X, y = _load_provided_dataset(
-        dataset_name, split="TRAIN", return_type="nested_univ"
-    )
+    X, y = make_nested_dataframe_data()
     # output the dataframe in a ts file
+    dataset_name = "Testy.ts"
     _write_dataframe_to_tsfile(
         X=X,
-        path=f"./Temp/{dataset_name}/",
+        path="./Temp/",
         y=y,
         problem_name=dataset_name,
         equal_length=True,
-        suffix="_TRAIN",
     )
     # load data back from the ts file into dataframe
-    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
-    newX, newy = load_from_tsfile_to_dataframe(load_path)
+    newX, newy = load_from_tsfile_to_dataframe("./Temp/")
     # check if the dataframes are the same
     #    assert_frame_equal(newX, X)
     assert np.array_equal(y, newy)

@@ -29,8 +29,9 @@ time series data into tabular data.
 
 The following provides introductory examples for each of these modules. In the examples
 used the datatypes most commonly used for the task, but a variety of input types for
-data are available. See [here](/examples/datasets/AA_datatypes_and_datasets.ipynb) for
-more information on input datatypes. For more information on the variety of estimators
+data are available. See [here](/examples/datasets/data_storage.ipynb) for
+more information on input data structures. For more information on the variety of
+estimators
 available for each task, see the [API](api_reference) and [examples](examples) pages.
 
 ## Time Series Data
