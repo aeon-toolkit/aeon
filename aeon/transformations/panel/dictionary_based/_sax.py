@@ -1,22 +1,15 @@
 # -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
-import sys
-
 import numpy as np
-import pandas as pd
 import scipy.stats
+from numba import njit, prange
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.panel.dictionary_based import PAA
 
-#    TO DO: verify this returned pandas is consistent with aeon
-#    definition. Timestamps?
-
-# from numba import types
-# from numba.experimental import jitclass
-
-__author__ = "MatthewMiddlehurst"
+__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__all__ = ["SAX", "_invert_sax_symbols"]
 
 
 class SAX(BaseTransformer):
@@ -26,176 +19,211 @@ class SAX(BaseTransformer):
     Jessica Lin, Eamonn Keogh, Li Wei and Stefano Lonardi,
     "Experiencing SAX: a novel symbolic representation of time series"
     Data Mining and Knowledge Discovery, 15(2):107-144
-    Overview: for each series:
-        run a sliding window across the series
-        for each window
-            shorten the series with PAA (Piecewise Approximate Aggregation)
-            discretise the shortened series into fixed bins
-            form a word from these discrete values
-    by default SAX produces a single word per series (window_size=0).
-    SAX returns a pandas data frame where column 0 is the histogram (sparse
-    pd.series)
-    of each series.
 
     Parameters
     ----------
-    word_length:         int, length of word to shorten window to (using
-    PAA) (default 8)
-    alphabet_size:       int, number of values to discretise each value
-    to (default to 4)
-    window_size:         int, size of window for sliding. Input series
-    length for whole series transform (default to 12)
-    remove_repeat_words: boolean, whether to use numerosity reduction (
-    default False)
-    save_words:          boolean, whether to use numerosity reduction (
-    default False)
+    n_segments : int, default = 8,
+        number of segments for the PAA, each segment is represented
+        by a symbol
+    alphabet_size : int, default = 4,
+        size of the alphabet to be used to create the bag of words
+    distribution : str, default = "Gaussian",
+        options={"Gaussian"}
+        the distribution function to use when generating the
+        alphabet. Currently only Gaussian is supported.
+    distribution_params : dict, default = None,
+        the parameters of the used distribution, if the used
+        distribution is "Gaussian" and this parameter is None
+        then the default setup is {"scale" : 1.0}
+    znormalized : bool, default = True,
+        this parameter is set to True when the input time series
+        are assume to be be z-normalized, i.e. the mean of each
+        time series should be 0 and the standard deviation should be
+        equal to 1. If this parameter is set to False, the z-normalization
+        is applied before the transformation.
 
-    return_pandas_data_series:          boolean, default = True
-        set to true to return Pandas Series as a result of transform.
-        setting to true reduces speed significantly but is required for
-        automatic test.
+    Notes
+    -----
+    This implementation is based on the one done by tslearn [1]
 
-    Attributes
+    References
     ----------
-    words:      history = []
+    .. [1] https://github.com/tslearn-team/tslearn/blob/fa40028/tslearn/
+       piecewise/piecewise.py#L261-L501
+
+    Examples
+    --------
+    >>> from aeon.transformations.panel.dictionary_based import SAX
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> sax = SAX(n_segments=10, alphabet_size=8)
+    >>> X_train = sax.fit_transform(X_train)
+    >>> X_test = sax.fit_transform(X_test)
     """
 
     _tags = {
-        "univariate-only": True,
-        "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict require for y?
+        "scitype:instancewise": True,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
+        "capability:multivariate": True,
     }
 
     def __init__(
         self,
-        word_length=8,
+        n_segments=8,
         alphabet_size=4,
-        window_size=12,
-        remove_repeat_words=False,
-        save_words=False,
-        return_pandas_data_series=True,
+        distribution="Gaussian",
+        distribution_params=None,
+        znormalized=True,
     ):
-        self.word_length = word_length
+        self.n_segments = n_segments
         self.alphabet_size = alphabet_size
-        self.window_size = window_size
-        self.remove_repeat_words = remove_repeat_words
-        self.save_words = save_words
-        self.return_pandas_data_series = return_pandas_data_series
-        self.words = []
+        self.distribution = distribution
 
-        super(SAX, self).__init__(_output_convert="off")
+        self.distribution_params = distribution_params
+        self.znormalized = znormalized
 
-    # todo: looks like this just loops over series instances
-    # so should be refactored to work on Series directly
-    def _transform(self, X, y=None):
-        """Transform data.
+        if self.distribution == "Gaussian":
+            self.distribution_params_ = (
+                dict(scale=1.0)
+                if self.distribution_params is None
+                else self.distribution_params
+            )
+
+        else:
+            raise NotImplementedError(self.distribution, "still not added")
+
+        self.breakpoints, self.breakpoints_mid = self._generate_breakpoints(
+            alphabet_size=self.alphabet_size,
+            distribution=self.distribution,
+            distribution_params=self.distribution_params_,
+        )
+
+        super(SAX, self).__init__()
+
+    def _get_paa(self, X):
+        """Transform the input time series to PAA segments.
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+            The input time series
 
         Returns
         -------
-        dims: Pandas data frame with first dimension in column zero
+        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
         """
-        X = X.squeeze(1)
+        if not self.znormalized:
+            X = scipy.stats.zscore(X, axis=-1)
 
-        if self.alphabet_size < 2 or self.alphabet_size > 4:
-            raise RuntimeError("Alphabet size must be an integer between 2 and 4")
-        if self.word_length < 1 or self.word_length > 16:
-            raise RuntimeError("Word length must be an integer between 1 and 16")
+        paa = PAA(n_intervals=self.n_segments)
+        X_paa = paa.fit_transform(X=X)
 
-        breakpoints = self._generate_breakpoints()
-        n_instances, series_length = X.shape
+        return X_paa
 
-        bags = pd.DataFrame()
-        dim = []
+    def _transform(self, X, y=None):
+        """Transform the input time series to SAX symbols.
 
-        for i in range(n_instances):
-            bag = {}
-            lastWord = -1
+        This function will transform the input time series into a bag of
+        symbols. These symbols are represented as integer values pointing
+        to the indices of the breakpoint in the alphabet for each
+        segment produced by PAA.
 
-            words = []
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+            The input time series
+        y : np.ndarray of shape = (n_instances,), default = None
+            The labels are not used
 
-            num_windows_per_inst = series_length - self.window_size + 1
-            split = np.array(
-                X[
-                    i,
-                    np.arange(self.window_size)[None, :]
-                    + np.arange(num_windows_per_inst)[:, None],
-                ]
+        Returns
+        -------
+        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation
+        """
+        X_paa = self._get_paa(X=X)
+        sax_symbols = self._get_sax_symbols(X_paa=X_paa)
+        return sax_symbols
+
+    def _get_sax_symbols(self, X_paa):
+        """Produce the SAX transformation.
+
+        Parameters
+        ----------
+        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
+
+        Returns
+        -------
+        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation using np.digitize
+        """
+        sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
+        return sax_symbols
+
+    def inverse_sax(self, X, original_length, y=None):
+        """Produce the inverse SAX transformation.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the SAX transformation
+        y : np.ndarray of shape = (n_instances,), default = None
+            The labels are not used
+
+        Returns
+        -------
+        sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+            The inverse of sax transform
+        """
+        sax_inverse = _invert_sax_symbols(
+            sax_symbols=X,
+            series_length=original_length,
+            breakpoints_mid=self.breakpoints_mid,
+        )
+
+        return sax_inverse
+
+    def _generate_breakpoints(
+        self, alphabet_size, distribution="Gaussian", distribution_params=None
+    ):
+        """Generate the breakpoints following a probability distribution.
+
+        Parameters
+        ----------
+        alphabet_size : int
+            The size of the alphabet, the number of breakpints is alphabet_size -1
+        distribution : str, default = "Gaussian"
+            The name of the distribution to follow when generating the breakpoints
+        distribution_params : dict, default = None,
+            The parameters of the chosen distribution, if the distribution is
+            chosen as Gaussian and this is left default to None then the params
+            used are "scale=1.0"
+
+        Returns
+        -------
+        breakpoints : np.ndarray of shape = (alphabet_size-1,)
+            The breakpoints to be used to generate the SAX symbols
+        breakpoints_mid : np.ndarray of shape = (alphabet_size,)
+            The middle breakpoints for each breakpoint interval used to produce
+            the inverse of SAX transformation
+        """
+        if distribution == "Gaussian":
+            breakpoints = scipy.stats.norm.ppf(
+                np.arange(1, alphabet_size, dtype=np.float64) / alphabet_size,
+                scale=distribution_params["scale"],
             )
 
-            split = scipy.stats.zscore(split, axis=1)
+            breakpoints_mid = scipy.stats.norm.ppf(
+                np.arange(1, 2 * alphabet_size, 2, dtype=np.float64)
+                / (2 * self.alphabet_size),
+                scale=distribution_params["scale"],
+            )
 
-            paa = PAA(n_intervals=self.word_length)
-            data = pd.DataFrame()
-            data[0] = [pd.Series(x, dtype=np.float32) for x in split]
-            patterns = paa.fit_transform(data)
-            patterns = np.asarray([a.values for a in patterns.iloc[:, 0]])
-
-            for n in range(patterns.shape[0]):
-                pattern = patterns[n, :]
-                word = self._create_word(pattern, breakpoints)
-                words.append(word)
-                lastWord = self._add_to_bag(bag, word, lastWord)
-
-            if self.save_words:
-                self.words.append(words)
-
-            dim.append(pd.Series(bag) if self.return_pandas_data_series else bag)
-
-        bags[0] = dim
-
-        return bags
-
-    def _create_word(self, pattern, breakpoints):
-        word = 0
-        for i in range(self.word_length):
-            for bp in range(self.alphabet_size):
-                if pattern[i] <= breakpoints[bp]:
-                    word = (word << 2) | bp
-                    break
-
-        return word
-
-    def _add_to_bag(self, bag, word, last_word):
-        if self.remove_repeat_words and word == last_word:
-            return False
-        bag[word] = bag.get(word, 0) + 1
-        return True
-
-    def _generate_breakpoints(self):
-        # Pre-made gaussian curve breakpoints from UEA TSC codebase
-        return {
-            2: [0, sys.float_info.max],
-            3: [-0.43, 0.43, sys.float_info.max],
-            4: [-0.67, 0, 0.67, sys.float_info.max],
-            5: [-0.84, -0.25, 0.25, 0.84, sys.float_info.max],
-            6: [-0.97, -0.43, 0, 0.43, 0.97, sys.float_info.max],
-            7: [-1.07, -0.57, -0.18, 0.18, 0.57, 1.07, sys.float_info.max],
-            8: [-1.15, -0.67, -0.32, 0, 0.32, 0.67, 1.15, sys.float_info.max],
-            9: [-1.22, -0.76, -0.43, -0.14, 0.14, 0.43, 0.76, 1.22, sys.float_info.max],
-            10: [
-                -1.28,
-                -0.84,
-                -0.52,
-                -0.25,
-                0.0,
-                0.25,
-                0.52,
-                0.84,
-                1.28,
-                sys.float_info.max,
-            ],
-        }[self.alphabet_size]
+        return breakpoints, breakpoints_mid
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -216,6 +244,43 @@ class SAX(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        # small word length, window size for testing
-        params = {"word_length": 2, "window_size": 4}
+        params = {"n_segments": 10, "alphabet_size": 8}
         return params
+
+
+@njit(parallel=True, fastmath=True)
+def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
+    """Reconstruct the original time series using a Gaussian estimation.
+
+    In other words, try to inverse the SAX transformation.
+
+    Parameters
+    ----------
+    sax_symbols : np.ndarray(n_instances, n_channels, n_segments)
+        The sax output transformation
+    series_length : int
+        The original time series length
+    breakpoints_mid : np.ndarray(alphabet_size)
+        The Gaussian estimation of the value for each breakpoint interval
+
+    Returns
+    -------
+    sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+        The inverse of sax transform
+    """
+    n_samples, n_channels, sax_length = sax_symbols.shape
+
+    segment_length = int(series_length / sax_length)
+    sax_inverse = np.zeros((n_samples, n_channels, series_length))
+
+    for i in prange(n_samples):
+        for c in prange(n_channels):
+            for _current_sax_index in prange(sax_length):
+                start_index = _current_sax_index * segment_length
+                stop_index = start_index + segment_length
+
+                sax_inverse[i, :, start_index:stop_index] = breakpoints_mid[
+                    sax_symbols[i, c, _current_sax_index]
+                ]
+
+    return sax_inverse
