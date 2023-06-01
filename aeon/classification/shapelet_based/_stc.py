@@ -14,7 +14,7 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.panel.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 

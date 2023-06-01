@@ -14,14 +14,16 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.transformations.panel.dictionary_based._paa import PAA
-from aeon.transformations.panel.dwt import DWTTransformer
+from aeon.transformations.collection.dictionary_based._paa import PAA
+from aeon.transformations.collection.dwt import DWTTransformer
 
 # Done
-from aeon.transformations.panel.hog1d import HOG1DTransformer
-from aeon.transformations.panel.segment import SlidingWindowSegmenter
-from aeon.transformations.panel.slope import SlopeTransformer
-from aeon.transformations.panel.summarize._extract import DerivativeSlopeTransformer
+from aeon.transformations.collection.hog1d import HOG1DTransformer
+from aeon.transformations.collection.segment import SlidingWindowSegmenter
+from aeon.transformations.collection.slope import SlopeTransformer
+from aeon.transformations.collection.summarize._extract import (
+    DerivativeSlopeTransformer,
+)
 
 # Transformers: To Do
 

@@ -18,7 +18,7 @@ from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.rocket import (
+from aeon.transformations.collection.rocket import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,

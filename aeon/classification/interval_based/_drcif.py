@@ -23,7 +23,7 @@ from aeon.classification.sklearn._continuous_interval_tree import (
     ContinuousIntervalTree,
     _drcif_feature,
 )
-from aeon.transformations.panel.catch22 import Catch22
+from aeon.transformations.collection.catch22 import Catch22
 from aeon.utils.validation.panel import check_X_y
 
 

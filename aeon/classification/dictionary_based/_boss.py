@@ -20,7 +20,7 @@ from sklearn.utils.sparsefuncs_fast import csr_row_norms
 from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 from aeon.utils.validation.panel import check_X_y
 
 

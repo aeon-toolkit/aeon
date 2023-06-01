@@ -12,7 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.matrix_profile import MatrixProfile
+from aeon.transformations.collection.matrix_profile import MatrixProfile
 
 
 class MatrixProfileClassifier(BaseClassifier):
