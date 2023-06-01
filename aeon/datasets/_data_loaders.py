@@ -392,7 +392,7 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d.
-        "np-list": for unequal length series that cannot be storeed in numpy arrays
+        "np-list": for unequal length series that cannot be stored in numpy arrays
         if None returns either numpy3D for equal length or  "np-list" for unequal
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to

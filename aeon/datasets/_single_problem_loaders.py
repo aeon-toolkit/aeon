@@ -81,16 +81,14 @@ def load_TSC_dataset(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     return_X_y : bool, optional (default=False)
         it returns two objects, if False, it appends the class labels to the dataframe.
-    return_type: valid Panel mtype str or None, optional (default=None="nested_univ")
-        Memory data format specification to return X in, None = "nested_univ" type.
-        str can be any supported aeon Panel mtype,
-            for list of mtypes, see datatypes.MTYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
-        commonly used specifications:
-            "nested_univ: nested pd.DataFrame, pd.Series in cells
-            "numpy3D"/"numpy3d"/"np3D": 3D np.ndarray (instance, variable, time index)
-            "numpy2d"/"np2d"/"numpyflat": 2D np.ndarray (instance, time index)
-            "pd-multiindex": pd.DataFrame with 2-level (instance, time) MultiIndex
+    return_type : str, optional, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d. If None will load 3D numpy or list of numpy
+        There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not necessarily be supported longterm.
+
         Exception is raised if the data cannot be stored in the requested type.
     extract_path : str, optional (default=None)
         the path to look for the data. If no path is provided, the function
@@ -99,19 +97,15 @@ def load_TSC_dataset(
 
     Returns
     -------
-    X: pd.DataFrame
-        The time series data for the problem with n_cases rows and either
-        n_dimensions or n_dimensions+1 columns. Columns 1 to n_dimensions are the
-        series associated with each case. If return_X_y is False, column
-        n_dimensions+1 contains the class labels/target variable.
-    y: numpy array, optional
+    X: np.ndarray or list
+    y: numpy array
         The class labels for each case in X, returned separately if return_X_y is
         True, or appended to X if False
 
     Examples
     --------
-    >>> from aeon.datasets import load_UCR_UEA_dataset
-    >>> X, y = load_UCR_UEA_dataset(name="ArrowHead", return_type="numpy3d")
+    >>> from aeon.datasets import load_TSC_dataset
+    >>> X, y = load_TSC_dataset(name="ArrowHead")
     """
     return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
