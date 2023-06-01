@@ -13,7 +13,6 @@ import pandas as pd
 from aeon.datasets._data_dataframe_loaders import DIRNAME, MODULE
 from aeon.datasets.tsc_dataset_names import _list_available_datasets
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
-from aeon.datatypes._panel._convert import from_long_to_nested
 
 
 # Return appropriate return_type in case an alias was used
@@ -222,6 +221,60 @@ def load_from_tsfile(
     if return_meta_data:
         return data, y, meta_data
     return data, y
+
+
+def load_from_tsc(
+    name, split=None, return_X_y=True, return_type=None, extract_path=None
+):
+    """Load dataset from UCR UEA time series archive.
+
+    Downloads and extracts dataset if not already downloaded. Data is assumed to be
+    in the standard .ts format: each row is a (possibly multivariate) time series.
+    Each dimension is separated by a colon, each value in a series is comma
+    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
+    a univariate equal length problem, BasicMotions an equal length multivariate
+    problem.
+
+    Parameters
+    ----------
+    name : str
+        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
+        this function will look in the extract_path first, and if it is not present,
+        attempt to download the data from www.timeseriesclassification.com, saving it to
+        the extract_path.
+    split : None or str{"train", "test"}, optional (default=None)
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_X_y : bool, optional (default=False)
+        it returns two objects, if False, it appends the class labels to the dataframe.
+    return_type : str, optional, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
+        although we recommend numpy3d, because some transformers do not work with
+        numpy2d. If None will load 3D numpy or list of numpy
+        There other options, see datatypes.SCITYPE_REGISTER, but these
+        will not necessarily be supported longterm.
+
+        Exception is raised if the data cannot be stored in the requested type.
+    extract_path : str, optional (default=None)
+        the path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp or relative, e.g. Temp or ./Temp.
+
+    Returns
+    -------
+    X: np.ndarray or list
+    y: numpy array
+        The class labels for each case in X, returned separately if return_X_y is
+        True, or appended to X if False
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_from_tsc
+    >>> X, y = load_from_tsc(name="ArrowHead")
+    """
+    return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
 
 def _load_provided_dataset(
@@ -689,10 +742,8 @@ def load_from_arff(
 
     Returns
     -------
-    data: Union[np.ndarray,list]
-        time series data, np.ndarray (n_cases, n_channels, series_length) if equal
-        length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
-        if unequal length series.
+    data: np.ndarray
+        time series data, np.ndarray (n_cases, n_channels, series_length)
     y : target variable, np.ndarray of string or int
     """
     instance_list = []
@@ -753,72 +804,30 @@ def load_from_arff(
     return np.asarray(instance_list), np.asarray(class_val_list)
 
 
-def load_from_ucr_tsv_to_dataframe(
-    full_file_path_and_name, return_separate_X_and_y=True
-):
-    """Load data from a .tsv file into a Pandas DataFrame.
+def load_from_ucr_tsv(full_file_path_and_name):
+    """Load data from a .tsv file into a numpy array.
+
+    tsv files are simply csv files with the class value as the first value. They only
+    store equal length, univariate data, so are simple.
 
     Parameters
     ----------
     full_file_path_and_name: str
         The full pathname of the .tsv file to read.
-    return_separate_X_and_y: bool
-        true then X and Y values should be returned as separate Data Frames (
-        X) and a numpy array (y), false otherwise.
-        This is only relevant for data.
 
     Returns
     -------
-    DataFrame, ndarray
-        If return_separate_X_and_y then a tuple containing a DataFrame and a
-        numpy array containing the relevant time-series and corresponding
-        class values.
-    DataFrame
-        If not return_separate_X_and_y then a single DataFrame containing
-        all time-series and (if relevant) a column "class_vals" the
-        associated class values.
+    data: np.ndarray
+        time series data, np.ndarray (n_cases, 1, series_length)
+    y : target variable, np.ndarray of string or int
+
     """
     df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
     y = df.pop(0).values
     df.columns -= 1
-    X = pd.DataFrame()
-    X["dim_0"] = [pd.Series(df.iloc[x, :]) for x in range(len(df))]
-    if return_separate_X_and_y is True:
-        return X, y
-    X["class_val"] = y
-    return X
-
-
-def load_from_long_to_dataframe(full_file_path_and_name, separator=","):
-    """Load data from a long format file into a Pandas DataFrame.
-
-    Parameters
-    ----------
-    full_file_path_and_name: str
-        The full pathname of the .csv file to read.
-    separator: str
-        The character that the csv uses as a delimiter
-
-    Returns
-    -------
-    DataFrame
-        A dataframe with aeon-formatted data
-    """
-    data = pd.read_csv(full_file_path_and_name, sep=separator, header=0)
-    # ensure there are 4 columns in the long_format table
-    if len(data.columns) != 4:
-        raise ValueError("dataframe must contain 4 columns of data")
-    # ensure that all columns contain the correct data types
-    if (
-        not data.iloc[:, 0].dtype == "int64"
-        or not data.iloc[:, 1].dtype == "int64"
-        or not data.iloc[:, 2].dtype == "int64"
-        or not data.iloc[:, 3].dtype == "float64"
-    ):
-        raise ValueError("one or more data columns contains data of an incorrect type")
-
-    data = from_long_to_nested(data)
-    return data
+    X = df.to_numpy()
+    X = np.expand_dims(X, axis=1)
+    return X, y
 
 
 def _convert_tsf_to_hierarchical(
