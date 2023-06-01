@@ -33,8 +33,8 @@ __all__ = [
     "load_cardano_sentiment",
     "load_covid_3month",
     "write_to_tsfile",
+    "write_dataframe_to_tsfile",
     "write_results_to_uea_format",
-    "write_tabular_transformation_to_arff",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
 ]
@@ -51,11 +51,7 @@ from aeon.datasets._data_generators import (
     make_example_multi_index_dataframe,
 )
 from aeon.datasets._data_loaders import load_from_tsfile
-from aeon.datasets._data_writers import (
-    write_results_to_uea_format,
-    write_tabular_transformation_to_arff,
-    write_to_tsfile,
-)
+from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,

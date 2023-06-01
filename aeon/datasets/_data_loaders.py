@@ -72,15 +72,15 @@ def _load_header_info(file):
                 elif key == "classlabel":
                     if tokens[1] == "true":
                         meta_data["classlabel"] = True
+                        if token_len == 2:
+                            raise IOError(
+                                "if the classlabel tag is true then class values "
+                                "must be supplied"
+                            )
                     elif tokens[1] == "false":
                         meta_data["classlabel"] = False
                     else:
                         raise IOError("invalid class label value")
-                    if token_len == 2:
-                        raise IOError(
-                            "if the classlabel tag is true then class values "
-                            "must be supplied"
-                        )
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
     return meta_data
 
@@ -105,6 +105,8 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         numpy array of strings: the class/target variable values
     meta_data :  dict.
         dictionary of characteristics enhanced with number of channels and series length
+        "problemname" (string), booleans: "timestamps", "missing", "univariate",
+        "equallength", "classlabel", "targetlabel" and "class_values": [],
 
     """
     data = []
@@ -214,8 +216,9 @@ def load_from_tsfile(
         data = np.array(data)
         if return_type == "numpy2D" and meta_data["univariate"]:
             data = data.squeeze()
-        # Here, can convert to dataframe etc if we really need it.
-
+    # If regression problem, convert y to float
+    if meta_data["targetlabel"]:
+        y = y.astype(np.float)
     if return_meta_data:
         return data, y, meta_data
     return data, y
@@ -1236,7 +1239,7 @@ def load_from_tsfile_to_dataframe(
         # Create a DataFrame from the data parsed above
         data = pd.DataFrame(dtype=np.float32)
         for dim in range(0, num_dimensions):
-            data["dim_" + str(dim)] = instance_list[dim]
+            data["var_" + str(dim)] = instance_list[dim]
         # Check if we should return any associated class labels separately
         if class_labels:
             if return_separate_X_and_y:
