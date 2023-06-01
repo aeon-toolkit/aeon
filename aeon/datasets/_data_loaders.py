@@ -218,7 +218,7 @@ def load_from_tsfile(
             data = data.squeeze()
     # If regression problem, convert y to float
     if meta_data["targetlabel"]:
-        y = y.astype(np.float)
+        y = y.astype(float)
     if return_meta_data:
         return data, y, meta_data
     return data, y
