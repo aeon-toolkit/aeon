@@ -26,7 +26,7 @@ class PAA(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.dictionary_based import PAA
+    >>> from aeon.transformations.collection.dictionary_based import PAA
     >>> import numpy as np
     >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
     >>> paa = PAA(n_intervals=2)

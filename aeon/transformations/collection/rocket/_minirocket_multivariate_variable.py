@@ -47,7 +47,7 @@ class MiniRocketMultivariateVariable(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.rocket import MiniRocketMultivariateVariable
+    >>> from aeon.transformations.collection.rocket import MiniRocketMultivariateVariable
     >>> from aeon.datasets import load_japanese_vowels
     >>> # load multivariate and unequal length dataset
     >>> X_train, _ = load_japanese_vowels(split="train")

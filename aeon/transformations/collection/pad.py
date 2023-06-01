@@ -36,7 +36,7 @@ class PaddingTransformer(BaseTransformer):
 
     Example
     -------
-    >>> from aeon.transformations.panel import PaddingTransformer
+    >>> from aeon.transformations.collection import PaddingTransformer
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))

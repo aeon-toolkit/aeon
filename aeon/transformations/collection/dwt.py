@@ -21,7 +21,7 @@ class DWTTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel import DWTTransformer
+    >>> from aeon.transformations.collection import DWTTransformer
     >>> import numpy as np
     >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
     >>> dwt = DWTTransformer(n_levels=2)

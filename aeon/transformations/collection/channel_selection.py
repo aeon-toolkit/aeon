@@ -278,7 +278,7 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.channel_selection import ElbowClassSum
+    >>> from aeon.transformations.collection.channel_selection import ElbowClassSum
     >>> import numpy as np
     >>> X = np.random.random((20,6,30))
     >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
@@ -417,7 +417,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.channel_selection import ElbowClassPairwise
+    >>> from aeon.transformations.collection.channel_selection import ElbowClassPairwise
     >>> import numpy as np
     >>> X = np.random.random((20,6,30))
     >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])

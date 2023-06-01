@@ -119,7 +119,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.dilated_shapelet_transform import (
+    >>> from aeon.transformations.collection.dilated_shapelet_transform import (
     ...     RandomDilatedShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test

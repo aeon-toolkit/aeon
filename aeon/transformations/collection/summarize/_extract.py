@@ -41,7 +41,7 @@ def series_slope_derivative(X: np.ndarray) -> np.ndarray:
 
     Example
     -------
-    >>> from aeon.transformations.panel.summarize import series_slope_derivative
+    >>> from aeon.transformations.collection.summarize import series_slope_derivative
     >>> x=np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
     >>> series_slope_derivative(x)
     array([ 1. ,  1. ,  1. ,  1. ,  0.5, -1. , -1. , -1. , -1. ])

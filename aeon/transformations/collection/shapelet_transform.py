@@ -951,7 +951,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.shapelet_transform import (
+    >>> from aeon.transformations.collection.shapelet_transform import (
     ...     RandomShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test

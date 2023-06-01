@@ -23,7 +23,7 @@ class TruncationTransformer(BaseTransformer):
 
     Example
     -------
-    >>> from aeon.transformations.panel import TruncationTransformer
+    >>> from aeon.transformations.collection import TruncationTransformer
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))

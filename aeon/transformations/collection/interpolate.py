@@ -22,7 +22,7 @@ class TSInterpolator(BaseTransformer):
     Example
     -------
     >>> import numpy as np
-    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> # Unequal length collection of time series
     >>> X_list = []
     >>> for i in range(10): X_list.append(np.random.rand(5,10+i))

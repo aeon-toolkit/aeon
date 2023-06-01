@@ -79,7 +79,7 @@ class Catch22(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.catch22 import Catch22
+    >>> from aeon.transformations.collection.catch22 import Catch22
     >>> import numpy as np
     >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
     >>> c22 = Catch22(replace_nans=True)
