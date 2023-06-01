@@ -1317,19 +1317,17 @@ def load_from_arff_to_dataframe(
                         if has_class_labels:
                             line, class_val = line.split("',")
                             class_val_list.append(class_val.strip())
-                        dimensions = line.split("\\n")
-                        dimensions[0] = dimensions[0].replace("'", "")
+                        channels = line.split("\\n")
+                        channels[0] = channels[0].replace("'", "")
 
                         if is_first_case:
-                            for _d in range(len(dimensions)):
+                            for _d in range(len(channels)):
                                 instance_list.append([])
                             is_first_case = False
 
-                        for dim in range(len(dimensions)):
-                            instance_list[dim].append(
-                                pd.Series(
-                                    [float(i) for i in dimensions[dim].split(",")]
-                                )
+                        for c in range(len(channels)):
+                            instance_list[c].append(
+                                pd.Series([float(i) for i in channels[c].split(",")])
                             )
 
                     else:
@@ -1355,8 +1353,8 @@ def load_from_arff_to_dataframe(
                                 )
                             )
     x_data = pd.DataFrame(dtype=np.float32)
-    for dim in range(len(instance_list)):
-        x_data["dim_" + str(dim)] = instance_list[dim]
+    for c in range(len(instance_list)):
+        x_data["dim_" + str(c)] = instance_list[c]
     if has_class_labels:
         if return_separate_X_and_y:
             return x_data, np.asarray(class_val_list)
