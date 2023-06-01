@@ -207,7 +207,6 @@ with dynamic time warping (dtw) on our example data.
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-``{code-block} python
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
 >>> y = [0, 1]  # class labels for each sample
@@ -217,7 +216,7 @@ with dynamic time warping (dtw) on our example data.
 >>> clf.fit(X, y)  # fit the classifier on train data
 KNeighborsTimeSeriesClassifier()
 >>> X_test = np.array([[2, 2, 2, 2, 2, 2, 2], [4, 4, 4, 4, 4, 4, 4]])
->>> y_pred = clf.predict(X_test)  # make class predictions on new data
+>>> clf.predict(X_test)  # make class predictions on new data
 [0 1]
 ```
 

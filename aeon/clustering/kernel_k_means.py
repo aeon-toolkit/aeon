@@ -107,9 +107,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -123,19 +123,20 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         if self.verbose is True:
             verbose = 1
 
-        if self._tslearn_kernel_k_means is None:
-            self._tslearn_kernel_k_means = TsLearnKernelKMeans(
-                n_clusters=self.n_clusters,
-                kernel=self.kernel,
-                max_iter=self.max_iter,
-                tol=self.tol,
-                n_init=self.n_init,
-                kernel_params=self.kernel_params,
-                n_jobs=self.n_jobs,
-                verbose=verbose,
-                random_state=self.random_state,
-            )
-        self._tslearn_kernel_k_means.fit(X)
+        self._tslearn_kernel_k_means = TsLearnKernelKMeans(
+            n_clusters=self.n_clusters,
+            kernel=self.kernel,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            n_init=self.n_init,
+            kernel_params=self.kernel_params,
+            n_jobs=self.n_jobs,
+            verbose=verbose,
+            random_state=self.random_state,
+        )
+
+        _X = X.swapaxes(1, 2)
+        self._tslearn_kernel_k_means.fit(_X)
         self.labels_ = self._tslearn_kernel_k_means.labels_
         self.inertia_ = self._tslearn_kernel_k_means.inertia_
         self.n_iter_ = self._tslearn_kernel_k_means.n_iter_
@@ -145,9 +146,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Time series instances to predict their cluster indexes.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -155,7 +156,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         np.ndarray (1d array of shape (n_instances,))
             Index of the cluster each time series in X belongs to.
         """
-        return self._tslearn_kernel_k_means.predict(X)
+        _X = X.swapaxes(1, 2)
+        return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default") -> Dict:

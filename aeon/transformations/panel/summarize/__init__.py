@@ -8,6 +8,7 @@ __all__ = [
     "PlateauFinder",
     "RandomIntervalFeatureExtractor",
     "FittedParamExtractor",
+    "series_slope_derivative",
 ]
 
 from ._extract import (
@@ -15,4 +16,5 @@ from ._extract import (
     FittedParamExtractor,
     PlateauFinder,
     RandomIntervalFeatureExtractor,
+    series_slope_derivative,
 )

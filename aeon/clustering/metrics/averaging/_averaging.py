@@ -6,7 +6,9 @@ from typing import Callable, Dict
 
 import numpy as np
 
-from aeon.clustering.metrics.averaging._dba import dba
+from aeon.clustering.metrics.averaging._barycenter_averaging import (
+    elastic_barycenter_average,
+)
 
 
 def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
@@ -27,7 +29,11 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
     return X.mean(axis=0)
 
 
-_AVERAGE_DICT = {"mean": mean_average, "dba": dba}
+_AVERAGE_DICT = {
+    "mean": mean_average,
+    "dba": elastic_barycenter_average,  # Kept for backwards compatibility
+    "ba": elastic_barycenter_average,
+}
 
 
 def _resolve_average_callable(
