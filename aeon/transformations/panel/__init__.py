@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Panel transformations."""
+"""Collection transformations."""
 __all__ = [
+    # base class and series wrapper
+    "BaseCollectionTransformer",
+    "CollectionToSeriesWrapper",
+    # transformers
     "Catch22",
     "Catch22Wrapper",
     "ElbowClassSum",
@@ -26,6 +30,8 @@ __all__ = [
     "TSFreshRelevantFeatureExtractor",
 ]
 
+from aeon.transformations.panel._collection_wrapper import CollectionToSeriesWrapper
+from aeon.transformations.panel.base import BaseCollectionTransformer
 from aeon.transformations.panel.catch22 import Catch22
 from aeon.transformations.panel.catch22wrapper import Catch22Wrapper
 from aeon.transformations.panel.channel_selection import (
