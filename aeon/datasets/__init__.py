@@ -43,10 +43,6 @@ __all__ = [
     "load_from_tsfile_to_dataframe",
 ]
 
-from aeon.datasets._data_dataframe_loaders import (
-    load_from_long_to_dataframe,
-    load_tsf_to_dataframe,
-)
 from aeon.datasets._data_generators import (
     make_example_long_table,
     make_example_multi_index_dataframe,
@@ -58,6 +54,10 @@ from aeon.datasets._data_loaders import (
     load_from_ucr_tsv,
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
+from aeon.datasets._dataframe_loaders import (
+    load_from_long_to_dataframe,
+    load_tsf_to_dataframe,
+)
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,

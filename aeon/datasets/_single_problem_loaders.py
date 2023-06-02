@@ -47,8 +47,8 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_dataframe_loaders import load_tsf_to_dataframe
 from aeon.datasets._data_loaders import _load_dataset, _load_provided_dataset
+from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"

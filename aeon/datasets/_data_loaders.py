@@ -10,7 +10,7 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_dataframe_loaders import DIRNAME, MODULE
+from aeon.datasets._dataframe_loaders import DIRNAME, MODULE
 from aeon.datasets.tsc_dataset_names import _list_available_datasets
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 

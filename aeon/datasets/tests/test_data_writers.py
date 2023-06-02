@@ -7,8 +7,8 @@ import pytest
 
 """Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
+from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.utils._testing.collection import (
     make_3d_test_data,
     make_nested_dataframe_data,
