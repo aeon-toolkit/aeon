@@ -96,7 +96,7 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        50
     Test cases:         150
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.ph?Dataset=GunPoint
+    Details: http://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
     return _load_dataset("GunPoint", split, return_X_y, return_type=return_type)
 
