@@ -6,7 +6,7 @@ __all__ = [
     "load_from_tsfile",
     "load_from_tsf_file",
     "load_from_arff_file",
-    "load_from_ucr_tsv",
+    "load_from_tsv_file",
     "load_from_tsc",
     # Write functions
     "write_to_tsfile",
@@ -53,7 +53,7 @@ from aeon.datasets._data_loaders import (
     load_from_tsc,
     load_from_tsf_file,
     load_from_tsfile,
-    load_from_ucr_tsv,
+    load_from_tsv_file,
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (

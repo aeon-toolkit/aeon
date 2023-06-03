@@ -18,7 +18,7 @@ from aeon.datasets import (
     load_from_long_to_dataframe,
     load_from_tsf_file,
     load_from_tsfile,
-    load_from_ucr_tsv,
+    load_from_tsv_file,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -473,7 +473,7 @@ def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
     X, y = _load_provided_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
-    X2, y2 = load_from_ucr_tsv(data_path)
+    X2, y2 = load_from_tsv_file(data_path)
     y = y.astype(float)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
