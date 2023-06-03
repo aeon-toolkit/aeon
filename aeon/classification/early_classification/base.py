@@ -50,7 +50,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
     n_classes_          : integer, number of classes (length of classes_)
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _threads_to_use     : number of threads to use in fit as determined by n_jobs.
+    _n_jobs     : number of threads to use in fit as determined by n_jobs.
     state_info          : An array containing the state info for each decision in X.
     """
 
@@ -67,7 +67,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.n_classes_ = 0
         self.fit_time_ = 0
         self._class_dictionary = {}
-        self._threads_to_use = 1
+        self._n_jobs = 1
 
         """
         An array containing the state info for each decision in X from update and
