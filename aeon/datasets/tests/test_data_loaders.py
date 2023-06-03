@@ -14,8 +14,9 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
-    load_from_arff,
+    load_from_arff_file,
     load_from_long_to_dataframe,
+    load_from_tsf_file,
     load_from_tsfile,
     load_from_ucr_tsv,
     load_tsf_to_dataframe,
@@ -376,7 +377,10 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         "contain_equal_length": False,
     }
 
-    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
+    if return_type == "default_tsf":
+        df, metadata = load_from_tsf_file(data_path)
+    else:
+        df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
 
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
@@ -479,6 +483,6 @@ def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
     X, y = _load_provided_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
-    X2, y2 = load_from_arff(data_path)
+    X2, y2 = load_from_arff_file(data_path)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)

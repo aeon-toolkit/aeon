@@ -4,7 +4,8 @@
 __all__ = [
     # Load functions
     "load_from_tsfile",
-    "load_from_arff",
+    "load_from_tsf_file",
+    "load_from_arff_file",
     "load_from_ucr_tsv",
     "load_from_tsc",
     # Write functions
@@ -48,8 +49,9 @@ from aeon.datasets._data_generators import (
     make_example_multi_index_dataframe,
 )
 from aeon.datasets._data_loaders import (
-    load_from_arff,
+    load_from_arff_file,
     load_from_tsc,
+    load_from_tsf_file,
     load_from_tsfile,
     load_from_ucr_tsv,
 )
