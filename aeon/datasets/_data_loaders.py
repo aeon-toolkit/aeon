@@ -18,7 +18,7 @@ __all__ = [  # Load functions
     "load_from_tsfile",
     "load_from_tsf_file",
     "load_from_arff_file",
-    "load_from_ucr_tsv",
+    "load_from_tsv_file",
     "load_from_tsc",
 ]
 
@@ -812,7 +812,7 @@ def load_from_arff_file(
     return np.asarray(instance_list), np.asarray(class_val_list)
 
 
-def load_from_ucr_tsv(full_file_path_and_name):
+def load_from_tsv_file(full_file_path_and_name):
     """Load data from a .tsv file into a numpy array.
 
     tsv files are simply csv files with the class value as the first value. They only
