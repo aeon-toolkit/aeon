@@ -188,7 +188,7 @@ def load_and_run_clustering_experiment(
         present. If True, it will overwrite anything already there.
     format: string, default = ".ts"
         Valid formats are ".ts", ".arff", ".tsv" and ".long". For more info on
-        format, see   examples/datasets/data_formats.ipynb
+        format, see   examples/datasets/data_loading.ipynb
     train_file: boolean, default = False
         whether to generate train files or not. If true, it performs a 10xCV on the
         train and saves
