@@ -176,7 +176,7 @@ class HIVECOTEV1(BaseClassifier):
             **self._stc_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._stc.fit(X, y)
 
@@ -199,7 +199,7 @@ class HIVECOTEV1(BaseClassifier):
         self._tsf = TimeSeriesForestClassifier(
             **self._tsf_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._tsf.fit(X, y)
 
@@ -214,7 +214,7 @@ class HIVECOTEV1(BaseClassifier):
             X=X,
             y=y,
             cv=cv_size,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self.tsf_weight_ = accuracy_score(y, train_preds) ** 4
 
@@ -229,7 +229,7 @@ class HIVECOTEV1(BaseClassifier):
         self._rise = RandomIntervalSpectralEnsemble(
             **self._rise_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._rise.fit(X, y)
 
@@ -245,7 +245,7 @@ class HIVECOTEV1(BaseClassifier):
             X=X,
             y=y,
             cv=cv_size,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self.rise_weight_ = accuracy_score(y, train_preds) ** 4
 
@@ -260,7 +260,7 @@ class HIVECOTEV1(BaseClassifier):
         self._cboss = ContractableBOSS(
             **self._cboss_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._cboss.fit(X, y)
 
