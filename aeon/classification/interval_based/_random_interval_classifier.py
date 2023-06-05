@@ -108,7 +108,7 @@ class RandomIntervalClassifier(BaseClassifier):
             n_intervals=self.n_intervals,
             transformers=interval_transformers,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
 
         self._estimator = _clone_estimator(
@@ -118,7 +118,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
