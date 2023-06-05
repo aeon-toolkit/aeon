@@ -11,18 +11,12 @@ EXCLUDE_ESTIMATORS = [
     "SFA",
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
-    # "PlateauFinder",
-    # "HIVECOTEV1",
-    # "HIVECOTEV2",
-    "RandomIntervalSpectralEnsemble",
     "RandomInvervals",
     "RandomIntervalSegmenter",
     "RandomIntervalFeatureExtractor",
     "RandomIntervalClassifier",
     "MiniRocket",
     "MatrixProfileTransformer",
-    #    "TapNetRegressor",
-    #    "TapNetClassifier",
     "ResNetClassifier",  # known ResNetClassifier cloning failure, see #472
 ]
 
