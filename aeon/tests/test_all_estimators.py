@@ -13,7 +13,6 @@ import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
 from tempfile import TemporaryDirectory
-from warnings import warn
 
 import joblib
 import numpy as np
@@ -492,22 +491,6 @@ class QuickTester:
         ... )
         {'test_repr[NaiveForecaster-2]': 'PASSED'}
         """
-        # todo 0.17.0: remove this code block
-        if return_exceptions is None and raise_exceptions is None:
-            raise_exceptions = False
-
-        if return_exceptions is not None and raise_exceptions is None:
-            warn(
-                "The return_exceptions argument of check_estimator has been deprecated "
-                "since 0.15.1, and will be replaced by raise_exceptions in 0.17.0. "
-                "For safe deprecation: use raise_exceptions argument instead of "
-                "return_exceptions when using keywords. Avoid positional use, instead "
-                "ensure to use keywords. When not using keywords, the "
-                "default behaviour will not change."
-            )
-            raise_exceptions = not return_exceptions
-        # end block to remove
-
         tests_to_run = self._check_None_str_or_list_of_str(
             tests_to_run, var_name="tests_to_run"
         )
@@ -1195,7 +1178,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             (including hyper-parameters and fitted parameters)
         2. expected output type of the method matches actual output type
             - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methdos tested: get_fitted_params
+            list of BaseEstimator methods tested: get_fitted_params
             scitype specific method outputs are tested in TestAll[estimatortype] class
         """
         estimator = estimator_instance
@@ -1294,7 +1277,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             and method_nsc == "predict_proba"
         ):
             return None
-        # escape Deep estimators they dont use pickle
+        # escape Deep estimators since they dont use pickle
         if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
             return None
 

@@ -7,15 +7,13 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
 EXCLUDE_ESTIMATORS = [
-    # SFA is non-compliant with any transformer interfaces, #2064
+    # SFA is non-compliant with the transformer interface
     "SFA",
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
-    # PlateauFinder seems to be broken, see #2259
-    "PlateauFinder",
-    # below are removed due to mac failures we don't fully understand, see #3103
-    "HIVECOTEV1",
-    "HIVECOTEV2",
+    # "PlateauFinder",
+    # "HIVECOTEV1",
+    # "HIVECOTEV2",
     "RandomIntervalSpectralEnsemble",
     "RandomInvervals",
     "RandomIntervalSegmenter",
@@ -23,15 +21,16 @@ EXCLUDE_ESTIMATORS = [
     "RandomIntervalClassifier",
     "MiniRocket",
     "MatrixProfileTransformer",
-    # tapnet based estimators fail stochastically for unknown reasons, see #3525
-    "TapNetRegressor",
-    "TapNetClassifier",
-    "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
+    #    "TapNetRegressor",
+    #    "TapNetClassifier",
+    "ResNetClassifier",  # known ResNetClassifier cloning failure, see #472
 ]
 
 EXCLUDED_TESTS = {
-    # InceptionTimeClassifier contains deep learners, it isnt one itself, so still
-    # exclude
+    # Classification/clustering/regression
+    # InceptionTimeClassifier contains deep learners but it isnt one itself,
+    # it inherits from BaseClassifier. Pickling will not work, so still exclude from
+    # tests.
     "InceptionTimeClassifier": [
         "test_fit_deterministic",
         "test_persistence_via_pickle",
@@ -42,24 +41,10 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    # issue when predicting residuals, see #3479
-    "SquaringResiduals": ["test_predict_residuals"],
-    # known issue when X is passed, wrong time indices are returned, #1364
-    "StackingForecaster": ["test_predict_time_index_with_X"],
-    # known side effects on multivariate arguments, #2072
-    "WindowSummarizer": ["test_methods_have_no_side_effects"],
-    # test fails in the Panel case for Differencer, see #2522
-    "Differencer": ["test_transform_inverse_transform_equivalent"],
-    # tagged in issue #2490
     "SignatureClassifier": [
         "test_classifier_on_unit_test_data",
         "test_classifier_on_basic_motions",
     ],
-    # sth is not quite right with the RowTransformer-s changing state,
-    #   but these are anyway on their path to deprecation, see #2370
-    "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
-    # ColumnTransformer still needs to be refactored, see #2537
-    "ColumnTransformer": ["test_non_state_changing_method_contract"],
     # Early classifiers (EC) intentionally retain information from previous predict
     # calls for #1 (test_non_state_changing_method_contract).
     # #2 (test_fit_deterministic), #3 (test_persistence_via_pickle) and #4
@@ -77,16 +62,30 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    "CNNNetwork": "test_inheritance",  # not a registered base class, WiP, see #3028
-    "VARMAX": [
-        "test_update_predict_single",  # see 2997, sporadic failure, unknown cause
-        "test__y_when_refitting",  # see 3176
-    ],
+    # Transformations
+    # sth is not quite right with the RowTransformer-s changing state,
+    #   but these are anyway on their path to deprecation, see #2370
+    "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
+    # ColumnTransformer still needs to be refactored, see #2537
+    "ColumnTransformer": ["test_non_state_changing_method_contract"],
+    # Segmentation
     # GGS inherits from BaseEstimator which breaks this test
     "GreedyGaussianSegmentation": ["test_inheritance", "test_create_test_instance"],
     "InformationGainSegmentation": [
         "test_inheritance",
         "test_create_test_instance",
+    ],
+    # issue when predicting residuals, see #3479
+    "SquaringResiduals": ["test_predict_residuals"],
+    # known issue when X is passed, wrong time indices are returned, #1364
+    "StackingForecaster": ["test_predict_time_index_with_X"],
+    # known side effects on multivariate arguments, #2072
+    "WindowSummarizer": ["test_methods_have_no_side_effects"],
+    # test fails in the Panel case for Differencer, see #2522
+    "Differencer": ["test_transform_inverse_transform_equivalent"],
+    "VARMAX": [
+        "test_update_predict_single",  # see 2997, sporadic failure, unknown cause
+        "test__y_when_refitting",  # see 3176
     ],
     # this needs to be fixed, was not tested previously due to legacy exception
     "Prophet": ":test_hierarchical_with_exogeneous",

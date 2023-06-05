@@ -96,8 +96,8 @@ class PlateauFinder(BaseTransformer):
         -------
         X : pandas data frame
         """
-        self._starts = []
-        self._lengths = []
+        _starts = []
+        _lengths = []
 
         # find plateaus (segments of the same value)
         for x in X[:, 0]:
@@ -123,8 +123,8 @@ class PlateauFinder(BaseTransformer):
             starts = starts[lengths >= self.min_length]
             lengths = lengths[lengths >= self.min_length]
 
-            self._starts.append(starts)
-            self._lengths.append(lengths)
+            _starts.append(starts)
+            _lengths.append(lengths)
 
         # put into dataframe
         Xt = pd.DataFrame()
@@ -132,8 +132,8 @@ class PlateauFinder(BaseTransformer):
             "channel_",
             "nan" if np.isnan(self.value) else str(self.value),
         )
-        Xt["%s_starts" % column_prefix] = pd.Series(self._starts)
-        Xt["%s_lengths" % column_prefix] = pd.Series(self._lengths)
+        Xt["%s_starts" % column_prefix] = pd.Series(_starts)
+        Xt["%s_lengths" % column_prefix] = pd.Series(_lengths)
 
         Xt = Xt.applymap(lambda x: pd.Series(x))
         return Xt
