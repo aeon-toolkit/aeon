@@ -48,7 +48,7 @@ class BaseRegressor(BaseEstimator, ABC):
     ----------
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _threads_to_use     : number of threads to use in fit as determined by n_jobs.
+    _n_jobs     : number of threads to use in fit as determined by n_jobs.
     """
 
     _tags = {

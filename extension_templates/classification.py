@@ -12,7 +12,7 @@ How to use this implementation template to implement a new estimator:
 - work through all the "todo" comments below
 - fill in code for mandatory abstract methods, and optionally for optional methods
 - do not write to reserved variables: is_fitted, _is_fitted, classes_,
-    n_classes_, fit_time_, _class_dictionary, _threads_to_use, _tags, _tags_dynamic
+    n_classes_, fit_time_, _class_dictionary, _n_jobs, _tags, _tags_dynamic
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
