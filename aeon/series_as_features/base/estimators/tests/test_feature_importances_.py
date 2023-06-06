@@ -8,8 +8,10 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.classification.compose._ensemble import ComposableTimeSeriesForestClassifier
-from aeon.transformations.panel.segment import IntervalSegmenter
-from aeon.transformations.panel.summarize._extract import RandomIntervalFeatureExtractor
+from aeon.transformations.collection.segment import IntervalSegmenter
+from aeon.transformations.collection.summarize._extract import (
+    RandomIntervalFeatureExtractor,
+)
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 from aeon.utils._testing.collection import make_3d_test_data
 
