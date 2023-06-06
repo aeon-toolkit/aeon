@@ -7,7 +7,7 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc",
+    "load_from_tsc_website",
     # Write functions
     "write_to_tsfile",
     "write_results_to_uea_format",
@@ -50,7 +50,7 @@ from aeon.datasets._data_generators import (
 )
 from aeon.datasets._data_loaders import (
     load_from_arff_file,
-    load_from_tsc,
+    load_from_tsc_website,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,

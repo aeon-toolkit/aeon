@@ -19,7 +19,7 @@ __all__ = [  # Load functions
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc",
+    "load_from_tsc_website",
 ]
 
 
@@ -231,10 +231,10 @@ def load_from_tsfile(
     return data, y
 
 
-def load_from_tsc(
+def load_from_tsc_website(
     name, split=None, return_X_y=True, return_type=None, extract_path=None
 ):
-    """Load dataset from UCR UEA time series archive.
+    """Load dataset from tsml archives on timeseriesclassification.com.
 
     Downloads and extracts dataset if not already downloaded. Data is assumed to be
     in the standard .ts format: each row is a (possibly multivariate) time series.
@@ -263,7 +263,6 @@ def load_from_tsc(
         numpy2d. If None will load 3D numpy or list of numpy
         There other options, see datatypes.SCITYPE_REGISTER, but these
         will not necessarily be supported longterm.
-
         Exception is raised if the data cannot be stored in the requested type.
     extract_path : str, optional (default=None)
         the path to look for the data. If no path is provided, the function
@@ -279,8 +278,8 @@ def load_from_tsc(
 
     Examples
     --------
-    >>> from aeon.datasets import load_from_tsc
-    >>> X, y = load_from_tsc(name="ArrowHead")
+    >>> from aeon.datasets import load_from_tsc_website
+    >>> X, y = load_from_tsc_website(name="ArrowHead")
     """
     return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
