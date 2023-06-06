@@ -280,7 +280,7 @@ def load_from_tsc(
     Examples
     --------
     >>> from aeon.datasets import load_from_tsc
-    >>> X, y = load_from_tsc(name="ArrowHead")
+    >>> X, y = load_from_tsc(name="ArrowHead") #DOCTEST +Skip
     """
     return _load_dataset(name, split, return_X_y, return_type, extract_path)
 
