@@ -24,7 +24,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.transformations.panel.summarize._extract import series_slope_derivative
+from aeon.transformations.collection.summarize._extract import series_slope_derivative
 
 
 class ElasticEnsemble(BaseClassifier):
