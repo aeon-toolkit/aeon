@@ -22,7 +22,7 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFA
+from aeon.transformations.collection.dictionary_based import SFA
 from aeon.utils.validation.panel import check_X_y
 
 

@@ -13,8 +13,8 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.panel.catch22 import Catch22
-from aeon.transformations.panel.random_intervals import RandomIntervals
+from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.random_intervals import RandomIntervals
 
 
 class RandomIntervalClassifier(BaseClassifier):
