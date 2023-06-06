@@ -11,7 +11,7 @@
 :link-type: ref
 :text-align: center
 
-Forecasting with sktime
+Forecasting with aeon
 
 :::
 
@@ -20,7 +20,7 @@ Forecasting with sktime
 :link-type: ref
 :text-align: center
 
-Forecasting with sktime - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
 
 :::
 
@@ -29,7 +29,7 @@ Forecasting with sktime - appendix: forecasting, supervised regression, and pitf
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with sktime
+Probabilistic Forecasting with aeon
 
 :::
 
@@ -38,7 +38,7 @@ Probabilistic Forecasting with sktime
 :link-type: ref
 :text-align: center
 
-Hierarchical, Global, and Panel Forecasting with sktime
+Hierarchical, Global, and Panel Forecasting with aeon
 
 :::
 
@@ -47,7 +47,7 @@ Hierarchical, Global, and Panel Forecasting with sktime
 :link-type: ref
 :text-align: center
 
-Window Splitters in Sktime
+Window Splitters in aeon
 
 :::
 
@@ -100,7 +100,7 @@ Dictionary based time series classification in aeon
 :link-type: ref
 :text-align: center
 
-Distance based time series classification in sktime
+Distance based time series classification in aeon
 
 :::
 
@@ -109,7 +109,7 @@ Distance based time series classification in sktime
 :link-type: ref
 :text-align: center
 
-Feature based time series classification in sktime
+Feature based time series classification in aeon
 
 :::
 
@@ -118,7 +118,7 @@ Feature based time series classification in sktime
 :link-type: ref
 :text-align: center
 
-Hybrid time series classification in sktime
+Hybrid time series classification in aeon
 
 :::
 
@@ -127,7 +127,7 @@ Hybrid time series classification in sktime
 :link-type: ref
 :text-align: center
 
-Interval based time series classification in sktime
+Interval based time series classification in aeon
 
 :::
 
@@ -136,7 +136,7 @@ Interval based time series classification in sktime
 :link-type: ref
 :text-align: center
 
-Shapelet based time series classification in sktime
+Shapelet based time series classification in aeon
 
 :::
 
@@ -145,7 +145,7 @@ Shapelet based time series classification in sktime
 :link-type: ref
 :text-align: center
 
-Early time series classification with sktime
+Early time series classification with aeon
 
 :::
 
@@ -176,7 +176,7 @@ To come!
 :link-type: ref
 :text-align: center
 
-Partition based time series clustering in sktime
+Partition based time series clustering in aeon
 
 :::
 
@@ -192,7 +192,7 @@ Partition based time series clustering in sktime
 :link-type: ref
 :text-align: center
 
-Time Series Segmentation with sktime and ClaSP
+Time Series Segmentation with aeon and ClaSP
 
 :::
 
@@ -236,7 +236,7 @@ Hidalgo segmentation
 :link-type: ref
 :text-align: center
 
-Time series interpolating with sktime
+Time series interpolating with aeon
 
 :::
 
@@ -272,7 +272,7 @@ Demo of ROCKET transform
 :link-type: ref
 :text-align: center
 
-The Signature Method with Sktime
+The Signature Method with aeon
 
 :::
 
@@ -306,7 +306,7 @@ In-memory data representations and data loading
 :link-type: ref
 :text-align: center
 
-Loading data into sktime
+Loading data into aeon
 
 :::
 
@@ -322,7 +322,7 @@ Loading data into sktime
 :link-type: ref
 :text-align: center
 
-Benchmarking with sktime
+Benchmarking with aeon
 
 :::
 

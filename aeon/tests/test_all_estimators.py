@@ -55,7 +55,6 @@ from aeon.utils.sampling import random_partition
 from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
     _check_estimator_deps,
-    _check_soft_dependencies,
 )
 
 # whether to subsample estimators per os/version partition matrix design
@@ -1113,9 +1112,14 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         with pytest.raises(NotFittedError, match=r"has not been fitted"):
             scenario.run(estimator_instance, method_sequence=[method_nsc])
 
-    def test_fit_idempotent(self, estimator_instance, scenario, method_nsc_arraylike):
+    def test_fit_deterministic(
+        self, estimator_instance, scenario, method_nsc_arraylike
+    ):
         """Check that calling fit twice is equivalent to calling it once."""
         estimator = estimator_instance
+        # escape Deep estimators since they are not deterministic
+        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
+            return None
 
         # for now, we have to skip predict_proba, since current output comparison
         #   does not work for tensorflow Distribution
@@ -1290,10 +1294,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             and method_nsc == "predict_proba"
         ):
             return None
-        # escape Deep estimators if soft-dep `h5py` isn't installed
-        if isinstance(
-            estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)
-        ) and not _check_soft_dependencies("h5py", severity="warning"):
+        # escape Deep estimators they dont use pickle
+        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
             return None
 
         estimator = estimator_instance
@@ -1326,6 +1328,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     def test_save_estimators_to_file(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
+        # escape deep learners as they cannot be pickled
+        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
+            return None
         """Check if saved estimators onto disk can be loaded correctly."""
         method_nsc = method_nsc_arraylike
         # escape predict_proba for forecasters, tfp distributions cannot be pickled
@@ -1336,6 +1341,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             return None
 
         estimator = estimator_instance
+
         set_random_state(estimator)
         # Fit the model, get args before and after
         scenario.run(estimator, method_sequence=["fit"], return_args=True)

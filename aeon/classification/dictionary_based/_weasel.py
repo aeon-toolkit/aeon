@@ -17,7 +17,7 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 
 
 class WEASEL(BaseClassifier):
@@ -279,7 +279,7 @@ class WEASEL(BaseClassifier):
             )
 
     def _transform_words(self, X):
-        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        parallel_res = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(transformer.transform)(X) for transformer in self.SFA_transformers
         )
         all_words = list(parallel_res)

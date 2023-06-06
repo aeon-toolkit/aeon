@@ -7,7 +7,7 @@ from timeit import default_timer as timer
 
 import pandas as pd
 
-from aeon.utils._testing.panel import make_classification_problem
+from aeon.utils._testing.collection import make_nested_dataframe_data
 
 
 def profile_classifier(
@@ -20,7 +20,7 @@ def profile_classifier(
     """Profile runtime of a classifier.
 
     Carries out a single fit and in-sample predict of est, on data
-    generated via make_classification_problem with n_instances, n_timepoints
+    generated via make_nested_dataframe_data with n_instances, n_timepoints
     as in the grid defined by the lists n_instances_grid, n_timepoints_grid.
     Each experiment is repeated n_replicates times.
 
@@ -75,7 +75,7 @@ def profile_classifier(
     time_fit_list = []
     time_pred_list = []
     for n_inst, n_tp, _rep in grid:
-        X, y = make_classification_problem(n_instances=n_inst, n_timepoints=n_tp)
+        X, y = make_nested_dataframe_data(n_cases=n_inst, n_timepoints=n_tp)
 
         est_i = est.clone()
 

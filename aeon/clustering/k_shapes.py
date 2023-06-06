@@ -86,9 +86,9 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -98,19 +98,19 @@ class TimeSeriesKShapes(BaseClusterer):
         """
         from tslearn.clustering import KShape
 
-        if self._tslearn_k_shapes is None:
-            self._tslearn_k_shapes = KShape(
-                # n_clusters=self.n_clusters,
-                n_clusters=3,
-                max_iter=self.max_iter,
-                tol=self.tol,
-                random_state=self.random_state,
-                n_init=self.n_init,
-                verbose=self.verbose,
-                init=self.init_algorithm,
-            )
+        self._tslearn_k_shapes = KShape(
+            n_clusters=self.n_clusters,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            random_state=self.random_state,
+            n_init=self.n_init,
+            verbose=self.verbose,
+            init=self.init_algorithm,
+        )
 
-        self._tslearn_k_shapes.fit(X)
+        _X = X.swapaxes(1, 2)
+
+        self._tslearn_k_shapes.fit(_X)
         self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
         self.labels_ = self._tslearn_k_shapes.labels_
         self.inertia_ = self._tslearn_k_shapes.inertia_
@@ -121,9 +121,9 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Time series instances to predict their cluster indexes.
+        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+                (n_instances, n_timepoints)
+            A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -131,7 +131,8 @@ class TimeSeriesKShapes(BaseClusterer):
         np.ndarray (1d array of shape (n_instances,))
             Index of the cluster each time series in X belongs to.
         """
-        return self._tslearn_k_shapes.predict(X)
+        _X = X.swapaxes(1, 2)
+        return self._tslearn_k_shapes.predict(_X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

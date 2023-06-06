@@ -25,7 +25,7 @@ from sklearn.ensemble._forest import (
 from sklearn.exceptions import DataConversionWarning
 from sklearn.utils import check_array, check_random_state, compute_sample_weight
 
-from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
+from aeon.transformations.collection.summarize import RandomIntervalFeatureExtractor
 
 
 def _parallel_build_trees(

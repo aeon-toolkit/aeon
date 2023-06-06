@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
 """Unit tests for all time series regressors."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly"]
+__author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 
 
 import numpy as np
 import pytest
 
+from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.datatypes import check_is_scitype
+from aeon.regression.tests._expected_outputs import (
+    cardano_sentiment_preds,
+    covid_3month_preds,
+)
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.scenarios_classification import (
     ClassifierFitPredictMultivariate,
 )
 
 
 class RegressorFixtureGenerator(BaseFixtureGenerator):
-    """Fixture generator for classifier tests.
+    """Fixture generator for regression tests.
 
     Fixtures parameterized
     ----------------------
@@ -81,3 +87,69 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         assert isinstance(y_pred, np.ndarray)
         assert y_pred.shape == (X_new_instances,)
         assert np.issubdtype(y_pred.dtype, np.floating)
+
+    def test_regressor_on_covid_3month_data(self, estimator_class):
+        """Test regressor on unit test data."""
+        # we only use the first estimator instance for testing
+        classname = estimator_class.__name__
+
+        # retrieve expected preds output, and skip test if not available
+        if classname in covid_3month_preds.keys():
+            expected_preds = covid_3month_preds[classname]
+        else:
+            # skip test if no expected probas are registered
+            return None
+        # we only use the first estimator instance for testing
+        estimator_instance = estimator_class.create_test_instance(
+            parameter_set="results_comparison"
+        )
+        # set random seed if possible
+        if "random_state" in estimator_instance.get_params().keys():
+            estimator_instance.set_params(random_state=0)
+
+        # load Covid3Month data
+        X_train, y_train = load_covid_3month(split="train")
+        X_test, y_test = load_covid_3month(split="test")
+        indices_train = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
+        indices_test = np.random.RandomState(0).choice(len(y_test), 10, replace=False)
+
+        # train regressor and predict
+        estimator_instance.fit(X_train[indices_train], y_train[indices_train])
+        y_preds = estimator_instance.predict(X_test[indices_test])
+
+        # assert predictions are the same
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)
+
+    def test_regressor_on_cardano_sentiment(self, estimator_class):
+        """Test regressor on cardano sentiment data."""
+        # we only use the first estimator instance for testing
+        classname = estimator_class.__name__
+
+        # retrieve expected preds output, and skip test if not available
+        if classname in cardano_sentiment_preds.keys():
+            expected_preds = cardano_sentiment_preds[classname]
+        else:
+            # skip test if no expected preds are registered
+            return None
+
+        # we only use the first estimator instance for testing
+        estimator_instance = estimator_class.create_test_instance(
+            parameter_set="results_comparison"
+        )
+        # set random seed if possible
+        if "random_state" in estimator_instance.get_params().keys():
+            estimator_instance.set_params(random_state=0)
+
+        # load unit test data
+        X_train, y_train = load_cardano_sentiment(split="train")
+        X_test, y_test = load_cardano_sentiment(split="test")
+
+        indices_train = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
+        indices_test = np.random.RandomState(4).choice(len(y_test), 10, replace=False)
+
+        # train regressor and predict
+        estimator_instance.fit(X_train[indices_train], y_train[indices_train])
+        y_preds = estimator_instance.predict(X_test[indices_test])
+
+        # assert predictions are the same
+        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)

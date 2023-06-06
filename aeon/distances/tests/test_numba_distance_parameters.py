@@ -4,22 +4,18 @@ from typing import Callable, Dict, List
 
 import numpy as np
 import pytest
-from numba import njit
 
-from aeon.distances import distance, distance_factory
-from aeon.distances._distance import _METRIC_INFOS, NEW_DISTANCES
-from aeon.distances._numba_utils import to_numba_timeseries
-from aeon.distances.base import MetricInfo
+from aeon.distances import distance
+from aeon.distances._distance import DISTANCES
 from aeon.distances.tests._expected_results import _expected_distance_results_params
 from aeon.distances.tests._utils import create_test_distance_numpy
-from aeon.distances.tests.test_new_distances import DISTANCES
 
 
 def _test_distance_params(
     param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
-    x_univ = to_numba_timeseries(create_test_distance_numpy(10, 1))
-    y_univ = to_numba_timeseries(create_test_distance_numpy(10, 1, random_state=2))
+    x_univ = create_test_distance_numpy(10, 1).reshape((1, 10))
+    y_univ = create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))
 
     x_multi = create_test_distance_numpy(10, 10)
     y_multi = create_test_distance_numpy(10, 10, random_state=2)
@@ -39,13 +35,8 @@ def _test_distance_params(
             if g_none:
                 param_dict["g"] = np.std([x, y], axis=0).sum(axis=1)
             results = []
-            curr_dist_fact = distance_factory(x, y, metric=distance_str, **param_dict)
             results.append(distance_func(x, y, **param_dict))
             results.append(distance(x, y, metric=distance_str, **param_dict))
-            if distance_str not in NEW_DISTANCES:
-                results.append(curr_dist_fact(x, y))
-            else:
-                results.append(curr_dist_fact(x, y, **param_dict))
 
             if distance_str in _expected_distance_results_params:
                 if _expected_distance_results_params[distance_str][i][j] is not None:
@@ -63,12 +54,6 @@ BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
 ]
 
-
-@njit(cache=True)
-def _test_derivative(q: np.ndarray):
-    return q
-
-
 DIST_PARAMS = {
     "dtw": BASIC_BOUNDING_PARAMS,
     "erp": BASIC_BOUNDING_PARAMS + [{"g": 0.5}, {"g": None}],
@@ -80,17 +65,6 @@ DIST_PARAMS = {
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
     "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
 }
-
-
-@pytest.mark.parametrize("dist", _METRIC_INFOS)
-def test_distance_params(dist: MetricInfo):
-    """Test parametisation of distance callables."""
-    if dist.canonical_name in DIST_PARAMS:
-        _test_distance_params(
-            DIST_PARAMS[dist.canonical_name],
-            dist.dist_func,
-            dist.canonical_name,
-        )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
