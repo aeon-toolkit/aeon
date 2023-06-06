@@ -12,7 +12,7 @@ import numpy as np
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 

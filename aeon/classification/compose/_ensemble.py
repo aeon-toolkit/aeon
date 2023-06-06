@@ -23,7 +23,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.series_as_features.base.estimators._ensemble import BaseTimeSeriesForest
-from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
+from aeon.transformations.collection.summarize import RandomIntervalFeatureExtractor
 from aeon.utils.slope_and_trend import _slope
 from aeon.utils.validation.panel import check_X, check_X_y
 
