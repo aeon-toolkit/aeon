@@ -24,7 +24,7 @@ import pandas as pd
 from numba import njit
 
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.panel.matrix_profile import _sliding_dot_products
+from aeon.transformations.collection.matrix_profile import _sliding_dot_products
 
 
 def _sliding_window(X, m):

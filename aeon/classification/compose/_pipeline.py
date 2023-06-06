@@ -74,7 +74,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
