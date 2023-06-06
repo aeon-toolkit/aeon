@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.pipeline import make_pipeline
 from aeon.regression._delegate import _DelegatedRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.panel.rocket import (
+from aeon.transformations.collection.rocket import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
