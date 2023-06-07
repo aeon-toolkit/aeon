@@ -13,8 +13,10 @@ class MrSQMClassifier(BaseClassifier):
     """Multiple Representations Sequence Miner (MrSQM) classifier.
 
     This is a wrapper for the MrSQMClassifier algorithm from the `mrsqm` package.
+    MrSQM is not included in all extras as it requires gcc and fftw
+    (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
-    Overview: MrSQM is an efficient time series classifier utilizing symbolic
+    Overview: MrSQM is an efficient time series classifier utilising symbolic
     representations of time series. MrSQM implements four different feature selection
     strategies (R,S,RS,SR) that can quickly select subsequences from multiple symbolic
     representations of time series data.
@@ -57,6 +59,11 @@ class MrSQMClassifier(BaseClassifier):
     .. [2] Nguyen, Thach Le, and Georgiana Ifrim. "MrSQM: Fast time series
         classification with symbolic representations." arXiv preprint arXiv:2109.01036
         (2021).
+
+    Examples
+    --------
+    >>> from aeon.classification.shapelet_based import MrSQMClassifier
+
     """
 
     def __init__(
@@ -82,7 +89,7 @@ class MrSQMClassifier(BaseClassifier):
         super(MrSQMClassifier, self).__init__()
 
     _tags = {
-        "X_inner_mtype": "nested_univ",  # we don't like this but it's the only input!
+        "X_inner_mtype": "nested_univ",  # we don't like this, but it's the only input!
         "algorithm_type": "shapelet",
         "python_dependencies": "mrsqm",
     }
