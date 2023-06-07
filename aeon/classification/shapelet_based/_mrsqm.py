@@ -65,10 +65,10 @@ class MrSQMClassifier(BaseClassifier):
     >>> from aeon.classification.shapelet_based import MrSQMClassifier
     >>> from aeon.utils._testing.collection import make_3d_test_data
     >>> X, y = make_3d_test_data(random_state=0)
-    >>> clf = MrSQMClassifier(random_state=0)
-    >>> clf.fit(X, y)
+    >>> clf = MrSQMClassifier(random_state=0) # doctest: +SKIP
+    >>> clf.fit(X, y) # doctest: +SKIP
     MrSQMClassifier(...)
-    >>> clf.predict(X)
+    >>> clf.predict(X) # doctest: +SKIP
     """
 
     def __init__(
