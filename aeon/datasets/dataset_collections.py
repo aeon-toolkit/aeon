@@ -382,6 +382,9 @@ multivariate_unequal_length = [
     "SpokenArabicDigits",
 ]
 
+"""Monash forecasting datasets with ids"""
+monash_data = {"m4_hourly_dataset": 4656589}
+
 
 def _list_available_datasets(extract_path):
     """Return a list of all the currently downloaded datasets.

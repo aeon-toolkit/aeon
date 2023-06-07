@@ -2,6 +2,7 @@
 import os
 import shutil
 import tempfile
+import urllib
 import zipfile
 from datetime import datetime
 from distutils.util import strtobool
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets._dataframe_loaders import DIRNAME, MODULE
-from aeon.datasets.tsc_dataset_names import _list_available_datasets
+from aeon.datasets.dataset_collections import _list_available_datasets
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 
 __all__ = [  # Load functions
@@ -20,6 +21,7 @@ __all__ = [  # Load functions
     "load_from_arff_file",
     "load_from_tsv_file",
     "load_from_tsc",
+    "load_from_monash_forecasting",
 ]
 
 
@@ -1094,3 +1096,68 @@ def load_from_tsf_file(
             )
         )
         return loaded_data, metadata
+
+
+def load_from_monash_forecasting(name, extract_path=None):
+    """Donwload/load forecasting problem from https://forecastingdata.org/.
+
+    Parameters
+    ----------
+    name : string, file name to load from
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
+
+    Returns
+    -------
+    X: Data stored in a dataframe
+    metadata:
+    """
+    # Allow user to have non standard extract path
+    from aeon.datasets.dataset_collections import monash_data
+
+    if extract_path is not None:
+        local_module = os.path.dirname(extract_path)
+        local_dirname = extract_path
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    if name not in _list_available_datasets(extract_path):
+        if extract_path is None:
+            local_dirname = "local_data"
+        if not os.path.exists(os.path.join(local_module, local_dirname)):
+            os.makedirs(os.path.join(local_module, local_dirname))
+        if name not in _list_available_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            # Dataset is not already present in the datasets directory provided.
+            # If it is not there, download and install it.
+
+            if name in monash_data.keys():
+                id = monash_data[name]
+            else:
+                raise ValueError(
+                    f"File name {name} is not in the list of valid files to download"
+                )
+            url = f"https://zenodo.org/record/{id}/files/{name}.zip"
+            file_save = f"{extract_path}/{name}.zip"
+            try:
+                urllib.request.urlretrieve(url, file_save)
+            except Exception:
+                raise ValueError(
+                    f"Invalid dataset name ={name} is not available on extract path ="
+                    f"{extract_path}.\n Nor is it available on "
+                    f"https://forecastingdata.org/ via path "
+                    f"{url}",
+                )
+
+            zipfile.ZipFile(file_save, "r").extractall(f"{extract_path}/{name}/")
+    full_name = f"{extract_path}/{name}/{name}.tsf"
+    return load_from_tsf_file(full_file_path_and_name=full_name)
