@@ -7,8 +7,8 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc",
-    "load_from_monash_forecasting",
+    "load_classification",
+    "load_forecasting",
     # Write functions
     "write_to_tsfile",
     "write_results_to_uea_format",
@@ -50,9 +50,9 @@ from aeon.datasets._data_generators import (
     make_example_multi_index_dataframe,
 )
 from aeon.datasets._data_loaders import (
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
-    load_from_monash_forecasting,
-    load_from_tsc,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,

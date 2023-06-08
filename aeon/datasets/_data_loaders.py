@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets._dataframe_loaders import DIRNAME, MODULE
-from aeon.datasets.dataset_collections import _list_available_datasets
+from aeon.datasets.dataset_collections import list_downloaded_tsc_tsr_datasets
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 
 __all__ = [  # Load functions
@@ -20,8 +20,9 @@ __all__ = [  # Load functions
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc",
-    "load_from_monash_forecasting",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
 ]
 
 
@@ -233,17 +234,21 @@ def load_from_tsfile(
     return data, y
 
 
-def load_from_tsc(
-    name, split=None, return_X_y=True, return_type=None, extract_path=None
-):
-    """Load dataset from UCR UEA time series archive.
+def load_classification(name, split=None, extract_path=None, return_metadata=True):
+    """Load a classification dataset.
 
-    Downloads and extracts dataset if not already downloaded. Data is assumed to be
-    in the standard .ts format: each row is a (possibly multivariate) time series.
+    Loadsa TSC dataset from extract_path, or from timeseriesclassification.com,
+    if not on extract path.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series.
     Each dimension is separated by a colon, each value in a series is comma
     separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
     a univariate equal length problem, BasicMotions an equal length multivariate
     problem.
+
+    Data is stored in extract_path/name/name.ts, extract_path/name/name_TRAIN.ts and
+    extract_path/name/name_TEST.ts.
 
     Parameters
     ----------
@@ -252,25 +257,16 @@ def load_from_tsc(
         this function will look in the extract_path first, and if it is not present,
         attempt to download the data from www.timeseriesclassification.com, saving it to
         the extract_path.
-    split : None or str{"train", "test"}, optional (default=None)
+    split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
         loads both into a single dataset, otherwise it looks only for files of the
         format <name>_TRAIN.ts or <name>_TEST.ts.
-    return_X_y : bool, optional (default=False)
-        it returns two objects, if False, it appends the class labels to the dataframe.
-    return_type : str, optional, default = None
-        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
-        "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
-        although we recommend numpy3d, because some transformers do not work with
-        numpy2d. If None will load 3D numpy or list of numpy
-        There other options, see datatypes.SCITYPE_REGISTER, but these
-        will not necessarily be supported longterm.
-
-        Exception is raised if the data cannot be stored in the requested type.
-    extract_path : str, optional (default=None)
+    extract_path : str, default=None
         the path to look for the data. If no path is provided, the function
         looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
         e.g. C:/Temp or relative, e.g. Temp or ./Temp.
+    return_metadata: bolean, default = False
+        If True, returns the following data characteristics.
 
     Returns
     -------
@@ -281,10 +277,10 @@ def load_from_tsc(
 
     Examples
     --------
-    >>> from aeon.datasets import load_from_tsc
-    >>> X, y = load_from_tsc(name="ArrowHead") #DOCTEST +Skip
+    >>> from aeon.datasets import load_classification
+    >>> X, y, meta = load_classification(name="ArrowHead") #DOCTEST +Skip
     """
-    return _load_dataset(name, split, return_X_y, return_type, extract_path)
+    return _load_dataset(name, split, extract_path, return_meta=return_metadata)
 
 
 def _load_provided_dataset(
@@ -438,7 +434,9 @@ def _download_and_extract(url, extract_path=None):
         )
 
 
-def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=None):
+def _load_dataset(
+    name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=True
+):
     """Load time series classification datasets (helper function).
 
     Parameters
@@ -483,12 +481,12 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in _list_available_datasets(extract_path):
+    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in _list_available_datasets(
+        if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Dataset is not already present in the datasets directory provided.
@@ -509,7 +507,13 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
                 ) from e
 
     return _load_provided_dataset(
-        name, split, return_X_y, return_type, local_module, local_dirname
+        name,
+        split,
+        return_X_y,
+        return_type,
+        local_module,
+        local_dirname,
+        return_meta=return_meta,
     )
 
 
@@ -1098,7 +1102,7 @@ def load_from_tsf_file(
         return loaded_data, metadata
 
 
-def load_from_monash_forecasting(name, extract_path=None):
+def load_forecasting(name, extract_path=None, return_metadata=True):
     """Donwload/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
@@ -1129,12 +1133,80 @@ def load_from_monash_forecasting(name, extract_path=None):
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in _list_available_datasets(extract_path):
+    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in _list_available_datasets(
+        if name not in list_downloaded_tsc_tsr_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            # Dataset is not already present in the datasets directory provided.
+            # If it is not there, download and install it.
+
+            if name in monash_data.keys():
+                id = monash_data[name]
+            else:
+                raise ValueError(
+                    f"File name {name} is not in the list of valid files to download"
+                )
+            url = f"https://zenodo.org/record/{id}/files/{name}.zip"
+            file_save = f"{extract_path}/{name}.zip"
+            try:
+                urllib.request.urlretrieve(url, file_save)
+            except Exception:
+                raise ValueError(
+                    f"Invalid dataset name ={name} is not available on extract path ="
+                    f"{extract_path}.\n Nor is it available on "
+                    f"https://forecastingdata.org/ via path "
+                    f"{url}",
+                )
+
+            zipfile.ZipFile(file_save, "r").extractall(f"{extract_path}/{name}/")
+    full_name = f"{extract_path}/{name}/{name}.tsf"
+    data, meta = load_from_tsf_file(full_file_path_and_name=full_name)
+    if return_metadata:
+        return data, meta
+    return data
+
+
+def load_regression(name, extract_path=None, return_metadata=True):
+    """Donwload/load forecasting problem from https://forecastingdata.org/.
+
+    Parameters
+    ----------
+    name : string, file name to load from
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
+
+    Returns
+    -------
+    X: Data stored in a dataframe
+    metadata:
+    """
+    # Allow user to have non standard extract path
+    from aeon.datasets.dataset_collections import monash_data
+
+    if extract_path is not None:
+        local_module = os.path.dirname(extract_path)
+        local_dirname = extract_path
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+        if extract_path is None:
+            local_dirname = "local_data"
+        if not os.path.exists(os.path.join(local_module, local_dirname)):
+            os.makedirs(os.path.join(local_module, local_dirname))
+        if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Dataset is not already present in the datasets directory provided.
