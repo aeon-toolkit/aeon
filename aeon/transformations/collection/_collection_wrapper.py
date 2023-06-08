@@ -7,7 +7,7 @@ __all__ = ["CollectionToSeriesWrapper"]
 
 from aeon.base._base import _clone_estimator
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.panel.base import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
 class CollectionToSeriesWrapper(BaseTransformer):
@@ -33,8 +33,8 @@ class CollectionToSeriesWrapper(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.panel import CollectionToSeriesWrapper
-    >>> from aeon.transformations.panel.catch22 import Catch22
+    >>> from aeon.transformations.collection import CollectionToSeriesWrapper
+    >>> from aeon.transformations.collection.catch22 import Catch22
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> wrap = CollectionToSeriesWrapper(Catch22())
@@ -93,6 +93,6 @@ class CollectionToSeriesWrapper(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.transformations.panel.rocket import Rocket
+        from aeon.transformations.collection.rocket import Rocket
 
         return {"transformer": Rocket(num_kernels=50)}

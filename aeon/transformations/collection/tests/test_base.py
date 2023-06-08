@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from aeon.datatypes import convert_to
-from aeon.transformations.panel import (
+from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,
 )
