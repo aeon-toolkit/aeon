@@ -392,7 +392,7 @@ def _download_and_extract(url, extract_path=None):
 
 
 def _load_tsc_dataset(
-    name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=True
+    name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=False
 ):
     """Load time series classification datasets (helper function).
 
