@@ -47,7 +47,7 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_loaders import _load_dataset, _load_provided_dataset
+from aeon.datasets._data_loaders import _load_dataset, _load_saved_dataset
 from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -245,7 +245,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     Details: http://timeseriesclassification.com/description.php?Dataset=Chinatown
     for the full dataset
     """
-    return _load_provided_dataset("UnitTest", split, return_X_y, return_type)
+    return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
 
 
 def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
@@ -292,7 +292,7 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  3
     Details: http://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="ArrowHead", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
@@ -389,7 +389,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
             f"array, but cannot because it is a multivariate problem. Use "
             f"numpy3d instead"
         )
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="BasicMotions", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
