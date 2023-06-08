@@ -11,6 +11,8 @@ EXCLUDE_ESTIMATORS = [
     "SFA",
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
+    "HIVECOTEV1",
+    "RandomIntervalSpectralEnsemble",
     "RandomInvervals",
     "RandomIntervalSegmenter",
     "RandomIntervalFeatureExtractor",
