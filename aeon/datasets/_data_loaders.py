@@ -1085,8 +1085,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_forecasting
-    >>> X, meta=load_forecasting("m1_yearly_dataset") #DOCTEST
-    +skip
+    >>> X, meta=load_forecasting("m1_yearly_dataset") #DOCTEST +skip
     """
     # Allow user to have non standard extract path
     from aeon.datasets.tsf_data_lists import tsf_all
@@ -1174,7 +1173,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_regression
-    >>> X, meta=load_regression("FloodModeling1") #DOCTEST +skip
+    >>> X, meta=load_regression("FloodModeling1") #DOCTEST +Skip
     """
     from aeon.datasets.tser_data_lists import tser_all
 
