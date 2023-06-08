@@ -30,7 +30,7 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
 
 """
 
-""" 128 UCR univariatetime series classification problems [1]"""
+""" 128 UCR univariate time series classification problems [1]"""
 univariate = {
     "ACSF1",
     "Adiac",

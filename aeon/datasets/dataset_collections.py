@@ -45,7 +45,7 @@ from aeon.datasets.tsf_data_lists import tsf_all
 def list_available_tser_datasets(name=None):
     """List available tser data."""
     if name is None:  # List them all
-        sorted(list(tser_all))
+        return sorted(list(tser_all))
     if name in tser_all:
         return True
     return False
@@ -54,7 +54,7 @@ def list_available_tser_datasets(name=None):
 def list_available_tsf_datasets(name=None):
     """List available tsf data."""
     if name is None:  # List them all
-        sorted(list(tsf_all))
+        return sorted(list(tsf_all))
     if name in tsf_all:
         return True
     return False
