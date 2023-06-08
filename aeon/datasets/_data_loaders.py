@@ -1173,7 +1173,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_regression
-    >>> X, meta=load_regression("FloodModeling1") #DOCTEST +Skip
+    >>> X, y, meta=load_regression("FloodModeling1") #DOCTEST +Skip
     """
     from aeon.datasets.tser_data_lists import tser_all
 
