@@ -539,11 +539,9 @@ def load_tsf_to_dataframe(
         - "tsf_default" = container that faithfully mirrors tsf format from the original
             implementation in: https://github.com/rakshitha123/TSForecasting/
             blob/master/utils/data_loader.py.
-        - other valid mtype strings are Panel or Hierarchical mtypes in
-            datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
-            conversion to that mtype will be attempted
-        For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
+        - other valid return type strings are Panel or Hierarchical  data types in
+            datatypes.MTYPE_REGISTER. If Panel or Hierarchical types str is given, a
+            conversion to that type will be attempted
 
     Returns
     -------
