@@ -8,16 +8,16 @@ __all__ = ["evaluate"]
 
 import time
 import warnings
-from typing import List, Literal, Optional, Union
+from copy import deepcopy
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to, get_cutoff
+from aeon.datatypes import check_is_scitype, convert_to
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
 from aeon.forecasting.base._base import _format_moving_cutoff_predictions
-from aeon.utils.datetime import _shift
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -484,61 +484,76 @@ def evaluate(
     return results
 
 
-def cv_predict(
-    forecaster: BaseForecaster,
-    cv,
-    y,
-    X=None,
-    strategy: Literal["refit", "update", "no-update_params"] = "refit",
+def cv_fit_predict(
+    forecaster: BaseForecaster, cv, y, X=None, deep_copy_forecaster=True
 ) -> pd.DataFrame:
     """Placeholders docstring."""
     # borrow from _predict_moving_cutoff
     # use _format_moving_cutoff_predictions func
     # use the backend stuff from evaluate for parallel preds
     # maybe reformat _evaluate_window to be _predict_window
-
-    forecaster = forecaster.clone()
+    if deep_copy_forecaster:
+        forecaster = deepcopy(forecaster)
     fh = cv.get_fh()
     y_preds = []
     cutoffs = []
 
-    # set cutoff to time point before data
-    y_first_index = get_cutoff(y, return_index=True, reverse_order=True)
-    forecaster._set_cutoff(_shift(y_first_index, by=-1, return_index=True))
+    # iterate over data
+    for new_window, _ in cv.split(y):
+        y_new = y.iloc[new_window]
+        # TODO: should we adjust the X index too here?
+        y_pred = forecaster.fit_predict(
+            y=y_new,
+            fh=fh,
+            X=X,
+        )
+        y_pred = convert_to(
+            y_pred,
+            forecaster._y_mtype_last_seen,
+            store=forecaster._converter_store_y,
+            store_behaviour="freeze",
+        )
+        y_preds.append(y_pred)
+        cutoffs.append(forecaster.cutoff)
 
-    if isinstance(y, VectorizedDF):
-        y = y.X
-    if isinstance(X, VectorizedDF):
-        X = X.X
+    return _format_moving_cutoff_predictions(y_preds, cutoffs)
+
+
+def cv_update_predict(
+    forecaster: BaseForecaster,
+    cv,
+    y,
+    X,
+    update_params=True,
+    fit_on_fist_split=False,
+    deep_copy_forecaster=True,
+):
+    """Placeholders docstring."""
+    fit = fit_on_fist_split
+    if deep_copy_forecaster:
+        forecaster = deepcopy(forecaster)
+    fh = cv.get_fh()
+    y_preds = []
+    cutoffs = []
 
     # iterate over data
     for new_window, _ in cv.split(y):
         y_new = y.iloc[new_window]
-
-        # we use `update_predict_single` here
-        #  this updates the forecasting horizon
-        if strategy == "refit":
-            y_pred = forecaster.fit_predict(
-                y=y_new,
-                fh=fh,
-                X=X,
-            )
+        # TODO: should we adjust the X index too here?
+        if fit:
+            y_pred = forecaster.fit_predict(y=y_new, fh=fh, X=X)
+            fit = False
         else:
-            update_params = False if strategy == "no-update_params" else True
             y_pred = forecaster.update_predict_single(
-                y=y_new,
-                fh=fh,
-                X=X,
-                update_params=update_params,
+                y=y_new, fh=fh, X=X, update_params=update_params
             )
+        y_pred = convert_to(
+            y_pred,
+            forecaster._y_mtype_last_seen,
+            store=forecaster._converter_store_y,
+            store_behaviour="freeze",
+        )
         y_preds.append(y_pred)
         cutoffs.append(forecaster.cutoff)
 
-        for i in range(len(y_preds)):
-            y_preds[i] = convert_to(
-                y_preds[i],
-                forecaster._y_mtype_last_seen,
-                store=forecaster._converter_store_y,
-                store_behaviour="freeze",
-            )
     return _format_moving_cutoff_predictions(y_preds, cutoffs)
