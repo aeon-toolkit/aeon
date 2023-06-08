@@ -12,7 +12,10 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets._dataframe_loaders import DIRNAME, MODULE
-from aeon.datasets.dataset_collections import list_downloaded_tsc_tsr_datasets
+from aeon.datasets.dataset_collections import (
+    list_downloaded_tsc_tsr_datasets,
+    list_downloaded_tsf_datasets,
+)
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 
 __all__ = [  # Load functions
@@ -23,6 +26,9 @@ __all__ = [  # Load functions
     "load_classification",
     "load_forecasting",
     "load_regression",
+    "download_all_regression",
+    "download_all_classification",
+    "download_all_forecasting",
 ]
 
 
@@ -1122,7 +1128,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     metadata:
     """
     # Allow user to have non standard extract path
-    from aeon.datasets.dataset_collections import monash_data
+    from aeon.datasets.tsf_data_lists import tsf_all
 
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
@@ -1133,7 +1139,9 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+    # Check if data already in extract path or, if extract_path None,
+    # in datasets/data directory
+    if name not in list_downloaded_tsf_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
@@ -1143,27 +1151,29 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-
-            if name in monash_data.keys():
-                id = monash_data[name]
+            if name in tsf_all.keys():
+                id = tsf_all[name]
             else:
                 raise ValueError(
                     f"File name {name} is not in the list of valid files to download"
                 )
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
-            file_save = f"{extract_path}/{name}.zip"
-            try:
-                urllib.request.urlretrieve(url, file_save)
-            except Exception:
-                raise ValueError(
-                    f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}.\n Nor is it available on "
-                    f"https://forecastingdata.org/ via path "
-                    f"{url}",
-                )
-
-            zipfile.ZipFile(file_save, "r").extractall(f"{extract_path}/{name}/")
-    full_name = f"{extract_path}/{name}/{name}.tsf"
+            file_save = f"{local_module}/{local_dirname}/{name}.zip"
+            if not os.path.exists(file_save):
+                try:
+                    urllib.request.urlretrieve(url, file_save)
+                except Exception:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is not available on extract path"
+                        f" {extract_path}.\n Nor is it available on "
+                        f"https://forecastingdata.org/ via path {url}",
+                    )
+            if not os.path.exists(
+                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
+            ):
+                z = zipfile.ZipFile(file_save, "r")
+                z.extractall(f"{local_module}/{local_dirname}/{name}/")
+    full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"
     data, meta = load_from_tsf_file(full_file_path_and_name=full_name)
     if return_metadata:
         return data, meta
@@ -1171,7 +1181,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
 
 def load_regression(name, extract_path=None, return_metadata=True):
-    """Donwload/load forecasting problem from https://forecastingdata.org/.
+    """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
     ----------
@@ -1233,3 +1243,50 @@ def load_regression(name, extract_path=None, return_metadata=True):
             zipfile.ZipFile(file_save, "r").extractall(f"{extract_path}/{name}/")
     full_name = f"{extract_path}/{name}/{name}.tsf"
     return load_from_tsf_file(full_file_path_and_name=full_name)
+
+
+def download_all_regression(extract_path=None):
+    """Download and unpack all of the Monash TSER datasets.
+
+    Arguments
+    ---------
+    extract_path: str or None, default = None
+        where to download the fip file. If none, it goes in
+    """
+    if extract_path is not None:
+        local_module = os.path.dirname(extract_path)
+        local_dirname = ""
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    url = (
+        "https://zenodo.org/record/4632512/files/Monash_UEA_UCR_Regression_Archive.zip"
+    )
+    if extract_path is None:
+        local_dirname = "local_data"
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+
+    file_save = f"{local_module}/{local_dirname}/Monash_UEA_UCR_Regression_Archive.zip"
+    # Check if it already exists at this location, to avoid repeated download
+    if not os.path.exists(file_save):
+        try:
+            urllib.request.urlretrieve(url, file_save)
+        except Exception:
+            raise ValueError(
+                f"Unable to download {file_save} from {url}",
+            )
+    zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+
+
+def download_all_classification(extract_path=None):
+    """Download and unpack all of the tsml TSC datasets."""
+    pass
+
+
+def download_all_forecasting(extract_path=None):
+    """Download and unpack all of the monash TSF datasets."""
+    pass
