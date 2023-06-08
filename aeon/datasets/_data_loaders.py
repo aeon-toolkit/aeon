@@ -27,8 +27,6 @@ __all__ = [  # Load functions
     "load_forecasting",
     "load_regression",
     "download_all_regression",
-    "download_all_classification",
-    "download_all_forecasting",
 ]
 
 
@@ -1325,13 +1323,3 @@ def download_all_regression(extract_path=None):
                 f"Unable to download {file_save} from {url}",
             )
     zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
-
-
-def download_all_classification(extract_path=None):
-    """Download and unpack all of the tsml TSC datasets."""
-    pass
-
-
-def download_all_forecasting(extract_path=None):
-    """Download and unpack all of the monash TSF datasets."""
-    pass
