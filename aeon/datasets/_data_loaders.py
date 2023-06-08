@@ -465,11 +465,11 @@ def _load_dataset(
 
     return _load_saved_dataset(
         name,
-        split,
-        return_X_y,
-        return_type,
-        local_module,
-        local_dirname,
+        split=split,
+        return_X_y=return_X_y,
+        return_type=return_type,
+        local_module=local_module,
+        local_dirname=local_dirname,
         return_meta=return_meta,
     )
 
@@ -1083,7 +1083,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"
@@ -1155,7 +1155,7 @@ def load_regression(name, extract_path=None, split=None, return_metadata=True):
 
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"
@@ -1170,15 +1170,14 @@ def load_regression(name, extract_path=None, split=None, return_metadata=True):
         if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            # Dataset is not already present in the datasets directory provided.
-            # If it is not there, download and install it.
-
             if name in tser_all.keys():
                 id = tser_all[name]
             else:
                 raise ValueError(
                     f"File name {name} is not in the list of valid files to download"
                 )
+            # Dataset is not already present in the datasets directory provided.
+            # If it is not there, download and install it.
             url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
             url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
             if not os.path.exists(f"{local_module}/{local_dirname}/{name}"):
@@ -1289,7 +1288,13 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
     >>> from aeon.datasets import load_classification
     >>> X, y, meta = load_classification(name="ArrowHead") #DOCTEST +Skip
     """
-    return _load_dataset(name, split, extract_path, return_meta=return_metadata)
+    return _load_dataset(
+        name,
+        split,
+        return_X_y=True,
+        extract_path=extract_path,
+        return_meta=return_metadata,
+    )
 
 
 def download_all_classification(extract_path=None):
