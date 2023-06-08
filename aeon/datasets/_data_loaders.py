@@ -98,6 +98,8 @@ def _load_header_info(file):
                     else:
                         raise IOError("invalid class label value")
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
+        if meta_data["targetlabel"]:
+            meta_data["classlabel"] = False
     return meta_data
 
 
@@ -391,7 +393,7 @@ def _download_and_extract(url, extract_path=None):
         )
 
 
-def _load_dataset(
+def _load_tsc_dataset(
     name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=True
 ):
     """Load time series classification datasets (helper function).
@@ -1060,7 +1062,7 @@ def load_from_tsf_file(
 
 
 def load_forecasting(name, extract_path=None, return_metadata=True):
-    """Donwload/load forecasting problem from https://forecastingdata.org/.
+    """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
     ----------
@@ -1068,6 +1070,8 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
+    return_metadata : boolean, default = True
+        If True, returns a tuple (data, metadata)
 
     Raises
     ------
@@ -1075,8 +1079,16 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
     Returns
     -------
-    X: Data stored in a dataframe
-    metadata:
+    X: Data stored in a dataframe, each column a series
+    metadata: optional
+        returns the following meta data
+        frequency,forecast_horizon,contain_missing_values,contain_equal_length
+
+    Example
+    -------
+    >>> from aeon.datasets import load_forecasting
+    >>> X, meta=load_forecasting("m1_yearly_dataset") #DOCTEST
+    +skip
     """
     # Allow user to have non standard extract path
     from aeon.datasets.tsf_data_lists import tsf_all
@@ -1131,7 +1143,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     return data
 
 
-def load_regression(name, extract_path=None, split=None, return_metadata=True):
+def load_regression(name, split=None, extract_path=None, return_metadata=True):
     """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
@@ -1140,6 +1152,12 @@ def load_regression(name, extract_path=None, split=None, return_metadata=True):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/<name>/
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_metadata : boolean, default = True
+        If True, returns a tuple (X, y, metadata)
 
     Raises
     ------
@@ -1147,10 +1165,19 @@ def load_regression(name, extract_path=None, split=None, return_metadata=True):
 
     Returns
     -------
-    X: Data stored in a dataframe
-    metadata:
+    X: np.ndarray or list of np.ndarray
+    y: numpy array
+        The target response variable for each case in X
+    metadata: optional
+        returns the following meta data
+        'problemname',timestamps, missing,univariate,equallength.
+        targetlabel should be true, and classlabel false
+
+    Example
+    -------
+    >>> from aeon.datasets import load_regression
+    >>> X, meta=load_regression("FloodModeling1") #DOCTEST +skip
     """
-    # Allow user to have non standard extract path
     from aeon.datasets.tser_data_lists import tser_all
 
     if extract_path is not None:
@@ -1205,6 +1232,64 @@ def load_regression(name, extract_path=None, split=None, return_metadata=True):
     )
 
 
+def load_classification(name, split=None, extract_path=None, return_metadata=True):
+    """Load a classification dataset.
+
+    Loads a TSC dataset from extract_path, or from timeseriesclassification.com,
+    if not on extract path.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series.
+    Each dimension is separated by a colon, each value in a series is comma
+    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
+    a univariate equal length problem, BasicMotions an equal length multivariate
+    problem.
+
+    Data is stored in extract_path/name/name.ts, extract_path/name/name_TRAIN.ts and
+    extract_path/name/name_TEST.ts.
+
+    Parameters
+    ----------
+    name : str
+        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
+        this function will look in the extract_path first, and if it is not present,
+        attempt to download the data from www.timeseriesclassification.com, saving it to
+        the extract_path.
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    extract_path : str, default=None
+        the path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
+    return_metadata : boolean, default = True
+        If True, returns a tuple (X, y, metadata)
+
+    Returns
+    -------
+    X: np.ndarray or list of np.ndarray
+    y: numpy array
+        The class labels for each case in X
+    metadata: optional
+        returns the following meta data
+        'problemname',timestamps, missing,univariate,equallength, class_values
+        targetlabel should be false, and classlabel true
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_classification
+    >>> X, y, meta = load_classification(name="ArrowHead") #DOCTEST +Skip
+    """
+    return _load_tsc_dataset(
+        name,
+        split,
+        return_X_y=True,
+        extract_path=extract_path,
+        return_meta=return_metadata,
+    )
+
+
 def download_all_regression(extract_path=None):
     """Download and unpack all of the Monash TSER datasets.
 
@@ -1240,61 +1325,6 @@ def download_all_regression(extract_path=None):
                 f"Unable to download {file_save} from {url}",
             )
     zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
-
-
-def load_classification(name, split=None, extract_path=None, return_metadata=True):
-    """Load a classification dataset.
-
-    Loadsa TSC dataset from extract_path, or from timeseriesclassification.com,
-    if not on extract path.
-
-    Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series.
-    Each dimension is separated by a colon, each value in a series is comma
-    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
-    a univariate equal length problem, BasicMotions an equal length multivariate
-    problem.
-
-    Data is stored in extract_path/name/name.ts, extract_path/name/name_TRAIN.ts and
-    extract_path/name/name_TEST.ts.
-
-    Parameters
-    ----------
-    name : str
-        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
-        this function will look in the extract_path first, and if it is not present,
-        attempt to download the data from www.timeseriesclassification.com, saving it to
-        the extract_path.
-    split : None or str{"train", "test"}, default=None
-        Whether to load the train or test partition of the problem. By default it
-        loads both into a single dataset, otherwise it looks only for files of the
-        format <name>_TRAIN.ts or <name>_TEST.ts.
-    extract_path : str, default=None
-        the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
-        e.g. C:/Temp or relative, e.g. Temp or ./Temp.
-    return_metadata: bolean, default = False
-        If True, returns the following data characteristics.
-
-    Returns
-    -------
-    X: np.ndarray or list
-    y: numpy array
-        The class labels for each case in X, returned separately if return_X_y is
-        True, or appended to X if False
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_classification
-    >>> X, y, meta = load_classification(name="ArrowHead") #DOCTEST +Skip
-    """
-    return _load_dataset(
-        name,
-        split,
-        return_X_y=True,
-        extract_path=extract_path,
-        return_meta=return_metadata,
-    )
 
 
 def download_all_classification(extract_path=None):
