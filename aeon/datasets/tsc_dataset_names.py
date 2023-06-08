@@ -31,7 +31,7 @@ __author__ = ["Tony Bagnall"]
 
 import os
 
-from aeon.datasets._data_dataframe_loaders import MODULE
+from aeon.datasets._dataframe_loaders import MODULE
 
 """ 128 UCR univariatetime series classification problems [1]"""
 univariate = [
