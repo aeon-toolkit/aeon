@@ -128,7 +128,7 @@ class BaseTransformer(BaseEstimator):
         "remember_data": False,  # whether all data seen is remembered as self._X
     }
 
-    # allowed mtypes for transformers - Series and Panel
+    # allowed types for transformers - Series and Panel
     ALLOWED_INPUT_TYPES = [
         "pd.Series",
         "pd.DataFrame",

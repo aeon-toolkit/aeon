@@ -26,14 +26,21 @@ from numba.typed import Dict
 from scipy.sparse import csr_matrix
 from sklearn.feature_selection import chi2, f_classif
 from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
-binning_methods = {"equi-depth", "equi-width", "information-gain", "kmeans", "quantile"}
+binning_methods = {
+    "equi-depth",
+    "equi-width",
+    "information-gain",
+    "information-gain-mae",
+    "kmeans",
+    "quantile",
+}
 
 simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
@@ -66,9 +73,8 @@ class SFAFast(BaseTransformer):
         norm:                boolean, default = False
             mean normalise words by dropping first fourier coefficient
 
-        binning_method:      {"equi-depth", "equi-width", "information-gain", "kmeans",
-                              "quantile"},
-                             default="equi-depth"
+        binning_method:      {"equi-depth", "equi-width", "information-gain",
+            "information-gain-mae", "kmeans"}, default="equi-depth"
             the binning method used to derive the breakpoints.
 
         anova:               boolean, default = False
@@ -238,7 +244,10 @@ class SFAFast(BaseTransformer):
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
 
-        if self.binning_method == "information-gain" and y is None:
+        if (
+            self.binning_method == "information-gain"
+            or self.binning_method == "information-gain-mae"
+        ) and y is None:
             raise ValueError(
                 "Class values must be provided for information gain binning"
             )
@@ -532,6 +541,8 @@ class SFAFast(BaseTransformer):
 
         if self.binning_method == "information-gain":
             return self._igb(dft, y)
+        if self.binning_method == "information-gain-mae":
+            return self._igb_mae(dft, y)
         elif self.binning_method == "kmeans" or self.binning_method == "quantile":
             return self._k_bins_discretizer(dft)
         else:
@@ -587,7 +598,7 @@ class SFAFast(BaseTransformer):
             criterion="entropy",
             max_depth=np.uint32(np.log2(self.alphabet_size)),
             max_leaf_nodes=self.alphabet_size,
-            random_state=1,
+            random_state=self.random_state,
         )
 
         for i in range(self.word_length_actual):
@@ -597,6 +608,25 @@ class SFAFast(BaseTransformer):
                 breakpoints[i, bp] = threshold[bp]
             for bp in range(len(threshold), self.alphabet_size):
                 breakpoints[i, bp] = np.inf
+
+        return np.sort(breakpoints, axis=1)
+
+    def _igb_mae(self, dft, y):
+        breakpoints = np.zeros((self.word_length, self.alphabet_size))
+        clf = DecisionTreeRegressor(
+            criterion="friedman_mse",
+            max_depth=int(np.floor(np.log2(self.alphabet_size))),
+            max_leaf_nodes=self.alphabet_size,
+            random_state=self.random_state,
+        )
+
+        for i in range(self.word_length):
+            clf.fit(dft[:, i][:, None], y)
+            threshold = clf.tree_.threshold[clf.tree_.children_left != -1]
+            for bp in range(len(threshold)):
+                breakpoints[i][bp] = threshold[bp]
+            for bp in range(len(threshold), self.alphabet_size):
+                breakpoints[i][bp] = sys.float_info.max
 
         return np.sort(breakpoints, axis=1)
 

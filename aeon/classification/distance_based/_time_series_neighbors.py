@@ -40,7 +40,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         this will substitute a hard-coded distance metric from aeon.distances
         When mpdist is used, the subsequence length (parameter m) must be set
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
-                                metric='mpdist', metric_params={'m':30})
+                                distance='mpdist', distance_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
     distance_params : dict, optional. default = None.
         dictionary for metric parameters for the case that distance is a str
@@ -82,6 +82,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
         self.n_jobs = n_jobs
+
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
 
         if weights not in WEIGHTS_SUPPORTED:
             raise ValueError(
@@ -192,7 +196,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ws : array
             Array representing the weights of each neighbor.
         """
-        distances = np.array([self.metric_(X, self.X_[j]) for j in range(len(self.X_))])
+        distances = np.array(
+            [
+                self.metric_(X, self.X_[j], **self._distance_params)
+                for j in range(len(self.X_))
+            ]
+        )
 
         # Find indices of k nearest neighbors using partitioning:
         # [0..k-1], [k], [k+1..n-1]
