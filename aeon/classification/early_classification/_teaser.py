@@ -181,7 +181,7 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
 
         fit = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
@@ -240,7 +240,7 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
@@ -314,7 +314,7 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
@@ -374,7 +374,7 @@ class TEASER(BaseEarlyClassifier):
 
         m = getattr(estimator, "n_jobs", None)
         if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            estimator.n_jobs = self._n_jobs
 
         # fit estimator for this threshold
         estimator.fit(X[:, :, : self._classification_points[i]], y)

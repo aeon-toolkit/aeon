@@ -35,7 +35,7 @@ from sklearn.model_selection import (
 from sklearn.pipeline import Pipeline
 
 from aeon.classification.interval_based import CanonicalIntervalForest
-from aeon.transformations.panel.interpolate import TSInterpolator
+from aeon.transformations.collection.interpolate import TSInterpolator
 from aeon.utils._testing.collection import make_3d_test_data
 
 # StratifiedGroupKFold(n_splits=2), removed because it is not available in sklearn 0.24

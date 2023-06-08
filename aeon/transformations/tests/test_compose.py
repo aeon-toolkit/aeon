@@ -10,13 +10,13 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_airline
 from aeon.datatypes import get_examples
+from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     FeatureUnion,
     InvertTransform,
     OptionalPassthrough,
     TransformerPipeline,
 )
-from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.boxcox import LogTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer

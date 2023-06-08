@@ -258,7 +258,7 @@ class _Reducer(_BaseWindowForecaster):
         from sklearn.linear_model import LinearRegression
         from sklearn.pipeline import make_pipeline
 
-        from aeon.transformations.panel.reduce import Tabularizer
+        from aeon.transformations.collection.reduce import Tabularizer
 
         # naming convention is as follows:
         #   reducers with Tabular take an sklearn estimator, e.g., LinearRegressor

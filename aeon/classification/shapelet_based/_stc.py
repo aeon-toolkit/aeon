@@ -14,7 +14,7 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.panel.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -227,7 +227,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         m = getattr(self._estimator, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
@@ -323,7 +323,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
             )
 
     @classmethod

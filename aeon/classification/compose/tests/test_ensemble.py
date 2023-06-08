@@ -11,7 +11,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from aeon.classification.compose import ComposableTimeSeriesForestClassifier
 from aeon.datasets import load_unit_test
-from aeon.transformations.panel.summarize import RandomIntervalFeatureExtractor
+from aeon.transformations.collection.summarize import RandomIntervalFeatureExtractor
 from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 from aeon.utils.slope_and_trend import _slope
 

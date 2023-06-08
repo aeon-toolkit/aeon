@@ -35,11 +35,11 @@ from aeon.classification.interval_based import (
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.transformations.panel.catch22 import Catch22
-from aeon.transformations.panel.catch22wrapper import Catch22Wrapper
-from aeon.transformations.panel.random_intervals import RandomIntervals
-from aeon.transformations.panel.shapelet_transform import RandomShapeletTransform
-from aeon.transformations.panel.supervised_intervals import SupervisedIntervals
+from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.catch22wrapper import Catch22Wrapper
+from aeon.transformations.collection.random_intervals import RandomIntervals
+from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
 from aeon.transformations.series.summarize import SummaryTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
