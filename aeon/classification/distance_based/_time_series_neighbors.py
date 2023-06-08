@@ -102,7 +102,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
-        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+        shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
                 If the series are all equal length, a numpy3D will be passed. If
                 unequal, a list of 2D numpy arrays is passed, which may have
                 different lengths.

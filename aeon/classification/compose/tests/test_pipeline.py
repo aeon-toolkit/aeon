@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.transformations.panel.pad import PaddingTransformer
+from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
 from aeon.utils._testing.collection import make_nested_dataframe_data

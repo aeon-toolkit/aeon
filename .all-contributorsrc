@@ -1151,7 +1151,7 @@
     {
       "login": "jambo6",
       "name": "James Morrill",
-      "avatar_url": "https://https://avatars.githubusercontent.com/jambo6",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32545677?v=4",
       "profile": "https://github.com/jambo6",
       "contributions": [
         "code"
@@ -1250,7 +1250,7 @@
     {
       "login": "corvusrabus",
       "name": "Corvin Paul",
-      "avatar_url": "https://lh3.googleusercontent.com/zMvwkuxyIsRN1I0-HLojbcbbHaERXa-b9eztZ23z_C2m7cXdMiU4z36ekS5-cgBmikPhZA=w1280",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5957191?v=4",
       "profile": "https://sites.google.com/view/corvinpaul/",
       "contributions": [
         "doc"
@@ -2087,7 +2087,8 @@
         "avatar_url": "https://avatars.githubusercontent.com/u/47733489",
         "profile": "https://github.com/GuiArcencio",
         "contributions": [
-          "code"
+          "code",
+          "test"
         ]
       },
     {
@@ -2107,7 +2108,9 @@
          "contributions": [
           "code",
           "bug",
-          "doc"
+          "doc",
+          "test",
+          "maintenance"
          ]
       },
     {
@@ -2155,6 +2158,6 @@
       "contributions": [
         "code"
       ]
-    },
+    }
   ]
 }

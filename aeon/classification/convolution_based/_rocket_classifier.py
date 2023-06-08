@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.panel.rocket import (
+from aeon.transformations.collection.rocket import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
