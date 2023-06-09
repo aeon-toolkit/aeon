@@ -13,8 +13,8 @@ import pandas as pd
 
 from aeon.datasets.tsc_dataset_names import univariate as UCR
 
-VALID_RESULT_TYPES = ["Accuracy", "AUROC", "BalancedAccuracy"]
-VALID_TASK_TYPES = ["Classification", "Clustering", "Regression"]
+VALID_RESULT_TYPES = ["accuracy", "auroc", "balancedaccuracy"]
+VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 NAME_ALIASES = {
     "HC2": {"HIVECOTE2", "HIVECOTEV2", "hc2", "HIVE-COTE", "HIVE-COTEv2"},
@@ -41,8 +41,23 @@ NAME_ALIASES = {
 }
 
 
-def estimator_alias(name):
-    """Return the standard name for possible aliased classifier."""
+def estimator_alias(name: str) -> str:
+    """Return the standard name for possible aliased classifier.
+
+    Parameters
+    ----------
+        name: str. Name of an estimator
+
+    Returns
+    -------
+        str: standardised name as defined by NAME_ALIASES
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_loaders import estimator_alias
+    >>> estimator_alias("HIVECOTEV2")
+    'HC2'
+    """
     if name in NAME_ALIASES:
         return name
     for name_key in NAME_ALIASES.keys():
@@ -51,11 +66,32 @@ def estimator_alias(name):
     raise ValueError(f"Unknown classifier name {name}")
 
 
-def get_available_estimators(task="Classification"):
-    """Get a list of estimators avialable for a specific task."""
+def get_available_estimators(task="classification") -> pd.DataFrame:
+    """Get a list of estimators avialable for a specific task.
+
+    Parameters
+    ----------
+        task : str. default = "classification".
+            this is not case sensitive. Should be one of
+            "classification/clustering/regression
+
+    Returns
+    -------
+        str: standardised name as defined by NAME_ALIASES
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_loaders import get_available_estimators
+    >>> cls = get_available_estimators("Classification")  #DOCTEST +Skip
+    """
+    t = task.lower()
+    if t not in VALID_TASK_TYPES:
+        raise ValueError(
+            f" task {t} is not available on tsc.com, must be one of {VALID_TASK_TYPES}"
+        )
     path = (
         f"https://timeseriesclassification.com/results/ReferenceResults/"
-        f"{task}/estimators.txt"
+        f"{t}/estimators.txt"
     )
     try:
         data = pd.read_csv(path)
@@ -68,8 +104,8 @@ def get_estimator_results(
     estimators: list,
     datasets=UCR,
     default_only=True,
-    task="Classification",
-    type="Accuracy",
+    task="classification",
+    type="accuracy",
     path="https://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
