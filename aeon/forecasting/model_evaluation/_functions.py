@@ -547,13 +547,15 @@ def cv_update_predict(
             y_pred = forecaster.update_predict_single(
                 y=y_new, fh=fh, X=X, update_params=update_params
             )
-        y_pred = convert_to(
+        y_preds.append(y_pred)
+        cutoffs.append(forecaster.cutoff)
+
+    for i, y_pred in enumerate(y_preds):
+        y_preds[i] = convert_to(
             y_pred,
             forecaster._y_mtype_last_seen,
             store=forecaster._converter_store_y,
             store_behaviour="freeze",
         )
-        y_preds.append(y_pred)
-        cutoffs.append(forecaster.cutoff)
 
     return _format_moving_cutoff_predictions(y_preds, cutoffs)
