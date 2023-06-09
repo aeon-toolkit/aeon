@@ -523,7 +523,7 @@ def cv_update_predict(
     forecaster: BaseForecaster,
     cv,
     y,
-    X,
+    X=None,
     update_params=True,
     fit_on_fist_split=False,
     deep_copy_forecaster=True,

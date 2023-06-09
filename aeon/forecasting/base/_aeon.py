@@ -6,10 +6,12 @@
 __author__ = ["@mloning", "@big-o", "fkiraly"]
 __all__ = ["_BaseWindowForecaster"]
 
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import VectorizedDF
+from aeon.datatypes import VectorizedDF, get_cutoff
 from aeon.forecasting.base._base import DEFAULT_ALPHA, BaseForecaster
 from aeon.forecasting.model_evaluation._functions import cv_update_predict
 from aeon.forecasting.model_selection import CutoffSplitter
@@ -95,22 +97,26 @@ class _BaseWindowForecaster(BaseForecaster):
 
         y_train = self._y
 
-        if isinstance(y_train, VectorizedDF):
-            y_train = y_train.X
-        if isinstance(X, VectorizedDF):
-            X = X.X
         # generate cutoffs from forecasting horizon, note that cutoffs are
         # still based on integer indexes, so that they can be used with .iloc
         cutoffs = fh.to_relative(self.cutoff) + len(y_train) - 2
         cv = CutoffSplitter(cutoffs, fh=1, window_length=self.window_length_)
+        forecaster = deepcopy(self)
+        y_first_index = get_cutoff(y_train, return_index=True, reverse_order=True)
+        forecaster._set_cutoff(_shift(y_first_index, by=-1, return_index=True))
+
+        if isinstance(y_train, VectorizedDF):
+            y_train = y_train.X
+        if isinstance(X, VectorizedDF):
+            X = X.X
 
         return cv_update_predict(
-            forecaster=self,
+            forecaster=forecaster,
             cv=cv,
             y=y_train,
             X=X,
             update_params=False,
-            deep_copy_forecaster=True,
+            deep_copy_forecaster=False,
         )
 
     def _predict_last_window(
