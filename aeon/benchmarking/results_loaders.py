@@ -33,11 +33,11 @@ NAME_ALIASES = {
         "inceptiontime",
         "InceptionTimeClassifier",
     },
-    "Hydra-MultiROCKET": {"Hydra-MR", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
+    "Hydra-MR": {"Hydra-MultiROCKET", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
     "RSTSF": {"R_RSTF", "RandomSTF", "RSTFClassifier"},
-    "ProximityForest": {"PF", "ProximityForestV1", "PFV1"},
-    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
+    "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
+    "WEASEL_D": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL-Dilation"},
 }
 
 
@@ -66,7 +66,15 @@ def estimator_alias(name: str) -> str:
     raise ValueError(f"Unknown classifier name {name}")
 
 
-def get_available_estimators(task="classification") -> pd.DataFrame:
+def list_estimator_alias(names: list) -> list:
+    """Return a list of aliased names."""
+    new_names = []
+    for n in names:
+        new_names.append(estimator_alias(n))
+    return new_names
+
+
+def get_available_estimators(task="classification") -> list:
     """Get a list of estimators avialable for a specific task.
 
     Parameters
@@ -77,7 +85,7 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
 
     Returns
     -------
-        str: standardised name as defined by NAME_ALIASES
+        list: list of names of available estimators
 
     Example
     -------
@@ -97,7 +105,8 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
         data = pd.read_csv(path)
     except Exception:
         raise ValueError(f"{path} is unavailable right now, try later")
-    return data
+    names = data[t].to_list()
+    return names
 
 
 def get_estimator_results(
@@ -139,12 +148,18 @@ def get_estimator_results(
     >>> get_estimator_results(estimators=cls, datasets=data) # doctest: +SKIP
     {'HC2': {'Chinatown': 0.9825072886297376, 'Adiac': 0.8107416879795396}}
     """
+    type = type.lower()
+    task = task.lower()
     if type not in VALID_RESULT_TYPES:
         raise ValueError(
-            f"Error in get_estimator_results, {type} is not a valid type of " f"results"
+            f"Error in get_estimator_results, {type} is not a valid type of "
+            f"results, must be one of {VALID_RESULT_TYPES}"
         )
     if task not in VALID_TASK_TYPES:
-        raise ValueError(f"Error in get_estimator_results, {task} is not a valid task")
+        raise ValueError(
+            f"Error in get_estimator_results, {task} is not a valid "
+            f"task, must be one of {VALID_TASK_TYPES}"
+        )
 
     path = f"{path}/{task}/{type}/"
     suffix = "_TESTFOLDS.csv"
@@ -179,7 +194,7 @@ def get_estimator_results_as_array(
     default_only=True,
     task="Classification",
     type="Accuracy",
-    include_missing=False,
+    include_missing=True,
     path="https://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.

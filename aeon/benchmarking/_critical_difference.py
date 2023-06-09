@@ -6,64 +6,40 @@ __author__ = ["SveaMeyer13"]
 import math
 
 import numpy as np
-from scipy.stats import distributions, find_repeats, rankdata
+from scipy.stats import rankdata
 
+from aeon.benchmarking.results_stats import friedman_test, pairwise_wilcoxon
 from aeon.benchmarking.utils import get_qalpha
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 _check_soft_dependencies("matplotlib", severity="warning")
 
 
-def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
-    """
-    Check whether Friedman test is significant.
+def nemenyi_cliques(
+    n_estimators: int, n_datasets: int, avranks: np.ndarray, alpha: float = 0.05
+) -> np.ndarray:
+    """Find cliques using post hoc Nemenyi test.
 
-    Larger parts of code copied from scipy.
+    Parameters
+    ----------
+    n_estimators : int. Number of estimators in the test (columns)
+    n_datasets : int. Number of datasets in the assessment (rows)
+    avranks : np.ndarray shape (n_estimators). Average rank for each estimator.
+    alpha : float: default 0.05.
 
-    Arguments
-    ---------
-    n_estimators : int
-      number of strategies to evaluate
-    n_datasets : int
-      number of datasets classified per strategy
-    ranked_data : np.array (shape: n_estimators * n_datasets)
-      rank of strategy on dataset
+    Return
+    ------
+    cliques: 2D np.ndarray of booleans, shape (n_cliques, n_estimators).
+        each row represents a clique, within which there is not significant difference.
 
-    Returns
+    Example
     -------
-    is_significant : bool
-      Indicates whether strategies differ significantly in terms of performance
-      (according to Friedman test).
+    >>> av_ranks = np.array([2.5, 4.5, 4.6, 4.8, 6.6, 6.7,6.8, 6.8])
+    >>> nemenyi_cliques(len(av_ranks),100,av_ranks)
+    array([[False,  True,  True,  True, False, False, False, False],
+           [False, False, False, False,  True,  True,  True,  True]])
+
     """
-    if n_estimators < 3:
-        raise ValueError(
-            "At least 3 sets of measurements must be given for Friedmann test, "
-            f"got {n_estimators}."
-        )
-
-    # calculate c to correct chisq for ties:
-    ties = 0
-    for i in range(n_datasets):
-        replist, repnum = find_repeats(ranked_data[i])
-        for t in repnum:
-            ties += t * (t * t - 1)
-    c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
-
-    ssbn = np.sum(ranked_data.sum(axis=0) ** 2)
-    chisq = (
-        12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
-        - 3 * n_datasets * (n_estimators + 1)
-    ) / c
-    p = distributions.chi2.sf(chisq, n_estimators - 1)
-    if p < alpha:
-        is_significant = True
-    else:
-        is_significant = False
-    return is_significant
-
-
-def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
-    """Find cliques using post hoc Nemenyi test."""
     # Get critical value, there is an exact way now
     qalpha = get_qalpha(alpha)
     # calculate critical difference with Nemenyi
@@ -83,6 +59,74 @@ def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
     n = np.sum(cliques, 1)
     cliques = cliques[n > 1, :]
     return cliques
+
+
+def pairwise_cliques(
+    results: np.ndarray, correction: str = "holmes", alpha: float = 0.05
+) -> np.ndarray:
+    """Find cliques within which there is no critical difference.
+
+    Parameters
+    ----------
+        results: array shape (n_datasets, n_estimators).
+            performance statistics for comparing estimators. Assumed to be sorted so
+            the highest average rank is in the first column.
+        correction :  str. One of "none","holmes","bonferroni"
+        alpha: float
+
+    Return
+    ------
+    cliques: 2D np.ndarray of booleans, shape (n_cliques, n_estimators).
+        each row represents a clique, within which there is not significant difference.
+
+    Example
+    -------
+    >>> # Test three estimators of five problems, with following accuracies
+    >>> d1 =[0.7,0.65,0.44]
+    >>> d2 =[0.95,0.92,0.66]
+    >>> d3 = [0.8, 0.85, 0.72]
+    >>> d4 = [0.99, 0.98, 0.97]
+    >>> d5 = [0.77, 0.83, 0.70]
+    >>> d6 = [0.75, 0.69, 0.68]
+    >>> d7 = [0.98, 0.95, 0.76]
+    >>> acc = np.array([d1, d2, d3, d4, d5,d6,d7])
+    >>> # No sig difference between first two, so in the same clique
+    >>> pairwise_cliques(acc)
+    array([[ True,  True, False]])
+    """
+    CORRECTIONS = {"none", "holmes", "bonferroni"}
+    correction = correction.lower()
+    if correction not in CORRECTIONS:
+        raise ValueError(
+            f"Incorrect input value {correction} must be one of " f"{CORRECTIONS}"
+        )
+    p_vals = pairwise_wilcoxon(results)
+    n_datasets, n_estimators = results.shape
+    all_cliques = []
+    last_clique = np.full(n_estimators, False, dtype=bool)
+    for i in range(n_estimators):
+        corr = 1
+        if correction == "holmes":
+            corr = n_estimators - i
+        elif correction == "bonferroni":
+            corr = n_estimators * (n_estimators) - 1
+        sig = p_vals[i] < 0.05 / corr
+        clique = np.full(n_estimators, False, dtype=bool)
+        j = i + 1
+        clique[i] = True
+        # Form all cliques
+        while j < n_estimators and not sig[j]:
+            clique[j] = True
+            j = j + 1
+        if j == i + 1:
+            clique[i] = False
+        # Check if new clique is subsumed by last clique
+        subsumed = last_clique[clique]
+        # If not, add it to the list
+        if not np.all(subsumed):
+            last_clique = clique
+            all_cliques.append(clique)
+    return np.array(all_cliques)
 
 
 def plot_critical_difference(
@@ -156,34 +200,30 @@ def plot_critical_difference(
 
     # Step 2: calculate average rank per strategy
     avranks = ranked_data.mean(axis=0)
-    # Sort labels
-    combined = zip(avranks, labels)
-    temp_labels = []
 
+    # Sort labels and scores
+    temp = np.transpose(scores)
+    combined = zip(avranks, labels, temp)
     x = sorted(combined)
-    i = 0
-    for s, n in x:
-        avranks[i] = s
-        temp_labels.append(n)
-        i = i + 1
+    avranks, temp_labels, scores = list(zip(*x))
+    avranks = np.asarray(avranks)
+    scores = np.asarray(scores)
+    scores = np.transpose(scores)
     # Step 3 : check whether Friedman test is significant
-    is_significant = _check_friedman(n_estimators, n_datasets, ranked_data, alpha)
+    p = friedman_test(n_estimators, n_datasets, ranked_data)
     # Step 4: If Friedman test is significant find cliques
-    if is_significant:
+    if p < alpha:
         if cliques is None:
             if clique_method == "nemenyi":
                 cliques = nemenyi_cliques(n_estimators, n_datasets, avranks, alpha)
+            elif clique_method == "holmes" or clique_method == "bonferroni":
+                cliques = pairwise_cliques(scores, alpha, correction=clique_method)
             else:
-                raise ValueError(" Currently only nemenyi clique finding implemented")
+                raise ValueError(f"correction {clique_method} not supported")
     # If Friedman test is not significant everything has to be one clique
     else:
         if cliques is None:
-            cliques = [
-                [
-                    1,
-                ]
-                * n_estimators
-            ]
+            cliques = np.full(n_estimators, True, dtype=bool)
     # Step 6 create the diagram:
     # check from where to where the axis has to go
     lowv = min(1, int(math.floor(min(avranks))))
