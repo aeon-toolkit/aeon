@@ -825,19 +825,24 @@ def fisher_score(X: np.ndarray, y: np.ndarray) -> float:
         return accum_numerator / accum_denominator
 
 
-@njit(cache=True, fastmath=True)
-def prime_up_to(n):
-    """Check if any number from one to n is a prime number the ones who are.
+@njit(fastmath=True, cache=True)
+def prime_up_to(n: int) -> np.ndarray:
+    """Check if any number from 1 to n is a prime number and return the ones which are.
 
     Parameters
     ----------
     n : int
-        Number up to which the search for prime number will go.
+        Number up to which the search for prime number will go
 
     Returns
     -------
     array
-        Prime numbers up to n.
+        Prime numbers up to n
+
+    Examples
+    --------
+    >>> from aeon.utils.numba.stats import prime_up_to
+    >>> p = prime_up_to(50)
     """
     is_p = np.zeros(n + 1, dtype=np.bool_)
     for i in range(n + 1):
@@ -845,20 +850,24 @@ def prime_up_to(n):
     return np.where(is_p)[0]
 
 
-@njit(cache=True, fastmath=True)
-def is_prime(n):
-    """Check if the passed number is a prime number.
+@njit(fastmath=True, cache=True)
+def is_prime(n: int) -> bool:
+    """Check if the input number is a prime number.
 
     Parameters
     ----------
     n : int
-        A number to test
+        The number to test
 
     Returns
     -------
     bool
         Wheter n is a prime number
 
+    Examples
+    --------
+    >>> from aeon.utils.numba.stats import is_prime
+    >>> p = is_prime(7)
     """
     if (n % 2 == 0 and n > 2) or n == 0 or n == 1:
         return False
