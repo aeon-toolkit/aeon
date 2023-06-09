@@ -11,6 +11,7 @@ __all__ = [
     "z_normalise_series",
     "z_normalise_series_2d",
     "z_normalise_series_3d",
+    "set_numba_random_seed",
     "choice_log",
     "get_subsequence",
     "get_subsequence_with_mean_std",
@@ -261,9 +262,25 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(cache=True, fastmath=True)
-def choice_log(n_choice, n_sample):
+@njit()
+def set_numba_random_seed(seed: int) -> None:
+    """Set the random seed for numba.
+
+    Parameters
+    ----------
+    seed : int
+        The seed to set.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+
+
+@njit(fastmath=True, cache=True)
+def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
+
+    To seed the function the `np.random.seed` must be set in a numba function prior to
+    calling this i.e. using `set_numba_random_seed`.
 
     Parameters
     ----------
@@ -276,11 +293,10 @@ def choice_log(n_choice, n_sample):
     Returns
     -------
     array
-        The randomly choosen samples.
-
+        The randomly chosen samples.
     """
     if n_choice > 1:
-        # Define log probas for each choices
+        # Define log probas for each choice
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
@@ -292,8 +308,10 @@ def choice_log(n_choice, n_sample):
         return np.zeros(n_sample, dtype=np.int32)
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> np.ndarray:
     """Get a subsequence from a time series given a starting index.
 
     Parameters
@@ -322,8 +340,10 @@ def get_subsequence(X, i_start, length, dilation):
     return values
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence_with_mean_std(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence_with_mean_std(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get a subsequence, its mean and std from a time series given a starting index.
 
     Parameters
@@ -370,8 +390,10 @@ def get_subsequence_with_mean_std(X, i_start, length, dilation):
     return values, means, stds
 
 
-@njit(cache=True, fastmath=True)
-def sliding_mean_std_one_series(X, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_mean_std_one_series(
+    X: np.ndarray, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray]:
     """Return the mean and standard deviation for all subsequence (l,d) in X.
 
     Parameters
@@ -379,9 +401,9 @@ def sliding_mean_std_one_series(X, length, dilation):
     X : array, shape (n_channels, n_timestamps)
         An input time series
     length : int
-        Length of the shapelet
+        Length of the subsequence
     dilation : int
-        Dilation of the shapelet
+        Dilation of the subsequence
 
     Returns
     -------
@@ -399,6 +421,9 @@ def sliding_mean_std_one_series(X, length, dilation):
     for i_channel in prange(n_channels):
         mod_dil = n_subs % dilation
         for i_mod_dilation in prange(dilation):
+            if i_mod_dilation + (length - 1) * dilation >= n_timestamps:
+                break
+
             _idx = i_mod_dilation
             _sum = 0
             _sum2 = 0
@@ -438,8 +463,10 @@ def sliding_mean_std_one_series(X, length, dilation):
     return mean, std
 
 
-@njit(cache=True, fastmath=True)
-def sliding_dot_product(X, values, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_dot_product(
+    X: np.ndarray, values: np.ndarray, length: int, dilation: int
+) -> np.ndarray:
     """Compute a sliding dot product between a time series and a shapelet.
 
     Parameters
@@ -474,7 +501,7 @@ def sliding_dot_product(X, values, length, dilation):
 
 
 @njit(cache=True)
-def combinations_1d(x, y):
+def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Return the unique pairs of the 2D array made by concatenating x and y.
 
     Parameters
