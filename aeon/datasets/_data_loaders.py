@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Functions to load datasets."""
-
 import os
 import shutil
 import tempfile
