@@ -2,7 +2,6 @@
 """Myst Markdown changelog generator."""
 
 import os
-from collections import defaultdict
 from typing import Dict, List
 
 import httpx
@@ -171,7 +170,7 @@ def render_changelog(prs: List[Dict], assigned: Dict):
 
 if __name__ == "__main__":
     # don't commit the actual token, it will get revoked!
-    os.environ["GITHUB_TOKEN"] = ""
+    os.environ["GITHUB_TOKEN"] = "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"
 
     # if you edit these, consider editing the PR template as well
     packages = [
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     assigned, prs_removed = assign_prs(pulls, packages, categories)
 
     render_changelog(pulls, assigned)
-    print()  # noqa
+    print()
     render_contributors(pulls, fmt="myst", n_prs=len(pulls) - prs_removed)
 
     release = fetch_latest_release()
