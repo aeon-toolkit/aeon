@@ -2,7 +2,8 @@
 """Myst Markdown changelog generator."""
 
 import os
-from typing import Dict, List
+from collections import OrderedDict
+from typing import Dict, List, Tuple
 
 import httpx
 from dateutil import parser
@@ -11,16 +12,14 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json",
 }
 
-if os.getenv("GITHUB_TOKEN") is not None and os.getenv("GITHUB_TOKEN") != "":
-    HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
-
 OWNER = "aeon-toolkit"
 REPO = "aeon"
 GITHUB_REPOS = "https://api.github.com/repos"
 EXCLUDED_USERS = ["github-actions[bot]"]
 
+
 def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:
-    """Fetch a page of pull requests"""
+    """Fetch a page of pull requests."""
     params = {
         "base": "main",
         "state": "closed",
@@ -50,10 +49,10 @@ def fetch_latest_release() -> Dict:
 
 
 def fetch_pull_requests_since_last_release() -> List[Dict]:
-    """Fetch pull requests and filter based on merged date"""
+    """Fetch pull requests and filter based on merged date."""
     release = fetch_latest_release()
     published_at = parser.parse(release["published_at"])
-    print(  # noqa
+    print(  # noqa: T201
         f"Latest release {release['tag_name']} was published at {published_at}"
     )
 
@@ -65,13 +64,16 @@ def fetch_pull_requests_since_last_release() -> List[Dict]:
         all_pulls.extend(
             [p for p in pulls if parser.parse(p["merged_at"]) > published_at]
         )
-        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls) or len(pulls) == 0
+        is_exhausted = (
+            any(parser.parse(p["merged_at"]) < published_at for p in pulls)
+            or len(pulls) == 0
+        )
         page += 1
     return all_pulls
 
 
 def github_compare_tags(tag_left: str, tag_right: str = "HEAD") -> Dict:
-    """Compare commit between two tags"""
+    """Compare commit between two tags."""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/compare/{tag_left}...{tag_right}"
     )
@@ -82,30 +84,41 @@ def github_compare_tags(tag_left: str, tag_right: str = "HEAD") -> Dict:
 
 
 def render_contributors(prs: list, fmt: str = "myst", n_prs: int = -1):
-    """Find unique authors and print a list in  given format"""
+    """Find unique authors and print a list in  given format."""
     authors = sorted({pr["user"]["login"] for pr in prs}, key=lambda x: x.lower())
 
     header = "Contributors\n"
     if fmt == "github":
-        print(f"### {header}")  # noqa
-        print(", ".join(f"@{user}" for user in authors if user not in EXCLUDED_USERS))  # noqa
+        print(f"### {header}")  # noqa: T201
+        print(  # noqa: T201
+            ", ".join(f"@{user}" for user in authors if user not in EXCLUDED_USERS)
+        )
     elif fmt == "myst":
-        print(f"## {header}")  # noqa
-        print(f"The following have contributed to this release through a collective {n_prs} GitHub Pull Requests:\n")
-        print(",\n".join("{user}" + f"`{user}`" for user in authors if user not in EXCLUDED_USERS))  # noqa
+        print(f"## {header}")  # noqa: T201
+        print(  # noqa: T201
+            "The following have contributed to this release through a collective "
+            f"{n_prs} GitHub Pull Requests:\n"
+        )
+        print(  # noqa: T201
+            ",\n".join(
+                "{user}" + f"`{user}`" for user in authors if user not in EXCLUDED_USERS
+            )
+        )
 
 
-def assign_pr_category(assigned: Dict, categories: List[Dict], pr_idx: int, pr_labels: List, pkg_title: str):
+def assign_pr_category(
+    assigned: Dict, categories: List[List], pr_idx: int, pr_labels: List, pkg_title: str
+):
     """Assign a PR to a category."""
     has_category = False
     for cat in categories:
-        if not set(cat["labels"]).isdisjoint(set(pr_labels)):
+        if not set(cat[1]).isdisjoint(set(pr_labels)):
             has_category = True
 
-            if cat["title"] not in assigned[pkg_title]:
-                assigned[pkg_title][cat["title"]] = []
+            if cat[0] not in assigned[pkg_title]:
+                assigned[pkg_title][cat[0]] = []
 
-            assigned[pkg_title][cat["title"]].append(pr_idx)
+            assigned[pkg_title][cat[0]].append(pr_idx)
 
     if not has_category:
         if "Other" not in assigned[pkg_title]:
@@ -114,7 +127,9 @@ def assign_pr_category(assigned: Dict, categories: List[Dict], pr_idx: int, pr_l
         assigned[pkg_title]["Other"].append(pr_idx)
 
 
-def assign_prs(prs: List[Dict], packages: List[Dict], categories: List[Dict]) -> Dict:
+def assign_prs(
+    prs: List[Dict], packages: List[List], categories: List[List]
+) -> Tuple[Dict, int]:
     """Assign all PRs to packages and categories based on labels."""
     assigned = {}
     prs_removed = 0
@@ -128,26 +143,36 @@ def assign_prs(prs: List[Dict], packages: List[Dict], categories: List[Dict]) ->
 
         has_package = False
         for pkg in packages:
-            if not set(pkg["labels"]).isdisjoint(set(pr_labels)):
+            if not set(pkg[1]).isdisjoint(set(pr_labels)):
                 has_package = True
 
-                if pkg["title"] not in assigned:
-                    assigned[pkg["title"]] = {}
+                if pkg[0] not in assigned:
+                    assigned[pkg[0]] = {}
 
-                assign_pr_category(assigned, categories, i, pr_labels, pkg["title"])
+                assign_pr_category(assigned, categories, i, pr_labels, pkg[0])
 
         if not has_package:
             if "Other" not in assigned:
-                assigned["Other"] = {}
+                assigned["Other"] = OrderedDict()
 
             assign_pr_category(assigned, categories, i, pr_labels, "Other")
+
+    # order assignments
+    assigned = OrderedDict({k: v for k, v in sorted(assigned.items())})
+    if "Other" in assigned:
+        assigned.move_to_end("Other")
+
+    for key in assigned:
+        assigned[key] = OrderedDict({k: v for k, v in sorted(assigned[key].items())})
+        if "Other" in assigned[key]:
+            assigned[key].move_to_end("Other")
 
     return assigned, prs_removed
 
 
 def render_row(pr: Dict):  # noqa
     """Render a single row with PR in Myst Markdown format"""
-    print(  # noqa
+    print(  # noqa: T201
         "-",
         pr["title"],
         "({pr}" + f"`{pr['number']}`)",
@@ -156,12 +181,12 @@ def render_row(pr: Dict):  # noqa
 
 
 def render_changelog(prs: List[Dict], assigned: Dict):
-    """Render changelog"""
+    """Render changelog."""
     for pkg_title, group in assigned.items():
-        print(f"\n## {pkg_title}")  # noqa
+        print(f"\n## {pkg_title}")  # noqa: T201
 
         for cat_title, pr_idx in group.items():
-            print(f"\n### {cat_title}\n")  # noqa
+            print(f"\n### {cat_title}\n")  # noqa: T201
             pr_group = [prs[i] for i in pr_idx]
 
             for pr in sorted(pr_group, key=lambda x: parser.parse(x["merged_at"])):
@@ -170,34 +195,37 @@ def render_changelog(prs: List[Dict], assigned: Dict):
 
 if __name__ == "__main__":
     # don't commit the actual token, it will get revoked!
-    os.environ["GITHUB_TOKEN"] = "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"
+    os.environ["GITHUB_TOKEN"] = ""
+
+    if os.getenv("GITHUB_TOKEN") is not None and os.getenv("GITHUB_TOKEN") != "":
+        HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
 
     # if you edit these, consider editing the PR template as well
     packages = [
-        {"title": "Annotation", "labels": ["annotation"]},
-        {"title": "Benchmarking", "labels": ["benchmarking"]},
-        {"title": "Classification", "labels": ["classification"]},
-        {"title": "Clustering", "labels": ["clustering"]},
-        {"title": "Distances", "labels": ["distances"]},
-        {"title": "Forecasting", "labels": ["forecasting"]},
-        {"title": "Regression", "labels": ["regression"]},
-        {"title": "Transformations", "labels": ["transformations"]},
+        ["Annotation", ["annotation"]],
+        ["Benchmarking", ["benchmarking"]],
+        ["Classification", ["classification"]],
+        ["Clustering", ["clustering"]],
+        ["Distances", ["distances"]],
+        ["Forecasting", ["forecasting"]],
+        ["Regression", ["regression"]],
+        ["Transformations", ["transformations"]],
     ]
     categories = [
-        {"title": "Bug Fixes", "labels": ["bug"]},
-        {"title": "Documentation", "labels": ["documentation"]},
-        {"title": "Enhancements", "labels": ["enhancement"]},
-        {"title": "Maintenance", "labels": ["maintenance"]},
-        {"title": "Refactored", "labels": ["refactor"]},
+        ["Bug Fixes", ["bug"]],
+        ["Documentation", ["documentation"]],
+        ["Enhancements", ["enhancement"]],
+        ["Maintenance", ["maintenance"]],
+        ["Refactored", ["refactor"]],
     ]
 
     pulls = fetch_pull_requests_since_last_release()
-    print(f"Found {len(pulls)} merged PRs since last release")  # noqa
+    print(f"Found {len(pulls)} merged PRs since last release")  # noqa: T201
 
     assigned, prs_removed = assign_prs(pulls, packages, categories)
 
     render_changelog(pulls, assigned)
-    print()
+    print()  # noqa: T201
     render_contributors(pulls, fmt="myst", n_prs=len(pulls) - prs_removed)
 
     release = fetch_latest_release()
