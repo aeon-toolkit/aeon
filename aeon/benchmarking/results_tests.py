@@ -87,6 +87,10 @@ def pairwise_wilcoxon(results: np.ndarray) -> np.ndarray:
     return p_values
 
 
+def find_cliques(results: np.ndarray):
+    """Find cliques within which there is no critical difference."""
+
+
 def calculate_nemenyi_q_critical(
     n_estimators: int, n_datasets: int, alpha: float = 0.05
 ):
