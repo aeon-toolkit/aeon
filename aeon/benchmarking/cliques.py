@@ -42,5 +42,14 @@ def pairwise_wilcoxon(results: np.ndarray) -> np.ndarray:
 
 
 def find_cliques(results: np.ndarray):
-    """Find cliques within which there is no critical difference."""
+    """Find cliques within which there is no critical difference.
+
+    Parameters
+    ----------
+        results: array shape (n_problems, n_estimators).
+            performance statistics for comparing estimators. Assumed to be sorted so
+            the highest average rank is first
+
+    """
+    # p_vals = pairwise_wilcoxon(results)
     pass
