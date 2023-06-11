@@ -14,7 +14,7 @@ import numpy as np
 from numba import njit, prange, set_num_threads
 from sklearn.preprocessing import LabelEncoder
 
-from aeon.distances import manhattan_distance
+from aeon.distances import euclidean_distance, manhattan_distance, squared_distance
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.numba.general import (
     choice_log,
@@ -67,10 +67,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         initialized such as it will use a z-normalized distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
-    distance_function: function
-        A distance function defined as a numba function with signature as
-        (x: np.ndarray, y: np.ndarray) -> float. The default distance function is the
-        manhattan distance.
+    distance_function: str
+        A distance function specified by its name as str. Allowed values are
+        ['euclidean','squared_euclidean','manhattan']. The default is 'manhattan'.
     threshold_percentiles : array, default=None
         The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
@@ -153,7 +152,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         max_shapelets=10_000,
         shapelet_lengths=None,
         proba_normalization=0.8,
-        distance_function=manhattan_distance,
+        distance_function="manhattan",
         threshold_percentiles=None,
         alpha_similarity=0.5,
         use_prime_dilations=False,
@@ -172,6 +171,19 @@ class RandomDilatedShapeletTransform(BaseTransformer):
 
         super(RandomDilatedShapeletTransform, self).__init__()
 
+    def _get_distance_function(self):
+        if self.distance_function == "manhattan":
+            return manhattan_distance
+        elif self.distance_function == "squared_euclidean":
+            return squared_distance
+        elif self.distance_function == "euclidean":
+            return euclidean_distance
+        else:
+            raise ValueError(
+                "Got {} as value for the distance function, allowed values are: "
+                + '["manhattan","squared_euclidean","euclidean"]'
+            )
+
     def _fit(self, X, y=None):
         """Fit the random dilated shapelet transform to a specified X and y.
 
@@ -189,6 +201,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
+        self.distance_function_ = self._get_distance_function()
         self._random_state = (
             np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
@@ -221,7 +234,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             self.threshold_percentiles_,
             self.alpha_similarity,
             self.use_prime_dilations,
-            self.distance_function,
+            self.distance_function_,
             self._random_state,
         )
 
@@ -240,7 +253,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
             The transformed data.
         """
-        X_new = dilated_shapelet_transform(X, self.shapelets_, self.distance_function)
+        X_new = dilated_shapelet_transform(X, self.shapelets_, self.distance_function_)
         return X_new
 
     def _check_input_params(self):
@@ -306,7 +319,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         try:
             x = np.random.rand(1, 3)
             y = np.random.rand(1, 3)
-            self.distance_function(x, y)
+            self.distance_function_(x, y)
         except Exception as err:
             raise ValueError(
                 "An error occured while trying to use the specified distance function: "
