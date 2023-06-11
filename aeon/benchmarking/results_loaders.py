@@ -139,10 +139,13 @@ def get_estimator_results(
     >>> get_estimator_results(estimators=cls, datasets=data) # doctest: +SKIP
     {'HC2': {'Chinatown': 0.9825072886297376, 'Adiac': 0.8107416879795396}}
     """
+    task = task.lower()
+    type = type.lower()
     if type not in VALID_RESULT_TYPES:
         raise ValueError(
             f"Error in get_estimator_results, {type} is not a valid type of " f"results"
         )
+
     if task not in VALID_TASK_TYPES:
         raise ValueError(f"Error in get_estimator_results, {task} is not a valid task")
 
