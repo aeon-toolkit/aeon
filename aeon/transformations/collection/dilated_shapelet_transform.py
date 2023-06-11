@@ -240,7 +240,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
             The transformed data.
         """
-        X_new = dilated_shapelet_transform(X, self.shapelets_)
+        X_new = dilated_shapelet_transform(X, self.shapelets_, self.distance_function)
         return X_new
 
     def _check_input_params(self):
@@ -569,7 +569,7 @@ def random_dilated_shapelet_extraction(
                     _val, _means, _stds = get_subsequence_with_mean_std(
                         X[idx_sample], idx_timestamp, length, dilation
                     )
-                    for i_channel in _val.shape[0]:
+                    for i_channel in prange(_val.shape[0]):
                         if _stds[i_channel] > 0:
                             _val[i_channel] = (
                                 _val[i_channel] - _means[i_channel]
@@ -590,7 +590,7 @@ def random_dilated_shapelet_extraction(
                     id_test = idx_sample
 
                 # Compute distance vector, first get the subsequences
-                X_subs = get_all_subsequences(X[id_test])
+                X_subs = get_all_subsequences(X[id_test], length, dilation)
                 if norm:
                     # Normalize them if needed
                     X_means, X_stds = sliding_mean_std_one_series(
@@ -599,7 +599,7 @@ def random_dilated_shapelet_extraction(
                     X_subs = normalize_subsequences(X_subs, X_means, X_stds)
 
                 x_dist = compute_shapelet_dist_vector(
-                    X[id_test], _val, length, dilation, distance_function
+                    X_subs, _val, length, dilation, distance_function
                 )
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
@@ -628,7 +628,7 @@ def random_dilated_shapelet_extraction(
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def dilated_shapelet_transform(X, shapelets):
+def dilated_shapelet_transform(X, shapelets, distance_function):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
     Parameters
@@ -681,7 +681,12 @@ def dilated_shapelet_transform(X, shapelets):
                 X_new[
                     i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
                 ] = compute_shapelet_features(
-                    X_subs, values[i_shp], length, dilation, threshold[i_shp]
+                    X_subs,
+                    values[i_shp],
+                    length,
+                    dilation,
+                    threshold[i_shp],
+                    distance_function,
                 )
 
             idx_norm = id_shps[np.where(normalize[id_shps])[0]]
@@ -692,7 +697,12 @@ def dilated_shapelet_transform(X, shapelets):
                     X_new[
                         i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
                     ] = compute_shapelet_features(
-                        X_subs, values[i_shp], length, dilation, threshold[i_shp]
+                        X_subs,
+                        values[i_shp],
+                        length,
+                        dilation,
+                        threshold[i_shp],
+                        distance_function,
                     )
     return X_new
 
@@ -815,9 +825,7 @@ def compute_shapelet_features(
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_dist_vector(
-    X_subs, values, length, dilation, threshold, distance_function
-):
+def compute_shapelet_dist_vector(X_subs, values, length, dilation, distance_function):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
