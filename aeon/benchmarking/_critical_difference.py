@@ -109,7 +109,7 @@ def pairwise_cliques(
         if correction == "holmes":
             corr = n_estimators - i
         elif correction == "bonferroni":
-            corr = n_estimators * (n_estimators) - 1
+            corr = (n_estimators * (n_estimators) - 1) / 2.0
         sig = p_vals[i] < 0.05 / corr
         clique = np.full(n_estimators, False, dtype=bool)
         j = i + 1
