@@ -3,6 +3,7 @@
 
 import os
 import time
+import warnings
 
 import pytest
 
@@ -77,7 +78,7 @@ def test_dummy_deep_classifier():
         dummy_deep_clf.save_last_model_to_file()
         os.remove("./" + last_file_name + ".hdf5")
     except AttributeError:
-        pass
+        warnings.warn("CI failed to save the model.")
 
     # test summary of model
 
