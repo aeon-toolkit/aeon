@@ -94,7 +94,6 @@ class SignatureClassifier(BaseClassifier):
         "capability:multivariate": True,
         "algorithm_type": "feature",
         "python_dependencies": "esig",
-        "python_version": "<3.10",
     }
 
     def __init__(
