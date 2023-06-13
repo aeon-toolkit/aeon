@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Result loading tests."""
+import os
+
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
@@ -10,6 +12,11 @@ from aeon.benchmarking.results_loaders import (
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
+data_path = (
+    "./aeon/benchmarking/example_results/"
+    if os.getcwd().split("\\")[-1] != "tests"
+    else "../example_results/"
+)
 
 
 def test_get_estimator_results():
@@ -17,9 +24,7 @@ def test_get_estimator_results():
 
     Tests with baked in examples to avoid reliance on external website.
     """
-    res = get_estimator_results(
-        estimators=cls, datasets=data, path="../example_results/"
-    )
+    res = get_estimator_results(estimators=cls, datasets=data, path=data_path)
     assert res["HC2"]["Chinatown"] == 0.9825072886297376
 
 
@@ -29,7 +34,7 @@ def test_get_estimator_results_as_array():
     Tests with baked in examples to avoid reliance on external website.
     """
     res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path="../example_results/", include_missing=True
+        estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     assert res[0][0] == 0.9825072886297376
 
