@@ -822,8 +822,6 @@ def load_tsf_to_dataframe(
         - other valid mtype strings are Panel or Hierarchical mtypes in
             datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
             conversion to that mtype will be attempted
-        For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
 
     Returns
     -------
