@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Class for signature computation over windows."""
+
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
@@ -8,9 +9,6 @@ from aeon.transformations.collection.signature_based._rescaling import (
     _rescale_signature,
 )
 from aeon.transformations.collection.signature_based._window import _window_getter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("esig", severity="warning")
 
 
 class _WindowSignatureTransform(BaseTransformer):
@@ -37,7 +35,6 @@ class _WindowSignatureTransform(BaseTransformer):
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
         "python_dependencies": "esig",
-        "python_version": "<3.10",
     }
 
     def __init__(
