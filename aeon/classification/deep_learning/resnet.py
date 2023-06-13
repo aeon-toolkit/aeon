@@ -220,7 +220,7 @@ class ResNetClassifier(BaseDeepClassifier):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
