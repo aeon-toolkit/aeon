@@ -145,7 +145,6 @@ class ResNetClassifier(BaseDeepClassifier):
     ):
         _check_dl_dependencies(severity="error")
         super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
-        optimizer = (None,)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -204,12 +203,11 @@ class ResNetClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
         self.optimizer_ = (
-            keras.optimizers.Adam(learning_rate=0.01)
+            tf.keras.optimizers.Adam(learning_rate=0.01)
             if self.optimizer is None
             else self.optimizer
         )
@@ -221,11 +219,11 @@ class ResNetClassifier(BaseDeepClassifier):
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
+        output_layer = tf.keras.layers.Dense(
             units=n_classes, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
