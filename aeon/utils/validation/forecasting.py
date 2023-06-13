@@ -119,7 +119,13 @@ def check_X(
     )
 
 
-def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
+def check_y(
+    y,
+    allow_empty=False,
+    allow_constant=True,
+    enforce_index_type=None,
+    allow_index_names=False,
+):
     """Validate input data.
 
     Parameters
@@ -131,6 +137,8 @@ def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
         If True, constant `y` does not raise an error.
     enforce_index_type : type, optional (default=None)
         type of time index
+    allow_index_names : bool, optional (default=None)
+        If False, names of y.index will be set to None
 
     Returns
     -------
@@ -147,6 +155,7 @@ def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
         allow_empty=allow_empty,
         allow_numpy=False,
         enforce_index_type=enforce_index_type,
+        allow_index_names=allow_index_names,
     )
 
     if not allow_constant:

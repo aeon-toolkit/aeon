@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""RestructuredText changelog generator."""
+"""Myst Markdown changelog generator."""
 
 import os
-from collections import defaultdict
-from typing import Dict, List
+from collections import OrderedDict
+from typing import Dict, List, Tuple
 
 import httpx
 from dateutil import parser
@@ -12,16 +12,14 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json",
 }
 
-if os.getenv("GITHUB_TOKEN") is not None:
-    HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
-
 OWNER = "aeon-toolkit"
 REPO = "aeon"
 GITHUB_REPOS = "https://api.github.com/repos"
+EXCLUDED_USERS = ["github-actions[bot]"]
 
 
-def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:  # noqa
-    "Fetch a page of pull requests"
+def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:
+    """Fetch a page of pull requests."""
     params = {
         "base": "main",
         "state": "closed",
@@ -38,7 +36,8 @@ def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:  # noqa
     return [pr for pr in r.json() if pr["merged_at"]]
 
 
-def fetch_latest_release():  # noqa
+def fetch_latest_release() -> Dict:
+    """Fetch latest release."""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/releases/latest", headers=HEADERS
     )
@@ -49,12 +48,11 @@ def fetch_latest_release():  # noqa
         raise ValueError(response.text, response.status_code)
 
 
-def fetch_pull_requests_since_last_release() -> List[Dict]:  # noqa
-    "Fetch pull requests and filter based on merged date"
-
+def fetch_pull_requests_since_last_release() -> List[Dict]:
+    """Fetch pull requests and filter based on merged date."""
     release = fetch_latest_release()
     published_at = parser.parse(release["published_at"])
-    print(  # noqa
+    print(  # noqa: T201
         f"Latest release {release['tag_name']} was published at {published_at}"
     )
 
@@ -66,13 +64,16 @@ def fetch_pull_requests_since_last_release() -> List[Dict]:  # noqa
         all_pulls.extend(
             [p for p in pulls if parser.parse(p["merged_at"]) > published_at]
         )
-        is_exhausted = any(parser.parse(p["merged_at"]) < published_at for p in pulls) or len(pulls) == 0
+        is_exhausted = (
+            any(parser.parse(p["merged_at"]) < published_at for p in pulls)
+            or len(pulls) == 0
+        )
         page += 1
     return all_pulls
 
 
-def github_compare_tags(tag_left: str, tag_right: str = "HEAD"):  # noqa
-    "Compare commit between two tags"
+def github_compare_tags(tag_left: str, tag_right: str = "HEAD") -> Dict:
+    """Compare commit between two tags."""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/compare/{tag_left}...{tag_right}"
     )
@@ -82,84 +83,156 @@ def github_compare_tags(tag_left: str, tag_right: str = "HEAD"):  # noqa
         raise ValueError(response.text, response.status_code)
 
 
-def render_contributors(prs: List, fmt: str = "rst"):  # noqa
-    "Find unique authors and print a list in  given format"
+def render_contributors(prs: list, fmt: str = "myst", n_prs: int = -1):
+    """Find unique authors and print a list in  given format."""
     authors = sorted({pr["user"]["login"] for pr in prs}, key=lambda x: x.lower())
 
-    header = "Contributors"
+    header = "Contributors\n"
     if fmt == "github":
-        print(f"### {header}")  # noqa
-        print(", ".join(f"@{user}" for user in authors))  # noqa
-    elif fmt == "rst":
-        print(header)  # noqa
-        print("~" * len(header), end="\n\n")  # noqa
-        print(",\n".join(f":user:`{user}`" for user in authors))  # noqa
+        print(f"### {header}")  # noqa: T201
+        print(  # noqa: T201
+            ", ".join(f"@{user}" for user in authors if user not in EXCLUDED_USERS)
+        )
+    elif fmt == "myst":
+        print(f"## {header}")  # noqa: T201
+        print(  # noqa: T201
+            "The following have contributed to this release through a collective "
+            f"{n_prs} GitHub Pull Requests:\n"
+        )
+        print(  # noqa: T201
+            ",\n".join(
+                "{user}" + f"`{user}`" for user in authors if user not in EXCLUDED_USERS
+            )
+        )
 
 
-def assign_prs(prs, categs: List[Dict[str, List[str]]]):  # noqa
-    "Assign PR to categories based on labels"
-    assigned = defaultdict(list)
+def assign_pr_category(
+    assigned: Dict, categories: List[List], pr_idx: int, pr_labels: List, pkg_title: str
+):
+    """Assign a PR to a category."""
+    has_category = False
+    for cat in categories:
+        if not set(cat[1]).isdisjoint(set(pr_labels)):
+            has_category = True
+
+            if cat[0] not in assigned[pkg_title]:
+                assigned[pkg_title][cat[0]] = []
+
+            assigned[pkg_title][cat[0]].append(pr_idx)
+
+    if not has_category:
+        if "Other" not in assigned[pkg_title]:
+            assigned[pkg_title]["Other"] = []
+
+        assigned[pkg_title]["Other"].append(pr_idx)
+
+
+def assign_prs(
+    prs: List[Dict], packages: List[List], categories: List[List]
+) -> Tuple[Dict, int]:
+    """Assign all PRs to packages and categories based on labels."""
+    assigned = {}
+    prs_removed = 0
 
     for i, pr in enumerate(prs):
-        for cat in categs:
-            pr_labels = [label["name"] for label in pr["labels"]]
-            if not set(cat["labels"]).isdisjoint(set(pr_labels)):
-                assigned[cat["title"]].append(i)
+        pr_labels = [label["name"] for label in pr["labels"]]
 
-    #             if any(l.startswith("module") for l in pr_labels):
-    #                 print(i, pr_labels)
+        if "no changelog" in pr_labels:
+            prs_removed += 1
+            continue
 
-    assigned["Other"] = list(
-        set(range(len(prs))) - {i for _, l in assigned.items() for i in l}
+        has_package = False
+        for pkg in packages:
+            if not set(pkg[1]).isdisjoint(set(pr_labels)):
+                has_package = True
+
+                if pkg[0] not in assigned:
+                    assigned[pkg[0]] = {}
+
+                assign_pr_category(assigned, categories, i, pr_labels, pkg[0])
+
+        if not has_package:
+            if "Other" not in assigned:
+                assigned["Other"] = OrderedDict()
+
+            assign_pr_category(assigned, categories, i, pr_labels, "Other")
+
+    # order assignments
+    assigned = OrderedDict({k: v for k, v in sorted(assigned.items())})
+    if "Other" in assigned:
+        assigned.move_to_end("Other")
+
+    for key in assigned:
+        assigned[key] = OrderedDict({k: v for k, v in sorted(assigned[key].items())})
+        if "Other" in assigned[key]:
+            assigned[key].move_to_end("Other")
+
+    return assigned, prs_removed
+
+
+def render_row(pr: Dict):  # noqa
+    """Render a single row with PR in Myst Markdown format"""
+    print(  # noqa: T201
+        "-",
+        pr["title"],
+        "({pr}" + f"`{pr['number']}`)",
+        "{user}" + f"`{pr['user']['login']}`",
     )
 
-    return assigned
 
+def render_changelog(prs: List[Dict], assigned: Dict):
+    """Render changelog."""
+    for pkg_title, group in assigned.items():
+        print(f"\n## {pkg_title}")  # noqa: T201
 
-def render_row(pr):  # noqa
-    "Render a single row with PR in restructuredText format"
-    print(  # noqa
-        "*",
-        pr["title"].replace("`", "``"),
-        f"(:pr:`{pr['number']}`)",
-        f":user:`{pr['user']['login']}`",
-    )
-
-
-def render_changelog(prs, assigned):  # noqa
-    # sourcery skip: use-named-expression
-    "Render changelog"
-    for title, _ in assigned.items():
-        pr_group = [prs[i] for i in assigned[title]]
-        if pr_group:
-            print(f"\n{title}")  # noqa
-            print("~" * len(title), end="\n\n")  # noqa
+        for cat_title, pr_idx in group.items():
+            print(f"\n### {cat_title}\n")  # noqa: T201
+            pr_group = [prs[i] for i in pr_idx]
 
             for pr in sorted(pr_group, key=lambda x: parser.parse(x["merged_at"])):
                 render_row(pr)
 
 
 if __name__ == "__main__":
+    # don't commit the actual token, it will get revoked!
+    os.environ["GITHUB_TOKEN"] = ""
+
+    if os.getenv("GITHUB_TOKEN") is not None and os.getenv("GITHUB_TOKEN") != "":
+        HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
+
+    # if you edit these, consider editing the PR template as well
+    packages = [
+        ["Annotation", ["annotation"]],
+        ["Benchmarking", ["benchmarking"]],
+        ["Classification", ["classification"]],
+        ["Clustering", ["clustering"]],
+        ["Distances", ["distances"]],
+        ["Forecasting", ["forecasting"]],
+        ["Regression", ["regression"]],
+        ["Transformations", ["transformations"]],
+    ]
     categories = [
-        {"title": "Enhancements", "labels": ["enhancement"]},
-        {"title": "Fixes", "labels": ["bug"]},
-        {"title": "Maintenance", "labels": ["maintenance"]},
-        {"title": "Refactored", "labels": ["refactor"]},
-        {"title": "Documentation", "labels": ["documentation"]},
+        ["Bug Fixes", ["bug"]],
+        ["Documentation", ["documentation"]],
+        ["Enhancements", ["enhancement"]],
+        ["Maintenance", ["maintenance"]],
+        ["Refactored", ["refactor"]],
     ]
 
     pulls = fetch_pull_requests_since_last_release()
-    print(f"Found {len(pulls)} merged PRs since last release")  # noqa
-    assigned = assign_prs(pulls, categories)
+    print(f"Found {len(pulls)} merged PRs since last release")  # noqa: T201
+
+    assigned, prs_removed = assign_prs(pulls, packages, categories)
+
     render_changelog(pulls, assigned)
-    print()  # noqa
-    render_contributors(pulls)
+    print()  # noqa: T201
+    render_contributors(pulls, fmt="myst", n_prs=len(pulls) - prs_removed)
 
     release = fetch_latest_release()
     diff = github_compare_tags(release["tag_name"])
     if diff["total_commits"] != len(pulls):
         raise ValueError(
             "Something went wrong and not all PR were fetched. "
-            f'There are {len(pulls)} PRs but {diff["total_commits"]} in the diff. '
+            f"There are {len(pulls)} PRs but {diff['total_commits']} in the diff. "
             "Please verify that all PRs are included in the changelog."
-        )  # noqa
+        )

@@ -18,7 +18,7 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 
 
 class MUSE(BaseClassifier):
@@ -168,8 +168,8 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The training data.
         y : array-like, shape = [n_instances]
             The class labels.
 
@@ -262,8 +262,7 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
@@ -278,8 +277,7 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
@@ -299,7 +297,7 @@ class MUSE(BaseClassifier):
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
 
-        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        parallel_res = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(_parallel_transform_words)(
                 X, self.window_sizes, self.SFA_transformers, ind
             )

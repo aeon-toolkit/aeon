@@ -9,7 +9,16 @@ import pytest
 
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
-from aeon.utils._testing.panel import _make_classification_y, _make_panel
+from aeon.datatypes._panel._convert import (
+    from_nested_to_df_list_adp,
+    from_nested_to_multi_index,
+)
+from aeon.utils._testing.collection import (
+    make_2d_test_data,
+    make_3d_test_data,
+    make_nested_dataframe_data,
+    make_unequal_length_test_data,
+)
 
 
 class _DummyClassifier(BaseClassifier):
@@ -42,6 +51,7 @@ class _DummyHandlesAllInput(BaseClassifier):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -206,20 +216,38 @@ def _create_unequal_length_nested_dataframe(cases=5, dimensions=1, length=10):
     return testy
 
 
-MTYPES = ["numpy3D", "pd-multiindex", "df-list", "numpyflat"]
+INPUT_TYPES = [
+    "np-list",
+    "numpy3D",
+    "pd-multiindex",
+    "df-list",
+    "numpyflat",
+    "nested_univ",
+]
 
 
-@pytest.mark.parametrize("mtype", MTYPES)
-def test_input_conversion_fit_predict(mtype):
+@pytest.mark.parametrize("input_type", INPUT_TYPES)
+def test_input_conversion_fit_predict(input_type):
     """Test that base class lets all valid input types through."""
-    y = _make_classification_y()
-    X = _make_panel(return_mtype=mtype)
-
-    clf = DummyClassifier()
+    if input_type == "np-list":
+        X, y = make_unequal_length_test_data()
+    elif input_type == "numpy3D":
+        X, y = make_3d_test_data()
+    elif input_type == "numpyflat":
+        X, y = make_2d_test_data()
+    elif input_type == "nested_univ":
+        X, y = make_nested_dataframe_data()
+    elif input_type == "pd-multiindex":
+        X, y = make_nested_dataframe_data()
+        X = from_nested_to_multi_index(X)
+    elif input_type == "df-list":
+        X, y = make_nested_dataframe_data()
+        X = from_nested_to_df_list_adp(X)
+    clf = _DummyHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)
 
-    clf = _DummyClassifier()
+    clf = _DummyHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)
 

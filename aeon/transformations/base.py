@@ -128,7 +128,7 @@ class BaseTransformer(BaseEstimator):
         "remember_data": False,  # whether all data seen is remembered as self._X
     }
 
-    # allowed mtypes for transformers - Series and Panel
+    # allowed types for transformers - Series and Panel
     ALLOWED_INPUT_TYPES = [
         "pd.Series",
         "pd.DataFrame",
@@ -140,6 +140,7 @@ class BaseTransformer(BaseEstimator):
         # "pd-wide",
         # "pd-long",
         "df-list",
+        "np-list",
         "pd_multiindex_hier",
     ]
 
@@ -366,8 +367,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -417,8 +416,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -843,8 +840,7 @@ class BaseTransformer(BaseEstimator):
             f"for instance a pandas.DataFrame with aeon compatible time indices, "
             f"or with MultiIndex and last(-1) level an aeon compatible time index. "
             f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
-            # f"See the transformers tutorial examples/05_transformers.ipynb, or"
-            f" See the data format tutorial examples/AA_datatypes_and_datasets.ipynb. "
+            # f"See the transformers tutorial examples/05_transformers.ipynb."
             f"If you think the data is already in an aeon supported input format, "
             f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
             f"where mtype is the string of the type specification you want. "

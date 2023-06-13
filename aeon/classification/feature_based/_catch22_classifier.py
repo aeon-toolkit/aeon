@@ -14,7 +14,7 @@ from sklearn.pipeline import make_pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.panel.catch22 import Catch22
+from aeon.transformations.collection.catch22 import Catch22
 
 
 class Catch22Classifier(BaseClassifier):

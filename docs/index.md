@@ -11,12 +11,12 @@ hide-toc: true
 
 <br>
 
-- Framework for time series tasks such as forecasting and classification.
-- Extends the scikit-learn interface, allowing for ease of use for familiar users.
-- Provides a library of time series algorithms rather than a curated selection.
+- scikit learn compatible Framework for time series tasks such as forecasting and
+classification.
+- Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
-- Interfaces with other time series packages to provide a single framework for algorithm comparison.
-- Uses a system of optional dependencies to allow easy installation of basic functionality.
+- Interfaces with other time series packages to provide a single framework for algorithm
+comparison.
 
 <br>
 
@@ -150,17 +150,17 @@ Transformation
 :hidden:
 
 installation
-get_started
+getting_started.md
+user_guide
 api_reference
 examples.md
-get_involved
-users
 ```
 
 ```{toctree}
 :caption: Developing aeon
 :hidden:
 
+get_involved
 developers
 ```
 
@@ -170,4 +170,14 @@ developers
 
 contributors.md
 about.md
+```
+
+```{toctree}
+:caption: Other
+:hidden:
+
+glossary.md
+changelog.md
+estimator_overview
+related_software
 ```

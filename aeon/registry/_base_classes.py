@@ -41,7 +41,6 @@ from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.networks.base import BaseDeepNetwork
-from aeon.param_est.base import BaseParamFitter
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer
@@ -55,7 +54,6 @@ BASE_CLASS_REGISTER = [
     ("forecaster", BaseForecaster, "forecaster"),
     ("metric", BaseMetric, "performance metric"),
     ("network", BaseDeepNetwork, "deep learning network"),
-    ("param_est", BaseParamFitter, "parameter fitting estimator"),
     ("regressor", BaseRegressor, "time series regressor"),
     ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
     ("splitter", BaseSplitter, "time series splitter"),

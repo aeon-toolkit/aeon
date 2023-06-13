@@ -1,6 +1,6 @@
 [project]
 name = "aeon"
-version = "0.1.0"
+version = "0.3.0"
 description = "A unified framework for machine learning with time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -35,8 +35,9 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
-requires-python = ">=3.8,<3.11"
+requires-python = ">=3.8,<3.12"
 dependencies = [
     "attrs>=19.2.0", # see #282
     "deprecated>=1.2.13",
@@ -58,15 +59,15 @@ all_extras = [
     "hmmlearn>=0.2.7",
     "gluonts>=0.12.4",
     "keras-self-attention",
+    "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
     "mne",
     "pmdarima>=1.8.0,!=1.8.1,<3.0.0",
     "prophet>=1.1",
-    "pykalman>=0.9.5",
+    "holidays<0.25",  # see https://github.com/facebook/prophet/issues/2430
     "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
-    # "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
@@ -75,9 +76,13 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
-    "mlflow",
+    "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
 ]
-
+unstable_extras = [
+    "statsforecast>=0.5.2", # has issues with pandas 2.0
+    "pycatch22",  # known to fail installation on some setups
+    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+]
 dev = [
     "backoff",
     "httpx",
@@ -106,10 +111,9 @@ docs = [
     "numpydoc",
     "furo",
     "sphinx_issues>=3.0.1",
-    "sphinx-gallery>=0.11.1",
     "sphinx-design>=0.3.0",
-    # sphinx has <6 because of shinx-design
-    "sphinx>=5.0.0,<6",
+    "sphinx-copybutton",
+    "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
     "tabulate",
 ]
 

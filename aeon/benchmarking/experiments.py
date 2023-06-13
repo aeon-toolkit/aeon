@@ -22,7 +22,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
 
 from aeon.datasets import write_results_to_uea_format
-from aeon.datasets._data_loader import load_from_tsfile as load_ts
+from aeon.datasets._data_loaders import load_from_tsfile as load_ts
 from aeon.utils.sampling import stratified_resample
 
 
@@ -48,7 +48,7 @@ def run_clustering_experiment(
     the predicted clusters of trainX. If trainY is also passed, these are written to
     file. If the clusterer makes probabilistic predictions, these are also written to
     file. See write_results_to_uea_format for more on the output. Be warned,
-    this method will always overwrite existing results, check bvefore calling or use
+    this method will always overwrite existing results, check before calling or use
     load_and_run_clustering_experiment instead.
 
     Parameters
@@ -188,7 +188,7 @@ def load_and_run_clustering_experiment(
         present. If True, it will overwrite anything already there.
     format: string, default = ".ts"
         Valid formats are ".ts", ".arff", ".tsv" and ".long". For more info on
-        format, see   examples/loading_data.ipynb
+        format, see   examples/datasets/data_loading.ipynb
     train_file: boolean, default = False
         whether to generate train files or not. If true, it performs a 10xCV on the
         train and saves

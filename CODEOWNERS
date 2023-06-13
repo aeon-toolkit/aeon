@@ -5,6 +5,9 @@
 
 
 aeon/regression/dummy/ @badrmarani
+aeon/regression/feature_based/_fresh_prince.py @dguijo
+aeon/regression/deep_learning/inception_timep.py @hadifawaz1999
+aeon/regression/deep_learning/tests/test_deep_regressor_base.py @hadifawaz1999
 
 aeon/classification/convolution_based/_arsenal.py @MatthewMiddlehurst @TonyBagnall
 aeon/classification/convolution_based/_rocket_classifier.py @MatthewMiddlehurst @TonyBagnall
@@ -50,12 +53,13 @@ aeon/networks/mlp.py @hadifawaz1999
 aeon/networks/inception.py @hadifawaz1999
 
 aeon/transformations/panel/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
-aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/panel/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
 aeon/transformations/panel/dictionary_based/_sfa.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/panel/dictionary_based/_sfa_fast.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/panel/catch22.py @MatthewMiddlehurst
 aeon/transformations/panel/catch22wrapper.py @MatthewMiddlehurst
 aeon/transformations/panel/random_intervals.py @MatthewMiddlehurst
+aeon/transformations/panel/dilated_shapelet_transform.py @baraline
 aeon/transformations/panel/shapelet_transform.py @jasonlines @ABostrom @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/panel/supervised_intervals.py @MatthewMiddlehurst
 aeon/transformations/panel/rocket/ @angus924
