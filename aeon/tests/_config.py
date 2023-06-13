@@ -26,7 +26,6 @@ EXCLUDE_ESTIMATORS = [
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
     "TapNetRegressor",
     "TapNetClassifier",
-    "ResNetClassifier",  # known ResNetClassifier sporafic failures, see #3954
 ]
 
 EXCLUDED_TESTS = {
