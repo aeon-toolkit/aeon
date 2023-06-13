@@ -13,8 +13,10 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.signature_based._checks import _handle_aeon_signatures
-from aeon.transformations.panel.signature_based._signature_method import (
+from aeon.transformations.collection.signature_based._checks import (
+    _handle_aeon_signatures,
+)
+from aeon.transformations.collection.signature_based._signature_method import (
     SignatureTransformer,
 )
 
@@ -153,9 +155,8 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, n_dims]
-            Nested dataframe with univariate time-series in cells.
-        y : array-like, shape = [n_instances] The class labels.
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        y : array-like, shape = (n_instances) The class labels.
 
         Returns
         -------
@@ -176,7 +177,7 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : pd.DataFrame of shape (n_instances, n_dims)
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
 
         Returns
         -------
@@ -192,7 +193,7 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : pd.DataFrame of shape (n_instances, n_dims)
+        X : np.ndarray of shape (n_cases, n_channels, series_length)
 
         Returns
         -------

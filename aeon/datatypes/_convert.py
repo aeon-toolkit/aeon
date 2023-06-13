@@ -127,7 +127,8 @@ def convert(
     """
     if obj is None:
         return None
-
+    if from_type == to_type:
+        return obj
     # input type checks
     if not isinstance(to_type, str):
         raise TypeError("to_type must be a str")
@@ -166,7 +167,7 @@ def convert(
         pass
     else:
         raise RuntimeError(
-            "bug: unrechable condition error, store_behaviour has unexpected value"
+            "bug: unreachable condition error, store_behaviour has unexpected value"
         )
 
     converted_obj = convert_dict[key](obj, store=store)

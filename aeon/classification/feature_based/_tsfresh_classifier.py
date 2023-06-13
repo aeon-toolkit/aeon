@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.tsfresh import (
+from aeon.transformations.collection.tsfresh import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
 )
@@ -122,13 +122,13 @@ class TSFreshClassifier(BaseClassifier):
         self._transformer = (
             TSFreshRelevantFeatureExtractor(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
             else TSFreshFeatureExtractor(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
         )
@@ -146,7 +146,7 @@ class TSFreshClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 

@@ -108,8 +108,7 @@ class TimeSeriesForestRegressor(BaseTimeSeriesForest, ForestRegressor, BaseRegre
 
         Parameters
         ----------
-        X : pd.DataFrame or np.ndarray
-            Panel data
+        X : np.ndarray
 
         Returns
         -------

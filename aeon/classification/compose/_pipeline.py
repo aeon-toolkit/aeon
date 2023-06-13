@@ -74,7 +74,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
@@ -127,6 +127,11 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             "capability:multithreading": False,
         }
         self.set_tags(**tags_to_set)
+        if unequal:
+            tags_to_set = {
+                "X_inner_mtype": ["np-list", "numpy3D"],
+            }
+            self.set_tags(**tags_to_set)
 
     @property
     def _transformers(self):

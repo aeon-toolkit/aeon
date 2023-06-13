@@ -4,6 +4,8 @@
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
+import os
+import time
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -53,6 +55,24 @@ class FCNClassifier(BaseDeepClassifier):
         specify the optimizer and the learning rate to be used.
     file_path       : str, default = "./"
         file path to save best model
+    save_best_model     : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name      : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
     callbacks       : keras.callbacks, default = None
     Notes
     -----
@@ -75,7 +95,11 @@ class FCNClassifier(BaseDeepClassifier):
     FCNClassifier(...)
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+    }
 
     def __init__(
         self,
@@ -87,6 +111,10 @@ class FCNClassifier(BaseDeepClassifier):
         padding="same",
         activation="relu",
         file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         n_epochs=2000,
         batch_size=16,
         use_mini_batch_size=True,
@@ -99,7 +127,7 @@ class FCNClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(FCNClassifier, self).__init__()
+        super(FCNClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size
@@ -121,6 +149,10 @@ class FCNClassifier(BaseDeepClassifier):
         self.optimizer = optimizer
         self.history = None
         self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
         self._network = FCNNetwork(
             random_state=self.random_state,
             n_layers=self.n_layers,
@@ -177,19 +209,6 @@ class FCNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     ),
-        #     tf.keras.callbacks.ReduceLROnPlateau(
-        #         monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks,
-        # ]
-
         return model
 
     def _fit(self, X, y):
@@ -206,45 +225,66 @@ class FCNClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
+
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
         else:
             mini_batch_size = self.batch_size
 
-        self.history = self.model_.fit(
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
+
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=deepcopy(self.callbacks) if self.callbacks else [],
+            callbacks=self.callbacks_,
         )
 
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
+
         return self
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        #     return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -274,11 +314,6 @@ class FCNClassifier(BaseDeepClassifier):
             "use_bias": False,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "use_bias": True,
-        # }
         test_params = [param1]
 
         return test_params

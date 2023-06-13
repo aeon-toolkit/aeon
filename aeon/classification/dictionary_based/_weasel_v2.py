@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 
 # some constants on input parameters for WEASEL v2
 SWITCH_SMALL_INSTANCES = 250
@@ -310,18 +310,6 @@ class WEASELTransformerV2:
     random_state: int or None, default=None
         Seed for random, integer
     """
-
-    # _tags = {
-    #     "univariate-only": True,
-    #     "scitype:transform-input": "Series",
-    #     # what is the scitype of X: Series, or Panel
-    #     "scitype:transform-output": "Series",
-    #     # what scitype is returned: Primitives, Series, Panel
-    #     "scitype:instancewise": False,  # is this an instance-wise transform?
-    #     "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-    #     "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
-    #     "requires_y": True,  # does y need to be passed in fit?
-    # }
 
     def __init__(
         self,

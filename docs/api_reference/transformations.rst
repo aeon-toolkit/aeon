@@ -65,7 +65,7 @@ Pipeline building
     Id
     YtoX
 
-.. currentmodule:: aeon.transformations.panel.compose
+.. currentmodule:: aeon.transformations.collection.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -84,7 +84,7 @@ Pipeline building
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.panel.reduce
+.. currentmodule:: aeon.transformations.collection.reduce
 
 .. autosummary::
     :toctree: auto_generated/
@@ -124,7 +124,7 @@ These transformers extract simple summary features.
     SummaryTransformer
     WindowSummarizer
 
-.. currentmodule:: aeon.transformations.panel.summarize
+.. currentmodule:: aeon.transformations.collection.summarize
 
 .. autosummary::
     :toctree: auto_generated/
@@ -138,7 +138,7 @@ These transformers extract simple summary features.
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.panel.shapelet_transform
+.. currentmodule:: aeon.transformations.collection.shapelet_transform
 
 .. autosummary::
     :toctree: auto_generated/
@@ -147,7 +147,15 @@ Shapelets, wavelets, and convolution
     ShapeletTransform
     RandomShapeletTransform
 
-.. currentmodule:: aeon.transformations.panel.rocket
+.. currentmodule:: aeon.transformations.collection.dilated_shapelet_transform
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RandomDilatedShapeletTransform
+
+.. currentmodule:: aeon.transformations.collection.rocket
 
 .. autosummary::
     :toctree: auto_generated/
@@ -158,7 +166,7 @@ Shapelets, wavelets, and convolution
     MiniRocketMultivariate
     MiniRocketMultivariateVariable
 
-.. currentmodule:: aeon.transformations.panel.dwt
+.. currentmodule:: aeon.transformations.collection.dwt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -169,7 +177,7 @@ Shapelets, wavelets, and convolution
 Distance-based features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.panel.matrix_profile
+.. currentmodule:: aeon.transformations.collection.matrix_profile
 
 .. autosummary::
     :toctree: auto_generated/
@@ -180,7 +188,7 @@ Distance-based features
 Dictionary-based features
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.panel.dictionary_based
+.. currentmodule:: aeon.transformations.collection.dictionary_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -193,7 +201,7 @@ Dictionary-based features
 Moment-based features
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.panel.signature_based
+.. currentmodule:: aeon.transformations.collection.signature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -206,7 +214,7 @@ Feature collections
 
 These transformers extract larger collections of features.
 
-.. currentmodule:: aeon.transformations.panel.tsfresh
+.. currentmodule:: aeon.transformations.collection.tsfresh
 
 .. autosummary::
     :toctree: auto_generated/
@@ -215,7 +223,7 @@ These transformers extract larger collections of features.
     TSFreshRelevantFeatureExtractor
     TSFreshFeatureExtractor
 
-.. currentmodule:: aeon.transformations.panel.catch22
+.. currentmodule:: aeon.transformations.collection.catch22
 
 .. autosummary::
     :toctree: auto_generated/
@@ -330,8 +338,7 @@ Filtering and denoising
     :toctree: auto_generated/
     :template: class.rst
 
-    KalmanFilterTransformerPK
-    KalmanFilterTransformerFP
+    KalmanFilterTransformer
 
 .. currentmodule:: aeon.transformations.series.theta
 
@@ -352,7 +359,7 @@ Differencing and slope
 
     Differencer
 
-.. currentmodule:: aeon.transformations.panel.slope
+.. currentmodule:: aeon.transformations.collection.slope
 
 .. autosummary::
     :toctree: auto_generated/
@@ -371,7 +378,7 @@ Binning and segmentation
 
     TimeBinAggregate
 
-.. currentmodule:: aeon.transformations.panel.interpolate
+.. currentmodule:: aeon.transformations.collection.interpolate
 
 .. autosummary::
     :toctree: auto_generated/
@@ -379,7 +386,7 @@ Binning and segmentation
 
     TSInterpolator
 
-.. currentmodule:: aeon.transformations.panel.segment
+.. currentmodule:: aeon.transformations.collection.segment
 
 .. autosummary::
     :toctree: auto_generated/
@@ -451,7 +458,7 @@ These transformers create a series based on a sequence of sliding windows.
 
     MatrixProfileTransformer
 
-.. currentmodule:: aeon.transformations.panel.hog1d
+.. currentmodule:: aeon.transformations.collection.hog1d
 
 .. autosummary::
     :toctree: auto_generated/
@@ -464,7 +471,7 @@ Multivariate-to-univariate
 
 These transformers convert multivariate series to univariate.
 
-.. currentmodule:: aeon.transformations.panel.compose
+.. currentmodule:: aeon.transformations.collection.compose
 
 .. autosummary::
     :toctree: auto_generated/
@@ -499,7 +506,7 @@ These transformers select features in `X` based on `y`.
 
     FeatureSelection
 
-.. currentmodule:: aeon.transformations.panel.channel_selection
+.. currentmodule:: aeon.transformations.collection.channel_selection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -534,7 +541,7 @@ Equal length transforms
 
 These transformations ensure all series in a panel have equal length
 
-.. currentmodule:: aeon.transformations.panel.padder
+.. currentmodule:: aeon.transformations.collection.pad
 
 .. autosummary::
     :toctree: auto_generated/
@@ -542,7 +549,7 @@ These transformations ensure all series in a panel have equal length
 
     PaddingTransformer
 
-.. currentmodule:: aeon.transformations.panel.truncation
+.. currentmodule:: aeon.transformations.collection.truncate
 
 .. autosummary::
     :toctree: auto_generated/

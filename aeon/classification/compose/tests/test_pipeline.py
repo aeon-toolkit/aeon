@@ -7,26 +7,31 @@ __all__ = []
 
 from sklearn.preprocessing import StandardScaler
 
+from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.transformations.panel.padder import PaddingTransformer
+from aeon.classification.convolution_based import RocketClassifier
+from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
+from aeon.utils._testing.collection import make_nested_dataframe_data
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.panel import _make_classification_y, _make_panel_X
 
 
 def test_dunder_mul():
     """Test the mul dunder method."""
     RAND_SEED = 42
-    y = _make_classification_y(n_instances=10, random_state=RAND_SEED)
-    X = _make_panel_X(n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y)
-    X_test = _make_panel_X(n_instances=5, n_timepoints=20, random_state=RAND_SEED)
+    X, y = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
+    )
+
+    X_test, _ = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
+    )
 
     t1 = ExponentTransformer(power=4)
     t2 = ExponentTransformer(power=0.25)
 
-    c = KNeighborsTimeSeriesClassifier()
+    c = DummyClassifier()
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
     t12c_3 = t1 * t2 * c
@@ -45,13 +50,16 @@ def test_dunder_mul():
 def test_mul_sklearn_autoadapt():
     """Test auto-adapter for sklearn in mul."""
     RAND_SEED = 42
-    y = _make_classification_y(n_instances=10, random_state=RAND_SEED)
-    X = _make_panel_X(n_instances=10, n_timepoints=20, random_state=RAND_SEED, y=y)
-    X_test = _make_panel_X(n_instances=10, n_timepoints=20, random_state=RAND_SEED)
+    X, y = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
+    )
 
+    X_test, _ = make_nested_dataframe_data(
+        n_cases=10, n_timepoints=20, random_state=RAND_SEED
+    )
     t1 = ExponentTransformer(power=2)
     t2 = StandardScaler()
-    c = KNeighborsTimeSeriesClassifier()
+    c = DummyClassifier()
 
     t12c_1 = t1 * (t2 * c)
     t12c_2 = (t1 * t2) * c
@@ -69,7 +77,7 @@ def test_mul_sklearn_autoadapt():
 
 def test_missing_unequal_tag_inference():
     """Test that ClassifierPipeline infers missing/unequal tags correctly."""
-    c = KNeighborsTimeSeriesClassifier()
+    c = RocketClassifier(num_kernels=100)
     c1 = ExponentTransformer() * PaddingTransformer() * ExponentTransformer() * c
     c2 = ExponentTransformer() * ExponentTransformer() * c
     c3 = Imputer() * ExponentTransformer() * c

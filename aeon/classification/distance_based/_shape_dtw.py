@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """ShapeDTW classifier.
 
-Nearest neighbour classifier that extracts shapee features.
+Nearest neighbour classifier that extracts shape features.
 """
 
 import numpy as np
-import pandas as pd
 
 # Tuning
 from sklearn.model_selection import GridSearchCV, KFold
@@ -15,15 +14,19 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.datatypes import convert
-from aeon.transformations.panel.dictionary_based._paa import PAA
-from aeon.transformations.panel.dwt import DWTTransformer
-from aeon.transformations.panel.hog1d import HOG1DTransformer
+from aeon.transformations.collection.dictionary_based._paa import PAA
+from aeon.transformations.collection.dwt import DWTTransformer
 
-# Transforms
-from aeon.transformations.panel.segment import SlidingWindowSegmenter
-from aeon.transformations.panel.slope import SlopeTransformer
-from aeon.transformations.panel.summarize._extract import DerivativeSlopeTransformer
+# Done
+from aeon.transformations.collection.hog1d import HOG1DTransformer
+from aeon.transformations.collection.segment import SlidingWindowSegmenter
+from aeon.transformations.collection.slope import SlopeTransformer
+from aeon.transformations.collection.summarize._extract import (
+    DerivativeSlopeTransformer,
+)
+
+# Transformers: To Do
+
 
 __author__ = ["vincent-nich12"]
 
@@ -31,46 +34,37 @@ __author__ = ["vincent-nich12"]
 class ShapeDTW(BaseClassifier):
     """ShapeDTW classifier.
 
-    ShapeDTW [1] works by initially extracting a set of subsequences
-    describing local neighbourhoods around each data point in a time series.
-    These subsequences are then passed into a shape descriptor function that
-    transforms these local neighbourhoods into a new representation. This
-    new representation is then sent into DTW with 1-NN.
+    ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
+    each data point in a time series. These subseries are then passed into a
+    shape descriptor function that transforms these local neighbourhoods into a new
+    representation. This new representation is then used for nearest neighbour
+    classification with dynamic time warping.
 
     Parameters
     ----------
-    n_neighbours                : int, int, set k for knn (default =1).
-    subsequence_length          : int, defines the length of the
-                                  subsequences(default=sqrt(n_timepoints)).
-
-    shape_descriptor_function   : string, defines the function to describe
-                                  the set of subsequences
-                                  (default = 'raw').
-
-
-    The possible shape descriptor functions are as follows:
-
+    n_neighbours : int, default =1
+        number of neighbours, k, for the k-NN classifier.
+    subsequence_length : int, default=sqrt(n_timepoints)
+        length of the subseries to extract.
+    shape_descriptor_function : string, default = 'raw'
+        defines the function to describe the set of subsequences
+        The possible shape descriptor functions are as follows:
         - 'raw'                 : use the raw subsequence as the
                                   shape descriptor function.
                                 - params = None
-
         - 'paa'                 : use PAA as the shape descriptor function.
                                 - params = num_intervals_paa (default=8)
-
         - 'dwt'                 : use DWT (Discrete Wavelet Transform)
                                   as the shape descriptor function.
                                 - params = num_levels_dwt (default=3)
-
         - 'slope'               : use the gradient of each subsequence
                                   fitted by a total least squares
                                   regression as the shape descriptor
                                   function.
                                 - params = num_intervals_slope (default=8)
-
         - 'derivative'          : use the derivative of each subsequence
                                   as the shape descriptor function.
                                 - params = None
-
         - 'hog1d'               : use a histogram of gradients in one
                                   dimension as the shape desciptor
                                   function.
@@ -80,7 +74,6 @@ class ShapeDTW(BaseClassifier):
                                                     (default=8)
                                          = scaling_factor_hog1d
                                                     (default=0.1)
-
         - 'compound'            : use a combination of two shape
                                   descriptors simultaneously.
                                 - params = weighting_factor
@@ -92,17 +85,10 @@ class ShapeDTW(BaseClassifier):
                                            this value is tuned
                                            by 10-fold cross-validation
                                            on the training data.
-
-
-    shape_descriptor_functions  : string list, only applicable when the
-                                  shape_descriptor_function is
-                                  set to 'compound'.
-                                  Use a list of shape descriptor
-                                  functions at the same time.
-                                  (default = ['raw','derivative'])
-
-    metric_params               : dictionary for metric parameters
-                                  (default = None).
+    shape_descriptor_functions  : List of string, default = ['raw','derivative']
+        only applicable when the shape_descriptor_function is set to 'compound'. Use
+        a list of shape descriptor functions at the same time.
+    metric_params               : dictionary for metric parameters, default = None
 
     Notes
     -----
@@ -110,6 +96,16 @@ class ShapeDTW(BaseClassifier):
         Pattern Recognition, 74, pp 171-184, 2018
         http://www.sciencedirect.com/science/article/pii/S0031320317303710,
 
+    Example
+    -----
+    >>> from aeon.classification.distance_based import ShapeDTW
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> clf = ShapeDTW()
+    >>> clf.fit(X_train, y_train)
+    ShapeDTW(...)
+    >>> y_pred = clf.predict(X_test)
     """
 
     _tags = {
@@ -141,7 +137,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of training data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - list of class labels of shape [n_instances].
 
         Returns
@@ -151,15 +147,13 @@ class ShapeDTW(BaseClassifier):
         # Perform preprocessing on params.
         if not (isinstance(self.shape_descriptor_function, str)):
             raise TypeError(
-                "shape_descriptor_function must be an 'str'. \
-                            Found '"
-                + type(self.shape_descriptor_function).__name__
-                + "' instead."
+                f"shape_descriptor_function must be an 'str'. Found "
+                f"{type(self.shape_descriptor_function).__name__} instead."
             )
-
         if self.metric_params is None:
-            self.metric_params = {}
-            _reset = True
+            self._metric_params = {}
+        else:
+            self._metric_params = self.metric_params
 
         # If the shape descriptor is 'compound',
         # calculate the appropriate weighting_factor
@@ -178,9 +172,6 @@ class ShapeDTW(BaseClassifier):
         self.knn = KNeighborsTimeSeriesClassifier(n_neighbors=self.n_neighbors)
         self.knn.fit(X, y)
         self.classes_ = self.knn.classes_
-        # Hack to pass the unit tests
-        if _reset:
-            self.metric_params = None
         return self
 
     def _calculate_weighting_factor_value(self, X, y):
@@ -193,14 +184,14 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - training data in a dataframe of shape [n_instances,1]
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
         y - training data classes of shape [n_instances].
         """
-        self.metric_params = {k.lower(): v for k, v in self.metric_params.items()}
+        self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}
 
         # Get the weighting_factor if one is provided
-        if self.metric_params.get("weighting_factor") is not None:
-            self.weighting_factor = self.metric_params.get("weighting_factor")
+        if self._metric_params.get("weighting_factor") is not None:
+            self.weighting_factor = self._metric_params.get("weighting_factor")
         else:
             # Tune it otherwise
             self._param_matrix = {
@@ -229,11 +220,11 @@ class ShapeDTW(BaseClassifier):
                     + "shape_descriptor_functions must be a "
                     + "string array of length 2."
                 )
-            mp = self.metric_params
+            mp = self._metric_params
 
             grid = GridSearchCV(
                 estimator=ShapeDTW(
-                    n_neighbours=n,
+                    n_neighbors=n,
                     subsequence_length=sl,
                     shape_descriptor_function=sdf,
                     shape_descriptor_functions=sdfs,
@@ -253,13 +244,11 @@ class ShapeDTW(BaseClassifier):
         # the test/training data. It extracts the subsequences
         # and then performs the shape descriptor function on
         # each subsequence.
-        X = convert(X, from_type="numpy3D", to_type="nested_univ")
-        X = self.sw.transform(X)
-
+        _X = self.sw.transform(X)
         # Feed X into the appropriate shape descriptor function
-        X = self._generate_shape_descriptors(X)
+        _X = self._generate_shape_descriptors(_X)
 
-        return X
+        return _X
 
     def _predict_proba(self, X) -> np.ndarray:
         """Perform predictions on the testing data X.
@@ -268,7 +257,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X - pandas dataframe of testing data of shape [n_instances,1].
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
 
         Returns
         -------
@@ -321,29 +310,22 @@ class ShapeDTW(BaseClassifier):
                 )
 
         # To hold the result of each transformer
-        dataFrames = []
-        col_names = list(range(len(data.columns)))
+        trans_data = []
 
         # Apply each transformer on the set of subsequences
         for t in self.transformer:
             if t is None:
                 # Do no transformations
-                dataFrames.append(data)
+                trans_data.append(data)
             else:
                 # Do the transformation and extract the resulting data frame.
                 t.fit(data)
                 newData = t.transform(data)
-                dataFrames.append(newData)
+                trans_data.append(newData)
 
-        # Combine the arrays into one dataframe
-        if self.shape_descriptor_function == "compound":
-            result = self._combine_data_frames(
-                dataFrames, self.weighting_factor, col_names
-            )
-        else:
-            result = dataFrames[0]
-            result.columns = col_names
-
+        result = trans_data[0]
+        for i in range(1, len(trans_data)):
+            result = np.concatenate((result, trans_data[i]), axis=1)
         return result
 
     def _get_transformer(self, tName):
@@ -363,15 +345,11 @@ class ShapeDTW(BaseClassifier):
 
         throws : ValueError if a shape descriptor doesn't exist.
         """
-        parameters = self.metric_params
-
+        parameters = self._metric_params
         tName = tName.lower()
-
         if parameters is None:
             parameters = {}
-
         parameters = {k.lower(): v for k, v in parameters.items()}
-
         self._check_metric_params(parameters)
 
         if tName == "raw":
@@ -392,42 +370,38 @@ class ShapeDTW(BaseClassifier):
         elif tName == "derivative":
             return DerivativeSlopeTransformer()
         elif tName == "hog1d":
-            return self._extracted_from__get_transformer_45(parameters)
+            return self._get_hog_transformer(parameters)
         else:
-            raise ValueError("Invalid shape desciptor function.")
+            raise ValueError("Invalid shape descriptor function.")
 
-    # TODO Rename this here and in `_get_transformer`
-    def _extracted_from__get_transformer_45(self, parameters):
+    def _get_hog_transformer(self, parameters):
         num_intervals = parameters.get("num_intervals_hog1d")
         num_bins = parameters.get("num_bins_hog1d")
         scaling_factor = parameters.get("scaling_factor_hog1d")
-
         # All 3 paramaters are None
         if num_intervals is None and num_bins is None and scaling_factor is None:
             return HOG1DTransformer()
-
         # 2 parameters are None
         if num_intervals is None and num_bins is None:
             return HOG1DTransformer(scaling_factor=scaling_factor)
         if num_intervals is None and scaling_factor is None:
-            return HOG1DTransformer(num_bins=num_bins)
+            return HOG1DTransformer(n_bins=num_bins)
         if num_bins is None and scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals)
+            return HOG1DTransformer(n_intervals=num_intervals)
 
         # 1 parameter is None
         if num_intervals is None:
-            return HOG1DTransformer(scaling_factor=scaling_factor, num_bins=num_bins)
+            return HOG1DTransformer(scaling_factor=scaling_factor, n_bins=num_bins)
         if scaling_factor is None:
-            return HOG1DTransformer(num_intervals=num_intervals, num_bins=num_bins)
+            return HOG1DTransformer(n_intervals=num_intervals, n_bins=num_bins)
         if num_bins is None:
             return HOG1DTransformer(
-                scaling_factor=scaling_factor, num_intervals=num_intervals
+                scaling_factor=scaling_factor, n_intervals=num_intervals
             )
-
         # All parameters are given
         return HOG1DTransformer(
-            num_intervals=num_intervals,
-            num_bins=num_bins,
+            n_intervals=num_intervals,
+            n_bins=num_bins,
             scaling_factor=scaling_factor,
         )
 
@@ -454,48 +428,3 @@ class ShapeDTW(BaseClassifier):
                     + " name is at the end of the metric "
                     + "parameter name."
                 )
-
-    def _combine_data_frames(self, dataFrames, weighting_factor, col_names):
-        """Combine two dataframes together into a single dataframe.
-
-        Used when the shape_descriptor_function is set to "compound".
-        """
-        first_desc = dataFrames[0]
-        second_desc = dataFrames[1]
-
-        first_desc_array = []
-        second_desc_array = []
-
-        # Convert the dataframes into arrays
-        for x in first_desc.columns:
-            first_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-        for x in second_desc.columns:
-            second_desc_array.append(
-                convert(first_desc[x], from_type="nested_univ", to_type="numpyflat")
-            )
-
-        # Concatenate the arrays together
-        res = []
-        for x in range(len(first_desc_array)):
-            dim1 = []
-            for y in range(len(first_desc_array[x])):
-                dim2 = []
-                dim2.extend(first_desc_array[x][y])
-                dim2.extend(second_desc_array[x][y] * weighting_factor)
-                dim1.append(dim2)
-            res.append(dim1)
-
-        res = np.asarray(res)
-
-        # Convert to pandas dataframe
-        df = pd.DataFrame()
-
-        for col in col_names:
-            colToAdd = []
-            for row in range(len(res[col])):
-                inst = res[col][row]
-                colToAdd.append(pd.Series(inst))
-            df[col] = colToAdd
-        return df
