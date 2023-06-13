@@ -8,8 +8,8 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results_as_array,
 )
 
-cls = ["HC2"]
-data = ["Chinatown"]
+cls = ["HC2", "FreshPRINCE", "InceptionT"]
+data = ["Chinatown", "Tools"]
 
 
 def test_get_estimator_results():
@@ -29,7 +29,7 @@ def test_get_estimator_results_as_array():
     Tests with baked in examples to avoid reliance on external website.
     """
     res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path="../example_results/"
+        estimators=cls, datasets=data, path="../example_results/", include_missing=True
     )
     assert res[0][0] == 0.9825072886297376
 
