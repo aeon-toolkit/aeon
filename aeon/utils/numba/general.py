@@ -1,6 +1,27 @@
 # -*- coding: utf-8 -*-
 """General numba utilities."""
 
+__author__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "unique_count",
+    "first_order_differences",
+    "first_order_differences_2d",
+    "first_order_differences_3d",
+    "z_normalise_series_with_mean",
+    "z_normalise_series",
+    "z_normalise_series_2d",
+    "z_normalise_series_3d",
+    "set_numba_random_seed",
+    "choice_log",
+    "get_subsequence",
+    "get_subsequence_with_mean_std",
+    "sliding_mean_std_one_series",
+    "sliding_dot_product",
+    "combinations_1d",
+]
+
+from typing import Tuple
+
 import numpy as np
 from numba import njit, prange
 
@@ -8,7 +29,7 @@ import aeon.utils.numba.stats as stats
 
 
 @njit(fastmath=True, cache=True)
-def unique_count(X):
+def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Numba unique value count function for a 1d numpy array.
 
     np.unique() is supported by numba, but the return_counts parameter is not.
@@ -24,28 +45,35 @@ def unique_count(X):
         The unique values in X
     counts : 1d numpy array
         The occurrence count for each unique value in X
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import unique_count
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> unique, counts = unique_count(X)
     """
     if X.shape[0] > 0:
         X = np.sort(X)
         unique = np.zeros(X.shape[0])
         unique[0] = X[0]
-        counts = np.zeros(X.shape[0], dtype=np.int_)
+        counts = np.zeros(X.shape[0], dtype=np.int32)
         counts[0] = 1
-        unique_count = 0
+        uc = 0
 
         for i in X[1:]:
-            if i != unique[unique_count]:
-                unique_count += 1
-                unique[unique_count] = i
-                counts[unique_count] = 1
+            if i != unique[uc]:
+                uc += 1
+                unique[uc] = i
+                counts[uc] = 1
             else:
-                counts[unique_count] += 1
-        return unique[: unique_count + 1], counts[: unique_count + 1]
-    return None, np.zeros(0, dtype=np.int_)
+                counts[uc] += 1
+        return unique[: uc + 1], counts[: uc + 1]
+    return np.zeros(0), np.zeros(0, dtype=np.int32)
 
 
 @njit(fastmath=True, cache=True)
-def first_order_differences(X):
+def first_order_differences(X: np.ndarray) -> np.ndarray:
     """Numba first order differences function for a 1d numpy array.
 
     Parameters
@@ -57,12 +85,19 @@ def first_order_differences(X):
     -------
     arr : 1d numpy array of size (X.shape[0] - 1)
         The first order differences of X
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import first_order_differences
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> diff = first_order_differences(X)
     """
     return X[1:] - X[:-1]
 
 
 @njit(fastmath=True, cache=True)
-def row_first_order_differences(X):
+def first_order_differences_2d(X: np.ndarray) -> np.ndarray:
     """Numba first order differences function for a 2d numpy array.
 
     Parameters
@@ -73,13 +108,76 @@ def row_first_order_differences(X):
     Returns
     -------
     arr : 2d numpy array of shape (X.shape[0], X.shape[1] - 1)
-        The first order differences for axis 0 of the input array
+        The first order differences for axis 1 of the input array
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import first_order_differences_2d
+    >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
+    >>> diff = first_order_differences_2d(X)
     """
     return X[:, 1:] - X[:, :-1]
 
 
 @njit(fastmath=True, cache=True)
-def z_normalise_series(X):
+def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
+    """Numba first order differences function for a 3d numpy array.
+
+    Parameters
+    ----------
+    X : 3d numpy array
+        A 3d numpy array of values
+
+    Returns
+    -------
+    arr : 2d numpy array of shape (X.shape[0], X.shape[1], X.shape[2] - 1)
+        The first order differences for axis 2 of the input array
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import first_order_differences_3d
+    >>> X = np.array([[[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]]])
+    >>> diff = first_order_differences_3d(X)
+    """
+    return X[:, :, 1:] - X[:, :, :-1]
+
+
+@njit(fastmath=True, cache=True)
+def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarray:
+    """Numba series normalization function for a 1d numpy array with mean.
+
+    Parameters
+    ----------
+    X : 1d numpy array
+        A 1d numpy array of values
+    series_mean : float
+        The mean of the series
+
+    Returns
+    -------
+    arr : 1d numpy array
+        The normalised series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import z_normalise_series_with_mean
+    >>> from aeon.utils.numba.stats import mean
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> X_norm = z_normalise_series_with_mean(X, mean(X))
+    """
+    s = stats.std(X)
+    if s > 0:
+        arr = (X - series_mean) / s
+    else:
+        arr = X - series_mean
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def z_normalise_series(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array.
 
     Parameters
@@ -91,6 +189,13 @@ def z_normalise_series(X):
     -------
     arr : 1d numpy array
         The normalised series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import z_normalise_series
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> X_norm = z_normalise_series(X)
     """
     s = stats.std(X)
     if s > 0:
@@ -101,7 +206,7 @@ def z_normalise_series(X):
 
 
 @njit(fastmath=True, cache=True)
-def z_normalise_series_2d(X):
+def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 2d numpy array.
 
     Parameters
@@ -113,6 +218,13 @@ def z_normalise_series_2d(X):
     -------
     arr : 2d numpy array
         The normalised series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import z_normalise_series_2d
+    >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
+    >>> X_norm = z_normalise_series_2d(X)
     """
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
@@ -121,7 +233,7 @@ def z_normalise_series_2d(X):
 
 
 @njit(fastmath=True, cache=True)
-def z_normalise_series_3d(X):
+def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 3d numpy array.
 
     Parameters
@@ -133,6 +245,16 @@ def z_normalise_series_3d(X):
     -------
     arr : 3d numpy array
         The normalised series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import z_normalise_series_3d
+    >>> X = np.array([
+    ...     [[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]],
+    ...     [[4, 4, 4, 4, 3, 3, 3, 2, 2, 1], [8, 8, 8, 8, 7, 7, 7, 6, 6, 5]],
+    ... ])
+    >>> X_norm = z_normalise_series_3d(X)
     """
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
@@ -140,9 +262,25 @@ def z_normalise_series_3d(X):
     return arr
 
 
-@njit(cache=True, fastmath=True)
-def choice_log(n_choice, n_sample):
+@njit()
+def set_numba_random_seed(seed: int) -> None:
+    """Set the random seed for numba.
+
+    Parameters
+    ----------
+    seed : int
+        The seed to set.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+
+
+@njit(fastmath=True, cache=True)
+def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
+
+    To seed the function the `np.random.seed` must be set in a numba function prior to
+    calling this i.e. using `set_numba_random_seed`.
 
     Parameters
     ----------
@@ -155,11 +293,10 @@ def choice_log(n_choice, n_sample):
     Returns
     -------
     array
-        The randomly choosen samples.
-
+        The randomly chosen samples.
     """
     if n_choice > 1:
-        # Define log probas for each choices
+        # Define log probas for each choice
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
@@ -171,8 +308,10 @@ def choice_log(n_choice, n_sample):
         return np.zeros(n_sample, dtype=np.int32)
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> np.ndarray:
     """Get a subsequence from a time series given a starting index.
 
     Parameters
@@ -201,8 +340,10 @@ def get_subsequence(X, i_start, length, dilation):
     return values
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence_with_mean_std(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence_with_mean_std(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get a subsequence, its mean and std from a time series given a starting index.
 
     Parameters
@@ -249,8 +390,10 @@ def get_subsequence_with_mean_std(X, i_start, length, dilation):
     return values, means, stds
 
 
-@njit(cache=True, fastmath=True)
-def sliding_mean_std_one_series(X, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_mean_std_one_series(
+    X: np.ndarray, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray]:
     """Return the mean and standard deviation for all subsequence (l,d) in X.
 
     Parameters
@@ -258,9 +401,9 @@ def sliding_mean_std_one_series(X, length, dilation):
     X : array, shape (n_channels, n_timestamps)
         An input time series
     length : int
-        Length of the shapelet
+        Length of the subsequence
     dilation : int
-        Dilation of the shapelet
+        Dilation of the subsequence
 
     Returns
     -------
@@ -278,6 +421,9 @@ def sliding_mean_std_one_series(X, length, dilation):
     for i_channel in prange(n_channels):
         mod_dil = n_subs % dilation
         for i_mod_dilation in prange(dilation):
+            if i_mod_dilation + (length - 1) * dilation >= n_timestamps:
+                break
+
             _idx = i_mod_dilation
             _sum = 0
             _sum2 = 0
@@ -317,8 +463,10 @@ def sliding_mean_std_one_series(X, length, dilation):
     return mean, std
 
 
-@njit(cache=True, fastmath=True)
-def sliding_dot_product(X, values, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_dot_product(
+    X: np.ndarray, values: np.ndarray, length: int, dilation: int
+) -> np.ndarray:
     """Compute a sliding dot product between a time series and a shapelet.
 
     Parameters
@@ -353,7 +501,7 @@ def sliding_dot_product(X, values, length, dilation):
 
 
 @njit(cache=True)
-def combinations_1d(x, y):
+def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Return the unique pairs of the 2D array made by concatenating x and y.
 
     Parameters

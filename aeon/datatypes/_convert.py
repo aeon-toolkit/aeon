@@ -167,7 +167,7 @@ def convert(
         pass
     else:
         raise RuntimeError(
-            "bug: unrechable condition error, store_behaviour has unexpected value"
+            "bug: unreachable condition error, store_behaviour has unexpected value"
         )
 
     converted_obj = convert_dict[key](obj, store=store)

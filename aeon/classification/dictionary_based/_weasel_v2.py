@@ -16,7 +16,7 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 
 # some constants on input parameters for WEASEL v2
 SWITCH_SMALL_INSTANCES = 250

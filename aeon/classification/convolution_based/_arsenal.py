@@ -18,7 +18,7 @@ from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.rocket import (
+from aeon.transformations.collection.rocket import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
@@ -218,7 +218,7 @@ class Arsenal(BaseClassifier):
                 train_time < time_limit
                 and self.n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_estimator)(
                         _clone_estimator(
                             base_rocket,
@@ -231,7 +231,7 @@ class Arsenal(BaseClassifier):
                         X,
                         y,
                     )
-                    for i in range(self._threads_to_use)
+                    for i in range(self._n_jobs)
                 )
 
                 estimators, transformed_data = zip(*fit)
@@ -239,10 +239,10 @@ class Arsenal(BaseClassifier):
                 self.estimators_ += estimators
                 self.transformed_data_ += transformed_data
 
-                self.n_estimators += self._threads_to_use
+                self.n_estimators += self._n_jobs
                 train_time = time.time() - start_time
         else:
-            fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_estimator)(
                     _clone_estimator(
                         base_rocket,
@@ -303,7 +303,7 @@ class Arsenal(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        y_probas = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -340,7 +340,7 @@ class Arsenal(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        p = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,

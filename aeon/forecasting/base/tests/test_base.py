@@ -12,39 +12,49 @@ import pytest
 from pandas.testing import assert_series_equal
 
 from aeon.datatypes import check_is_mtype, convert
+from aeon.datatypes._panel._convert import from_nested_to_multi_index
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
+from aeon.utils._testing.collection import make_3d_test_data, make_nested_dataframe_data
 from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.panel import _make_panel
 from aeon.utils._testing.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-PANEL_MTYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
-HIER_MTYPES = ["pd_multiindex_hier"]
+COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
+HIER_TYPES = ["pd_multiindex_hier"]
+
+
+def _get_y(input_type, n_instances):
+    if input_type == "numpy3D":
+        y, _ = make_3d_test_data(n_cases=n_instances, random_state=42)
+    elif input_type == "nested_univ":
+        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
+    elif input_type == "pd-multiindex":
+        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
+        y = from_nested_to_multi_index(y)
+    return y
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pmdarima", severity="none"),
     reason="skip test if required soft dependency for ARIMA not available",
 )
-@pytest.mark.parametrize("mtype", PANEL_MTYPES)
-def test_vectorization_series_to_panel(mtype):
+@pytest.mark.parametrize("input_type", COLLECTION_TYPES)
+def test_vectorization_series_to_panel(input_type):
     """Test that forecaster vectorization works for Panel data.
 
     This test passes Panel data to the ARIMA forecaster which internally has an
     implementation for Series only, so the BaseForecaster has to vectorize.
     """
     n_instances = 10
-
-    y = _make_panel(n_instances=n_instances, random_state=42, return_mtype=mtype)
-
+    y = _get_y(input_type, n_instances)
     f = ARIMA()
     y_pred = f.fit(y).predict([1, 2, 3])
-    valid, _, metadata = check_is_mtype(y_pred, mtype, return_metadata=True)
+    valid, _, metadata = check_is_mtype(y_pred, input_type, return_metadata=True)
 
     msg = (
         f"vectorization of forecasters does not work for test example "
-        f"of mtype {mtype}, using the ARIMA forecaster"
+        f"of type {input_type}, using the ARIMA forecaster"
     )
 
     assert valid, msg
@@ -76,8 +86,8 @@ def test_vectorization_series_to_panel(mtype):
     not _check_soft_dependencies("pmdarima", severity="none"),
     reason="skip test if required soft dependency for ARIMA not available",
 )
-@pytest.mark.parametrize("mtype", HIER_MTYPES)
-def test_vectorization_series_to_hier(mtype):
+@pytest.mark.parametrize("input_type", HIER_TYPES)
+def test_vectorization_series_to_hier(input_type):
     """Test that forecaster vectorization works for Hierarchical data.
 
     This test passes Hierarchical data to the ARIMA forecaster which internally has an
@@ -87,15 +97,15 @@ def test_vectorization_series_to_hier(mtype):
     n_instances = reduce(mul, hierarchy_levels)
 
     y = _make_hierarchical(hierarchy_levels=hierarchy_levels, random_state=84)
-    y = convert(y, from_type="pd_multiindex_hier", to_type=mtype)
+    y = convert(y, from_type="pd_multiindex_hier", to_type=input_type)
 
     f = ARIMA()
     y_pred = f.fit(y).predict([1, 2, 3])
-    valid, _, metadata = check_is_mtype(y_pred, mtype, return_metadata=True)
+    valid, _, metadata = check_is_mtype(y_pred, input_type, return_metadata=True)
 
     msg = (
         f"vectorization of forecasters does not work for test example "
-        f"of mtype {mtype}, using the ARIMA forecaster"
+        f"of mtype {input_type}, using the ARIMA forecaster"
     )
 
     assert valid, msg
@@ -130,16 +140,15 @@ PROBA_DF_METHODS = ["predict_interval", "predict_quantiles", "predict_var"]
     reason="skip test if required soft dependency for ARIMA not available",
 )
 @pytest.mark.parametrize("method", PROBA_DF_METHODS)
-@pytest.mark.parametrize("mtype", PANEL_MTYPES)
-def test_vectorization_series_to_panel_proba(method, mtype):
+@pytest.mark.parametrize("input_type", COLLECTION_TYPES)
+def test_vectorization_series_to_panel_proba(method, input_type):
     """Test that forecaster vectorization works for Panel data, predict_proba.
 
     This test passes Panel data to the ARIMA forecaster which internally has an
     implementation for Series only, so the BaseForecaster has to vectorize.
     """
     n_instances = 10
-
-    y = _make_panel(n_instances=n_instances, random_state=42, return_mtype=mtype)
+    y = _get_y(input_type, n_instances)
 
     est = ARIMA().fit(y)
     y_pred = getattr(est, method)([1, 2, 3])
@@ -155,7 +164,7 @@ def test_vectorization_series_to_panel_proba(method, mtype):
 
     msg = (
         f"vectorization of forecaster method {method} does not work for test example "
-        f"of mtype {mtype}, using the ARIMA forecaster"
+        f"of mtype {input_type}, using the ARIMA forecaster"
     )
 
     assert valid, msg
@@ -166,8 +175,8 @@ def test_vectorization_series_to_panel_proba(method, mtype):
     reason="skip test if required soft dependency for ARIMA not available",
 )
 @pytest.mark.parametrize("method", PROBA_DF_METHODS)
-@pytest.mark.parametrize("mtype", HIER_MTYPES)
-def test_vectorization_series_to_hier_proba(method, mtype):
+@pytest.mark.parametrize("input_type", HIER_TYPES)
+def test_vectorization_series_to_hier_proba(method, input_type):
     """Test that forecaster vectorization works for Hierarchical data, predict_proba.
 
     This test passes Hierarchical data to the ARIMA forecaster which internally has an
@@ -175,7 +184,7 @@ def test_vectorization_series_to_hier_proba(method, mtype):
     """
     hierarchy_levels = (2, 4)
     y = _make_hierarchical(hierarchy_levels=hierarchy_levels, random_state=84)
-    y = convert(y, from_type="pd_multiindex_hier", to_type=mtype)
+    y = convert(y, from_type="pd_multiindex_hier", to_type=input_type)
 
     est = ARIMA().fit(y)
     y_pred = getattr(est, method)([1, 2, 3])
@@ -191,7 +200,7 @@ def test_vectorization_series_to_hier_proba(method, mtype):
 
     msg = (
         f"vectorization of forecaster method {method} does not work for test example "
-        f"of mtype {mtype}, using the ARIMA forecaster"
+        f"of mtype {input_type}, using the ARIMA forecaster"
     )
 
     assert valid, msg
@@ -222,7 +231,7 @@ def test_vectorization_preserves_row_index_names(method):
     not _check_soft_dependencies("pmdarima", severity="none"),
     reason="skip test if required soft dependency for ARIMA not available",
 )
-@pytest.mark.parametrize("mtype", HIER_MTYPES)
+@pytest.mark.parametrize("mtype", HIER_TYPES)
 @pytest.mark.parametrize("exogeneous", [True, False])
 def test_vectorization_multivariate(mtype, exogeneous):
     """Test that forecaster vectorization preserves row index names in forecast."""
