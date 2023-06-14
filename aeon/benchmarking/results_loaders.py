@@ -32,11 +32,11 @@ NAME_ALIASES = {
         "inceptiontime",
         "InceptionTimeClassifier",
     },
-    "Hydra-MultiROCKET": {"Hydra-MR", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
+    "Hydra-MR": {"Hydra-MultiROCKET", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
     "RSTSF": {"R_RSTF", "RandomSTF", "RSTFClassifier"},
-    "ProximityForest": {"PF", "ProximityForestV1", "PFV1"},
-    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
+    "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
+    "WEASEL-D": {"WEASEL", "WEASEL-Dilation", "Weasel-D"},
 }
 
 
@@ -250,6 +250,6 @@ def get_estimator_results_as_array(
             names.append(d)
 
     if include_missing:
-        return np.array(all_res)
+        return np.array(all_res, dtype=np.float32)
     else:
-        return np.array(all_res), names
+        return np.array(all_res, dtype=np.float32), names
