@@ -1251,7 +1251,7 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
     Parameters
     ----------
     name : str
-        Name of data set. If a dataset that is listed in tsc_dataset_names is given,
+        Name of data set. If a dataset that is listed in tsc_data_lists is given,
         this function will look in the extract_path first, and if it is not present,
         attempt to download the data from www.timeseriesclassification.com, saving it to
         the extract_path.
