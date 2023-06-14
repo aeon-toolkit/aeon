@@ -150,7 +150,6 @@ class ResNetClassifier(BaseDeepClassifier):
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.padding = padding
-        self.activation = activation
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.n_epochs = n_epochs
