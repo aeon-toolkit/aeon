@@ -142,7 +142,7 @@ univariate = [
     "SmoothSubspace",
     "SonyAIBORobotSurface1",
     "SonyAIBORobotSurface2",
-    "StarlightCurves",
+    "StarLightCurves",
     "Strawberry",
     "SwedishLeaf",
     "Symbols",
@@ -162,6 +162,7 @@ univariate = [
     "WordSynonyms",
     "Worms",
     "WormsTwoClass",
+    "Yoga",
 ]
 
 """ 33 UEA multivariate time series classification problems [2]"""
@@ -295,7 +296,7 @@ univariate_equal_length = [
     "SmoothSubspace",
     "SonyAIBORobotSurface1",
     "SonyAIBORobotSurface2",
-    "StarlightCurves",
+    "StarLightCurves",
     "Strawberry",
     "SwedishLeaf",
     "Symbols",
