@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Result loading tests."""
+import os
+
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
@@ -8,34 +10,37 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results_as_array,
 )
 
-cls = ["HC2"]
-data = ["Chinatown"]
+cls = ["HC2", "FreshPRINCE", "InceptionT"]
+data = ["Chinatown", "Tools"]
+data_path = (
+    "./aeon/benchmarking/example_results/"
+    if os.getcwd().split("\\")[-1] != "tests"
+    else "../example_results/"
+)
 
 
-# Tests not implemented because of dependency on external
-def _get_results_from_tsc_com():
-    """Test loading results from tsc.com returned in a dict.
+def test_get_estimator_results():
+    """Test loading results returned in a dict.
 
     Tests with baked in examples to avoid reliance on external website.
     """
-    res = get_estimator_results(
-        estimators=cls, datasets=data, path="../example_results/"
-    )
+    res = get_estimator_results(estimators=cls, datasets=data, path=data_path)
     assert res["HC2"]["Chinatown"] == 0.9825072886297376
 
 
-def _get_array_from_tsc_com():
-    """Test loading results from tsc.com returned in an array.
+def test_get_estimator_results_as_array():
+    """Test loading results returned in an array.
 
     Tests with baked in examples to avoid reliance on external website.
     """
     res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path="../example_results/"
+        estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     assert res[0][0] == 0.9825072886297376
 
 
 def test_alias():
+    """Test the name aliasing."""
     name = estimator_alias("HIVECOTEV2")
     name2 = estimator_alias("HC2")
     assert name == "HC2" and name2 == "HC2"

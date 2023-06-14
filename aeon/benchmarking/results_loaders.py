@@ -27,7 +27,6 @@ NAME_ALIASES = {
     },
     "InceptionT": {
         "InceptionTime",
-        "InceptionTimeClassifeir",
         "IT",
         "InceptionT",
         "inceptiontime",
