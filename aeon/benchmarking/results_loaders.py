@@ -11,7 +11,7 @@ __author__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 
-from aeon.datasets.tsc_data_lists import univariate as UCR
+from aeon.datasets.tsc_dataset_names import univariate as UCR
 
 VALID_RESULT_TYPES = ["accuracy", "auroc", "balancedaccuracy"]
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
@@ -118,7 +118,7 @@ def get_estimator_results(
         list of estimators to search for.
     datasets: list of string default = UCR.
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists
+        datasets listed in aeon.datasets.tsc_dataset_names
     default_only: boolean, default = True
         whether to recover just the default test results, or 30 resamples
     path: string default https://timeseriesclassification.com/results/ReferenceResults/
@@ -195,7 +195,7 @@ def get_estimator_results_as_array(
         list of estimators to search for.
     datasets: list of string default = UCR.
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists
+        datasets listed in aeon.datasets.tsc_dataset_names
     default_only: boolean, default = True
         whether to recover just the default test results, or 30 resamples. If false,
         values are averaged to get a 2D array.
