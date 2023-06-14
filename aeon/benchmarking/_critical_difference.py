@@ -405,3 +405,5 @@ def plot_critical_difference(
         )
         start += height
     plt.show()
+
+    return fig
