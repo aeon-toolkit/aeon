@@ -596,7 +596,7 @@ def load_from_tsfile_to_dataframe(
         # Create a DataFrame from the data parsed above
         data = pd.DataFrame(dtype=np.float32)
         for dim in range(0, num_dimensions):
-            data["dim_" + str(dim)] = instance_list[dim]
+            data["var_" + str(dim)] = instance_list[dim]
         # Check if we should return any associated class labels separately
         if class_labels:
             if return_separate_X_and_y:
@@ -713,7 +713,7 @@ def load_from_arff_to_dataframe(
                             )
     X = pd.DataFrame(dtype=np.float32)
     for dim in range(len(instance_list)):
-        X["dim_" + str(dim)] = instance_list[dim]
+        X["var_" + str(dim)] = instance_list[dim]
     if has_class_labels:
         if return_separate_X_and_y:
             return X, np.asarray(y)
@@ -751,7 +751,7 @@ def load_from_ucr_tsv_to_dataframe(
     y = df.pop(0).values
     df.columns -= 1
     X = pd.DataFrame()
-    X["dim_0"] = [pd.Series(df.iloc[x, :]) for x in range(len(df))]
+    X["var_0"] = [pd.Series(df.iloc[x, :]) for x in range(len(df))]
     if return_separate_X_and_y is True:
         return X, y
     X["class_val"] = y
@@ -822,8 +822,6 @@ def load_tsf_to_dataframe(
         - other valid mtype strings are Panel or Hierarchical mtypes in
             datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
             conversion to that mtype will be attempted
-        For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
 
     Returns
     -------

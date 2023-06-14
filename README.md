@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
+    <a href="https://aeon-toolkit.org"><img src="https://github.com/aeon-toolkit/aeon/blob/main/docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
 </p>
 
 # ⌛ Welcome to **aeon**
@@ -13,7 +13,8 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.2.0`. You can view the full changelog [here](https://www.aeon-toolkit.org/en/latest/changelog.html).
+The latest `aeon` release is `v0.3.0`. You can view the full changelog
+[here](https://www.aeon-toolkit.org/en/latest/changelog.html).
 
 ```diff
 - The deprecation policy is currently suspended, be careful with the version bounds used when including aeon as a dependency.
