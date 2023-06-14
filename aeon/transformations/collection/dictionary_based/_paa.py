@@ -4,19 +4,20 @@ import numpy as np
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = "MatthewMiddlehurst"
+__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
 
 class PAA(BaseTransformer):
     """Piecewise Aggregate Approximation Transformer (PAA).
 
     (PAA) Piecewise Aggregate Approximation Transformer, as described in [1]. For
-    each series reduce the dimensionality to num_intervals, where each value is the
+    each series reduce the dimensionality to n_segments, where each value is the
     mean of values in the interval.
 
     Parameters
     ----------
-    n_intervals   : int, dimension of the transformed data (default 8)
+    n_segments   : int, default = 8
+        Dimension of the transformed data
 
     Notes
     -----
@@ -27,10 +28,12 @@ class PAA(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.dictionary_based import PAA
-    >>> import numpy as np
-    >>> data = np.array([[[1,2,3,4,5,6,7,8,9,10]],[[5,5,5,5,5,5,5,5,5,5]]])
-    >>> paa = PAA(n_intervals=2)
-    >>> data2 = paa.fit_transform(data)
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> paa = PAA(n_segments=10, alphabet_size=8)
+    >>> X_train_paa = paa.fit_transform(X_train)
+    >>> X_test_paa = paa.transform(X_test)
     """
 
     _tags = {
@@ -38,105 +41,103 @@ class PAA(BaseTransformer):
         "scitype:instancewise": True,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
+        "capability:multivariate": True,
     }
 
-    def __init__(self, n_intervals=8):
-        self.n_intervals = n_intervals
+    def __init__(self, n_segments=8):
+        self.n_segments = n_segments
         super(PAA, self).__init__()
 
-    def set_num_intervals(self, n):
-        """Set self.num_intervals to n."""
-        self.n_intervals = n
-
     def _transform(self, X, y=None):
-        """Transform data.
+        """Transform the input time series to PAA segments.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            collection of time series to transform
-        y : ignored argument for interface compatibility
+        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+            The input time series
+        y : np.ndarray of shape = (n_instances,), default = None
+            The labels are not used
 
         Returns
         -------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            collection of transformed time series
+        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
         """
-        # Get information about the dataframe
-        # PAA acts on each dimension, so its best to reshape prior to transform
-        n_cases, n_channels, series_length = X.shape
-        _X = np.swapaxes(X, 0, 1)
+        length_TS = int(X.shape[-1])
+        all_indices = np.arange(length_TS)
 
-        # Check the parameters are appropriate
-        self._check_parameters(series_length)
+        # The following will include the left out indices
+        # For instance if the length of the TS is 10 and the number
+        # of segments is 3, the indices will be [0:3], [3:6] and [6:10]
+        # so 3 segments, two of length 3 and one of length 4
+        split_segments = np.array_split(all_indices, self.n_segments)
 
-        # On each dimension, perform PAA
-        channels = []
-        for i in range(n_channels):
-            channels.append(self._perform_paa_along_dim(_X[i]))
-        result = np.array(channels)
-        result = np.swapaxes(result, 0, 1)
+        # If the series length is divisible by the number of segments
+        # then the transformation can be done in one line
+        # If not, a for loop is needed only on the segments while
+        # parallelizing the transformation
 
-        return result
+        if length_TS % self.n_segments == 0:
+            X_paa = X[:, :, split_segments].mean(axis=-1)
+            return X_paa
 
-    def _perform_paa_along_dim(self, X):
-        n_cases, series_length = X.shape
-        data = []
-
-        for i in range(n_cases):
-            series = X[i, :]
-
-            frames = []
-            current_frame = 0
-            current_frame_size = 0
-            frame_length = series_length / self.n_intervals
-            frame_sum = 0
-
-            for n in range(series_length):
-                remaining = frame_length - current_frame_size
-
-                if remaining > 1:
-                    frame_sum += series[n]
-                    current_frame_size += 1
-                else:
-                    frame_sum += remaining * series[n]
-                    current_frame_size += remaining
-
-                if current_frame_size == frame_length:
-                    frames.append(frame_sum / frame_length)
-                    current_frame += 1
-
-                    frame_sum = (1 - remaining) * series[n]
-                    current_frame_size = 1 - remaining
-
-            # if the last frame was lost due to double imprecision
-            if current_frame == self.n_intervals - 1:
-                frames.append(frame_sum / frame_length)
-
-            data.append(frames)
-
-        return data
-
-    def _check_parameters(self, series_length):
-        """Check parameters of PAA.
-
-        Function for checking the values of parameters inserted into PAA.
-        For example, the number of subsequences cannot be larger than the
-        time series length.
-
-        Throws
-        ------
-        ValueError or TypeError if a parameters input is invalid.
-        """
-        if isinstance(self.n_intervals, int):
-            if self.n_intervals <= 0:
-                raise ValueError("num_intervals must have the value of at least 1")
-            if self.n_intervals > series_length:
-                raise ValueError(
-                    "num_intervals cannot be higher than the time series length."
-                )
         else:
-            raise TypeError(
-                f"num_intervals must be an 'int'. Found"
-                f" {type(self.n_intervals).__name__} instead."
-            )
+            n_samples, n_channels, _ = X.shape
+            X_paa = np.zeros(shape=(n_samples, n_channels, self.n_segments))
+
+            for _s, segment in enumerate(split_segments):
+                X_paa[:, :, _s] = X[:, :, segment].mean(axis=-1)
+
+            return X_paa
+
+    def inverse_paa(self, X, original_length):
+        """Produce the inverse PAA transformation.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances, n_channels, n_segments)
+            The output of the PAA transformation
+
+        Returns
+        -------
+        paa_inverse : np.ndarray(n_instances, n_channels, series_length)
+            The inverse of paa transform
+        """
+        if original_length % self.n_segments == 0:
+            return np.repeat(X, repeats=int(original_length / self.n_segments), axis=-1)
+
+        else:
+            n_samples, n_channels, _ = X.shape
+            X_inverse_paa = np.zeros(shape=(n_samples, n_channels, original_length))
+
+            all_indices = np.arange(original_length)
+            split_segments = np.array_split(all_indices, self.n_segments)
+
+            for _s, segment in enumerate(split_segments):
+                X_inverse_paa[:, :, segment] = np.repeat(
+                    X[:, :, [_s]], repeats=len(segment), axis=-1
+                )
+
+            return X_inverse_paa
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        params = {"n_segments": 10}
+        return params
