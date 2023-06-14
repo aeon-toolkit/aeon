@@ -7,6 +7,7 @@ import time
 import pytest
 
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.utils._testing.collection import make_2d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["achieveordie", "hadifawaz1999"]
@@ -53,17 +54,17 @@ class _DummyDeepRegressor(BaseDeepRegressor):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_regressor():
-    import numpy as np
-
     last_file_name = str(time.time_ns())
 
     # create a dummy regressor
     dummy_deep_rg = _DummyDeepRegressor(last_file_name=last_file_name)
 
+    # generate random data
+
+    X, y = make_2d_test_data()
+
     # test fit function on random data
-    dummy_deep_rg.fit(
-        X=np.random.normal(size=(10, 100)), y=np.random.normal(size=(10,))
-    )
+    dummy_deep_rg.fit(X=X, y=y)
 
     # test save last model to file than delete it
 
