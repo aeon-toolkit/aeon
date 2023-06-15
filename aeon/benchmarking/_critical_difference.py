@@ -200,6 +200,9 @@ def plot_critical_difference(
 
     # Step 2: calculate average rank per strategy
     avranks = ranked_data.mean(axis=0)
+    # Sort labels
+    combined = zip(avranks, labels)
+    temp_labels = []
 
     # Sort labels and scores
     temp = np.transpose(scores)
