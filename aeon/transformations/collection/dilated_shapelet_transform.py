@@ -20,6 +20,7 @@ from aeon.utils.numba.general import (
     combinations_1d,
     get_subsequence,
     get_subsequence_with_mean_std,
+    set_numba_random_seed,
     sliding_dot_product,
     sliding_mean_std_one_series,
 )
@@ -35,7 +36,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     each candidate shapelet:
         - Length is randomly selected from shapelet_lengths parameter
         - Dilation is sampled as a function the shapelet length and time series length
-        - Normalization is choosed randomly given the probability given as parameter
+        - Normalization is chosen randomly given the probability given as parameter
         - Value is sampled randomly from an input time series given the length and
         dilation parameter.
         - Threshold is randomly chosen between two percentiles of the distribution
@@ -67,11 +68,11 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
     threshold_percentiles : array, default=None
-        The two perceniles used to select the threshold used to compute the Shapelet
+        The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
+        The strength of the alpha similarity pruning. The higher the value, the lower
         the allowed number of common indexes with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
@@ -79,7 +80,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         1. Value above it have no effect for now.
     use_prime_dilations : bool, default=False
         If True, restrict the value of the shapelet dilation parameter to be prime
-        values. This can greatly speed-up the algorithm for long time series and/or
+        values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
     n_jobs : int, default=1
         The number of threads used for both `fit` and `transform`.
@@ -104,7 +105,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     affecting a random feature subsets to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
-    It also speed up the shapelet computation with early abandoning, online
+    It also speeds up the shapelet computation with early abandoning, online
     normalization and use of the dot product to compute z-normalized squared Euclidean
     distances.
 
@@ -324,7 +325,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         return params
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def _init_random_shapelet_params(
     max_shapelets,
     shapelet_lengths,
@@ -351,7 +352,7 @@ def _init_random_shapelet_params(
         a z-normalized distance.
     use_prime_dilations : bool
         If True, restrict the value of the shapelet dilation parameter to be prime
-        values. This can greatly speed-up the algorithm for long time series and/or
+        values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
     n_channels : int
         Number of channels of the input time series.
@@ -370,9 +371,9 @@ def _init_random_shapelet_params(
         An initialized (empty) value array for each shapelet
     normalize : array, shape (max_shapelets)
         The randomly initialized normalization indicator of each shapelet
-    - means : array, shape (max_shapelets, n_channels)
+    means : array, shape (max_shapelets, n_channels)
         Means of the shapelets
-    - stds : array, shape (max_shapelets, n_channels)
+    stds : array, shape (max_shapelets, n_channels)
         Standard deviation of the shapelets
 
     """
@@ -414,7 +415,7 @@ def _init_random_shapelet_params(
     return values, lengths, dilations, threshold, normalize, means, stds
 
 
-@njit(cache=True, parallel=True, fastmath=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def random_dilated_shapelet_extraction(
     X,
     y,
@@ -447,19 +448,19 @@ def random_dilated_shapelet_extraction(
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
     threshold_percentiles : array
-        The two perceniles used to select the threshold used to compute the Shapelet
+        The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature.
     alpha_similarity : float
-        The strenght of the alpha similarity pruning. The higher the value, the lower
+        The strength of the alpha similarity pruning. The higher the value, the lower
         the allowed number of common indexes with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5.
     use_prime_dilations : bool
         If True, restrict the value of the shapelet dilation parameter to be prime
-        values. This can greatly speed-up the algorithm for long time series and/or
+        values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
-    random_state : int
+    seed : int
         Seed for random number generation.
 
     Returns
@@ -482,9 +483,10 @@ def random_dilated_shapelet_extraction(
             Standard deviation of the shapelets
     """
     n_instances, n_channels, series_length = X.shape
+
     # Fix the random seed
-    if seed is not None:
-        np.random.seed(seed)
+    set_numba_random_seed(seed)
+
     # Initialize shapelets
     (
         values,
@@ -597,7 +599,7 @@ def random_dilated_shapelet_extraction(
     )
 
 
-@njit(cache=True, parallel=True, fastmath=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def dilated_shapelet_transform(X, shapelets):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
@@ -605,7 +607,7 @@ def dilated_shapelet_transform(X, shapelets):
     ----------
     X : array, shape (n_instances, n_channels, series_length)
         Time series dataset
-    Shapelets : tuple
+    shapelets : tuple
     The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
@@ -672,7 +674,7 @@ def dilated_shapelet_transform(X, shapelets):
     return X_new
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def compute_shapelet_features(X, values, length, dilation, threshold):
     """Extract the features from a shapelet distance vector.
 
@@ -695,15 +697,8 @@ def compute_shapelet_features(X, values, length, dilation, threshold):
         Dilation of the shapelet
     values : array, shape (n_channels, length)
         The resulting subsequence
-    X_means : array, shape (n_channels)
-        The mean of each subsequence (l,d) of channel of the input time series
-    X_stds: array, shape (n_channels)
-        The standard deviation of each subsequence (l,d) of channel of the
-        input time series
-    means : array, shape (n_channels)
-        The mean of each channel of the shapelet
-    stds: array, shape (n_channels)
-        The std of each channel of the shapelet
+    threshold : float
+        The threshold parameter of the shapelet
 
     Returns
     -------
@@ -737,7 +732,7 @@ def compute_shapelet_features(X, values, length, dilation, threshold):
     return np.float64(_min), np.float64(_argmin), np.float64(_SO)
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def compute_shapelet_features_normalized(
     X, values, length, dilation, threshold, X_means, X_stds, means, stds
 ):
@@ -776,7 +771,6 @@ def compute_shapelet_features_normalized(
     -------
     min, argmin, shapelet occurence
         The three computed features as float dtypes
-
     """
     _min = np.inf
     _argmin = np.inf
@@ -817,7 +811,7 @@ def compute_shapelet_features_normalized(
     return np.float64(_min), np.float64(_argmin), np.float64(_SO)
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, stds):
     """Compute the normalized distance vector between a shapelet and a time series.
 
@@ -869,7 +863,7 @@ def compute_normalized_shapelet_dist_vector(X, values, length, dilation, means, 
     return d_vect
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def compute_shapelet_dist_vector(X, values, length, dilation):
     """Compute the distance vector between a shapelet and a time series.
 

@@ -47,8 +47,8 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_dataframe_loaders import load_tsf_to_dataframe
-from aeon.datasets._data_loaders import _load_dataset, _load_provided_dataset
+from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
+from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
@@ -96,9 +96,9 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        50
     Test cases:         150
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.ph?Dataset=GunPoint
+    Details: http://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
-    return _load_dataset("GunPoint", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("GunPoint", split, return_X_y, return_type=return_type)
 
 
 def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
@@ -144,7 +144,7 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  6
     Details: http://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
     """
-    return _load_dataset("OSULeaf", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("OSULeaf", split, return_X_y, return_type=return_type)
 
 
 def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
@@ -192,7 +192,7 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     Details:http://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
     """
     name = "ItalyPowerDemand"
-    return _load_dataset(name, split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset(name, split, return_X_y, return_type=return_type)
 
 
 def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
@@ -245,7 +245,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     Details: http://timeseriesclassification.com/description.php?Dataset=Chinatown
     for the full dataset
     """
-    return _load_provided_dataset("UnitTest", split, return_X_y, return_type)
+    return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
 
 
 def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
@@ -292,7 +292,7 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  3
     Details: http://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="ArrowHead", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
@@ -340,7 +340,7 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  10
     Details: http://www.timeseriesclassification.com/description.php?Dataset=ACSF1
     """
-    return _load_dataset("ACSF1", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("ACSF1", split, return_X_y, return_type=return_type)
 
 
 def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
@@ -389,7 +389,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
             f"array, but cannot because it is a multivariate problem. Use "
             f"numpy3d instead"
         )
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="BasicMotions", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
@@ -435,7 +435,7 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     >>> from aeon.datasets import load_plaid
     >>> X, y = load_plaid()
     """
-    return _load_dataset("PLAID", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("PLAID", split, return_X_y, return_type=return_type)
 
 
 def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
@@ -475,7 +475,9 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     Number of classes:  9
     Details: http://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
     """
-    return _load_dataset("JapaneseVowels", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset(
+        "JapaneseVowels", split, return_X_y, return_type=return_type
+    )
 
 
 # forecasting data sets
@@ -963,6 +965,10 @@ def load_solar(
     api_version : string or None, default="v4"
         API version to call. If None then a stored sample of the data is loaded.
 
+    Return
+    ------
+    pd.Series
+
     References
     ----------
     .. [1] https://www.solar.sheffield.ac.uk/pvlive/
@@ -1087,11 +1093,11 @@ def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
     """
     name = "Covid3Month"
     if return_X_y:
-        X, y = _load_dataset(name, split, return_X_y, return_type)
+        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
         y = y.astype(float)
         return X, y
     else:
-        X = _load_dataset(name, split, return_X_y, return_type)
+        X = _load_tsc_dataset(name, split, return_X_y, return_type)
         return X
 
 
@@ -1144,9 +1150,9 @@ def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
     """
     name = "CardanoSentiment"
     if return_X_y:
-        X, y = _load_dataset(name, split, return_X_y, return_type)
+        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
         y = y.astype(float)
         return X, y
     else:
-        X = _load_dataset(name, split, return_X_y, return_type)
+        X = _load_tsc_dataset(name, split, return_X_y, return_type)
         return X
