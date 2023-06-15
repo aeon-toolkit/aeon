@@ -490,7 +490,10 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = "https://timeseriesclassification.com/Downloads/%s.zip" % name
+            url = (
+                "https://timeseriesclassification.com/ClassificationDownloads/%s.zip"
+                % name
+            )
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
