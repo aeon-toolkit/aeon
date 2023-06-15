@@ -31,7 +31,7 @@ class PAA(BaseTransformer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> paa = PAA(n_segments=10, alphabet_size=8)
+    >>> paa = PAA(n_segments=10)
     >>> X_train_paa = paa.fit_transform(X_train)
     >>> X_test_paa = paa.transform(X_test)
     """
