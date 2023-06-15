@@ -119,7 +119,7 @@ class SAX(BaseTransformer):
         if not self.znormalized:
             X = scipy.stats.zscore(X, axis=-1)
 
-        paa = PAA(n_intervals=self.n_segments)
+        paa = PAA(n_segments=self.n_segments)
         X_paa = paa.fit_transform(X=X)
 
         return X_paa
