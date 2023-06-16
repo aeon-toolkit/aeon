@@ -139,6 +139,7 @@ def test_new_kmedoids():
     X_test, y_test = load_basic_motions(split="test")
 
     kmedoids = TimeSeriesKMedoids(
+        n_clusters=len(set(y_train)),
         random_state=1,
         n_init=2,
         max_iter=5,

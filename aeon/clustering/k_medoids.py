@@ -144,7 +144,18 @@ class TimeSeriesKMedoids(BaseClusterer):
         pass
 
     def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
-        pass
+        if isinstance(self.distance, str):
+            pairwise_matrix = pairwise_distance(
+                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+            )
+        else:
+            pairwise_matrix = pairwise_distance(
+                X,
+                self.cluster_centers_,
+                self._distance_callable,
+                **self._distance_params
+            )
+        return pairwise_matrix.argmin(axis=1)
 
     def _compute_new_cluster_centers(
             self, X: np.ndarray, assignment_indexes: np.ndarray
@@ -160,22 +171,18 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         Returns
         -------
-        np.ndarray (3d of shape (n_clusters, n_dimensions, series_length)
-            New cluster center values.
+        np.ndarray (1d array of shape (n_clusters,))
+            New cluster centre indexes.
         """
-        new_centers = np.zeros((self.n_clusters, X.shape[1], X.shape[2]))
+        new_centre_indexes = np.empty(self.n_clusters, dtype=int)
         for i in range(self.n_clusters):
             curr_indexes = np.where(assignment_indexes == i)[0]
-            result = self._compute_medoids(X, curr_indexes)
-            if result.shape[0] > 0:
-                new_centers[i, :] = result
-        return new_centers
+            new_centre_indexes[i] = self._compute_medoids(X, curr_indexes)
+        return np.array(new_centre_indexes)
 
     def _compute_distance(
             self, X: np.ndarray, first_index: int, second_index: int
     ):
-        test = self._distance_cache[first_index, second_index]
-        test2 = np.isfinite(self._distance_cache[first_index, second_index])
         if np.isfinite(self._distance_cache[first_index, second_index]):
             return self._distance_cache[first_index, second_index]
         return self._distance_callable(
@@ -202,7 +209,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             self, X: np.ndarray, indexes: np.ndarray
     ):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
-        return X[np.argmin(sum(distance_matrix))]
+        return np.argmin(sum(distance_matrix))
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
         """Perform one pass of kmeans.
@@ -230,48 +237,46 @@ class TimeSeriesKMedoids(BaseClusterer):
             Sum of squared distances of samples to their closest cluster center,
             weighted by the sample weights if provided.
         """
-        cluster_centres, cluster_centre_indexes = self._init_algorithm(
+        cluster_centre_indexes = self._init_algorithm(
             X
         )
         old_inertia = np.inf
-        old_labels = None
+        old_indexes = None
         for i in range(self.max_iter):
-            labels, inertia = self._assign_clusters(
+            indexes, inertia = self._assign_clusters(
                 X,
-                cluster_centres,
                 cluster_centre_indexes
             )
-            joe = ""
 
             if np.abs(old_inertia - inertia) < self.tol:
                 break
             old_inertia = inertia
 
-            if np.array_equal(labels, old_labels):
+            if np.array_equal(indexes, old_indexes):
                 if self.verbose:
                     print(  # noqa: T001, T201
                         f"Converged at iteration {i}: strict convergence."
                     )
                 break
-            old_labels = labels
+            old_indexes = indexes
 
-            cluster_centres = self._compute_new_cluster_centers(X, labels)
+            cluster_centre_indexes = self._compute_new_cluster_centers(X, indexes)
 
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
 
-        labels, inertia = self._assign_clusters(X, cluster_centres)
-        centres = cluster_centres
+        labels, inertia = self._assign_clusters(X, cluster_centre_indexes)
+        centres = X[cluster_centre_indexes]
 
         return labels, centres, inertia, i + 1
 
     def _assign_clusters(
             self,
             X: np.ndarray,
-            x_indexes: np.ndarray,
             cluster_centre_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
-        pairwise_matrix = self._compute_pairwise(X, x_indexes, cluster_centre_indexes)
+        X_indexes = np.arange(X.shape[0])
+        pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
     def _check_params(self) -> None:
@@ -301,22 +306,20 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _forgy_center_initializer(
             self, X: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> np.ndarray:
         indexes = self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
-        return X[indexes], indexes
+        return indexes
 
     def _random_center_initializer(
             self, X: np.ndarray
     ) -> np.ndarray:
-        new_centres = np.zeros((self.n_clusters, X.shape[1], X.shape[2]))
+        new_centre_indexes = np.empty(self.n_clusters, dtype=int)
         selected = self._random_state.choice(self.n_clusters, X.shape[0], replace=True)
         for i in range(self.n_clusters):
             curr_indexes = np.where(selected == i)[0]
-            result = self._compute_medoids(X, curr_indexes)
-            if result.shape[0] > 0:
-                new_centres[i, :] = result
+            new_centre_indexes[i] = self._compute_medoids(X, curr_indexes)
 
-        return new_centres,
+        return new_centre_indexes
 
     def _kmeans_plus_plus(
             self,
@@ -363,7 +366,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             centers[c] = X[best_candidate]
             centers_indexes[c] = best_candidate
 
-        return centers, centers_indexes
+        return centers_indexes
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
