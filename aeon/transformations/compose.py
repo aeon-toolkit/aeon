@@ -44,6 +44,7 @@ CORE_MTYPES = [
     "df-list",
     "nested_univ",
     "numpy3D",
+    "np-list",
     "pd_multiindex_hier",
 ]
 

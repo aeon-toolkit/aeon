@@ -463,11 +463,9 @@ class BaseTransformer(BaseEstimator):
 
         # convert to output mtype
         if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
+            Xt = self._convert_output(Xt, metadata=metadata)
 
-        return X_out
+        return Xt
 
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it.
@@ -600,12 +598,10 @@ class BaseTransformer(BaseEstimator):
             Xt = self._vectorize("inverse_transform", X=X_inner, y=y_inner)
 
         # convert to output mtype
-        if self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata, inverse=True)
-        else:
-            X_out = Xt
+        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+            Xt = self._convert_output(Xt, metadata=metadata, inverse=True)
 
-        return X_out
+        return Xt
 
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
