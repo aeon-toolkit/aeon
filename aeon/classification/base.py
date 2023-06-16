@@ -213,7 +213,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            return self._single_class_y_pred(X, method="predict")
+            n_instances = _get_n_cases(X)
+            return np.repeat(list(self._class_dictionary.keys()), n_instances)
 
         # call internal _predict_proba
         return self._predict(X)
@@ -240,19 +241,11 @@ class BaseClassifier(BaseEstimator, ABC):
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            return self._single_class_y_pred(X, method="predict_proba")
+            n_instances = _get_n_cases(X)
+            return np.repeat([[1]], n_instances, axis=0)
 
         # call internal _predict_proba
         return self._predict_proba(X)
-
-    def _single_class_y_pred(self, X, method="predict"):
-        """Handle the prediction case where only single class label was seen in fit."""
-        _, _, X_meta = check_is_scitype(X, scitype="Panel", return_metadata=True)
-        n_instances = X_meta["n_instances"]
-        if method == "predict":
-            return np.repeat(list(self._class_dictionary.keys()), n_instances)
-        else:  # method == "predict_proba"
-            return np.repeat([[1]], n_instances, axis=0)
 
     def score(self, X, y) -> float:
         """Scores predicted labels against ground truth labels on X.
@@ -553,3 +546,10 @@ class BaseClassifier(BaseEstimator, ABC):
         if y is None:
             return X
         return X, y
+
+
+def _get_n_cases(X):
+    """Handle the single exception of multi index DataFrame."""
+    if isinstance(X, pd.DataFrame) and isinstance(X.index, pd.MultiIndex):
+        return len(X.index.get_level_values(0).unique())
+    return len(X)
