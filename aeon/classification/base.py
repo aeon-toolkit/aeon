@@ -91,10 +91,10 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
+                of shape [n_instances, n_channels, n_timepoints]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+                of shape [n_instances, n_timepoints]
+        y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -160,12 +160,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array of shape (n_instances, n_channels, series_length)
-            or 2D np.array of shape (n_instances, series_length)
+        X : 3D np.array of shape (n_instances, n_channels, n_timepoints)
+            or 2D np.array of shape (n_instances, n_timepoints)
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array, of shape [n_instances] - predicted class labels
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
@@ -186,8 +186,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array of shape (n_cases, n_channels, series_length)
-            or 2D np.array of shape (n_cases, series_length)
+        X : 3D np.array of shape (n_cases, n_channels, n_timepoints)
+            or 2D np.array of shape (n_cases, n_timepoints)
 
         Returns
         -------
@@ -215,9 +215,9 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
+                of shape [n_instances, n_channels, n_timepoints]
             or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
+                of shape [n_instances, n_timepoints]
         y : 1D np.ndarray of shape [n_instances] - class labels (ground truth)
             indices correspond to instance indices in X
 
@@ -262,7 +262,9 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
+                3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
+            if self.get_tag("X_inner_mtype") = "np-list":
+                list of 2D np.ndarray of shape = [n_instances]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -288,7 +290,9 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
+                3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
+            if self.get_tag("X_inner_mtype") = "np-list":
+                list of 2D np.ndarray of shape = [n_instances]
 
         Returns
         -------
@@ -308,7 +312,7 @@ class BaseClassifier(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
+                3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
 
         Returns
         -------
