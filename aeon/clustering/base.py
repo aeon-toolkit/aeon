@@ -219,7 +219,7 @@ class BaseClusterer(BaseEstimator, ABC):
         ...
 
     @abstractmethod
-    def _fit(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _fit(self, X: TimeSeriesInstances, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
