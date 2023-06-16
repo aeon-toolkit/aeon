@@ -4,7 +4,7 @@ import numpy as np
 from sklearn import metrics
 
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
-from aeon.datasets import load_basic_motions
+from aeon.datasets import load_basic_motions, load_gunpoint
 
 expected_results = {
     "medoids": [
@@ -134,6 +134,44 @@ expected_labels = {
 #     for val in proba:
 #         assert np.count_nonzero(val == 1.0) == 1
 #
+
+def test_kmedoids_uni():
+    """Test implementation of Kmedoids."""
+    X_train, y_train = load_gunpoint(split="train")
+    X_test, y_test = load_gunpoint(split="test")
+
+    X_test = X_test[:100]
+    y_test = y_test[:100]
+
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=2,
+        max_iter=5,
+        init_algorithm="random",
+        distance="euclidean",
+    )
+    train_predict = kmedoids.fit_predict(X_train)
+    train_score = metrics.rand_score(y_train, train_predict)
+    test_medoids_result = kmedoids.predict(X_test)
+    medoids_score = metrics.rand_score(y_test, test_medoids_result)
+    from numpy.testing import assert_almost_equal
+    joe = ""
+
+    assert_almost_equal(train_predict,
+                        [6, 5, 5, 1, 1, 1, 4, 0, 7, 2, 2, 2, 2, 2, 5, 2, 5, 5, 2, 7, 6,
+                         2, 2, 0, 1, 7, 2, 2, 7, 0, 2, 4,
+                         7, 5, 5, 1, 4, 5, 0, 4, 5, 2, 2, 2, 7, 1, 1, 5, 1, 4]
+                        )
+    assert train_score == 0.6236734693877551
+    assert medoids_score == 0.5517171717171717
+    assert_almost_equal(test_medoids_result,
+                        [2, 5, 0, 2, 1, 1, 2, 7, 5, 1, 5, 2, 1, 2, 2, 5, 1, 1, 1, 5, 2,
+                         7, 1, 1, 2, 4, 2, 2, 5, 5, 1, 7, 4, 1, 1, 5, 5, 5, 2, 1, 1, 4,
+                        5, 5, 4, 2, 4, 5, 1, 5, 5, 4, 5, 0, 1, 2, 4, 1, 1, 1, 2, 0, 2,
+                        1, 5, 5, 2, 1, 1, 1, 5, 1, 5, 7, 7, 5, 1, 0, 4, 1, 2, 2, 0, 5, 1, 1, 2, 1, 1, 5, 1, 4, 1, 7, 1, 1, 1, 7, 2, 5]
+                        )
+
+
 def test_kmedoids_multi():
     """Test implementation of Kmedoids."""
     X_train, y_train = load_basic_motions(split="train")
@@ -161,6 +199,8 @@ def test_kmedoids_multi():
     assert_almost_equal(test_medoids_result,
                         [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6, 6, 1, 1, 6, 6, 6, 6, 1, 6,
                          6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1])
+
+
 
 
 def test_new_kmedoids():
