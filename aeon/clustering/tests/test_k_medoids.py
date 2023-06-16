@@ -135,15 +135,16 @@ def test_kmedoids():
         assert np.count_nonzero(val == 1.0) == 1
 
 def test_new_kmedoids():
-    X_train, y_train = load_basic_motions(split="train")
-    X_test, y_test = load_basic_motions(split="test")
+    from aeon.datasets import load_gunpoint as load_data
+    X_train, y_train = load_data(split="train")
+    X_test, y_test = load_data(split="test")
 
     kmedoids = TimeSeriesKMedoids(
         n_clusters=len(set(y_train)),
         random_state=1,
         n_init=2,
         max_iter=5,
-        init_algorithm="kmeans++",
+        init_algorithm="random",
         distance="euclidean",
     )
     train_predict = kmedoids.fit_predict(X_train)
@@ -151,3 +152,4 @@ def test_new_kmedoids():
     test_medoids_result = kmedoids.predict(X_test)
     medoids_score = metrics.rand_score(y_test, test_medoids_result)
     proba = kmedoids.predict_proba(X_test)
+    joe = ""
