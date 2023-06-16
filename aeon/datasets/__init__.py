@@ -2,12 +2,15 @@
 """Functions to load and write datasets."""
 
 __all__ = [
-    # Load functions
+    # Load/download functions
     "load_from_tsfile",
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc_website",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
+    "download_all_regression",
     # Write functions
     "write_to_tsfile",
     "write_results_to_uea_format",
@@ -49,11 +52,14 @@ from aeon.datasets._data_generators import (
     make_example_multi_index_dataframe,
 )
 from aeon.datasets._data_loaders import (
+    download_all_regression,
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
-    load_from_tsc_website,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
+    load_regression,
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (

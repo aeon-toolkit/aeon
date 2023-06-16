@@ -26,7 +26,7 @@ from aeon.datasets._data_generators import (
     _convert_tsf_to_hierarchical,
     make_example_long_table,
 )
-from aeon.datasets._data_loaders import DIRNAME, MODULE, _load_provided_dataset
+from aeon.datasets._data_loaders import DIRNAME, MODULE, _load_saved_dataset
 from aeon.datatypes import check_is_mtype
 
 
@@ -38,10 +38,10 @@ def test_load_provided_dataset(return_X_y, return_type):
     Check all possibilities of return_X_y and return_type.
     """
     if return_X_y:
-        X, y = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+        X, y = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
         assert isinstance(y, np.ndarray)
     else:
-        X = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+        X = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
     if not return_X_y or return_type == "nested_univ":
         assert isinstance(X, pd.DataFrame)
     elif return_type == "numpy3D":
@@ -471,7 +471,7 @@ def test_convert_tsf_to_multiindex(freq):
 
 def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
-    X, y = _load_provided_dataset("GunPoint", split="TRAIN")
+    X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
     X2, y2 = load_from_tsv_file(data_path)
     y = y.astype(float)
@@ -481,7 +481,7 @@ def test_load_from_ucr_tsv():
 
 def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
-    X, y = _load_provided_dataset("GunPoint", split="TRAIN")
+    X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
     X2, y2 = load_from_arff_file(data_path)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
