@@ -9,11 +9,8 @@ from numpy.random import RandomState
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
 
-from aeon.clustering.metrics.medoids import medoids
 from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
 from aeon.distances import get_distance_function, pairwise_distance
-from aeon.clustering.metrics.averaging import mean_average
-
 
 
 class TimeSeriesKMedoids(BaseClusterer):
@@ -24,19 +21,19 @@ class TimeSeriesKMedoids(BaseClusterer):
     n_clusters: int, defaults = 8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm: str, defaults = 'forgy'
+    init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
-        ['kmeans++', 'random', 'forgy']
+        ['kmedoids++', 'random', 'first'].
     distance: str or Callable, defaults = 'dtw'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw']
+        'wddtw', 'msm', 'twe']
     n_init: int, defaults = 10
-        Number of times the k-means algorithm will be run with different
+        Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
     max_iter: int, defaults = 30
-        Maximum number of iterations of the k-means algorithm for a single
+        Maximum number of iterations of the k-medoids algorithm for a single
         run.
     tol: float, defaults = 1e-6
         Relative tolerance with regards to Frobenius norm of the difference
@@ -47,7 +44,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     random_state: int or np.random.RandomState instance or None, defaults = None
         Determines random number generation for centroid initialization.
     distance_params: dict, defaults = None
-        Dictonary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
@@ -105,21 +102,12 @@ class TimeSeriesKMedoids(BaseClusterer):
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
-        """Fit time series clusterer to training data.
-
-        Parameters
-        ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        self:
-            Fitted estimator.
-        """
         self._check_params()
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_instances ({X.shape[0]})"
+            )
         self._distance_callable = get_distance_function(metric=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
@@ -141,7 +129,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.n_iter_ = best_iters
 
     def _score(self, X, y=None):
-        pass
+        return -self.inertia_
 
     def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
@@ -160,20 +148,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _compute_new_cluster_centers(
             self, X: np.ndarray, assignment_indexes: np.ndarray
     ) -> np.ndarray:
-        """Compute new centers.
-
-        Parameters
-        ----------
-        X : np.ndarray (3d array of shape (n_instances, n_dimensions, series_length))
-            Time series instances to predict their cluster indexes.
-        assignment_indexes: np.ndarray
-            Indexes that each time series in X belongs to.
-
-        Returns
-        -------
-        np.ndarray (1d array of shape (n_clusters,))
-            New cluster centre indexes.
-        """
         new_centre_indexes = []
         for i in range(self.n_clusters):
             curr_indexes = np.where(assignment_indexes == i)[0]
@@ -183,13 +157,20 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _compute_distance(
             self, X: np.ndarray, first_index: int, second_index: int
     ):
+        # Check cache
         if np.isfinite(self._distance_cache[first_index, second_index]):
             return self._distance_cache[first_index, second_index]
-        return self._distance_callable(
-                X[first_index],
-                X[second_index],
-                **self._distance_params
-            )
+        if np.isfinite(self._distance_cache[second_index, first_index]):
+            return self._distance_cache[second_index, first_index]
+        dist = self._distance_callable(
+            X[first_index],
+            X[second_index],
+            **self._distance_params
+        )
+        # Update cache
+        self._distance_cache[first_index, second_index] = dist
+        self._distance_cache[second_index, first_index] = dist
+        return dist
 
     def _compute_pairwise(
             self, X: np.ndarray, first_indexes: np.ndarray, second_indexes: np.ndarray
@@ -212,31 +193,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         return indexes[np.argmin(sum(distance_matrix))]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
-        """Perform one pass of kmeans.
-
-        This is done because the initial center assignment greatly effects the final
-        result so we perform multiple passes at kmeans with different initial center
-        assignments and keep the best results going froward.
-
-        Parameters
-        ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_dimensions, series_length))
-            Training time series instances to cluster.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        np.ndarray (1d array of shape (n_instance,))
-            Labels that is the index each time series belongs to.
-        np.ndarray (3d array of shape (n_clusters, n_dimensions,
-            series_length))
-            Time series that represent each of the cluster centres. If the algorithm
-            stops before fully converging these will not be consistent with labels.
-        float
-            Sum of squared distances of samples to their closest cluster center,
-            weighted by the sample weights if provided.
-        """
         cluster_centre_indexes = self._init_algorithm(
             X
         )
@@ -283,12 +239,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._random_state = check_random_state(self.random_state)
 
         if isinstance(self.init_algorithm, str):
-            if self.init_algorithm == "forgy":
-                self._init_algorithm = self._forgy_center_initializer
-            elif self.init_algorithm == "random":
+            if self.init_algorithm == "random":
                 self._init_algorithm = self._random_center_initializer
-            elif self.init_algorithm == "kmeans++":
-                self._init_algorithm = self._kmeans_plus_plus
+            elif self.init_algorithm == "kmedoids++":
+                self._init_algorithm = self._kmedoids_plus_plus
             elif self.init_algorithm == "first":
                 self._init_algorithm = self._first_center_initializer
         else:
@@ -298,7 +252,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             raise ValueError(
                 f"The value provided for init_algorithm: {self.init_algorithm} is "
                 f"invalid. The following are a list of valid init algorithms "
-                f"strings: forgy, random, kmeans++"
+                f"strings: random, kmedoids++, first"
             )
 
         if self.distance_params is None:
@@ -306,34 +260,19 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             self._distance_params = self.distance_params
 
-    def _forgy_center_initializer(
+    def _random_center_initializer(
             self, X: np.ndarray
     ) -> np.ndarray:
-        indexes = self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
-        return indexes
+        return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
 
     def _first_center_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
-    def _random_center_initializer(
-            self, X: np.ndarray
-    ) -> np.ndarray:
-        new_centre_indexes = []
-        selected = self._random_state.choice(self.n_clusters, X.shape[0], replace=True)
-        for i in range(self.n_clusters):
-            curr_indexes = np.where(selected == i)[0]
-            new_centre_indexes.append(self._compute_medoids(X, curr_indexes))
-
-        return np.array(new_centre_indexes)
-
-    def _kmeans_plus_plus(
+    def _kmedoids_plus_plus(
             self,
             X: np.ndarray,
             n_local_trials: int = None,
     ):
-        n_samples, n_timestamps, n_features = X.shape
-
-        centers = np.empty((self.n_clusters, n_timestamps, n_features), dtype=X.dtype)
         centers_indexes = np.empty(self.n_clusters, dtype=int)
         n_samples, n_timestamps, n_features = X.shape
 
@@ -342,7 +281,6 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         center_id = self._random_state.randint(n_samples)
         all_x_indexes = np.arange(n_samples)
-        centers[0] = X[center_id]
         centers_indexes[0] = center_id
 
         closest_dist_sq = self._compute_pairwise(
@@ -368,7 +306,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             closest_dist_sq = distance_to_candidates[best_candidate]
             best_candidate = candidate_ids[best_candidate]
 
-            centers[c] = X[best_candidate]
             centers_indexes[c] = best_candidate
 
         return centers_indexes
