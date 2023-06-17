@@ -127,7 +127,7 @@ def time_kmedoids(X_train, X_test, dataset):
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
         init_algorithm="random",
-        distance="dtw",
+        distance="euclidean",
     )
     start_time = time.time()
     kmedoids.fit(X_train)
@@ -137,7 +137,8 @@ def time_kmedoids(X_train, X_test, dataset):
 
 
 def test_timing_experiment():
-    from aeon.datasets import load_basic_motions, load_gunpoint, load_italy_power_demand, load_acsf1
+    from aeon.datasets import load_basic_motions, load_gunpoint, \
+        load_italy_power_demand, load_acsf1
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     time_kmedoids(X_train, X_test, "GunPoint")
@@ -150,7 +151,6 @@ def test_timing_experiment():
     X_train, y_train = load_acsf1(split="train")
     X_test, y_test = load_acsf1(split="test")
     time_kmedoids(X_train, X_test, "ACSF1")
-
 
 
 def print_assertion(test_expected_result, train_expected_result, test_score,
