@@ -34,18 +34,120 @@ def test_kmedoids_uni():
     test_score = metrics.rand_score(y_test, test_medoids_result)
     proba = kmedoids.predict_proba(X_test)
     assert np.array_equal(test_medoids_result, [6, 5, 7, 6, 5, 5, 6, 3, 2, 5])
-    assert np.array_equal(train_medoids_result,
-                          [0, 1, 2, 5, 4, 5, 6, 7, 3, 6, 6, 6, 6, 6, 1, 6, 2, 1, 6, 3,
-                           0, 6, 6, 7, 4, 3, 6, 6, 3, 7, 6, 7, 3, 2, 5, 5, 6, 1, 7, 6,
-                           2, 6, 6, 6, 3, 5, 5, 1, 5, 7])
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            0,
+            1,
+            2,
+            5,
+            4,
+            5,
+            6,
+            7,
+            3,
+            6,
+            6,
+            6,
+            6,
+            6,
+            1,
+            6,
+            2,
+            1,
+            6,
+            3,
+            0,
+            6,
+            6,
+            7,
+            4,
+            3,
+            6,
+            6,
+            3,
+            7,
+            6,
+            7,
+            3,
+            2,
+            5,
+            5,
+            6,
+            1,
+            7,
+            6,
+            2,
+            6,
+            6,
+            6,
+            3,
+            5,
+            5,
+            1,
+            5,
+            7,
+        ],
+    )
     assert test_score == 0.5777777777777777
     assert train_score == 0.5795918367346938
     assert np.isclose(kmedoids.inertia_, 118.9405520596505)
     assert kmedoids.n_iter_ == 4
-    assert np.array_equal(kmedoids.labels_,
-                          [0, 1, 2, 5, 4, 5, 6, 7, 3, 6, 6, 6, 6, 6, 1, 6, 2, 1, 6, 3,
-                           0, 6, 6, 7, 4, 3, 6, 6, 3, 7, 6, 7, 3, 2, 5, 5, 6, 1, 7, 6,
-                           2, 6, 6, 6, 3, 5, 5, 1, 5, 7])
+    assert np.array_equal(
+        kmedoids.labels_,
+        [
+            0,
+            1,
+            2,
+            5,
+            4,
+            5,
+            6,
+            7,
+            3,
+            6,
+            6,
+            6,
+            6,
+            6,
+            1,
+            6,
+            2,
+            1,
+            6,
+            3,
+            0,
+            6,
+            6,
+            7,
+            4,
+            3,
+            6,
+            6,
+            3,
+            7,
+            6,
+            7,
+            3,
+            2,
+            5,
+            5,
+            6,
+            1,
+            7,
+            6,
+            2,
+            6,
+            6,
+            6,
+            3,
+            5,
+            5,
+            1,
+            5,
+            7,
+        ],
+    )
     assert isinstance(kmedoids.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
@@ -75,16 +177,100 @@ def test_kmedoids_multi():
     test_score = metrics.rand_score(y_test, test_medoids_result)
     proba = kmedoids.predict_proba(X_test)
     assert np.array_equal(test_medoids_result, [4, 5, 4, 0, 5, 5, 5, 5, 4, 4])
-    assert np.array_equal(train_medoids_result,
-                          [0, 4, 4, 5, 4, 5, 7, 7, 4, 4, 0, 0, 6, 1, 3, 1, 1, 5, 0, 3,
-                           4, 6, 3, 1, 7, 3, 2, 2, 1, 3, 6, 0, 7, 2, 6, 6, 7, 2, 0, 6])
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            0,
+            4,
+            4,
+            5,
+            4,
+            5,
+            7,
+            7,
+            4,
+            4,
+            0,
+            0,
+            6,
+            1,
+            3,
+            1,
+            1,
+            5,
+            0,
+            3,
+            4,
+            6,
+            3,
+            1,
+            7,
+            3,
+            2,
+            2,
+            1,
+            3,
+            6,
+            0,
+            7,
+            2,
+            6,
+            6,
+            7,
+            2,
+            0,
+            6,
+        ],
+    )
     assert test_score == 0.35555555555555557
     assert train_score == 0.7461538461538462
     assert np.isclose(kmedoids.inertia_, 3474.432529578885)
     assert kmedoids.n_iter_ == 3
-    assert np.array_equal(kmedoids.labels_,
-                          [0, 4, 4, 5, 4, 5, 7, 7, 4, 4, 0, 0, 6, 1, 3, 1, 1, 5, 0, 3,
-                           4, 6, 3, 1, 7, 3, 2, 2, 1, 3, 6, 0, 7, 2, 6, 6, 7, 2, 0, 6])
+    assert np.array_equal(
+        kmedoids.labels_,
+        [
+            0,
+            4,
+            4,
+            5,
+            4,
+            5,
+            7,
+            7,
+            4,
+            4,
+            0,
+            0,
+            6,
+            1,
+            3,
+            1,
+            1,
+            5,
+            0,
+            3,
+            4,
+            6,
+            3,
+            1,
+            7,
+            3,
+            2,
+            2,
+            1,
+            3,
+            6,
+            0,
+            7,
+            2,
+            6,
+            6,
+            7,
+            2,
+            0,
+            6,
+        ],
+    )
     assert isinstance(kmedoids.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
@@ -94,7 +280,7 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
     """Check that every cluster has at least one value."""
     original_length = len(initial_medoids)
     assert original_length == num_clusters
-    original_length == len(set(initial_medoids))
+    assert original_length == len(set(initial_medoids))
 
 
 def test_medoids_init():
@@ -109,7 +295,7 @@ def test_medoids_init():
         max_iter=5,
         init_algorithm="first",
         distance="euclidean",
-        n_clusters=num_clusters
+        n_clusters=num_clusters,
     )
     kmedoids._random_state = check_random_state(kmedoids.random_state)
     kmedoids._distance_cache = np.full((len(X_train), len(X_train)), np.inf)

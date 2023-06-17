@@ -2,7 +2,7 @@
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -60,21 +60,22 @@ class TimeSeriesKMedoids(BaseClusterer):
     n_iter_: int
         Number of iterations run.
     """
+
     _tags = {
         "capability:multivariate": True,
     }
 
     def __init__(
-            self,
-            n_clusters: int = 8,
-            init_algorithm: Union[str, Callable] = "random",
-            distance: Union[str, Callable] = "dtw",
-            n_init: int = 10,
-            max_iter: int = 300,
-            tol: float = 1e-6,
-            verbose: bool = False,
-            random_state: Union[int, RandomState] = None,
-            distance_params: dict = None,
+        self,
+        n_clusters: int = 8,
+        init_algorithm: Union[str, Callable] = "random",
+        distance: Union[str, Callable] = "dtw",
+        n_init: int = 10,
+        max_iter: int = 300,
+        tol: float = 1e-6,
+        verbose: bool = False,
+        random_state: Union[int, RandomState] = None,
+        distance_params: dict = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance
@@ -141,12 +142,12 @@ class TimeSeriesKMedoids(BaseClusterer):
                 X,
                 self.cluster_centers_,
                 self._distance_callable,
-                **self._distance_params
+                **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
 
     def _compute_new_cluster_centers(
-            self, X: np.ndarray, assignment_indexes: np.ndarray
+        self, X: np.ndarray, assignment_indexes: np.ndarray
     ) -> np.ndarray:
         new_centre_indexes = []
         for i in range(self.n_clusters):
@@ -154,18 +155,14 @@ class TimeSeriesKMedoids(BaseClusterer):
             new_centre_indexes.append(self._compute_medoids(X, curr_indexes))
         return np.array(new_centre_indexes)
 
-    def _compute_distance(
-            self, X: np.ndarray, first_index: int, second_index: int
-    ):
+    def _compute_distance(self, X: np.ndarray, first_index: int, second_index: int):
         # Check cache
         if np.isfinite(self._distance_cache[first_index, second_index]):
             return self._distance_cache[first_index, second_index]
         if np.isfinite(self._distance_cache[second_index, first_index]):
             return self._distance_cache[second_index, first_index]
         dist = self._distance_callable(
-            X[first_index],
-            X[second_index],
-            **self._distance_params
+            X[first_index], X[second_index], **self._distance_params
         )
         # Update cache
         self._distance_cache[first_index, second_index] = dist
@@ -173,7 +170,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         return dist
 
     def _compute_pairwise(
-            self, X: np.ndarray, first_indexes: np.ndarray, second_indexes: np.ndarray
+        self, X: np.ndarray, first_indexes: np.ndarray, second_indexes: np.ndarray
     ):
         x_size = len(first_indexes)
         y_size = len(second_indexes)
@@ -186,23 +183,16 @@ class TimeSeriesKMedoids(BaseClusterer):
                 )
         return distance_matrix
 
-    def _compute_medoids(
-            self, X: np.ndarray, indexes: np.ndarray
-    ):
+    def _compute_medoids(self, X: np.ndarray, indexes: np.ndarray):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
         return indexes[np.argmin(sum(distance_matrix))]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
-        cluster_centre_indexes = self._init_algorithm(
-            X
-        )
+        cluster_centre_indexes = self._init_algorithm(X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):
-            indexes, inertia = self._assign_clusters(
-                X,
-                cluster_centre_indexes
-            )
+            indexes, inertia = self._assign_clusters(X, cluster_centre_indexes)
 
             if np.abs(old_inertia - inertia) < self.tol:
                 break
@@ -227,9 +217,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         return labels, centres, inertia, i + 1
 
     def _assign_clusters(
-            self,
-            X: np.ndarray,
-            cluster_centre_indexes: np.ndarray
+        self, X: np.ndarray, cluster_centre_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
         X_indexes = np.arange(X.shape[0])
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
@@ -260,18 +248,16 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             self._distance_params = self.distance_params
 
-    def _random_center_initializer(
-            self, X: np.ndarray
-    ) -> np.ndarray:
+    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
 
     def _first_center_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
     def _kmedoids_plus_plus(
-            self,
-            X: np.ndarray,
-            n_local_trials: int = None,
+        self,
+        X: np.ndarray,
+        n_local_trials: int = None,
     ):
         centers_indexes = np.empty(self.n_clusters, dtype=int)
         n_samples, n_timestamps, n_features = X.shape
@@ -283,9 +269,9 @@ class TimeSeriesKMedoids(BaseClusterer):
         all_x_indexes = np.arange(n_samples)
         centers_indexes[0] = center_id
 
-        closest_dist_sq = self._compute_pairwise(
-            X, np.array([center_id]), all_x_indexes
-        ) ** 2
+        closest_dist_sq = (
+            self._compute_pairwise(X, np.array([center_id]), all_x_indexes) ** 2
+        )
         current_pot = closest_dist_sq.sum()
 
         for c in range(1, self.n_clusters):
@@ -293,12 +279,13 @@ class TimeSeriesKMedoids(BaseClusterer):
             candidate_ids = np.searchsorted(stable_cumsum(closest_dist_sq), rand_vals)
             np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
 
-            distance_to_candidates = self._compute_pairwise(
-                X, candidate_ids, all_x_indexes
-            ) ** 2
+            distance_to_candidates = (
+                self._compute_pairwise(X, candidate_ids, all_x_indexes) ** 2
+            )
 
-            np.minimum(closest_dist_sq, distance_to_candidates,
-                       out=distance_to_candidates)
+            np.minimum(
+                closest_dist_sq, distance_to_candidates, out=distance_to_candidates
+            )
             candidates_pot = distance_to_candidates.sum(axis=1)
 
             best_candidate = np.argmin(candidates_pot)
