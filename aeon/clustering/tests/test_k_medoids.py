@@ -147,7 +147,7 @@ def test_kmedoids_uni():
         random_state=1,
         n_init=2,
         max_iter=5,
-        init_algorithm="random",
+        init_algorithm="first",
         distance="euclidean",
     )
     train_predict = kmedoids.fit_predict(X_train)

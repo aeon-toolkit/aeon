@@ -174,10 +174,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         np.ndarray (1d array of shape (n_clusters,))
             New cluster centre indexes.
         """
-        new_centre_indexes = np.empty(self.n_clusters, dtype=int)
+        new_centre_indexes = []
         for i in range(self.n_clusters):
             curr_indexes = np.where(assignment_indexes == i)[0]
-            new_centre_indexes[i] = self._compute_medoids(X, curr_indexes)
+            new_centre_indexes.append(self._compute_medoids(X, curr_indexes))
         return np.array(new_centre_indexes)
 
     def _compute_distance(
@@ -209,7 +209,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             self, X: np.ndarray, indexes: np.ndarray
     ):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
-        return np.argmin(sum(distance_matrix))
+        return indexes[np.argmin(sum(distance_matrix))]
 
     def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
         """Perform one pass of kmeans.
@@ -289,6 +289,8 @@ class TimeSeriesKMedoids(BaseClusterer):
                 self._init_algorithm = self._random_center_initializer
             elif self.init_algorithm == "kmeans++":
                 self._init_algorithm = self._kmeans_plus_plus
+            elif self.init_algorithm == "first":
+                self._init_algorithm = self._first_center_initializer
         else:
             self._init_algorithm = self.init_algorithm
 
@@ -310,16 +312,19 @@ class TimeSeriesKMedoids(BaseClusterer):
         indexes = self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
         return indexes
 
+    def _first_center_initializer(self, _) -> np.ndarray:
+        return np.array(list(range(self.n_clusters)))
+
     def _random_center_initializer(
             self, X: np.ndarray
     ) -> np.ndarray:
-        new_centre_indexes = np.empty(self.n_clusters, dtype=int)
+        new_centre_indexes = []
         selected = self._random_state.choice(self.n_clusters, X.shape[0], replace=True)
         for i in range(self.n_clusters):
             curr_indexes = np.where(selected == i)[0]
-            new_centre_indexes[i] = self._compute_medoids(X, curr_indexes)
+            new_centre_indexes.append(self._compute_medoids(X, curr_indexes))
 
-        return new_centre_indexes
+        return np.array(new_centre_indexes)
 
     def _kmeans_plus_plus(
             self,
