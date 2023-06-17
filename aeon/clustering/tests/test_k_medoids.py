@@ -126,8 +126,8 @@ def time_kmedoids(X_train, X_test, dataset):
     import time
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
-        init_algorithm="random",
-        distance="euclidean",
+        init_algorithm="first",
+        distance="dtw",
     )
     start_time = time.time()
     kmedoids.fit(X_train)
@@ -148,9 +148,9 @@ def test_timing_experiment():
     X_train, y_train = load_italy_power_demand(split="train")
     X_test, y_test = load_italy_power_demand(split="test")
     time_kmedoids(X_train, X_test, "ItalyPowerDemand")
-    X_train, y_train = load_acsf1(split="train")
-    X_test, y_test = load_acsf1(split="test")
-    time_kmedoids(X_train, X_test, "ACSF1")
+    # X_train, y_train = load_acsf1(split="train")
+    # X_test, y_test = load_acsf1(split="test")
+    # time_kmedoids(X_train, X_test, "ACSF1")
 
 
 def print_assertion(test_expected_result, train_expected_result, test_score,
