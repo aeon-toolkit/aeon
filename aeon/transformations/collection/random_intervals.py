@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Random interval features.
 
 A transformer for the extraction of features on randomly selected intervals.
@@ -8,166 +9,469 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["RandomIntervals"]
 
 import numpy as np
-import pandas as pd
+from joblib import Parallel, delayed
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
+from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.series.summarize import SummaryTransformer
+from aeon.utils.numba.stats import (
+    row_mean,
+    row_median,
+    row_numba_max,
+    row_numba_min,
+    row_quantile25,
+    row_quantile75,
+    row_std,
+)
+from aeon.utils.validation import check_n_jobs
 
 
 class RandomIntervals(BaseCollectionTransformer):
     """Random interval feature transformer.
 
     Extracts intervals with random length, position and dimension from series in fit.
-    Transforms each interval subseries using the given transformer(s) and concatenates
-    them into a feature vector in transform.
+    Transforms each interval subseries using the given transformer(s)/features and
+    concatenates them into a feature vector in transform.
 
-    Currently, the transform is re-fit for every interval in transform. As such, it may
-    not be suitable for some supervised transformers in its current state.
+    Identical intervals are pruned at the end of fit, as such the number of features may
+    be less than expected from n_intervals.
+
+    The output type is a 2D numpy array where rows are input cases and columns are
+    the concatenated interval features.
 
     Parameters
     ----------
     n_intervals : int, default=100,
         The number of intervals of random length, position and dimension to be
         extracted.
-    transformers : transformer or list of transformers, default=None,
-        Transformer(s) used to extract features from each interval. If None, defaults to
-        the SummaryTransformer using
-        [mean, median, min, max, std, 25% quantile, 75% quantile]
+    min_interval_length : int, default=3
+        The minimum length of extracted intervals. Minimum value of 3.
+    max_interval_length : int, default=3
+        The maximum length of extracted intervals. Minimum value of min_interval_length.
+    features : aeon transformer, a function taking a 2d numpy array parameter, or list
+            of said transformers and functions, default=None
+        Transformers and functions used to extract features from selected intervals.
+        If None, defaults to [mean, median, min, max, std, 25% quantile, 75% quantile]
+    dilation : int, list or None, default=None
+        Add dilation to extracted intervals. No is added if None or 1. If list on ints,
+        a random dilation value is selected from the list for each interval.
+
+        The dilation value is selected after the interval star and end points. If the
+        amount of values in the dilated interval is less than the min_interval_length,
+        the amount of dilation applied is reduced.
+    random_state : None, int or instance of RandomState, default=None
+        Seed or RandomState object used for random number generation.
+        If random_state is None, use the RandomState singleton used by np.random.
+        If random_state is an int, use a new RandomState instance seeded with seed.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random, integer.
+        The number of jobs to run in parallel for both `fit` and `transform` functions.
+        `-1` means using all processors.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
+        value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
+
+    Attributes
+    ----------
+    n_instances_ : int
+        The number of train cases.
+    n_dims_ : int
+        The number of dimensions per case.
+    n_timepoints_ : int
+        The length of each series.
+    n_intervals_ : int
+        The number of intervals extracted after pruning identical intervals.
+    intervals_ : list of tuples
+        Contains information for each feature extracted in fit. Each tuple contains the
+        interval start, interval end, interval dimension, the feature(s) extracted and
+        the dilation.
+        Length will be n_intervals*len(features).
 
     See Also
     --------
     SupervisedIntervals
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection import RandomIntervals
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=8,
+    ...                           random_state=0)
+    >>> tnf = RandomIntervals(n_intervals=2, random_state=0)
+    >>> tnf.fit(X)
+    RandomIntervals(...)
+    >>> print(tnf.transform(X)[0])
+    [1.04753424 0.14925939 0.8473096  1.20552675 1.08976637 0.96853798
+     1.14764656 1.07628806 0.18170775 0.8473096  1.29178823 1.08976637
+     0.96853798 1.1907773 ]
     """
 
     _tags = {
         "scitype:transform-output": "Primitives",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "capability:unequal_length": False,
         "fit_is_empty": False,
     }
 
     def __init__(
         self,
         n_intervals=100,
-        transformers=None,
+        min_interval_length=3,
+        max_interval_length=np.inf,
+        features=None,
+        dilation=None,
         random_state=None,
         n_jobs=1,
+        parallel_backend=None,
     ):
         self.n_intervals = n_intervals
-        self.transformers = transformers
-
+        self.min_interval_length = min_interval_length
+        self.max_interval_length = max_interval_length
+        self.features = features
+        self.dilation = dilation
         self.random_state = random_state
         self.n_jobs = n_jobs
-
-        self._transformers = transformers
-        self._intervals = []
-        self._dims = []
+        self.parallel_backend = parallel_backend
 
         super(RandomIntervals, self).__init__()
 
-    def _fit(self, X, y=None):
-        """Fit the random interval transform.
+    transformer_feature_skip = ["transform_features_", "_transform_features"]
 
-        Parameters
-        ----------
-        X : pandas DataFrame or 3d numpy array, input time series
-        y : array_like, target values (optional, ignored)
-        """
-        _, n_dims, series_length = X.shape
+    def _fit_transform(self, X, y=None):
+        X, rng = self._fit_setup(X)
 
-        if self.transformers is None:
-            self._transformers = [
-                SummaryTransformer(
-                    summary_function=("mean", "std", "min", "max"),
-                    quantiles=(0.25, 0.5, 0.75),
-                )
-            ]
-
-        if not isinstance(self._transformers, list):
-            self._transformers = [self._transformers]
-
-        li = []
-        for i in range(len(self._transformers)):
-            li.append(
-                _clone_estimator(
-                    self._transformers[i],
-                    self.random_state,
-                )
+        fit = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._generate_interval)(
+                X,
+                y,
+                rng.randint(np.iinfo(np.int32).max),
+                True,
             )
+            for _ in range(self.n_intervals)
+        )
 
-            m = getattr(li[i], "n_jobs", None)
-            if m is not None:
-                li[i].n_jobs = self.n_jobs
-        self._transformers = li
+        (
+            intervals,
+            transformed_intervals,
+        ) = zip(*fit)
 
-        rng = check_random_state(self.random_state)
-        self._dims = rng.choice(n_dims, self.n_intervals, replace=True)
-        self._intervals = np.zeros((self.n_intervals, 2), dtype=int)
-
-        for i in range(0, self.n_intervals):
-            if rng.random() < 0.5:
-                self._intervals[i][0] = rng.randint(0, series_length - 3)
-                length = (
-                    rng.randint(0, series_length - self._intervals[i][0] - 3) + 3
-                    if series_length - self._intervals[i][0] - 3 > 0
-                    else 3
-                )
-                self._intervals[i][1] = self._intervals[i][0] + length
+        current = []
+        removed_idx = []
+        self.n_intervals_ = 0
+        for i, interval in enumerate(intervals):
+            new_interval = (
+                interval[0][0],
+                interval[0][1],
+                interval[0][2],
+                interval[0][4],
+            )
+            if new_interval not in current:
+                current.append(new_interval)
+                self.intervals_.extend(interval)
+                self.n_intervals_ += 1
             else:
-                self._intervals[i][1] = rng.randint(0, series_length - 3) + 3
-                length = (
-                    rng.randint(0, self._intervals[i][1] - 3) + 3
-                    if self._intervals[i][1] - 3 > 0
-                    else 3
-                )
-                self._intervals[i][0] = self._intervals[i][1] - length
+                removed_idx.append(i)
+
+        Xt = transformed_intervals[0]
+        for i in range(1, self.n_intervals):
+            if i not in removed_idx:
+                Xt = np.hstack((Xt, transformed_intervals[i]))
+
+        return Xt
+
+    def _fit(self, X, y=None):
+        X, rng = self._fit_setup(X)
+
+        fit = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._generate_interval)(
+                X,
+                y,
+                rng.randint(np.iinfo(np.int32).max),
+                False,
+            )
+            for _ in range(self.n_intervals)
+        )
+
+        (
+            intervals,
+            _,
+        ) = zip(*fit)
+
+        current = []
+        self.n_intervals_ = 0
+        for i in intervals:
+            interval = (i[0][0], i[0][1], i[0][2], i[0][4])
+            if interval not in current:
+                current.append(interval)
+                self.intervals_.extend(i)
+                self.n_intervals_ += 1
+
         return self
 
     def _transform(self, X, y=None):
-        """Transform data into random interval features.
+        if self._transform_features is None:
+            transform_features = [None] * len(self.intervals_)
+        else:
+            count = 0
+            transform_features = []
+            for _ in range(self.n_intervals_):
+                for feature in self._features:
+                    if isinstance(feature, BaseTransformer):
+                        nf = feature.n_transformed_features
+                        transform_features.append(
+                            self._transform_features[count : count + nf]
+                        )
+                        count += nf
+                    else:
+                        transform_features.append(self._transform_features[count])
+                        count += 1
+
+        transform = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._transform_interval)(
+                X,
+                i,
+                transform_features[i],
+            )
+            for i in range(len(self.intervals_))
+        )
+
+        Xt = transform[0]
+        for i in range(1, len(self.intervals_)):
+            Xt = np.hstack((Xt, transform[i]))
+
+        return Xt
+
+    def _fit_setup(self, X):
+        self.intervals_ = []
+        self._transform_features = None
+
+        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+
+        self._min_interval_length = self.min_interval_length
+        if self.min_interval_length < 3:
+            self._min_interval_length = 3
+
+        self._max_interval_length = self.max_interval_length
+        if self.max_interval_length < self._min_interval_length:
+            self._max_interval_length = self._min_interval_length
+        elif self.max_interval_length > self.n_timepoints_:
+            self._max_interval_length = self.n_timepoints_
+
+        self._features = self.features
+        if self.features is None:
+            self._features = [
+                row_mean,
+                row_std,
+                row_numba_min,
+                row_numba_max,
+                row_median,
+                row_quantile25,
+                row_quantile75,
+            ]
+        elif not isinstance(self.features, list):
+            self._features = [self.features]
+
+        li = []
+        for feature in self._features:
+            if isinstance(feature, BaseTransformer):
+                li.append(
+                    _clone_estimator(
+                        feature,
+                        self.random_state,
+                    )
+                )
+            elif callable(feature):
+                li.append(feature)
+            else:
+                raise ValueError(
+                    "Input features must be a list of callables or aeon transformers."
+                )
+        self._features = li
+
+        if self.dilation is None:
+            self._dilation = [1]
+        elif isinstance(self.dilation, list):
+            self._dilation = self.dilation
+        else:
+            self._dilation = [self.dilation]
+
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
+        rng = check_random_state(self.random_state)
+
+        return X, rng
+
+    def _generate_interval(self, X, y, seed, transform):
+        rng = check_random_state(seed)
+
+        dim = rng.randint(self.n_dims_)
+
+        if rng.random() < 0.5:
+            interval_start = (
+                rng.randint(0, self.n_timepoints_ - self._min_interval_length)
+                if self.n_timepoints_ > self._min_interval_length
+                else 0
+            )
+            len_range = min(
+                self.n_timepoints_ - interval_start,
+                self._max_interval_length,
+            )
+            length = (
+                rng.randint(0, len_range - self._min_interval_length)
+                + self._min_interval_length
+                if len_range > self._min_interval_length
+                else self._min_interval_length
+            )
+            interval_end = interval_start + length
+        else:
+            interval_end = (
+                rng.randint(0, self.n_timepoints_ - self._min_interval_length)
+                + self._min_interval_length
+                if self.n_timepoints_ > self._min_interval_length
+                else self._min_interval_length
+            )
+            len_range = min(interval_end, self._max_interval_length)
+            length = (
+                rng.randint(0, len_range - self._min_interval_length)
+                + self._min_interval_length
+                if len_range > self._min_interval_length
+                else self._min_interval_length
+            )
+            interval_start = interval_end - length
+
+        interval_length = interval_end - interval_start
+        dilation = rng.choice(self._dilation)
+        while interval_length / dilation < self._min_interval_length:
+            dilation -= 1
+
+        Xt = np.empty((self.n_instances_, 0)) if transform else None
+        intervals = []
+
+        for feature in self._features:
+            if isinstance(feature, BaseTransformer):
+                if transform:
+                    feature = _clone_estimator(
+                        feature,
+                        seed,
+                    )
+
+                    t = feature.fit_transform(
+                        np.expand_dims(
+                            X[:, dim, interval_start:interval_end:dilation], axis=1
+                        ),
+                        y,
+                    )
+
+                    if t.ndim == 3 and t.shape[1] == 1:
+                        t = t.reshape((t.shape[0], t.shape[2]))
+
+                    Xt = np.hstack((Xt, t))
+                else:
+                    feature.fit(
+                        np.expand_dims(
+                            X[:, dim, interval_start:interval_end:dilation], axis=1
+                        ),
+                        y,
+                    )
+            elif transform:
+                t = [
+                    [f]
+                    for f in feature(X[:, dim, interval_start:interval_end:dilation])
+                ]
+                Xt = np.hstack((Xt, t))
+
+            intervals.append((interval_start, interval_end, dim, feature, dilation))
+
+        return intervals, Xt
+
+    def _transform_interval(self, X, idx, keep_transform):
+        interval_start, interval_end, dim, feature, dilation = self.intervals_[idx]
+
+        if keep_transform is not None:
+            if isinstance(feature, BaseTransformer):
+                for n in self.transformer_feature_skip:
+                    if hasattr(feature, n):
+                        setattr(feature, n, keep_transform)
+                        break
+            elif not keep_transform:
+                return [[0] for _ in range(X.shape[0])]
+
+        if isinstance(feature, BaseTransformer):
+            Xt = feature.transform(
+                np.expand_dims(X[:, dim, interval_start:interval_end:dilation], axis=1)
+            )
+
+            if Xt.ndim == 3:
+                Xt = Xt.reshape((Xt.shape[0], Xt.shape[2]))
+        else:
+            Xt = [[f] for f in feature(X[:, dim, interval_start:interval_end:dilation])]
+
+        return Xt
+
+    def set_features_to_transform(self, arr, raise_error=True):
+        """Set transform_features to the given array.
+
+        Each index in the list corresponds to the index of an interval, True intervals
+        are included in the transform, False intervals skipped and are set to 0.
+
+        If any transformers are in features, they must also have a "transform_features"
+        or "_transform_features" attribute as well as a "n_transformed_features"
+        attribute. The input array should contain an item for each of the transformers
+        "n_transformed_features" output features.
 
         Parameters
         ----------
-        X : pandas DataFrame or 3d numpy array, input time series
-        y : array_like, target values (optional, ignored)
+        arr : list of bools
+             A list of intervals to skip.
+        raise_error : bool, default=True
+             Whether to raise and error or return None if input or transformers are
+             invalid.
 
         Returns
         -------
-        Pandas dataframe of random interval features.
+        completed: bool
+            Whether the operation was successful.
         """
-        X_t = []
-        for i in range(0, self.n_intervals):
-            for j in range(len(self._transformers)):
-                t = self._transformers[j].fit_transform(
-                    np.expand_dims(
-                        X[
-                            :,
-                            self._dims[i],
-                            self._intervals[i][0] : self._intervals[i][1],
-                        ],
-                        axis=1,
-                    ),
-                    y,
+        length = 0
+        for feature in self._features:
+            if isinstance(feature, BaseTransformer):
+                if not any(
+                    hasattr(feature, n) for n in self.transformer_feature_skip
+                ) or not hasattr(feature, "n_transformed_features"):
+                    if raise_error:
+                        raise ValueError(
+                            "Transformer must have one of {} as an attribute and a "
+                            "n_transformed_features attribute.".format(
+                                self.transformer_feature_skip
+                            )
+                        )
+                    else:
+                        return False
+
+                length += feature.n_transformed_features
+            else:
+                length += 1
+
+        if len(arr) != length * self.n_intervals or not all(
+            isinstance(b, bool) for b in arr
+        ):
+            if raise_error:
+                raise ValueError(
+                    "Input must be a list bools, matching the length of the transform "
+                    "output."
                 )
+            else:
+                return False
 
-                if isinstance(t, pd.DataFrame):
-                    t = t.to_numpy()
+        self._transform_features = arr
 
-                if i == 0 and j == 0:
-                    X_t = t
-                else:
-                    X_t = np.concatenate((X_t, t), axis=1)
-
-        return pd.DataFrame(X_t)
+        return True
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -187,4 +491,4 @@ class RandomIntervals(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"n_intervals": 3}
+        return {"n_intervals": 2}

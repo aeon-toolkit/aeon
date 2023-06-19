@@ -36,12 +36,10 @@ from aeon.classification.interval_based import (
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.collection.catch22 import Catch22
-from aeon.transformations.collection.catch22wrapper import Catch22Wrapper
 from aeon.transformations.collection.random_intervals import RandomIntervals
 from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
 from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
 from aeon.transformations.series.summarize import SummaryTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def _reproduce_classification_unit_test(estimator):
@@ -536,15 +534,6 @@ if __name__ == "__main__":
         "Catch22 - BasicMotions",
         _reproduce_transform_basic_motions(Catch22()),
     )
-    if _check_soft_dependencies("pycatch22", severity="none"):
-        _print_array(
-            "Catch22Wrapper - UnitTest",
-            _reproduce_transform_unit_test(Catch22Wrapper(outlier_norm=True)),
-        )
-        _print_array(
-            "Catch22Wrapper - BasicMotions",
-            _reproduce_transform_basic_motions(Catch22Wrapper()),
-        )
     _print_array(
         "RandomIntervals - UnitTest",
         _reproduce_transform_unit_test(RandomIntervals(random_state=0, n_intervals=3)),
