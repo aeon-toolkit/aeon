@@ -20,7 +20,145 @@ def test_kmedoids_uni():
     y_test = y_test[:num_points]
     X_test = X_test[:num_points]
     y_test = y_test[:num_points]
+    _alternate_uni_medoids(X_train, y_train, X_test, y_test)
+    _pam_uni_medoids(X_train, y_train, X_test, y_test)
 
+
+def _pam_uni_medoids(X_train, y_train, X_test, y_test):
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=2,
+        max_iter=5,
+        init_algorithm="first",
+        distance="euclidean",
+        method="pam",
+    )
+    train_medoids_result = kmedoids.fit_predict(X_train)
+    train_score = metrics.rand_score(y_train, train_medoids_result)
+    test_medoids_result = kmedoids.predict(X_test)
+    test_score = metrics.rand_score(y_test, test_medoids_result)
+    proba = kmedoids.predict_proba(X_test)
+    assert np.array_equal(test_medoids_result, [6, 3, 7, 2, 3, 5, 6, 6, 2, 5])
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            0,
+            2,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            6,
+            6,
+            3,
+            6,
+            6,
+            6,
+            2,
+            2,
+            2,
+            2,
+            2,
+            6,
+            0,
+            3,
+            6,
+            7,
+            4,
+            4,
+            6,
+            2,
+            6,
+            1,
+            5,
+            1,
+            6,
+            2,
+            3,
+            5,
+            6,
+            3,
+            7,
+            6,
+            2,
+            2,
+            3,
+            3,
+            6,
+            5,
+            5,
+            2,
+            3,
+            1,
+        ],
+    )
+    assert test_score == 0.4666666666666667
+    assert train_score == 0.5020408163265306
+    assert np.isclose(kmedoids.inertia_, 202.28656252701126)
+    assert kmedoids.n_iter_ == 2
+    assert np.array_equal(
+        kmedoids.labels_,
+        [
+            0,
+            2,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            6,
+            6,
+            3,
+            6,
+            6,
+            6,
+            2,
+            2,
+            2,
+            2,
+            2,
+            6,
+            0,
+            3,
+            6,
+            7,
+            4,
+            4,
+            6,
+            2,
+            6,
+            1,
+            5,
+            1,
+            6,
+            2,
+            3,
+            5,
+            6,
+            3,
+            7,
+            6,
+            2,
+            2,
+            3,
+            3,
+            6,
+            5,
+            5,
+            2,
+            3,
+            1,
+        ],
+    )
+    assert isinstance(kmedoids.cluster_centers_, np.ndarray)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1
+
+
+def _alternate_uni_medoids(X_train, y_train, X_test, y_test):
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
         n_init=2,
@@ -163,7 +301,125 @@ def test_kmedoids_multi():
     y_test = y_test[:num_points]
     X_test = X_test[:num_points]
     y_test = y_test[:num_points]
+    _alternate_multi_medoids(X_train, y_train, X_test, y_test)
+    _pam_multi_medoids(X_train, y_train, X_test, y_test)
 
+
+def _pam_multi_medoids(X_train, y_train, X_test, y_test):
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=2,
+        max_iter=5,
+        init_algorithm="first",
+        distance="euclidean",
+        method="pam",
+    )
+    train_medoids_result = kmedoids.fit_predict(X_train)
+    train_score = metrics.rand_score(y_train, train_medoids_result)
+    test_medoids_result = kmedoids.predict(X_test)
+    test_score = metrics.rand_score(y_test, test_medoids_result)
+    proba = kmedoids.predict_proba(X_test)
+    assert np.array_equal(test_medoids_result, [1, 5, 1, 0, 5, 3, 5, 5, 3, 3])
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            0,
+            1,
+            2,
+            3,
+            5,
+            5,
+            6,
+            7,
+            5,
+            1,
+            0,
+            0,
+            3,
+            7,
+            7,
+            0,
+            1,
+            5,
+            0,
+            3,
+            5,
+            6,
+            5,
+            5,
+            7,
+            3,
+            2,
+            2,
+            1,
+            3,
+            6,
+            0,
+            7,
+            0,
+            3,
+            6,
+            7,
+            2,
+            0,
+            4,
+        ],
+    )
+    assert test_score == 0.2222222222222222
+    assert train_score == 0.7012820512820512
+    assert np.isclose(kmedoids.inertia_, 3503.8777856802635)
+    assert kmedoids.n_iter_ == 2
+    assert np.array_equal(
+        kmedoids.labels_,
+        [
+            0,
+            1,
+            2,
+            3,
+            5,
+            5,
+            6,
+            7,
+            5,
+            1,
+            0,
+            0,
+            3,
+            7,
+            7,
+            0,
+            1,
+            5,
+            0,
+            3,
+            5,
+            6,
+            5,
+            5,
+            7,
+            3,
+            2,
+            2,
+            1,
+            3,
+            6,
+            0,
+            7,
+            0,
+            3,
+            6,
+            7,
+            2,
+            0,
+            4,
+        ],
+    )
+    assert isinstance(kmedoids.cluster_centers_, np.ndarray)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1
+
+
+def _alternate_multi_medoids(X_train, y_train, X_test, y_test):
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
         n_init=2,
@@ -304,5 +560,9 @@ def test_medoids_init():
     check_value_in_every_cluster(num_clusters, first_medoids_result)
     random_medoids_result = kmedoids._random_center_initializer(X_train)
     check_value_in_every_cluster(num_clusters, random_medoids_result)
-    kmedoids_plus_plus_medoids_result = kmedoids._kmedoids_plus_plus(X_train)
+    kmedoids_plus_plus_medoids_result = kmedoids._kmedoids_plus_plus_center_initializer(
+        X_train
+    )
     check_value_in_every_cluster(num_clusters, kmedoids_plus_plus_medoids_result)
+    kmedoids_build_result = kmedoids._pam_build_center_initializer(X_train)
+    check_value_in_every_cluster(num_clusters, kmedoids_build_result)

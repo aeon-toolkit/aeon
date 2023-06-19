@@ -2,10 +2,12 @@
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
+import warnings
 from typing import Callable, Tuple, Union
 
 import numpy as np
 from numpy.random import RandomState
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
 
@@ -28,6 +30,9 @@ class TimeSeriesKMedoids(BaseClusterer):
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
+    method: str, defaults = 'alternate'
+        Method for computing k-medoids. Any of the following are valid:
+        ['alternate', 'pam'].
     n_init: int, defaults = 10
         Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -70,6 +75,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
         distance: Union[str, Callable] = "dtw",
+        method: str = "alternate",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
@@ -85,6 +91,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.verbose = verbose
         self.random_state = random_state
         self.distance_params = distance_params
+        self.method = method
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -111,13 +118,29 @@ class TimeSeriesKMedoids(BaseClusterer):
             )
         self._distance_callable = get_distance_function(metric=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
+        fit_method = None
+        if self.method == "alternate":
+            fit_method = self._alternate_fit
+        elif self.method == "pam":
+            fit_method = self._pam_fit
 
+        if fit_method is None:
+            raise ValueError(f"method {self.method} is not supported")
         best_centers = None
         best_inertia = np.inf
         best_labels = None
         best_iters = self.max_iter
-        for _ in range(self.n_init):
-            labels, centers, inertia, n_iters = self._fit_one_init(X)
+
+        num_restart = self.n_init
+        if self.init_algorithm == "build":
+            if num_restart != 10 and num_restart > 1:
+                warnings.warn(
+                    "When using build n_init does not need to be greater than 1. "
+                    "Setting n_init to 1.",
+                )
+            num_restart = 1
+        for _ in range(num_restart):
+            labels, centers, inertia, n_iters = fit_method(X)
             if inertia < best_inertia:
                 best_centers = centers
                 best_labels = labels
@@ -187,7 +210,136 @@ class TimeSeriesKMedoids(BaseClusterer):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
         return indexes[np.argmin(sum(distance_matrix))]
 
-    def _fit_one_init(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
+    def _pam_fit(self, X: np.ndarray):
+        old_inertia = np.inf
+        n_instances = X.shape[0]
+        medoids_idxs = self._init_algorithm(X)
+        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+        distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
+        distance_closest_medoid, distance_second_closest_medoid = np.sort(
+            distance_matrix[medoids_idxs], axis=0
+        )[[0, 1]]
+        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=np.int), medoids_idxs)
+
+        for i in range(self.max_iter):
+            # Initialize best cost change and the associated swap couple.
+            old_medoid_idxs = np.copy(medoids_idxs)
+            best_cost_change = self._compute_optimal_swaps(
+                distance_matrix,
+                medoids_idxs,
+                not_medoid_idxs,
+                distance_closest_medoid,
+                distance_second_closest_medoid,
+            )
+
+            # If one of the swap decrease the objective, return that swap.
+            if best_cost_change is not None and best_cost_change[2] < 0:
+                first, second, _ = best_cost_change
+                medoids_idxs[medoids_idxs == first] = second
+                distance_closest_medoid, distance_second_closest_medoid = np.sort(
+                    distance_matrix[medoids_idxs], axis=0
+                )[[0, 1]]
+                inertia = np.sum(distance_closest_medoid)
+
+            if np.all(old_medoid_idxs == medoids_idxs):
+                if self.verbose:
+                    print(  # noqa: T001, T201
+                        f"Converged at iteration {i}: strict convergence."
+                    )
+                break
+            if np.abs(old_inertia - inertia) < self.tol:
+                if self.verbose:
+                    print(  # noqa: T001, T201
+                        f"Converged at iteration {i}: inertia less than tol."
+                    )
+                break
+            old_inertia = inertia
+            if i == self.max_iter - 1:
+                warnings.warn(
+                    "Maximum number of iteration reached before "
+                    "convergence. Consider increasing max_iter to "
+                    "improve the fit.",
+                    ConvergenceWarning,
+                )
+            if self.verbose is True:
+                print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
+
+        labels, inertia = self._assign_clusters(X, medoids_idxs)
+        centres = X[medoids_idxs]
+
+        return labels, centres, inertia, i + 1
+
+    def _compute_optimal_swaps(
+        self,
+        distance_matrix: np.ndarray,
+        medoids_idxs: np.ndarray,
+        not_medoid_idxs: np.ndarray,
+        distance_closest_medoid: np.ndarray,
+        distance_second_closest_medoid: np.ndarray,
+    ):
+        best_cost_change = (1, 1, 0.0)
+        sample_size = len(distance_matrix)
+        not_medoid_shape = sample_size - self.n_clusters
+
+        # Compute the change in cost for each swap.
+        for h in range(not_medoid_shape):
+            # id of the potential new medoid.
+            id_j = not_medoid_idxs[h]
+            for i in range(self.n_clusters):
+                # id of the medoid we want to replace.
+                id_i = medoids_idxs[i]
+                cost_change = 0.0
+                # compute for all not-selected points the change in cost
+                for j in range(not_medoid_shape):
+                    id_j = not_medoid_idxs[j]
+                    cluster_i_bool = (
+                        distance_matrix[id_i, id_j] == distance_closest_medoid[id_j]
+                    )
+                    not_cluster_i_bool = (
+                        distance_matrix[id_i, id_j] != distance_closest_medoid[id_j]
+                    )
+                    second_best_medoid = (
+                        distance_matrix[id_j, id_j]
+                        < distance_second_closest_medoid[id_j]
+                    )
+                    not_second_best_medoid = (
+                        distance_matrix[id_j, id_j]
+                        >= distance_second_closest_medoid[id_j]
+                    )
+
+                    if cluster_i_bool and second_best_medoid:
+                        cost_change += (
+                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
+                        )
+                    elif cluster_i_bool and not_second_best_medoid:
+                        cost_change += (
+                            distance_second_closest_medoid[id_j]
+                            - distance_closest_medoid[id_j]
+                        )
+                    elif not_cluster_i_bool and (
+                        distance_matrix[id_j, id_j] < distance_closest_medoid[id_j]
+                    ):
+                        cost_change += (
+                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
+                        )
+
+                # same for i
+                second_best_medoid = (
+                    distance_matrix[id_j, id_i] < distance_second_closest_medoid[id_i]
+                )
+                if second_best_medoid:
+                    cost_change += distance_matrix[id_i, id_j]
+                else:
+                    cost_change += distance_second_closest_medoid[id_i]
+
+                if cost_change < best_cost_change[2]:
+                    best_cost_change = (id_i, id_j, cost_change)
+        if best_cost_change[2] < 0:
+            return best_cost_change
+        else:
+            return None
+
+    def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
         cluster_centre_indexes = self._init_algorithm(X)
         old_inertia = np.inf
         old_indexes = None
@@ -219,7 +371,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _assign_clusters(
         self, X: np.ndarray, cluster_centre_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
-        X_indexes = np.arange(X.shape[0])
+        X_indexes = np.arange(X.shape[0], dtype=np.int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
@@ -230,9 +382,11 @@ class TimeSeriesKMedoids(BaseClusterer):
             if self.init_algorithm == "random":
                 self._init_algorithm = self._random_center_initializer
             elif self.init_algorithm == "kmedoids++":
-                self._init_algorithm = self._kmedoids_plus_plus
+                self._init_algorithm = self._kmedoids_plus_plus_center_initializer
             elif self.init_algorithm == "first":
                 self._init_algorithm = self._first_center_initializer
+            elif self.init_algorithm == "build":
+                self._init_algorithm = self._pam_build_center_initializer
         else:
             self._init_algorithm = self.init_algorithm
 
@@ -254,7 +408,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _first_center_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
-    def _kmedoids_plus_plus(
+    def _kmedoids_plus_plus_center_initializer(
         self,
         X: np.ndarray,
         n_local_trials: int = None,
@@ -266,7 +420,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             n_local_trials = 2 + int(np.log(self.n_clusters))
 
         center_id = self._random_state.randint(n_samples)
-        all_x_indexes = np.arange(n_samples)
+        all_x_indexes = np.arange(n_samples, dtype=np.int)
         centers_indexes[0] = center_id
 
         closest_dist_sq = (
@@ -296,6 +450,45 @@ class TimeSeriesKMedoids(BaseClusterer):
             centers_indexes[c] = best_candidate
 
         return centers_indexes
+
+    def _pam_build_center_initializer(
+        self,
+        X: np.ndarray,
+    ):
+        n_instances = X.shape[0]
+        X_index = np.arange(n_instances, dtype=np.int)
+        distance_matrix = self._compute_pairwise(X, X_index, X_index)
+
+        medoid_idxs = np.zeros(self.n_clusters, dtype=np.int)
+        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+
+        medoid_idxs[0] = np.argmin(np.sum(distance_matrix, axis=1))
+        not_medoid_idxs = np.delete(not_medoid_idxs, medoid_idxs[0])
+
+        n_medoids_current = 1
+        Dj = distance_matrix[medoid_idxs[0]].copy()
+        new_medoid = (0, 0)
+
+        for _ in range(self.n_clusters - 1):
+            cost_change_max = 0
+            for i in range(n_instances - n_medoids_current):
+                id_i = not_medoid_idxs[i]
+                cost_change = 0
+                for j in range(n_instances - n_medoids_current):
+                    id_j = not_medoid_idxs[j]
+                    cost_change += max(0, Dj[id_j] - distance_matrix[id_i, id_j])
+                if cost_change >= cost_change_max:
+                    cost_change_max = cost_change
+                    new_medoid = (id_i, i)
+
+            medoid_idxs[n_medoids_current] = new_medoid[0]
+            n_medoids_current += 1
+            not_medoid_idxs = np.delete(not_medoid_idxs, new_medoid[1])
+
+            for id_j in range(n_instances):
+                Dj[id_j] = min(Dj[id_j], distance_matrix[id_j, new_medoid[0]])
+
+        return np.array(medoid_idxs)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
