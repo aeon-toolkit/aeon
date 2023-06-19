@@ -518,4 +518,5 @@ class TimeSeriesKMedoids(BaseClusterer):
             "tol": 0.0001,
             "verbose": False,
             "random_state": 1,
+            "method": "alternate",
         }
