@@ -32,6 +32,8 @@ from aeon.utils.numba.stats import (
 class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
     """Diverse Representation Canonical Interval Forest Classifier (DrCIF).
 
+    todo
+
     Extension of the CIF algorithm using multple representations. Implementation of the
     interval based forest making use of the catch22 feature set on randomly selected
     intervals on the base series, periodogram representation and differences

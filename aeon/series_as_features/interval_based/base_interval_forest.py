@@ -13,6 +13,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
@@ -252,7 +253,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
             Xt = [X]
             self._series_transformers = [None]
         # clone series_transformers if it is a transformer and transform the input data
-        elif isinstance(self.series_transformers, BaseTransformer):
+        elif _is_transformer(self.series_transformers):
             t = _clone_estimator(self.series_transformers, random_state=rng)
             Xt = [t.fit_transform(X, y)]
             self._series_transformers = [t]
@@ -266,7 +267,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 if transformer is None:
                     Xt.append(X)
                     self._series_transformers.append(None)
-                elif isinstance(transformer, BaseTransformer):
+                elif _is_transformer(transformer):
                     t = _clone_estimator(transformer, random_state=rng)
                     Xt.append(t.fit_transform(X, y))
                     self._series_transformers.append(t)
@@ -1005,7 +1006,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         for transformer in self._series_transformers:
             if transformer is None:
                 Xt.append(X)
-            elif isinstance(transformer, BaseTransformer):
+            elif _is_transformer(transformer):
                 Xt.append(transformer.transform(X))
 
         return Xt
@@ -1034,3 +1035,9 @@ class BaseIntervalForest(metaclass=ABCMeta):
             return estimator.predict_proba(interval_features)
         else:
             return estimator.predict(interval_features)
+
+
+def _is_transformer(obj):
+    if isinstance(obj, BaseTransformer) or isinstance(obj, FunctionTransformer):
+        return True
+    return False
