@@ -2,11 +2,9 @@
 """Tests for time series k-medoids."""
 import numpy as np
 from sklearn import metrics
-from sklearn.utils import check_random_state
 
 from aeon.clustering.clara import TimeSeriesCLARA
 from aeon.datasets import load_basic_motions, load_gunpoint
-from aeon.distances import euclidean_distance
 
 
 def test_clara_uni():
@@ -14,23 +12,354 @@ def test_clara_uni():
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
 
-    num_points = 10
-
-    X_train = X_test[:num_points]
-    y_test = y_test[:num_points]
-    X_test = X_test[:num_points]
-    y_test = y_test[:num_points]
-
-    kmedoids = TimeSeriesCLARA(
+    clara = TimeSeriesCLARA(
         random_state=1,
+        n_samples=10,
         n_init=2,
         max_iter=5,
         init_algorithm="first",
         distance="euclidean",
+        n_clusters=2,
     )
-    train_medoids_result = kmedoids.fit_predict(X_train)
+    train_medoids_result = clara.fit_predict(X_train)
     train_score = metrics.rand_score(y_train, train_medoids_result)
-    test_medoids_result = kmedoids.predict(X_test)
+    test_medoids_result = clara.predict(X_test)
     test_score = metrics.rand_score(y_test, test_medoids_result)
-    proba = kmedoids.predict_proba(X_test)
-    joe = ""
+    proba = clara.predict_proba(X_test)
+    assert np.array_equal(
+        test_medoids_result,
+        [
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+        ],
+    )
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+        ],
+    )
+    assert test_score == 0.5117673378076063
+    assert train_score == 0.4897959183673469
+    assert np.isclose(clara.inertia_, 60.51210708968088)
+    assert clara.n_iter_ == 2
+    assert np.array_equal(clara.labels_, [0, 1, 0, 1, 1, 1, 1, 1, 0, 0])
+    assert isinstance(clara.cluster_centers_, np.ndarray)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1
+
+
+def test_clara_multi():
+    """Test implementation of Kmedoids."""
+    X_train, y_train = load_basic_motions(split="train")
+    X_test, y_test = load_basic_motions(split="test")
+
+    clara = TimeSeriesCLARA(
+        random_state=1,
+        n_samples=10,
+        n_init=2,
+        max_iter=5,
+        init_algorithm="first",
+        distance="euclidean",
+        n_clusters=2,
+    )
+    train_medoids_result = clara.fit_predict(X_train)
+    train_score = metrics.rand_score(y_train, train_medoids_result)
+    test_medoids_result = clara.predict(X_test)
+    test_score = metrics.rand_score(y_test, test_medoids_result)
+    proba = clara.predict_proba(X_test)
+    assert np.array_equal(
+        test_medoids_result,
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+        ],
+    )
+    assert np.array_equal(
+        train_medoids_result,
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+        ],
+    )
+    assert test_score == 0.4423076923076923
+    assert train_score == 0.4512820512820513
+    assert np.isclose(clara.inertia_, 99.36631600687056)
+    assert clara.n_iter_ == 2
+    assert np.array_equal(clara.labels_, [0, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    assert isinstance(clara.cluster_centers_, np.ndarray)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1

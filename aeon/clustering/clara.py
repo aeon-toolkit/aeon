@@ -2,7 +2,7 @@
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import Callable, Tuple, Union
+from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -14,20 +14,74 @@ from aeon.distances import pairwise_distance
 
 
 class TimeSeriesCLARA(BaseClusterer):
+    """Time series CLARA implementation.
+
+    Parameters
+    ----------
+    n_clusters: int, defaults = 8
+        The number of clusters to form as well as the number of
+        centroids to generate.
+    init_algorithm: str, defaults = 'random'
+        Method for initializing cluster centers. Any of the following are valid:
+        ['kmedoids++', 'random', 'first'].
+    distance: str or Callable, defaults = 'dtw'
+        Distance metric to compute similarity between time series. Any of the following
+        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
+        'wddtw', 'msm', 'twe']
+    n_samples: int, default = None,
+        Number of samples to sample from the dataset. If None, then
+        min(n_instances, 40 + 2 * n_clusters) is used.
+    n_sampling_iters: int, default = 5,
+        Number of different subsets of samples to try. The best subset cluster centres
+        are used.
+    n_init: int, defaults = 5
+        Number of times the PAM algorithm will be run with different
+        centroid seeds. The final result will be the best output of n_init
+        consecutive runs in terms of inertia.
+    max_iter: int, defaults = 300
+        Maximum number of iterations of the PAM algorithm for a single
+        run.
+    tol: float, defaults = 1e-6
+        Relative tolerance with regards to Frobenius norm of the difference
+        in the cluster centers of two consecutive iterations to declare
+        convergence.
+    verbose: bool, defaults = False
+        Verbosity mode.
+    random_state: int or np.random.RandomState instance or None, defaults = None
+        Determines random number generation for centroid initialization.
+    distance_params: dict, defaults = None
+        Dictionary containing kwargs for the distance metric being used.
+
+    Attributes
+    ----------
+    cluster_centers_: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+        A collection of time series instances that represent the cluster centres.
+    labels_: np.ndarray (1d array of shape (n_instance,))
+        Labels that is the index each time series belongs to.
+    inertia_: float
+        Sum of squared distances of samples to their closest cluster center, weighted by
+        the sample weights if provided.
+    n_iter_: int
+        Number of iterations run.
+    """
+
+    _tags = {
+        "capability:multivariate": True,
+    }
 
     def __init__(
-            self,
-            n_clusters: int = 8,
-            init_algorithm: Union[str, Callable] = "random",
-            distance: Union[str, Callable] = "dtw",
-            n_samples: int = None,
-            n_sampling_iters: int = 5,
-            n_init: int = 10,
-            max_iter: int = 300,
-            tol: float = 1e-6,
-            verbose: bool = False,
-            random_state: Union[int, RandomState] = None,
-            distance_params: dict = None,
+        self,
+        n_clusters: int = 8,
+        init_algorithm: Union[str, Callable] = "random",
+        distance: Union[str, Callable] = "dtw",
+        n_samples: int = None,
+        n_sampling_iters: int = 5,
+        n_init: int = 5,
+        max_iter: int = 300,
+        tol: float = 1e-6,
+        verbose: bool = False,
+        random_state: Union[int, RandomState] = None,
+        distance_params: dict = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance
@@ -71,7 +125,6 @@ class TimeSeriesCLARA(BaseClusterer):
             )
         return pairwise_matrix.argmin(axis=1)
 
-
     def _fit(self, X: TimeSeriesInstances, y=None):
         self._random_state = check_random_state(self.random_state)
         n_instances = X.shape[0]
@@ -114,4 +167,4 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_iter_ = best_pam.n_iter_
 
     def _score(self, X, y=None):
-        pass
+        return -self.inertia_
