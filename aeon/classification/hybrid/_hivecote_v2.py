@@ -17,7 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
-from aeon.classification.interval_based._drcif import DrCIF
+from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
@@ -202,7 +202,7 @@ class HIVECOTEV2(BaseClassifier):
             print("STC weight = " + str(self.stc_weight_))  # noqa
 
         # Build DrCIF
-        self._drcif = DrCIF(
+        self._drcif = DrCIFClassifier(
             **self._drcif_params,
             save_transformed_data=True,
             random_state=self.random_state,

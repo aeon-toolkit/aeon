@@ -26,8 +26,8 @@ from aeon.classification.feature_based import (
 )
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from aeon.classification.interval_based import (
-    CanonicalIntervalForest,
-    DrCIF,
+    CanonicalIntervalForestClassifier,
+    DrCIFClassifier,
     RandomIntervalClassifier,
     RandomIntervalSpectralEnsemble,
     SupervisedTimeSeriesForest,
@@ -129,7 +129,7 @@ if __name__ == "__main__":
                     ),
                     (
                         "CIF",
-                        CanonicalIntervalForest(
+                        CanonicalIntervalForestClassifier(
                             n_estimators=2,
                             n_intervals=4,
                             att_subsample_size=4,
@@ -401,7 +401,7 @@ if __name__ == "__main__":
     _print_array(
         "CanonicalIntervalForest - UnitTest",
         _reproduce_classification_unit_test(
-            CanonicalIntervalForest(
+            CanonicalIntervalForestClassifier(
                 n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
             )
         ),
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     _print_array(
         "CanonicalIntervalForest - BasicMotions",
         _reproduce_classification_basic_motions(
-            CanonicalIntervalForest(
+            CanonicalIntervalForestClassifier(
                 n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
             )
         ),
@@ -417,13 +417,17 @@ if __name__ == "__main__":
     _print_array(
         "DrCIF - UnitTest",
         _reproduce_classification_unit_test(
-            DrCIF(n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0)
+            DrCIFClassifier(
+                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+            )
         ),
     )
     _print_array(
         "DrCIF - BasicMotions",
         _reproduce_classification_basic_motions(
-            DrCIF(n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0)
+            DrCIFClassifier(
+                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+            )
         ),
     )
     _print_array(

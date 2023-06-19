@@ -762,21 +762,11 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
             return np.mean(y_preds, axis=0)
         else:
-            # treat case of single class seen in fit
-            if self.n_classes_ == 1:
-                return np.repeat(
-                    list(self.class_dictionary_.keys()), X.shape[0], axis=0
-                )
-
             return np.array(
                 [self.classes_[int(np.argmax(prob))] for prob in self._predict_proba(X)]
             )
 
     def _predict_proba(self, X):
-        # treat case of single class seen in fit
-        if self.n_classes_ == 1:
-            return np.repeat([[1]], X.shape[0], axis=0)
-
         Xt = self._predict_setup(X)
 
         y_probas = Parallel(
