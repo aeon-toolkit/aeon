@@ -23,7 +23,6 @@ def test_kmedoids_uni():
     _alternate_uni_medoids(X_train, y_train, X_test, y_test)
     _pam_uni_medoids(X_train, y_train, X_test, y_test)
 
-
 def _pam_uni_medoids(X_train, y_train, X_test, y_test):
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
