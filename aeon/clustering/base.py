@@ -165,7 +165,7 @@ class BaseClusterer(BaseEstimator, ABC):
         X = self._check_clusterer_input(X)
         return self._score(X, y)
 
-    def _predict_proba(self, X):
+    def _predict_proba(self, X: np.ndarray):
         """Predicts labels probabilities for sequences in X.
 
         Default behaviour is to call _predict and set the predicted class probability
@@ -201,7 +201,7 @@ class BaseClusterer(BaseEstimator, ABC):
         ...
 
     @abstractmethod
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -219,7 +219,7 @@ class BaseClusterer(BaseEstimator, ABC):
         ...
 
     @abstractmethod
-    def _fit(self, X: TimeSeriesInstances, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
