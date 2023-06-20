@@ -2,6 +2,7 @@
 """Time series clustering module."""
 __all__ = [
     "BaseClusterer",
+    "TimeSeriesKMedoids",
 ]
 __author__ = ["chrisholder", "TonyBagnall"]
 
