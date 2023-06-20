@@ -8,3 +8,4 @@ __author__ = ["chrisholder", "TonyBagnall"]
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
 from aeon.clustering.clara import TimeSeriesCLARA
+from aeon.clustering.clarans import TimeSeriesCLARANS
