@@ -11,7 +11,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
+from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
 
 
@@ -132,7 +132,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _score(self, X, y=None):
         return -self.inertia_
 
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
                 X, self.cluster_centers_, metric=self.distance, **self._distance_params

@@ -8,7 +8,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
+from aeon.clustering.base import BaseClusterer
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
 from aeon.distances import pairwise_distance
 
@@ -111,7 +111,7 @@ class TimeSeriesCLARA(BaseClusterer):
 
         super(TimeSeriesCLARA, self).__init__(n_clusters)
 
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
                 X, self.cluster_centers_, metric=self.distance, **self._distance_params
@@ -125,7 +125,7 @@ class TimeSeriesCLARA(BaseClusterer):
             )
         return pairwise_matrix.argmin(axis=1)
 
-    def _fit(self, X: TimeSeriesInstances, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         self._random_state = check_random_state(self.random_state)
         n_instances = X.shape[0]
         if self.n_samples is None:
