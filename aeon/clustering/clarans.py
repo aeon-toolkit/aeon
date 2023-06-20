@@ -9,11 +9,11 @@ from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
-from aeon.clustering.k_medoids import TimeSeriesKMedoids
 from aeon.distances import pairwise_distance
+from aeon.clustering.k_medoids import TimeSeriesKMedoids
 
 
-class TimeSeriesCLARANS(BaseClusterer):
+class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     def __init__(
             self,
@@ -21,7 +21,7 @@ class TimeSeriesCLARANS(BaseClusterer):
             init_algorithm: Union[str, Callable] = "random",
             distance: Union[str, Callable] = "dtw",
             max_neighbours: int = None,
-            num_local: int = 5,
+            num_local: int = 10,
             n_init: int = 1,
             max_iter: int = 300,
             tol: float = 1e-6,
@@ -29,36 +29,70 @@ class TimeSeriesCLARANS(BaseClusterer):
             random_state: Union[int, RandomState] = None,
             distance_params: dict = None,
     ):
-        self.init_algorithm = init_algorithm
-        self.distance = distance
-        self.n_init = n_init
-        self.max_iter = max_iter
-        self.tol = tol
-        self.verbose = verbose
-        self.random_state = random_state
-        self.distance_params = distance_params
         self.max_neighbours = max_neighbours
         self.num_local = num_local
 
-        self.cluster_centers_ = None
-        self.labels_ = None
-        self.inertia_ = None
-        self.n_iter_ = 0
-
-        self._random_state = None
-        self._init_algorithm = None
-        self._distance_cache = None
-        self._distance_callable = None
-        self._kmedoids_instance = None
-
-        self._distance_params = distance_params
-        if distance_params is None:
-            self._distance_params = {}
-
-        super(TimeSeriesCLARA, self).__init__(n_clusters)
+        super(TimeSeriesCLARANS, self).__init__(
+            n_clusters=n_clusters,
+            init_algorithm=init_algorithm,
+            distance=distance,
+            method="pam",
+            n_init=n_init,
+            max_iter=max_iter,
+            tol=tol,
+            verbose=verbose,
+            random_state=random_state,
+            distance_params=distance_params
+        )
 
     def _fit(self, X: TimeSeriesInstances, y=None):
-        pass
+        self._check_params()
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_instances ({X.shape[0]})"
+            )
+
+
+        pairwise = pairwise_distance(X, metric=self.metric, **self.metric_params)
+        max_neighbours = math.ceil(
+            (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters)))
+        n_init = 10
+        min_cost = np.inf
+        best_medoids = None
+
+        for _ in range(n_init):
+
+            if self.init == "random":
+                medoids = np.random.choice(X.shape[0], self.n_clusters, replace=False)
+            else:
+                medoids = pam_build(pairwise, self.n_clusters)
+
+            current_cost = pairwise[medoids].min(axis=0).sum()
+
+            j = 0
+            while j < max_neighbours:
+                new_medoids = medoids.copy()
+                to_replace = random.randrange(self.n_clusters)
+                replace_with = new_medoids[0]
+                # select medoids not in new_medoids
+                while replace_with in new_medoids:
+                    replace_with = random.randrange(X.shape[0]) - 1
+                new_medoids[to_replace] = replace_with
+                new_cost = pairwise[new_medoids].min(axis=0).sum()
+                if new_cost < current_cost:
+                    current_cost = new_cost
+                    medoids = new_medoids
+                else:
+                    j += 1
+
+            if current_cost < min_cost:
+                min_cost = current_cost
+                best_medoids = medoids
+
+        self.cluster_centers_ = X[best_medoids]
+        self.inertia_ = min_cost
+        return pairwise[best_medoids].argmin(axis=1)
 
     def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
         pass
