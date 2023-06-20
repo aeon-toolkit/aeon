@@ -103,15 +103,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
-        self._check_params()
-        if self.n_clusters > X.shape[0]:
-            raise ValueError(
-                f"n_clusters ({self.n_clusters}) cannot be larger than "
-                f"n_instances ({X.shape[0]})"
-            )
-        self._distance_callable = get_distance_function(metric=self.distance)
-        self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
-
+        self._check_params(X)
         best_centers = None
         best_inertia = np.inf
         best_labels = None
@@ -223,7 +215,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
-    def _check_params(self) -> None:
+    def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
         if isinstance(self.init_algorithm, str):
@@ -247,6 +239,14 @@ class TimeSeriesKMedoids(BaseClusterer):
             self._distance_params = {}
         else:
             self._distance_params = self.distance_params
+
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_instances ({X.shape[0]})"
+            )
+        self._distance_callable = get_distance_function(metric=self.distance)
+        self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
