@@ -201,7 +201,7 @@ class BaseClusterer(BaseEstimator, ABC):
         ...
 
     @abstractmethod
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -219,7 +219,7 @@ class BaseClusterer(BaseEstimator, ABC):
         ...
 
     @abstractmethod
-    def _fit(self, X: TimeSeriesInstances, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
