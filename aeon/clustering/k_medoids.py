@@ -102,6 +102,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._init_algorithm = None
         self._distance_cache = None
         self._distance_callable = None
+        self._fit_method = None
 
         self._distance_params = distance_params
         if distance_params is None:
@@ -110,37 +111,15 @@ class TimeSeriesKMedoids(BaseClusterer):
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
-        self._check_params()
-        if self.n_clusters > X.shape[0]:
-            raise ValueError(
-                f"n_clusters ({self.n_clusters}) cannot be larger than "
-                f"n_instances ({X.shape[0]})"
-            )
-        self._distance_callable = get_distance_function(metric=self.distance)
-        self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
-        fit_method = None
-        if self.method == "alternate":
-            fit_method = self._alternate_fit
-        elif self.method == "pam":
-            fit_method = self._pam_fit
+        self._check_params(X)
 
-        if fit_method is None:
-            raise ValueError(f"method {self.method} is not supported")
         best_centers = None
         best_inertia = np.inf
         best_labels = None
         best_iters = self.max_iter
 
-        num_restart = self.n_init
-        if self.init_algorithm == "build":
-            if num_restart != 10 and num_restart > 1:
-                warnings.warn(
-                    "When using build n_init does not need to be greater than 1. "
-                    "Setting n_init to 1.",
-                )
-            num_restart = 1
-        for _ in range(num_restart):
-            labels, centers, inertia, n_iters = fit_method(X)
+        for _ in range(self.n_init):
+            labels, centers, inertia, n_iters = self._fit_method(X)
             if inertia < best_inertia:
                 best_centers = centers
                 best_labels = labels
@@ -375,7 +354,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
-    def _check_params(self) -> None:
+    def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
         if isinstance(self.init_algorithm, str):
@@ -401,6 +380,28 @@ class TimeSeriesKMedoids(BaseClusterer):
             self._distance_params = {}
         else:
             self._distance_params = self.distance_params
+
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_instances ({X.shape[0]})"
+            )
+        self._distance_callable = get_distance_function(metric=self.distance)
+        self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
+
+        if self.method == "alternate":
+            self._fit_method = self._alternate_fit
+        elif self.method == "pam":
+            self._fit_method = self._pam_fit
+        else:
+            raise ValueError(f"method {self.method} is not supported")
+
+        if self.init_algorithm == "build":
+            if self.n_init != 10 and self.n_init > 1:
+                warnings.warn(
+                    "When using build n_init does not need to be greater than 1. "
+                    "Consider setting n_init to 1.",
+                )
 
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
