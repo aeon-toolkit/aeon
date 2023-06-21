@@ -2,9 +2,9 @@
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
+import math
 from typing import Callable, Union
 
-import math
 import numpy as np
 from numpy.random import RandomState
 
@@ -12,34 +12,71 @@ from aeon.clustering.k_medoids import TimeSeriesKMedoids
 
 
 class TimeSeriesCLARANS(TimeSeriesKMedoids):
+    """Time series CLARANS implementation.
+
+    Parameters
+    ----------
+    n_clusters: int, defaults = 8
+        The number of clusters to form as well as the number of
+        centroids to generate.
+    init_algorithm: str, defaults = 'random'
+        Method for initializing cluster centers. Any of the following are valid:
+        ['kmedoids++', 'random', 'first'].
+    distance: str or Callable, defaults = 'dtw'
+        Distance metric to compute similarity between time series. Any of the following
+        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
+        'wddtw', 'msm', 'twe']
+    max_neighbours: int, default = None,
+        The maximum number of neighbouring solutions that the algorithm will explore
+        for each set of medoids. A neighbouring solution is obtained by replacing
+        one of the medoids with a non-medoid and seeing if total cost reduces. If
+        not specified max_neighbours is set to 1.25% of the total number of possible
+        swaps (as suggested in the orginal paper).
+    n_init: int, defaults = 5
+        Number of times the PAM algorithm will be run with different
+        centroid seeds. The final result will be the best output of n_init
+        consecutive runs in terms of inertia.
+    verbose: bool, defaults = False
+        Verbosity mode.
+    random_state: int or np.random.RandomState instance or None, defaults = None
+        Determines random number generation for centroid initialization.
+    distance_params: dict, defaults = None
+        Dictionary containing kwargs for the distance metric being used.
+
+    Attributes
+    ----------
+    cluster_centers_: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+        A collection of time series instances that represent the cluster centres.
+    labels_: np.ndarray (1d array of shape (n_instance,))
+        Labels that is the index each time series belongs to.
+    inertia_: float
+        Sum of squared distances of samples to their closest cluster center, weighted by
+        the sample weights if provided.
+    n_iter_: int
+        Number of iterations run.
+    """
 
     def __init__(
-            self,
-            n_clusters: int = 8,
-            init_algorithm: Union[str, Callable] = "random",
-            distance: Union[str, Callable] = "dtw",
-            max_neighbours: int = None,
-            num_local: int = 10,
-            n_init: int = 1,
-            tol: float = 1e-6,
-            verbose: bool = False,
-            random_state: Union[int, RandomState] = None,
-            distance_params: dict = None,
+        self,
+        n_clusters: int = 8,
+        init_algorithm: Union[str, Callable] = "random",
+        distance: Union[str, Callable] = "dtw",
+        max_neighbours: int = None,
+        n_init: int = 10,
+        verbose: bool = False,
+        random_state: Union[int, RandomState] = None,
+        distance_params: dict = None,
     ):
         self.max_neighbours = max_neighbours
-        self.num_local = num_local
 
         super(TimeSeriesCLARANS, self).__init__(
             n_clusters=n_clusters,
             init_algorithm=init_algorithm,
             distance=distance,
-            method="pam",
             n_init=n_init,
-            max_iter=1,
-            tol=tol,
             verbose=verbose,
             random_state=random_state,
-            distance_params=distance_params
+            distance_params=distance_params,
         )
 
     def _fit_one_init(self, X: np.ndarray, max_neighbours: int):
@@ -47,9 +84,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         X_indexes = np.arange(X.shape[0], dtype=np.int)
         best_medoids = self._init_algorithm(X)
         best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
-        best_cost = self._compute_pairwise(
-            X, best_non_medoids, best_medoids
-        ).min(axis=1).sum()
+        best_cost = (
+            self._compute_pairwise(X, best_non_medoids, best_medoids).min(axis=1).sum()
+        )
         num_non_medoids = X.shape[0] - self.n_clusters
         while j < max_neighbours:
             new_medoids = best_medoids.copy()
@@ -60,9 +97,11 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
             new_medoids[to_replace_index] = new_non_medoids[replace_with_index]
             new_non_medoids[replace_with_index] = temp
 
-            new_cost = self._compute_pairwise(
-                X, new_non_medoids, new_medoids
-            ).min(axis=1).sum()
+            new_cost = (
+                self._compute_pairwise(X, new_non_medoids, new_medoids)
+                .min(axis=1)
+                .sum()
+            )
             if new_cost < best_cost:
                 best_cost = new_cost
                 best_medoids = new_medoids
@@ -78,7 +117,8 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         max_neighbours = self.max_neighbours
         if self.max_neighbours is None:
             max_neighbours = math.ceil(
-                (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters)))
+                (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters))
+            )
 
         best_centers = None
         best_cost = np.inf
