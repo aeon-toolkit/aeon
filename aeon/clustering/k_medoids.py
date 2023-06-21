@@ -211,6 +211,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                 distance_second_closest_medoid,
             )
 
+            inertia = np.inf
             # If one of the swap decrease the objective, return that swap.
             if best_cost_change is not None and best_cost_change[2] < 0:
                 first, second, _ = best_cost_change
