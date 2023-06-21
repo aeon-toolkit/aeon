@@ -67,7 +67,7 @@ all_extras = [
     "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
-    "plotly-resampler==0.9.0rc6",  # Used in statsforecast https://github.com/predict-idlab/plotly-resampler/issues/203
+    #"plotly-resampler==0.9.0rc6",  # Used in statsforecast https://github.com/predict-idlab/plotly-resampler/issues/203
     "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
