@@ -308,7 +308,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
             if callable(f):
                 li.append(f)
             elif isinstance(f, BaseTransformer):
-                if f.get_tag("requires_fit"):
+                if not f.get_tag("fit_is_empty"):
                     raise ValueError(msg)
 
                 params = inspect.signature(f.__init__).parameters

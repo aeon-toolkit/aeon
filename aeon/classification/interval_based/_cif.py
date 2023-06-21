@@ -107,9 +107,9 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     ...                              return_y=True, random_state=0)
     >>> clf = CanonicalIntervalForestClassifier(n_estimators=10, random_state=0)
     >>> clf.fit(X, y)
-    CanonicalIntervalForestClassifier(...)
+    CanonicalIntervalForestClassifier(n_estimators=10, random_state=0)
     >>> clf.predict(X)
-    [0 1 0 1 0 0 1 1 1 0]
+    array([0 1 0 1 0 0 1 1 1 0])
     """
 
     _tags = {

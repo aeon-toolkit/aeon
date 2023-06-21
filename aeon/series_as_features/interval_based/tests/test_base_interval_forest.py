@@ -4,13 +4,14 @@
 
 import numpy as np
 import pytest
+from sklearn.pipeline import make_pipeline
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.collection import (
-    ARCoefficientTransformer,
+    AutocorrelationFunctionTransformer,
     Catch22,
     SevenNumberSummaryTransformer,
 )
@@ -26,19 +27,25 @@ from aeon.utils.numba.stats import row_mean, row_numba_min
 def test_interval_forest_feature_skipping(base_estimator):
     """Test BaseIntervalForest feature skipping with different base estimators."""
     X, y = make_3d_test_data()
+    rs = np.random.randint(np.iinfo(np.int32).max)
 
     est = IntervalForestClassifier(
         base_estimator=base_estimator,
         n_estimators=2,
         n_intervals=2,
-        random_state=np.random.randint(np.iinfo(np.int32).max),
+        random_state=rs,
     )
     est.fit(X, y)
     preds = est.predict(X)
 
     assert est._efficient_predictions is True
 
-    est._test_flag = True
+    est = IntervalForestClassifier(
+        base_estimator=make_pipeline(base_estimator),
+        n_estimators=2,
+        n_intervals=2,
+        random_state=rs,
+    )
     est.fit(X, y)
 
     assert est._efficient_predictions is False
@@ -169,7 +176,7 @@ def test_interval_forest_invalid_attribute_subsample():
     [
         FunctionTransformer(np.log1p),
         [None, FunctionTransformer(np.log1p)],
-        [FunctionTransformer(np.log1p), ARCoefficientTransformer()],
+        [FunctionTransformer(np.log1p), AutocorrelationFunctionTransformer(n_lags=6)],
     ],
 )
 def test_interval_forest_series_transformer(series_transformer):

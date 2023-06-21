@@ -675,11 +675,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        # flags for testing. not used in the actual algorithm
-        self._efficient_predictions = True
-        if not hasattr(self, "_test_flag"):
-            self._test_flag = False
-
         if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
             time_limit = self.time_limit_in_minutes * 60
             start_time = time.time()
@@ -945,40 +940,32 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         # find the features used in the tree and inform the interval selectors to not
         # transform these features if possible
-        if not self._test_flag:
-            relevant_features = None
-            if isinstance(tree, BaseDecisionTree):
-                relevant_features = np.unique(
-                    tree.tree_.feature[tree.tree_.feature >= 0]
+        self._efficient_predictions = True
+        relevant_features = None
+        if isinstance(tree, BaseDecisionTree):
+            relevant_features = np.unique(tree.tree_.feature[tree.tree_.feature >= 0])
+        elif isinstance(tree, ContinuousIntervalTree):
+            relevant_features, _ = tree.tree_node_splits_and_gain()
+
+        if relevant_features is not None:
+            features_to_transform = [False] * interval_features.shape[1]
+            for i in relevant_features:
+                features_to_transform[i] = True
+
+            count = 0
+            for r in range(len(Xt)):
+                intervals[r].transformer_feature_skip = self.transformer_feature_skip
+
+                # if the transformers don't have valid attributes to skip False is
+                # returned
+                completed = intervals[r].set_features_to_transform(
+                    features_to_transform[count : count + transform_data_lengths[r]],
+                    raise_error=False,
                 )
-            elif isinstance(tree, ContinuousIntervalTree):
-                relevant_features, _ = tree.tree_node_splits_and_gain()
+                count += transform_data_lengths[r]
 
-            if relevant_features is not None:
-                features_to_transform = [False] * interval_features.shape[1]
-                for i in relevant_features:
-                    features_to_transform[i] = True
-
-                count = 0
-                for r in range(len(Xt)):
-                    intervals[
-                        r
-                    ].transformer_feature_skip = self.transformer_feature_skip
-
-                    # if the transformers don't have valid attributes to skip False is
-                    # returned
-                    completed = intervals[r].set_features_to_transform(
-                        features_to_transform[
-                            count : count + transform_data_lengths[r]
-                        ],
-                        raise_error=False,
-                    )
-                    count += transform_data_lengths[r]
-
-                    if not completed:
-                        self._efficient_predictions = False
-            else:
-                self._efficient_predictions = False
+                if not completed:
+                    self._efficient_predictions = False
         else:
             self._efficient_predictions = False
 
