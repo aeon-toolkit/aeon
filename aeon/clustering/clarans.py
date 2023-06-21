@@ -8,8 +8,6 @@ import math
 import numpy as np
 from numpy.random import RandomState
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
-from aeon.distances import pairwise_distance
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
 
 
@@ -44,10 +42,37 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
             distance_params=distance_params
         )
 
-    def _fit_one_init(self, X: np.ndarray):
-        pass
+    def _fit_one_init(self, X: np.ndarray, max_neighbours: int):
+        j = 0
+        X_indexes = np.arange(X.shape[0], dtype=np.int)
+        best_medoids = self._init_algorithm(X)
+        best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
+        best_cost = self._compute_pairwise(
+            X, best_non_medoids, best_medoids
+        ).min(axis=1).sum()
+        num_non_medoids = X.shape[0] - self.n_clusters
+        while j < max_neighbours:
+            new_medoids = best_medoids.copy()
+            new_non_medoids = best_non_medoids.copy()
+            to_replace_index = self._random_state.randint(self.n_clusters)
+            replace_with_index = self._random_state.randint(num_non_medoids)
+            temp = new_medoids[to_replace_index]
+            new_medoids[to_replace_index] = new_non_medoids[replace_with_index]
+            new_non_medoids[replace_with_index] = temp
 
-    def _fit(self, X: TimeSeriesInstances, y=None):
+            new_cost = self._compute_pairwise(
+                X, new_non_medoids, new_medoids
+            ).min(axis=1).sum()
+            if new_cost < best_cost:
+                best_cost = new_cost
+                best_medoids = new_medoids
+                best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
+            else:
+                j += 1
+
+        return best_medoids, best_cost
+
+    def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
 
         max_neighbours = self.max_neighbours
@@ -55,50 +80,18 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
             max_neighbours = math.ceil(
                 (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters)))
 
-        min_cost = np.inf
-        best_medoids = None
+        best_centers = None
+        best_cost = np.inf
 
+        for _ in range(self.n_init):
+            centers, cost = self._fit_one_init(X, max_neighbours)
+            if cost < best_cost:
+                best_centers = centers
+                best_cost = cost
 
+        labels, inertia = self._assign_clusters(X, best_centers)
 
-        # X_indexes = np.arange(X.shape[0], dtype=np.int)
-        #
-        # for _ in range(self.n_init):
-        #
-        #     medoids = self._init_algorithm(X)
-        #     current_cost = self._compute_pairwise(X, X_indexes, medoids).min(axis=0).sum()
-        #
-        #     j = 0
-        #     while j < max_neighbours:
-        #         new_medoids = medoids.copy()
-        #         to_replace = self._random_state.randrange(self.n_clusters)
-        #         replace_with = new_medoids[0]
-        #         # select medoids not in new_medoids
-        #         while replace_with in new_medoids:
-        #             replace_with = self._random_state.randrange(X.shape[0]) - 1
-        #         new_medoids[to_replace] = replace_with
-        #         new_cost = self._compute_pairwise(
-        #             X, X_indexes, new_medoids
-        #         ).min(axis=0).sum()
-        #         if new_cost < current_cost:
-        #             current_cost = new_cost
-        #             medoids = new_medoids
-        #         else:
-        #             j += 1
-        #
-        #     if current_cost < min_cost:
-        #         min_cost = current_cost
-        #         best_medoids = medoids
-        #
-        # self.cluster_centers_ = X[best_medoids]
-        # self.inertia_ = min_cost
-        # # self.labels_ = best_pam.labels_
-        # # self.inertia_ = best_pam.inertia_
-        # # self.cluster_centers_ = best_pam.cluster_centers_
-        # # self.n_iter_ = best_pam.n_iter_
-        # # return self._compute_pairwise(X, X_indexes, best_medoids).argmin(axis=1)
-
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
-        pass
-
-    def _score(self, X, y=None):
-        pass
+        self.labels_ = labels
+        self.inertia_ = inertia
+        self.cluster_centers_ = X[best_centers]
+        self.n_iter_ = 0
