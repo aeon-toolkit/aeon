@@ -61,7 +61,7 @@ all_extras = [
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
-    "mne",
+    "mne>=1.2",
     "pmdarima>=1.8.0,!=1.8.1,<3.0.0",
     "prophet>=1.1.3",
     "pyod>=0.8.0",
