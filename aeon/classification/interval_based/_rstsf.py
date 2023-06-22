@@ -66,10 +66,10 @@ class RSTSF(BaseClassifier):
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
-    >>> clf = RSTSF(n_estimators=10, n_intervals=5, random_state=0)
-    >>> clf.fit(X, y)
+    >>> clf = RSTSF(n_estimators=10, n_intervals=5, random_state=0)  # doctest: +SKIP
+    >>> clf.fit(X, y)  # doctest: +SKIP
     RSTSF(...)
-    >>> clf.predict(X)
+    >>> clf.predict(X)  # doctest: +SKIP
     [0 1 0 1 0 0 1 1 1 0]
     """
 

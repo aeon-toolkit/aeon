@@ -37,7 +37,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     --------
     >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
     >>> from aeon.datasets import make_example_3d_numpy
-    >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=20,
+    >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = AutocorrelationFunctionTransformer(n_lags=10)
     >>> tnf.fit(X)
@@ -67,6 +67,12 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
             lags = n_timepoints - self.min_values
         if lags < 0:
             lags = 1
+
+        if lags > n_timepoints - 1:
+            raise ValueError(
+                f"lags ({lags}) must be smaller than n_timepoints - 1 "
+                f"({n_timepoints - 1})."
+            )
 
         Xt = np.zeros((n_instances, n_channels, lags))
         for n in range(n_channels):
@@ -103,3 +109,25 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
                     X_t[i][lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
 
         return X_t
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        return {
+            "n_lags": 4,
+        }

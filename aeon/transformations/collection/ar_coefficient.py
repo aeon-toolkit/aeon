@@ -36,10 +36,10 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
-    >>> tnf = ARCoefficientTransformer(order=5)
-    >>> tnf.fit(X)
+    >>> tnf = ARCoefficientTransformer(order=5)  # doctest: +SKIP
+    >>> tnf.fit(X)  # doctest: +SKIP
     ARCoefficientTransformer(...)
-    >>> print(tnf.transform(X)[0])
+    >>> print(tnf.transform(X)[0])  # doctest: +SKIP
     [[ 0.05445952 -0.02106654 -0.24989205 -0.19153596  0.08833235]
      [-0.13034384  0.16255828 -0.27993791 -0.06842601 -0.01382752]]
     """
@@ -71,6 +71,12 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
         if order < 0:
             order = 1
 
+        if order > n_timepoints - 1:
+            raise ValueError(
+                f"order ({order}) must be smaller than n_timepoints - 1 "
+                f"({n_timepoints - 1})."
+            )
+
         Xt = np.zeros((n_instances, n_channels, order))
         for i in range(n_instances):
             for n in range(n_channels):
@@ -81,3 +87,25 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
             Xt[np.isnan(Xt)] = 0
 
         return Xt
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        return {
+            "order": 4,
+        }

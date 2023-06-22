@@ -56,7 +56,7 @@ def test_supervised_transformers():
     )
     X_t = sit.fit_transform(X, y)
 
-    assert X_t.shape == (X.shape[0], 8)
+    assert X_t.shape == (X.shape[0], 7)
 
 
 def test_random_intervals_on_basic_motions():

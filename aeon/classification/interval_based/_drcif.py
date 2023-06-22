@@ -9,9 +9,12 @@ periodogram and differences representations as well as the base series.
 __author__ = ["MatthewMiddlehurst"]
 __all__ = ["DrCIFClassifier"]
 
-
+import numpy as np
+from joblib import Parallel, delayed
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.utils import check_random_state
 
+from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.series_as_features.interval_based import BaseIntervalForest
@@ -27,6 +30,7 @@ from aeon.utils.numba.stats import (
     row_slope,
     row_std,
 )
+from aeon.utils.validation.panel import check_X_y
 
 
 class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
@@ -138,9 +142,9 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
     ...                              return_y=True, random_state=0)
     >>> clf = DrCIFClassifier(n_estimators=10, random_state=0)
     >>> clf.fit(X, y)
-    DrCIFClassifier(...)
+    DrCIFClassifier(n_estimators=10, random_state=0)
     >>> clf.predict(X)
-    [0 1 0 1 0 0 1 1 1 0]
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
@@ -220,6 +224,87 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             parallel_backend=parallel_backend,
         )
 
+    def _get_train_probs(self, X, y) -> np.ndarray:
+        self.check_is_fitted()
+        X, y = check_X_y(X, y, coerce_to_numpy=True)
+
+        # handle the single-class-label case
+        if len(self._class_dictionary) == 1:
+            return self._single_class_y_pred(X, method="predict_proba")
+
+        n_instances, n_dims, series_length = X.shape
+
+        if (
+            n_instances != self.n_instances_
+            or n_dims != self.n_channels_
+            or series_length != self.series_length_
+        ):
+            raise ValueError(
+                "n_instances, n_dims, series_length mismatch. X should be "
+                "the same as the training data used in fit for generating train "
+                "probabilities."
+            )
+
+        if not self.save_transformed_data:
+            raise ValueError("Currently only works with saved transform data from fit.")
+
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            delayed(self._train_probas_for_estimator)(
+                y,
+                i,
+            )
+            for i in range(self._n_estimators)
+        )
+        y_probas, oobs = zip(*p)
+
+        results = np.sum(y_probas, axis=0)
+        divisors = np.zeros(n_instances)
+        for oob in oobs:
+            for inst in oob:
+                divisors[inst] += 1
+
+        for i in range(n_instances):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
+
+    def _train_probas_for_estimator(self, y, idx):
+        rs = 255 if self.random_state == 0 else self.random_state
+        rs = (
+            None
+            if self.random_state is None
+            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
+        )
+        rng = check_random_state(rs)
+
+        indices = range(self.n_instances_)
+        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        oob = [n for n in indices if n not in subsample]
+
+        results = np.zeros((self.n_instances_, self.n_classes_))
+        if len(oob) == 0:
+            return [results, oob]
+
+        clf = _clone_estimator(self._base_estimator, rs)
+        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
+        probas = clf.predict_proba(self.transformed_data_[idx][oob])
+
+        if probas.shape[1] != self.n_classes_:
+            new_probas = np.zeros((probas.shape[0], self.n_classes_))
+            for i, cls in enumerate(clf.classes_):
+                cls_idx = self._class_dictionary[cls]
+                new_probas[:, cls_idx] = probas[:, i]
+            probas = new_probas
+
+        for n, proba in enumerate(probas):
+            results[oob[n]] += proba
+
+        return [results, oob]
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -229,10 +314,16 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            DrCIF provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
+                "contracting" - used in classifiers that set the
+                    "capability:contractable" tag to True to test contacting
+                    functionality
+                "train_estimate" - used in some classifiers that set the
+                    "capability:train_estimate" tag to True to allow for more efficient
+                    testing when relevant parameters are available
 
         Returns
         -------
@@ -242,8 +333,21 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {
-            "n_estimators": 2,
-            "n_intervals": 2,
-            "att_subsample_size": 2,
-        }
+        if parameter_set == "results_comparison":
+            return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}
+        elif parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+                "att_subsample_size": 2,
+            }
+        elif parameter_set == "train_estimate":
+            return {
+                "n_estimators": 2,
+                "n_intervals": 2,
+                "att_subsample_size": 2,
+                "save_transformed_data": True,
+            }
+        else:
+            return {"n_estimators": 2, "n_intervals": 2, "att_subsample_size": 2}

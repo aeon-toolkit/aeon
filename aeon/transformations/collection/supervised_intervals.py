@@ -447,8 +447,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
             sub_interval_1 = X[:, div_point:]
 
             if feature_is_transformer:
-                interval_feature_0 = feature.transform(sub_interval_0).flatten()
-                interval_feature_1 = feature.transform(sub_interval_1).flatten()
+                interval_feature_0 = feature.fit_transform(sub_interval_0).flatten()
+                interval_feature_1 = feature.fit_transform(sub_interval_1).flatten()
             else:
                 interval_feature_0 = feature(sub_interval_0)
                 interval_feature_1 = feature(sub_interval_1)
