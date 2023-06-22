@@ -113,7 +113,7 @@ class PCATransformer(BaseTransformer):
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "univariate-only": False,
         "fit_is_empty": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "python_version": ">=3.8",
     }
 

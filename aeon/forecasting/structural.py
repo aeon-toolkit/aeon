@@ -200,7 +200,7 @@ class UnobservedComponents(_StatsModelsAdapter):
 
     _tags = {
         "capability:pred_int": True,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "ignores-exogeneous-X": False,
     }
 
