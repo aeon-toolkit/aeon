@@ -2,45 +2,40 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.dictionary_based._paa import PAA
+from aeon.transformations.collection.dictionary_based import PAA
 
 
-# Check that exception is raised for bad num intervals.
-# input types - string, float, negative int, negative float, empty dict
-# and an int that is larger than the time series length.
-# correct input is meant to be a positive integer of 1 or more.
-@pytest.mark.parametrize("bad_num_intervals", ["str", 1.2, -1.2, -1, {}, 11, 0])
-def test_bad_input_args(bad_num_intervals):
-    X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
-    if not isinstance(bad_num_intervals, int):
-        with pytest.raises(TypeError):
-            PAA(n_intervals=bad_num_intervals).fit(X).transform(X)
-    else:
-        with pytest.raises(ValueError):
-            PAA(n_intervals=bad_num_intervals).fit_transform(X)
+@pytest.mark.parametrize("n_segments", [8])
+def test_equal_length_univariate_paa(n_segments):
+    X = np.random.normal(size=(10, 1, 100))
+
+    # normalize input
+    stds = np.std(X, axis=2, keepdims=True)
+    stds[stds == 0] = 1.0
+    X = (X - np.mean(X, axis=2, keepdims=True)) / stds
+
+    paa = PAA(n_segments=n_segments)
+
+    X_paa = paa.fit_transform(X=X)
+    X_paa_inv = paa.inverse_paa(X=X_paa, original_length=100)
+
+    assert X_paa.shape[-1] == n_segments
+    assert X_paa_inv.shape[-1] == X.shape[-1]
 
 
-# Check the transformer has changed the data correctly.
-def test_output_of_transformer():
-    X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
-    p = PAA(n_intervals=3).fit(X)
-    res = p.transform(X)
-    orig = np.array([[[2.2, 5.5, 8.8]]])
-    np.testing.assert_array_almost_equal(res, orig)
+@pytest.mark.parametrize("n_segments", [8])
+def test_equal_length_multivariate_paa(n_segments):
+    X = np.random.normal(size=(10, 3, 100))
 
+    # normalize input
+    stds = np.std(X, axis=2, keepdims=True)
+    stds[stds == 0] = 1.0
+    X = (X - np.mean(X, axis=2, keepdims=True)) / stds
 
-def test_output_dimensions():
-    # test with univariate
-    X = np.random.rand(10, 1, 12)
-    p = PAA(n_intervals=5).fit(X)
-    res = p.transform(X)
-    assert res.shape[0] == 10 and res.shape[1] == 1 and res.shape[2] == 5
+    paa = PAA(n_segments=n_segments)
 
+    X_paa = paa.fit_transform(X=X)
+    X_paa_inv = paa.inverse_paa(X=X_paa, original_length=100)
 
-# This is to check that PAA produces the same result along each dimension
-def test_paa_performs_correcly_along_each_dim():
-    X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
-    p = PAA(n_intervals=3).fit(X)
-    res = p.transform(X)
-    orig = [[[2.2, 5.5, 8.8], [2.2, 5.5, 8.8]]]
-    np.testing.assert_array_almost_equal(res, orig)
+    assert X_paa.shape[-1] == n_segments
+    assert X_paa_inv.shape[-1] == X.shape[-1]

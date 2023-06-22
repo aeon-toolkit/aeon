@@ -19,7 +19,7 @@ Currently only works with univariate series.
 References
 ----------
 .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
-series.
+series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013
 """
 __author__ = ["chrisholder", "jlines", "TonyBagnall"]
 
