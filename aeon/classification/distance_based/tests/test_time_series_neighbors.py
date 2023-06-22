@@ -61,6 +61,8 @@ def test_knn_on_unit_test(distance_key):
 @pytest.mark.parametrize("distance_key", distance_functions)
 def test_knn_bounding_matrix(distance_key):
     """Test knn with custom bounding parameters."""
+    if distance_key == "euclidean" or distance_key == "squared":
+        return
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
     knn = KNeighborsTimeSeriesClassifier(

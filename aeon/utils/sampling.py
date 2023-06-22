@@ -5,13 +5,14 @@ Used in experiments to get deterministic resamples.
 """
 
 import random
+from itertools import chain
 
 import numpy as np
 import pandas as pd
-import sklearn.utils
+from sklearn.utils import check_random_state
 
 
-def stratified_resample(X_train, y_train, X_test, y_test, random_state):
+def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
     """Stratified resample data without replacement using a random state.
 
     Reproducable resampling. Combines train and test, resamples to get the same class
@@ -19,62 +20,65 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state):
 
     Parameters
     ----------
-    X_train : pd.DataFrame
-        train data attributes in aeon pandas format.
+    X_train : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
+        train data attributes.
     y_train : np.array
         train data class labels.
-    X_test : pd.DataFrame
-        test data attributes in aeon pandas format.
+    X_test : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
+        test data attributes.
     y_test : np.array
         test data class labels as np array.
     random_state : int
-        seed to enable reproducable resamples
+        seed to enable reproduceable resamples
     Returns
     -------
     new train and test attributes and class labels.
     """
-    all_labels = np.concatenate((y_train, y_test), axis=None)
-    all_data = pd.concat([X_train, X_test])
-    random_state = sklearn.utils.check_random_state(random_state)
+    random_state = check_random_state(random_state)
+    all_labels = np.concatenate([y_train, y_test], axis=0)
+    if isinstance(X_train, pd.DataFrame):
+        all_data = pd.concat([X_train, X_test], ignore_index=True)
+    elif isinstance(X_train, list):
+        all_data = list(x for x in chain(X_train, X_test))
+    else:  # 3D or 2D numpy
+        all_data = np.concatenate([X_train, X_test], axis=0)
+
     # count class occurrences
     unique_train, counts_train = np.unique(y_train, return_counts=True)
-    unique_test, counts_test = np.unique(y_test, return_counts=True)
-    assert list(unique_train) == list(
-        unique_test
-    )  # haven't built functionality to deal with classes that exist in
+    unique_test = np.unique(y_test)
+
+    # haven't built functionality to deal with classes that exist in
     # test but not in train
-    # prepare outputs
-    X_train = pd.DataFrame()
-    y_train = np.array([])
-    X_test = pd.DataFrame()
-    y_test = np.array([])
-    # for each class
-    for label_index in range(0, len(unique_train)):
-        # derive how many instances of this class from the counts
-        num_instances = counts_train[label_index]
-        # get the indices of all instances with this class label
-        label = unique_train[label_index]
-        indices = np.where(all_labels == label)[0]
-        # shuffle them
-        random_state.shuffle(indices)
-        # take the first lot of instances for train, remainder for test
-        train_indices = indices[0:num_instances]
-        test_indices = indices[num_instances:]
-        del indices  # just to make sure it's not used!
-        # extract data from corresponding indices
-        train_instances = all_data.iloc[train_indices, :]
-        test_instances = all_data.iloc[test_indices, :]
-        train_labels = all_labels[train_indices]
-        test_labels = all_labels[test_indices]
-        # concat onto current data from previous loop iterations
-        X_train = pd.concat([X_train, train_instances])
-        X_test = pd.concat([X_test, test_instances])
-        y_train = np.concatenate([y_train, train_labels], axis=None)
-        y_test = np.concatenate([y_test, test_labels], axis=None)
-    # reset indexes to conform to aeon format.
-    X_train = X_train.reset_index(drop=True)
-    X_test = X_test.reset_index(drop=True)
-    return X_train, y_train, X_test, y_test
+    assert set(unique_train) == set(unique_test)
+
+    new_train_indices = []
+    new_test_indices = []
+    for label, count_train in zip(unique_train, counts_train):
+        class_indexes = np.argwhere(all_labels == label).ravel()
+
+        # randomizes the order and partition into train and test
+        random_state.shuffle(class_indexes)
+        new_train_indices.extend(class_indexes[:count_train])
+        new_test_indices.extend(class_indexes[count_train:])
+
+    if isinstance(X_train, pd.DataFrame):
+        new_X_train = all_data.iloc[new_train_indices]
+        new_X_test = all_data.iloc[new_test_indices]
+        new_X_train = new_X_train.reset_index(drop=True)
+        new_X_test = new_X_test.reset_index(drop=True)
+    elif isinstance(X_train, list):
+        new_X_train = list(all_data[i] for i in new_train_indices)
+        new_X_test = list(all_data[i] for i in new_test_indices)
+    else:  # 3D or 2D numpy
+        new_X_train = all_data[new_train_indices]
+        new_X_test = all_data[new_test_indices]
+
+    new_y_train = all_labels[new_train_indices]
+    new_y_test = all_labels[new_test_indices]
+
+    return new_X_train, new_y_train, new_X_test, new_y_test
 
 
 def random_partition(n, k=2, seed=42):

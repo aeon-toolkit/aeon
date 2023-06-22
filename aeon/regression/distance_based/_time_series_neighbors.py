@@ -11,7 +11,7 @@ __all__ = ["KNeighborsTimeSeriesRegressor"]
 
 import numpy as np
 
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 from aeon.regression.base import BaseRegressor
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
@@ -50,8 +50,8 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     --------
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(return_X_y=True, split="train")
-    >>> X_test, y_test = load_unit_test(return_X_y=True, split="test")
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
     KNeighborsTimeSeriesRegressor(...)
@@ -60,7 +60,9 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     _tags = {
         "capability:multivariate": True,
-        "X_inner_mtype": ["numpy3D"],
+        "capability:unequal_length": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -81,6 +83,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             )
         self.weights = weights
 
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
+
         super(KNeighborsTimeSeriesRegressor, self).__init__()
 
     def _fit(self, X, y):
@@ -88,18 +94,16 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
+        y : array-like, shape = (n_cases)
             The class labels.
         """
         if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
+            self.metric_ = get_distance_function(metric=self.distance)
 
         self.X_ = X
         self.y_ = y
@@ -110,18 +114,21 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        y : array of shape [n_instances]
-            Target values for each data sample.
+        y : array of shape (n_cases)
+            Class labels for each data sample.
         """
         self.check_is_fitted()
 
-        preds = np.zeros(X.shape[0])
-        for i in range(X.shape[0]):
+        preds = np.empty(len(X))
+        for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
             preds[i] = np.average(self.y_[idx], weights=weights)
 
@@ -134,8 +141,11 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
@@ -145,7 +155,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Array representing the weights of each neighbor.
         """
         distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+            [
+                self.metric_(X, self.X_[j], **self._distance_params)
+                for j in range(len(self.X_))
+            ]
         )
 
         # Find indices of k nearest neighbors using partitioning:
