@@ -68,7 +68,6 @@ all_extras = [
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "plotly-resampler==0.9.0rc6",  # Used in statsforecast https://github.com/predict-idlab/plotly-resampler/issues/203
-    "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
@@ -80,6 +79,7 @@ all_extras = [
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
 ]
 unstable_extras = [
+    "statsforecast>=0.5.2",
     "pycatch22",  # known to fail installation on some setups
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
