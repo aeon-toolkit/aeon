@@ -99,11 +99,9 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
     # todo: add any parameters to constructor
     def __init__(self, param_a, param_b="default", param_c=None):
-        # estimators should precede parameters
-        #  if estimators have default values, set None and initialize below
         # Note that parameters passed and set in constructor should not be changed
-        # in order to comply withe scikit learn structure. Instead, copy into local
-        # variables and use them.
+        # anywhere else. This is in order to comply with scikit learn structure.
+        # Instead, copy into local variables in fit and predict and use these.
 
         # todo: copy parameters to self, use same names
         self.param_a = param_a
