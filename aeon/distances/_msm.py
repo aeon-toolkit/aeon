@@ -44,6 +44,7 @@ def msm_distance(
     window: float = None,
     independent: bool = True,
     c: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> float:
     """Compute the MSM distance between two time series.
 
@@ -69,6 +70,8 @@ def msm_distance(
         default is True (to use independent).
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -97,10 +100,14 @@ def msm_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _msm_distance(_x, _y, bounding_matrix, independent, c)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _msm_distance(x, y, bounding_matrix, independent, c)
     raise ValueError("x and y must be 1D or 2D")
 
@@ -112,6 +119,7 @@ def msm_cost_matrix(
     window: float = None,
     independent: bool = True,
     c: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     """Compute the MSM cost matrix between two time series.
 
@@ -129,6 +137,8 @@ def msm_cost_matrix(
         default is True (to use independent).
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -161,12 +171,16 @@ def msm_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         if independent:
             return _msm_independent_cost_matrix(_x, _y, bounding_matrix, c)
         return _msm_dependent_cost_matrix(_x, _y, bounding_matrix, c)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         if independent:
             return _msm_independent_cost_matrix(x, y, bounding_matrix, c)
         return _msm_dependent_cost_matrix(x, y, bounding_matrix, c)
@@ -300,6 +314,7 @@ def msm_pairwise_distance(
     window: float = None,
     independent: bool = True,
     c: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     """Compute the msm pairwise distance between a set of time series.
 
@@ -319,6 +334,8 @@ def msm_pairwise_distance(
         default is True (to use independent).
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -361,39 +378,49 @@ def msm_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _msm_pairwise_distance(X, window, independent, c)
+            return _msm_pairwise_distance(X, window, independent, c, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _msm_pairwise_distance(_X, window, independent, c)
+            return _msm_pairwise_distance(_X, window, independent, c, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     elif y.ndim == X.ndim:
         # Multiple to multiple
         if y.ndim == 3 and X.ndim == 3:
-            return _msm_from_multiple_to_multiple_distance(X, y, window, independent, c)
+            return _msm_from_multiple_to_multiple_distance(
+                X, y, window, independent, c, itakura_max_slope
+            )
         if y.ndim == 2 and X.ndim == 2:
             _x = X.reshape((X.shape[0], 1, X.shape[1]))
             _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return _msm_from_multiple_to_multiple_distance(
-                _x, _y, window, independent, c
+                _x, _y, window, independent, c, itakura_max_slope
             )
         if y.ndim == 1 and X.ndim == 1:
             _x = X.reshape((1, 1, X.shape[0]))
             _y = y.reshape((1, 1, y.shape[0]))
             return _msm_from_multiple_to_multiple_distance(
-                _x, _y, window, independent, c
+                _x, _y, window, independent, c, itakura_max_slope
             )
         raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _msm_from_multiple_to_multiple_distance(_x, _y, window, independent, c)
+    return _msm_from_multiple_to_multiple_distance(
+        _x, _y, window, independent, c, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
 def _msm_pairwise_distance(
-    X: np.ndarray, window: float, independent: bool, c: float
+    X: np.ndarray,
+    window: float,
+    independent: bool,
+    c: float,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2], X.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
@@ -410,11 +437,14 @@ def _msm_from_multiple_to_multiple_distance(
     window: float,
     independent: bool,
     c: float,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(m_instances):
@@ -429,6 +459,7 @@ def msm_alignment_path(
     window: float = None,
     independent: bool = True,
     c: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the msm alignment path between two time series.
 
@@ -446,6 +477,8 @@ def msm_alignment_path(
         default is True (to use independent).
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -472,8 +505,8 @@ def msm_alignment_path(
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
-    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
-    cost_matrix = msm_cost_matrix(x, y, window, independent, c)
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window, itakura_max_slope)
+    cost_matrix = msm_cost_matrix(x, y, window, independent, c, itakura_max_slope)
 
     # Need to do this because the cost matrix contains 0s and not inf in out of bounds
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)

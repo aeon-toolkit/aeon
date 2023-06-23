@@ -37,7 +37,11 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def wdtw_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> float:
     """Compute the wdtw distance between two time series.
 
@@ -66,6 +70,8 @@ def wdtw_distance(
     g: float, defaults=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -94,17 +100,25 @@ def wdtw_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_distance(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_distance(x, y, bounding_matrix, g)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
 def wdtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     """Compute the wdtw cost matrix between two time series.
 
@@ -120,6 +134,8 @@ def wdtw_cost_matrix(
     g: float, defaults=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -172,10 +188,14 @@ def wdtw_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_cost_matrix(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_cost_matrix(x, y, bounding_matrix, g)
     raise ValueError("x and y must be 1D or 2D")
 
@@ -217,7 +237,11 @@ def _wdtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def wdtw_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     """Compute the wdtw pairwise distance between a set of time series.
 
@@ -235,6 +259,8 @@ def wdtw_pairwise_distance(
     g: float, defaults=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope: float, defaults=None
+        Maximum slope of the Itakura parallelogram.
 
     Returns
     -------
@@ -276,20 +302,26 @@ def wdtw_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _wdtw_pairwise_distance(X, window, g)
+            return _wdtw_pairwise_distance(X, window, g, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _wdtw_pairwise_distance(_X, window, g)
+            return _wdtw_pairwise_distance(_X, window, g, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _wdtw_from_multiple_to_multiple_distance(_x, _y, window, g)
+    return _wdtw_from_multiple_to_multiple_distance(
+        _x, _y, window, g, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
-def _wdtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
+def _wdtw_pairwise_distance(
+    X: np.ndarray, window: float, g: float, itakura_max_slope: float = None
+) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2], X.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
@@ -301,12 +333,18 @@ def _wdtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarra
 
 @njit(cache=True, fastmath=True)
 def _wdtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float,
+    g: float,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(m_instances):
@@ -316,7 +354,11 @@ def _wdtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wdtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the wdtw alignment path between two time series.
 
@@ -357,7 +399,7 @@ def wdtw_alignment_path(
     >>> path
     [(0, 0), (1, 1), (2, 2), (3, 3)]
     """
-    cost_matrix = wdtw_cost_matrix(x, y, window, g)
+    cost_matrix = wdtw_cost_matrix(x, y, window, g, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],

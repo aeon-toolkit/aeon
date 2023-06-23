@@ -52,6 +52,7 @@ def _test_distance_params(
 
 BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
+    {"itakura_max_slope": 2.0},
 ]
 
 DIST_PARAMS = {
