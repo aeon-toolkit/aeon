@@ -86,15 +86,18 @@ class Catch22Regressor(BaseRegressor):
     >>> from sklearn.ensemble import RandomForestRegressor
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, regression_y=True, random_state=0)
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
     >>> reg = Catch22Regressor(
     ...     estimator=RandomForestRegressor(n_estimators=5),
     ...     outlier_norm=True,
+    ...     random_state=0,
     ... )
     >>> reg.fit(X, y)
     Catch22Regressor(...)
     >>> reg.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    array([0.66497445, 1.52167747, 0.73353397, 1.57550709, 0.46036267,
+           0.6494623 , 1.08156127, 1.09927538, 1.46025772, 0.37711294])
     """
 
     _tags = {
@@ -134,10 +137,13 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.array (any number of channels, equal length series)
+                of shape (n_instances, n_channels, n_timepoints)
+            or list of numpy arrays (any number of channels, unequal length series)
+                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                n_timepoints_i is length of series i
+        y : 1D np.array, of shape [n_instances] - target labels for fitting
+            indices correspond to instance indices in X
 
         Returns
         -------
@@ -175,13 +181,16 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.array (any number of channels, equal length series)
+                of shape (n_instances, n_channels, n_timepoints)
+            or list of numpy arrays (any number of channels, unequal length series)
+                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                n_timepoints_i is length of series i
 
         Returns
         -------
         y : array-like, shape = [n_instances]
-            Predicted class labels.
+            Predicted target labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
 
