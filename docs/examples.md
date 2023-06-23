@@ -384,19 +384,10 @@ Distance functions
 :::
 
 :::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/bounding_examples.ipynb
+:img-top: examples/distances/img/DTW_GUI_warped.gif
+:link: /examples/distances/sklearn_distances.ipynb
 :link-type: ref
 :text-align: center
 
-Bounding function examples
-:::
-
-:::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/ml_with_distances.ipynb
-:link-type: ref
-:text-align: center
-
-Using aeon distances with scikit-learn:::
+Using aeon distances with scikit-learn
 ::::
