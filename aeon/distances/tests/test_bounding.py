@@ -27,5 +27,5 @@ def test_window_bounding():
 
 
 def test_itakura_parallelogram():
-    matrix = create_bounding_matrix(10, 10, itakura_max_slope=2)
+    matrix = create_bounding_matrix(10, 10, itakura_max_slope=0.2)
     assert isinstance(matrix, np.ndarray)

@@ -44,19 +44,24 @@ def create_bounding_matrix(
            [False, False, False,  True,  True,  True,  True,  True]])
     """
     if itakura_max_slope is not None:
+        if itakura_max_slope < 0 or itakura_max_slope > 1:
+            raise ValueError("itakura_max_slope must be between 0 and 1")
         return _itakura_parallelogram(x_size, y_size, itakura_max_slope)
-    if window is None or window >= 1:
-        return np.full((x_size, y_size), True)
-    return _sakoe_chiba_bounding(x_size, y_size, window)
-
+    if window is not None:
+        if window < 0 or window > 1:
+            raise ValueError("window must be between 0 and 1")
+        return _sakoe_chiba_bounding(x_size, y_size, window)
+    return np.full((x_size, y_size), True)
 
 @njit(cache=True)
-def _itakura_parallelogram(x_size: int, y_size: int, max_slope: float):
+def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     """Itakura parallelogram bounding matrix.
 
     This code was adapted from tslearn. This link to the orginal code line 974:
     https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
     """
+    one_percent = min(x_size, y_size) / 100
+    max_slope = math.floor(((max_slope_percent * one_percent) * 100))
     min_slope = 1 / float(max_slope)
     max_slope *= float(x_size) / float(y_size)
     min_slope *= float(x_size) / float(y_size)

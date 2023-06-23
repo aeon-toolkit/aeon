@@ -52,7 +52,7 @@ def _test_distance_params(
 
 BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
-    {"itakura_max_slope": 2.0},
+    {"itakura_max_slope": 0.2},
 ]
 
 DIST_PARAMS = {
@@ -64,7 +64,7 @@ DIST_PARAMS = {
     "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
-    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
+    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.1}],
 }
 
 
