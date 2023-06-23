@@ -77,10 +77,10 @@ class Catch22(BaseCollectionTransformer):
     outlier_norm : bool, optional, default=False
         Normalise each series during the two outlier Catch22 features, which can take a
         while to process for large values.
-    replace_nans : bool, optional, default=True
+    replace_nans : bool, optional, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=True
-        Wraps the C based pycatch22 implementation for tsml.
+    use_pycatch22 : bool, optional, default=False
+        Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
     n_jobs : int, optional, default=1
@@ -1243,14 +1243,6 @@ def _spline_fit(X):
             )
 
     return y_out
-
-
-@njit(fastmath=True, cache=True)
-def _normalise_series(X, mean):
-    std = np.std(X)
-    if std > 0:
-        return (X - mean) / std
-    return X
 
 
 def _verify_features(features, catch24):

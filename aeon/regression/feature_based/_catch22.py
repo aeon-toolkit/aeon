@@ -40,17 +40,17 @@ class Catch22Regressor(BaseRegressor):
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
             "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
-    catch24 : bool, optional, default=False
+    catch24 : bool, optional, default=True
         Extract the mean and standard deviation as well as the 22 Catch22 features if
-        true. If a List of specific features to extract is provided, "Mean" and/or
+        True. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
         Normalise each series during the two outlier Catch22 features, which can take a
         while to process for large values.
     replace_nans : bool, optional, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=True
-        Wraps the C based pycatch22 implementation for tsml.
+    use_pycatch22 : bool, optional, default=False
+        Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
     estimator : sklearn classifier, optional, default=None
@@ -108,7 +108,7 @@ class Catch22Regressor(BaseRegressor):
     def __init__(
         self,
         features="all",
-        catch24=False,
+        catch24=True,
         outlier_norm=False,
         replace_nans=True,
         use_pycatch22=False,
@@ -210,8 +210,6 @@ class Catch22Regressor(BaseRegressor):
         if parameter_set == "results_comparison":
             return {
                 "estimator": RandomForestRegressor(n_estimators=10),
-                "catch24": True,
-                "replace_nans": True,
                 "outlier_norm": True,
             }
         else:
@@ -222,6 +220,4 @@ class Catch22Regressor(BaseRegressor):
                     "DN_HistogramMode_5",
                     "SB_BinaryStats_mean_longstretch1",
                 ),
-                "catch24": True,
-                "replace_nans": True,
             }
