@@ -2,8 +2,12 @@
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Data generators."""
 
-__author__ = []
-__all__ = []
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
+__all__ = [
+    "make_example_3d_numpy",
+    "make_example_long_table",
+    "make_example_multi_index_dataframe",
+]
 
 from typing import Dict, Tuple, Union
 
