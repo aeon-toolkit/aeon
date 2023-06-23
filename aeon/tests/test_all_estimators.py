@@ -1116,7 +1116,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     ):
         """Check that calling fit twice is equivalent to calling it once."""
         # escape known non-deterministic estimators
-        if estimator_instance.get_tag("non-deterministic", tag_value_default=False):
+        if estimator_instance.get_tag(
+            "non-deterministic", tag_value_default=False, raise_error=False
+        ):
             return None
 
         # for now, we have to skip predict_proba, since current output comparison
@@ -1294,7 +1296,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             return None
 
         # escape estimators we know cannot pickle
-        if estimator_instance.get_tag("cant-pickle", tag_value_default=False):
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
             return None
 
         estimator = estimator_instance
@@ -1333,7 +1337,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         # escape estimators we know cannot pickle. There is an argument to be made
         # that alternate methods of saving should be available, but currently this is
         # not the case
-        if estimator_instance.get_tag("cant-pickle", tag_value_default=False):
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
             return None
 
         # escape predict_proba for forecasters, tfp distributions cannot be pickled
