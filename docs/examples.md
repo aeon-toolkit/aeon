@@ -16,7 +16,7 @@ Forecasting with aeon
 :::
 
 :::{grid-item-card}
-:link: /examples/01a_forecasting_sklearn.ipynb
+:link: /examples/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
