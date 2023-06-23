@@ -70,7 +70,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor

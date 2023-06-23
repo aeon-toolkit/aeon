@@ -4,6 +4,8 @@
 __author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
+import os
+import time
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -64,7 +66,24 @@ class CNNClassifier(BaseDeepClassifier):
     callbacks       : keras.callbacks, default=model_checkpoint to save best
                       model on training loss
     file_path       : file_path for the best model (if checkpoint is used as callback)
-
+    save_best_model     : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name      : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
 
     Notes
     -----
@@ -87,7 +106,11 @@ class CNNClassifier(BaseDeepClassifier):
     CNNClassifier(...)
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+    }
 
     def __init__(
         self,
@@ -103,6 +126,10 @@ class CNNClassifier(BaseDeepClassifier):
         batch_size=16,
         callbacks=None,
         file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
@@ -111,7 +138,7 @@ class CNNClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(CNNClassifier, self).__init__()
+        super(CNNClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size
@@ -128,6 +155,10 @@ class CNNClassifier(BaseDeepClassifier):
         self.batch_size = batch_size
         self.callbacks = callbacks
         self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
@@ -190,16 +221,6 @@ class CNNClassifier(BaseDeepClassifier):
             metrics=metrics,
         )
 
-        # self.callbacks = [
-        #     tf.keras.callbacks.ModelCheckpoint(
-        #         filepath=self.file_path + "best_model.hdf5",
-        #         monitor="loss",
-        #         save_best_only=True,
-        #     )
-        #     if self.callbacks is None
-        #     else self.callbacks
-        # ]
-
         return model
 
     def _fit(self, X, y):
@@ -216,39 +237,58 @@ class CNNClassifier(BaseDeepClassifier):
         -------
         self : object
         """
+        import tensorflow as tf
+
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
+
         self.input_shape = X.shape[1:]
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
         if self.verbose:
-            self.model_.summary()
-        self.history = self.model_.fit(
+            self.training_model_.summary()
+
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
+
+        self.callbacks_ = (
+            [
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
+            ]
+            if self.callbacks is None
+            else self.callbacks
+        )
+
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
-            callbacks=deepcopy(self.callbacks) if self.callbacks else [],
+            callbacks=self.callbacks_,
         )
 
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
+
         return self
-
-        # try:
-        #     import os
-
-        #     import tensorflow as tf
-
-        #     self.model_ = tf.keras.models.load_model(
-        #         self.file_path + "best_model.hdf5", compile=False
-        #     )
-        #     os.remove(self.file_path + "best_model.hdf5")
-
-        #     return self
-        # except FileNotFoundError:
-        # return self
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -278,12 +318,6 @@ class CNNClassifier(BaseDeepClassifier):
             "avg_pool_size": 4,
         }
 
-        # param2 = {
-        #     "n_epochs": 12,
-        #     "batch_size": 6,
-        #     "kernel_size": 2,
-        #     "n_layers": 1,
-        # }
         test_params = [param1]
 
         return test_params

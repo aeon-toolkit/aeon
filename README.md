@@ -1,10 +1,10 @@
 <p align="center">
-    <a href="https://aeon-toolkit.org"><img src="./docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
+    <a href="https://aeon-toolkit.org"><img src="https://github.com/aeon-toolkit/aeon/blob/main/docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
 </p>
 
 # ⌛ Welcome to **aeon**
 
-``aeon`` is an open source toolkit for learning from time series compatible with
+`aeon` is an open source toolkit for learning from time series compatible with
 [scikit-learn](https://scikit-learn.org). It provides access to the  very latest
 algorithms for time series  machine learning, in addition to a range of classical
 techniques for learning tasks such as forecasting and classification.
@@ -13,7 +13,13 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest ``aeon`` release is ``v0.1.0``. You can view the full changelog [here](https://www.aeon-toolkit.org/en/latest/changelog.html).
+The latest `aeon` release is `v0.3.0`. You can view the full changelog
+[here](https://www.aeon-toolkit.org/en/latest/changelog.html).
+
+```diff
+- The deprecation policy is currently suspended, be careful with the version bounds used when including aeon as a dependency.
+- The policy will return at a future point, but in the mean time the suspension allows us to quickly develop and maintain the package in the forking transition period.
+```
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
 
@@ -25,19 +31,75 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 
 ## ⚙️ Installation
 
-``aeon`` requires a Python version of 3.8 or greater. Our full installation guide is
+`aeon` requires a Python version of 3.8 or greater. Our full installation guide is
 available in our [documentation](https://www.aeon-toolkit.org/en/latest/installation.html).
 
-The easiest way to install ``aeon`` is via pip:
+The easiest way to install `aeon` is via pip:
 
 ```bash
 pip install aeon
 ```
 
-Some estimators require additional packages to be installed. If you want to install the full package with all optional dependencies, you can use:
+Some estimators require additional packages to be installed. If you want to install
+the full package with all optional dependencies, you can use:
 
 ```bash
 pip install aeon[all_extras]
+```
+## ⏲️ Getting started
+
+The best place to started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/latest/getting_started.html).
+
+Below we provide a quick example of how to use `aeon` for forecasting and
+classification.
+
+### Forecasting
+
+```python
+import pandas as pd
+from aeon.forecasting.trend import TrendForecaster
+
+y = pd.Series([20.0, 40.0, 60.0, 80.0, 100.0])
+>>> 0     20.0
+>>> 1     40.0
+>>> 2     60.0
+>>> 3     80.0
+>>> 4    100.0
+>>> dtype: float64
+
+forecaster = TrendForecaster()
+forecaster.fit(y)  # fit the forecaster
+>>> TrendForecaster()
+
+pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
+>>> 5    120.0
+>>> 6    140.0
+>>> 7    160.0
+>>> dtype: float64
+```
+
+### Classification
+
+```python
+import numpy as np
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+
+X = [[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
+     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
+     [[8, 7, 6, 5, 4, 4]]]
+y = ['low', 'low', 'high']  # class labels for each sample
+X = np.array(X)
+y = np.array(y)
+
+clf = KNeighborsTimeSeriesClassifier(distance="dtw")
+clf.fit(X, y)  # fit the classifier on train data
+>>> KNeighborsTimeSeriesClassifier()
+
+X_test = np.array(
+    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
+)
+y_pred = clf.predict(X_test)  # make class predictions on new data
+>>> ['low' 'high' 'high']
 ```
 
 ## 💬 Where to ask questions

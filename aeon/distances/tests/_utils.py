@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
 import time
 from typing import Callable
 
 import numpy as np
-
-from aeon.datatypes import convert_to
-from aeon.utils._testing.panel import _make_panel_X
-from aeon.utils._testing.series import _make_series
+from sklearn.utils.validation import check_random_state
 
 
 def create_test_distance_numpy(
@@ -35,38 +31,13 @@ def create_test_distance_numpy(
         Numpy array of shape specific. If 1 instance then 2D array returned,
         if > 1 instance then 3D array returned.
     """
-    num_dims = 3
+    rng = check_random_state(random_state)
+    # Generate data as 3d numpy array
+    if n_timepoints is None and n_columns is None:
+        return rng.normal(scale=0.5, size=(1, n_instance))
     if n_timepoints is None:
-        n_timepoints = 1
-        num_dims -= 1
-    if n_columns is None:
-        n_columns = 1
-        num_dims -= 1
-
-    df = _create_test_distances(
-        n_instance=n_instance,
-        n_columns=n_columns,
-        n_timepoints=n_timepoints,
-        random_state=random_state,
-    )
-    if num_dims == 3:
-        return convert_to(df, to_type="numpy3D")
-    elif num_dims == 2:
-        return convert_to(df, to_type="numpy3D")[:, :, 0]
-    else:
-        return convert_to(df, to_type="numpy3D")[:, 0, 0]
-
-
-def _create_test_distances(n_instance, n_columns, n_timepoints, random_state=1):
-    if n_instance > 1:
-        return _make_panel_X(
-            n_instances=n_instance,
-            n_columns=n_columns,
-            n_timepoints=n_timepoints,
-            random_state=random_state,
-        )
-    else:
-        return _make_series(n_timepoints, n_columns, random_state=random_state)
+        return rng.normal(scale=0.5, size=(n_instance, n_columns))
+    return rng.normal(scale=0.5, size=(n_instance, n_columns, n_timepoints))
 
 
 def _time_distance(callable: Callable, average: int = 30, **kwargs):
@@ -119,33 +90,3 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     else:
         _x = x
     return _x
-
-
-def debug_generated_jit_distance_function(func):
-    """Check if numba generated_jit function is active for a test.
-
-    When using generated_jit function and numba is active this creates a function that
-    returns the value of the returned callable. However, when numba isnt active
-    this isnt resolved so you just get the resolved callable back. This means that
-    these functions cant be tested without numba being active. This function wraps
-    generated_jit functions when numba isnt active so they can be used even when
-    numba isnt active.
-
-    Parameters
-    ----------
-    func: Callable
-        The function that could be a numba generated_jit.
-
-    Returns
-    -------
-    Callable
-        The function that is wrapped if numba isnt active.
-    """
-    if "NUMBA_DISABLE_JIT" in os.environ and os.environ["NUMBA_DISABLE_JIT"] == "1":
-
-        def dist_callable(x, y):
-            inner_callable = func(x, y)
-            return inner_callable(x, y)
-
-        return dist_callable
-    return func

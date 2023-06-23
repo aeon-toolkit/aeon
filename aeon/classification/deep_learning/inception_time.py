@@ -4,6 +4,10 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+import os
+import time
+from copy import deepcopy
+
 import numpy as np
 from sklearn.utils import check_random_state
 
@@ -18,7 +22,7 @@ _check_dl_dependencies(severity="warning")
 class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifiers, as described in [1].
+    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1].
 
     Parameters
     ----------
@@ -57,11 +61,11 @@ class InceptionTimeClassifier(BaseClassifier):
             the dilation rate of convolutions in each inception
             module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception
             module, if not a list,
             the same is used in all inception modules
@@ -91,8 +95,26 @@ class InceptionTimeClassifier(BaseClassifier):
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = './'
+        file_path           : str, default = "./"
             file_path when saving model_Checkpoint callback
+        save_best_model     : bool, default = False
+            Whether or not to save the best model, if the
+            modelcheckpoint callback is used by default,
+            this condition, if True, will prevent the
+            automatic deletion of the best saved model from
+            file and the user can choose the file name
+        save_last_model     : bool, default = False
+            Whether or not to save the last model, last
+            epoch trained, using the base class method
+            save_last_model_to_file
+        best_file_name      : str, default = "best_model"
+            The name of the file of the best model, if
+            save_best_model is set to False, this parameter
+            is discarded
+        last_file_name      : str, default = "last_model"
+            The name of the file of the last model, if
+            save_last_model is set to False, this parameter
+            is discarded
         random_state        : int, default = 0
             seed to any needed random actions.
         verbose             : boolean, default = False
@@ -146,6 +168,10 @@ class InceptionTimeClassifier(BaseClassifier):
         depth=6,
         use_custom_filters=True,
         file_path="./",
+        save_last_model=False,
+        save_best_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -179,6 +205,11 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.file_path = file_path
 
+        self.save_last_model = save_last_model
+        self.save_best_model = save_best_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+
         self.callbacks = callbacks
         self.random_state = random_state
         self.verbose = verbose
@@ -192,12 +223,12 @@ class InceptionTimeClassifier(BaseClassifier):
         super(InceptionTimeClassifier, self).__init__()
 
     def _fit(self, X, y):
-        """Fit each of the Individual Inception models.
+        """Fit the ensemble of IndividualInceptionClassifier models.
 
         Arguments:
         ----------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -209,7 +240,7 @@ class InceptionTimeClassifier(BaseClassifier):
         self.classifers_ = []
         rng = check_random_state(self.random_state)
 
-        for _ in range(0, self.n_classifiers):
+        for n in range(0, self.n_classifiers):
             cls = IndividualInceptionClassifier(
                 nb_filters=self.nb_filters,
                 nb_conv_per_layer=self.nb_conv_per_layer,
@@ -226,6 +257,10 @@ class InceptionTimeClassifier(BaseClassifier):
                 depth=self.depth,
                 use_custom_filters=self.use_custom_filters,
                 file_path=self.file_path,
+                save_best_model=self.save_best_model,
+                save_last_model=self.save_last_model,
+                best_file_name=self.best_file_name + str(n),
+                last_file_name=self.last_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -247,7 +282,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
@@ -269,7 +304,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
@@ -350,11 +385,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         dilation_rate       : int or list of int, default = 1,
             the dilation rate of convolutions in each inception module, if not a list,
             the same is used in all inception modules
-        padding             : str or list of str, default = 'same',
+        padding             : str or list of str, default = "same",
             the type of padding used for convoltuon for each
             inception module, if not a list,
             the same is used in all inception modules
-        activation          : str or list of str, default = 'relu',
+        activation          : str or list of str, default = "relu",
             the activation function used in each inception module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
@@ -371,7 +406,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_custom_filters  : bool, default = True,
             condition on wether or not to use custom filters
             in the first inception module
-
         batch_size          : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
@@ -381,8 +415,26 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         callbacks           : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = './'
+        file_path           : str, default = "./"
             file_path when saving model_Checkpoint callback
+        save_best_model     : bool, default = False
+            Whether or not to save the best model, if the
+            modelcheckpoint callback is used by default,
+            this condition, if True, will prevent the
+            automatic deletion of the best saved model from
+            file and the user can choose the file name
+        save_last_model     : bool, default = False
+            Whether or not to save the last model, last
+            epoch trained, using the base class method
+            save_last_model_to_file
+        best_file_name      : str, default = "best_model"
+            The name of the file of the best model, if
+            save_best_model is set to False, this parameter
+            is discarded
+        last_file_name      : str, default = "last_model"
+            The name of the file of the last model, if
+            save_last_model is set to False, this parameter
+            is discarded
         random_state        : int, default = 0
             seed to any needed random actions.
         verbose             : boolean, default = False
@@ -425,6 +477,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         depth=6,
         use_custom_filters=True,
         file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -436,7 +492,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(IndividualInceptionClassifier, self).__init__()
+        super(IndividualInceptionClassifier, self).__init__(
+            last_file_name=last_file_name
+        )
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -457,6 +515,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
+
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -482,7 +545,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
             use_custom_filters=self.use_custom_filters,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -536,7 +598,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, series_length)
+        X : array-like of shape = (n_instances, n_channels, n_timepoints)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
         y : array-like, shape = (n_instances)
@@ -560,22 +622,31 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             mini_batch_size = int(min(X.shape[0] // 10, self.batch_size))
         else:
             mini_batch_size = self.batch_size
-        self.model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
         if self.verbose:
-            self.model_.summary()
+            self.training_model_.summary()
+
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
 
         self.callbacks_ = (
             [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
+                ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
             ]
             if self.callbacks is None
             else self.callbacks
         )
 
-        self.history = self.model_.fit(
+        self.history = self.training_model_.fit(
             X,
             y_onehot,
             batch_size=mini_batch_size,
@@ -583,6 +654,18 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             verbose=self.verbose,
             callbacks=self.callbacks_,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".hdf5", compile=False
+            )
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
 
         return self
 
