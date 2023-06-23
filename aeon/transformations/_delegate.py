@@ -49,7 +49,7 @@ class _DelegatedTransformer(BaseTransformer):
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
                 subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                    examples/datasets
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -72,7 +72,7 @@ class _DelegatedTransformer(BaseTransformer):
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
                 subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                    examples/datasets
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -125,7 +125,7 @@ class _DelegatedTransformer(BaseTransformer):
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
                 subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                    examples/datasets
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -155,7 +155,7 @@ class _DelegatedTransformer(BaseTransformer):
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
                 subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                    examples/datasets
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True

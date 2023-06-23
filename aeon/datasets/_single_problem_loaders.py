@@ -486,7 +486,7 @@ def load_shampoo_sales():
 
     Returns
     -------
-    y : pd.Series/DataFrame
+    y : pd.Series
         Shampoo sales dataset
 
     Examples

@@ -510,7 +510,7 @@ def load_tsf_to_dataframe(
             datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
             conversion to that mtype will be attempted
         For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
+        examples/datasets
 
     Returns
     -------
