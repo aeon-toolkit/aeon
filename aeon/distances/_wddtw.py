@@ -55,7 +55,8 @@ def wddtw_distance(
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -122,7 +123,8 @@ def wddtw_cost_matrix(
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -193,7 +195,8 @@ def wddtw_pairwise_distance(
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Raises
     ------
@@ -321,7 +324,8 @@ def wddtw_alignment_path(
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

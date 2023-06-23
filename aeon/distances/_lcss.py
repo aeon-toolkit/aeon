@@ -76,7 +76,8 @@ def lcss_distance(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -141,7 +142,8 @@ def lcss_cost_matrix(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -241,7 +243,8 @@ def lcss_pairwise_distance(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -356,7 +359,8 @@ def lcss_alignment_path(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

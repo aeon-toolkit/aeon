@@ -47,7 +47,8 @@ def ddtw_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -102,7 +103,8 @@ def ddtw_cost_matrix(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -169,7 +171,8 @@ def ddtw_pairwise_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -287,7 +290,8 @@ def ddtw_alignment_path(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

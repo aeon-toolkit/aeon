@@ -23,7 +23,8 @@ def create_bounding_matrix(
         Window size as a percentage of the smallest time series.
         If None, the bounding matrix will be full.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -52,6 +53,7 @@ def create_bounding_matrix(
             raise ValueError("window must be between 0 and 1")
         return _sakoe_chiba_bounding(x_size, y_size, window)
     return np.full((x_size, y_size), True)
+
 
 @njit(cache=True)
 def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):

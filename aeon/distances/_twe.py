@@ -63,7 +63,8 @@ def twe_distance(
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -130,7 +131,8 @@ def twe_cost_matrix(
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -264,7 +266,8 @@ def twe_pairwise_distance(
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -405,7 +408,8 @@ def twe_alignment_path(
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

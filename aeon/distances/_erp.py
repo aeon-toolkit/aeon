@@ -64,7 +64,8 @@ def erp_distance(
         then it must be the length of the number of channels in x and y. If a single
         value is provided then that value is used across each channel
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -134,7 +135,8 @@ def erp_cost_matrix(
         then it must be the length of the number of channels in x and y. If a single
         value is provided then that value is used across each channel.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -271,7 +273,8 @@ def erp_pairwise_distance(
         then it must be the length of the number of channels in x and y. If a single
         value is provided then that value is used across each channel.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -394,7 +397,8 @@ def erp_alignment_path(
         then it must be the length of the number of channels in x and y. If a single
         value is provided then that value is used across each channel.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

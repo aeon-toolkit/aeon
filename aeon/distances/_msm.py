@@ -71,7 +71,8 @@ def msm_distance(
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -138,7 +139,8 @@ def msm_cost_matrix(
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -335,7 +337,8 @@ def msm_pairwise_distance(
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -478,7 +481,8 @@ def msm_alignment_path(
     c: float, defaults=1.
         Cost for split or merge operation. Default is 1.
     itakura_max_slope: float, defaults=None
-        Maximum slope of the Itakura parallelogram.
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------

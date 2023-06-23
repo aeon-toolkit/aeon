@@ -514,7 +514,6 @@ def cost_matrix(
     metric: str or Callable
         The distance metric to use. The value must be one of the following strings:
         'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
-
     kwargs: Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
