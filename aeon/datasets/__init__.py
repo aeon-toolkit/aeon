@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Functions to load and write datasets."""
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     "write_to_tsfile",
     "write_results_to_uea_format",
     # Data generators
+    "make_example_3d_numpy",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
     # Single problem loaders
@@ -48,6 +50,7 @@ __all__ = [
 ]
 
 from aeon.datasets._data_generators import (
+    make_example_3d_numpy,
     make_example_long_table,
     make_example_multi_index_dataframe,
 )
@@ -64,6 +67,7 @@ from aeon.datasets._data_loaders import (
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (
     load_from_long_to_dataframe,
+    load_from_tsfile_to_dataframe,
     load_tsf_to_dataframe,
 )
 from aeon.datasets._single_problem_loaders import (
