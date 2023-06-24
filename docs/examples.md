@@ -178,7 +178,7 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/reg.png
+:img-top: examples/regression/img/tser.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
@@ -208,34 +208,13 @@ Forecasting reduced to regression
 
 :::{grid-item-card}
 :img-top: examples/clustering/img/clst.png
-:link: /examples/clustering/distance_clustering.ipynb
+:link: /examples/clustering/clustering.ipynb
 :link-type: ref
 :text-align: center
 
-Distance based clustering
+time series clustering
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/feature_clst.png
-:link: /examples/clustering/feature_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based clustering
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/dl_clst.png
-:link: /examples/clustering/dl_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Deep learning based clustering
-
-:::
-
 
 ::::
 
