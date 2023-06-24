@@ -64,6 +64,7 @@ DIST_PARAMS = {
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
     "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
+    "psi_dtw": BASIC_BOUNDING_PARAMS + [{"r": 0.5}],
 }
 
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import math
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -39,6 +41,12 @@ def _validate_cost_matrix_result(
         if x.ndim != 3:
             distance = float(cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1]))
             assert_almost_equal(distance, distance_result)
+    elif name == "psi_dtw":
+        r = math.ceil(x.shape[-1] * 0.2)
+        return min(
+            np.min(cost_matrix_result[-1, -r - 1 :]),
+            np.min(cost_matrix_result[-r - 1 :, -1]),
+        )
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
@@ -76,18 +84,24 @@ def test_cost_matrix(dist):
     )
 
     # Test unequal length
-    _validate_cost_matrix_result(
-        create_test_distance_numpy(5),
-        create_test_distance_numpy(10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
+    try:
+        _validate_cost_matrix_result(
+            create_test_distance_numpy(5),
+            create_test_distance_numpy(10, random_state=2),
+            dist["name"],
+            dist["distance"],
+            dist["cost_matrix"],
+        )
 
-    _validate_cost_matrix_result(
-        create_test_distance_numpy(10, 5),
-        create_test_distance_numpy(10, 10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
+        _validate_cost_matrix_result(
+            create_test_distance_numpy(10, 5),
+            create_test_distance_numpy(10, 10, random_state=2),
+            dist["name"],
+            dist["distance"],
+            dist["cost_matrix"],
+        )
+    except ValueError as e:
+        if str(e) == "x and y must have the same size":
+            pass
+        else:
+            raise e

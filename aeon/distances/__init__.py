@@ -51,6 +51,10 @@ __all__ = [
     "get_distance_function",
     "get_pairwise_distance_function",
     "get_alignment_path_function",
+    "psi_dtw_distance",
+    "psi_dtw_pairwise_distance",
+    "psi_dtw_alignment_path",
+    "psi_dtw_cost_matrix",
 ]
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
@@ -100,6 +104,12 @@ from aeon.distances._msm import (
     msm_cost_matrix,
     msm_distance,
     msm_pairwise_distance,
+)
+from aeon.distances._psi_dtw import (
+    psi_dtw_alignment_path,
+    psi_dtw_cost_matrix,
+    psi_dtw_distance,
+    psi_dtw_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (

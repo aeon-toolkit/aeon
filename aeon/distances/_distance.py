@@ -42,6 +42,12 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._psi_dtw import (
+    psi_dtw_alignment_path,
+    psi_dtw_cost_matrix,
+    psi_dtw_distance,
+    psi_dtw_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
@@ -153,6 +159,13 @@ def distance(
         )
     elif metric == "mpdist":
         return mpdist(x, y, **kwargs)
+    elif metric == "psi_dtw":
+        return psi_dtw_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("r", 0.2),
+        )
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -264,6 +277,13 @@ def pairwise_distance(
         )
     elif metric == "mpdist":
         return _custom_func_pairwise(x, y, mpdist, **kwargs)
+    elif metric == "psi_dtw":
+        return psi_dtw_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("r", 0.2),
+        )
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
@@ -393,6 +413,13 @@ def alignment_path(
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
         )
+    elif metric == "psi_dtw":
+        return psi_dtw_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("r", 0.2),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -478,6 +505,13 @@ def cost_matrix(
             kwargs.get("window"),
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
+        )
+    elif metric == "psi_dtw":
+        return psi_dtw_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("r", 0.2),
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
@@ -716,6 +750,13 @@ DISTANCES = [
         "pairwise_distance": msm_pairwise_distance,
         "cost_matrix": msm_cost_matrix,
         "alignment_path": msm_alignment_path,
+    },
+    {
+        "name": "psi_dtw",
+        "distance": psi_dtw_distance,
+        "pairwise_distance": psi_dtw_pairwise_distance,
+        "cost_matrix": psi_dtw_cost_matrix,
+        "alignment_path": psi_dtw_alignment_path,
     },
 ]
 

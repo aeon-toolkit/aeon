@@ -17,6 +17,7 @@ from aeon.distances import (
     euclidean_distance,
     lcss_distance,
     msm_distance,
+    psi_dtw_distance,
     squared_distance,
     twe_distance,
     wddtw_distance,
@@ -34,6 +35,7 @@ distances = [
     "ddtw",
     "wddtw",
     "twe",
+    "psi_dtw",
 ]
 
 distance_parameters = {
@@ -46,6 +48,7 @@ distance_parameters = {
     "ddtw": [0.0, 0.1, 1.0],  # window
     "twe": [0.0, 0.1, 1.0],  # window
     "msm": [0.0, 0.2, 3.0],  # parameter c
+    "psi_dtw": [0.1, 0.3, 0.5],  # parameter r
 }
 unit_test_distances = {
     "euclidean": 619.7959,
@@ -60,6 +63,7 @@ unit_test_distances = {
     "twe": [137.001, 567.0029999999999, 3030.036000000001],
     "msm_ind": [1515.0, 1517.8000000000004, 1557.0],  # msm with independent distance
     "msm_dep": [1897.0, 1898.6000000000001, 1921.0],  # msm with dependent distance
+    "psi_dtw": [304165.0, 275854.0, 275854.0],
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
@@ -77,6 +81,7 @@ basic_motions_distances = {
     "msm_ind": [84.36021099999999, 140.13788899999997, 262.6939920000001],
     # msm with dependent distance
     "msm_dep": [33.068257441993, 71.14080843368329, 190.73978686253804],
+    "psi_dtw": [111.10975086958197, 110.64380702637594, 105.48143653207997],
 }
 
 
@@ -112,6 +117,8 @@ def test_multivariate_correctness():
             case1, case2, c=distance_parameters["msm"][j], independent=False
         )
         assert_almost_equal(d, basic_motions_distances["msm_dep"][j], 4)
+        d = psi_dtw_distance(case1, case2, r=distance_parameters["psi_dtw"][j])
+        assert_almost_equal(d, basic_motions_distances["psi_dtw"][j], 4)
 
 
 def test_univariate_correctness():
@@ -174,4 +181,8 @@ def test_univariate_correctness():
             cases1[1], cases2[1], c=distance_parameters["msm"][j], independent=False
         )
         assert_almost_equal(d, unit_test_distances["msm_dep"][j], 4)
+        assert d == d2
+        d = psi_dtw_distance(cases1[0], cases2[0], r=distance_parameters["psi_dtw"][j])
+        d2 = psi_dtw_distance(cases1[1], cases2[1], r=distance_parameters["psi_dtw"][j])
+        assert_almost_equal(d, unit_test_distances["psi_dtw"][j], 4)
         assert d == d2
