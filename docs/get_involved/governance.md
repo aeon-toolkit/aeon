@@ -122,7 +122,7 @@ backed by an AEP (see following section). In the event a vote is called, the pro
 must receive a two-thirds majority of core developers to be approved.
 
 All changes to the `aeon` code or documentation should be done via Pull Request.
-By default, push rights to the `main` GitHub branch are restricted for all developers.
+By default, push rights to the `main` GitHub branch are restricted for all core developers.
 In emergencies, the infrastructure workgroup may temporarily revoke the branch
 protection for group members and make direct commits, but this should happen only in
 emergencies where harm will come to the project unless timely action is taken.
