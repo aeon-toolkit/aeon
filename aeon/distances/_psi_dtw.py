@@ -33,7 +33,11 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def psi_dtw_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, r: float = 0.2
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    r: float = 0.2,
+    itakura_max_slope: float = None,
 ) -> float:
     r"""Prefix and Suffix invariant Dynamic time warping (dtw) between two time series.
 
@@ -60,6 +64,9 @@ def psi_dtw_distance(
         The relaxed endpoint constraint that allows the first and last elements to be
         warped do. This value should be between 0 and 1 and represents a percentage
         of the length of the time series to allow warping.
+    itakura_max_slope: float, defaults=None
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -96,17 +103,25 @@ def psi_dtw_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _psi_dtw_distance(_x, _y, bounding_matrix, r)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _psi_dtw_distance(x, y, bounding_matrix, r)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
 def psi_dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, r: float = 0.2
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    r: float = 0.2,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     r"""Compute the PSI DTW cost matrix between two time series.
 
@@ -123,6 +138,9 @@ def psi_dtw_cost_matrix(
         The relaxed endpoint constraint that allows the first and last elements to be
         warped do. This value should be between 0 and 1 and represents a percentage
         of the length of the time series to allow warping.
+    itakura_max_slope: float, defaults=None
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -161,10 +179,14 @@ def psi_dtw_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _psi_dtw_cost_matrix(_x, _y, bounding_matrix, r)[1:, 1:]
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _psi_dtw_cost_matrix(x, y, bounding_matrix, r)[1:, 1:]
     raise ValueError("x and y must be 1D or 2D")
 
@@ -206,7 +228,11 @@ def _psi_dtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def psi_dtw_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, window: float = None, r: float = 0.2
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    r: float = 0.2,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     r"""Compute the PSI DTW pairwise between a set of time series.
 
@@ -225,6 +251,9 @@ def psi_dtw_pairwise_distance(
         The relaxed endpoint constraint that allows the first and last elements to be
         warped do. This value should be between 0 and 1 and represents a percentage
         of the length of the time series to allow warping.
+    itakura_max_slope: float, defaults=None
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -271,22 +300,28 @@ def psi_dtw_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _psi_dtw_pairwise_distance(X, window, r)
+            return _psi_dtw_pairwise_distance(X, window, r, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _psi_dtw_pairwise_distance(_X, window, r)
+            return _psi_dtw_pairwise_distance(_X, window, r, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     if X.shape[-1] != y.shape[-1]:
         raise ValueError("x and y must have the same size")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _psi_dtw_from_multiple_to_multiple_distance(_x, _y, window, r)
+    return _psi_dtw_from_multiple_to_multiple_distance(
+        _x, _y, window, r, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
-def _psi_dtw_pairwise_distance(X: np.ndarray, window: float, r: float) -> np.ndarray:
+def _psi_dtw_pairwise_distance(
+    X: np.ndarray, window: float, r: float = 0.2, itakura_max_slope: float = None
+) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2], X.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
@@ -298,12 +333,18 @@ def _psi_dtw_pairwise_distance(X: np.ndarray, window: float, r: float) -> np.nda
 
 @njit(cache=True, fastmath=True)
 def _psi_dtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, r: float = 0.2
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float,
+    r: float = 0.2,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(m_instances):
@@ -313,7 +354,11 @@ def _psi_dtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def psi_dtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, r: float = 0.2
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    r: float = 0.2,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     r"""Compute the psi dtw alignment path between two time series.
 
@@ -330,6 +375,9 @@ def psi_dtw_alignment_path(
         The relaxed endpoint constraint that allows the first and last elements to be
         warped do. This value should be between 0 and 1 and represents a percentage
         of the length of the time series to allow warping.
+    itakura_max_slope: float, defaults=None
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1..
 
     Returns
     -------
@@ -361,7 +409,7 @@ def psi_dtw_alignment_path(
         raise ValueError("r must be between 0 and 1")
     if x.shape[-1] != y.shape[-1]:
         raise ValueError("x and y must have the same size")
-    cost_matrix = psi_dtw_cost_matrix(x, y, window, r)[1:, 1:]
+    cost_matrix = psi_dtw_cost_matrix(x, y, window, r, itakura_max_slope)[1:, 1:]
     r = math.ceil(x.shape[-1] * r)
     return (
         compute_min_return_path(cost_matrix),
