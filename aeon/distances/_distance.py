@@ -96,7 +96,7 @@ def distance(
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'psi_dtw', 'twe'.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
     kwargs: Any
@@ -192,7 +192,7 @@ def pairwise_distance(
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'psi_dtw', 'twe'.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
     kwargs: Any
@@ -352,7 +352,7 @@ def alignment_path(
     metric: str
         The distance metric to use. The value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'psi_dtw', 'twe'.
     kwargs: Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -440,7 +440,7 @@ def cost_matrix(
         Second time series.
     metric: str or Callable
         The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
+        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm', 'psi_dtw', 'twe'.
 
     kwargs: Any
         Arguments for metric. Refer to each metrics documentation for a list of
@@ -526,7 +526,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm', 'mpdist'
+        'msm', 'mpdist', 'psi_dtw', 'twe'.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
 
@@ -564,7 +564,7 @@ def get_pairwise_distance_function(
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'psi_dtw', 'twe'.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a np.ndarray that is the pairwise distance
         between each time series.
@@ -601,7 +601,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     ----------
     metric: str or Callable
         The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
+        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm', 'psi_dtw', 'twe'.
 
     Returns
     -------
@@ -634,7 +634,7 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     ----------
     metric: str or Callable
         The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
+        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm', 'psi_dtw', 'twe'.
         two time series.
 
     Returns
