@@ -20,8 +20,7 @@ Forecasting with aeon
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
-
+Forecasting and regression
 :::
 
 :::{grid-item-card}
@@ -30,7 +29,7 @@ Forecasting with aeon - appendix: forecasting, supervised regression, and pitfal
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with aeon
+Probabilistic Forecasting
 
 :::
 
