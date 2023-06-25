@@ -207,7 +207,7 @@ Forecasting reduced to regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/clst.png
+:img-top: examples/clustering/img/tscl.png
 :link: /examples/clustering/clustering.ipynb
 :link-type: ref
 :text-align: center
