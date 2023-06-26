@@ -1,23 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Random Interval Classifier.
-
-Pipeline classifier using summary statistics extracted from random intervals and an
-estimator.
-"""
-
-__author__ = ["MatthewMiddlehurst"]
-__all__ = ["RandomIntervalClassifier"]
-
-import numpy as np
-
-from aeon.base._base import _clone_estimator
-from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.catch22 import Catch22
-from aeon.transformations.collection.random_intervals import RandomIntervals
-
-
-class RandomIntervalClassifier(BaseClassifier):
+class RandomIntervalRegressor(RegressorMixin, BaseTimeSeriesEstimator):
     """Random Interval Classifier.
 
     This classifier simply transforms the input data using the RandomIntervals
@@ -52,12 +34,6 @@ class RandomIntervalClassifier(BaseClassifier):
     RandomIntervals
     """
 
-    _tags = {
-        "capability:multivariate": True,
-        "capability:multithreading": True,
-        "algorithm_type": "interval",
-    }
-
     def __init__(
         self,
         n_intervals=100,
@@ -73,12 +49,9 @@ class RandomIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._transformer = None
-        self._estimator = None
+        super(RandomIntervalRegressor, self).__init__()
 
-        super(RandomIntervalClassifier, self).__init__()
-
-    def _fit(self, X, y):
+    def fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
 
         Parameters
@@ -98,21 +71,30 @@ class RandomIntervalClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        X, y = self._validate_data(
+            X=X, y=y, ensure_min_samples=2, ensure_min_series_length=3
+        )
+        X = self._convert_X(X)
+
+        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         interval_transformers = (
-            Catch22(outlier_norm=True, replace_nans=True)
+            Catch22Transformer(catch24=True, outlier_norm=True, replace_nans=True)
             if self.interval_transformers is None
             else self.interval_transformers
         )
 
-        self._transformer = RandomIntervals(
+        self._transformer = RandomIntervalTransformer(
             n_intervals=self.n_intervals,
-            transformers=interval_transformers,
+            features=interval_transformers,
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
 
         self._estimator = _clone_estimator(
-            RotationForestClassifier() if self.estimator is None else self.estimator,
+            RandomForestRegressor() if self.estimator is None else self.estimator,
             self.random_state,
         )
 
@@ -125,7 +107,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
 
         Parameters
@@ -138,30 +120,12 @@ class RandomIntervalClassifier(BaseClassifier):
         y : array-like, shape = [n_instances]
             Predicted class labels.
         """
+        check_is_fitted(self)
+
+        X = self._validate_data(X=X, reset=False, ensure_min_series_length=3)
+        X = self._convert_X(X)
+
         return self._estimator.predict(self._transformer.transform(X))
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        m = getattr(self._estimator, "predict_proba", None)
-        if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
-        else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
-            for i in range(0, X.shape[0]):
-                dists[i, self._class_dictionary[preds[i]]] = 1
-            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -172,10 +136,10 @@ class RandomIntervalClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            RandomIntervalClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
-                    previously generated results where the default set of parameters
-                    cannot produce suitable probability estimates
+            For classifiers, a "default" set of parameters should be provided for
+            general testing, and a "results_comparison" set for comparing against
+            previously recorded results if the general set does not produce suitable
+            probabilities to compare against.
 
         Returns
         -------
@@ -185,24 +149,31 @@ class RandomIntervalClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from sklearn.ensemble import RandomForestClassifier
-
-        from aeon.transformations.series.summarize import SummaryTransformer
-
         if parameter_set == "results_comparison":
             return {
-                "n_intervals": 3,
-                "estimator": RandomForestClassifier(n_estimators=10),
-                "interval_transformers": SummaryTransformer(
-                    summary_function=("mean", "std", "min", "max"),
-                    quantiles=(0.25, 0.5, 0.75),
+                "n_intervals": 5,
+                "estimator": RandomForestRegressor(n_estimators=10),
+                "interval_transformers": Catch22Transformer(
+                    catch24=True,
+                    replace_nans=True,
+                    features=(
+                        "Mean",
+                        "DN_HistogramMode_5",
+                        "SB_BinaryStats_mean_longstretch1",
+                    ),
                 ),
             }
         else:
             return {
-                "n_intervals": 2,
-                "estimator": RandomForestClassifier(n_estimators=2),
-                "interval_transformers": SummaryTransformer(
-                    summary_function=("mean", "min", "max"),
+                "n_intervals": 3,
+                "estimator": RandomForestRegressor(n_estimators=2),
+                "interval_transformers": Catch22Transformer(
+                    catch24=True,
+                    replace_nans=True,
+                    features=(
+                        "Mean",
+                        "DN_HistogramMode_5",
+                        "SB_BinaryStats_mean_longstretch1",
+                    ),
                 ),
             }
