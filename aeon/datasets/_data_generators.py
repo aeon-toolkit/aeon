@@ -59,7 +59,7 @@ def make_example_3d_numpy(
     Examples
     --------
     >>> from aeon.datasets import make_example_3d_numpy
-    >>> data, labels = make_example_3d_numpy(n_cases=2, n_timepoints=6,
+    >>> data, labels = make_example_3d_numpy(n_cases=2, n_channels=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)
     [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
@@ -124,9 +124,8 @@ def make_example_2d_numpy(
     >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]]
-    <BLANKLINE>
-     [[2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]]
+    [[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
+     [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
     >>> print(labels)
     [0 1]
     """
