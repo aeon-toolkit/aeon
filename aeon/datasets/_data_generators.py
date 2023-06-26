@@ -5,6 +5,7 @@
 __author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = [
     "make_example_3d_numpy",
+    "make_example_2d_numpy",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
 ]
@@ -14,7 +15,7 @@ from typing import Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils._testing.collection import make_3d_test_data
+from aeon.utils._testing.collection import make_2d_test_data, make_3d_test_data
 
 
 def make_example_3d_numpy(
@@ -26,9 +27,10 @@ def make_example_3d_numpy(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-    """Randomly generate 3D X and y data for testing.
+    """Randomly generate 3D X and y data.
 
-    Will ensure there is at least one sample per label if a regression problems.
+    Will ensure there is at least one sample per label if it is a classification
+    target problem.
 
     Parameters
     ----------
@@ -43,7 +45,7 @@ def make_example_3d_numpy(
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
-        If True, the target will be a float, otherwise an int.
+        If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
 
@@ -57,7 +59,7 @@ def make_example_3d_numpy(
     Examples
     --------
     >>> from aeon.datasets import make_example_3d_numpy
-    >>> data, labels = make_example_3d_numpy(n_cases=2, n_channels=2, n_timepoints=6,
+    >>> data, labels = make_example_3d_numpy(n_cases=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)
     [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
@@ -71,6 +73,65 @@ def make_example_3d_numpy(
     X, y = make_3d_test_data(
         n_cases=n_cases,
         n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        n_labels=n_labels,
+        regression_target=regression_target,
+        random_state=random_state,
+    )
+    if return_y:
+        return X, y
+    return X
+
+
+def make_example_2d_numpy(
+    n_cases: int = 10,
+    n_timepoints: int = 12,
+    return_y: bool = False,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    """Randomly generate 2D X and y data.
+
+    Will ensure there is at least one sample per label if it is a classification
+    target problem.
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_timepoints : int
+        The number of features/series length to generate.
+    return_y : bool
+        If True, return the labels as well as the data.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a scalar float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from aeon.datasets import make_example_2d_numpy
+    >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
+    ...                                      return_y=True, n_labels=2, random_state=0)
+    >>> print(data)
+    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]]
+    <BLANKLINE>
+     [[2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]]
+    >>> print(labels)
+    [0 1]
+    """
+    X, y = make_2d_test_data(
+        n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_labels,
         regression_target=regression_target,
