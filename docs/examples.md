@@ -315,16 +315,6 @@ Theta
 
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/trans.png
-:link: /examples/annotation/segmentation_use_cases.ipynb
-:link-type: ref
-:text-align: center
-
-Segmentation use cases
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
