@@ -86,8 +86,8 @@ class MyTimeSeriesClassifier(BaseClassifier):
     # these are the default values, only add if different to these.
     _tags = {
         "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
-        # this is usually "numpy3D" Other types are allowable, see
-        # datatypes/panel/_registry.py for options.
+        # this is usually "numpy3D" for equal length time series, np-list for unequal
+        # length time series, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -97,10 +97,11 @@ class MyTimeSeriesClassifier(BaseClassifier):
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
 
-    # todo: add any hyper-parameters and components to constructor
+    # todo: add any parameters to constructor
     def __init__(self, param_a, param_b="default", param_c=None):
-        # estimators should precede parameters
-        #  if estimators have default values, set None and initalize below
+        # Note that parameters passed and set in constructor should not be changed
+        # anywhere else. This is in order to comply with scikit learn structure.
+        # Instead, copy into local variables in fit and predict and use these.
 
         # todo: copy parameters to self, use same names
         self.param_a = param_a
@@ -151,7 +152,9 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            if self.get_tag("X_inner_mtype") = "np-list":
+                list of 2D np.ndarray of shape = (n_instances,)
 
         Returns
         -------
@@ -178,7 +181,9 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            if self.get_tag("X_inner_mtype") = "np-list":
+                list of 2D np.ndarray of shape = (n_instances,)
 
         Returns
         -------

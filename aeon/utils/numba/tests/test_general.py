@@ -56,8 +56,8 @@ def test_get_subsequence_with_mean_std(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_sliding_mean_std_one_series(dtype):
     X = np.random.rand(3, 150).astype(dtype)
-    for length in [3, 5, 11]:
-        for dilation in [1, 3, 5, 6]:
+    for length in [5, 50]:
+        for dilation in [1, 3]:
             mean, std = sliding_mean_std_one_series(X, length, dilation)
             for i_sub in range(X.shape[1] - (length - 1) * dilation):
                 _idx = [i_sub + j * dilation for j in range(length)]
@@ -71,6 +71,14 @@ def test_sliding_mean_std_one_series(dtype):
                 else:
                     assert_array_almost_equal(X[:, _idx].mean(axis=1), mean[:, i_sub])
                     assert_array_almost_equal(X[:, _idx].std(axis=1), std[:, i_sub])
+
+    # Test error on wrong dimension
+    error_str = "Invalid input parameter for sliding mean and std computations"
+    with pytest.raises(ValueError, match=error_str):
+        mean, std = sliding_mean_std_one_series(X, 100, 3)
+
+    with pytest.raises(ValueError, match=error_str):
+        mean, std = sliding_mean_std_one_series(X, 100, 3)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

@@ -438,6 +438,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             scitype="Panel",
             return_metadata=True,
             var_name="X",
+            exclude_mtypes=[],
         )
 
         if not X_valid:
@@ -483,6 +484,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             to_type=X_inner_mtype,
             store=metadata["_converter_store_X"],
             store_behaviour="reset",
+            exclude_mtypes=[],
         )
 
         # converts y, returns None if y is None
