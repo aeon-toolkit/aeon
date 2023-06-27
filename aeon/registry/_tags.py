@@ -82,6 +82,18 @@ ESTIMATOR_TAG_REGISTER = [
         "flag for estimators which are unable to be pickled",
     ),
     (
+        "non-deterministic",
+        "estimator",
+        "bool",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
+    ),
+    (
         "skip-inverse-transform",
         "transformer",
         "bool",
