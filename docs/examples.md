@@ -225,7 +225,7 @@ time series clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/trans.png
-:link: /examples/transformations/transformers.ipynb
+:link: /examples/transformations/transformations.ipynb
 :link-type: ref
 :text-align: center
 
@@ -234,7 +234,7 @@ Transformers
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/tsfresh.png
 :link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
@@ -245,7 +245,7 @@ Feature based
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/rocket.png
 :link: /examples/transformations/rocket.ipynb
 :link-type: ref
 :text-align: center
@@ -255,8 +255,8 @@ Convolution based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/shapelets.png
-:link: /examples/transformations/shapelets.ipynb
+:img-top: examples/transformations/img/leaves_shapelets.png
+:link: /examples/classification/shapelet_based.ipynb
 :link-type: ref
 :text-align: center
 
@@ -265,7 +265,7 @@ Shapelet based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/interpolation.png
 :link: /examples/transformations/interpolation.ipynb
 :link-type: ref
 :text-align: center
@@ -276,7 +276,7 @@ Interpolation
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/plateau.png
 :link: /examples/transformations/plateau_finder.ipynb
 :link-type: ref
 :text-align: center
@@ -286,7 +286,7 @@ PlateauFinder
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/signature.png
 :link: /examples/transformations/signature_method.ipynb
 :link-type: ref
 :text-align: center
@@ -296,7 +296,7 @@ Signature Method
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/theta.png
 :link: /examples/transformations/theta_transform.ipynb
 :link-type: ref
 :text-align: center
@@ -315,7 +315,7 @@ Theta
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/annotation/img/trans.png
 :link: /examples/annotation/segmentation_use_cases.ipynb
 :link-type: ref
 :text-align: center
@@ -325,7 +325,7 @@ Segmentation use cases
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/clasp.png
+:img-top: examples/annotation/img/clasp.png
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
@@ -335,7 +335,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/annotation/img/trans.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
