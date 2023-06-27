@@ -13,6 +13,16 @@ Datasets
     :toctree: auto_generated/
     :template: function.rst
 
+    load_classification
+    load_forecasting
+    load_regression
+    load_from_tsfile
+    load_from_tsf_file
+    load_from_arff_file
+    load_from_tsv_file
+    download_all_regression
+    write_to_tsfile
+    write_results_to_uea_format
     load_airline
     load_arrow_head
     load_gunpoint

@@ -35,7 +35,6 @@ from aeon.tests._config import (
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
-    VALID_ESTIMATOR_TYPES,
 )
 from aeon.transformations.base import BaseTransformer
 from aeon.utils._testing._conditional_fixtures import (
@@ -1099,9 +1098,10 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
         """Check that calling fit twice is equivalent to calling it once."""
-        estimator = estimator_instance
-        # escape Deep estimators since they are not deterministic
-        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
+        # escape known non-deterministic estimators
+        if estimator_instance.get_tag(
+            "non-deterministic", tag_value_default=False, raise_error=False
+        ):
             return None
 
         # for now, we have to skip predict_proba, since current output comparison
@@ -1113,9 +1113,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             return None
 
         # run fit plus method_nsc once, save results
-        set_random_state(estimator)
+        set_random_state(estimator_instance)
         results = scenario.run(
-            estimator,
+            estimator_instance,
             method_sequence=["fit", method_nsc_arraylike],
             return_all=True,
             deepcopy_return=True,
@@ -1277,8 +1277,11 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             and method_nsc == "predict_proba"
         ):
             return None
-        # escape Deep estimators since they dont use pickle
-        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
+
+        # escape estimators we know cannot pickle
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
             return None
 
         estimator = estimator_instance
@@ -1311,11 +1314,17 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     def test_save_estimators_to_file(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
-        # escape deep learners as they cannot be pickled
-        if isinstance(estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)):
-            return None
         """Check if saved estimators onto disk can be loaded correctly."""
         method_nsc = method_nsc_arraylike
+
+        # escape estimators we know cannot pickle. There is an argument to be made
+        # that alternate methods of saving should be available, but currently this is
+        # not the case
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
+            return None
+
         # escape predict_proba for forecasters, tfp distributions cannot be pickled
         if (
             isinstance(estimator_instance, BaseForecaster)
@@ -1420,9 +1429,3 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # skip them for the underlying network
             if vars(estimator._network).get(key) is not None:
                 assert vars(estimator._network)[key] == value
-
-    def _get_err_msg(estimator):
-        return (
-            f"Invalid estimator type: {type(estimator)}. Valid estimator types are: "
-            f"{VALID_ESTIMATOR_TYPES}"
-        )
