@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """Distance computation."""
-__author__ = ["chrisholder", "TonyBagnall"]
+__author__ = ["chrisholder", "TonyBagnall", "baraline"]
 __all__ = [
     "create_bounding_matrix",
     "squared_distance",
     "squared_pairwise_distance",
     "euclidean_distance",
     "euclidean_pairwise_distance",
+    "manhattan_distance",
+    "manhattan_pairwise_distance",
     "dtw_distance",
     "dtw_pairwise_distance",
     "dtw_cost_matrix",
@@ -95,6 +97,7 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
