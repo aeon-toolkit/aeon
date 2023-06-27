@@ -9,6 +9,17 @@ All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators
 using ``estimator_types="regressor"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
+Convolution-based
+-----------------
+
+.. currentmodule:: aeon.regression.convolution_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RocketRegressor
+
 Deep learning
 -------------
 
@@ -20,6 +31,8 @@ Deep learning
 
     CNNRegressor
     TapNetRegressor
+    InceptionTimeRegressor
+    IndividualInceptionRegressor
 
 Distance-based
 --------------
@@ -43,6 +56,18 @@ Dummy
 
     DummyRegressor
 
+Feature-based
+--------------
+
+.. currentmodule:: aeon.regression.feature_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    FreshPRINCERegressor
+
+
 Interval-based
 --------------
 
@@ -54,16 +79,16 @@ Interval-based
 
     TimeSeriesForestRegressor
 
-Kernel-based
-------------
+sklearn
+-------
 
-.. currentmodule:: aeon.regression.convolution_based
+.. currentmodule:: aeon.regression.sklearn
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    RocketRegressor
+    RotationForestRegressor
 
 Base
 ----

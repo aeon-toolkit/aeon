@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
 Hybrid ensemble of classifiers from 4 separate time series classification
@@ -31,7 +32,7 @@ class HIVECOTEV1(BaseClassifier):
     representations using the CAWPE structure as described in [1]_. The default
     implementation differs from the one described in [1]_, in that the STC component
     uses the out of bag error (OOB) estimates for weights (described in [2]_) rather
-    than the cross validation estimate. OOB is an order of magnitude faster and on
+    than the cross-validation estimate. OOB is an order of magnitude faster and on
     average as good as CV. This means that this version of HIVE COTE is a bit faster
     than HC2, although less accurate on average.
 
@@ -51,11 +52,20 @@ class HIVECOTEV1(BaseClassifier):
         parameters.
     verbose : int, default=0
         Level of output printed to the console (for information only).
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib for Catch22,
+        if None a 'prefer' value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
+
 
     Attributes
     ----------
@@ -106,17 +116,18 @@ class HIVECOTEV1(BaseClassifier):
         rise_params=None,
         cboss_params=None,
         verbose=0,
-        n_jobs=1,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
         self.stc_params = stc_params
         self.tsf_params = tsf_params
         self.rise_params = rise_params
         self.cboss_params = cboss_params
-
         self.verbose = verbose
-        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self.stc_weight_ = 0
         self.tsf_weight_ = 0
@@ -139,7 +150,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -148,11 +159,6 @@ class HIVECOTEV1(BaseClassifier):
         -------
         self :
             Reference to self.
-
-        Notes
-        -----
-        Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
         """
         # Default values from HC1 paper
         if self.stc_params is None:
@@ -167,7 +173,7 @@ class HIVECOTEV1(BaseClassifier):
         # Cross-validation size for TSF and RISE
         cv_size = 10
         _, counts = np.unique(y, return_counts=True)
-        min_class = np.min(counts)
+        min_class = max(2, np.min(counts))
         if min_class < cv_size:
             cv_size = min_class
 
@@ -283,7 +289,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
             The data to make predictions for.
 
         Returns
