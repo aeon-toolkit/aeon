@@ -29,8 +29,8 @@ def make_example_3d_numpy(
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D X and y data.
 
-    Will ensure there is at least one sample per label if it is a classification
-    target problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (return_y=True and regression_target=False).
 
     Parameters
     ----------
@@ -93,8 +93,8 @@ def make_example_2d_numpy(
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 2D X and y data.
 
-    Will ensure there is at least one sample per label if it is a classification
-    target problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (return_y=True and regression_target=False).
 
     Parameters
     ----------
@@ -114,7 +114,7 @@ def make_example_2d_numpy(
     Returns
     -------
     X : np.ndarray
-        Randomly generated 3D data.
+        Randomly generated 2D data.
     y : np.ndarray
         Randomly generated labels.
 

@@ -30,8 +30,8 @@ def make_3d_test_data(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Randomly generate 3D X and y data for testing.
 
-    Will ensure there is at least one sample per label if it is a classification
-    target problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
@@ -91,8 +91,8 @@ def make_2d_test_data(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Randomly generate 2D data for testing.
 
-    Will ensure there is at least one sample per label if it is a classification
-    target problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
@@ -151,8 +151,8 @@ def make_unequal_length_test_data(
 ) -> Tuple[List[np.ndarray], np.ndarray]:
     """Randomly generate unequal length X and y for testing.
 
-    Will ensure there is at least one sample per label if it is a classification
-    target problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
