@@ -404,7 +404,7 @@ Using aeon distances with scikit-learn
 :text-align: center
 
 Storing time series in arrays and data frames.
-::::
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_files_structures.ipynb
@@ -418,7 +418,7 @@ How series are stored in file.:::
 :link-type: ref
 :text-align: center
 
-Loading data into memory ::::
+Loading data into memory :::
 
 
 :::{grid-item-card}
@@ -426,7 +426,7 @@ Loading data into memory ::::
 :link-type: ref
 :text-align: center
 
-Example data sets ::::
+Example data sets :::
 
 :::{grid-item-card}
 :link: /examples/datasets/benchmarking_data.ipynb
