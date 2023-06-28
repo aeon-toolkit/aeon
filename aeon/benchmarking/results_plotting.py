@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """Plotting tools for estimator results."""
-__all__ = ["plot_critical_difference", "plot_boxplot_median"]
+__all__ = [
+    "plot_critical_difference",
+    "plot_boxplot_median",
+    "plot_scatter_single",
+    "plot_scatter",
+]
+
+__author__ = ["dguijo"]
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,5 +109,145 @@ def plot_boxplot_median(
     # Setting title if provided.
     if title is not None:
         plot.set_title(rf"{title}")
+
+    return fig
+
+
+def plot_scatter_single(
+    results,
+    method,
+    dataset,
+    title=None,
+    y_min=None,
+    y_max=None,
+):
+    """Plot a scatter that compares actual and predicted values for a given dataset.
+
+    Parameters
+    ----------
+    results: np.array
+        Scores (either accuracies or errors) of dataset x strategy
+    method: str
+        Method's name.
+    dataset: str
+        Dataset's name.
+    title: str, default = None
+        Title to be shown in the top of the plot.
+    y_min: float, default = None
+        Min value for the y_axis of the plot.
+    y_max: float, default = None
+        Max value for the y_axis of the plot.
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+    """
+    pass
+
+
+def plot_scatter(
+    results,
+    method_A,
+    method_B,
+    title=None,
+    y_min=None,
+    y_max=None,
+):
+    """Plot a scatter that compares datasets' results achieved by two methods.
+
+    Parameters
+    ----------
+    results: np.array
+        Scores (either accuracies or errors) of dataset x strategy.
+    method_A: str
+        Method name of the first approach.
+    method_B: str
+        Method name of the second approach.
+    dataset: str
+        Dataset's name.
+    title: str, default = None
+        Title to be shown in the top of the plot.
+    y_min: float, default = None
+        Min value for the y_axis of the plot.
+    y_max: float, default = None
+        Max value for the y_axis of the plot.
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+    """
+    fig = plt.figure(figsize=(10, 6))
+
+    differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
+
+    min_value = results.min() * 0.97
+    max_value = results.max() * 1.03
+
+    x, y = [min_value, max_value], [min_value, max_value]
+    plt.plot(x, y, color="black", alpha=0.5, zorder=1)
+
+    plot = sns.scatterplot(
+        x=results[:, 1],  # second method
+        y=results[:, 0],  # first method
+        hue=differences,
+        palette="pastel",
+        zorder=2,
+    )
+
+    # Compute the W, T, and L per methods
+    wins_A = sum(i == 1 for i in differences)
+    ties_A = sum(i == 0 for i in differences)
+    losses_A = sum(i == -1 for i in differences)
+
+    wins_B = sum(i == -1 for i in differences)
+    ties_B = sum(i == 0 for i in differences)
+    losses_B = sum(i == 1 for i in differences)
+
+    # Setting x and y limits
+    plot.set_ylim(min_value, max_value)
+    plot.set_xlim(min_value, max_value)
+
+    # Remove legend
+    plot.get_legend().remove()
+
+    # these are matplotlib.patch.Patch properties
+    props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
+    min_value_text = results.min()
+    max_value_text = results.max()
+
+    # Setting labels for x and y axis
+    plot.set_xlabel(f"{method_B} accuracy")
+    plot.set_ylabel(f"{method_A} accuracy")
+
+    # Setting text with W, T and L for each method
+    plt.text(
+        min_value_text,
+        max_value_text * 0.98,
+        f"{method_A} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
+        fontsize=13,
+        va="top",
+        ha="left",
+        ma="center",
+        bbox=props,
+        clip_on=True,
+        color="darkseagreen",
+        fontweight="bold",
+    )
+
+    plt.text(
+        max_value_text,
+        min_value_text * 1.02,
+        f"{method_B} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
+        fontsize=13,
+        va="bottom",
+        ha="right",
+        ma="center",
+        bbox=props,
+        clip_on=True,
+        color="cornflowerblue",
+        fontweight="bold",
+    )
 
     return fig
