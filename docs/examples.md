@@ -20,7 +20,8 @@ Forecasting with aeon
 :link-type: ref
 :text-align: center
 
-Forecasting and regression
+Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+
 :::
 
 :::{grid-item-card}
@@ -29,7 +30,7 @@ Forecasting and regression
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting
+Probabilistic Forecasting with aeon
 
 :::
 
@@ -177,7 +178,7 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/tser.png
+:img-top: examples/regression/img/reg.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
@@ -206,14 +207,35 @@ Forecasting reduced to regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/tscl.png
-:link: /examples/clustering/clustering.ipynb
+:img-top: examples/clustering/img/clst.png
+:link: /examples/clustering/distance_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-time series clustering
+Distance based clustering
 
 :::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/feature_clst.png
+:link: /examples/clustering/feature_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Feature based clustering
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/dl_clst.png
+:link: /examples/clustering/dl_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Deep learning based clustering
+
+:::
+
 
 ::::
 
@@ -341,6 +363,7 @@ ClaSP segmentation
 :text-align: center
 
 Hidalgo segmentation
+
 :::
 
 
@@ -359,6 +382,7 @@ Hidalgo segmentation
 :text-align: center
 
 Distance functions
+
 :::
 
 
@@ -369,6 +393,7 @@ Distance functions
 :text-align: center
 
 Using aeon distances with scikit-learn
+
 ::::
 
 ## Data Formatting and Loading
@@ -381,22 +406,27 @@ Using aeon distances with scikit-learn
 :link-type: ref
 :text-align: center
 
-Storing time series in arrays and data frames.
-::::
+Storing time series in arrays and data frames
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_files_structures.ipynb
 :link-type: ref
 :text-align: center
 
-How series are stored in file.:::
+How series are stored in file
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
 :text-align: center
 
-Loading data into memory ::::
+Loading data into memory
+
+:::
 
 
 :::{grid-item-card}
@@ -404,11 +434,15 @@ Loading data into memory ::::
 :link-type: ref
 :text-align: center
 
-Example data sets ::::
+Example data sets
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/benchmarking_data.ipynb
 :link-type: ref
 :text-align: center
 
-Getting data for benchmarking ::::
+Getting data for benchmarking
+
+::::
