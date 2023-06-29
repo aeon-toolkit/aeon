@@ -363,6 +363,7 @@ ClaSP segmentation
 :text-align: center
 
 Hidalgo segmentation
+
 :::
 
 
@@ -381,6 +382,7 @@ Hidalgo segmentation
 :text-align: center
 
 Distance functions
+
 :::
 
 
@@ -391,6 +393,7 @@ Distance functions
 :text-align: center
 
 Using aeon distances with scikit-learn
+
 ::::
 
 ## Data Formatting and Loading
@@ -403,7 +406,8 @@ Using aeon distances with scikit-learn
 :link-type: ref
 :text-align: center
 
-Storing time series in arrays and data frames.
+Storing time series in arrays and data frames
+
 :::
 
 :::{grid-item-card}
@@ -411,14 +415,18 @@ Storing time series in arrays and data frames.
 :link-type: ref
 :text-align: center
 
-How series are stored in file.:::
+How series are stored in file
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
 :text-align: center
 
-Loading data into memory :::
+Loading data into memory
+
+:::
 
 
 :::{grid-item-card}
@@ -426,11 +434,15 @@ Loading data into memory :::
 :link-type: ref
 :text-align: center
 
-Example data sets :::
+Example data sets
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/benchmarking_data.ipynb
 :link-type: ref
 :text-align: center
 
-Getting data for benchmarking ::::
+Getting data for benchmarking
+
+::::
