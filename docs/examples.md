@@ -363,6 +363,7 @@ ClaSP segmentation
 :text-align: center
 
 Hidalgo segmentation
+
 :::
 
 
@@ -381,22 +382,67 @@ Hidalgo segmentation
 :text-align: center
 
 Distance functions
+
 :::
 
+
 :::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/bounding_examples.ipynb
+:img-top: examples/distances/img/svm.png
+:link: /examples/distances/sklearn_distances.ipynb
 :link-type: ref
 :text-align: center
 
-Bounding function examples
-:::
+Using aeon distances with scikit-learn
+
+::::
+
+## Data Formatting and Loading
+
+::::{grid} 2 4 4 4
+:gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/ml_with_distances.ipynb
+:link: /examples/datasets/data_storage.ipynb
 :link-type: ref
 :text-align: center
 
-Using aeon distances with scikit-learn:::
+Storing time series in arrays and data frames
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/data_files_structures.ipynb
+:link-type: ref
+:text-align: center
+
+How series are stored in file
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/data_loading.ipynb
+:link-type: ref
+:text-align: center
+
+Loading data into memory
+
+:::
+
+
+:::{grid-item-card}
+:link: /examples/datasets/provided_data.ipynb
+:link-type: ref
+:text-align: center
+
+Example data sets
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/benchmarking_data.ipynb
+:link-type: ref
+:text-align: center
+
+Getting data for benchmarking
+
 ::::
