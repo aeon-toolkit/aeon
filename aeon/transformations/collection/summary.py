@@ -56,52 +56,9 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
         super(SevenNumberSummaryTransformer, self).__init__()
 
     def _transform(self, X, y=None):
-        if self.summary_stats == "default":
-            functions = [
-                row_mean,
-                row_std,
-                row_numba_min,
-                row_numba_max,
-                0.25,
-                0.5,
-                0.75,
-            ]
-        elif self.summary_stats == "percentiles":
-            functions = [
-                0.215,
-                0.887,
-                0.25,
-                0.5,
-                0.75,
-                0.9113,
-                0.9785,
-            ]
-        elif self.summary_stats == "bowley":
-            functions = [
-                row_numba_min,
-                row_numba_max,
-                0.1,
-                0.25,
-                0.5,
-                0.75,
-                0.9,
-            ]
-        elif self.summary_stats == "tukey":
-            functions = [
-                row_numba_min,
-                row_numba_max,
-                0.125,
-                0.25,
-                0.5,
-                0.75,
-                0.875,
-            ]
-        else:
-            raise ValueError(
-                f"Summary function input {self.summary_stats} not " f"recognised."
-            )
-
         n_instances, n_dims, _ = X.shape
+
+        functions = self._get_functions()
 
         Xt = np.zeros((n_instances, 7 * n_dims))
         for i in range(n_instances):
@@ -113,3 +70,49 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
                     Xt[i, idx : idx + n_dims] = f(X[i])
 
         return Xt
+
+    def _get_functions(self):
+        if self.summary_stats == "default":
+            return [
+                row_mean,
+                row_std,
+                row_numba_min,
+                row_numba_max,
+                0.25,
+                0.5,
+                0.75,
+            ]
+        elif self.summary_stats == "percentiles":
+            return [
+                0.215,
+                0.887,
+                0.25,
+                0.5,
+                0.75,
+                0.9113,
+                0.9785,
+            ]
+        elif self.summary_stats == "bowley":
+            return [
+                row_numba_min,
+                row_numba_max,
+                0.1,
+                0.25,
+                0.5,
+                0.75,
+                0.9,
+            ]
+        elif self.summary_stats == "tukey":
+            return [
+                row_numba_min,
+                row_numba_max,
+                0.125,
+                0.25,
+                0.5,
+                0.75,
+                0.875,
+            ]
+        else:
+            raise ValueError(
+                f"Summary function input {self.summary_stats} not recognised."
+            )
