@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """Plotting tools for estimator results."""
+
 __all__ = [
     "plot_critical_difference",
     "plot_boxplot_median",
-    "plot_scatter_single",
+    "plot_scatter_predictions",
     "plot_scatter",
+    "plot_multi_comparison_matrix",
 ]
 
 __author__ = ["dguijo"]
@@ -113,37 +115,61 @@ def plot_boxplot_median(
     return fig
 
 
-def plot_scatter_single(
-    results,
+def plot_scatter_predictions(
+    y,
+    y_pred,
     method,
     dataset,
-    title=None,
-    y_min=None,
-    y_max=None,
 ):
     """Plot a scatter that compares actual and predicted values for a given dataset.
 
+    This scatter is generally useful for plotting predictions for Time Series Extrinsic
+    Regression approaches, since the output is continuous. In case of Time Series
+    Classification it will be similar to a confusion matrix.
+
     Parameters
     ----------
-    results: np.array
-        Scores (either accuracies or errors) of dataset x strategy
+    y: np.array
+        Actual values.
+    y_pred: np.array
+        Predicted values.
     method: str
-        Method's name.
+        Method's name for title.
     dataset: str
-        Dataset's name.
-    title: str, default = None
-        Title to be shown in the top of the plot.
-    y_min: float, default = None
-        Min value for the y_axis of the plot.
-    y_max: float, default = None
-        Max value for the y_axis of the plot.
+        Dataset's name for title.
 
     Returns
     -------
     fig: matplotlib.figure
         Figure created.
     """
-    pass
+    fig = plt.figure(figsize=(10, 6))
+    min_value = min(y.min(), y_pred.min()) * 0.97
+    max_value = max(y.max(), y_pred.max()) * 1.03
+
+    p_x, p_y = [min_value, max_value], [min_value, max_value]
+    plt.plot(p_x, p_y, color="black", alpha=0.5, zorder=1)
+
+    plot = sns.scatterplot(
+        x=y,
+        y=y_pred,
+        zorder=2,
+        color="wheat",
+        edgecolor="black",
+        lw=2,
+    )
+
+    # Setting x and y limits
+    plot.set_ylim(min_value, max_value)
+    plot.set_xlim(min_value, max_value)
+
+    # Setting labels for x and y axis
+    plot.set_xlabel("Actual values")
+    plot.set_ylabel("Predicted values")
+
+    plot.set_title(rf"{method} - {dataset}")
+
+    return fig
 
 
 def plot_scatter(
@@ -151,8 +177,6 @@ def plot_scatter(
     method_A,
     method_B,
     title=None,
-    y_min=None,
-    y_max=None,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -250,4 +274,42 @@ def plot_scatter(
         fontweight="bold",
     )
 
+    # Setting title if provided.
+    if title is not None:
+        plot.set_title(rf"{title}")
+
     return fig
+
+
+def plot_multi_comparison_matrix():
+    """
+    Wrap for the Multi Comparison Matrix presented by Ismail-Fawaz et al. [1].
+
+    Parameters
+    ----------
+    results: np.array
+        Scores (either accuracies or errors) of dataset x strategy
+    method: str
+        Method's name.
+    dataset: str
+        Dataset's name.
+    title: str, default = None
+        Title to be shown in the top of the plot.
+    y_min: float, default = None
+        Min value for the y_axis of the plot.
+    y_max: float, default = None
+        Max value for the y_axis of the plot.
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+
+    References
+    ----------
+    [1] Ismail-Fawaz, A., Dempster, A., Tan, C. W., Herrmann, M., Miller, L.,
+        Schmidt, D. F., ... & Webb, G. I. (2023). An Approach to Multiple Comparison
+        Benchmark Evaluations that is Stable Under Manipulation of the Comparate Set.
+        arXiv preprint arXiv:2305.11921.
+    """
+    pass
