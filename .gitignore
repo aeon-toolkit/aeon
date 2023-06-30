@@ -161,3 +161,9 @@ envs/
 
 # example mlflow runs
 examples/local/
+
+# local files
+local_code/
+local/
+local_code.py
+local.py

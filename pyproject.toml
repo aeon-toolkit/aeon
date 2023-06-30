@@ -113,6 +113,7 @@ docs = [
     "sphinx-copybutton",
     "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
     "tabulate",
+    "sphinxext-opengraph",
 ]
 
 dl = [
