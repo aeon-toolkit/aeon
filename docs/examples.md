@@ -198,7 +198,7 @@ Extrinsic regression
 
 :::{grid-item-card}
 :img-top: examples/clustering/img/tscl.png
-:link: /examples/clustering/distance_clustering.ipynb
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
