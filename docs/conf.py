@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
+    "sphinxext.opengraph",
     "numpydoc",
     "nbsphinx",  # integrates example notebooks
     "sphinx_design",
