@@ -20,7 +20,8 @@ Forecasting with aeon
 :link-type: ref
 :text-align: center
 
-Forecasting and regression
+Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+
 :::
 
 :::{grid-item-card}
@@ -29,7 +30,7 @@ Forecasting and regression
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting
+Probabilistic Forecasting with aeon
 
 :::
 
@@ -177,7 +178,7 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/tser.png
+:img-top: examples/regression/img/reg.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
@@ -206,14 +207,35 @@ Forecasting reduced to regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/tscl.png
-:link: /examples/clustering/clustering.ipynb
+:img-top: examples/clustering/img/clst.png
+:link: /examples/clustering/distance_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-time series clustering
+Distance based clustering
 
 :::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/feature_clst.png
+:link: /examples/clustering/feature_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Feature based clustering
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/dl_clst.png
+:link: /examples/clustering/dl_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Deep learning based clustering
+
+:::
+
 
 ::::
 
@@ -225,7 +247,7 @@ time series clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/trans.png
-:link: /examples/transformations/transformations.ipynb
+:link: /examples/transformations/transformers.ipynb
 :link-type: ref
 :text-align: center
 
@@ -234,7 +256,7 @@ Transformers
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/tsfresh.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
@@ -245,7 +267,7 @@ Feature based
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/rocket.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/rocket.ipynb
 :link-type: ref
 :text-align: center
@@ -255,8 +277,8 @@ Convolution based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/leaves_shapelets.png
-:link: /examples/classification/shapelet_based.ipynb
+:img-top: examples/transformations/img/shapelets.png
+:link: /examples/transformations/shapelets.ipynb
 :link-type: ref
 :text-align: center
 
@@ -265,7 +287,7 @@ Shapelet based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/interpolation.ipynb
 :link-type: ref
 :text-align: center
@@ -276,7 +298,7 @@ Interpolation
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/plateau.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/plateau_finder.ipynb
 :link-type: ref
 :text-align: center
@@ -286,7 +308,7 @@ PlateauFinder
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/signature.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/signature_method.ipynb
 :link-type: ref
 :text-align: center
@@ -296,7 +318,7 @@ Signature Method
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/transformations/theta_transform.ipynb
 :link-type: ref
 :text-align: center
@@ -315,7 +337,17 @@ Theta
 
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/clasp.png
+:img-top: examples/transformations/img/trans.png
+:link: /examples/annotation/segmentation_use_cases.ipynb
+:link-type: ref
+:text-align: center
+
+Segmentation use cases
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/clasp.png
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
@@ -325,12 +357,13 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/trans.png
+:img-top: examples/transformations/img/trans.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
 Hidalgo segmentation
+
 :::
 
 
@@ -349,6 +382,7 @@ Hidalgo segmentation
 :text-align: center
 
 Distance functions
+
 :::
 
 
@@ -359,6 +393,7 @@ Distance functions
 :text-align: center
 
 Using aeon distances with scikit-learn
+
 ::::
 
 ## Data Formatting and Loading
@@ -371,22 +406,27 @@ Using aeon distances with scikit-learn
 :link-type: ref
 :text-align: center
 
-Storing time series in arrays and data frames.
-::::
+Storing time series in arrays and data frames
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_files_structures.ipynb
 :link-type: ref
 :text-align: center
 
-How series are stored in file.:::
+How series are stored in file
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
 :text-align: center
 
-Loading data into memory ::::
+Loading data into memory
+
+:::
 
 
 :::{grid-item-card}
@@ -394,11 +434,15 @@ Loading data into memory ::::
 :link-type: ref
 :text-align: center
 
-Example data sets ::::
+Example data sets
+
+:::
 
 :::{grid-item-card}
 :link: /examples/datasets/benchmarking_data.ipynb
 :link-type: ref
 :text-align: center
 
-Getting data for benchmarking ::::
+Getting data for benchmarking
+
+::::
