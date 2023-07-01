@@ -11,7 +11,7 @@ from numpy.testing import (
     assert_array_equal,
 )
 
-from aeon.datasets import load_basic_motions
+from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.distances import manhattan_distance
 from aeon.transformations.collection.dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
@@ -126,3 +126,55 @@ def test_compute_shapelet_dist_vector(dtype):
                 _sub = X[:, _idx]
                 true_vect[i_sub] += manhattan_distance(values, _sub)
             assert_array_almost_equal(d_vect, true_vect)
+
+
+shapelet_transform_unit_test_data = np.array(
+    [
+        [0.58048731, 8.0, 1.0, 0.98290187, 10.0, 2.0, 0.0, 1.0, 1.0],
+        [0.53932398, 8.0, 1.0, 0.0, 10, 2.0, 0.42051204, 3.0, 0.0],
+        [0.0, 8.0, 1.0, 1.3005285, 10.0, 2.0, 0.14676179, 1.0, 1.0],
+        [1.06848721, 8.0, 1.0, 6.2313152, 10.0, 1.0, 0.40016587, 3.0, 0.0],
+        [1.31181694, 8.0, 1.0, 1.02493714, 10.0, 3.0, 0.11072912, 1.0, 1.0],
+    ]
+)
+
+
+def test_rdst_on_unit_test():
+    """Test of ShapeletTransform on unit test data."""
+    # load unit test data
+    X_train, y_train = load_unit_test(split="train")
+    indices = np.random.RandomState(0).choice(len(y_train), 5, replace=False)
+
+    # fit the shapelet transform
+    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+    st.fit(X_train[indices], y_train[indices])
+
+    # assert transformed data is the same
+    data = st.transform(X_train[indices])
+    assert_array_almost_equal(data, shapelet_transform_unit_test_data, decimal=4)
+
+
+shapelet_transform_basic_motions_data = np.array(
+    [
+        [26.64112374, 25.0, 4.0, 96.47472839, 5.0, 0.0, 82.61879104, 34.0, 4.0],
+        [88.89712609, 68.0, 0.0, 101.13223325, 38.0, 0.0, 0.0, 18.0, 4.0],
+        [77.63250107, 11.0, 0.0, 103.59746386, 34.0, 0.0, 95.80275375, 31.0, 0.0],
+        [97.42186916, 13.0, 0.0, 0.0, 13.0, 3.0, 91.53794969, 0.0, 3.0],
+        [0.0, 12.0, 10.0, 99.11445303, 28.0, 0.0, 95.20557595, 8.0, 0.0],
+    ]
+)
+
+
+def test_rdst_on_basic_motions():
+    """Test of ShapeletTransform on basic motions data."""
+    # load basic motions data
+    X_train, y_train = load_basic_motions(split="train")
+    indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
+
+    # fit the shapelet transform
+    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+    st.fit(X_train[indices], y_train[indices])
+
+    # assert transformed data is the same
+    data = st.transform(X_train[indices])
+    assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
