@@ -105,9 +105,6 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     affecting a random feature subsets to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
-    It also speeds up the shapelet computation with early abandoning, online
-    normalization and use of the dot product to compute z-normalized squared Euclidean
-    distances.
 
     References
     ----------
