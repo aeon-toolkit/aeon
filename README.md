@@ -5,7 +5,7 @@
 # ⌛ Welcome to **aeon**
 
 `aeon` is an open source toolkit for learning from time series. It is compatible with
-[scikit-learn](https://scikit-learn.org) and provides access to the  very latest
+[scikit-learn](https://scikit-learn.org) and provides access to the very latest
 algorithms for time series  machine learning, in addition to a range of classical
 techniques for learning tasks such as forecasting and classification.
 
