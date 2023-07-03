@@ -10,7 +10,7 @@ import pytest
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
 from aeon.datatypes._panel._convert import (
-    from_nested_to_df_list_adp,
+    from_nested_to_dflist_adp,
     from_nested_to_multi_index,
 )
 from aeon.utils._testing.collection import (
@@ -242,7 +242,7 @@ def test_input_conversion_fit_predict(input_type):
         X = from_nested_to_multi_index(X)
     elif input_type == "df-list":
         X, y = make_nested_dataframe_data()
-        X = from_nested_to_df_list_adp(X)
+        X = from_nested_to_dflist_adp(X)
     clf = _DummyHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)
