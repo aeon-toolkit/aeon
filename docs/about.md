@@ -24,7 +24,7 @@ related that arise.
 
 ### Core Developers
 
-The core developers push forward `aeons` development and maintain the package.
+The core developers push forward `aeon`'s development and maintain the package.
 
 ```{eval-rst}
 .. include:: about/core_developers.rst
