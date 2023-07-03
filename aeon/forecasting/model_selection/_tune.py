@@ -23,7 +23,7 @@ class BaseGridSearch(_DelegatedForecaster):
     _tags = {
         "scitype:y": "both",
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
     }
@@ -61,7 +61,7 @@ class BaseGridSearch(_DelegatedForecaster):
             "capability:pred_int",
             "scitype:y",
             "ignores-exogeneous-X",
-            "handles-missing-data",
+            "capability:missing_values",
             "y_inner_mtype",
             "X_inner_mtype",
             "X-y-must-have-same-index",

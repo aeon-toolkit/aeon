@@ -6,7 +6,6 @@ __all__ = [
     "CollectionToSeriesWrapper",
     # transformers
     "Catch22",
-    "Catch22Wrapper",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
@@ -35,7 +34,6 @@ from aeon.transformations.collection._collection_wrapper import (
 )
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.catch22 import Catch22
-from aeon.transformations.collection.catch22wrapper import Catch22Wrapper
 from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,

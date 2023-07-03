@@ -337,36 +337,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         return self
 
-    def _fit_checks(self, X, y, early_abandon=True, return_metadata=False):
-        """Input checks and conversions for fit and fit_transform."""
-        self.reset()
-
-        X_inner = None
-        y_inner = None
-        metadata = None
-
-        # skip everything if fit_is_empty is True and we do not need to remember data
-        if (
-            not early_abandon
-            or not self.get_tag("fit_is_empty")
-            or self.get_tag("remember_data", False)
-        ):
-            # if requires_y is set, y is required in fit and update
-            if self.get_tag("requires_y") and y is None:
-                raise ValueError(f"{self.__class__.__name__} requires `y` in `fit`.")
-
-            # check and convert X/y
-            X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
-            # memorize X as self._X, if remember_data tag is set to True
-            if self.get_tag("remember_data", False):
-                self._X = update_data(None, X_new=X_inner)
-
-        if return_metadata:
-            return X_inner, y_inner, metadata
-        else:
-            return X_inner, y_inner
-
     def _check_X_y(self, X=None, y=None, return_metadata=False):
         """Check and coerce X/y for fit/transform functions.
 
