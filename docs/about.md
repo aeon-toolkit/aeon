@@ -9,23 +9,26 @@ A list of all contributors can be found [here](contributors.md).
 
 The community council currently has no sitting members while we discuss governance for the project.
 
+```{eval-rst}
+.. include:: about/community_council.rst
+```
+
 ### Code of Conduct Committee
 
-- {user}`GuzalBulatova`
-- {user}`KatieBuc`
-- {user}`matthewmiddlehurst`
-- {user}`patrickzib`
+The code of conduct committee maintains the code of conduct and handles any issues
+related that arise.
+
+```{eval-rst}
+.. include:: about/coc_committee.rst
+```
 
 ### Core Developers
 
-- {user}`TonyBagnall`
-- {user}`chrisholder`
-- {user}`GuzalBulatova`
-- {user}`ltsaprounis`
-- {user}`lmmentel`
-- {user}`aiwalter`
-- {user}`matthewmiddlehurst`
-- {user}`patrickzib`
+The core developers push forward `aeons` development and maintain the package.
+
+```{eval-rst}
+.. include:: about/core_developers.rst
+```
 
 #### Pre-fork Core Developers
 
