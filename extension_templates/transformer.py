@@ -216,8 +216,9 @@ class MyTransformer(BaseTransformer):
         # applicable only if scitype:transform-output is not "Primitives"
         # used for search index and validity checking, does not raise direct exception
         #
-        # handles-missing-data = can the transformer handle missing data (np or pd.NA)?
-        "handles-missing-data": False,  # can estimator handle missing data?
+        # capability:missing_values = can the transformer handle missing data
+        # (np or pd.NA)?
+        "capability:missing_values": False,  # can estimator handle missing data?
         # valid values: boolean True (yes), False (no)
         # if False, may raise exception when passed time series with missing values
         #
@@ -275,9 +276,9 @@ class MyTransformer(BaseTransformer):
         #
         # example 1: conditional setting of a tag
         # if est.foo == 42:
-        #   self.set_tags(handles-missing-data=True)
+        #   self.set_tags(capability:missing_values=True)
         # example 2: cloning tags from component
-        #   self.clone_tags(est2, ["enforce_index_type", "handles-missing-data"])
+        #   self.clone_tags(est2, ["enforce_index_type", "capability:missing_values"])
 
     # todo: implement this, mandatory (except in special case below)
     def _fit(self, X, y=None):

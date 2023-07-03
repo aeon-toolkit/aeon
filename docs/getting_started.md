@@ -312,11 +312,144 @@ Freq: M, dtype: int32
 
 ## Transformers for Time Series Data
 
-Coming soon!
+The transformations module in `aeon` contains a range of transformers for time series
+data. These transformers can be used standalone or as parts of pipelines.
+
+Transfromers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
+class accept both series and collection input types. However, 2D input types can be
+ambiguous in what they are storing. As such, we give the following warning for
+`aeon` transformers: <span style="color:red">**2D input data types such as numpy arrays
+and dataframes will be treated as a single multivariate series rather than a collection
+of univariate series**</span>.
+
+The following example shows how to use the
+[Differencer](transformations.series.difference.Differencer) class to extract the first
+order difference of a time series. Usage is the same for both single series and
+collection input types.
+
+```{code-block} python
+>>> from aeon.transformations.series.difference import Differencer
+>>> from aeon.datasets import load_airline
+>>> from aeon.datasets import load_italy_power_demand
+>>> diff = Differencer(lags=1)
+>>> y = load_airline()  # load single series airline dataset
+>>> diff.fit_transform(y)
+Period
+1949-01     0.0
+1949-02     6.0
+1949-03    14.0
+1949-04    -3.0
+1949-05    -8.0
+           ...
+1960-08   -16.0
+1960-09   -98.0
+1960-10   -47.0
+1960-11   -71.0
+1960-12    42.0
+Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
+>>> X, _ = load_italy_power_demand()  # load panel italy power demand dataset
+>>> diff.fit_transform(X)[:2]
+[[[ 0.         -0.47280283 -0.1891212  -0.2206413   0.1260808
+    0.0945605   0.2836817   1.13472685  0.88256528  0.15760097
+    0.1891211  -0.31520188 -0.34672208 -0.59888358 -0.66192396
+    0.37824226  0.06304038  0.8195249   0.75648456  0.0945605
+   -0.4097624  -0.47280285 -0.40976245 -0.44128264]]
+ [[ 0.         -0.43377715 -0.1530978  -0.0255163  -0.0255163
+    0.255163    0.3572282   0.66342387  1.07168459  0.48480974
+   -0.0765489  -0.0765489  -0.25516304 -0.33171189  0.0255163
+    0.0765489   0.0510326  -0.3061956  -0.05103261  0.84203794
+   -0.0510326  -0.35722823 -0.73997271 -0.33171189]]]
+```
+
+As well as series-to-series transformations, the transformations module also contains
+features which transform series into a feature vector. The following example shows how
+to use the [SummaryTransformer](transformations.series.summarize.SummaryTransformer)
+class to extract summary statistics from a time series.
+
+```{code-block} python
+>>> from aeon.transformations.series.summarize import SummaryTransformer
+>>> from aeon.datasets import load_airline
+>>> y = load_airline()  # load single series airline dataset
+>>> summary = SummaryTransformer()
+>>> summary.fit_transform(y)
+         mean         std    min    max    0.1   0.25    0.5   0.75    0.9
+0  280.298611  119.966317  104.0  622.0  135.3  180.0  265.5  360.5  453.2
+```
 
 ## Transformers for Collections of Time Series
 
-Coming soon!
+The `aeon.transformations.collections` module contains a range of transformers for
+collections of time series. By default these do not allow for single series input,
+treat 2D input types as a collection of univariate series, and have no restrictions on
+the datatype of output.
+
+Most time series classification and regression algorithms are based on some form of
+transformation into an alternative feature space. For example, we might extract some
+summary time series features from each series, and fit a traditional classifier or
+regressor on these features. For example, we could use
+[Catch22](transformations.collection.catch22.Catch22), which calculates 22 summary
+statistics for each series.
+
+```{code-block} python
+>>> from aeon.transformations.collection.catch22 import Catch22
+>>> import numpy as np
+>>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
+>>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
+>>> c22.fit_transform(X)[0]
+[ 4.99485761e-01  4.12452579e-01  3.00000000e+00  1.00000000e-01
+  0.00000000e+00  1.00000000e+00  2.00000000e+00  3.08148791e-34
+  1.96349541e+00  2.56152262e-01 -1.09028518e-02  9.08908735e-01
+  2.00000000e+00  1.00000000e+00  4.00000000e+00  1.88915916e+00
+  1.00000000e+00  5.95334611e-01  0.00000000e+00  0.00000000e+00
+  8.23045267e-03  0.00000000e+00]
+```
+
+There are also series-to-series transformations, such as the
+[PaddingTransformer](transformations.collection.pad.PaddingTransformer) to lengthen
+series and process unequal length collections.
+
+```{code-block} python
+>>> from aeon.transformations.collection.pad import PaddingTransformer
+>>> from aeon.utils._testing.collection import make_unequal_length_test_data
+>>> X, _ = make_unequal_length_test_data(  # unequal length data with 8-12 timepoints
+...     n_cases=2,
+...     min_series_length=8,
+...     max_series_length=12,
+...     random_state=0,
+... )
+>>> print(X[0])
+[[0.         1.6885315  1.71589124 1.69450348 1.24712739 0.76876341
+  0.59506921 0.11342595 0.54531259 0.95533023 1.62433746 0.95995434]]
+>>> print(X[1])
+[[2.         0.28414423 0.3485172  0.08087359 3.33047938 3.112627
+  3.48004859 3.91447337 3.19663426]]
+>>> pad = PaddingTransformer(pad_length=12, fill_value=0)  # pad to length 12
+>>> pad.fit_transform(X)
+[[[0.         1.6885315  1.71589124 1.69450348 1.24712739 0.76876341
+   0.59506921 0.11342595 0.54531259 0.95533023 1.62433746 0.95995434]]
+ [[2.         0.28414423 0.3485172  0.08087359 3.33047938 3.112627
+   3.48004859 3.91447337 3.19663426 0.         0.         0.        ]]]
+```
+
+If single series input is required, regular transformer functionality can be restored
+using the
+[CollectionToSeriesWrapper](transformations.collection.CollectionToSeriesWrapper) class.
+Like other `BaseTransformer` classes, this wrapper will treat 2D input as a single
+multivariate series and automatically convert output.
+
+```{code-block} python
+>>> from aeon.transformations.collection import CollectionToSeriesWrapper
+>>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.datasets import load_airline
+>>> y = load_airline()  # load single series airline dataset
+>>> c22 = Catch22(replace_nans=True)
+>>> wrapper = CollectionToSeriesWrapper(c22)  # wrap transformer to accept single series
+>>> wrapper.fit_transform(y)
+           0           1     2         3   ...        18        19        20    21
+0  155.800003  181.700012  49.0  0.541667  ...  0.282051  0.769231  0.166667  11.0
+
+[1 rows x 22 columns]
+```
 
 ## Pipelines for aeon estimators
 
@@ -380,14 +513,15 @@ TransformedTargetForecaster(steps=[BoxCoxTransformer(sp=12),
 ```
 
 For machine learning tasks such as classification, regression and clustering, the
-`scikit-learn` `make_pipeline` functionality can be used.
+`scikit-learn` `make_pipeline` functionality can be used if the transformer outputs
+a valid input type.
 
-The following example uses the [Catch22](transformations.panel.catch22.Catch22)
+The following example uses the [Catch22](transformations.collection.catch22.Catch22)
 feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
->>> from aeon.transformations.panel import Catch22
+>>> from aeon.transformations.collection import Catch22
 >>> from sklearn.ensemble import RandomForestClassifier
 >>> from sklearn.pipeline import make_pipeline
 >>> from sklearn.metrics import accuracy_score
