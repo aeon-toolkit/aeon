@@ -102,7 +102,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
         distance: Union[str, Callable] = "msm",
-        method: str = "alternate",
+        method: str = "pam",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
