@@ -220,12 +220,12 @@ class TimeSeriesKMedoids(BaseClusterer):
         old_inertia = np.inf
         n_instances = X.shape[0]
         medoids_idxs = self._init_algorithm(X)
-        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+        not_medoid_idxs = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
             distance_matrix[medoids_idxs], axis=0
         )[[0, 1]]
-        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=np.int), medoids_idxs)
+        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
             # Initialize best cost change and the associated swap couple.
@@ -378,7 +378,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _assign_clusters(
         self, X: np.ndarray, cluster_centre_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
-        X_indexes = np.arange(X.shape[0], dtype=np.int)
+        X_indexes = np.arange(X.shape[0], dtype=int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
@@ -449,7 +449,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             n_local_trials = 2 + int(np.log(self.n_clusters))
 
         center_id = self._random_state.randint(n_samples)
-        all_x_indexes = np.arange(n_samples, dtype=np.int)
+        all_x_indexes = np.arange(n_samples, dtype=int)
         centers_indexes[0] = center_id
 
         closest_dist_sq = (
@@ -485,11 +485,11 @@ class TimeSeriesKMedoids(BaseClusterer):
         X: np.ndarray,
     ):
         n_instances = X.shape[0]
-        X_index = np.arange(n_instances, dtype=np.int)
+        X_index = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, X_index, X_index)
 
-        medoid_idxs = np.zeros(self.n_clusters, dtype=np.int)
-        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+        medoid_idxs = np.zeros(self.n_clusters, dtype=int)
+        not_medoid_idxs = np.arange(n_instances, dtype=int)
 
         medoid_idxs[0] = np.argmin(np.sum(distance_matrix, axis=1))
         not_medoid_idxs = np.delete(not_medoid_idxs, medoid_idxs[0])
