@@ -81,6 +81,32 @@ class TimeSeriesKMedoids(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKMedoids
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")
+    >>> X_test, y_test = load_basic_motions(split="TEST")
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', n_clusters=3, random_state=1)
+    >>> km.predict(X_test)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+
+    # Example of alternate clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
+    ...                         random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
+                       random_state=1)
+    >>> km.predict(X_test)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+           1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+
     References
     ----------
     .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
