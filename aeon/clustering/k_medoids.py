@@ -16,6 +16,18 @@ from aeon.distances import get_distance_function, pairwise_distance
 class TimeSeriesKMedoids(BaseClusterer):
     """Time series K-medoids implementation.
 
+    K-medoids [1] is a clustering algorithm that aims to partition n observations into k
+    clusters in which each observation belongs to the cluster with the nearest
+    medoid/centroid. This results in a partitioning of the data space into Voronoi
+    cells. The problem is computationally difficult (NP-hard). The algorithm has a
+    time complexity of O(nk(n-k)^2) and space complexity of O(nk).
+
+    K-medoids for time series uses a dissimilairty measure to compute the distance
+    between time series. The dissimilarity measure can be any of the following:
+    ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw', 'wddtw',
+    'msm', 'twe']. The default is 'msm' (Matrix Profile based Similarity Measure) as
+    it was found to significantly outperform the other measures in [2].
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -24,7 +36,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-    distance: str or Callable, defaults = 'dtw'
+    distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
@@ -59,6 +71,14 @@ class TimeSeriesKMedoids(BaseClusterer):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    References
+    ----------
+    .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
+    Data Analysis based on the L1-Norm and Related Methods. 405-416.
+    .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
+    A Review and Evaluation of Elastic Distance Functions for Time Series Clustering.
+    10.48550/arXiv.2205.15181.
     """
 
     _tags = {
@@ -69,7 +89,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self,
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
-        distance: Union[str, Callable] = "dtw",
+        distance: Union[str, Callable] = "msm",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
