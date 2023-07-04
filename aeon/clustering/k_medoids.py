@@ -21,10 +21,14 @@ class TimeSeriesKMedoids(BaseClusterer):
     K-medoids [1] is a clustering algorithm that aims to partition n observations into k
     clusters in which each observation belongs to the cluster with the nearest
     medoid/centroid. This results in a partitioning of the data space into Voronoi
-    cells. The problem is computationally difficult (NP-hard). The algorithm has a
-    time complexity of O(nk(n-k)^2) and space complexity of O(nk).
+    cells. The problem is computationally difficult (NP-hard). There have been a number
+    of algorithms published to solve the problem. The most common is the PAM (Partition
+    Around Medoids)[3] algorithm and is the default method used in this implementation.
+    However, an adaptation of lloyds method classically used for k-means is also
+    available by specifying method='alternate'. Alternate is faster but less accurate
+    than PAM.
 
-    K-medoids for time series uses a dissimilairty measure to compute the distance
+    K-medoids for time series uses a dissimilarity measure to compute the distance
     between time series. The dissimilarity measure can be any of the following:
     ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw', 'wddtw',
     'msm', 'twe']. The default is 'msm' (Matrix Profile based Similarity Measure) as
@@ -42,7 +46,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
-    method: str, defaults = 'alternate'
+    method: str, defaults = 'pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
     n_init: int, defaults = 10
@@ -84,6 +88,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
     A Review and Evaluation of Elastic Distance Functions for Time Series Clustering.
     10.48550/arXiv.2205.15181.
+    .. [3] Kaufman, L. and Rousseeuw, P.J. (1990). Partitioning Around Medoids
+    (Program PAM). In Finding Groups in Data (eds L. Kaufman and P.J. Rousseeuw).
+    https://doi.org/10.1002/9780470316801.ch2
     """
 
     _tags = {
