@@ -54,11 +54,12 @@ class RandomIntervals(BaseCollectionTransformer):
         Transformers and functions used to extract features from selected intervals.
         If None, defaults to [mean, median, min, max, std, 25% quantile, 75% quantile]
     dilation : int, list or None, default=None
-        Add dilation to extracted intervals. No is added if None or 1. If list on ints,
-        a random dilation value is selected from the list for each interval.
+        Add dilation to extracted intervals. No dilation is added if None or 1. If a
+        list of ints, a random dilation value is selected from the list for each
+        interval.
 
         The dilation value is selected after the interval star and end points. If the
-        amount of values in the dilated interval is less than the min_interval_length,
+        number of values in the dilated interval is less than the min_interval_length,
         the amount of dilation applied is reduced.
     random_state : None, int or instance of RandomState, default=None
         Seed or RandomState object used for random number generation.
