@@ -133,9 +133,6 @@ class RandomIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -180,9 +177,6 @@ class RandomIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
 
         Returns
         -------
@@ -198,9 +192,6 @@ class RandomIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
 
         Returns
         -------
@@ -378,9 +369,6 @@ class SupervisedIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -426,9 +414,6 @@ class SupervisedIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
 
         Returns
         -------
@@ -444,9 +429,6 @@ class SupervisedIntervalClassifier(BaseClassifier):
         ----------
         X : 3D np.array (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
 
         Returns
         -------
