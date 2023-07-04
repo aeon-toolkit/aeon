@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Interval Pipeline Classifiers.
 
 Pipeline classifiers which extract interval features then build a base estimator.
