@@ -107,7 +107,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     def _fit_one_init(self, X: np.ndarray, max_neighbours: int):
         j = 0
-        X_indexes = np.arange(X.shape[0], dtype=np.int)
+        X_indexes = np.arange(X.shape[0], dtype=int)
         best_medoids = self._init_algorithm(X)
         best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
         best_cost = (
