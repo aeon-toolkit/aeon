@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.datatypes._collection._convert import _concat_nested_arrays, _get_time_index
+from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_window_length
 

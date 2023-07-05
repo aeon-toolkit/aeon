@@ -6,12 +6,12 @@ import pytest
 
 from aeon.datasets import make_example_long_table, make_example_multi_index_dataframe
 from aeon.datatypes._adapter import convert_from_multiindex_to_listdataset
-from aeon.datatypes._collection._check import (
+from aeon.datatypes._panel._check import (
     are_columns_nested,
     check_nplist_panel,
     is_nested_dataframe,
 )
-from aeon.datatypes._collection._convert import (
+from aeon.datatypes._panel._convert import (
     from_2d_array_to_nested,
     from_3d_numpy_to_2d_array,
     from_3d_numpy_to_multi_index,

@@ -23,15 +23,15 @@ __all__ = [
 ]
 
 from aeon.datatypes._alignment import example_dict_Alignment
-from aeon.datatypes._collection import (
-    example_dict_lossy_Panel,
-    example_dict_metadata_Panel,
-    example_dict_Panel,
-)
 from aeon.datatypes._hierarchical import (
     example_dict_Hierarchical,
     example_dict_lossy_Hierarchical,
     example_dict_metadata_Hierarchical,
+)
+from aeon.datatypes._panel import (
+    example_dict_lossy_Panel,
+    example_dict_metadata_Panel,
+    example_dict_Panel,
 )
 from aeon.datatypes._proba import (
     example_dict_lossy_Proba,

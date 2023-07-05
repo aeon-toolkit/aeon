@@ -29,8 +29,8 @@ from typing import List, Union
 import numpy as np
 
 from aeon.datatypes._alignment import check_dict_Alignment
-from aeon.datatypes._collection import check_dict_Panel
 from aeon.datatypes._hierarchical import check_dict_Hierarchical
+from aeon.datatypes._panel import check_dict_Panel
 from aeon.datatypes._proba import check_dict_Proba
 from aeon.datatypes._registry import AMBIGUOUS_MTYPES, SCITYPE_LIST, mtype_to_scitype
 from aeon.datatypes._series import check_dict_Series

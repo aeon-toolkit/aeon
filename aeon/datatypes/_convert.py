@@ -71,8 +71,8 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes._check import mtype as infer_mtype
-from aeon.datatypes._collection import convert_dict_Panel
 from aeon.datatypes._hierarchical import convert_dict_Hierarchical
+from aeon.datatypes._panel import convert_dict_Panel
 from aeon.datatypes._proba import convert_dict_Proba
 from aeon.datatypes._registry import AMBIGUOUS_MTYPES, mtype_to_scitype
 from aeon.datatypes._series import convert_dict_Series
