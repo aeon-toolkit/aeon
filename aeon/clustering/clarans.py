@@ -14,6 +14,13 @@ from aeon.clustering.k_medoids import TimeSeriesKMedoids
 class TimeSeriesCLARANS(TimeSeriesKMedoids):
     """Time series CLARANS implementation.
 
+    CLARA based raNdomised Search (CLARANS) [1] adapts the swap operation of PAM to
+    use a more greedy approach. This is done by only performing the first swap which
+    results in a reduction in total deviation before continuing evaluation. It limits
+    the number of attempts known as max neighbours to randomly select and check if
+    total deviation is reduced. This random selection gives CLARANS an advantage when
+    handling large datasets by avoiding local minima.
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -22,7 +29,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-    distance: str or Callable, defaults = 'dtw'
+    distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
@@ -54,13 +61,34 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesCLARANS
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")
+    >>> X_test, y_test = load_basic_motions(split="TEST")
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesCLARANS(n_clusters=3, distance="dtw", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesCLARANS(distance='dtw', n_clusters=3, random_state=1)
+    >>> km.predict(X_test)
+    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    References
+    ----------
+    .. [1] R. T. Ng and Jiawei Han, "CLARANS: a method for clustering objects for
+    spatial data mining," in IEEE Transactions on Knowledge and Data Engineering,
+    vol. 14, no. 5, pp. 1003-1016, Sept.-Oct. 2002, doi: 10.1109/TKDE.2002.1033770.
     """
 
     def __init__(
         self,
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
-        distance: Union[str, Callable] = "dtw",
+        distance: Union[str, Callable] = "msm",
         max_neighbours: int = None,
         n_init: int = 10,
         verbose: bool = False,
