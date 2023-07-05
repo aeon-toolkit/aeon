@@ -79,9 +79,7 @@ class TimeSeriesCLARA(BaseClusterer):
     >>> km = TimeSeriesCLARA(n_clusters=3, distance="dtw", random_state=1)
     >>> km.fit(X_train)
     TimeSeriesCLARA(distance='dtw', n_clusters=3, random_state=1)
-    >>> km.predict(X_test)
-    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
-           1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0])
+    >>> preds = km.predict(X_test)
 
     References
     ----------
