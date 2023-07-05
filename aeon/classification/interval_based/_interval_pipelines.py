@@ -76,7 +76,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
     See Also
     --------
-    RandomIntervals RandomIntervalRegressor SupervisedIntervalClassifier
+    RandomIntervals
 
     Examples
     --------
@@ -310,7 +310,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
     See Also
     --------
-    SupervisedIntervals RandomIntervalClassifier
+    SupervisedIntervals
 
     Examples
     --------

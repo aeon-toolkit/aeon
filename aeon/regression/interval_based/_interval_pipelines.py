@@ -71,7 +71,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
     See Also
     --------
-    RandomIntervals RandomIntervalClassifier
+    RandomIntervals
 
     Examples
     --------
