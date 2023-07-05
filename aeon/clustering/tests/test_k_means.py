@@ -179,3 +179,19 @@ def test_kmeans_dba():
 
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
+
+def test_kmeans_bug():
+    import numpy as np
+    from aeon.clustering.k_means import TimeSeriesKMeans
+    X_train = np.random.random(size=(100, 1, 100))
+
+    k_means = TimeSeriesKMeans(
+        n_clusters=13,  # Number of desired centers
+        init_algorithm="forgy",  # Center initialisation technique
+        max_iter=10,  # Maximum number of iterations for refinement on training set
+        metric="dtw",  # Distance metric to use
+        averaging_method="dba",  # Averaging technique to use
+        random_state=1,
+    )
+
+    k_means.fit(X_train)

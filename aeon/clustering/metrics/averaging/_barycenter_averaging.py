@@ -110,7 +110,6 @@ def _ba_update(
 ) -> Tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
-
     alignment = np.zeros((X_dims, X_timepoints))
     cost = 0.0
     for i in range(X_size):
@@ -134,7 +133,9 @@ def _ba_update(
                 curr_ts, center, window, independent, c
             )
         else:
-            raise ValueError(f"Metric must be a known string, got {metric}")
+            # When numba version > 0.57 add more informative error with what metric
+            # was passed.
+            raise ValueError("Metric parameter invalid")
         for j, k in curr_alignment:
             alignment[:, k] += curr_ts[:, j]
             sum[k] += 1
