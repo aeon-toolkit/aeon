@@ -16,6 +16,10 @@ from aeon.distances import pairwise_distance
 class TimeSeriesCLARA(BaseClusterer):
     """Time series CLARA implementation.
 
+    Clustering LARge Applications (CLARA) [1] is a clustering algorithm that
+    samples the dataset, applies PAM [2] to the sample, and then uses the
+    medoids from the sample to seed PAM on the entire dataset.
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -24,7 +28,7 @@ class TimeSeriesCLARA(BaseClusterer):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-    distance: str or Callable, defaults = 'dtw'
+    distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
@@ -63,6 +67,28 @@ class TimeSeriesCLARA(BaseClusterer):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesCLARA
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")
+    >>> X_test, y_test = load_basic_motions(split="TEST")
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesCLARA(n_clusters=3, distance="dtw", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesCLARA(distance='dtw', n_clusters=3, random_state=1)
+    >>> km.predict(X_test)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+           1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0])
+
+    References
+    ----------
+    .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
+    10.1016/B978-0-444-87877-9.50039-X.
+    .. [2] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
+    10.1016/B978-0-444-87877-9.50039-X.
     """
 
     _tags = {
@@ -73,7 +99,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self,
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
-        distance: Union[str, Callable] = "dtw",
+        distance: Union[str, Callable] = "msm",
         n_samples: int = None,
         n_sampling_iters: int = 10,
         n_init: int = 1,
