@@ -94,8 +94,8 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> from aeon.clustering import TimeSeriesKMedoids
     >>> from aeon.datasets import load_basic_motions
     >>> # Load data
-    >>> X_train, y_train = load_basic_motions(split="TRAIN")
-    >>> X_test, y_test = load_basic_motions(split="TEST")
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of PAM clustering
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", random_state=1)
     >>> km.fit(X_train)
