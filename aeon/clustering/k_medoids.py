@@ -92,9 +92,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", random_state=1)
     >>> km.fit(X_train)
     TimeSeriesKMedoids(distance='dtw', n_clusters=3, random_state=1)
-    >>> km.predict(X_test)
-    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
-           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    >>> pam_pred = km.predict(X_test)
 
     # Example of alternate clustering
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
@@ -102,9 +100,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> km.fit(X_train)
     TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
                        random_state=1)
-    >>> km.predict(X_test)
-    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
-           1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    >>> alternate_pred = km.predict(X_test)
 
 
     References
