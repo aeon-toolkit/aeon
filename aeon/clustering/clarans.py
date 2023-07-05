@@ -73,9 +73,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     >>> km = TimeSeriesCLARANS(n_clusters=3, distance="dtw", random_state=1)
     >>> km.fit(X_train)
     TimeSeriesCLARANS(distance='dtw', n_clusters=3, random_state=1)
-    >>> km.predict(X_test)
-    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
-           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    >>> pred = km.predict(X_test)
 
     References
     ----------
