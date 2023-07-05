@@ -24,7 +24,7 @@ import pandas as pd
 
 from aeon.datasets._data_generators import _convert_tsf_to_hierarchical
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
-from aeon.datatypes._panel._convert import from_long_to_nested
+from aeon.datatypes._collection._convert import from_long_to_nested
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)

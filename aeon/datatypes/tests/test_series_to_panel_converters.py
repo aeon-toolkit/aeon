@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes._panel._convert import from_3d_numpy_to_multi_index
+from aeon.datatypes._collection._convert import from_3d_numpy_to_multi_index
 from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,

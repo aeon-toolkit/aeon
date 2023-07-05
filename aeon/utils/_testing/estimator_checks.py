@@ -17,7 +17,7 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
-from aeon.datatypes._panel._check import is_nested_dataframe
+from aeon.datatypes._collection._check import is_nested_dataframe
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.tests._config import VALID_ESTIMATOR_TYPES

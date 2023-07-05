@@ -44,7 +44,7 @@ __all__ = ["check_dict"]
 
 import numpy as np
 
-from aeon.datatypes._panel._check import check_pdmultiindex_panel
+from aeon.datatypes._collection._check import check_pdmultiindex_panel
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

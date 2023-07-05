@@ -9,7 +9,7 @@ import pytest
 
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes._panel._convert import (
+from aeon.datatypes._collection._convert import (
     from_nested_to_dflist_adp,
     from_nested_to_multi_index,
 )

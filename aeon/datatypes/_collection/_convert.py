@@ -34,8 +34,8 @@ __all__ = [
     "convert_dict",
 ]
 
+from aeon.datatypes._collection._registry import MTYPE_LIST_PANEL
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._panel._registry import MTYPE_LIST_PANEL
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # dictionary indexed by triples of types

@@ -12,7 +12,7 @@ import pytest
 from pandas.testing import assert_series_equal
 
 from aeon.datatypes import check_is_mtype, convert
-from aeon.datatypes._panel._convert import from_nested_to_multi_index
+from aeon.datatypes._collection._convert import from_nested_to_multi_index
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
 from aeon.utils._testing.collection import make_3d_test_data, make_nested_dataframe_data

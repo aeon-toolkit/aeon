@@ -43,15 +43,15 @@ from aeon.datatypes._alignment._registry import (
     MTYPE_LIST_ALIGNMENT,
     MTYPE_REGISTER_ALIGNMENT,
 )
+from aeon.datatypes._collection._registry import (
+    MTYPE_LIST_PANEL,
+    MTYPE_REGISTER_PANEL,
+    MTYPE_SOFT_DEPS_PANEL,
+)
 from aeon.datatypes._hierarchical._registry import (
     MTYPE_LIST_HIERARCHICAL,
     MTYPE_REGISTER_HIERARCHICAL,
     MTYPE_SOFT_DEPS_HIERARCHICAL,
-)
-from aeon.datatypes._panel._registry import (
-    MTYPE_LIST_PANEL,
-    MTYPE_REGISTER_PANEL,
-    MTYPE_SOFT_DEPS_PANEL,
 )
 from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA, MTYPE_REGISTER_PROBA
 from aeon.datatypes._series._registry import (
