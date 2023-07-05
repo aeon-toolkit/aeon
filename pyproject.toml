@@ -54,7 +54,7 @@ all_extras = [
     "cloudpickle",
     "dask",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
-    "filterpy>=1.4.5",
+    "filterpy>=1.4.5,<1.5.0",
     "h5py",
     "hmmlearn>=0.2.7",
     "gluonts>=0.12.4",
@@ -70,9 +70,9 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow-probability",
-    "tensorflow",
-    "tsfresh>=0.20.0",
+    "tensorflow-probability<0.21.0",
+    "tensorflow<2.13.0",
+    "tsfresh>=0.20.0,<0.21.0",
     "tslearn>=0.5.2,<0.6.0",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
@@ -119,6 +119,7 @@ docs = [
 dl = [
     "tensorflow",
     "tensorflow-probability",
+    "keras-self-attention",
 ]
 
 [project.urls]
