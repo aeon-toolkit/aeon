@@ -309,8 +309,8 @@ class BaseForecaster(BaseEstimator):
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                on usage, see forecasting examples/forecasting
+                on specification of formats, examples/datasets
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if self.get_tag("requires-fh-in-fit"), must be passed, not optional
@@ -448,8 +448,8 @@ class BaseForecaster(BaseEstimator):
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                on usage, see  examples/forecasting
+                on specification of formats, examples/datasets
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
@@ -824,8 +824,7 @@ class BaseForecaster(BaseEstimator):
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                See  examples/forecasting, or examples/datasets,
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
@@ -904,9 +903,7 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+            For further details see  examples/forecasting, or examples/datasets
         cv : temporal cross-validation generator inheriting from BaseSplitter, optional
             for example, SlidingWindowSplitter or ExpandingWindowSplitter
             default = ExpandingWindowSplitter with `initial_window=1` and defaults
@@ -1010,9 +1007,7 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+            For further details see  examples/forecasting, or examples/datasets
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
@@ -1348,8 +1343,7 @@ class BaseForecaster(BaseEstimator):
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                " See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb,"
+                "For further details see  examples/forecasting, or examples/datasets"
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
@@ -1395,8 +1389,7 @@ class BaseForecaster(BaseEstimator):
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                " See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb"
+                "For further details see  examples/forecasting, or examples/datasets."
                 "If you think X is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(X, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for X. "
@@ -2254,9 +2247,7 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+            For further details see  examples/forecasting, or examples/datasets
         cv : temporal cross-validation generator, optional (default=None)
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting
