@@ -18,6 +18,22 @@ from aeon.distances import get_distance_function, pairwise_distance
 class TimeSeriesKMedoids(BaseClusterer):
     """Time series K-medoids implementation.
 
+    K-medoids [1] is a clustering algorithm that aims to partition n observations into k
+    clusters in which each observation belongs to the cluster with the nearest
+    medoid/centroid. This results in a partitioning of the data space into Voronoi
+    cells. The problem is computationally difficult (NP-hard). There have been a number
+    of algorithms published to solve the problem. The most common is the PAM (Partition
+    Around Medoids)[3] algorithm and is the default method used in this implementation.
+    However, an adaptation of lloyds method classically used for k-means is also
+    available by specifying method='alternate'. Alternate is faster but less accurate
+    than PAM.
+
+    K-medoids for time series uses a dissimilarity measure to compute the distance
+    between time series. The dissimilarity measure can be any of the following:
+    ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw', 'wddtw',
+    'msm', 'twe']. The default is 'msm' (Matrix Profile based Similarity Measure) as
+    it was found to significantly outperform the other measures in [2].
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -26,11 +42,11 @@ class TimeSeriesKMedoids(BaseClusterer):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-    distance: str or Callable, defaults = 'dtw'
+    distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
-    method: str, defaults = 'alternate'
+    method: str, defaults = 'pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
     n_init: int, defaults = 10
@@ -62,6 +78,43 @@ class TimeSeriesKMedoids(BaseClusterer):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKMedoids
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")
+    >>> X_test, y_test = load_basic_motions(split="TEST")
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', n_clusters=3, random_state=1)
+    >>> km.predict(X_test)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+
+    # Example of alternate clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
+    ...                         random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
+                       random_state=1)
+    >>> km.predict(X_test)
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1,
+           1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+
+    References
+    ----------
+    .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
+    Data Analysis based on the L1-Norm and Related Methods. 405-416.
+    .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
+    A Review and Evaluation of Elastic Distance Functions for Time Series Clustering.
+    10.48550/arXiv.2205.15181.
+    .. [3] Kaufman, L. and Rousseeuw, P.J. (1990). Partitioning Around Medoids
+    (Program PAM). In Finding Groups in Data (eds L. Kaufman and P.J. Rousseeuw).
+    https://doi.org/10.1002/9780470316801.ch2
     """
 
     _tags = {
@@ -72,8 +125,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         self,
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
-        distance: Union[str, Callable] = "dtw",
-        method: str = "alternate",
+        distance: Union[str, Callable] = "msm",
+        method: str = "pam",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
@@ -194,12 +247,12 @@ class TimeSeriesKMedoids(BaseClusterer):
         old_inertia = np.inf
         n_instances = X.shape[0]
         medoids_idxs = self._init_algorithm(X)
-        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+        not_medoid_idxs = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
             distance_matrix[medoids_idxs], axis=0
         )[[0, 1]]
-        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=np.int), medoids_idxs)
+        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
             # Initialize best cost change and the associated swap couple.
@@ -352,7 +405,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _assign_clusters(
         self, X: np.ndarray, cluster_centre_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
-        X_indexes = np.arange(X.shape[0], dtype=np.int)
+        X_indexes = np.arange(X.shape[0], dtype=int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
@@ -423,7 +476,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             n_local_trials = 2 + int(np.log(self.n_clusters))
 
         center_id = self._random_state.randint(n_samples)
-        all_x_indexes = np.arange(n_samples, dtype=np.int)
+        all_x_indexes = np.arange(n_samples, dtype=int)
         centers_indexes[0] = center_id
 
         closest_dist_sq = (
@@ -459,11 +512,11 @@ class TimeSeriesKMedoids(BaseClusterer):
         X: np.ndarray,
     ):
         n_instances = X.shape[0]
-        X_index = np.arange(n_instances, dtype=np.int)
+        X_index = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, X_index, X_index)
 
-        medoid_idxs = np.zeros(self.n_clusters, dtype=np.int)
-        not_medoid_idxs = np.arange(n_instances, dtype=np.int)
+        medoid_idxs = np.zeros(self.n_clusters, dtype=int)
+        not_medoid_idxs = np.arange(n_instances, dtype=int)
 
         medoid_idxs[0] = np.argmin(np.sum(distance_matrix, axis=1))
         not_medoid_idxs = np.delete(not_medoid_idxs, medoid_idxs[0])
