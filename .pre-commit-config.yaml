@@ -60,5 +60,3 @@ repos:
       - id: pydocstyle
         args: ["--config=setup.cfg"]
         exclude: "tests/__init__.py"
-
-exclude: "build_tools/.*"

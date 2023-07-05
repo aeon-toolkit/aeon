@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """General numba utilities."""
 
-__author__ = ["MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "baraline"]
 __all__ = [
     "unique_count",
     "first_order_differences",
@@ -11,6 +11,7 @@ __all__ = [
     "z_normalise_series",
     "z_normalise_series_2d",
     "z_normalise_series_3d",
+    "set_numba_random_seed",
     "choice_log",
     "get_subsequence",
     "get_subsequence_with_mean_std",
@@ -261,9 +262,25 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(cache=True, fastmath=True)
-def choice_log(n_choice, n_sample):
+@njit()
+def set_numba_random_seed(seed: int) -> None:
+    """Set the random seed for numba.
+
+    Parameters
+    ----------
+    seed : int
+        The seed to set.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+
+
+@njit(fastmath=True, cache=True)
+def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
+
+    To seed the function the `np.random.seed` must be set in a numba function prior to
+    calling this i.e. using `set_numba_random_seed`.
 
     Parameters
     ----------
@@ -276,11 +293,10 @@ def choice_log(n_choice, n_sample):
     Returns
     -------
     array
-        The randomly choosen samples.
-
+        The randomly chosen samples.
     """
     if n_choice > 1:
-        # Define log probas for each choices
+        # Define log probas for each choice
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
@@ -292,8 +308,10 @@ def choice_log(n_choice, n_sample):
         return np.zeros(n_sample, dtype=np.int32)
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> np.ndarray:
     """Get a subsequence from a time series given a starting index.
 
     Parameters
@@ -322,8 +340,10 @@ def get_subsequence(X, i_start, length, dilation):
     return values
 
 
-@njit(cache=True, fastmath=True)
-def get_subsequence_with_mean_std(X, i_start, length, dilation):
+@njit(fastmath=True, cache=True)
+def get_subsequence_with_mean_std(
+    X: np.ndarray, i_start: int, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get a subsequence, its mean and std from a time series given a starting index.
 
     Parameters
@@ -370,8 +390,10 @@ def get_subsequence_with_mean_std(X, i_start, length, dilation):
     return values, means, stds
 
 
-@njit(cache=True, fastmath=True)
-def sliding_mean_std_one_series(X, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_mean_std_one_series(
+    X: np.ndarray, length: int, dilation: int
+) -> Tuple[np.ndarray, np.ndarray]:
     """Return the mean and standard deviation for all subsequence (l,d) in X.
 
     Parameters
@@ -379,9 +401,9 @@ def sliding_mean_std_one_series(X, length, dilation):
     X : array, shape (n_channels, n_timestamps)
         An input time series
     length : int
-        Length of the shapelet
+        Length of the subsequence
     dilation : int
-        Dilation of the shapelet
+        Dilation of the subsequence
 
     Returns
     -------
@@ -393,53 +415,61 @@ def sliding_mean_std_one_series(X, length, dilation):
     """
     n_channels, n_timestamps = X.shape
     n_subs = n_timestamps - (length - 1) * dilation
+    if n_subs <= 0:
+        raise ValueError(
+            "Invalid input parameter for sliding mean and std computations"
+        )
     mean = np.zeros((n_channels, n_subs))
     std = np.zeros((n_channels, n_subs))
 
-    for i_channel in prange(n_channels):
-        mod_dil = n_subs % dilation
-        for i_mod_dilation in prange(dilation):
-            _idx = i_mod_dilation
-            _sum = 0
-            _sum2 = 0
-            # Init First sums
-            for _ in prange(length):
-                _v = X[i_channel, _idx]
-                _sum += _v
-                _sum2 += _v * _v
-                _idx += dilation
+    for i_mod_dil in prange(dilation):
+        # Array mainting indexes of a dilated subsequence
+        _idx_sub = np.zeros(length, dtype=np.int32)
+        for i_length in prange(length):
+            _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
 
-            mean[i_channel, i_mod_dilation] = _sum / length
-            _s = (_sum2 / length) - (mean[i_channel, i_mod_dilation] ** 2)
-            if _s > 0:
-                std[i_channel, i_mod_dilation] = _s**0.5
-            # Number of remaining subsequence for each starting i_mod_dilation index
+        _sum = np.zeros(n_channels)
+        _sum2 = np.zeros(n_channels)
 
-            n_subs_mod_d = n_subs // dilation
-            if mod_dil > 0:
-                n_subs_mod_d += 1
-                mod_dil -= 1
-            # Iteratively update sums
-            start_idx_sub = i_mod_dilation + dilation
-            for _ in prange(1, n_subs_mod_d):
-                # New value, not present in the previous subsequence
-                _v_new = X[i_channel, start_idx_sub + ((length - 1) * dilation)]
-                # Index of the old value, not present in the current subsequence
-                _v_old = X[i_channel, start_idx_sub - dilation]
+        # Initialize first subsequence if it is valid
+        if np.all(_idx_sub < n_timestamps):
+            for i_length in prange(length):
+                _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
+                for i_channel in prange(n_channels):
+                    _v = X[i_channel, _idx_sub[i_length]]
+                    _sum[i_channel] += _v
+                    _sum2[i_channel] += _v * _v
 
-                _sum += _v_new - _v_old
-                _sum2 += (_v_new * _v_new) - (_v_old * _v_old)
-
-                mean[i_channel, start_idx_sub] = _sum / length
-                _s = (_sum2 / length) - (mean[i_channel, start_idx_sub] ** 2)
+            # Compute means and stds
+            for i_channel in prange(n_channels):
+                mean[i_channel, i_mod_dil] = _sum[i_channel] / length
+                _s = (_sum2[i_channel] / length) - (mean[i_channel, i_mod_dil] ** 2)
                 if _s > 0:
-                    std[i_channel, start_idx_sub] = _s**0.5
-                start_idx_sub += dilation
+                    std[i_channel, i_mod_dil] = _s**0.5
+
+        _idx_sub += dilation
+        # As long as subsequences further subsequences are valid
+        while np.all(_idx_sub < n_timestamps):
+            # Update sums and mean stds arrays
+            for i_channel in prange(n_channels):
+                _v_new = X[i_channel, _idx_sub[-1]]
+                _v_old = X[i_channel, _idx_sub[0] - dilation]
+                _sum[i_channel] += _v_new - _v_old
+                _sum2[i_channel] += (_v_new * _v_new) - (_v_old * _v_old)
+
+                mean[i_channel, _idx_sub[0]] = _sum[i_channel] / length
+                _s = (_sum2[i_channel] / length) - (mean[i_channel, _idx_sub[0]] ** 2)
+                if _s > 0:
+                    std[i_channel, _idx_sub[0]] = _s**0.5
+            _idx_sub += dilation
+
     return mean, std
 
 
-@njit(cache=True, fastmath=True)
-def sliding_dot_product(X, values, length, dilation):
+@njit(fastmath=True, cache=True)
+def sliding_dot_product(
+    X: np.ndarray, values: np.ndarray, length: int, dilation: int
+) -> np.ndarray:
     """Compute a sliding dot product between a time series and a shapelet.
 
     Parameters
@@ -474,7 +504,7 @@ def sliding_dot_product(X, values, length, dilation):
 
 
 @njit(cache=True)
-def combinations_1d(x, y):
+def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Return the unique pairs of the 2D array made by concatenating x and y.
 
     Parameters

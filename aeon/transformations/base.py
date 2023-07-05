@@ -120,8 +120,7 @@ class BaseTransformer(BaseEstimator):
         # can the transformer handle unequal length time series (if passed Panel)?
         "capability:unequal_length:removes": False,
         # is transform result always guaranteed to be equal length (and series)?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        # todo: rename to capability:missing_values
+        "capability:missing_values": False,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
         "python_version": None,  # PEP 440 python version specifier to limit versions
@@ -367,8 +366,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -418,8 +415,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -467,11 +462,9 @@ class BaseTransformer(BaseEstimator):
 
         # convert to output mtype
         if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
+            Xt = self._convert_output(Xt, metadata=metadata)
 
-        return X_out
+        return Xt
 
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it.
@@ -604,12 +597,10 @@ class BaseTransformer(BaseEstimator):
             Xt = self._vectorize("inverse_transform", X=X_inner, y=y_inner)
 
         # convert to output mtype
-        if self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata, inverse=True)
-        else:
-            X_out = Xt
+        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+            Xt = self._convert_output(Xt, metadata=metadata, inverse=True)
 
-        return X_out
+        return Xt
 
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
@@ -844,8 +835,7 @@ class BaseTransformer(BaseEstimator):
             f"for instance a pandas.DataFrame with aeon compatible time indices, "
             f"or with MultiIndex and last(-1) level an aeon compatible time index. "
             f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
-            # f"See the transformers tutorial examples/05_transformers.ipynb, or"
-            f" See the data format tutorial examples/AA_datatypes_and_datasets.ipynb. "
+            # f"See the transformers tutorial examples/05_transformers.ipynb."
             f"If you think the data is already in an aeon supported input format, "
             f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
             f"where mtype is the string of the type specification you want. "

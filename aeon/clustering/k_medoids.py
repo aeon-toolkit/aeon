@@ -42,13 +42,23 @@ class TimeSeriesKMedoids(BaseClusterer):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
+        Random is the default as it is very fast and it was found in [2] to be
+        perform about as well as the other methods.
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but more accurate than
+        random. It does this by choosing centroids that are distant from one another.
+        First is the fastest method and simply chooses the first k time series as
+        centroids.
     distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
+        If a callable is passed it must be a function that takes two 2d numpy arrays as
+        input and returns a float.
     method: str, defaults = 'pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
+        Alternate applies lloyds method to k-medoids and is faster but less accurate
+        than PAM.
     n_init: int, defaults = 10
         Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -111,6 +121,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     .. [3] Kaufman, L. and Rousseeuw, P.J. (1990). Partitioning Around Medoids
     (Program PAM). In Finding Groups in Data (eds L. Kaufman and P.J. Rousseeuw).
     https://doi.org/10.1002/9780470316801.ch2
+    .. [4] Arthur, David & Vassilvitskii, Sergei. (2007). K-Means++: The Advantages of
+    Careful Seeding. Proc. of the Annu. ACM-SIAM Symp. on Discrete Algorithms.
+    8. 1027-1035. 10.1145/1283383.1283494.
     """
 
     _tags = {

@@ -23,7 +23,7 @@ class _StatsModelsAdapter(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "python_dependencies": "statsmodels",
     }
 
