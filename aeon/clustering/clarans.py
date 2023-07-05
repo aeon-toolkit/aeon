@@ -29,10 +29,18 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     init_algorithm: str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
+        Random is the default as it is very fast and it was found in [2] to be
+        perform about as well as the other methods.
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but more accurate than
+        random. It does this by choosing centroids that are distant from one another.
+        First is the fastest method and simply chooses the first k time series as
+        centroids.
     distance: str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
+        If a callable is passed it must be a function that takes two 2d numpy arrays as
+        input and returns a float.
     max_neighbours: int, default = None,
         The maximum number of neighbouring solutions that the algorithm will explore
         for each set of medoids. A neighbouring solution is obtained by replacing
