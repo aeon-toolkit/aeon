@@ -67,7 +67,7 @@ class ResNetNetwork(BaseDeepNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "keras-self-attention"]}
+    _tags = {"python_dependencies": ["tensorflow"]}
 
     def __init__(
         self,

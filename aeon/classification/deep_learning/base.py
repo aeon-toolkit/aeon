@@ -48,8 +48,10 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     _tags = {
         "X_inner_mtype": "numpy3D",
         "capability:multivariate": True,
-        "python_dependencies": "tensorflow",
         "algorithm_type": "deeplearning",
+        "non-deterministic": True,
+        "cant-pickle": True,
+        "python_dependencies": "tensorflow",
     }
 
     def __init__(

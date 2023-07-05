@@ -21,7 +21,7 @@ class _TbatsAdapter(BaseForecaster):
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         # "capability:predict_quantiles": True,
         "python_dependencies": "tbats",
     }

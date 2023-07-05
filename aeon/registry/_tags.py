@@ -70,10 +70,28 @@ ESTIMATOR_TAG_REGISTER = [
         "does transform return same time index as input?",
     ),
     (
-        "handles-missing-data",
+        "non-deterministic",
         "estimator",
         "bool",
-        "can the estimator handle missing data (NA, np.nan) in inputs?",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
+    ),
+    (
+        "non-deterministic",
+        "estimator",
+        "bool",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
     ),
     (
         "skip-inverse-transform",
@@ -211,17 +229,9 @@ ESTIMATOR_TAG_REGISTER = [
         "bool",
         "can the estimator handle unequal length time series?",
     ),
-    # "capability:missing_values" is same as "handles-missing-data" tag.
-    # They are kept distinct intentionally for easier TSC refactoring.
-    # Will be merged after refactor completion.
     (
         "capability:missing_values",
-        [
-            "classifier",
-            "clusterer",
-            "early_classifier",
-            "regressor",
-        ],
+        "estimator",
         "bool",
         "can the estimator handle missing data (NA, np.nan) in inputs?",
     ),
@@ -239,21 +249,21 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "capability:train_estimate",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "can the classifier estimate its performance on the training set?",
     ),
     (
         "capability:contractable",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "contract time setting, does the estimator support limiting max fit time?",
     ),
     (
         "capability:multithreading",
-        ["classifier", "early_classifier"],
+        "estimator",
         "bool",
-        "can the classifier set n_jobs to use multiple threads?",
+        "can the estimator set n_jobs to use multiple threads?",
     ),
     (
         "algorithm_type",
