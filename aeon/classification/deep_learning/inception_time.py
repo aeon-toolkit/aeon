@@ -22,7 +22,7 @@ _check_dl_dependencies(severity="warning")
 class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifiers, as described in [1].
+    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1].
 
     Parameters
     ----------
@@ -223,12 +223,12 @@ class InceptionTimeClassifier(BaseClassifier):
         super(InceptionTimeClassifier, self).__init__()
 
     def _fit(self, X, y):
-        """Fit each of the Individual Inception models.
+        """Fit the ensemble of IndividualInceptionClassifier models.
 
         Arguments:
         ----------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -282,7 +282,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
@@ -304,7 +304,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Arguments:
         ---------
 
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
@@ -598,7 +598,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, series_length)
+        X : array-like of shape = (n_instances, n_channels, n_timepoints)
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
         y : array-like, shape = (n_instances)

@@ -8,13 +8,10 @@ rescaling methods along with generic scaling methods along feature
 dimensions of 3D tensors.
 Code for `rescale_path` and `rescale_signature` written by Patrick Kidger.
 """
+
 import math
 
 import numpy as np
-
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("esig", severity="warning")
 
 
 def _rescale_path(path, depth):

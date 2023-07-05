@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Functions to load and write datasets."""
 
 __all__ = [
-    # Load functions
+    # Load/download functions
     "load_from_tsfile",
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_from_tsc",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
+    "download_all_regression",
     # Write functions
     "write_to_tsfile",
     "write_results_to_uea_format",
     # Data generators
+    "make_example_3d_numpy",
+    "make_example_2d_numpy",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
     # Single problem loaders
@@ -45,19 +51,25 @@ __all__ = [
 ]
 
 from aeon.datasets._data_generators import (
+    make_example_2d_numpy,
+    make_example_3d_numpy,
     make_example_long_table,
     make_example_multi_index_dataframe,
 )
 from aeon.datasets._data_loaders import (
+    download_all_regression,
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
-    load_from_tsc,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
+    load_regression,
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (
     load_from_long_to_dataframe,
+    load_from_tsfile_to_dataframe,
     load_tsf_to_dataframe,
 )
 from aeon.datasets._single_problem_loaders import (

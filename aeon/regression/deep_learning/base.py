@@ -40,6 +40,9 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     _tags = {
         "X_inner_mtype": "numpy3D",
         "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+        "non-deterministic": True,
+        "cant-pickle": True,
         "python_dependencies": "tensorflow",
     }
 
