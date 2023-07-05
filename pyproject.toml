@@ -43,10 +43,10 @@ dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55",
     "numpy>=1.21.0,<1.25",
+    "packaging>=20.0",
     "pandas>=1.5.3,<2.1.0",
     "scikit-learn>=1.0.0,<1.3.0",
     "scipy<2.0.0,>=1.2.0",
-    "packaging>=20.0",
 ]
 
 [project.optional-dependencies]
@@ -54,7 +54,7 @@ all_extras = [
     "cloudpickle",
     "dask",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
-    "filterpy>=1.4.5,<1.5.0",
+    "filterpy>=1.4.5",
     "h5py",
     "hmmlearn>=0.2.7",
     "gluonts>=0.12.4",
@@ -70,9 +70,9 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow-probability<0.21.0",
     "tensorflow<2.13.0",
-    "tsfresh>=0.20.0,<0.21.0",
+    "tensorflow-probability<0.21.0",
+    "tsfresh>=0.20.0",
     "tslearn>=0.5.2,<0.6.0",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
@@ -117,9 +117,9 @@ docs = [
 ]
 
 dl = [
+    "keras-self-attention",
     "tensorflow<2.13.0",
     "tensorflow-probability<0.21.0",
-    "keras-self-attention",
 ]
 
 [project.urls]
