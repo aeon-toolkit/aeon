@@ -127,7 +127,7 @@ def all_estimators(
     >>> # return all forecasters by filtering for estimator type
     >>> all_estimators("forecaster")
     >>> # return all forecasters which handle missing data in the input by tag filtering
-    >>> all_estimators("forecaster", filter_tags={"handles-missing-data": True})
+    >>> all_estimators("forecaster", filter_tags={"capability:missing_values": True})
 
     References
     ----------

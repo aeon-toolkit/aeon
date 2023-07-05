@@ -44,6 +44,7 @@ CORE_MTYPES = [
     "df-list",
     "nested_univ",
     "numpy3D",
+    "np-list",
     "pd_multiindex_hier",
 ]
 
@@ -216,7 +217,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         # removes missing data iff can handle missing data,
         #   and there is an estimator in the chain that removes it
         self._tagchain_is_linked_set(
-            "handles-missing-data", "capability:missing_values:removes", ests
+            "capability:missing_values", "capability:missing_values:removes", ests
         )
         # can handle unequal length iff all estimators can handle unequal length
         #   up to a potential estimator which turns the series equal length
@@ -468,7 +469,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         "scitype:transform-labels": "None",
         "scitype:instancewise": False,  # depends on components
         "univariate-only": False,  # depends on components
-        "handles-missing-data": False,  # depends on components
+        "capability:missing_values": False,  # depends on components
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_mtype": "None",
         "X-y-must-have-same-index": False,
@@ -526,7 +527,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         self._anytagis_then_set("transform-returns-same-time-index", False, True, ests)
         self._anytagis_then_set("skip-inverse-transform", True, False, ests)
         # self._anytagis_then_set("capability:inverse_transform", False, True, ests)
-        self._anytagis_then_set("handles-missing-data", False, True, ests)
+        self._anytagis_then_set("capability:missing_values", False, True, ests)
         self._anytagis_then_set("univariate-only", True, False, ests)
 
     @property
@@ -1100,7 +1101,7 @@ class InvertTransform(_DelegatedTransformer):
             "scitype:instancewise",
             "X_inner_mtype",
             "y_inner_mtype",
-            "handles-missing-data",
+            "capability:missing_values",
             "X-y-must-have-same-index",
             "transform-returns-same-time-index",
             "skip-inverse-transform",
@@ -1212,7 +1213,7 @@ class Id(BaseTransformer):
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
         # does transform return have the same time index as input X
-        "handles-missing-data": True,  # can estimator handle missing data?
+        "capability:missing_values": True,  # can estimator handle missing data?
     }
 
     def _transform(self, X, y=None):
@@ -1354,7 +1355,7 @@ class OptionalPassthrough(_DelegatedTransformer):
             "scitype:instancewise",
             "y_inner_mtype",
             "capability:inverse_transform",
-            "handles-missing-data",
+            "capability:missing_values",
             "X-y-must-have-same-index",
             "transform-returns-same-time-index",
             "skip-inverse-transform",
@@ -1453,7 +1454,7 @@ class ColumnwiseTransformer(BaseTransformer):
         tags_to_clone = [
             "y_inner_mtype",
             "capability:inverse_transform",
-            "handles-missing-data",
+            "capability:missing_values",
             "X-y-must-have-same-index",
             "transform-returns-same-time-index",
             "skip-inverse-transform",
