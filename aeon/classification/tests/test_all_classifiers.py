@@ -15,8 +15,8 @@ from aeon.classification.tests._expected_outputs import (
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.utils._testing.collection import make_3d_test_data
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.panel import make_classification_problem
 from aeon.utils._testing.scenarios_classification import (
     ClassifierFitPredict,
     ClassifierFitPredictMultivariate,
@@ -167,8 +167,8 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         This is important for compatibility with ensembles that sub-sample,
         as sub-sampling stochastically produces training sets with single class label.
         """
-        X, y = make_classification_problem()
-        y[:] = 42
+        X, _ = make_3d_test_data(n_cases=10)
+        y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
         error_msg = "single class label"
 

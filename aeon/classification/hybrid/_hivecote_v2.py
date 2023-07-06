@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
 Upgraded hybrid ensemble of classifiers from 4 separate time series classification
@@ -49,11 +50,19 @@ class HIVECOTEV2(BaseClassifier):
         probability predictions in component_probas.
     verbose : int, default=0
         Level of output printed to the console (for information only).
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib for Catch22,
+        if None a 'prefer' value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
@@ -106,20 +115,20 @@ class HIVECOTEV2(BaseClassifier):
         time_limit_in_minutes=0,
         save_component_probas=False,
         verbose=0,
-        n_jobs=1,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
         self.stc_params = stc_params
         self.drcif_params = drcif_params
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
-
         self.time_limit_in_minutes = time_limit_in_minutes
-
         self.save_component_probas = save_component_probas
         self.verbose = verbose
-        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self.stc_weight_ = 0
         self.drcif_weight_ = 0
@@ -182,7 +191,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._stc_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._stc.fit(X, y)
 
@@ -206,7 +215,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._drcif_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._drcif.fit(X, y)
 
@@ -230,7 +239,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._arsenal_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._arsenal.fit(X, y)
 
@@ -254,7 +263,7 @@ class HIVECOTEV2(BaseClassifier):
             **self._tde_params,
             save_train_predictions=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._tde.fit(X, y)
 

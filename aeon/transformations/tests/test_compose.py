@@ -10,13 +10,13 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_airline
 from aeon.datatypes import get_examples
+from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     FeatureUnion,
     InvertTransform,
     OptionalPassthrough,
     TransformerPipeline,
 )
-from aeon.transformations.panel.pad import PaddingTransformer
 from aeon.transformations.series.boxcox import LogTransformer
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.transformations.series.impute import Imputer
@@ -114,9 +114,9 @@ def test_missing_unequal_tag_inference():
     assert t1.get_tag("capability:unequal_length")
     assert t1.get_tag("capability:unequal_length:removes")
     assert not t2.get_tag("capability:unequal_length:removes")
-    assert t3.get_tag("handles-missing-data")
+    assert t3.get_tag("capability:missing_values")
     assert t3.get_tag("capability:missing_values:removes")
-    assert not t4.get_tag("handles-missing-data")
+    assert not t4.get_tag("capability:missing_values")
     assert not t4.get_tag("capability:missing_values:removes")
 
 

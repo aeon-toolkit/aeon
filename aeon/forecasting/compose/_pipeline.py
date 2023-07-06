@@ -375,7 +375,7 @@ class ForecastingPipeline(_Pipeline):
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "capability:pred_int": True,
         "X-y-must-have-same-index": False,
     }
@@ -787,7 +787,7 @@ class TransformedTargetForecaster(_Pipeline):
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "capability:pred_int": True,
         "X-y-must-have-same-index": False,
     }
@@ -1233,7 +1233,7 @@ class ForecastX(BaseForecaster):
         self.clone_tags(forecaster_y, "capability:pred_int")
 
         # tag_translate_dict = {
-        #    "handles-missing-data": forecaster.get_tag("handles-missing-data")
+        #   "capability:missing_values": forecaster.get_tag("capability:missing_values")
         # }
         # self.set_tags(**tag_translate_dict)
 
@@ -1605,7 +1605,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "capability:pred_int": True,
         "X-y-must-have-same-index": False,
     }
