@@ -5,6 +5,7 @@
 __all__ = [
     "CanonicalIntervalForest",
     "DrCIF",
+    "IntervalForestClassifier",
     "RandomIntervalClassifier",
     "SupervisedIntervalClassifier",
     "RandomIntervalSpectralEnsemble",
@@ -14,6 +15,7 @@ __all__ = [
 
 from aeon.classification.interval_based._cif import CanonicalIntervalForest
 from aeon.classification.interval_based._drcif import DrCIF
+from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.interval_based._interval_pipelines import (
     RandomIntervalClassifier,
     SupervisedIntervalClassifier,
