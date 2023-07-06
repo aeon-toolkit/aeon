@@ -4,15 +4,7 @@
 How to contribute
 =================
 
-.. toctree::
-   :maxdepth: 1
-   :hidden:
 
-   developer_guide
-   installation
-   contributing/enhancement_proposals
-   contributing/reporting_bugs
-   contributing/reviewer_guide
 
 Welcome to aeon's contributing guide!
 
@@ -147,3 +139,11 @@ All contributions are recorded in
 .. note::
 
    If we have missed anything, please `raise an issue <https://github.com/aeon-toolkit/aeon/issues/new/choose>`_ or chat with us on `Slack`_.
+
+
+.. toctree::
+   :maxdepth: 1
+
+   contributing/enhancement_proposals
+   contributing/reporting_bugs
+   contributing/reviewer_guide

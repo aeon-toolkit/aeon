@@ -178,22 +178,12 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/reg.png
+:img-top: examples/regression/img/tser.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
 
 Extrinsic regression
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:link: /examples/regression/regression_reduction.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting reduced to regression
 
 :::
 
@@ -207,35 +197,14 @@ Forecasting reduced to regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/clst.png
-:link: /examples/clustering/distance_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
 Distance based clustering
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/feature_clst.png
-:link: /examples/clustering/feature_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based clustering
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/dl_clst.png
-:link: /examples/clustering/dl_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Deep learning based clustering
-
-:::
-
 
 ::::
 
