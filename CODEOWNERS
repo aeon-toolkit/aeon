@@ -8,9 +8,9 @@ aeon/annotation/datagen.py @lmmentel
 
 aeon/benchmarking @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
 aeon/classification @MatthewMiddlehurst @TonyBagnall
-aeon/classification/dictionary_based @patrickzib
-aeon/classification/deep_learning @hadifawaz1999
-aeon/classification/ordinal_classification @RafaAyGar
+aeon/classification/dictionary_based @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
+aeon/classification/ordinal_classification @RafaAyGar @MatthewMiddlehurst @TonyBagnall
 
 aeon/clustering @chrisholder @TonyBagnall
 
@@ -40,6 +40,7 @@ aeon/networks @hadifawaz1999
 aeon/performance_metrics/forecasting/_functions.py @aiwalter
 aeon/performance_metrics/annotation @lmmentel
 
+aeon/transformations/collection @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/augmenter.py @MrPr3ntice @iljamaurer
 aeon/transformations/collection/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
@@ -57,6 +58,8 @@ aeon/transformations/collection/rocket/_multirocket_multivariate.py @ChangWeiTan
 aeon/transformations/collection/channel_selection.py @haskarb @TonyBagnall
 aeon/transformations/collection/signature_based/ @jambo6
 
+aeon/transformations/series @aiwalter
+
 aeon/transformations/series/clasp.py @patrickzib @ermshaua
 aeon/transformations/series/impute.py @aiwalter
 aeon/transformations/series/outlier_detection.py @aiwalter
@@ -69,9 +72,11 @@ aeon/transformations/tests/test_multiplexer.py @miraep8
 aeon/transformations/series/time_since.py @KishManani
 aeon/transformations/series/pca.py @aiwalter
 
+aeon/pipeline @aiwalter
+
 aeon/regression @MatthewMiddlehurst @TonyBagnall
-aeon/regression/dummy/ @badrmarani
-aeon/regression/feature_based/_fresh_prince.py @dguijo
+aeon/regression/dummy/ @badrmarani @MatthewMiddlehurst @TonyBagnall
+aeon/regression/feature_based/_fresh_prince.py @dguijo @MatthewMiddlehurst @TonyBagnall
 aeon/regression/deep_learning @hadifawaz1999
 
 aeon/utils/mlflow_aeon.py @benjaminbluhm
