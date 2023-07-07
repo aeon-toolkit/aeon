@@ -132,7 +132,9 @@ def distance(
     elif metric == "lcss":
         return lcss_distance(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
     elif metric == "erp":
-        return erp_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
+        return erp_distance(
+            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+        )
     elif metric == "edr":
         return edr_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
@@ -243,7 +245,9 @@ def pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
         )
     elif metric == "erp":
-        return erp_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
+        return erp_pairwise_distance(
+            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+        )
     elif metric == "edr":
         return edr_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
@@ -374,7 +378,9 @@ def alignment_path(
             x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
         )
     elif metric == "erp":
-        return erp_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
+        return erp_alignment_path(
+            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+        )
     elif metric == "edr":
         return edr_alignment_path(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
@@ -460,7 +466,9 @@ def cost_matrix(
     elif metric == "lcss":
         return lcss_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
     elif metric == "erp":
-        return erp_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.0))
+        return erp_cost_matrix(
+            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+        )
     elif metric == "edr":
         return edr_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon"))
     elif metric == "twe":
