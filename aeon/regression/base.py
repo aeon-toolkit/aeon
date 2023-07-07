@@ -137,7 +137,7 @@ class BaseRegressor(BaseEstimator, ABC):
         start = int(round(time.time() * 1000))
         # convenience conversions to allow user flexibility:
         # if X is 2D array, convert to 3D, if y is pd.Series, convert to numpy
-        X, y = _internal_convert(X, y)
+        X, y = self._internal_convert(X, y)
         self._X_metadata = _check_regressor_input(X, y)
         missing = self._X_metadata["has_nans"]
         multivariate = not self._X_metadata["is_univariate"]
@@ -275,7 +275,7 @@ class BaseRegressor(BaseEstimator, ABC):
         ValueError if X is of invalid input data type, or there is not enough data
         ValueError if the capabilities in self._tags do not handle the data.
         """
-        X = _internal_convert(X)
+        X = self._internal_convert(X)
         X_metadata = _check_regressor_input(X)
         missing = X_metadata["has_nans"]
         multivariate = not X_metadata["is_univariate"]
@@ -417,32 +417,3 @@ def _check_regressor_input(
                     f"but found {y.ndim} channels"
                 )
     return X_metadata
-
-
-def _internal_convert(X, y=None):
-    """Convert X and y if necessary as a user convenience.
-
-    Convert X to a 3D numpy array if already a 2D and convert y into an 1D numpy
-    array if passed as a Series.
-
-    Parameters
-    ----------
-    X : an object of a supported input type including 2D numpy.ndarray
-    y : np.ndarray or pd.Series
-
-    Returns
-    -------
-    X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
-    y: np.ndarray
-    """
-    if isinstance(X, np.ndarray):
-        if X.ndim == 2:
-            X = X.reshape(X.shape[0], 1, X.shape[1])
-    if y is not None and isinstance(y, pd.Series):
-        # y should be a numpy array, although we allow Series for user convenience
-        y = pd.Series.to_numpy(y)
-    if y is not None and isinstance(y, np.ndarray):
-        y = y.astype("float")
-    if y is None:
-        return X
-    return X, y
