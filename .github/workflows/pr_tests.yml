@@ -1,4 +1,4 @@
-name: Install and test
+name: PR Tests
 
 on:
   push:
@@ -74,7 +74,10 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--cov --cov-report=xml --timeout=600" test_softdeps
+        run: |
+          python -m pytest -k 'test_all_estimators' --matrixdesign True --pyargs aeon.registry
+          python -m pytest -k 'test_check_estimator_does_not_raise' --matrixdesign True --pyargs aeon.utils
+          python -m pytest --matrixdesign True --pyargs aeon.tests.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
@@ -97,7 +100,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--cov --cov-report=xml --timeout=600" test_softdeps_full
+        run: python -m pytest -k 'not TestAll' --matrixdesign True --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
 
   test-windows:
     needs: test-nosoftdeps
@@ -133,14 +136,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: |
-          mkdir -p testdir/
-          cp .coveragerc testdir/
-          cp setup.cfg testdir/
-          python -m pytest
-
-      - name: Publish code coverage
-        uses: codecov/codecov-action@v3
+        run: python -m pytest --matrixdesign True
 
   test-unix:
     needs: test-nosoftdeps
@@ -169,7 +165,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: make test
+        run: python -m pytest --matrixdesign True
 
       - name: Publish code coverage
         uses: codecov/codecov-action@v3
