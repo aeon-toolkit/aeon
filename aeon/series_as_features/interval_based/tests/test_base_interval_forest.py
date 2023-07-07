@@ -26,14 +26,13 @@ from aeon.utils.numba.stats import row_mean, row_numba_min
 )
 def test_interval_forest_feature_skipping(base_estimator):
     """Test BaseIntervalForest feature skipping with different base estimators."""
-    X, y = make_3d_test_data()
-    rs = np.random.randint(np.iinfo(np.int32).max)
+    X, y = make_3d_test_data(random_state=0)
 
     est = IntervalForestClassifier(
         base_estimator=base_estimator,
         n_estimators=2,
         n_intervals=2,
-        random_state=rs,
+        random_state=0,
     )
     est.fit(X, y)
     preds = est.predict(X)
@@ -44,7 +43,7 @@ def test_interval_forest_feature_skipping(base_estimator):
         base_estimator=make_pipeline(base_estimator),
         n_estimators=2,
         n_intervals=2,
-        random_state=rs,
+        random_state=0,
     )
     est.fit(X, y)
 
