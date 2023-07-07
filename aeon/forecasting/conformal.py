@@ -91,7 +91,7 @@ class ConformalIntervals(BaseForecaster):
     _tags = {
         "scitype:y": "univariate",
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "ignores-exogeneous-X": False,
         "capability:pred_int": True,
     }
@@ -133,7 +133,7 @@ class ConformalIntervals(BaseForecaster):
         tags_to_clone = [
             "requires-fh-in-fit",
             "ignores-exogeneous-X",
-            "handles-missing-data",
+            "capability:missing_values",
             "y_inner_mtype",
             "X_inner_mtype",
             "X-y-must-have-same-index",

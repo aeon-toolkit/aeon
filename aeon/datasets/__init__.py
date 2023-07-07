@@ -17,6 +17,7 @@ __all__ = [
     "write_results_to_uea_format",
     # Data generators
     "make_example_3d_numpy",
+    "make_example_2d_numpy",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
     # Single problem loaders
@@ -50,6 +51,7 @@ __all__ = [
 ]
 
 from aeon.datasets._data_generators import (
+    make_example_2d_numpy,
     make_example_3d_numpy,
     make_example_long_table,
     make_example_multi_index_dataframe,

@@ -102,13 +102,14 @@ class RotationForestClassifier(BaseEstimator):
     Examples
     --------
     >>> from aeon.classification.sklearn import RotationForestClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> from aeon.datasets import make_example_2d_numpy
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
+    ...                              return_y=True, random_state=0)
     >>> clf = RotationForestClassifier(n_estimators=10)
-    >>> clf.fit(X_train, y_train)
-    RotationForestClassifier(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> clf.fit(X, y)
+    RotationForestClassifier(n_estimators=10)
+    >>> clf.predict(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     def __init__(
@@ -442,7 +443,11 @@ class RotationForestClassifier(BaseEstimator):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
-        X_t = np.nan_to_num(X_t, False, 0, 0, 0)
+        X_t = X_t.astype(np.float32)
+        X_t = np.nan_to_num(
+            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
+        )
+
         tree = _clone_estimator(self._base_estimator, random_state=rs)
         tree.fit(X_t, y)
 
@@ -452,7 +457,11 @@ class RotationForestClassifier(BaseEstimator):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
-        X_t = np.nan_to_num(X_t, False, 0, 0, 0)
+        X_t = X_t.astype(np.float32)
+        X_t = np.nan_to_num(
+            X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
+        )
+
         probas = clf.predict_proba(X_t)
 
         if probas.shape[1] != self.n_classes_:
