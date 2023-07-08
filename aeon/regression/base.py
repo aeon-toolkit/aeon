@@ -202,7 +202,8 @@ class BaseRegressor(BaseEstimator, ABC):
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
             other types are allowed and converted into one of the above.
-        y : 1D np.array of float, of shape (n_instances) - regression labels (gnr truth)
+        y : 1D np.array of float, of shape (n_instances) - regression labels (ground
+        truth)
             indices correspond to instance indices in X
 
         Returns
@@ -212,6 +213,9 @@ class BaseRegressor(BaseEstimator, ABC):
         from sklearn.metrics import r2_score
 
         self.check_is_fitted()
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
+        y = y.astype("float")
 
         return r2_score(y, self.predict(X))
 

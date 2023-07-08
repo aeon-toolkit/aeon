@@ -3,6 +3,8 @@
 import numpy as np
 import pytest
 
+from aeon.datasets import load_unit_test
+from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
 
 
@@ -54,3 +56,12 @@ def test_base_regressor_fit():
     test_y2 = np.array([test_y1]).transpose()
     with pytest.raises(ValueError, match=incorrect_y_data_structure):
         result = dummy.fit(test_X1, test_y2)
+
+
+def test_score():
+    dummy = DummyRegressor()
+    x_train, y_train = load_unit_test(split="train")
+    x_test, y_test = load_unit_test(split="test")
+    dummy.fit(x_train, y_train)
+    r = dummy.score(x_test, y_test)
+    np.testing.assert_almost_equal(r, -0.008333, decimal=6)
