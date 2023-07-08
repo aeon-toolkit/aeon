@@ -138,6 +138,8 @@ class BaseRegressor(BaseEstimator, ABC):
         # convenience conversions to allow user flexibility:
         # if X is 2D array, convert to 3D, if y is pd.Series, convert to numpy
         X, y = self._internal_convert(X, y)
+        if isinstance(y, np.ndarray):
+            y = y.astype("float")
         self._X_metadata = _check_regressor_input(X, y)
         missing = self._X_metadata["has_nans"]
         multivariate = not self._X_metadata["is_univariate"]
