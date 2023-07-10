@@ -459,7 +459,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
         "scitype:instancewise": True,  # is this an instance-wise transform?
-        "python_dependencies": "filterpy",
+        "python_dependencies": ["filterpy", "numpy<1.24.0"],
     }
 
     def __init__(
