@@ -88,7 +88,7 @@ class FCNRegressor(BaseDeepRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.deep_learning.fcn import FCNRegressor
+    >>> from aeon.regression.deep_learning import FCNRegressor
     >>> import numpy as np
     >>> X_train = np.random.normal(size=(10,2,20))
     >>> Y_train = np.random.normal(size=(10,))
