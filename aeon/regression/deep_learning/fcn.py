@@ -89,11 +89,11 @@ class FCNRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning.fcn import FCNRegressor
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> fcn = FCNRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
-    >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
+    >>> import numpy as np
+    >>> X_train = np.random.normal(size=(10,2,20))
+    >>> Y_train = np.random.normal(size=(10,))
+    >>> rgs = FCNRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> rgs.fit(X_train, y_train)  # doctest: +SKIP
     FCNRegressor(...)
     """
 
