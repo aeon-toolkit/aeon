@@ -4,6 +4,7 @@ __all__ = [
     "CNNRegressor",
     "InceptionTimeRegressor",
     "IndividualInceptionRegressor",
+    "ResNetRegressor",
     "TapNetRegressor",
 ]
 
