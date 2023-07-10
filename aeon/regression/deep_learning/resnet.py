@@ -105,11 +105,12 @@ class ResNetRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import ResNetRegressor
-    >>> import numpy as np
-    >>> X_train = np.random.normal(size=(10,2,20))
-    >>> Y_train = np.random.normal(size=(10,))
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
     >>> rgs = ResNetRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> rgs.fit(X_train, Y_train) # doctest: +SKIP
+    >>> rgs.fit(X, y) # doctest: +SKIP
     ResNetRegressor(...)
     """
 
