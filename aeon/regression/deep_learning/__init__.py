@@ -2,6 +2,7 @@
 """Deep learning based regressors."""
 __all__ = [
     "CNNRegressor",
+    "FCNRegressor",
     "InceptionTimeRegressor",
     "IndividualInceptionRegressor",
     "TapNetRegressor",
