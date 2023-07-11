@@ -270,11 +270,4 @@ class TapNetClassifier(BaseDeepClassifier):
             "dilation": 2,
             "layers": (32, 16),
         }
-        # param2 = {
-        #     "n_epochs": 20,
-        #     "use_cnn": False,
-        #     "layers": (25, 25),
-        # }
-        test_params = [param1]
-
-        return test_params
+        return [param1]
