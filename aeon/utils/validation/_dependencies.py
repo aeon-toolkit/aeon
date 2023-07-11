@@ -162,7 +162,7 @@ def _check_soft_dependencies(
             if obj is not None:
                 msg = msg + (
                     f"This version requirement is not one by aeon, but specific "
-                    f"to the module, class or object with name {obj}."
+                    f"to the module, class or object with name {class_name}."
                 )
 
             # raise error/warning or return False if version is incompatible
