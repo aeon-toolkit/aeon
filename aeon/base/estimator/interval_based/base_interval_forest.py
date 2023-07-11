@@ -61,7 +61,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         A list or tuple of ints and/or strs will extract the number of intervals using
         the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(series_length) + 4 intervals.
+        will extract sqrt(n_timepoints) + 4 intervals.
 
         Different number of intervals for each series_transformers series can be
         specified using a nested list or tuple. Any list or tuple input containing
@@ -148,17 +148,17 @@ class BaseIntervalForest(metaclass=ABCMeta):
         The number of train cases.
     n_channels_ : int
         The number of channels per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of ndarray with shape (total_intervals,2)
-        Stores indexes of each intervals start and end points for all classifiers.
+    intervals_ : list of shape (n_estimators) of BaseTransformer
+        Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
     (n_instances,total_intervals * att_subsample_size)
-        The transformed dataset for all classifiers. Only saved when
+        The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 
     References
@@ -228,7 +228,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
 
-        self.n_instances_, self.n_channels_, self.series_length_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -976,14 +976,14 @@ class BaseIntervalForest(metaclass=ABCMeta):
         ]
 
     def _predict_setup(self, X):
-        n_instances, n_channels, series_length = X.shape
+        n_instances, n_channels, n_timepoints = X.shape
 
         if n_channels != self.n_channels_:
             raise ValueError(
                 "The number of channels in the train data does not match the number "
                 "of channels in the test data"
             )
-        if series_length != self.series_length_:
+        if n_timepoints != self.n_timepoints_:
             raise ValueError(
                 "The series length of the train data does not match the series length "
                 "of the test data"

@@ -30,16 +30,9 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
-    interval_selection_method : "random", "supervised" or "random-supervised",
-            default="random"
+    interval_selection_method : "random", default="random"
         The interval selection transformer to use.
             - "random" uses a RandomIntervalTransformer.
-            - "supervised" uses a SupervisedIntervalTransformer.
-            - "random-supervised" uses a SupervisedIntervalTransformer with
-                randomised elements.
-
-        Supervised methods can only be used for classification tasks, and require
-        function inputs for interval_features rather than transformers.
     n_intervals : int, str, list or tuple, default="sqrt"
         Number of intervals to extract per tree for each series_transformers series.
 
@@ -140,17 +133,17 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         The number of train cases.
     n_channels_ : int
         The number of channels per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of ndarray with shape (total_intervals,2)
-        Stores indexes of each intervals start and end points for all classifiers.
+    intervals_ : list of shape (n_estimators) of BaseTransformer
+        Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
     (n_instances,total_intervals * att_subsample_size)
-        The transformed dataset for all classifiers. Only saved when
+        The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 
     References
