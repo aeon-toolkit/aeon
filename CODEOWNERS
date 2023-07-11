@@ -5,6 +5,7 @@ aeon/annotation @lmmentel
 aeon/annotation/clasp.py @patrickzib @ermshaua
 
 aeon/benchmarking @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
+
 aeon/classification @MatthewMiddlehurst @TonyBagnall
 aeon/classification/dictionary_based @patrickzib @MatthewMiddlehurst @TonyBagnall
 aeon/classification/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
@@ -14,12 +15,9 @@ aeon/clustering @chrisholder @TonyBagnall
 
 aeon/distances @chrisholder @TonyBagnall
 
-aeon/forecasting @aiwalter @guzalbulatova
+aeon/forecasting @aiwalter @guzalbulatova @ltsaprounis
 aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
 aeon/forecasting/naive.py @Flix6x
-aeon/forecasting/ets.py @HYang1996
-aeon/forecasting/tests/test_ets.py @HYang1996
-aeon/forecasting/arima.py @HYang1996
 aeon/forecasting/statsforecast.py @FedericoGarza
 aeon/forecasting/structural.py @juanitorduz
 aeon/forecasting/model_selection/_split @koralturkk
@@ -34,10 +32,8 @@ aeon/performance_metrics/annotation @lmmentel
 
 aeon/transformations/collection @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/augmenter.py @MrPr3ntice @iljamaurer
-aeon/transformations/collection/dictionary_based/_paa.py @patrickzib @MatthewMiddlehurst
+aeon/transformations/collection/dictionary_based @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
-aeon/transformations/collection/dictionary_based/_sfa.py @patrickzib @MatthewMiddlehurst
-aeon/transformations/collection/dictionary_based/_sfa_fast.py @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/catch22.py @MatthewMiddlehurst
 aeon/transformations/collection/catch22wrapper.py @MatthewMiddlehurst
 aeon/transformations/collection/random_intervals.py @MatthewMiddlehurst
