@@ -7,10 +7,8 @@ __all__ = ["IntervalForestClassifier"]
 
 import numpy as np
 
+from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
-from aeon.series_as_features.interval_based.base_interval_forest import (
-    BaseIntervalForest,
-)
 
 
 class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
