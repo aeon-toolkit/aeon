@@ -74,10 +74,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: |
-          python -m pytest -k 'test_all_estimators' --matrixdesign True --pyargs aeon.registry
-          python -m pytest -k 'test_check_estimator_does_not_raise' --matrixdesign True --pyargs aeon.utils
-          python -m pytest --matrixdesign True --pyargs aeon.tests.test_softdeps
+        run: make PYTESTOPTIONS="--matrixdesign=True --timeout=600" test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
@@ -100,7 +97,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll' --matrixdesign True --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+        run: make PYTESTOPTIONS="--matrixdesign=True --timeout=600" test_softdeps_full
 
   test-windows:
     needs: test-nosoftdeps
@@ -136,7 +133,11 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --matrixdesign True
+        run: |
+          mkdir -p testdir/
+          cp .coveragerc testdir/
+          cp setup.cfg testdir/
+          python -m pytest --matrixdesign=True
 
   test-unix:
     needs: test-nosoftdeps
@@ -165,4 +166,4 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --matrixdesign True
+        run: make test
