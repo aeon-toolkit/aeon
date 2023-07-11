@@ -149,7 +149,7 @@ Transformation
 :caption: Using aeon
 :hidden:
 
-installation
+installation.md
 getting_started.md
 user_guide
 api_reference
@@ -178,6 +178,5 @@ about.md
 
 glossary.md
 changelog.md
-estimator_overview
 related_software
 ```
