@@ -22,7 +22,7 @@ State:
 __all__ = [
     "BaseRegressor",
 ]
-
+__author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
 import time
 from abc import ABC, abstractmethod
 from warnings import warn
