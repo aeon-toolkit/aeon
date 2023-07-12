@@ -5,7 +5,10 @@ set -euxo pipefail
 
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
-excluded=("examples/datasets/benchmarking_data.ipynb")
+excluded=(
+  "examples/datasets/benchmarking_data.ipynb"
+  "examples/benchmarking/results_loading.ipynb"
+)
 
 # Loop over all notebooks in the examples directory.
 find "examples/" -name "*.ipynb" -print0 |

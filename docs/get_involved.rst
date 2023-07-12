@@ -8,7 +8,6 @@ Get Involved
    :hidden:
 
    get_involved/contributing
-   get_involved/mentoring
    get_involved/code_of_conduct
    get_involved/governance
 
@@ -35,24 +34,6 @@ If you get stuck, please don't hesitate to chat with us or raise an issue.
             :expand:
 
             Contributing guide
-
-    .. grid-item-card::
-        :text-align: center
-
-        Mentoring
-
-        ^^^
-
-        New to open source? Apply to our mentoring program!
-
-        +++
-
-        .. button-ref:: mentoring
-            :color: primary
-            :click-parent:
-            :expand:
-
-            Mentoring
 
     .. grid-item-card::
         :text-align: center
