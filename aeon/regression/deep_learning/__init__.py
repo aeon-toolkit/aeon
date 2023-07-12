@@ -4,6 +4,7 @@ __all__ = [
     "CNNRegressor",
     "InceptionTimeRegressor",
     "IndividualInceptionRegressor",
+    "ResNetRegressor",
     "TapNetRegressor",
 ]
 
@@ -12,4 +13,5 @@ from aeon.regression.deep_learning.inception_time import (
     InceptionTimeRegressor,
     IndividualInceptionRegressor,
 )
+from aeon.regression.deep_learning.resnet import ResNetRegressor
 from aeon.regression.deep_learning.tapnet import TapNetRegressor
