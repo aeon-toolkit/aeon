@@ -42,9 +42,7 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 class BaseClassifier(BaseEstimator, ABC):
     """Abstract base class for time series classifiers.
 
-    The base classifier specifies the methods and method signatures that all
-    classifiers have to implement. Attributes with an underscore suffix are set in the
-    method fit.
+    Attributes with an underscore suffix are set in the method fit.
 
     Attributes
     ----------
@@ -79,7 +77,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self._class_dictionary = {}
         self._n_jobs = 1
 
-        # required for compatibility with some sklearn interfaces e.g.       #
+        # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "classifier"
 
@@ -137,7 +135,7 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
             other types are allowed and converted into one of the above.
-        y : 1D np.array, of shape [n_instances] - class labels for fitting
+        y : 1D np.array, of shape (n_instances) - class labels for fitting
             indices correspond to instance indices in X
 
         Returns

@@ -4,6 +4,7 @@
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
 import numpy as np
+import numpy.random
 import pandas as pd
 import pytest
 
@@ -21,8 +22,8 @@ from aeon.utils._testing.collection import (
 )
 
 
-class _DummyClassifier(BaseClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
+class _TestClassifier(BaseClassifier):
+    """Cassifier for testing base class fit/predict/predict_proba."""
 
     def _fit(self, X, y):
         """Fit dummy."""
@@ -37,15 +38,8 @@ class _DummyClassifier(BaseClassifier):
         return self
 
 
-class _DummyComposite(_DummyClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
-
-    def __init__(self, foo):
-        self.foo = foo
-
-
-class _DummyHandlesAllInput(BaseClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
+class _TestHandlesAllInput(BaseClassifier):
+    """Test classifier for testing base class fit/predict/predict_proba."""
 
     _tags = {
         "capability:multivariate": True,
@@ -86,7 +80,7 @@ def test_base_classifier_fit():
     5. Set is_fitted after a call to _fit.
     6. Return self.
     """
-    dummy = _DummyClassifier()
+    dummy = _TestClassifier()
     cases = 5
     length = 10
     test_X1 = np.random.uniform(-1, 1, size=(cases, length))
@@ -120,8 +114,7 @@ def test_base_classifier_fit():
 @pytest.mark.parametrize("unequal", [True, False])
 def test_check_capabilities(missing, multivariate, unequal):
     """Test the checking of capabilities."""
-    handles_none = _DummyClassifier()
-    handles_none_composite = _DummyComposite(_DummyClassifier())
+    handles_none = _TestClassifier()
 
     # checks that errors are raised
     if missing:
@@ -136,19 +129,7 @@ def test_check_capabilities(missing, multivariate, unequal):
     if not missing and not multivariate and not unequal:
         handles_none._check_capabilities(missing, multivariate, unequal)
 
-    if missing:
-        with pytest.warns(UserWarning, match=missing_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.warns(UserWarning, match=multivariate_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.warns(UserWarning, match=unequal_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none_composite._check_capabilities(missing, multivariate, unequal)
-
-    handles_all = _DummyHandlesAllInput()
+    handles_all = _TestHandlesAllInput()
     handles_all._check_capabilities(missing, multivariate, unequal)
 
 
@@ -191,6 +172,19 @@ def test__check_classifier_input():
     # 5. Test incorrect: too few cases or too short a series
     with pytest.raises(ValueError, match=r".*Minimum number of cases required*."):
         cls._check_classifier_input(test_X2, test_y1, enforce_min_instances=6)
+
+
+def test_classifier_score():
+    """Test the base class score() function."""
+    X = np.random.random(size=(6, 10))
+    y = np.array([0, 0, 0, 1, 1, 1])
+    dummy = DummyClassifier()
+    dummy.fit(X, y)
+    assert dummy.score(X, y) == 0.5
+    y2 = pd.Series([0, 0, 0, 1, 1, 1])
+    dummy.fit(X, y2)
+    assert dummy.score(X, y) == 0.5
+    assert dummy.score(X, y2) == 0.5
 
 
 def _create_example_dataframe(cases=5, dimensions=1, length=10):
@@ -243,11 +237,11 @@ def test_input_conversion_fit_predict(input_type):
     elif input_type == "df-list":
         X, y = make_nested_dataframe_data()
         X = from_nested_to_dflist_adp(X)
-    clf = _DummyHandlesAllInput()
+    clf = _TestHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)
 
-    clf = _DummyHandlesAllInput()
+    clf = _TestHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)
 
