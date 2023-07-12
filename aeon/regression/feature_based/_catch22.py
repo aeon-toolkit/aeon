@@ -53,7 +53,7 @@ class Catch22Regressor(BaseRegressor):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    estimator : sklearn classifier, optional, default=None
+    estimator : sklearn regressor, optional, default=None
         An sklearn estimator to be built using the transformed data.
         Defaults to sklearn RandomForestRegressor(n_estimators=200)
     random_state : int, RandomState instance or None, default=None
