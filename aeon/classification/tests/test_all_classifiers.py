@@ -43,7 +43,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
     """Module level tests for all aeon classifiers."""
 
     def test_classifier_output(self, estimator_instance, scenario):
-        """Test classifier outputs the correct data types and values.
+        """BASE CLASS TEST. Test classifier outputs the correct data types and values.
 
         Test predict produces a np.array or pd.Series with only values seen in the train
         data, and that predict_proba probability estimates add up to one.
