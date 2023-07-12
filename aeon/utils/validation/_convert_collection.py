@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Collection data converters."""
+"""Collection data converters.
+
+String meanings:
+numpyflat   : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
+numpy3D     : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
+np-list     : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
+df_list     : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
+nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
+pd-wide     : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
+pd-multiindex:
+"""
 import numpy as np
 import pandas as pd
 
@@ -16,6 +26,53 @@ def convert_identity(obj, store=None):
 # assign identity function to type conversion to self
 for x in DATA_TYPES:
     convert_dict[(x, x)] = convert_identity
+
+
+def from_numpyflat_to_numpy3d(X):
+    """Convert numpyflat collection to 3D by simply adding a dimension.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        2-dimensional np.ndarray (n_instances, n_timepoints)
+
+    Returns
+    -------
+    X_mi : pd.DataFrame
+        3-dimensional np.ndarray (n_instances, n_channels, n_timepoints)
+    """
+    if X.ndim != 2:
+        raise TypeError(
+            "Input should be 2-dimensional np.ndarray with shape ("
+            "n_instances, n_timepoints).",
+        )
+    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
+    return X_3d
+
+
+def from_numpyflat_to_np_list(X):
+    """Convert numpyflat collection to list of numpy shape (1,n_timepoints).
+
+    Parameters
+    ----------
+    X : np.ndarray
+        2-dimensional np.ndarray (n_instances, n_timepoints)
+
+    Returns
+    -------
+    X_mi : list
+        list of np.ndarray (n_instances, 1, n_timepoints)
+    """
+    if X.ndim != 2:
+        raise TypeError(
+            "Input should be 2-dimensional np.ndarray with shape ("
+            "n_instances, n_timepoints).",
+        )
+    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
+    X_list = []
+    for x in X_3d:
+        X_list.append(x)
+    return X_list
 
 
 def from_numpy3d_to_pd_multiindex(X):
@@ -154,7 +211,7 @@ def from_numpy3d_to_pd_wide(X, store=None):
 
 
 def from_numpyflat_to_nested_univ(X):
-    """Convert np.ndarray to nested_univ format pd.DataFrame with a single column.
+    """Convert numpyflat to nested_univ format pd.DataFrame with a single column.
 
     Parameters
     ----------
