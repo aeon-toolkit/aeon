@@ -21,12 +21,11 @@ aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
 aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
 aeon/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
 aeon/forecasting/model_selection/_split @koralturkk
+aeon/forecasting/online_learning/ @magittan
 aeon/forecasting/naive.py @Flix6x
+aeon/forecasting/sarimax.py @TNTran92
 aeon/forecasting/statsforecast.py @FedericoGarza
 aeon/forecasting/structural.py @juanitorduz
-
-aeon/forecasting/online_learning/ @magittan
-aeon/forecasting/sarimax.py @TNTran92
 
 aeon/networks/ @hadifawaz1999
 
