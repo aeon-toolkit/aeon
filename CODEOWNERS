@@ -1,64 +1,67 @@
-# The file lists aeon's algorithm maintainers as specified in GOVERNANCE.md.
-# Each line is a file pattern followed by one or more owners.
+# The file lists aeon's package and estimator maintainers.
+# Each line is a file pattern followed by one or more owners/groups.
+# Only users with write access to the repository will be automatically added as
+# reviewers and contacted.
 
-aeon/annotation @lmmentel
+aeon/annotation/ @lmmentel
 aeon/annotation/clasp.py @patrickzib @ermshaua
 
-aeon/benchmarking @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
+aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
 
-aeon/classification @MatthewMiddlehurst @TonyBagnall
-aeon/classification/dictionary_based @patrickzib @MatthewMiddlehurst @TonyBagnall
-aeon/classification/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
-aeon/classification/ordinal_classification @RafaAyGar  @dguijo @MatthewMiddlehurst @TonyBagnall
+aeon/classification/ @MatthewMiddlehurst @TonyBagnall
+aeon/classification/deep_learning/ @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
+aeon/classification/dictionary_based/ @patrickzib @MatthewMiddlehurst @TonyBagnall
+aeon/classification/ordinal_classification/ @RafaAyGar @dguijo @MatthewMiddlehurst @TonyBagnall
 
-aeon/clustering @chrisholder @TonyBagnall
+aeon/clustering/ @chrisholder @TonyBagnall
 
-aeon/distances @chrisholder @TonyBagnall
+aeon/distances/ @chrisholder @TonyBagnall
 
-aeon/forecasting @aiwalter @guzalbulatova @ltsaprounis
+aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
 aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
+aeon/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
+aeon/forecasting/model_selection/_split @koralturkk
 aeon/forecasting/naive.py @Flix6x
 aeon/forecasting/statsforecast.py @FedericoGarza
 aeon/forecasting/structural.py @juanitorduz
-aeon/forecasting/model_selection/_split @koralturkk
-aeon/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
+
 aeon/forecasting/online_learning/ @magittan
 aeon/forecasting/sarimax.py @TNTran92
 
-aeon/networks @hadifawaz1999
+aeon/networks/ @hadifawaz1999
 
 aeon/performance_metrics/forecasting/_functions.py @aiwalter
-aeon/performance_metrics/annotation @lmmentel
+aeon/performance_metrics/annotation/ @lmmentel
 
-aeon/transformations/collection @MatthewMiddlehurst @TonyBagnall
-aeon/transformations/collection/augmenter.py @MrPr3ntice @iljamaurer
-aeon/transformations/collection/dictionary_based @patrickzib @MatthewMiddlehurst
+aeon/pipeline/ @aiwalter
+
+aeon/regression/ @MatthewMiddlehurst @TonyBagnall
+aeon/regression/feature_based/_fresh_prince.py @dguijo @MatthewMiddlehurst @TonyBagnall
+aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
+
+aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
+aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
-aeon/transformations/collection/catch22.py @MatthewMiddlehurst
-aeon/transformations/collection/catch22wrapper.py @MatthewMiddlehurst
-aeon/transformations/collection/random_intervals.py @MatthewMiddlehurst
-aeon/transformations/collection/dilated_shapelet_transform.py @baraline
-aeon/transformations/collection/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
-aeon/transformations/collection/supervised_intervals.py @MatthewMiddlehurst
 aeon/transformations/collection/rocket/ @angus924
 aeon/transformations/collection/rocket/_multirocket.py @ChangWeiTan @fstinner @angus924
 aeon/transformations/collection/rocket/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
-aeon/transformations/collection/channel_selection.py @haskarb @TonyBagnall
 aeon/transformations/collection/signature_based/ @jambo6
+aeon/transformations/collection/catch22.py @MatthewMiddlehurst
+aeon/transformations/collection/channel_selection.py @haskarb @TonyBagnall
+aeon/transformations/collection/dilated_shapelet_transform.py @baraline
+aeon/transformations/collection/random_intervals.py @MatthewMiddlehurst
+aeon/transformations/collection/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
+aeon/transformations/collection/supervised_intervals.py @MatthewMiddlehurst
 
-aeon/transformations/series @aiwalter
+aeon/transformations/series/ @aiwalter
+aeon/transformations/series/augmenter.py @MrPr3ntice @iljamaurer
 aeon/transformations/series/clasp.py @patrickzib @ermshaua
-aeon/transformations/series/theta.py @GuzalBulatova
-aeon/transformations/series/scaledlogit.py @ltsaprounis
 aeon/transformations/series/kalman_filter.py @NoaBenAmi
-aeon/transformations/tests/test_multiplexer.py @miraep8
+aeon/transformations/series/scaledlogit.py @ltsaprounis
+aeon/transformations/series/theta.py @GuzalBulatova
 aeon/transformations/series/time_since.py @KishManani
 
-aeon/pipeline @aiwalter
-
-aeon/regression @MatthewMiddlehurst @TonyBagnall
-aeon/regression/dummy/ @badrmarani @MatthewMiddlehurst @TonyBagnall
-aeon/regression/feature_based/_fresh_prince.py @dguijo @MatthewMiddlehurst @TonyBagnall
-aeon/regression/deep_learning @hadifawaz1999
-
 aeon/utils/mlflow_aeon.py @benjaminbluhm
+
+docs/get_involved/code_of_conduct.rst @aeon/aeon-code-of-conduct-committee
+docs/get_involved/governance.rst @aeon/aeon-core-developers
