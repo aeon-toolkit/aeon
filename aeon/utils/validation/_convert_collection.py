@@ -2,13 +2,12 @@
 """Collection data converters.
 
 String meanings:
-numpyflat   : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
 numpy3D     : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
 np-list     : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
 df_list     : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
-nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
+numpyflat   : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
 pd-wide     : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
-pd-multiindex:
+nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 """
 import numpy as np
 import pandas as pd
@@ -27,52 +26,85 @@ def convert_identity(obj, store=None):
 for x in DATA_TYPES:
     convert_dict[(x, x)] = convert_identity
 
-
-def from_numpyflat_to_numpy3d(X):
-    """Convert numpyflat collection to 3D by simply adding a dimension.
-
-    Parameters
-    ----------
-    X : np.ndarray
-        2-dimensional np.ndarray (n_instances, n_timepoints)
-
-    Returns
-    -------
-    X_mi : pd.DataFrame
-        3-dimensional np.ndarray (n_instances, n_channels, n_timepoints)
-    """
-    if X.ndim != 2:
-        raise TypeError(
-            "Input should be 2-dimensional np.ndarray with shape ("
-            "n_instances, n_timepoints).",
-        )
-    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    return X_3d
+numpy3D_error = (
+    "Error: Input should be 3-dimensional NumPy array with shape ("
+    "n_instances, n_channels, n_timepoints)."
+)
 
 
-def from_numpyflat_to_np_list(X):
-    """Convert numpyflat collection to list of numpy shape (1,n_timepoints).
+def from_numpy3d_to_np_list(X, store=None):
+    """Convert 3D np.darray to a list of 2D numpy.
+
+    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
+    a 2D list length [n_instances] each of shape (n_channels, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        2-dimensional np.ndarray (n_instances, n_timepoints)
+        The input array with shape (n_instances, n_channels, n_timepoints)
 
     Returns
     -------
-    X_mi : list
-        list of np.ndarray (n_instances, 1, n_timepoints)
+    list : list [n_instances] np.ndarray
+        A list of np.ndarray
     """
-    if X.ndim != 2:
-        raise TypeError(
-            "Input should be 2-dimensional np.ndarray with shape ("
-            "n_instances, n_timepoints).",
+    if X.ndim != 3:
+        raise TypeError(numpy3D_error)
+    np_list = []
+    for arr in X:
+        np_list.append(arr)
+    return np_list
+
+
+def from_numpy3d_to_df_list(X, store=None):
+    """Convert 3D np.darray to a list of dataframes in wide format.
+
+    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
+    a 2D list length [n_instances] of pd.DataFrames shape (n_channels, n_timepoints)
+
+    Parameters
+    ----------
+    X : np.ndarray
+        The input array with shape (n_instances, n_channels, n_timepoints)
+
+    Returns
+    -------
+    df : pd.DataFrame
+    """
+    if X.ndim != 3:
+        raise TypeError(numpy3D_error)
+    df_list = []
+    for arr in X:
+        df_list.append(pd.DataFrame(arr))
+    return df_list
+
+
+def from_numpy3d_to_pd_wide(X, store=None):
+    """Convert 3D np.darray to a list of dataframes in wide format.
+
+    Only valid with univariate time series. Converts 3D numpy array (n_instances, 1,
+    n_timepoints) to a dataframe (n_instances, n_timepoints)
+
+    Parameters
+    ----------
+    X : np.ndarray
+        The input array with shape (n_instances, 1, n_timepoints)
+
+    Returns
+    -------
+    df : a dataframe (n_instances, n_timepoints)
+
+    Raise
+    -----
+    ValueError if X has n_channels>1
+    """
+    if X.ndim != 3:
+        raise TypeError(numpy3D_error)
+    if X.shape[1] > 1:
+        raise ValueError(
+            "Error, numpy3D passed with > 1 channel, cannot convert to " "pd-wide"
         )
-    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    X_list = []
-    for x in X_3d:
-        X_list.append(x)
-    return X_list
+    return pd.DataFrame(X.squeeze())
 
 
 def from_numpy3d_to_pd_multiindex(X):
@@ -89,13 +121,7 @@ def from_numpy3d_to_pd_multiindex(X):
         The multi-indexed pandas DataFrame
     """
     if X.ndim != 3:
-        msg = " ".join(
-            [
-                "Input should be 3-dimensional NumPy array with shape",
-                "(n_instances, n_channels, n_timepoints).",
-            ]
-        )
-        raise TypeError(msg)
+        raise TypeError(numpy3D_error)
 
     n_instances, n_channels, n_timepoints = X.shape
     multi_index = pd.MultiIndex.from_product(
@@ -124,6 +150,8 @@ def from_numpy3d_to_nested_univ(X):
     -------
     df : pd.DataFrame
     """
+    if X.ndim != 3:
+        raise TypeError(numpy3D_error)
     n_instances, n_channels, n_timepoints = X.shape
     array_type = X.dtype
     container = pd.Series
@@ -141,73 +169,54 @@ def from_numpy3d_to_nested_univ(X):
     return df
 
 
-def from_numpy3d_to_np_list(X, store=None):
-    """Convert 3D np.darray to a list of 2D numpy.
-
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] each of shape (n_channels, n_timepoints)
-
-    Parameters
-    ----------
-    X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
-
-    Returns
-    -------
-    list : list [n_instances] np.ndarray
-        A list of np.ndarray
-    """
-    np_list = []
-    for arr in X:
-        np_list.append(arr)
-    return np_list
+np_list_error = "nput should be a list of 2D np.ndarray"
 
 
-def from_numpy3d_to_df_list(X, store=None):
-    """Convert 3D np.darray to a list of dataframes in wide format.
+numpyflat_error = (
+    "Input should be 2-dimensional np.ndarray with shape (n_instances, "
+    "n_timepoints).",
+)
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] of pd.DataFrames shape (n_channels, n_timepoints)
+
+def from_numpyflat_to_numpy3d(X):
+    """Convert numpyflat collection to 3D by simply adding a dimension.
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        2-dimensional np.ndarray (n_instances, n_timepoints)
 
     Returns
     -------
-    df : pd.DataFrame
+    X_mi : pd.DataFrame
+        3-dimensional np.ndarray (n_instances, n_channels, n_timepoints)
     """
-    df_list = []
-    for arr in X:
-        df_list.append(pd.DataFrame(arr))
-    return df_list
+    if X.ndim != 2:
+        raise TypeError(numpyflat_error)
+    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
+    return X_3d
 
 
-def from_numpy3d_to_pd_wide(X, store=None):
-    """Convert 3D np.darray to a list of dataframes in wide format.
-
-    Only valid with univariate time series. Converts 3D numpy array (n_instances, 1,
-    n_timepoints) to a dataframe (n_instances, n_timepoints)
+def from_numpyflat_to_np_list(X):
+    """Convert numpyflat collection to list of numpy shape (1,n_timepoints).
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, 1, n_timepoints)
+        2-dimensional np.ndarray (n_instances, n_timepoints)
 
     Returns
     -------
-    df : a dataframe (n_instances, n_timepoints)
-
-    Raise
-    -----
-    ValueError if X has n_channels>1
+    X_mi : list
+        list of np.ndarray (n_instances, 1, n_timepoints)
     """
-    if X.shape[1] > 1:
-        raise ValueError(
-            "Error, numpy3D passed with > 1 channel, cannot convert to " "pd-wide"
-        )
-    return pd.DataFrame(X.squeeze())
+    if not isinstance(X, np.ndarray) or X.ndim != 2:
+        raise TypeError(numpyflat_error)
+    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
+    X_list = []
+    for x in X_3d:
+        X_list.append(x)
+    return X_list
 
 
 def from_numpyflat_to_nested_univ(X):
@@ -222,6 +231,8 @@ def from_numpyflat_to_nested_univ(X):
     Xt : pd.DataFrame
         DataFrame with a single column of pd.Series
     """
+    if not isinstance(X, np.ndarray) or X.ndim != 2:
+        raise TypeError(numpyflat_error)
     container = pd.Series
     n_instances, n_timepoints = X.shape
     time_index = np.arange(n_timepoints)
