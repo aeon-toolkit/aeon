@@ -15,6 +15,7 @@ DATA_TYPES = [
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
 ]
+# To add
 # "pd-multiindex", d.DataFrame with multi-index,
 # "dask_panel": not used anywhere
 

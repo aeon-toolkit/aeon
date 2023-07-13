@@ -1,4 +1,3 @@
-#!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
 """Unit tests for aeon.utils.validation.collection check/convert functions."""
 import numpy as np
@@ -26,9 +25,9 @@ nested, _ = make_nested_dataframe_data()
 
 DATA_EXAMPLES = {
     "numpy3D": np.zeros(shape=(10, 3, 20)),
-    "numpyflat": np.zeros(shape=(10, 20)),
     "np-list": np_list,
     "df-list": df_list,
+    "numpyflat": np.zeros(shape=(10, 20)),
     "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
     "nested_univ": nested,
 }
