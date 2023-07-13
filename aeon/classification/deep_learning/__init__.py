@@ -11,14 +11,14 @@ __all__ = [
     "ResNetClassifier",
     "TapNetClassifier",
 ]
-from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.classification.deep_learning.cnn import CNNClassifier
-from aeon.classification.deep_learning.encoder import EncoderClassifier
-from aeon.classification.deep_learning.fcn import FCNClassifier
-from aeon.classification.deep_learning.inception_time import (
+from aeon.classification.deep_learning._cnn import CNNClassifier
+from aeon.classification.deep_learning._encoder import EncoderClassifier
+from aeon.classification.deep_learning._fcn import FCNClassifier
+from aeon.classification.deep_learning._inception_time import (
     InceptionTimeClassifier,
     IndividualInceptionClassifier,
 )
-from aeon.classification.deep_learning.mlp import MLPClassifier
-from aeon.classification.deep_learning.resnet import ResNetClassifier
-from aeon.classification.deep_learning.tapnet import TapNetClassifier
+from aeon.classification.deep_learning._mlp import MLPClassifier
+from aeon.classification.deep_learning._resnet import ResNetClassifier
+from aeon.classification.deep_learning._tapnet import TapNetClassifier
+from aeon.classification.deep_learning.base import BaseDeepClassifier
