@@ -11,7 +11,7 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.mlp import MLPNetwork
+from aeon.networks import MLPNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 _check_dl_dependencies(severity="warning")
