@@ -17,10 +17,12 @@ from inspect import isclass
 
 import numpy as np
 import pandas as pd
+from numpy.testing import assert_array_equal
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import FitInTransform
+from aeon.transformations.series.boxcox import BoxCoxTransformer
 from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
@@ -593,3 +595,25 @@ def test_vectorize_reconstruct_unique_columns():
     t = Detrender.create_test_instance()
     Xt = t.fit_transform(X)
     assert set(Xt.columns) == set([0, 1])
+
+
+def test_numpy_format_outputs():
+    """Test that all numpy formats return the same output when converted."""
+    X = np.random.random(size=(2, 1, 8))
+    bc = BoxCoxTransformer()
+
+    u1d = bc.fit_transform(X[0][0])
+    # 2d numpy arrays are (length, channels) while 3d numpy arrays are
+    # (cases, channels, length)
+    u2d = bc.fit_transform(X[0].transpose()).transpose()
+    u3d = bc.fit_transform(X)
+
+    assert_array_equal(u1d, u2d[0])
+    assert_array_equal(u1d, u3d[0][0])
+
+    X = np.random.random(size=(2, 2, 8))
+
+    m2d = bc.fit_transform(X[0].transpose()).transpose()
+    m3d = bc.fit_transform(X)
+
+    assert_array_equal(m2d, m3d[0])
