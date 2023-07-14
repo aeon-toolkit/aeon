@@ -268,7 +268,7 @@ class AutoARIMA(_PmdArimaAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """  # noqa: E501
 
-    _tags = {"handles-missing-data": True}
+    _tags = {"capability:missing_values": True}
 
     SARIMAX_KWARGS_KEYS = [
         "time_varying_regression",
@@ -665,7 +665,7 @@ class ARIMA(_PmdArimaAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """  # noqa: E501
 
-    _tags = {"handles-missing-data": True}
+    _tags = {"capability:missing_values": True}
 
     SARIMAX_KWARGS_KEYS = [
         "time_varying_regression",

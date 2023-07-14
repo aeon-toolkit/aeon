@@ -16,13 +16,12 @@ Forecasting with aeon
 :::
 
 :::{grid-item-card}
-:link: /examples/01a_forecasting_sklearn.ipynb
+:img-top: examples/forecasting/img/splitter.png
+:link: /examples/forecasting/window_splitters.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
-
-:::
+Window splitters for reduction to regression
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
@@ -30,7 +29,7 @@ Forecasting with aeon - appendix: forecasting, supervised regression, and pitfal
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with aeon
+Probabilistic forecasting
 
 :::
 
@@ -40,17 +39,18 @@ Probabilistic Forecasting with aeon
 :link-type: ref
 :text-align: center
 
-Hierarchical, Global, and Panel Forecasting
+Hierarchical, global, and panel forecasting
+
+:::
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:link: /examples/forecasting/window_splitters.ipynb
+:link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
-Window splitters for reduction to regression
+Forecasting with aeon and scikit learn
 
 :::
 
@@ -178,22 +178,12 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/reg.png
+:img-top: examples/regression/img/tser.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
 
 Extrinsic regression
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:link: /examples/regression/regression_reduction.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting reduced to regression
 
 :::
 
@@ -207,35 +197,14 @@ Forecasting reduced to regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/clst.png
-:link: /examples/clustering/distance_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
 Distance based clustering
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/feature_clst.png
-:link: /examples/clustering/feature_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based clustering
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/dl_clst.png
-:link: /examples/clustering/dl_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Deep learning based clustering
-
-:::
-
 
 ::::
 

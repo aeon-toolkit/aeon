@@ -33,7 +33,9 @@ def _test_distance_params(
         curr_results = []
         for x, y in test_ts:
             if g_none:
-                param_dict["g"] = np.std([x, y], axis=0).sum(axis=1)
+                param_dict["g_arr"] = np.std([x, y], axis=0).sum(axis=1)
+                if "g" in param_dict:
+                    del param_dict["g"]
             results = []
             results.append(distance_func(x, y, **param_dict))
             results.append(distance(x, y, metric=distance_str, **param_dict))
