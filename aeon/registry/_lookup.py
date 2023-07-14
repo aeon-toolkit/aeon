@@ -134,11 +134,11 @@ def all_estimators(
     --------
     >>> from aeon.registry import all_estimators
     >>> # return a complete list of estimators as pd.Dataframe
-    >>> all_estimators(as_dataframe=True)
+    >>> all= all_estimators(as_dataframe=True)
     >>> # return all forecasters by filtering for estimator type
-    >>> all_estimators("forecaster")
+    >>> forecasters=all_estimators("forecaster")
     >>> # return all forecasters which handle missing data in the input by tag filtering
-    >>> all_estimators("forecaster", filter_tags={"capability:missing_values": True})
+    >>> f2=all_estimators("forecaster", filter_tags={"capability:missing_values":True})
 
     References
     ----------
