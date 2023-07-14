@@ -48,6 +48,10 @@ def scitype(obj, force_single_scitype=True, coerce_to_list=False):
     if len(scitypes) > 1 and "estimator" in scitypes:
         scitypes = list(set(scitypes).difference(["estimator"]))
 
+    # remove transformer if collection-transformer is present
+    if len(scitypes) > 1 and "collection-transformer" in scitypes:
+        scitypes = list(set(scitypes).difference(["transformer"]))
+
     if force_single_scitype:
         scitypes = [scitypes[0]]
 
