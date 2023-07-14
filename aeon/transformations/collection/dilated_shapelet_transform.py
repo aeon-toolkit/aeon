@@ -180,9 +180,10 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
-        self._random_state = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
-        )
+        if isinstance(self.random_state, int):
+            self._random_state = np.random.RandomState(np.int32(self.random_state))
+        else:
+            self._random_state = np.random.RandomState()
 
         self.n_instances, self.n_channels, self.series_length = X.shape
 
@@ -202,7 +203,6 @@ class RandomDilatedShapeletTransform(BaseTransformer):
                 "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
                 "with input length = {}".format(self.series_length),
             )
-
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
             y,

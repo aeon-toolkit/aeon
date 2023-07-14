@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Random Dilated Shapelet Transform (RDST) Classifier .
+"""Random Dilated Shapelet Transform (RDST) Classifier.
 
 A Random Dilated Shapelet Transform classifier pipeline that simply performs a random
 shapelet dilated transform and build (by default) a ridge classifier on the output.
@@ -60,9 +60,6 @@ class RDSTClassifier(BaseClassifier):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit in ``transformed_data_`` for use in
-        ``_get_train_probs``.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
