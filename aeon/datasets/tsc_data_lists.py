@@ -159,6 +159,7 @@ univariate = {
     "WordSynonyms",
     "Worms",
     "WormsTwoClass",
+    "Yoga",
 }
 
 """ 33 UEA multivariate time series classification problems [2]"""
