@@ -12,7 +12,14 @@ all_tags(estimator_types)
     lookup and filtering of estimator tags
 """
 
-__author__ = ["fkiraly", "mloning", "katiebuc", "miraep8", "xloem"]
+__author__ = [
+    "fkiraly",
+    "mloning",
+    "katiebuc",
+    "miraep8",
+    "xloem",
+    "MatthewMiddlehurst",
+]
 # all_estimators is also based on the sklearn utility of the same name
 
 
@@ -41,6 +48,7 @@ def all_estimators(
     estimator_types=None,
     filter_tags=None,
     exclude_estimators=None,
+    exclude_estimator_types=None,
     return_names=True,
     as_dataframe=False,
     return_tags=None,
@@ -78,6 +86,9 @@ def all_estimators(
                 condition is "key must be equal to value, or in set(value)"
     exclude_estimators: str, list of str, optional (default=None)
         Names of estimators to exclude.
+    exclude_estimator_types: str, list of str, optional (default=None)
+        Names of estimator types to exclude i.e. "collection_transformer" when you are
+        looking for "transformer" classes
     as_dataframe: bool, optional (default=False)
         if True, all_estimators will return a pandas.DataFrame with named
             columns for all of the attributes being returned.
@@ -218,9 +229,10 @@ def all_estimators(
             try:
                 if suppress_import_stdout:
                     # setup text trap, import, then restore
+                    original_stdout = sys.stdout
                     sys.stdout = io.StringIO()
                     module = import_module(module_name)
-                    sys.stdout = sys.__stdout__
+                    sys.stdout = original_stdout
                 else:
                     module = import_module(module_name)
                 classes = inspect.getmembers(module, inspect.isclass)
@@ -256,6 +268,17 @@ def all_estimators(
             (name, estimator)
             for name, estimator in all_estimators
             if _is_in_estimator_types(estimator, estimator_types)
+        ]
+
+    # Filter based on base class
+    if exclude_estimator_types:
+        exclude_estimator_types = _check_estimator_types(
+            exclude_estimator_types, var_name="exclude_estimator_types"
+        )
+        all_estimators = [
+            (name, estimator)
+            for name, estimator in all_estimators
+            if not _is_in_estimator_types(estimator, exclude_estimator_types)
         ]
 
     # Filter based on given exclude list
@@ -471,7 +494,7 @@ def all_tags(
     return all_tags
 
 
-def _check_estimator_types(estimator_types):
+def _check_estimator_types(estimator_types, var_name="estimator_types"):
     """Return list of classes corresponding to type strings."""
     estimator_types = deepcopy(estimator_types)
 
@@ -480,7 +503,7 @@ def _check_estimator_types(estimator_types):
 
     def _get_err_msg(estimator_type):
         return (
-            f"Parameter `estimator_type` must be None, a string or a list of "
+            f"Parameter `{var_name}` must be None, a string or a list of "
             f"strings. Valid string values are: "
             f"{tuple(BASE_CLASS_LOOKUP.keys())}, but found: "
             f"{repr(estimator_type)}"
@@ -489,7 +512,7 @@ def _check_estimator_types(estimator_types):
     for i, estimator_type in enumerate(estimator_types):
         if not isinstance(estimator_type, (type, str)):
             raise ValueError(
-                "Please specify `estimator_types` as a list of str or " "types."
+                f"Please specify `{var_name}` as a list of str or " "types."
             )
         if isinstance(estimator_type, str):
             if estimator_type not in BASE_CLASS_LOOKUP.keys():
