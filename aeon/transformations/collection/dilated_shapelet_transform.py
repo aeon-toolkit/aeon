@@ -181,9 +181,9 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             This estimator.
         """
         if isinstance(self.random_state, int):
-            self._random_state = np.random.RandomState(np.int32(self.random_state))
+            self._random_state = np.int32(self.random_state)
         else:
-            self._random_state = np.random.RandomState()
+            self._random_state = np.int32(np.random.randint(0, 2**31))
 
         self.n_instances, self.n_channels, self.series_length = X.shape
 
