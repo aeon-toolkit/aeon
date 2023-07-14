@@ -127,7 +127,7 @@ def all_estimators(
     >>> # return all forecasters by filtering for estimator type
     >>> all_estimators("forecaster")
     >>> # return all forecasters which handle missing data in the input by tag filtering
-    >>> all_estimators("forecaster", filter_tags={"handles-missing-data": True})
+    >>> all_estimators("forecaster", filter_tags={"capability:missing_values": True})
 
     References
     ----------
@@ -390,7 +390,15 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
     for key, value in filter_tags.items():
         if not isinstance(value, list):
             value = [value]
-        cond_sat = cond_sat and estimator.get_class_tag(key) in set(value)
+        tags = estimator.get_class_tag(key)
+        if isinstance(tags, list):
+            in_list = False
+            for s in tags:
+                if s in value:
+                    in_list = True
+            cond_sat = cond_sat and in_list
+        else:
+            cond_sat = cond_sat and tags in value
 
     return cond_sat
 

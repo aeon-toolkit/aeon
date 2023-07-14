@@ -74,7 +74,7 @@ from aeon.datatypes._check import mtype as infer_mtype
 from aeon.datatypes._hierarchical import convert_dict_Hierarchical
 from aeon.datatypes._panel import convert_dict_Panel
 from aeon.datatypes._proba import convert_dict_Proba
-from aeon.datatypes._registry import mtype_to_scitype
+from aeon.datatypes._registry import AMBIGUOUS_MTYPES, mtype_to_scitype
 from aeon.datatypes._series import convert_dict_Series
 from aeon.datatypes._table import convert_dict_Table
 
@@ -167,7 +167,7 @@ def convert(
         pass
     else:
         raise RuntimeError(
-            "bug: unrechable condition error, store_behaviour has unexpected value"
+            "bug: unreachable condition error, store_behaviour has unexpected value"
         )
 
     converted_obj = convert_dict[key](obj, store=store)
@@ -182,6 +182,7 @@ def convert_to(
     as_scitype: str = None,
     store=None,
     store_behaviour: str = None,
+    exclude_mtypes=AMBIGUOUS_MTYPES,
 ):
     """Convert object to a different machine representation, subject to scitype.
 
@@ -202,6 +203,8 @@ def convert_to(
         "freeze" - store is read-only, may be read/used by conversion but not changed
         "update" - store is updated from conversion and retains previous contents
         None - automatic: "update" if store is empty and not None; "freeze", otherwise
+    exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
+        which mtypes to ignore in inferring mtype, default = ambiguous ones
 
     Returns
     -------
@@ -239,7 +242,9 @@ def convert_to(
         as_scitype = mtype_to_scitype(to_type)
 
     # now further narrow down as_scitype by inference from the obj
-    from_type = infer_mtype(obj=obj, as_scitype=as_scitype)
+    from_type = infer_mtype(
+        obj=obj, as_scitype=as_scitype, exclude_mtypes=exclude_mtypes
+    )
     as_scitype = mtype_to_scitype(from_type)
 
     # if to_type is a list, we do the following:

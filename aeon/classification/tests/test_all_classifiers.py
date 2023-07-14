@@ -15,8 +15,8 @@ from aeon.classification.tests._expected_outputs import (
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.utils._testing.collection import make_3d_test_data
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.panel import make_classification_problem
 from aeon.utils._testing.scenarios_classification import (
     ClassifierFitPredict,
     ClassifierFitPredictMultivariate,
@@ -47,8 +47,24 @@ class ClassifierFixtureGenerator(BaseFixtureGenerator):
 class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
     """Module level tests for all aeon classifiers."""
 
+    def test_handles_single_class(self, estimator_instance):
+        """BASE CLASS ONLY. Test that estimator handles fit when only single class
+        label is seen.
+
+        This is important for compatibility with ensembles that sub-sample,
+        as sub-sampling stochastically produces training sets with single class label.
+        """
+        X, _ = make_3d_test_data(n_cases=10)
+        y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+
+        error_msg = "single class label"
+
+        with pytest.warns(UserWarning, match=error_msg):
+            estimator_instance.fit(X, y)
+
     def test_multivariate_input_exception(self, estimator_instance):
-        """Test univariate classifiers raise exception on multivariate X."""
+        """BASE CLASS ONLY Test univariate classifiers raise exception on multivariate
+        X."""
         # check if multivariate input raises error for univariate classifiers
 
         # if handles multivariate, no error is to be raised
@@ -70,7 +86,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
                 scenario.run(estimator_instance, method_sequence=["fit"])
 
     def test_classifier_output(self, estimator_instance, scenario):
-        """Test classifier outputs the correct data types and values.
+        """BASE CLASS TEST. Test classifier outputs the correct data types and values.
 
         Test predict produces a np.array or pd.Series with only values seen in the train
         data, and that predict_proba probability estimates add up to one.
@@ -160,20 +176,6 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
 
         # assert probabilities are the same
         _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
-
-    def test_handles_single_class(self, estimator_instance):
-        """Test that estimator handles fit when only single class label is seen.
-
-        This is important for compatibility with ensembles that sub-sample,
-        as sub-sampling stochastically produces training sets with single class label.
-        """
-        X, y = make_classification_problem()
-        y[:] = 42
-
-        error_msg = "single class label"
-
-        with pytest.warns(UserWarning, match=error_msg):
-            estimator_instance.fit(X, y)
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""

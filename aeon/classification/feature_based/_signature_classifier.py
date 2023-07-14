@@ -13,8 +13,10 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.signature_based._checks import _handle_aeon_signatures
-from aeon.transformations.panel.signature_based._signature_method import (
+from aeon.transformations.collection.signature_based._checks import (
+    _handle_aeon_signatures,
+)
+from aeon.transformations.collection.signature_based._signature_method import (
     SignatureTransformer,
 )
 
@@ -92,7 +94,7 @@ class SignatureClassifier(BaseClassifier):
         "capability:multivariate": True,
         "algorithm_type": "feature",
         "python_dependencies": "esig",
-        "python_version": "<3.10",
+        "python_version": "<3.11",
     }
 
     def __init__(

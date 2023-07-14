@@ -6,48 +6,51 @@
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting2.png
-:link: /examples/01_forecasting.ipynb
+:img-top: examples/forecasting/img/forecasting2.png
+:link: /examples/forecasting/forecasting.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with sktime
+Forecasting with aeon
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01a_forecasting_sklearn.ipynb
+:img-top: examples/forecasting/img/splitter.png
+:link: /examples/forecasting/window_splitters.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with sktime - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+Window splitters for reduction to regression
+
+:::{grid-item-card}
+:img-top: examples/forecasting/img/proba.png
+:link: /examples/forecasting/forecasting_proba.ipynb
+:link-type: ref
+:text-align: center
+
+Probabilistic forecasting
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01b_forecasting_proba.ipynb
+:img-top: examples/forecasting/img/hierarchytree_grouped.png
+:link: /examples/forecasting/forecasting_hierarchical_global.ipynb
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with sktime
+Hierarchical, global, and panel forecasting
+
+:::
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01c_forecasting_hierarchical_global.ipynb
+:link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
-Hierarchical, Global, and Panel Forecasting with sktime
-
-:::
-
-:::{grid-item-card}
-:link: /examples/window_splitters.ipynb
-:link-type: ref
-:text-align: center
-
-Window Splitters in Sktime
+Forecasting with aeon and scikit learn
 
 :::
 
@@ -59,102 +62,111 @@ Window Splitters in Sktime
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
 :link: /examples/classification/classification.ipynb
 :link-type: ref
 :text-align: center
 
-Time Series Classification with aeon
+Time Series Classification (TSC) with aeon
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/convolution.png
 :link: /examples/classification/convolution_based.ipynb
 :link-type: ref
 :text-align: center
 
-Convolution based time series classification in aeon
+Convolution based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/it.png
 :link: /examples/classification/deep_learning.ipynb
 :link-type: ref
 :text-align: center
-
-Deep learning based time series classification in aeon
+Deep learning based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/hist.png
 :link: /examples/classification/dictionary_based.ipynb
 :link-type: ref
 :text-align: center
 
-Dictionary based time series classification in aeon
+Dictionary based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/dtw.png
 :link: /examples/classification/distance_based.ipynb
 :link-type: ref
 :text-align: center
 
-Distance based time series classification in sktime
+Distance based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/pipeline.png
 :link: /examples/classification/feature_based.ipynb
 :link-type: ref
 :text-align: center
 
-Feature based time series classification in sktime
+Feature based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/hc2.png
 :link: /examples/classification/hybrid.ipynb
 :link-type: ref
 :text-align: center
 
-Hybrid time series classification in sktime
+Hybrid TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/interval.png
 :link: /examples/classification/interval_based.ipynb
 :link-type: ref
 :text-align: center
 
-Interval based time series classification in sktime
+Interval based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/shapelet.png
 :link: /examples/classification/shapelet_based.ipynb
 :link-type: ref
 :text-align: center
 
-Shapelet based time series classification in sktime
+Shapelet based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/tser.png
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
 :text-align: center
 
-Early time series classification with sktime
+Early TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/tser.png
 :link: /examples/classification/channel_selection.ipynb
 :link-type: ref
 :text-align: center
 
-Channel Selection in Multivariate Time Series Classification
+Channel selection in multivariate TSC
 
 :::
 
@@ -162,8 +174,21 @@ Channel Selection in Multivariate Time Series Classification
 
 (examples-regression)=
 ## Regression
+::::{grid} 2 4 4 4
+:gutter: 1
 
-To come!
+:::{grid-item-card}
+:img-top: examples/regression/img/tser.png
+:link: /examples/regression/regression.ipynb
+:link-type: ref
+:text-align: center
+
+Extrinsic regression
+
+:::
+
+::::
+
 
 (examples-clustering)=
 ## Clustering
@@ -172,27 +197,12 @@ To come!
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/partition_based_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-Partition based time series clustering in sktime
-
-:::
-
-::::
-
-## Annotation
-
-::::{grid} 2 4 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:link: /examples/segmentation_with_clasp.ipynb
-:link-type: ref
-:text-align: center
-
-Time Series Segmentation with sktime and ClaSP
+Distance based clustering
 
 :::
 
@@ -205,25 +215,119 @@ Time Series Segmentation with sktime and ClaSP
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/catch22.ipynb
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/transformers.ipynb
 :link-type: ref
 :text-align: center
 
-The Canonical Time-series Characteristics (catch22) transform
+Transformers
 
 :::
 
 :::{grid-item-card}
-:link: /examples/feature_extraction_with_tsfresh.ipynb
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
 
-Feature extraction with tsfresh transformer
+Feature based
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/rocket.ipynb
+:link-type: ref
+:text-align: center
+
+Convolution based
 
 :::
 
 :::{grid-item-card}
-:link: /examples/hidalgo_segmentation.ipynb
+:img-top: examples/transformations/img/shapelets.png
+:link: /examples/transformations/shapelets.ipynb
+:link-type: ref
+:text-align: center
+
+Shapelet based
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/interpolation.ipynb
+:link-type: ref
+:text-align: center
+
+Interpolation
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/plateau_finder.ipynb
+:link-type: ref
+:text-align: center
+
+PlateauFinder
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/signature_method.ipynb
+:link-type: ref
+:text-align: center
+
+Signature Method
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/transformations/theta_transform.ipynb
+:link-type: ref
+:text-align: center
+
+Theta
+
+:::
+
+::::
+
+
+## Annotation
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/annotation/segmentation_use_cases.ipynb
+:link-type: ref
+:text-align: center
+
+Segmentation use cases
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/clasp.png
+:link: /examples/annotation/segmentation_with_clasp.ipynb
+:link-type: ref
+:text-align: center
+
+ClaSP segmentation
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/trans.png
+:link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -231,117 +335,83 @@ Hidalgo segmentation
 
 :::
 
-:::{grid-item-card}
-:link: /examples/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Time series interpolating with sktime
-
-:::
-
-:::{grid-item-card}
-:link: /examples/minirocket.ipynb
-:link-type: ref
-:text-align: center
-
-MiniRocket
-
-:::
-
-:::{grid-item-card}
-:link: /examples/plateau_finder.ipynb
-:link-type: ref
-:text-align: center
-
-Demo of the PlateauFinder transformer
-
-:::
-
-:::{grid-item-card}
-:link: /examples/rocket.ipynb
-:link-type: ref
-:text-align: center
-
-Demo of ROCKET transform
-
-:::
-
-:::{grid-item-card}
-:link: /examples/signature_method.ipynb
-:link-type: ref
-:text-align: center
-
-The Signature Method with Sktime
-
-:::
-
-:::{grid-item-card}
-:link: /examples/theta_transform.ipynb
-:link-type: ref
-:text-align: center
-
-Theta Lines transformer
-
-:::
 
 ::::
 
-## Data
+
+## Distances
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/AA_datatypes_and_datasets.ipynb
+:img-top: examples/distances/img/dtw_vis.png
+:link: /examples/distances/distances.ipynb
 :link-type: ref
 :text-align: center
 
-In-memory data representations and data loading
+Distance functions
 
 :::
+
 
 :::{grid-item-card}
-:link: /examples/loading_data.ipynb
+:img-top: examples/distances/img/svm.png
+:link: /examples/distances/sklearn_distances.ipynb
 :link-type: ref
 :text-align: center
 
-Loading data into sktime
-
-:::
+Using aeon distances with scikit-learn
 
 ::::
 
-## Other
+## Data Formatting and Loading
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/04_benchmarking.ipynb
+:link: /examples/datasets/data_storage.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking with sktime
+Storing time series in arrays and data frames
 
 :::
 
 :::{grid-item-card}
-:link: /examples/distances.ipynb
+:link: /examples/datasets/data_files_structures.ipynb
 :link-type: ref
 :text-align: center
 
-Distances
+How series are stored in file
 
 :::
 
 :::{grid-item-card}
-:link: /examples/mlflow.ipynb
+:link: /examples/datasets/data_loading.ipynb
 :link-type: ref
 :text-align: center
 
-MLflow
+Loading data into memory
 
 :::
+
+
+:::{grid-item-card}
+:link: /examples/datasets/provided_data.ipynb
+:link-type: ref
+:text-align: center
+
+Example data sets
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/benchmarking_data.ipynb
+:link-type: ref
+:text-align: center
+
+Getting data for benchmarking
 
 ::::

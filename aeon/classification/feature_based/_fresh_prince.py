@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
-"""FreshPRINCE Classifier.
+"""FreshPRINCEClassifier.
 
-Pipeline classifier using the full set of TSFresh features and a RotationForest
-classifier.
+Pipeline classifier using the full set of TSFresh features and a
+RotationForestClassifier.
 """
 
 __author__ = ["MatthewMiddlehurst"]
-__all__ = ["FreshPRINCE"]
+__all__ = ["FreshPRINCEClassifier"]
 
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn import RotationForest
-from aeon.transformations.panel.tsfresh import TSFreshFeatureExtractor
+from aeon.classification.sklearn import RotationForestClassifier
+from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
-class FreshPRINCE(BaseClassifier):
+class FreshPRINCEClassifier(BaseClassifier):
     """Fresh Pipeline with RotatIoN forest Classifier.
 
     This classifier simply transforms the input data using the TSFresh [1]_
-    transformer with comprehensive features and builds a RotationForest estimator using
-    the transformed data.
+    transformer with comprehensive features and builds a RotationForestClassifier
+    estimator using the transformed data.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ class FreshPRINCE(BaseClassifier):
         Set of TSFresh features to be extracted, options are "minimal", "efficient" or
         "comprehensive".
     n_estimators : int, default=200
-        Number of estimators for the RotationForest ensemble.
+        Number of estimators for the RotationForestClassifier ensemble.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -50,12 +50,12 @@ class FreshPRINCE(BaseClassifier):
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshClassifier, RotationForest
+    TSFreshFeatureExtractor, TSFreshClassifier, RotationForestClassifier
 
     References
     ----------
     .. [1] Christ, Maximilian, et al. "Time series feature extraction on basis of
-        scalable hypothesis tests (tsfresh–a python package)." Neurocomputing 307
+        scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
     """
@@ -65,7 +65,6 @@ class FreshPRINCE(BaseClassifier):
         "capability:multithreading": True,
         "capability:train_estimate": True,
         "algorithm_type": "feature",
-        "python_version": "<3.10",
         "python_dependencies": "tsfresh",
     }
 
@@ -96,7 +95,7 @@ class FreshPRINCE(BaseClassifier):
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCE, self).__init__()
+        super(FreshPRINCEClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -120,15 +119,15 @@ class FreshPRINCE(BaseClassifier):
         """
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
-        self._rotf = RotationForest(
+        self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._tsfresh = TSFreshFeatureExtractor(
             default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             chunksize=self.chunksize,
             show_warnings=self.verbose > 1,
             disable_progressbar=self.verbose < 1,
@@ -203,7 +202,7 @@ class FreshPRINCE(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            FreshPRINCE provides the following special sets:
+            FreshPRINCEClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates

@@ -13,7 +13,6 @@ import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
 from tempfile import TemporaryDirectory
-from warnings import warn
 
 import joblib
 import numpy as np
@@ -36,7 +35,6 @@ from aeon.tests._config import (
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
-    VALID_ESTIMATOR_TYPES,
 )
 from aeon.transformations.base import BaseTransformer
 from aeon.utils._testing._conditional_fixtures import (
@@ -55,7 +53,6 @@ from aeon.utils.sampling import random_partition
 from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
     _check_estimator_deps,
-    _check_soft_dependencies,
 )
 
 # whether to subsample estimators per os/version partition matrix design
@@ -493,22 +490,6 @@ class QuickTester:
         ... )
         {'test_repr[NaiveForecaster-2]': 'PASSED'}
         """
-        # todo 0.17.0: remove this code block
-        if return_exceptions is None and raise_exceptions is None:
-            raise_exceptions = False
-
-        if return_exceptions is not None and raise_exceptions is None:
-            warn(
-                "The return_exceptions argument of check_estimator has been deprecated "
-                "since 0.15.1, and will be replaced by raise_exceptions in 0.17.0. "
-                "For safe deprecation: use raise_exceptions argument instead of "
-                "return_exceptions when using keywords. Avoid positional use, instead "
-                "ensure to use keywords. When not using keywords, the "
-                "default behaviour will not change."
-            )
-            raise_exceptions = not return_exceptions
-        # end block to remove
-
         tests_to_run = self._check_None_str_or_list_of_str(
             tests_to_run, var_name="tests_to_run"
         )
@@ -1113,9 +1094,15 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         with pytest.raises(NotFittedError, match=r"has not been fitted"):
             scenario.run(estimator_instance, method_sequence=[method_nsc])
 
-    def test_fit_idempotent(self, estimator_instance, scenario, method_nsc_arraylike):
+    def test_fit_deterministic(
+        self, estimator_instance, scenario, method_nsc_arraylike
+    ):
         """Check that calling fit twice is equivalent to calling it once."""
-        estimator = estimator_instance
+        # escape known non-deterministic estimators
+        if estimator_instance.get_tag(
+            "non-deterministic", tag_value_default=False, raise_error=False
+        ):
+            return None
 
         # for now, we have to skip predict_proba, since current output comparison
         #   does not work for tensorflow Distribution
@@ -1126,9 +1113,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             return None
 
         # run fit plus method_nsc once, save results
-        set_random_state(estimator)
+        set_random_state(estimator_instance)
         results = scenario.run(
-            estimator,
+            estimator_instance,
             method_sequence=["fit", method_nsc_arraylike],
             return_all=True,
             deepcopy_return=True,
@@ -1191,7 +1178,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             (including hyper-parameters and fitted parameters)
         2. expected output type of the method matches actual output type
             - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methdos tested: get_fitted_params
+            list of BaseEstimator methods tested: get_fitted_params
             scitype specific method outputs are tested in TestAll[estimatortype] class
         """
         estimator = estimator_instance
@@ -1290,10 +1277,11 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             and method_nsc == "predict_proba"
         ):
             return None
-        # escape Deep estimators if soft-dep `h5py` isn't installed
-        if isinstance(
-            estimator_instance, (BaseDeepClassifier, BaseDeepRegressor)
-        ) and not _check_soft_dependencies("h5py", severity="warning"):
+
+        # escape estimators we know cannot pickle
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
             return None
 
         estimator = estimator_instance
@@ -1328,6 +1316,15 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     ):
         """Check if saved estimators onto disk can be loaded correctly."""
         method_nsc = method_nsc_arraylike
+
+        # escape estimators we know cannot pickle. There is an argument to be made
+        # that alternate methods of saving should be available, but currently this is
+        # not the case
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
+            return None
+
         # escape predict_proba for forecasters, tfp distributions cannot be pickled
         if (
             isinstance(estimator_instance, BaseForecaster)
@@ -1336,6 +1333,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             return None
 
         estimator = estimator_instance
+
         set_random_state(estimator)
         # Fit the model, get args before and after
         scenario.run(estimator, method_sequence=["fit"], return_args=True)
@@ -1431,9 +1429,3 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # skip them for the underlying network
             if vars(estimator._network).get(key) is not None:
                 assert vars(estimator._network)[key] == value
-
-    def _get_err_msg(estimator):
-        return (
-            f"Invalid estimator type: {type(estimator)}. Valid estimator types are: "
-            f"{VALID_ESTIMATOR_TYPES}"
-        )

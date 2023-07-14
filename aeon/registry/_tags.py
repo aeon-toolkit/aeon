@@ -70,10 +70,28 @@ ESTIMATOR_TAG_REGISTER = [
         "does transform return same time index as input?",
     ),
     (
-        "handles-missing-data",
+        "non-deterministic",
         "estimator",
         "bool",
-        "can the estimator handle missing data (NA, np.nan) in inputs?",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
+    ),
+    (
+        "non-deterministic",
+        "estimator",
+        "bool",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
     ),
     (
         "skip-inverse-transform",
@@ -100,12 +118,6 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:X",
-        "param_est",
-        "str",
-        "which scitypes does X internally support?",
-    ),
-    (
         "scitype:y",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
@@ -130,7 +142,7 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_mtype",
-        ["forecaster", "param_est"],
+        ["forecaster"],
         (
             "list",
             [
@@ -198,17 +210,18 @@ ESTIMATOR_TAG_REGISTER = [
         "capability:multivariate",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
-            "param_est",
             "regressor",
         ],
         "bool",
-        "can the classifier classify time series with 2 or more variables?",
+        "can the estimator classify time series with 2 or more variables?",
     ),
     (
         "capability:unequal_length",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
             "regressor",
             "transformer",
@@ -216,19 +229,11 @@ ESTIMATOR_TAG_REGISTER = [
         "bool",
         "can the estimator handle unequal length time series?",
     ),
-    # "capability:missing_values" is same as "handles-missing-data" tag.
-    # They are kept distinct intentionally for easier TSC refactoring.
-    # Will be merged after refactor completion.
     (
         "capability:missing_values",
-        [
-            "classifier",
-            "early_classifier",
-            "param_est",
-            "regressor",
-        ],
+        "estimator",
         "bool",
-        "can the classifier handle missing data (NA, np.nan) in inputs?",
+        "can the estimator handle missing data (NA, np.nan) in inputs?",
     ),
     (
         "capability:unequal_length:removes",
@@ -244,21 +249,21 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "capability:train_estimate",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "can the classifier estimate its performance on the training set?",
     ),
     (
         "capability:contractable",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "contract time setting, does the estimator support limiting max fit time?",
     ),
     (
         "capability:multithreading",
-        ["classifier", "early_classifier"],
+        "estimator",
         "bool",
-        "can the classifier set n_jobs to use multiple threads?",
+        "can the estimator set n_jobs to use multiple threads?",
     ),
     (
         "algorithm_type",

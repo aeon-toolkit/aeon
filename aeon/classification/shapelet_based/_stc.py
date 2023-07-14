@@ -13,8 +13,8 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn import RotationForest
-from aeon.transformations.panel.shapelet_transform import RandomShapeletTransform
+from aeon.classification.sklearn import RotationForestClassifier
+from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -23,7 +23,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
     of [1][2] but with random shapelet sampling. Transforms the data using the
-    configurable `RandomShapeletTransform` and then builds a `RotationForest`
+    configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
     classifier.
 
     As some implementations and applications contract the transformation solely,
@@ -44,7 +44,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         max length is used
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RotationForest` classifier is used.
+        `None` a default `RotationForestClassifier` classifier is used.
     transform_limit_in_minutes : int, default=0
         Time contract to limit transform time in minutes for the shapelet transform,
         overriding `n_shapelet_samples`. A value of `0` means ``n_shapelet_samples``
@@ -93,7 +93,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     See Also
     --------
     RandomShapeletTransform : The randomly sampled shapelet transform.
-    RotationForest : The default rotation forest classifier used.
+    RotationForestClassifier : The default rotation forest classifier used.
 
     Notes
     -----
@@ -112,12 +112,12 @@ class ShapeletTransformClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.shapelet_based import ShapeletTransformClassifier
-    >>> from aeon.classification.sklearn import RotationForest
+    >>> from aeon.classification.sklearn import RotationForestClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
     >>> clf = ShapeletTransformClassifier(
-    ...     estimator=RotationForest(n_estimators=3),
+    ...     estimator=RotationForestClassifier(n_estimators=3),
     ...     n_shapelet_samples=100,
     ...     max_shapelets=10,
     ...     batch_size=20,
@@ -218,16 +218,16 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RotationForest() if self.estimator is None else self.estimator,
+            RotationForestClassifier() if self.estimator is None else self.estimator,
             self.random_state,
         )
 
-        if isinstance(self._estimator, RotationForest):
+        if isinstance(self._estimator, RotationForestClassifier):
             self._estimator.save_transformed_data = self.save_transformed_data
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         m = getattr(self._estimator, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
@@ -300,7 +300,9 @@ class ShapeletTransformClassifier(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        if isinstance(self.estimator, RotationForest) or self.estimator is None:
+        if (isinstance(self.estimator, RotationForestClassifier)) or (
+            self.estimator is None
+        ):
             return self._estimator._get_train_probs(self.transformed_data_, y)
         else:
             m = getattr(self._estimator, "predict_proba", None)
@@ -321,7 +323,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
             )
 
     @classmethod
@@ -364,14 +366,14 @@ class ShapeletTransformClassifier(BaseClassifier):
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,
-                "estimator": RotationForest(contract_max_n_estimators=2),
+                "estimator": RotationForestClassifier(contract_max_n_estimators=2),
                 "contract_max_n_shapelet_samples": 10,
                 "max_shapelets": 3,
                 "batch_size": 5,
             }
         elif parameter_set == "train_estimate":
             return {
-                "estimator": RotationForest(n_estimators=2),
+                "estimator": RotationForestClassifier(n_estimators=2),
                 "n_shapelet_samples": 10,
                 "max_shapelets": 3,
                 "batch_size": 5,
@@ -379,7 +381,7 @@ class ShapeletTransformClassifier(BaseClassifier):
             }
         else:
             return {
-                "estimator": RotationForest(n_estimators=2),
+                "estimator": RotationForestClassifier(n_estimators=2),
                 "n_shapelet_samples": 10,
                 "max_shapelets": 3,
                 "batch_size": 5,

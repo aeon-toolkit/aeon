@@ -204,14 +204,6 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
 
         super(RandomIntervalSpectralEnsemble, self).__init__()
 
-    @property
-    def feature_importances_(self):
-        """Feature importance not supported for the RISE classifier."""
-        raise NotImplementedError(
-            "The impurity-based feature importances of "
-            "RandomIntervalSpectralForest is currently not supported."
-        )
-
     def _fit(self, X, y):
         """Build a forest of trees from the training set (X, y).
 
@@ -273,7 +265,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         ]
 
         # Parallel loop
-        worker_rets = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        worker_rets = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(_parallel_build_trees)(
                 X,
                 y,
@@ -345,7 +337,7 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
             )
 
         # Assign chunk of trees to jobs
-        n_jobs, _, _ = _partition_estimators(self.n_estimators, self._threads_to_use)
+        n_jobs, _, _ = _partition_estimators(self.n_estimators, self._n_jobs)
 
         # Parallel loop
         all_proba = Parallel(n_jobs=n_jobs, prefer="threads")(
