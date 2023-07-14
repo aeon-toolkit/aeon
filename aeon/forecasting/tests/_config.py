@@ -67,6 +67,7 @@ TEST_OOS_FHS = [1, np.array([2, 5], dtype="int64")]  # out-of-sample
 TEST_INS_FHS = [
     -3,  # single in-sample
     np.array([-2, -5], dtype="int64"),  # multiple in-sample
+    np.array([-3, 2], dtype="int64"),  # mixed in-sample and out-of-sample
 ]
 TEST_FHS = [*TEST_OOS_FHS, *TEST_INS_FHS]
 
