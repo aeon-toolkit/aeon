@@ -134,7 +134,7 @@ def all_estimators(
     --------
     >>> from aeon.registry import all_estimators
     >>> # return a complete list of estimators as pd.Dataframe
-    >>> all= all_estimators(as_dataframe=True)
+    >>> all=all_estimators(as_dataframe=True)
     >>> # return all forecasters by filtering for estimator type
     >>> forecasters=all_estimators("forecaster")
     >>> # return all forecasters which handle missing data in the input by tag filtering
@@ -150,7 +150,7 @@ def all_estimators(
 
     MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
 
-    all_estimators = []
+    all_est = []
     ROOT = str(Path(__file__).parent.parent)  # aeon package root directory
 
     def _is_abstract(klass):
@@ -243,7 +243,7 @@ def all_estimators(
                     for name, klass in classes
                     if _is_estimator(name, klass)
                 ]
-                all_estimators.extend(estimators)
+                all_est.extend(estimators)
             except ModuleNotFoundError as e:
                 # Skip missing soft dependencies
                 if "soft dependency" not in str(e):
@@ -251,7 +251,7 @@ def all_estimators(
                 warnings.warn(str(e), ImportWarning, stacklevel=2)
 
     # Drop duplicates
-    all_estimators = set(all_estimators)
+    all_est = set(all_est)
 
     # Filter based on given estimator types
     def _is_in_estimator_types(estimator, estimator_types):
@@ -264,9 +264,9 @@ def all_estimators(
 
     if estimator_types:
         estimator_types = _check_estimator_types(estimator_types)
-        all_estimators = [
+        all_est = [
             (name, estimator)
-            for name, estimator in all_estimators
+            for name, estimator in all_est
             if _is_in_estimator_types(estimator, estimator_types)
         ]
 
@@ -275,9 +275,9 @@ def all_estimators(
         exclude_estimator_types = _check_estimator_types(
             exclude_estimator_types, var_name="exclude_estimator_types"
         )
-        all_estimators = [
+        all_est = [
             (name, estimator)
-            for name, estimator in all_estimators
+            for name, estimator in all_est
             if not _is_in_estimator_types(estimator, exclude_estimator_types)
         ]
 
@@ -286,25 +286,25 @@ def all_estimators(
         exclude_estimators = _check_list_of_str_or_error(
             exclude_estimators, "exclude_estimators"
         )
-        all_estimators = [
+        all_est = [
             (name, estimator)
-            for name, estimator in all_estimators
+            for name, estimator in all_est
             if name not in exclude_estimators
         ]
 
     # Drop duplicates, sort for reproducibility
     # itemgetter is used to ensure the sort does not extend to the 2nd item of
     # the tuple
-    all_estimators = sorted(all_estimators, key=itemgetter(0))
+    all_est = sorted(all_est, key=itemgetter(0))
 
     if filter_tags:
-        all_estimators = [
-            (n, est) for (n, est) in all_estimators if _check_tag_cond(est, filter_tags)
+        all_est = [
+            (n, est) for (n, est) in all_est if _check_tag_cond(est, filter_tags)
         ]
 
     # remove names if return_names=False
     if not return_names:
-        all_estimators = [estimator for (name, estimator) in all_estimators]
+        all_est = [estimator for (name, estimator) in all_est]
         columns = ["estimator"]
     else:
         columns = ["name", "estimator"]
@@ -313,24 +313,23 @@ def all_estimators(
     if return_tags:
         return_tags = _check_list_of_str_or_error(return_tags, "return_tags")
         # enrich all_estimators by adding the values for all return_tags tags:
-        if all_estimators:
-            if isinstance(all_estimators[0], tuple):
-                all_estimators = [
+        if all_est:
+            if isinstance(all_est[0], tuple):
+                all_est = [
                     (name, est) + _get_return_tags(est, return_tags)
-                    for (name, est) in all_estimators
+                    for (name, est) in all_est
                 ]
             else:
-                all_estimators = [
-                    tuple([est]) + _get_return_tags(est, return_tags)
-                    for est in all_estimators
+                all_est = [
+                    tuple([est]) + _get_return_tags(est, return_tags) for est in all_est
                 ]
         columns = columns + return_tags
 
     # convert to pandas.DataFrame if as_dataframe=True
     if as_dataframe:
-        all_estimators = pd.DataFrame(all_estimators, columns=columns)
+        all_est = pd.DataFrame(all_est, columns=columns)
 
-    return all_estimators
+    return all_est
 
 
 def _check_list_of_str_or_error(arg_to_check, arg_name):
