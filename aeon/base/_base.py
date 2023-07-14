@@ -183,7 +183,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def get_param_names(cls):
-        """Get parameter names for the object.
+        """
+        Get parameter names for the object.
 
         Returns
         -------
@@ -195,13 +196,14 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def get_param_defaults(cls):
-        """Get parameter defaults for the object.
+        """
+        Get parameter defaults for the object.
 
         Returns
         -------
         default_dict: dict with str keys
             keys are all parameters of cls that have a default defined in __init__
-            values are the defaults, as defined in __init__
+            values are the defaults, as defined in __init__.
         """
         parameters = cls._get_init_signature()
         default_dict = {
@@ -210,7 +212,8 @@ class BaseObject(_BaseEstimator):
         return default_dict
 
     def set_params(self, **params):
-        """Set the parameters of this object.
+        """
+        Set the parameters of this object.
 
         The method works on simple estimators as well as on nested objects.
         The latter have parameters of the form ``<component>__<parameter>`` so that it's
@@ -256,7 +259,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def get_class_tags(cls):
-        """Get class tags from estimator class and all its parent classes.
+        """
+        Get class tags from estimator class and all its parent classes.
 
         Returns
         -------
@@ -281,7 +285,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def get_class_tag(cls, tag_name, tag_value_default=None):
-        """Get tag value from estimator class (only class tags).
+        """
+        Get tag value from estimator class (only class tags).
 
         Parameters
         ----------
@@ -301,7 +306,8 @@ class BaseObject(_BaseEstimator):
         return collected_tags.get(tag_name, tag_value_default)
 
     def get_tags(self):
-        """Get tags from estimator class and dynamic tag overrides.
+        """
+        Get tags from estimator class and dynamic tag overrides.
 
         Returns
         -------
@@ -318,16 +324,17 @@ class BaseObject(_BaseEstimator):
         return deepcopy(collected_tags)
 
     def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
-        """Get tag value from estimator class and dynamic tag overrides.
+        """
+        Get tag value from estimator class and dynamic tag overrides.
 
         Parameters
         ----------
         tag_name : str
-            Name of tag to be retrieved
-        tag_value_default : any type, optional; default=None
-            Default/fallback value if tag is not found
+            Name of tag to be retrieved.
+        tag_value_default : any type, default=None
+            Default/fallback value if tag is not found.
         raise_error : bool
-            whether a ValueError is raised when the tag is not found
+            whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
@@ -350,7 +357,8 @@ class BaseObject(_BaseEstimator):
         return tag_value
 
     def set_tags(self, **tag_dict):
-        """Set dynamic tags to given values.
+        """
+        Set dynamic tags to given values.
 
         Parameters
         ----------
@@ -376,11 +384,12 @@ class BaseObject(_BaseEstimator):
         return self
 
     def clone_tags(self, estimator, tag_names=None):
-        """clone/mirror tags from another estimator as dynamic override.
+        """
+        clone/mirror tags from another estimator as dynamic override.
 
         Parameters
         ----------
-        estimator : estimator inheriting from :class:BaseEstimator
+        estimator : estimator inheriting from :class:BaseEstimator.
         tag_names : str or list of str, default = None
             Names of tags to clone. If None then all tags in estimator are used
             as `tag_names`.
@@ -414,7 +423,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
+        """
+        Return testing parameter settings for the estimator.
 
         Parameters
         ----------
@@ -425,17 +435,18 @@ class BaseObject(_BaseEstimator):
         Returns
         -------
         params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            Parameters to create testing instances of the class. Each dict are
+            parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # default parameters = empty dict
         return {}
 
     @classmethod
     def create_test_instance(cls, parameter_set="default"):
-        """Construct Estimator instance if possible.
+        """
+        Construct Estimator instance if possible.
 
         Parameters
         ----------
@@ -445,7 +456,7 @@ class BaseObject(_BaseEstimator):
 
         Returns
         -------
-        instance : instance of the class with default parameters
+        instance : instance of the class with default parameters.
 
         Notes
         -----
@@ -476,7 +487,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def create_test_instances_and_names(cls, parameter_set="default"):
-        """Create list of all test instances and a list of names for them.
+        """
+        Create list of all test instances and a list of names for them.
 
         Parameters
         ----------
@@ -487,11 +499,11 @@ class BaseObject(_BaseEstimator):
         Returns
         -------
         objs : list of instances of cls
-            i-th instance is cls(**cls.get_test_params()[i])
+            i-th instance is cls(**cls.get_test_params()[i]).
         names : list of str, same length as objs
             i-th element is name of i-th instance of obj in tests
             convention is {cls.__name__}-{i} if more than one instance
-            otherwise {cls.__name__}
+            otherwise {cls.__name__}.
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
@@ -527,20 +539,22 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def _has_implementation_of(cls, method):
-        """Check if method has a concrete implementation in this class.
+        """
+        Check if method has a concrete implementation in this class.
 
         This assumes that having an implementation is equivalent to
             one or more overrides of `method` in the method resolution order.
 
         Parameters
         ----------
-        method : str, name of method to check implementation of
+        method : str
+            name of method to check implementation of.
 
         Returns
         -------
         bool, whether method has implementation in cls
             True if cls.method has been overridden at least once in
-                the inheritance tree (according to method resolution order)
+                the inheritance tree (according to method resolution order).
         """
         # walk through method resolution order and inspect methods
         #   of classes and direct parents, "adjacent" classes in mro
@@ -560,14 +574,16 @@ class BaseObject(_BaseEstimator):
         return False
 
     def is_composite(self):
-        """Check if the object is composite.
+        """
+        Check if the object is composite.
 
         A composite object is an object which contains objects, as parameters.
         Called on an instance, since this may differ by instance.
 
         Returns
         -------
-        composite: bool, whether self contains a parameter which is BaseObject
+        composite: bool
+            whether self contains a parameter which is BaseObject.
         """
         # walk through method resolution order and inspect methods
         #   of classes and direct parents, "adjacent" classes in mro
@@ -577,7 +593,8 @@ class BaseObject(_BaseEstimator):
         return composite
 
     def _components(self, base_class=None):
-        """Return references to all state changing BaseObject type attributes.
+        """
+        Return references to all state changing BaseObject type attributes.
 
         This *excludes* the blue-print-like components passed in the __init__.
 
@@ -588,14 +605,14 @@ class BaseObject(_BaseEstimator):
         ----------
         base_class : class, optional, default=None, must be subclass of BaseObject
             if None, behaves the same as `base_class=BaseObject`
-            if not None, return dict collects descendants of `base_class`
+            if not None, return dict collects descendants of `base_class`.
 
         Returns
         -------
-        dict with key = attribute name, value = reference to attribute
+        dict with key = attribute name, value = reference to attribute.
         dict contains all attributes of `self` that inherit from `base_class`, and:
             whose names do not contain the string "__", e.g., hidden attributes
-            are not class attributes, and are not hyper-parameters (`__init__` args)
+            are not class attributes, and are not hyper-parameters (`__init__` args).
         """
         if base_class is None:
             base_class = BaseObject
@@ -618,7 +635,8 @@ class BaseObject(_BaseEstimator):
         return comp_dict
 
     def save(self, path=None):
-        """Save serialized self to bytes-like object or to (.zip) file.
+        """
+        Save serialized self to bytes-like object or to (.zip) file.
 
         Behaviour:
         if `path` is None, returns an in-memory serialized self
@@ -630,7 +648,7 @@ class BaseObject(_BaseEstimator):
 
         Parameters
         ----------
-        path : None or file location (str or Path)
+        path : None or file location (str or Path).
             if None, self is saved to an in-memory object
             if file location, self is saved to that file location. If:
                 path="estimator" then a zip file `estimator.zip` will be made at cwd.
@@ -640,7 +658,7 @@ class BaseObject(_BaseEstimator):
         Returns
         -------
         if `path` is None - in-memory serialized self
-        if `path` is file location - ZipFile with reference to the file
+        if `path` is file location - ZipFile with reference to the file.
         """
         import pickle
         import shutil
@@ -667,15 +685,16 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def load_from_serial(cls, serial):
-        """Load object from serialized memory container.
+        """
+        Load object from serialized memory container.
 
         Parameters
         ----------
-        serial : 1st element of output of `cls.save(None)`
+        serial : 1st element of output of `cls.save(None)`.
 
         Returns
         -------
-        deserialized self resulting in output `serial`, of `cls.save(None)`
+        deserialized self resulting in output `serial`, of `cls.save(None)`.
         """
         import pickle
 
@@ -683,7 +702,8 @@ class BaseObject(_BaseEstimator):
 
     @classmethod
     def load_from_path(cls, serial):
-        """Load object from file location.
+        """
+        Load object from file location.
 
         Parameters
         ----------
@@ -701,7 +721,8 @@ class BaseObject(_BaseEstimator):
 
 
 class TagAliaserMixin:
-    """Mixin class for tag aliasing and deprecation of old tags.
+    """
+    Mixin class for tag aliasing and deprecation of old tags.
 
     To deprecate tags, add the TagAliaserMixin to BaseObject or BaseEstimator.
     alias_dict contains the deprecated tags, and supports removal and renaming.
@@ -725,7 +746,8 @@ class TagAliaserMixin:
 
     @classmethod
     def get_class_tags(cls):
-        """Get class tags from estimator class and all its parent classes.
+        """
+        Get class tags from estimator class and all its parent classes.
 
         Returns
         -------
@@ -740,7 +762,8 @@ class TagAliaserMixin:
 
     @classmethod
     def get_class_tag(cls, tag_name, tag_value_default=None):
-        """Get tag value from estimator class (only class tags).
+        """
+        Get tag value from estimator class (only class tags).
 
         Parameters
         ----------
@@ -761,7 +784,8 @@ class TagAliaserMixin:
         )
 
     def get_tags(self):
-        """Get tags from estimator class and dynamic tag overrides.
+        """
+        Get tags from estimator class and dynamic tag overrides.
 
         Returns
         -------
@@ -775,16 +799,17 @@ class TagAliaserMixin:
         return collected_tags
 
     def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
-        """Get tag value from estimator class and dynamic tag overrides.
+        """
+        Get tag value from estimator class and dynamic tag overrides.
 
         Parameters
         ----------
         tag_name : str
-            Name of tag to be retrieved
+            Name of tag to be retrieved.
         tag_value_default : any type, optional; default=None
-            Default/fallback value if tag is not found
+            Default/fallback value if tag is not found.
         raise_error : bool
-            whether a ValueError is raised when the tag is not found
+            whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
@@ -805,7 +830,8 @@ class TagAliaserMixin:
         )
 
     def set_tags(self, **tag_dict):
-        """Set dynamic tags to given values.
+        """
+        Set dynamic tags to given values.
 
         Parameters
         ----------
@@ -853,15 +879,16 @@ class TagAliaserMixin:
 
     @classmethod
     def _deprecate_tag_warn(cls, tags):
-        """Print warning message for tag deprecation.
+        """
+        Print warning message for tag deprecation.
 
         Parameters
         ----------
-        tags : list of str
+        tags : list of str.
 
         Raises
         ------
-        DeprecationWarning for each tag in tags that is aliased by cls.alias_dict
+        DeprecationWarning for each tag in tags that is aliased by cls.alias_dict.
         """
         for tag_name in tags:
             if tag_name in cls.alias_dict.keys():
@@ -935,7 +962,7 @@ class BaseEstimator(BaseObject):
               parameters of components are indexed as `[componentname]__[paramname]`
               all parameters of `componentname` appear as `paramname` with its value
             * if `deep=True`, also contains arbitrary levels of component recursion,
-              e.g., `[componentname]__[componentcomponentname]__[paramname]`, etc
+              e.g., `[componentname]__[componentcomponentname]__[paramname]`, etc.
         """
         if not self.is_fitted:
             raise NotFittedError(
@@ -994,12 +1021,12 @@ class BaseEstimator(BaseObject):
 
         Parameters
         ----------
-        obj : any object, optional, default=self
+        obj : any object, optional, default=self.
 
         Returns
         -------
         fitted_params : dict with str keys
-            fitted parameters, keyed by names of fitted parameter
+            fitted parameters, keyed by names of fitted parameter.
         """
         obj = obj if obj else self
 
@@ -1023,7 +1050,7 @@ class BaseEstimator(BaseObject):
         Returns
         -------
         fitted_params : dict with str keys
-            fitted parameters, keyed by names of fitted parameter
+            fitted parameters, keyed by names of fitted parameter.
         """
         return self._get_fitted_params_default()
 
@@ -1036,13 +1063,13 @@ class BaseEstimator(BaseObject):
 
         Parameters
         ----------
-        X : an object of any supported type
-        y : np.ndarray or pd.Series
+        X : an object of any supported type.
+        y : np.ndarray or pd.Series.
 
         Returns
         -------
-        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged
-        y: np.ndarray
+        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged.
+        y: np.ndarray.
         """
         if isinstance(X, np.ndarray) and X.ndim == 2:
             X = X.reshape(X.shape[0], 1, X.shape[1])
