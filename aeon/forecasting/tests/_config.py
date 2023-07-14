@@ -32,7 +32,7 @@ TEST_CUTOFFS_INT_ARR = [np.array([21, 22]), np.array([3, 10])]
 # to the above integers for `_make_series(all_positive=True)`
 TEST_CUTOFFS_TIMESTAMP = [
     pd.to_datetime(["2000-01-23"]),
-    pd.to_datetime(["2000-01-04"]),
+    pd.to_datetime(["2000-01-04", "2000-01-08"]),
 ]
 TEST_CUTOFFS = [*TEST_CUTOFFS_INT_LIST, *TEST_CUTOFFS_INT_ARR, *TEST_CUTOFFS_TIMESTAMP]
 
@@ -54,9 +54,9 @@ TEST_INITIAL_WINDOW = [
     *TEST_INITIAL_WINDOW_DATEOFFSET,
 ]
 
-TEST_STEP_LENGTHS_INT = [5]
-TEST_STEP_LENGTHS_TIMEDELTA = [pd.Timedelta(5, unit="D")]
-TEST_STEP_LENGTHS_DATEOFFSET = [pd.offsets.Day(5)]
+TEST_STEP_LENGTHS_INT = [1, 5]
+TEST_STEP_LENGTHS_TIMEDELTA = [pd.Timedelta(1, unit="D"), pd.Timedelta(5, unit="D")]
+TEST_STEP_LENGTHS_DATEOFFSET = [pd.offsets.Day(1), pd.offsets.Day(5)]
 TEST_STEP_LENGTHS = [
     *TEST_STEP_LENGTHS_INT,
     *TEST_STEP_LENGTHS_TIMEDELTA,
@@ -76,6 +76,11 @@ TEST_OOS_FHS_TIMEDELTA = [
 TEST_INS_FHS_TIMEDELTA = [
     pd.Timedelta(-3, unit="D"),  # single in-sample
     [pd.Timedelta(-2, unit="D"), pd.Timedelta(-5, unit="D")],  # multiple in-sample
+    pd.Timedelta(0, unit="D"),  # last training point
+    [
+        pd.Timedelta(-3, unit="D"),
+        pd.Timedelta(2, unit="D"),
+    ],  # mixed in-sample and out-of-sample
 ]
 TEST_FHS_TIMEDELTA = [*TEST_OOS_FHS_TIMEDELTA, *TEST_INS_FHS_TIMEDELTA]
 
@@ -89,13 +94,13 @@ VALID_INDEX_FH_COMBINATIONS = [
     # index type, fh type, is_relative
     ("int", "int", True),
     ("int", "int", False),
-    #    ("range", "int", True),
-    #    ("range", "int", False),
-    #    ("period", "int", True),
-    #    ("period", "period", False),
-    #    ("datetime", "int", True),
-    #    ("datetime", "datetime", False),
-    #    ("datetime", "timedelta", True),
+    ("range", "int", True),
+    ("range", "int", False),
+    ("period", "int", True),
+    ("period", "period", False),
+    ("datetime", "int", True),
+    ("datetime", "datetime", False),
+    ("datetime", "timedelta", True),
 ]
 
 INDEX_TYPE_LOOKUP = {
