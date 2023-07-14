@@ -1702,4 +1702,17 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
             "permutation": ["bar", "foo", "foobar"],
         }
 
-        return [params1]
+        # transformers have no fit, TransformedTargetForecaster
+        # steps are only estimator
+        params2 = {
+            "estimator": TransformedTargetForecaster(
+                [ExponentTransformer(0.5), NaiveForecaster(), ExponentTransformer(3)]
+            ),
+            "permutation": [
+                "NaiveForecaster",
+                "ExponentTransformer_1",
+                "ExponentTransformer_2",
+            ],
+        }
+
+        return [params1, params2]
