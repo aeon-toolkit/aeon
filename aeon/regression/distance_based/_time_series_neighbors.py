@@ -54,7 +54,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     >>> X_test, y_test = load_unit_test(split="test")
     >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
-    KNeighborsTimeSeriesRegressor(...)
+    KNeighborsTimeSeriesRegressor(distance='euclidean')
     >>> y_pred = regressor.predict(X_test)
     """
 

@@ -1,8 +1,13 @@
-#!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-"""Implement interval based time series regression estimators."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Implement interval-based time series regression estimators."""
 
-__author__ = ["mloning"]
-__all__ = ["TimeSeriesForestRegressor"]
+__all__ = [
+    "IntervalForestRegressor",
+    "RandomIntervalRegressor",
+    "TimeSeriesForestRegressor",
+]
 
+from aeon.regression.interval_based._interval_forest import IntervalForestRegressor
+from aeon.regression.interval_based._interval_pipelines import RandomIntervalRegressor
 from aeon.regression.interval_based._tsf import TimeSeriesForestRegressor
