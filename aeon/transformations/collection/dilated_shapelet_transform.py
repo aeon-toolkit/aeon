@@ -138,7 +138,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         "y_inner_mtype": "numpy1D",
         "requires_y": False,
         "capability:inverse_transform": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(

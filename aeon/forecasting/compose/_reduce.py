@@ -198,7 +198,7 @@ class _Reducer(_BaseWindowForecaster):
 
     _tags = {
         "ignores-exogeneous-X": False,  # reduction uses X in non-trivial way
-        "handles-missing-data": True,
+        "capability:missing_values": True,
     }
 
     def __init__(
@@ -218,7 +218,9 @@ class _Reducer(_BaseWindowForecaster):
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
         # therefore this is commented out until aeon and sklearn are better aligned
-        # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
+        # self.set_tags(
+        #     **{"capability:missing_values": estimator._get_tags()["allow_nan"]}
+        # )
 
     def _is_predictable(self, last_window):
         """Check if we can make predictions from last window."""
@@ -1805,7 +1807,9 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
         # therefore this is commented out until aeon and sklearn are better aligned
-        # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
+        # self.set_tags(
+        #     **{"capability:missing_values": estimator._get_tags()["allow_nan"]}
+        # )
 
     def _fit(self, y, X=None, fh=None):
         """Fit dispatcher based on X_treatment."""
