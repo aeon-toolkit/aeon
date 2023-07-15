@@ -765,12 +765,23 @@ class TagAliaserMixin:
         """
         Get class tags from estimator class and all its parent classes.
 
+        Get the tags relating to the class not a particular object.
+
         Returns
         -------
         collected_tags : dict
             Dictionary of tag name : tag value pairs. Collected from _tags
             class attribute via nested inheritance. NOT overridden by dynamic
             tags set by set_tags or mirror_tags.
+
+        See Also
+        --------
+        get_tags
+
+        Examples
+        --------
+        >>> from aeon.classification import DummyClassifier
+        >>> tags = DummyClassifier.get_class_tags()
         """
         collected_tags = super(TagAliaserMixin, cls).get_class_tags()
         collected_tags = cls._complete_dict(collected_tags)
