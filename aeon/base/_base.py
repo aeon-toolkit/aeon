@@ -690,7 +690,8 @@ class BaseObject(_BaseEstimator):
 
         Parameters
         ----------
-        serial : 1st element of output of `cls.save(None)`.
+        serial : object
+            first element of output of `cls.save(None)`.
 
         Returns
         -------
@@ -707,7 +708,8 @@ class BaseObject(_BaseEstimator):
 
         Parameters
         ----------
-        serial : result of ZipFile(path).open("object)
+        serial : object
+            result of ZipFile(path).open("object).
 
         Returns
         -------
