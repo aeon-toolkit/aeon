@@ -623,7 +623,7 @@ class BaseObject(_BaseEstimator):
         Returns
         -------
         composite: bool
-            whether self contains a parameter which is BaseObject.
+            Whether self contains a parameter which is BaseObject.
         """
         # walk through method resolution order and inspect methods
         #   of classes and direct parents, "adjacent" classes in mro
@@ -731,7 +731,7 @@ class BaseObject(_BaseEstimator):
         Parameters
         ----------
         serial : object
-            first element of output of `cls.save(None)`.
+            First element of output of `cls.save(None)`.
 
         Returns
         -------
@@ -749,7 +749,7 @@ class BaseObject(_BaseEstimator):
         Parameters
         ----------
         serial : object
-            result of ZipFile(path).open("object).
+            Result of ZipFile(path).open("object).
 
         Returns
         -------
