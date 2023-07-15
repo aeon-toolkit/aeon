@@ -325,7 +325,9 @@ class BaseObject(_BaseEstimator):
 
     def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
         """
-        Get tag value from estimator class and dynamic tag overrides.
+        Get tag value from estimator class.
+
+        Uses dynamic tag overrides.
 
         Parameters
         ----------
@@ -334,7 +336,7 @@ class BaseObject(_BaseEstimator):
         tag_value_default : any type, default=None
             Default/fallback value if tag is not found.
         raise_error : bool
-            whether a ValueError is raised when the tag is not found.
+            Whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
@@ -346,6 +348,17 @@ class BaseObject(_BaseEstimator):
         ------
         ValueError if raise_error is True i.e. if tag_name is not in self.get_tags(
         ).keys()
+
+        See Also
+        --------
+        get_tags
+
+        Examples
+        --------
+        >>> from aeon.classification import DummyClassifier
+        >>> d = DummyClassifier()
+        >>> d.get_tag("capability:multivariate")
+        True
         """
         collected_tags = self.get_tags()
 
@@ -362,7 +375,7 @@ class BaseObject(_BaseEstimator):
 
         Parameters
         ----------
-        tag_dict : dict
+        **tag_dict : dict
             Dictionary of tag name : tag value pairs.
 
         Returns
@@ -385,11 +398,12 @@ class BaseObject(_BaseEstimator):
 
     def clone_tags(self, estimator, tag_names=None):
         """
-        clone/mirror tags from another estimator as dynamic override.
+        Clone/mirror tags from another estimator as dynamic override.
 
         Parameters
         ----------
-        estimator : estimator inheriting from :class:BaseEstimator.
+        estimator : object
+            estimator inheriting from :class:BaseEstimator.
         tag_names : str or list of str, default = None
             Names of tags to clone. If None then all tags in estimator are used
             as `tag_names`.
