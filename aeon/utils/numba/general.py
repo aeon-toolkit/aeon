@@ -367,10 +367,9 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length))
-    means = np.zeros(n_channels)
-    stds = np.zeros(n_channels)
-
+    values = np.zeros((n_channels, length), dtype=np.float64)
+    means = np.zeros(n_channels, dtype=np.float64)
+    stds = np.zeros(n_channels, dtype=np.float64)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -383,10 +382,10 @@ def get_subsequence_with_mean_std(
 
             values[i_channel, i_length] = _v
             idx += dilation
-
-        means[i_channel] = _sum / length
-        stds[i_channel] = ((_sum2 / length) - means[i_channel] ** 2) ** 0.5
-
+            means[i_channel] = _sum / length
+            stds[i_channel] = (_sum2 / length) - means[i_channel]
+            stds[i_channel] = stds[i_channel] ** 2
+            stds[i_channel] = stds[i_channel] ** 0.5
     return values, means, stds
 
 
