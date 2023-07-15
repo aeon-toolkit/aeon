@@ -303,9 +303,9 @@ class BaseObject(_BaseEstimator):
 
         See Also
         --------
-        get_tag : get a single tag from an object.
-        get_tags : get all tags from an object.
-        get_class_tag : get a single tag from a class.
+        get_tag : Get a single tag from an object.
+        get_tags : Get all tags from an object.
+        get_class_tag : Get a single tag from a class.
 
         Examples
         --------
@@ -330,9 +330,9 @@ class BaseObject(_BaseEstimator):
 
         See Also
         --------
-        get_tag : get a single tag from an object.
-        get_clas_tags : get all tags from a class.
-        get_class_tag : get a single tag from a class.
+        get_tag : Get a single tag from an object.
+        get_clas_tags : Get all tags from a class.
+        get_class_tag : Get a single tag from a class.
 
         Examples
         --------
@@ -375,9 +375,9 @@ class BaseObject(_BaseEstimator):
 
         See Also
         --------
-        get_tags : get all tags from an object.
-        get_clas_tags : get all tags from a class.
-        get_class_tag : get a single tag from a class.
+        get_tags : Get all tags from an object.
+        get_clas_tags : Get all tags from a class.
+        get_class_tag : Get a single tag from a class.
 
         Examples
         --------
@@ -802,9 +802,9 @@ class TagAliaserMixin:
 
         See Also
         --------
-        get_tag : get a single tag from an object.
-        get_clas_tags : get all tags from a class.
-        get_tags : get all tags from an object.
+        get_tag : Get a single tag from an object.
+        get_clas_tags : Get all tags from a class.
+        get_tags : Get all tags from an object.
 
         Examples
         --------
@@ -835,9 +835,9 @@ class TagAliaserMixin:
 
         See Also
         --------
-        get_tag : get a single tag from an object.
-        get_clas_tags : get all tags from a class.
-        get_tags : get all tags from an object.
+        get_tag : Get a single tag from an object.
+        get_clas_tags : Get all tags from a class.
+        get_tags : Get all tags from an object.
 
         Examples
         --------
