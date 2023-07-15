@@ -382,10 +382,11 @@ def get_subsequence_with_mean_std(
 
             values[i_channel, i_length] = _v
             idx += dilation
+
             means[i_channel] = _sum / length
-            stds[i_channel] = (_sum2 / length) - means[i_channel]
-            stds[i_channel] = stds[i_channel] ** 2
-            stds[i_channel] = stds[i_channel] ** 0.5
+            _s = (_sum2 / length) - (means[i_channel] ** 2)
+            if _s > 0:
+                stds[i_channel] = _s**0.5
     return values, means, stds
 
 
