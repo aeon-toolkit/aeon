@@ -300,6 +300,14 @@ class BaseObject(_BaseEstimator):
         tag_value :
             Value of the `tag_name` tag in self. If not found, returns
             `tag_value_default`.
+
+        See Also
+        --------
+        get_ta
+
+        >>> from aeon.classification import DummyClassifier
+        >>> DummyClassifier.get_class_tag("capability:multivariate")
+        True
         """
         collected_tags = cls.get_class_tags()
 
@@ -315,6 +323,16 @@ class BaseObject(_BaseEstimator):
             Dictionary of tag name : tag value pairs. Collected from _tags
             class attribute via nested inheritance and then any overrides
             and new tags from _tags_dynamic object attribute.
+
+        See Also
+        --------
+        get_tag
+
+        Examples
+        --------
+        >>> from aeon.classification import DummyClassifier
+        >>> d = DummyClassifier()
+        >>> tags = d.get_tags()
         """
         collected_tags = self.get_class_tags()
 
@@ -804,6 +822,16 @@ class TagAliaserMixin:
         tag_value :
             Value of the `tag_name` tag in self. If not found, returns
             `tag_value_default`.
+
+        See Also
+        --------
+        get_class_tags
+
+        Examples
+        --------
+        >>> from aeon.classification import DummyClassifier
+        >>> DummyClassifier.get_class_tag("capability:multivariate")
+        True
         """
         cls._deprecate_tag_warn([tag_name])
         return super(TagAliaserMixin, cls).get_class_tag(
