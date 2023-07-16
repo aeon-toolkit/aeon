@@ -219,6 +219,12 @@ class RandomDilatedShapeletTransform(BaseTransformer):
                 "No shapelets were extracted during the fit method with the specified"
                 " parameters."
             )
+        if np.isnan(self.shapelets_[0]).any():
+            raise RuntimeError(
+                "Got NaN values in the extracted shapelet values. This may happen if "
+                "you have NaN values in your data. We do not currently support NaN "
+                "values for shapelet transformation."
+            )
         return self
 
     def _transform(self, X, y=None):
@@ -238,7 +244,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         if np.isinf(X_new).any() or np.isnan(X_new).any():
             warnings.warn(
                 "Some invalid values (inf or nan) where converted from to 0 during the"
-                " shapelet transformation."
+                " shapelet transformation.",
+                stacklevel=2,
             )
             X_new = np.nan_to_num(X_new, nan=0.0, posinf=0.0, neginf=0.0)
 
@@ -270,7 +277,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
                     "Some values in 'shapelet_lengths' are inferior to 2."
-                    "These values will be ignored."
+                    "These values will be ignored.",
+                    stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths[
                     self.shapelet_lengths_ >= 2
@@ -279,7 +287,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             if not np.all(self.shapelet_lengths_ <= self.series_length):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
-                    + "the series length. Shapelet lengths above it will be ignored."
+                    + "the series length. Shapelet lengths above it will be ignored.",
+                    stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
                     self.shapelet_lengths_ <= self.series_length
