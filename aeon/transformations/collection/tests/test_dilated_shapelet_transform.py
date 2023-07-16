@@ -93,7 +93,7 @@ def test_shapelet_prime_dilation():
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalize_subsequences(dtype):
     X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
-    X_norm = normalize_subsequences(X, X.mean(axis=2), X.std(axis=2))
+    X_norm = normalize_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
     assert np.all(X_norm == 0)
     assert np.all(X.shape == X_norm.shape)
 
