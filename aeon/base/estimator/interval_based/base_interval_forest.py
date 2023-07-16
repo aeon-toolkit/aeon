@@ -104,8 +104,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        Both transformers and functions should be able to take a 3D np.ndarray input.
-        A list or tuple of transformers and/or functions will extract intervals from
+        A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
     att_subsample_size : int, float, list, tuple or None, default=None
@@ -870,7 +869,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     warnings.warn(
                         f"Attribute subsample size {att_subsample_size} is larger than "
                         f"or equal to the number of attributes {num_features} for "
-                        f"series {self._series_transformers[r]}"
+                        f"series {self._series_transformers[r]}",
+                        stacklevel=2,
                     )
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):

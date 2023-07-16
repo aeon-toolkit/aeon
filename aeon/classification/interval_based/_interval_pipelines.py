@@ -65,7 +65,7 @@ class RandomIntervalClassifier(BaseClassifier):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -141,7 +141,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -247,7 +247,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
 
 class SupervisedIntervalClassifier(BaseClassifier):
-    """Random Interval Classifier.
+    """Supervised Interval Classifier.
 
     Extracts multiple intervals from series with using a supervised process
     and concatenates them into a feature vector. Builds an estimator on the
@@ -256,7 +256,8 @@ class SupervisedIntervalClassifier(BaseClassifier):
     Parameters
     ----------
     n_intervals : int, default=50
-        The number of times the supervised interval selection process is run.
+        The number of times the supervised interval selection process is run. This
+        process will extract more then one interval per run.
         Each supervised extraction will output a varying amount of features based on
         series length, number of dimensions and the number of features.
     min_interval_length : int, default=3
@@ -299,7 +300,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -377,7 +378,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = SupervisedIntervals(
             n_intervals=self.n_intervals,
