@@ -216,14 +216,14 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
     Examples
     --------
     >>> from aeon.classification.dictionary_based import ContractableBOSS
-    >>> from aeon.classification.interval_based import CanonicalIntervalForest
+    >>> from aeon.classification.interval_based import CanonicalIntervalForestClassifier
     >>> from aeon.datasets import load_basic_motions
     >>> X_train, y_train = load_basic_motions(split="train")
     >>> X_test, y_test = load_basic_motions(split="test")
     >>> cboss = ContractableBOSS(
     ...     n_parameter_samples=4, max_ensemble_size=2, random_state=0
     ... )
-    >>> cif = CanonicalIntervalForest(
+    >>> cif = CanonicalIntervalForestClassifier(
     ...     n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
     ... )
     >>> estimators = [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]
@@ -271,7 +271,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.dictionary_based import ContractableBOSS
-        from aeon.classification.interval_based import CanonicalIntervalForest
+        from aeon.classification.interval_based import CanonicalIntervalForestClassifier
         from aeon.classification.interval_based import (
             TimeSeriesForestClassifier as TSFC,
         )
@@ -286,7 +286,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
         cboss = ContractableBOSS(
             n_parameter_samples=4, max_ensemble_size=2, random_state=0
         )
-        cif = CanonicalIntervalForest(
+        cif = CanonicalIntervalForestClassifier(
             n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
         )
         return {"estimators": [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]}

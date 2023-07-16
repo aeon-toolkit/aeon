@@ -1,34 +1,42 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """DrCIF classifier.
 
-interval based DrCIF classifier extracting catch22 features from random intervals on
+Interval based DrCIF classifier extracting catch22 features from random intervals on
 periodogram and differences representations as well as the base series.
 """
 
 __author__ = ["MatthewMiddlehurst"]
-__all__ = ["DrCIF"]
-
-import math
-import time
+__all__ = ["DrCIFClassifier"]
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
+from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
-from aeon.classification.sklearn._continuous_interval_tree import (
-    ContinuousIntervalTree,
-    _drcif_feature,
-)
+from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
+from aeon.transformations.collection import PeriodogramTransformer
 from aeon.transformations.collection.catch22 import Catch22
+from aeon.utils.numba.general import first_order_differences_3d
+from aeon.utils.numba.stats import (
+    row_iqr,
+    row_mean,
+    row_median,
+    row_numba_max,
+    row_numba_min,
+    row_slope,
+    row_std,
+)
 from aeon.utils.validation.panel import check_X_y
 
 
-class DrCIF(BaseClassifier):
+class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
     """Diverse Representation Canonical Interval Forest Classifier (DrCIF).
+
+    todo
 
     Extension of the CIF algorithm using multple representations. Implementation of the
     interval based forest making use of the catch22 feature set on randomly selected
@@ -128,14 +136,15 @@ class DrCIF(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.interval_based import DrCIF
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = DrCIF(n_estimators=3, n_intervals=2, att_subsample_size=2)
-    >>> clf.fit(X_train, y_train)
-    DrCIF(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> from aeon.classification.interval_based import DrCIFClassifier
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, random_state=0)
+    >>> clf = DrCIFClassifier(n_estimators=10, random_state=0)
+    >>> clf.fit(X, y)
+    DrCIFClassifier(n_estimators=10, random_state=0)
+    >>> clf.predict(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
@@ -148,256 +157,72 @@ class DrCIF(BaseClassifier):
 
     def __init__(
         self,
+        base_estimator=None,
         n_estimators=200,
-        n_intervals=None,
+        n_intervals=(4, "sqrt-div"),
+        min_interval_length=3,
+        max_interval_length=0.5,
         att_subsample_size=10,
-        min_interval=4,
-        max_interval=None,
-        base_estimator="CIT",
-        time_limit_in_minutes=0.0,
+        time_limit_in_minutes=None,
         contract_max_n_estimators=500,
+        use_pycatch22=False,
+        use_pyfftw=False,
         save_transformed_data=False,
-        n_jobs=1,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
-        self.n_estimators = n_estimators
-        self.n_intervals = n_intervals
-        self.att_subsample_size = att_subsample_size
-        self.min_interval = min_interval
-        self.max_interval = max_interval
-        self.base_estimator = base_estimator
+        d = []
+        self.use_pycatch22 = use_pycatch22
+        if use_pycatch22:
+            d.append("pycatch22")
+        self.use_pyfftw = use_pyfftw
+        if use_pyfftw:
+            d.append("pyfftw")
 
-        self.time_limit_in_minutes = time_limit_in_minutes
-        self.contract_max_n_estimators = contract_max_n_estimators
-        self.save_transformed_data = save_transformed_data
+        if d:
+            self.set_tags(**{"python_dependencies": d})
 
-        self.random_state = random_state
-        self.n_jobs = n_jobs
-
-        # The following set in method fit
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
-        self.total_intervals_ = 0
-        self.estimators_ = []
-        self.intervals_ = []
-        self.atts_ = []
-        self.dims_ = []
-        self.transformed_data_ = []
-
-        self._n_estimators = n_estimators
-        self._n_intervals = n_intervals
-        self._att_subsample_size = att_subsample_size
-        self._min_interval = min_interval
-        self._max_interval = max_interval
-        self._base_estimator = base_estimator
-
-        super(DrCIF, self).__init__()
-
-    def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
-
-        time_limit = self.time_limit_in_minutes * 60
-        start_time = time.time()
-        train_time = 0
-
-        if self.base_estimator.lower() == "dtc":
-            self._base_estimator = DecisionTreeClassifier(criterion="entropy")
-        elif self.base_estimator.lower() == "cit":
-            self._base_estimator = ContinuousIntervalTree()
-        elif isinstance(self.base_estimator, BaseEstimator):
-            self._base_estimator = self.base_estimator
+        if isinstance(base_estimator, ContinuousIntervalTree):
+            replace_nan = "nan"
         else:
-            raise ValueError("DrCIF invalid base estimator given.")
+            replace_nan = 0
 
-        X_p = np.zeros(
-            (
-                self.n_instances_,
-                self.n_dims_,
-                int(
-                    math.pow(2, math.ceil(math.log(self.series_length_, 2)))
-                    - self.series_length_
-                ),
-            )
+        series_transformers = [
+            None,
+            FunctionTransformer(func=first_order_differences_3d, validate=False),
+            PeriodogramTransformer(use_pyfftw=use_pyfftw),
+        ]
+
+        interval_features = [
+            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            row_mean,
+            row_std,
+            row_slope,
+            row_median,
+            row_iqr,
+            row_numba_min,
+            row_numba_max,
+        ]
+
+        super(DrCIFClassifier, self).__init__(
+            base_estimator=base_estimator,
+            n_estimators=n_estimators,
+            interval_selection_method="random",
+            n_intervals=n_intervals,
+            min_interval_length=min_interval_length,
+            max_interval_length=max_interval_length,
+            interval_features=interval_features,
+            series_transformers=series_transformers,
+            att_subsample_size=att_subsample_size,
+            replace_nan=replace_nan,
+            time_limit_in_minutes=time_limit_in_minutes,
+            contract_max_n_estimators=contract_max_n_estimators,
+            save_transformed_data=save_transformed_data,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            parallel_backend=parallel_backend,
         )
-        X_p = np.concatenate((X, X_p), axis=2)
-        X_p = np.abs(np.fft.fft(X_p)[:, :, : int(X_p.shape[2] / 2)])
-
-        X_d = np.diff(X, 1)
-
-        if self.n_intervals is None:
-            self._n_intervals = [None, None, None]
-            self._n_intervals[0] = 4 + int(
-                (math.sqrt(self.series_length_) * math.sqrt(self.n_dims_)) / 3
-            )
-            self._n_intervals[1] = 4 + int(
-                (math.sqrt(X_p.shape[2]) * math.sqrt(self.n_dims_)) / 3
-            )
-            self._n_intervals[2] = 4 + int(
-                (math.sqrt(X_d.shape[2]) * math.sqrt(self.n_dims_)) / 3
-            )
-        elif isinstance(self.n_intervals, int):
-            self._n_intervals = [self.n_intervals, self.n_intervals, self.n_intervals]
-        elif isinstance(self.n_intervals, list) and len(self.n_intervals) == 3:
-            self._n_intervals = self.n_intervals
-        else:
-            raise ValueError("DrCIF n_intervals must be an int or list of length 3.")
-        for i, n in enumerate(self._n_intervals):
-            if n <= 0:
-                self._n_intervals[i] = 1
-
-        if self.att_subsample_size > 29:
-            self._att_subsample_size = 29
-
-        if isinstance(self.min_interval, int):
-            self._min_interval = [
-                self.min_interval,
-                self.min_interval,
-                self.min_interval,
-            ]
-        elif isinstance(self.min_interval, list) and len(self.min_interval) == 3:
-            self._min_interval = self.min_interval
-        else:
-            raise ValueError("DrCIF min_interval must be an int or list of length 3.")
-        if self.series_length_ <= self._min_interval[0]:
-            self._min_interval[0] = self.series_length_ - 1
-        if X_p.shape[2] <= self._min_interval[1]:
-            self._min_interval[1] = X_p.shape[2] - 1
-        if X_d.shape[2] <= self._min_interval[2]:
-            self._min_interval[2] = X_d.shape[2] - 1
-
-        if self.max_interval is None:
-            self._max_interval = [
-                int(self.series_length_ / 2),
-                int(X_p.shape[2] / 2),
-                int(X_d.shape[2] / 2),
-            ]
-        elif isinstance(self.max_interval, int):
-            self._max_interval = [
-                self.max_interval,
-                self.max_interval,
-                self.max_interval,
-            ]
-        elif isinstance(self.max_interval, list) and len(self.max_interval) == 3:
-            self._max_interval = self.max_interval
-        else:
-            raise ValueError("DrCIF max_interval must be an int or list of length 3.")
-        for i, n in enumerate(self._max_interval):
-            if n < self._min_interval[i]:
-                self._max_interval[i] = self._min_interval[i]
-
-        self.total_intervals_ = sum(self._n_intervals)
-
-        if time_limit > 0:
-            self._n_estimators = 0
-            self.estimators_ = []
-            self.intervals_ = []
-            self.atts_ = []
-            self.dims_ = []
-            self.transformed_data_ = []
-
-            while (
-                train_time < time_limit
-                and self._n_estimators < self.contract_max_n_estimators
-            ):
-                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                    delayed(self._fit_estimator)(
-                        X,
-                        X_p,
-                        X_d,
-                        y,
-                        i,
-                    )
-                    for i in range(self._n_jobs)
-                )
-
-                (
-                    estimators,
-                    intervals,
-                    dims,
-                    atts,
-                    transformed_data,
-                ) = zip(*fit)
-
-                self.estimators_ += estimators
-                self.intervals_ += intervals
-                self.atts_ += atts
-                self.dims_ += dims
-                self.transformed_data_ += transformed_data
-
-                self._n_estimators += self._n_jobs
-                train_time = time.time() - start_time
-        else:
-            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._fit_estimator)(
-                    X,
-                    X_p,
-                    X_d,
-                    y,
-                    i,
-                )
-                for i in range(self._n_estimators)
-            )
-
-            (
-                self.estimators_,
-                self.intervals_,
-                self.dims_,
-                self.atts_,
-                self.transformed_data_,
-            ) = zip(*fit)
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self._predict_proba(X)
-            ]
-        )
-
-    def _predict_proba(self, X) -> np.ndarray:
-        n_test_instances, _, series_length = X.shape
-        if series_length != self.series_length_:
-            raise ValueError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
-        X_p = np.zeros(
-            (
-                n_test_instances,
-                self.n_dims_,
-                int(
-                    math.pow(2, math.ceil(math.log(self.series_length_, 2)))
-                    - self.series_length_
-                ),
-            )
-        )
-        X_p = np.concatenate((X, X_p), axis=2)
-        X_p = np.abs(np.fft.fft(X_p)[:, :, : int(X_p.shape[2] / 2)])
-
-        X_d = np.diff(X, 1)
-
-        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._predict_proba_for_estimator)(
-                X,
-                X_p,
-                X_d,
-                self.estimators_[i],
-                self.intervals_[i],
-                self.dims_[i],
-                self.atts_[i],
-            )
-            for i in range(self._n_estimators)
-        )
-
-        output = np.sum(y_probas, axis=0) / (
-            np.ones(self.n_classes_) * self._n_estimators
-        )
-        return output
 
     def _get_train_probs(self, X, y) -> np.ndarray:
         self.check_is_fitted()
@@ -411,7 +236,7 @@ class DrCIF(BaseClassifier):
 
         if (
             n_instances != self.n_instances_
-            or n_dims != self.n_dims_
+            or n_dims != self.n_channels_
             or series_length != self.series_length_
         ):
             raise ValueError(
@@ -446,123 +271,6 @@ class DrCIF(BaseClassifier):
             )
 
         return results
-
-    def _fit_estimator(self, X, X_p, X_d, y, idx):
-        c22 = Catch22(outlier_norm=True)
-        T = [X, X_p, X_d]
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
-        transformed_x = np.empty(
-            shape=(self._att_subsample_size * self.total_intervals_, self.n_instances_),
-            dtype=np.float32,
-        )
-
-        atts = rng.choice(29, self._att_subsample_size, replace=False)
-        dims = rng.choice(self.n_dims_, self.total_intervals_, replace=True)
-        intervals = np.zeros((self.total_intervals_, 2), dtype=int)
-
-        p = 0
-        j = 0
-        for r in range(0, len(T)):
-            transform_length = T[r].shape[2]
-
-            # Find the random intervals for classifier i, transformation r
-            # and concatenate features
-            for _ in range(0, self._n_intervals[r]):
-                if rng.random() < 0.5:
-                    intervals[j][0] = rng.randint(
-                        0, transform_length - self._min_interval[r]
-                    )
-                    len_range = min(
-                        transform_length - intervals[j][0],
-                        self._max_interval[r],
-                    )
-                    length = (
-                        rng.randint(0, len_range - self._min_interval[r])
-                        + self._min_interval[r]
-                        if len_range - self._min_interval[r] > 0
-                        else self._min_interval[r]
-                    )
-                    intervals[j][1] = intervals[j][0] + length
-                else:
-                    intervals[j][1] = (
-                        rng.randint(0, transform_length - self._min_interval[r])
-                        + self._min_interval[r]
-                    )
-                    len_range = min(intervals[j][1], self._max_interval[r])
-                    length = (
-                        rng.randint(0, len_range - self._min_interval[r])
-                        + self._min_interval[r]
-                        if len_range - self._min_interval[r] > 0
-                        else self._min_interval[r]
-                    )
-                    intervals[j][0] = intervals[j][1] - length
-
-                for a in range(0, self._att_subsample_size):
-                    transformed_x[p] = _drcif_feature(
-                        T[r], intervals[j], dims[j], atts[a], c22, case_id=j
-                    )
-                    p += 1
-
-                j += 1
-
-        tree = _clone_estimator(self._base_estimator, random_state=rs)
-        transformed_x = transformed_x.T
-        transformed_x = transformed_x.round(8)
-        if isinstance(self._base_estimator, ContinuousIntervalTree):
-            transformed_x = np.nan_to_num(
-                transformed_x, False, posinf=np.nan, neginf=np.nan
-            )
-        else:
-            transformed_x = np.nan_to_num(transformed_x, False, 0, 0, 0)
-        tree.fit(transformed_x, y)
-
-        return [
-            tree,
-            intervals,
-            dims,
-            atts,
-            transformed_x if self.save_transformed_data else None,
-        ]
-
-    def _predict_proba_for_estimator(
-        self, X, X_p, X_d, classifier, intervals, dims, atts
-    ):
-        c22 = Catch22(outlier_norm=True)
-        if isinstance(self._base_estimator, ContinuousIntervalTree):
-            return classifier._predict_proba_drcif(
-                X, X_p, X_d, c22, self._n_intervals, intervals, dims, atts
-            )
-        else:
-            T = [X, X_p, X_d]
-
-            transformed_x = np.empty(
-                shape=(self._att_subsample_size * self.total_intervals_, X.shape[0]),
-                dtype=np.float32,
-            )
-
-            p = 0
-            j = 0
-            for r in range(0, len(T)):
-                for _ in range(0, self._n_intervals[r]):
-                    for a in range(0, self._att_subsample_size):
-                        transformed_x[p] = _drcif_feature(
-                            T[r], intervals[j], dims[j], atts[a], c22, case_id=j
-                        )
-                        p += 1
-                    j += 1
-
-            transformed_x = transformed_x.T
-            transformed_x.round(8)
-            np.nan_to_num(transformed_x, False, 0, 0, 0)
-
-            return classifier.predict_proba(transformed_x)
 
     def _train_probas_for_estimator(self, y, idx):
         rs = 255 if self.random_state == 0 else self.random_state
