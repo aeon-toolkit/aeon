@@ -319,11 +319,13 @@ class BaseObject(_BaseEstimator):
 
     def get_tags(self):
         """
-        Get tags from estimator class and dynamic tag overrides.
+        Get tags from estimator class.
+
+        Includes the dynamic tag overrides.
 
         Returns
         -------
-        collected_tags : dict
+        dict
             Dictionary of tag name : tag value pairs. Collected from _tags
             class attribute via nested inheritance and then any overrides
             and new tags from _tags_dynamic object attribute.
@@ -340,7 +342,7 @@ class BaseObject(_BaseEstimator):
         >>> d = DummyClassifier()
         >>> tags = d.get_tags()
         """
-        collected_tags = self.get_class_tags()
+        collected_tags = self.get_tags()
 
         if hasattr(self, "_tags_dynamic"):
             collected_tags.update(self._tags_dynamic)
@@ -873,14 +875,14 @@ class TagAliaserMixin:
         ----------
         tag_name : str
             Name of tag to be retrieved.
-        tag_value_default : any type, optional; default=None
+        tag_value_default : any type, default=None
             Default/fallback value if tag is not found.
         raise_error : bool
             whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
-        tag_value :
+        string or None
             Value of the `tag_name` tag in self. If not found, returns an error if
             raise_error is True, otherwise it returns `tag_value_default`.
 
@@ -968,7 +970,7 @@ class TagAliaserMixin:
                     )
                 else:
                     msg += ', please remove code that access or sets "{tag_name}"'
-                warnings.warn(msg, category=DeprecationWarning)
+                warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
 
 
 class BaseEstimator(BaseObject):
