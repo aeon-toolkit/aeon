@@ -156,7 +156,7 @@ def get_type(X):
     ValueError if
         X pd.ndarray but wrong dimension
         X is list but not of np.ndarray or p.DataFrame.
-        X is a pd.DataFrame on non float primitives.
+        X is a pd.DataFrame of non float primitives.
 
     Example
     -------
@@ -266,12 +266,47 @@ def has_missing(X):
 
     Example
     -------
-    >>> equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
-    True
+    >>> has_missing( np.zeros(shape=(10, 3, 20)), "numpy3D")
+    False
     """
-    #    if isinstance(X, np.ndarray):   # “numpy3D” or numpyflat
-    #    elif isinstance(X, list): # np-list or df-list
-    return False
+    type = get_type(X)
+    if type == "numpy3D" or type == "numpyflat":
+        return np.any(np.isnan(np.min(X)))
+    if type == "np-list":
+        for i in len(X):
+            if np.any(np.isnan(np.min(X[i]))):
+                return True
+        return False
+    if type == "df-list":
+        for i in len(X):
+            if X[i].isnull().any().any():
+                return True
+        return False
+    if type == "pd-wide":
+        return X.isnull().any().any()
+    if type == "nested_univ":
+        for i in range(len(X)):
+            for j in range(X.columns):
+                if X.iloc[i, j].hasnans:
+                    return True
+        return False
+    if type == "pd-multiindex":
+        if X.isna().values.any():
+            return True
+        return False
+
+
+def is_univariate(X):
+    """Check if X is multivariate."""
+    type = get_type(X)
+    if type == "numpyflat" or type == "pd-wide":
+        return True
+    if type == "numpy3D" or type == "nested_univ":
+        return X.shape[1] == 1
+    if type == "df-list" or type == "np-list":
+        return X[0].shape[0] == 1
+    if type == "pd-multiindex":
+        return X.columns == 1
 
 
 def _nested_univ_is_equal(X):
