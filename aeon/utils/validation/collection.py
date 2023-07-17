@@ -81,7 +81,7 @@ convert_dictionary[
 ] = conv._from_pd_multiindex_to_nested_univ
 
 
-def convertX(X, to_type):
+def convertX(X, output_type):
     """Convert from one of collections compatible data structure to another.
 
     See aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE for the list.
@@ -89,7 +89,7 @@ def convertX(X, to_type):
     Parameters
     ----------
     X : data structure.
-    to_type : string, one of COLLECTIONS_DATA_TYPES
+    output_type : string, one of COLLECTIONS_DATA_TYPES
 
     Returns
     -------
@@ -112,11 +112,29 @@ def convertX(X, to_type):
     'np-list'
     """
     input_type = get_type(X)
-    return convert_dictionary[(input_type, to_type)](X)
+    if (input_type, output_type) not in convert_dictionary.keys():
+        raise ValueError(
+            f"Attempting to convert from {input_type} to {output_type} "
+            f"but this is not a valid conversion. See "
+            f"aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE "
+            f"for the list of valid collections"
+        )
+    return convert_dictionary[(input_type, output_type)](X)
 
 
 def get_n_cases(X):
-    """Handle the single exception of multi index DataFrame."""
+    """Return the number of cases in a collectiom.
+
+    Handle the single exception of multi index DataFrame.
+
+    Parameters
+    ----------
+    X : valid collection data structure
+
+    Returns
+    -------
+    int : number of cases
+    """
     if isinstance(X, pd.DataFrame) and isinstance(X.index, pd.MultiIndex):
         return len(X.index.get_level_values(0).unique())
     return len(X)

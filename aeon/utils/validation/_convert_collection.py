@@ -13,12 +13,10 @@ pd-wide     : pd.DataFrame of univariate time series shape (n_cases, n_timepoint
 nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 pd-multiindex : d.DataFrame with multi-index,
 
-For the sevem supported, this gives 42 different converters.
+For the seven supported, this gives 42 different converters.
 Rather than use them directly, we recommend using the conversion dictionary
 convert_dictionary in the collections file.
-
-To add
-"dask_panel": not used anywhere
+legacy code supported "dask_panel" but it is not actually used anywhere.
 """
 import numpy as np
 import pandas as pd
@@ -73,6 +71,10 @@ def _from_numpy3d_to_df_list(X):
     Returns
     -------
     df : pd.DataFrame
+
+    Raise
+    -----
+    TypeError if X not 3D numpy array
     """
     if not isinstance(X, np.ndarray) and X.ndim != 3:
         raise TypeError(numpy3D_error)
@@ -91,15 +93,15 @@ def _from_numpy3d_to_pd_wide(X):
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, 1, n_timepoints)
+        The input array with shape (n_instances, n_channels, n_timepoints)
 
     Returns
     -------
-    df : a dataframe (n_instances, n_timepoints)
+    df : a dataframe (n_instances,n_channels*n_timepoints)
 
     Raise
     -----
-    ValueError if X has n_channels>1
+    TypeError if X not 3D numpy array
     """
     if not isinstance(X, np.ndarray) and X.ndim != 3:
         raise TypeError(numpy3D_error)
