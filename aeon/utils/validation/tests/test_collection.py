@@ -8,9 +8,9 @@ from aeon.datasets import make_example_multi_index_dataframe
 
 # from aeon.datasets._data_generators import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
-from aeon.utils.validation._convert_collection import DATA_TYPES
 from aeon.utils.validation.collection import (  # _nested_uni_is_equal,; has_missing,
-    _is_nested_dataframe,
+    COLLECTIONS_DATA_TYPES,
+    _is_nested_univ_dataframe,
     convertX,
     equal_length,
     get_n_cases,
@@ -48,7 +48,7 @@ UNEQUAL_DATA_EXAMPLES = {
 }
 
 
-@pytest.mark.parametrize("data", DATA_TYPES)
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_equal_length(data):
     assert equal_length(EQUAL_LENGTH_DATA_EXAMPLES[data], data)
 
@@ -58,21 +58,21 @@ def test_unequal_length(data):
     assert not equal_length(UNEQUAL_DATA_EXAMPLES[data], data)
 
 
-@pytest.mark.parametrize("data", DATA_TYPES)
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_get_type(data):
     assert get_type(EQUAL_LENGTH_DATA_EXAMPLES[data]) == data
 
 
-@pytest.mark.parametrize("data", DATA_TYPES)
-def test_is_nested_dataframe(data):
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test__is_nested_univ_dataframe(data):
     if data == "nested_univ":
-        assert _is_nested_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
+        assert _is_nested_univ_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
     else:
-        assert not _is_nested_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
+        assert not _is_nested_univ_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
 
 
-@pytest.mark.parametrize("input_type", DATA_TYPES)
-@pytest.mark.parametrize("output_type", DATA_TYPES)
+@pytest.mark.parametrize("input_type", COLLECTIONS_DATA_TYPES)
+@pytest.mark.parametrize("output_type", COLLECTIONS_DATA_TYPES)
 def test_convertX_equal_length(input_type, output_type):
     # dont test conversion from unequal supporting to equal only, or multivariate to
     input = EQUAL_LENGTH_DATA_EXAMPLES[input_type]
