@@ -87,7 +87,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         as the number of series_transformers.
 
         Ignored for supervised interval_selection_method inputs.
-    interval_features : TransformerMixin, callable, list, tuple, or None, default=None
+    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
@@ -100,12 +100,11 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Different features for each series_transformers series can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
         must be the same length as the number of series_transformers.
-    series_transformers : TransformerMixin, list, tuple, or None, default=None
+    series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        Both transformers and functions should be able to take a 3D np.ndarray input.
-        A list or tuple of transformers and/or functions will extract intervals from
+        A list or tuple of transformers and will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
     att_subsample_size : int, float, list, tuple or None, default=None
@@ -870,7 +869,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     warnings.warn(
                         f"Attribute subsample size {att_subsample_size} is larger than "
                         f"or equal to the number of attributes {num_features} for "
-                        f"series {self._series_transformers[r]}"
+                        f"series {self._series_transformers[r]}",
+                        stacklevel=2,
                     )
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):

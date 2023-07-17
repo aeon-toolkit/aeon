@@ -52,10 +52,6 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         specified using a nested list or tuple. Any list or tuple input containing
         another list or tuple must be the same length as the number of
         series_transformers.
-
-        While random interval extraction will extract the n_intervals intervals total
-        (removing duplicates), supervised intervals will run the supervised extraction
-        process n_intervals times, returning more intervals than specified.
     min_interval_length : int, float, list, or tuple, default=3
         Minimum length of intervals to extract from series. float inputs take a
         proportion of the series length to use as the minimum interval length.
@@ -70,9 +66,7 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         Different maximum interval lengths for each series_transformers series can be
         specified using a list or tuple. Any list or tuple input must be the same length
         as the number of series_transformers.
-
-        Ignored for supervised interval_selection_method inputs.
-    interval_features : TransformerMixin, callable, list, tuple, or None, default=None
+    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
@@ -85,12 +79,11 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         Different features for each series_transformers series can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
         must be the same length as the number of series_transformers.
-    series_transformers : TransformerMixin, list, tuple, or None, default=None
+    series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        Both transformers and functions should be able to take a 3D np.ndarray input.
-        A list or tuple of transformers and/or functions will extract intervals from
+        A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
     att_subsample_size : int, float, list, tuple or None, default=None
