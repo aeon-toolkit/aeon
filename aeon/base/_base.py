@@ -342,7 +342,7 @@ class BaseObject(_BaseEstimator):
         >>> d = DummyClassifier()
         >>> tags = d.get_tags()
         """
-        collected_tags = self.get_tags()
+        collected_tags = self.get_class_tags()
 
         if hasattr(self, "_tags_dynamic"):
             collected_tags.update(self._tags_dynamic)
