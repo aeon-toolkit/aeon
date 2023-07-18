@@ -266,7 +266,7 @@ def has_missing(X):
 
     Example
     -------
-    >>> has_missing( np.zeros(shape=(10, 3, 20)), "numpy3D")
+    >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
     """
     type = get_type(X)
