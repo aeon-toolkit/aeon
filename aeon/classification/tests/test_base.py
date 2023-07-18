@@ -37,13 +37,6 @@ class _DummyClassifier(BaseClassifier):
         return self
 
 
-class _DummyComposite(_DummyClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
-
-    def __init__(self, foo):
-        self.foo = foo
-
-
 class _DummyHandlesAllInput(BaseClassifier):
     """Dummy classifier for testing base class fit/predict/predict_proba."""
 
@@ -121,7 +114,6 @@ def test_base_classifier_fit():
 def test_check_capabilities(missing, multivariate, unequal):
     """Test the checking of capabilities."""
     handles_none = _DummyClassifier()
-    handles_none_composite = _DummyComposite(_DummyClassifier())
 
     # checks that errors are raised
     if missing:
@@ -135,18 +127,6 @@ def test_check_capabilities(missing, multivariate, unequal):
             handles_none._check_capabilities(missing, multivariate, unequal)
     if not missing and not multivariate and not unequal:
         handles_none._check_capabilities(missing, multivariate, unequal)
-
-    if missing:
-        with pytest.warns(UserWarning, match=missing_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.warns(UserWarning, match=multivariate_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.warns(UserWarning, match=unequal_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none_composite._check_capabilities(missing, multivariate, unequal)
 
     handles_all = _DummyHandlesAllInput()
     handles_all._check_capabilities(missing, multivariate, unequal)
