@@ -77,7 +77,7 @@ class BoxCoxTransformer(BaseTransformer):
     sp : int
         Seasonal periodicity of the data in integer form.
     lambda_ : float
-        The Box-Cox lambda paramter that was solved for based on the supplied
+        The Box-Cox lambda parameter that was solved for based on the supplied
         `method` and data provided in `fit`.
 
     See Also
