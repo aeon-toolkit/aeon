@@ -11,16 +11,16 @@ Type and behaviour of transformer is determined by the following tags:
         this determines expected type of input of transform
         if "Primitives", expected inputs X are pd.DataFrame
         if "Series", expected inputs X are Series or Panel
-        Note: placeholder tag for upwards compatibility
-            currently only "Series" is supported
+        Note: placeholder tag for upwards compatibility currently only "Series" is
+        supported
     "scitype:transform-output" tag with values "Primitives", or "Series"
         this determines type of output of transform
         if "Primitives", output is pd.DataFrame with as many rows as X has instances
-            i-th instance of X is transformed into i-th row of output
-        if "Series", output is a Series or Panel, with as many instances as X
-            i-th instance of X is transformed into i-th instance of output
+        i-th instance of X is transformed into i-th row of output
+        if "Series", output is a Series or Panel, with as many instances as X i-th
+        instance of X is transformed into i-th instance of output
         Series are treated as one-instance-Panels
-            if Series is input, output is a 1-row pd.DataFrame or a Series
+        if Series is input, output is a 1-row pd.DataFrame or a Series
     "scitype:instancewise" tag which is boolean
         if True, fit/transform is statistically independent by instance
 
@@ -424,7 +424,7 @@ class BaseTransformer(BaseEstimator):
         type depends on type of X and scitype:transform-output tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -498,7 +498,7 @@ class BaseTransformer(BaseEstimator):
         transformed version of X
         type depends on type of X and scitype:transform-output tag:
             |   `X`    | `tf-output`  |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -1181,7 +1181,7 @@ class BaseTransformer(BaseEstimator):
         type depends on type of X and scitype:transform-output tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
