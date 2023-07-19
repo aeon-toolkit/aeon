@@ -105,7 +105,7 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    (n_instances_ ,total_intervals * att_subsample_size)
         The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 
