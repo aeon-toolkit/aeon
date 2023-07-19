@@ -24,7 +24,7 @@ class Filter(BaseTransformer):
     sfreq: int or float
         sampling frequency of the recorded data in Hz
     l_freq: float or None
-        For FIR filters, the lower pass-band edge;
+        For FIR filtersh, the lower pass-band edge;
         for IIR filters, the lower cutoff frequency.
         If None the data are only low-passed.
     h_freq: float or None
