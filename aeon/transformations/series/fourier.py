@@ -37,9 +37,9 @@ class FourierFeatures(BaseTransformer):
     Parameters
     ----------
     sp_list : List[Union[int, float]]
-        list of seasonal periods.
+        List of seasonal periods.
     fourier_terms_list : List[int]
-        list of number of fourier terms (K) for each seasonal period.
+        List of number of fourier terms (K) for each seasonal period.
         Each K matches to the sp (seasonal period) of the sp_list.
         For example, if sp_list = [7, 365] and fourier_terms_list = [3, 9], the seasonal
         frequency of 7 will have 3 fourier terms and the seasonal frequency of 365
@@ -138,7 +138,7 @@ class FourierFeatures(BaseTransformer):
         Parameters
         ----------
         X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+            If X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to.
         y : Series or Panel of mtype y_inner_mtype, default=None
             Additional data, e.g., labels for transformation.
@@ -198,7 +198,7 @@ class FourierFeatures(BaseTransformer):
         Parameters
         ----------
         X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+            If X_inner_mtype is list, _transform must support all types in it
             Data to be transformed.
         y : Series or Panel of mtype y_inner_mtype, default=None
             Additional data, e.g., labels for transformation.
