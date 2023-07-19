@@ -228,16 +228,16 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         self.check_is_fitted()
         X, y = check_X_y(X, y, coerce_to_numpy=True)
 
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            return self._single_class_y_pred(X, method="predict_proba")
+        # treat case of single class seen in fit
+        if self.n_classes_ == 1:
+            return np.repeat([[1]], X.shape[0], axis=0)
 
         n_instances, n_dims, series_length = X.shape
 
         if (
             n_instances != self.n_instances_
             or n_dims != self.n_channels_
-            or series_length != self.series_length_
+            or series_length != self.n_timepoints_
         ):
             raise ValueError(
                 "n_instances, n_dims, series_length mismatch. X should be "
