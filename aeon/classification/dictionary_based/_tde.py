@@ -607,7 +607,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualTDE(BaseClassifier):
-    """Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
+    """
+    Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
 
     Base classifier for the TDE classifier. Implementation of single TDE base model
     from Middlehurst (2021). [1]_
@@ -669,6 +670,7 @@ class IndividualTDE(BaseClassifier):
     See Also
     --------
     TemporalDictinaryEnsemble, SFA
+        TDE extends BOSS and uses SFA.
 
     Notes
     -----

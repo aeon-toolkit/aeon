@@ -64,20 +64,20 @@ class BOSSEnsemble(BaseClassifier):
     save_train_predictions : bool, default=False
         Save the ensemble member train predictions in fit for use in _get_train_probs
         leave-one-out cross-validation.
-    alphabet_size : default = 4
-        Number of possible letters (values) for each word.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
-    use_boss_distance : bool, default=True
-        The Boss-distance is an asymmetric distance measure. It provides higher
-        accuracy, yet is signifaicantly slower to compute.
     feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
         may be needed.
+   alphabet_size : default = 4
+        Number of possible letters (values) for each word.
+    use_boss_distance : bool, default=True
+        The Boss-distance is an asymmetric distance measure. It provides higher
+        accuracy, yet is signifaicantly slower to compute.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
 
@@ -463,7 +463,8 @@ class BOSSEnsemble(BaseClassifier):
 
 
 class IndividualBOSS(BaseClassifier):
-    """Single bag of Symbolic Fourier Approximation Symbols (IndividualBOSS).
+    """
+    Single bag of Symbolic Fourier Approximation Symbols (IndividualBOSS).
 
     Bag of SFA Symbols Ensemble: implementation of a single BOSS Schaffer, the base
     classifier for the boss ensemble.
@@ -495,7 +496,18 @@ class IndividualBOSS(BaseClassifier):
         the dictionary of words is returned. If True, the array is saved, which
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
-    n_jobs : int, default=1
+     feature_selection : str, default: "none"
+        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        "random"}. Chi2 reduces the number of words significantly and is thus much
+        faster (preferred). Random also reduces the number significantly. None
+        applies not feature selection and yields large bag of words, e.g. much memory
+        may be needed.
+   alphabet_size : default = 4
+        Number of possible letters (values) for each word.
+   use_boss_distance : bool, default=True
+        The Boss-distance is an asymmetric distance measure. It provides higher
+        accuracy, yet is signifaicantly slower to compute.
+   n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     random_state : int or None, default=None
@@ -548,7 +560,6 @@ class IndividualBOSS(BaseClassifier):
         norm=False,
         alphabet_size=4,
         save_words=False,
-        typed_dict="deprecated",
         use_boss_distance=True,
         feature_selection="none",
         n_jobs=1,
@@ -562,7 +573,6 @@ class IndividualBOSS(BaseClassifier):
         self.use_boss_distance = use_boss_distance
 
         self.save_words = save_words
-        self.typed_dict = typed_dict
         self.n_jobs = n_jobs
         self.random_state = random_state
 

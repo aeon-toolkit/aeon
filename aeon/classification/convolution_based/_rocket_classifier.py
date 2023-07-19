@@ -62,7 +62,7 @@ class RocketClassifier(BaseClassifier):
     See Also
     --------
     Rocket
-        Rocket transformers are in transformations/collection
+        Rocket transformers are in transformations/collection.
 
     Notes
     -----
