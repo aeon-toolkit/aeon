@@ -91,6 +91,7 @@ class CanonicalIntervalForest(BaseClassifier):
     See Also
     --------
     DrCIF
+        Extended version of CIF.
 
     Notes
     -----
