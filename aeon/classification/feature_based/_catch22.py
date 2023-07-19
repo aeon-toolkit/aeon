@@ -17,18 +17,18 @@ from aeon.transformations.collection.catch22 import Catch22
 
 
 class Catch22Classifier(BaseClassifier):
-    """Canonical Time-series Characteristics (catch22) classifier.
+    """
+    Canonical Time-series Characteristics (catch22) classifier.
 
     This classifier simply transforms the input data using the Catch22 [1]
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
     ----------
-    features : int/str or List of int/str, optional, default="all"
+    features : int/str or List of int/str, default="all"
         The Catch22 features to extract by feature index, feature name as a str or as a
         list of names or indices for multiple features. If "all", all features are
-        extracted.
-        Valid features are as follows:
+        extracted. Valid features are as follows:
             ["DN_HistogramMode_5", "DN_HistogramMode_10",
             "SB_BinaryStats_diff_longstretch0", "DN_OutlierInclude_p_001_mdrmd",
             "DN_OutlierInclude_n_001_mdrmd", "CO_f1ecac", "CO_FirstMin_ac",
@@ -40,22 +40,22 @@ class Catch22Classifier(BaseClassifier):
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
             "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
-    catch24 : bool, optional, default=True
+    catch24 : bool, default=True
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
         Normalise each series during the two outlier Catch22 features, which can take a
         while to process for large values.
-    replace_nans : bool, optional, default=True
+    replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
+    use_pycatch22 : bool, default=False
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    estimator : sklearn classifier, optional, default=None
+    estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data.
-        Defaults to sklearn RandomForestClassifier(n_estimators=200)
+        Defaults to sklearn RandomForestClassifier(n_estimators=200).
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -80,6 +80,7 @@ class Catch22Classifier(BaseClassifier):
     See Also
     --------
     Catch22
+        Catch22 transformer in aeon/transformations/collection
 
     Notes
     -----

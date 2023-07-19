@@ -783,10 +783,10 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------

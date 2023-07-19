@@ -21,7 +21,8 @@ from aeon.transformations.collection.tsfresh import (
 
 
 class TSFreshClassifier(BaseClassifier):
-    """Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
+    """
+    Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
 
     This classifier simply transforms the input data using the TSFresh [1]
     transformer and builds a provided estimator using the transformed data.
