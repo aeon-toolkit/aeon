@@ -47,11 +47,11 @@ class WhiteNoiseAugmenter(_AugmenterTags, BaseTransformer):
 
     Parameters
     ----------
-    scale: float, scale parameter (default=1.0)
-            Specifies the standard deviation.
+    scale: float, default=1.0
+        Scale parameter specifies the standard deviation.
     random_state: None or int or ``np.random.RandomState`` instance, default = None
-            If int or RandomState, use it for drawing the random variates.
-            If None, rely on ``self.random_state``.
+        If int or RandomState, use it for drawing the random variates.
+        If None, rely on ``self.random_state``.
 
     References
     ----------
@@ -101,13 +101,11 @@ class ReverseAugmenter(_AugmenterTags, BaseTransformer):
     4    1
     dtype: int64
 
-    References and Footnotes
+    References
     ----------
-
-        [1]: IWANA, Brian Kenji; UCHIDA, Seiichi. An empirical survey of data
-        augmentation for time series classification with neural networks. Plos
-        one, 2021, 16. Jg., Nr. 7, S. e0254841.
-
+    ..[1]: IWANA, Brian Kenji; UCHIDA, Seiichi. An empirical survey of data
+      augmentation for time series classification with neural networks. Plos
+      one, 2021, 16. Jg., Nr. 7, S. e0254841.
     """
 
     def __init__(self):
@@ -163,7 +161,7 @@ class RandomSamplesAugmenter(_AugmenterTags, BaseTransformer):
         Whether to draw without replacement. If True, every sample of the input times
         series `X` will appear at most once in `Xt`.
     random_state: None or int or ``np.random.RandomState`` instance, default = None
-        "If int or RandomState, use it for drawing the random variates.
+        If int or RandomState, use it for drawing the random variates.
         If None, rely on ``self.random_state``.
     """
 
