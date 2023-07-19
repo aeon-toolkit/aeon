@@ -23,7 +23,7 @@ class ResNetRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-        n_residual_blocks           : int, default = 3,
+        n_residual_blocks : int, default = 3
             the number of residual blocks of ResNet's model
         n_conv_per_residual_block   : int, default = 3,
             the number of convolution blocks in each residual block
@@ -51,17 +51,17 @@ class ResNetRegressor(BaseDeepRegressor):
             a list, the same kernel size is used in all convolution layers
         output_activation   : str, default = "linear",
             the output activation for the regressor
-        use_bias                    : bool or list of bool, default = True,
+        use_bias : bool or list of bool, default = True,
             condition on whether or not to use bias values in
             the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
-        n_epochs                   : int, default = 1500
+        n_epochs : int, default = 1500
             the number of epochs to train the model
-        batch_size                  : int, default = 16
+        batch_size : int, default = 16
             the number of samples per gradient update.
-        use_mini_batch_size         : bool, default = False
+        use_mini_batch_size : bool, default = False
             condition on using the mini batch size formula Wang et al.
-        callbacks                   : callable or None, default
+        callbacks : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
         file_path                   : str, default = './'
