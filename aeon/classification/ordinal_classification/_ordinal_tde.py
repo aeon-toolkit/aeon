@@ -31,7 +31,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class OrdinalTDE(BaseClassifier):
-    """Ordinal Temporal Dictionary Ensemble (O-TDE).
+    """
+    Ordinal Temporal Dictionary Ensemble (O-TDE).
 
     Implementation of the dictionary based Ordinal Temporal Dictionary
     Ensemble as described in [1]_. This method is an ordinal adaptation
