@@ -47,7 +47,7 @@ class CNNClassifier(BaseDeepClassifier):
         The dilation rate of the convolution layers, if not a list, the same dilation
         rate is used all over the network.
     use_bias : bool or list of bool, default = True
-        Condition on wether or not to use bias values for convolution layers,
+        Condition on whether to use bias values for convolution layers,
         if not a list, the same condition is used for all layers.
     random_state : int, default = 0
         Seed to any needed random actions.
@@ -66,11 +66,11 @@ class CNNClassifier(BaseDeepClassifier):
     file_path : file_path for the best model
         Only used if checkpoint is used as callback.
     save_best_model : bool, default = False
-        Wether to save the best model, if the modelcheckpoint callback is used by
+        Whether to save the best model, if the modelcheckpoint callback is used by
         default, this condition, if True, will prevent the automatic deletion of the
         best saved model from file and the user can choose the file name.
     save_last_model : bool, default = False
-        Wetherto save the last model, last epoch trained, using the base class method
+        Whether to save the last model, last epoch trained, using the base class method
         save_last_model_to_file.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if save_best_model is set to False,

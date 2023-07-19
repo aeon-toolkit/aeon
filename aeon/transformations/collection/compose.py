@@ -101,7 +101,7 @@ class ColumnTransformer(_ColumnTransformer, BaseTransformer):
         Keys are transformer names and values are the fitted transformer
         objects.
     sparse_output_ : bool
-        Boolean flag indicating wether the output of ``transform`` is a
+        Boolean flag indicating whether the output of ``transform`` is a
         sparse matrix or a dense numpy array, which depends on the output
         of the individual transformations and the `sparse_threshold` keyword.
     """

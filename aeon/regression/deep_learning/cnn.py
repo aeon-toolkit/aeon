@@ -51,7 +51,7 @@ class CNNRegressor(BaseDeepRegressor):
         the dilation rate of the convolution layers, if not a list,
         the same dilation rate is used all over the network
     use_bias        : bool or list of bool, default = True,
-        condition on wether or not to use bias values for convolution layers,
+        condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
     random_state    : int, default = 0
         seed to any needed random actions
