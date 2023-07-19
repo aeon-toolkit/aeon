@@ -279,14 +279,14 @@ unit_test_proba["SupervisedTimeSeriesForest"] = np.array(
 unit_test_proba["TimeSeriesForestClassifier"] = np.array(
     [
         [0.1, 0.9],
-        [0.7, 0.3],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.8, 0.2],
-        [1.0, 0.0],
         [0.8, 0.2],
         [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.9, 0.1],
         [0.8, 0.2],
+        [0.2, 0.8],
+        [1.0, 0.0],
         [0.9, 0.1],
     ]
 )
@@ -532,15 +532,15 @@ basic_motions_proba["ShapeletTransformClassifier"] = np.array(
 unit_test_proba["TEASER"] = np.array(
     [
         [0.0, 1.0],
-        [0.5, 0.5],
+        [0.8, 0.2],
         [0.0, 1.0],
-        [1.0, 0.0],
-        [0.7, 0.3],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.1, 0.9],
         [0.9, 0.1],
         [1.0, 0.0],
+        [0.9, 0.1],
+        [0.6, 0.4],
+        [0.1, 0.9],
+        [0.8, 0.2],
+        [0.9, 0.1],
     ]
 )
 unit_test_proba["ProbabilityThresholdEarlyClassifier"] = np.array(
