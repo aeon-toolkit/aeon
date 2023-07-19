@@ -22,7 +22,8 @@ from aeon.classification.interval_based import DrCIF
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
-    """Probability Threshold Early Classifier.
+    """
+    Probability Threshold Early Classifier.
 
     An early classifier which uses a threshold of prediction probability to determine
     whether an early prediction is safe or not.
@@ -40,7 +41,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     consecutive_predictions : int, default=1
         The number of consecutive predictions for a class above the threshold required
         to deem a prediction as safe.
-    estimator: aeon classifier, default=None
+    estimator : aeon classifier, default=None
         An aeon estimator to be built using the transformed data. Defaults to a
         default DrCIF classifier.
     classification_points : List or None, default=None

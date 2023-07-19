@@ -46,7 +46,7 @@ class SignatureClassifier(BaseClassifier):
     ----------
     estimator : sklearn estimator, default=RandomForestClassifier
         This should be any sklearn-type estimator. Defaults to RandomForestClassifier.
-    augmentation_list : list of tuple of strings, default=("basepoint", "addtime")
+    augmentation_list : list of tuple of str, default=("basepoint", "addtime")
         List of augmentations to be applied before the signature transform is applied.
     window_name : str, default="dyadic"
         The name of the window transform to apply.
@@ -80,16 +80,16 @@ class SignatureClassifier(BaseClassifier):
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
 
+    See Also
+    --------
+    SignatureTransformer
+        SignatureTransformer in the transformations package.
+
     References
     ----------
     .. [1] Morrill, James, et al. "A generalised signature method for multivariate time
         series feature extraction." arXiv preprint arXiv:2006.00873 (2020).
         https://arxiv.org/pdf/2006.00873.pdf
-
-    See Also
-    --------
-    SignatureTransformer
-        SignatureTransformer in the transformations package.
     """
 
     _tags = {

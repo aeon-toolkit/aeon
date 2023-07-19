@@ -31,6 +31,8 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
+    save_transformed_data: bool, default=False
+        Whether to save the transformed data.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1

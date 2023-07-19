@@ -25,7 +25,8 @@ from aeon.transformations.collection.catch22 import Catch22
 
 
 class CanonicalIntervalForest(BaseClassifier):
-    """Canonical Interval Forest Classifier (CIF).
+    """
+    Canonical Interval Forest Classifier (CIF).
 
     Implementation of the nterval based forest making use of the catch22 feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_

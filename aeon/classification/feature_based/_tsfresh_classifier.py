@@ -38,7 +38,7 @@ class TSFreshClassifier(BaseClassifier):
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     verbose : int, default=0
-        level of output printed to the console (for information only)
+        Level of output printed to the console (for information only).
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.

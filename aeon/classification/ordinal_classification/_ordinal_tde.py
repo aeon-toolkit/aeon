@@ -60,10 +60,10 @@ class OrdinalTDE(BaseClassifier):
         Maximum window length as a proportion of series length, must be between 0 and 1.
     min_window : int, default=10
         Minimum window length.
-    randomly_selected_params: int, default=50
+    randomly_selected_params : int, default=50
         Number of parameters randomly selected before the Gaussian process parameter
         selection is used.
-    bigrams : boolean or None, default=None
+    bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
@@ -112,6 +112,7 @@ class OrdinalTDE(BaseClassifier):
     See Also
     --------
     IndividualOrdinalTDE, TDE, WEASEL
+        Normal versions of TDE.
 
     References
     ----------
@@ -1039,7 +1040,8 @@ class IndividualOrdinalTDE(BaseClassifier):
 
 
 def histogram_intersection(first, second):
-    """Find the distance between two histograms using the histogram intersection.
+    """
+    Find the distance between two histograms using the histogram intersection.
 
     This distance function is designed for sparse matrix, represented as a
     dictionary or numba Dict, but can accept arrays.
@@ -1053,7 +1055,7 @@ def histogram_intersection(first, second):
 
     Returns
     -------
-    dist : float
+    float
         The histogram intersection distance between the first and second dictionaries.
     """
     if isinstance(first, dict):

@@ -80,7 +80,7 @@ class Catch22Classifier(BaseClassifier):
     See Also
     --------
     Catch22
-        Catch22 transformer in aeon/transformations/collection
+        Catch22 transformer in aeon/transformations/collection.
 
     Notes
     -----

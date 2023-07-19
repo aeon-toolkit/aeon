@@ -84,10 +84,11 @@ class HIVECOTEV1(BaseClassifier):
 
     See Also
     --------
-    HIVECOTEV2, ShapeletTransformClassifier, TimeSeriesForestClassifier,
+    ShapeletTransformClassifier, TimeSeriesForestClassifier,
     RandomIntervalSpectralForest, ContractableBOSS
         All components of HIVECOTE.
-
+    HIVECOTEV2
+        Successor to HIVECOTEV1.
     Notes
     -----
     For the Java version, see
