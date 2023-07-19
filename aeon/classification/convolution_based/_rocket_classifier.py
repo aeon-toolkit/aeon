@@ -24,7 +24,8 @@ from aeon.transformations.collection.rocket import (
 
 
 class RocketClassifier(BaseClassifier):
-    """Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
+    """
+    Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
 
     This classifier simply transforms the input data using a Rocket [1,2,3]_
     transformer, performs a Standard scaling and fits a sklearn classifier,
@@ -37,19 +38,19 @@ class RocketClassifier(BaseClassifier):
     ----------
     num_kernels : int, optional, default=10,000
         The number of kernels for the Rocket transform.
-    rocket_transform : str, optional, default="rocket"
+    rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
-        Valid inputs = ["rocket", "minirocket", "multirocket"]
-    max_dilations_per_kernel : int, optional, default=32
+        Valid inputs = ["rocket", "minirocket", "multirocket"].
+    max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
-    n_features_per_kernel : int, optional, default=4
+    n_features_per_kernel : int, default=4
         MultiRocket only. The number of features per kernel.
     random_state : int or None, default=None
         Seed for random number generation.
     estimator : sklearn compatible classifier or None, default=None
-        if none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used
+        If none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default 1
-        number of threads to use for the convolutional transform
+        Number of threads to use for the convolutional transform.
 
     Attributes
     ----------
@@ -61,6 +62,7 @@ class RocketClassifier(BaseClassifier):
     See Also
     --------
     Rocket
+        Rocket transformers are in transformations/collection
 
     Notes
     -----
