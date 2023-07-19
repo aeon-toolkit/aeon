@@ -10,9 +10,9 @@ __all__ = ["CanonicalIntervalForestClassifier"]
 
 import numpy as np
 
+from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.series_as_features.interval_based import BaseIntervalForest
 from aeon.transformations.collection import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
@@ -180,7 +180,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            CanonicalIntervalForest provides the following special sets:
+            CanonicalIntervalForestClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
