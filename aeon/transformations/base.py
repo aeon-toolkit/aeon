@@ -355,8 +355,8 @@ class BaseTransformer(BaseEstimator):
         Writes to self:
         _is_fitted : flag is set to True.
         _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
+        possibly coerced to inner type or update_data compatible type
+        by reference, when possible
         model attributes (ending in "_") : dependent on estimator
 
         Parameters
@@ -365,9 +365,9 @@ class BaseTransformer(BaseEstimator):
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
+                nested pd.DataFrame, or pd.DataFrame in long/wide format.
         y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -471,8 +471,7 @@ class BaseTransformer(BaseEstimator):
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        State change:
-            Changes state to "fitted".
+        State change: changes state to "fitted".
 
         Writes to self:
         _is_fitted : flag is set to True.
@@ -487,9 +486,9 @@ class BaseTransformer(BaseEstimator):
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
+                nested pd.DataFrame, or pd.DataFrame in long/wide format
                 subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
