@@ -55,25 +55,25 @@ class MUSE(BaseClassifier):
         to determine the next window size.
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
-    p_threshold : int, default=0.05
-        Used when feature selection is applied based on the chi-squared test.
-        This is the p-value threshold to use for chi-squared test on bag-of-words
-        (lower means more strict). 1 indicates that the test should not be performed.
     use_first_order_differences : bool, default = True
         If set to True will add the first order differences of each dimension
         to the data.
-    support_probabilities : bool, default = False
-        If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
-        and is faster, yet does not support predict_proba.
-        If set to True, a LogisticRegression will be trained, which does support
-        predict_proba(), yet is slower and typically less accuracy. predict_proba() is
-        needed for example in Early-Classification like TEASER.
     feature_selection : str, default = "chi2"
         Sets the feature selections strategy to be used, one of
         {"chi2", "none", "random"}. "chi2" reduces the number of words significantly
         and is thus much faster (preferred). Random also reduces the number
         significantly. None applies not feature selectiona and yields large
         bag of words, e.g. much memory may be needed.
+    p_threshold : int, default=0.05
+        Used when feature selection is applied based on the chi-squared test.
+        This is the p-value threshold to use for chi-squared test on bag-of-words
+        (lower means more strict). 1 indicates that the test should not be performed.
+    support_probabilities : bool, default = False
+        If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
+        and is faster, yet does not support predict_proba.
+        If set to True, a LogisticRegression will be trained, which does support
+        predict_proba(), yet is slower and typically less accuracy. predict_proba() is
+        needed for example in Early-Classification like TEASER.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.

@@ -57,8 +57,8 @@ class WEASEL(BaseClassifier):
         ANOVA test. If False, the first Fourier coefficients are selected.
         Only applicable if labels are given.
     bigrams : bool, default=True
-        whether to create bigrams of SFA words.
-    binning_strategy :str, default="information-gain"
+        Whether to create bigrams of SFA words.
+    binning_strategy : str, default="information-gain"
         The binning method used to derive the breakpoints.
         one of {"equi-depth", "equi-width", "information-gain"}.
     window_inc : int, default=2
@@ -93,18 +93,18 @@ class WEASEL(BaseClassifier):
     MUSE
         Multivariate version of WEASEL.
 
-    References
-    ----------
-    .. [1] Patrick Schäfer and Ulf Leser, "Fast and Accurate Time Series Classification
-    with WEASEL", in proc ACM on Conference on Information and Knowledge Management,
-    2017, https://dl.acm.org/doi/10.1145/3132847.3132980
-
     Notes
     -----
     For the Java version, see
     - `Original Publication <https://github.com/patrickzib/SFA>`_.
     - `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
     /tsml/classifiers/dictionary_based/WEASEL.java>`_.
+
+    References
+    ----------
+    .. [1] Patrick Schäfer and Ulf Leser, "Fast and Accurate Time Series Classification
+    with WEASEL", in proc ACM on Conference on Information and Knowledge Management,
+    2017, https://dl.acm.org/doi/10.1145/3132847.3132980
 
     Examples
     --------
