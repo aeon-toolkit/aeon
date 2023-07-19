@@ -129,7 +129,8 @@ class BaseObject(_BaseEstimator):
         return self
 
     def clone(self):
-        """Obtain a clone of the object with same hyper-parameters.
+        """
+        Obtain a clone of the object with same hyper-parameters.
 
         A clone is a different object without shared references, in post-init state.
         This function is equivalent to returning sklearn.clone of self.
@@ -989,7 +990,8 @@ class BaseEstimator(BaseObject):
         return self._is_fitted
 
     def check_is_fitted(self):
-        """Check if the estimator has been fitted.
+        """
+        Check if the estimator has been fitted.
 
         Raises
         ------
