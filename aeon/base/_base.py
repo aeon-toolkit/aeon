@@ -432,7 +432,7 @@ class BaseObject(_BaseEstimator):
         Parameters
         ----------
         estimator : object
-            estimator inheriting from :class:BaseEstimator.
+            Estimator inheriting from :class:BaseEstimator.
         tag_names : str or list of str, default = None
             Names of tags to clone. If None then all tags in estimator are used
             as `tag_names`.
