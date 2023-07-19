@@ -18,7 +18,8 @@ __all__ = ["ColumnTransformer", "ColumnConcatenator"]
 
 
 class ColumnTransformer(_ColumnTransformer, BaseTransformer):
-    """Column-wise application of transformers.
+    """
+    Column-wise application of transformers.
 
     Applies transformations to columns of an array or pandas DataFrame. Simply
     takes the column transformer from sklearn
@@ -78,10 +79,9 @@ class ColumnTransformer(_ColumnTransformer, BaseTransformer):
         Multiplicative weights for features per transformer. The output of the
         transformer is multiplied by these weights. Keys are transformer names,
         values the weights.
-    preserve_dataframe : boolean
+    preserve_dataframe : bool, default=True
         If True, pandas dataframe is returned.
         If False, numpy array is returned.
-
 
     Attributes
     ----------

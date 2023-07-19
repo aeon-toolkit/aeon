@@ -11,7 +11,8 @@ from aeon.regression.base import BaseRegressor
 
 
 class DummyRegressor(BaseRegressor):
-    """DummyRegressor makes predictions that ignore the input features.
+    """
+    DummyRegressor makes predictions that ignore the input features.
 
     This regressor serves as a simple baseline to compare against other more
     complex regressors.

@@ -61,7 +61,8 @@ def _coerce_to_aeon(other):
 
 
 class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
-    """Pipeline of transformers compositor.
+    """
+    Pipeline of transformers compositor.
 
     The `TransformerPipeline` compositor allows to chain transformers.
     The pipeline is constructed with a list of aeon transformers, i.e.
@@ -108,16 +109,16 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     Parameters
     ----------
     steps : list of aeon transformers, or
-        list of tuples (str, transformer) of aeon transformers
-        these are "blueprint" transformers, states do not change when `fit` is called
+        List of tuples (str, transformer) of aeon transformers
+        these are "blueprint" transformers, states do not change when `fit` is called.
 
     Attributes
     ----------
     steps_ : list of tuples (str, transformer) of aeon transformers
-        clones of transformers in `steps` which are fitted in the pipeline
+        Clones of transformers in `steps` which are fitted in the pipeline
         is always in (str, transformer) format, even if `steps` is just a list
         strings not passed in `steps` are replaced by unique generated strings
-        i-th transformer in `steps_` is clone of i-th in `steps`
+        i-th transformer in `steps_` is clone of i-th in `steps`.
 
     Examples
     --------
@@ -670,7 +671,8 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
 
 class FitInTransform(BaseTransformer):
-    """Transformer wrapper to delay fit to the transform phase.
+    """
+    Transformer wrapper to delay fit to the transform phase.
 
     In panel settings, e.g., time series classification, it can be preferable
     (or, necessary) to fit and transform on the test set, e.g., interpolate within the
@@ -684,7 +686,7 @@ class FitInTransform(BaseTransformer):
     Parameters
     ----------
     transformer : Estimator
-        scikit-learn-like or aeon-like transformer to fit and apply to series.
+        Scikit-learn-like or aeon-like transformer to fit and apply to series.
     skip_inverse_transform : bool
         The FitInTransform will skip inverse_transform by default, of the param
         skip_inverse_transform=False, then the inverse_transform is calculated
@@ -806,7 +808,8 @@ class FitInTransform(BaseTransformer):
 
 
 class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
-    """Facilitate an AutoML based selection of the best transformer.
+    """
+    Facilitate an AutoML based selection of the best transformer.
 
     When used in combination with either TransformedTargetForecaster or
     ForecastingPipeline in combination with ForecastingGridSearchCV
@@ -829,7 +832,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         blueprints.  Calling transformation functions on MultiplexTransformer will not
         change their state at all. - Rather a copy of each is created and this is what
         is updated.
-    selected_transformer: str or None, optional, Default=None.
+    selected_transformer : str or None, optional, Default=None.
         If str, must be one of the transformer names.
             If passed in transformers were unnamed then selected_transformer must
             coincide with auto-generated name strings.
@@ -1266,7 +1269,8 @@ class Id(BaseTransformer):
 
 
 class OptionalPassthrough(_DelegatedTransformer):
-    """Wrap an existing transformer to tune whether to include it in a pipeline.
+    """
+    Wrap an existing transformer to tune whether to include it in a pipeline.
 
     Allows tuning the implicit hyperparameter whether or not to use a
     particular transformer inside a pipeline (e.g. TransformedTargetForecaster)
@@ -1276,8 +1280,8 @@ class OptionalPassthrough(_DelegatedTransformer):
     Parameters
     ----------
     transformer : Estimator
-        scikit-learn-like or aeon-like transformer to fit and apply to series.
-        this is a "blueprint" transformer, state does not change when `fit` is called
+        A scikit-learn-like or aeon-like transformer to fit and apply to series.
+        this is a "blueprint" transformer, state does not change when `fit` is called.
     passthrough : bool, default=False
        Whether to apply the given transformer or to just
         passthrough the data (identity transformation). If, True the transformer
@@ -1634,7 +1638,8 @@ def _check_is_pdseries(z):
 
 
 class YtoX(BaseTransformer):
-    """Create exogeneous features which are a copy of the endogenous data.
+    """
+    Create exogeneous features which are a copy of the endogenous data.
 
     Replaces exogeneous features (`X`) by endogeneous data (`y`).
 
@@ -1642,9 +1647,9 @@ class YtoX(BaseTransformer):
 
     Parameters
     ----------
-    subset_index : boolean, optional, default=False
+    subset_index : bool, default=False
         if True, subsets the output of `transform` to `X.index`,
-        i.e., outputs `y.loc[X.index]`
+        i.e., outputs `y.loc[X.index]`.
     """
 
     _tags = {
