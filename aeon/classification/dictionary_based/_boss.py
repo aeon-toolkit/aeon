@@ -25,7 +25,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class BOSSEnsemble(BaseClassifier):
-    """Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
+    """
+    Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
 
     Implementation of BOSS Ensemble from Schäfer (2015). [1]_
 
@@ -68,14 +69,15 @@ class BOSSEnsemble(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    use_boss_distance : boolean, default=True
+    use_boss_distance : bool, default=True
         The Boss-distance is an asymmetric distance measure. It provides higher
         accuracy, yet is signifaicantly slower to compute.
-    feature_selection: {"chi2", "none", "random"}, default: none
-        Sets the feature selections strategy to be used. Chi2 reduces the number
-        of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selection and yields large
-        bag of words, e.g. much memory may be needed.
+    feature_selection : str, default: "none"
+        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        "random"}. Chi2 reduces the number of words significantly and is thus much
+        faster (preferred). Random also reduces the number significantly. None
+        applies not feature selection and yields large bag of words, e.g. much memory
+        may be needed.
     random_state : int or None, default=None
         Seed for random, integer.
 
@@ -94,6 +96,7 @@ class BOSSEnsemble(BaseClassifier):
     See Also
     --------
     IndividualBOSS, ContractableBOSS
+        Variants of the BOSS classifier.
 
     Notes
     -----
@@ -101,7 +104,6 @@ class BOSSEnsemble(BaseClassifier):
     - `Original Publication <https://github.com/patrickzib/SFA>`_.
     - `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
     tsml/classifiers/dictionary_based/BOSS.java>`_.
-
 
     References
     ----------
@@ -170,10 +172,10 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -280,13 +282,14 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        y : 1D np.ndarray
+            The predicted class labels, shape = (n_instances).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -301,13 +304,15 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        y : 2D np.ndarray
+            Predicted probabilities using the ordering in classes_ shape = (
+            n_instances, n_classes_).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
@@ -506,6 +511,7 @@ class IndividualBOSS(BaseClassifier):
     See Also
     --------
     BOSSEnsemble, ContractableBOSS
+        Variants on the BOSS classifier.
 
     Notes
     -----
