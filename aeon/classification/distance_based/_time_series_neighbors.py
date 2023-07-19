@@ -28,12 +28,13 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbors : int, set k for knn (default =1)
-    weights : string or callable function, optional. default = 'uniform'
-        mechanism for weighting a vot
-        one of: 'uniform', 'distance', or a callable function
-    distance : str or callable, optional. default ='dtw'
-        distance measure between time series
+    n_neighbors : int, default =1
+        k for knn.
+    weights : string or callable function, default = 'uniform'
+        mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
+        function.
+    distance : str or callable, default ='dtw'
+        distance measure between time series.
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
             'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
@@ -42,9 +43,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 distance='mpdist', distance_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
-    distance_params : dict, optional. default = None.
-        dictionary for metric parameters for the case that distance is a str
-    n_jobs : int, default=None
+    distance_params : dict, default = None
+        dictionary for metric parameters for the case that distance is a str.
+    n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
@@ -103,9 +104,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
-                different lengths.
+        If the series are all equal length, a numpy3D will be passed. If unequal,
+        a list of 2D numpy arrays is passed, which may have different lengths.
         y : array-like, shape = (n_cases)
             The class labels.
         """

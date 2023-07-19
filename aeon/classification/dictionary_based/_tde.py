@@ -393,7 +393,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         )
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
+        """
+        Predict class probabilities for n instances in X.
 
         Parameters
         ----------
@@ -403,7 +404,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Returns
         -------
-        1D npo.ndarray
+        1D np.ndarray
             Predicted probabilities using the ordering in classes_, shape = (
             n_instances, n_classes_).
 
@@ -862,13 +863,14 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         num_cases = X.shape[0]
 

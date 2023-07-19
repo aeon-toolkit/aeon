@@ -59,10 +59,11 @@ class ElasticEnsemble(BaseClassifier):
     Attributes
     ----------
     estimators_ : list
-      A list storing all classifiers
-    train_accs_by_classifier_ : ndarray
-      Store the train accuracies of the classifiers
-    constituent_build_times_ : build time for each member of the ensemble
+      A list storing all classifiers.
+    train_accs_by_classifier_ : np.ndarray
+      Store the train accuracies of the classifiers.
+    constituent_build_times_ : array of float
+        build time for each member of the ensemble.
 
     Notes
     -----
