@@ -18,7 +18,8 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 
 class KNeighborsTimeSeriesClassifier(BaseClassifier):
-    """KNN Time Series Classifier.
+    """
+    KNN Time Series Classifier.
 
     An adapted K-Neighbors Classifier for time series data.
 
@@ -30,11 +31,11 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     ----------
     n_neighbors : int, default =1
         k for knn.
-    weights : string or callable function, default = 'uniform'
-        mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
+    weights : str or callable, default = 'uniform'
+        Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
         function.
     distance : str or callable, default ='dtw'
-        distance measure between time series.
+        Distance measure between time series.
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
             'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
@@ -44,7 +45,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
                                 distance='mpdist', distance_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
     distance_params : dict, default = None
-        dictionary for metric parameters for the case that distance is a str.
+        Dictionary for metric parameters for the case that distance is a str.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.

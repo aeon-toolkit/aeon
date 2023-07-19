@@ -32,7 +32,8 @@ __author__ = ["vincent-nich12"]
 
 
 class ShapeDTW(BaseClassifier):
-    """ShapeDTW classifier.
+    """
+    ShapeDTW classifier.
 
     ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
     each data point in a time series. These subseries are then passed into a
@@ -42,11 +43,11 @@ class ShapeDTW(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbours : int, default =1
+    n_neighbors : int, default =1
         Number of neighbours, k, for the k-NN classifier.
     subsequence_length : int, default=sqrt(n_timepoints)
         Length of the subseries to extract.
-    shape_descriptor_function : string, default = 'raw'
+    shape_descriptor_function : str, default = 'raw'
         Defines the function to describe the set of subsequences
         The possible shape descriptor functions are as follows:
         - 'raw' : use the raw subsequence as the shape descriptor function.
@@ -66,8 +67,8 @@ class ShapeDTW(BaseClassifier):
         params = weighting_factor (default=None). Defines how to scale values of a
         shape descriptor.  If a value is not given, this value is tuned by 10-fold
         cross-validation on the training data.
-    shape_descriptor_functions : List of string, default = ['raw','derivative']
-        only applicable when the shape_descriptor_function is set to 'compound'. Use
+    shape_descriptor_functions : List of str, default = ['raw','derivative']
+        Only applicable when the shape_descriptor_function is set to 'compound'. Use
         a list of shape descriptor functions at the same time.
     metric_params : dict, default = None
         Dictionary for metric parameters.
