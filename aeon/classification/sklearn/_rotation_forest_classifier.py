@@ -24,7 +24,8 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RotationForestClassifier(BaseEstimator):
-    """A rotation forest (RotF) vector classifier.
+    """
+    A rotation forest (RotF) vector classifier.
 
     Implementation of the Rotation Forest classifier described in Rodriguez et al
     (2013) [1]. Builds a forest of trees build on random portions of the data

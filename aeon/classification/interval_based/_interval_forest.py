@@ -12,7 +12,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
-    """Configurable interval extracting forest classifier.
+    """
+    Configurable interval extracting forest classifier.
 
     Extracts multiple phase-dependent intervals from time series data and builds a
     base classifier on summary statistic extracted from each interval. Forms and

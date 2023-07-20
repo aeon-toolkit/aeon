@@ -16,7 +16,8 @@ from aeon.transformations.series.summarize import SummaryTransformer
 
 
 class SummaryClassifier(BaseClassifier):
-    """Summary statistic classifier.
+    """
+    Summary statistic classifier.
 
     This classifier simply transforms the input data using the SummaryTransformer
     transformer and builds a provided estimator using the transformed data.

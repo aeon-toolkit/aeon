@@ -20,7 +20,8 @@ from aeon.transformations.collection import RandomDilatedShapeletTransform
 
 
 class RDSTClassifier(BaseClassifier):
-    """A random dilated shapelet transform (RDST) classifier.
+    """
+    A random dilated shapelet transform (RDST) classifier.
 
     Implementation of the random dilated shapelet transform classifier pipeline
     along the lines of [1][2]. Transforms the data using the
@@ -119,6 +120,7 @@ class RDSTClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "non-deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 

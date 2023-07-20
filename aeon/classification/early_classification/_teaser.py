@@ -24,7 +24,8 @@ from aeon.classification.early_classification.base import BaseEarlyClassifier
 
 
 class TEASER(BaseEarlyClassifier):
-    """Two-tier Early and Accurate Series Classifier (TEASER).
+    """
+    Two-tier Early and Accurate Series Classifier (TEASER).
 
     An early classifier which uses one class SVM's trained on prediction probabilities
     to determine whether an early prediction is safe or not.
@@ -42,13 +43,13 @@ class TEASER(BaseEarlyClassifier):
 
     Parameters
     ----------
-    estimator: aeon classifier, default=None
+    estimator : aeon classifier, default=None
         An aeon estimator to be built at each of the classification_points time
         stamps. Defaults to a WEASEL classifier.
-    one_class_classifier: one-class sklearn classifier, default=None
+    one_class_classifier : one-class sklearn classifier, default=None
         An sklearn one-class classifier used to determine whether an early decision is
         safe. Defaults to a tuned one-class SVM classifier.
-    one_class_param_grid: dict or list of dict, default=None
+    one_class_param_grid : dict or list of dict, default=None
         The hyper-parameters for the one-class classifier to learn using grid-search.
         Dictionary with parameters names (`str`) as keys and lists of parameter settings
         to try as values, or a list of such dictionaries.
