@@ -48,11 +48,13 @@ class RocketRegressor(BaseRegressor):
         "auto" = multivariate iff data seen in fit is multivariate, otherwise univariate
         "yes" = always uses multivariate transformers, native multi/univariate
         "no" = always univariate transformers, multivariate by framework vectorization
+    random_state : int or None, default=None
+        Seed for random number generation.
+    estimator : sklearn compatible regressor or None, default=None
+        if none, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
 
     Attributes
     ----------
@@ -97,17 +99,18 @@ class RocketRegressor(BaseRegressor):
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
         use_multivariate="auto",
-        n_jobs=1,
         random_state=None,
+        estimator=None,
+        n_jobs=1,
     ):
         self.num_kernels = num_kernels
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
         self.use_multivariate = use_multivariate
-
-        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.estimator = estimator
+        self.n_jobs = n_jobs
 
         super(RocketRegressor, self).__init__()
 
