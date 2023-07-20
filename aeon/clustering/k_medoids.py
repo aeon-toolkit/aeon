@@ -13,7 +13,6 @@ from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
-from aeon.distances._distance import DISTANCE_NAMES
 
 
 class TimeSeriesKMedoids(BaseClusterer):
