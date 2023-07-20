@@ -14,7 +14,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class _DelegatedClassifier(BaseClassifier):
-    """Delegator mixin that delegates all methods to wrapped classifier.
+    """
+    Delegator mixin that delegates all methods to wrapped classifier.
 
     Delegates inner classifier methods to a wrapped estimator.
         Wrapped estimator is value of attribute with name self._delegate_name.

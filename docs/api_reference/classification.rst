@@ -11,7 +11,7 @@ using ``estimator_types="classifier"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
 Convolution-based
-------------
+-----------------
 
 .. currentmodule:: aeon.classification.convolution_based
 
