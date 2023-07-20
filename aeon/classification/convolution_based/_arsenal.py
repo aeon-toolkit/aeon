@@ -29,7 +29,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class Arsenal(BaseClassifier):
-    """Arsenal ensemble.
+    """
+    Arsenal ensemble.
 
     Overview: an ensemble of ROCKET transformers using RidgeClassifierCV base
     classifier. Weights each classifier using the accuracy from the ridge
@@ -44,7 +45,7 @@ class Arsenal(BaseClassifier):
         Number of estimators to build for the ensemble.
     rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
-        Valid inputs = ["rocket","minirocket","multirocket"]
+        Valid inputs = ["rocket","minirocket","multirocket"].
     max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, default=4
@@ -86,6 +87,7 @@ class Arsenal(BaseClassifier):
     See Also
     --------
     RocketClassifier
+        Arsenal is an ensemble of RocketClassifier.
 
     Notes
     -----
