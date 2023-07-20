@@ -601,7 +601,8 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
                     "Class parameter `control_transition` was initiated with user data "
                     "but received no data through `transform` argument, `y`. "
                     "Therefore, omitting `control_transition` "
-                    "when calculating the result. "
+                    "when calculating the result. ",
+                    stacklevel=2,
                 )
             y = np.zeros(y_dim)
 
