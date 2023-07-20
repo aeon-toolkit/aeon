@@ -125,7 +125,8 @@ def _produce_intervals(
 
 
 class RandomIntervalSpectralEnsemble(BaseClassifier):
-    """Random Interval Spectral Ensemble (RISE).
+    """
+    Random Interval Spectral Ensemble (RISE).
 
     Input: n series length m
     For each tree
@@ -138,6 +139,8 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
     ----------
     n_estimators : int, default=200
         The number of trees in the forest.
+    max_interval : int, default=0
+        The maximum width of an interval, if 0 max is n_timepoints.
     min_interval : int, default=16
         The minimum width of an interval.
     acf_lag : int, default=100
@@ -203,14 +206,6 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
         self.base_estimator = DecisionTreeClassifier(random_state=random_state)
 
         super(RandomIntervalSpectralEnsemble, self).__init__()
-
-    @property
-    def feature_importances_(self):
-        """Feature importance not supported for the RISE classifier."""
-        raise NotImplementedError(
-            "The impurity-based feature importances of "
-            "RandomIntervalSpectralForest is currently not supported."
-        )
 
     def _fit(self, X, y):
         """Build a forest of trees from the training set (X, y).

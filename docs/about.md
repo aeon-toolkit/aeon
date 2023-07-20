@@ -7,29 +7,34 @@ A list of all contributors can be found [here](contributors.md).
 
 ### Community Council
 
-The community council currently has no sitting members while we discuss governance for the project.
+The community council currently has no sitting members while we discuss governance for
+the project.
+
+```{eval-rst}
+.. include:: about/community_council.rst
+```
 
 ### Code of Conduct Committee
 
-- {user}`GuzalBulatova`
-- {user}`KatieBuc`
-- {user}`matthewmiddlehurst`
-- {user}`patrickzib`
+The code of conduct committee maintains the code of conduct and handles any issues
+related that arise.
+
+```{eval-rst}
+.. include:: about/coc_committee.rst
+```
 
 ### Core Developers
 
-- {user}`TonyBagnall`
-- {user}`chrisholder`
-- {user}`GuzalBulatova`
-- {user}`ltsaprounis`
-- {user}`lmmentel`
-- {user}`aiwalter`
-- {user}`matthewmiddlehurst`
-- {user}`patrickzib`
+The core developers push forward `aeon`'s development and maintain the package.
+
+```{eval-rst}
+.. include:: about/core_developers.rst
+```
 
 #### Pre-fork Core Developers
 
-The following listed contributors were part of the sktime core developer team at some point prior to our split from the project.
+The following listed contributors were part of the sktime core developer team at some
+point prior to our split from the project.
 
 <details><summary>sktime v0.16.0 core developers</summary>
 <p>
@@ -60,17 +65,23 @@ The following listed contributors were part of the sktime core developer team at
 
 ## History
 
-aeon was started in January 2023 as a fork of the [sktime project](https://pypi.org/project/sktime/) by 8 core developers using v0.16.0 as a base.
+`aeon` was started in January 2023 as a fork of the
+[sktime project](https://pypi.org/project/sktime/) by 8 core developers using v0.16.0
+as a base.
 
 ## Artwork
 
-High quality PNG, JPG and EPS logos are available are located in the [docs/images/logo/](https://github.com/aeon-toolkit/aeon/tree/main/docs/images/logo/) directory on GitHub.
+High quality PNG, JPG and EPS logos are available are located in the
+[docs/images/logo/](https://github.com/aeon-toolkit/aeon/tree/main/docs/images/logo/)
+directory on GitHub.
 
-The logo was designed by [Reni Rahayu](https://www.instagram.com/kojodesignandco/).
+The logo was designed by [Reni Rahayu](https://www.instagram.com/kojodesignandco/) via
+[crowdspring](https://www.crowdspring.com/).
 
 ## Funding
 
-aeon is a community-driven project, however institutional and private grants help to assure its sustainability.
+`aeon` is a community-driven project. However, institutional and private grants help to
+ensure its sustainability.
 
 The project developers would like to thank the following funders.
 
@@ -86,7 +97,8 @@ The project developers would like to thank the following funders.
 
 #### Pre-fork funding
 
-As a fork of the sktime project, aeon has benefited from funding given to sktime prior to our split. We would like to thank the funders from before the split.
+As a fork of the sktime project, `aeon` has benefited from funding given to sktime prior
+to our split. We would like to thank the funders from before the split.
 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
@@ -107,13 +119,19 @@ As a fork of the sktime project, aeon has benefited from funding given to sktime
 
 ##### Sprints
 
-The 2019 joint sktime/MLJ development sprint was kindly hosted by [UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk). Some participants could attend thanks to the initial funding of the [The Alan Turing Institute](https://turing.ac.uk).
+The 2019 joint sktime/MLJ development sprint was kindly hosted by
+[UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk).
+Some participants could attend thanks to the initial funding of the
+[The Alan Turing Institute](https://turing.ac.uk).
 
 ##### Internships
 
-[Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com), [Major League Hacking](https://mlh.io) and [Outreachy](https://www.outreachy.org) have all sponsored sktime internships.
+[Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com),
+[Major League Hacking](https://mlh.io) and [Outreachy](https://www.outreachy.org)
+have all sponsored sktime internships.
 
-The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as part of Outreachy.
+The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as part of
+Outreachy.
 
 ```{list-table}
 :header-rows: 1
@@ -150,4 +168,6 @@ The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as pa
 
 ## Infrastructure
 
-We would also like to thank [GitHub Actions](https://github.com/features/actions) and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers and documentation hosting.
+We would also like to thank [GitHub Actions](https://github.com/features/actions)
+and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
+and documentation hosting.
