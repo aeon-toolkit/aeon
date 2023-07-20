@@ -17,10 +17,12 @@ class HOG1DTransformer(BaseTransformer):
 
     Parameters
     ----------
-        n_intervals   : int, length of interval.
-        n_bins        : int, num bins in the histogram.
-        scaling_factor  : float, a constant that is multiplied
-                          to modify the distribution.
+    n_intervals : int
+        Length of interval.
+    n_bins : int
+        Number of bins in the histogram.
+    scaling_factor : float
+        A constant that is multiplied to modify the distribution.
 
     Notes
     -----

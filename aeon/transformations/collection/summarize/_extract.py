@@ -56,7 +56,8 @@ def series_slope_derivative(X: np.ndarray) -> np.ndarray:
 
 
 class PlateauFinder(BaseTransformer):
-    """Plateau finder transformer.
+    """
+    Plateau finder transformer.
 
     Transformer that finds segments of the same given value, plateau in
     the time series, and returns the starting indices and lengths.
@@ -96,8 +97,8 @@ class PlateauFinder(BaseTransformer):
         -------
         X : pandas data frame
         """
-        self._starts = []
-        self._lengths = []
+        _starts = []
+        _lengths = []
 
         # find plateaus (segments of the same value)
         for x in X[:, 0]:
@@ -123,8 +124,8 @@ class PlateauFinder(BaseTransformer):
             starts = starts[lengths >= self.min_length]
             lengths = lengths[lengths >= self.min_length]
 
-            self._starts.append(starts)
-            self._lengths.append(lengths)
+            _starts.append(starts)
+            _lengths.append(lengths)
 
         # put into dataframe
         Xt = pd.DataFrame()
@@ -132,15 +133,16 @@ class PlateauFinder(BaseTransformer):
             "channel_",
             "nan" if np.isnan(self.value) else str(self.value),
         )
-        Xt["%s_starts" % column_prefix] = pd.Series(self._starts)
-        Xt["%s_lengths" % column_prefix] = pd.Series(self._lengths)
+        Xt["%s_starts" % column_prefix] = pd.Series(_starts)
+        Xt["%s_lengths" % column_prefix] = pd.Series(_lengths)
 
         Xt = Xt.applymap(lambda x: pd.Series(x))
         return Xt
 
 
 class DerivativeSlopeTransformer(BaseTransformer):
-    """Derivative slope transformer.
+    """
+    Derivative slope transformer.
 
     Transformer that finds the slope derivate by simply calling the method
     `series_slope_derivative`. This function keeps the series the same length by
@@ -173,12 +175,15 @@ def _check_features(features):
 
 
 class RandomIntervalFeatureExtractor(BaseTransformer):
-    """Random interval feature extractor transform.
+    """
+    Random interval feature extractor transform.
 
     Transformer that segments time-series into random intervals
     and subsequently extracts series-to-primitives features from each interval.
 
-    n_intervals: str{'sqrt', 'log', 'random'}, int or float, optional (
+    Parameters
+    ----------
+    n_intervals : str{'sqrt', 'log', 'random'}, int or float, optional (
     default='sqrt')
         Number of random intervals to generate, where m is length of time
         series:
@@ -189,16 +194,15 @@ class RandomIntervalFeatureExtractor(BaseTransformer):
         - If float, int(n_intervals * m) is used with n_intervals giving the
         fraction of intervals of the
         time series length.
-
         For all arguments relative to the length of the time series,
         the generated number of intervals is
         always at least 1.
 
-    features: list of functions, optional (default=None)
+    features : list of functions, optional (default=None)
         Applies each function to random intervals to extract features.
         If None, the mean is extracted.
 
-    random_state: : int, RandomState instance, optional (default=None)
+    random_state : int, RandomState instance, optional (default=None)
         - If int, random_state is the seed used by the random number generator;
         - If RandomState instance, random_state is the random number generator;
         - If None, the random number generator is the RandomState instance used
@@ -346,7 +350,7 @@ class FittedParamExtractor(BaseTransformer):
     Parameters
     ----------
     forecaster : estimator object
-        aeon estimator to extract features from
+        An aeon estimator to extract features from.
     param_names : str
         Name of parameters to extract from the forecaster.
     n_jobs : int, optional (default=None)

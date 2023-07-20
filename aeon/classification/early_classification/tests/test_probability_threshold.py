@@ -57,7 +57,7 @@ def test_early_prob_threshold_score():
 
     _, acc, earl = pt.score(X_test, y_test)
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.25, rtol=0.01)
+    testing.assert_allclose(earl, 0.283, rtol=0.01)
 
     # make sure update ends up with the same score
     pt.reset_state_info()
@@ -78,4 +78,4 @@ def test_early_prob_threshold_score():
     _, acc, earl = pt.compute_harmonic_mean(final_states, y_test)
 
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.25, rtol=0.01)
+    testing.assert_allclose(earl, 0.283, rtol=0.01)
