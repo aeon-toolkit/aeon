@@ -38,7 +38,8 @@ from aeon.classification import BaseClassifier
 
 
 class BaseEarlyClassifier(BaseEstimator, ABC):
-    """Abstract base class for early time series classifiers.
+    """
+    Abstract base class for early time series classifiers.
 
     The base classifier specifies the methods and method signatures that all
     early classifiers have to implement. Attributes with an underscore suffix are set in
@@ -46,12 +47,18 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
     Parameters
     ----------
-    classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of classes_)
-    fit_time_           : integer, time (in milliseconds) for fit to run.
-    _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _n_jobs     : number of threads to use in fit as determined by n_jobs.
-    state_info          : An array containing the state info for each decision in X.
+    classes_ : np.ndarray
+        Class labels, possibly strings.
+    n_classes_ : int
+        Number of classes (length of classes_).
+    fit_time_ : int
+        Time (in milliseconds) for fit to run.
+    _class_dictionary : dict
+        dictionary mapping classes_ onto integers 0...n_classes_-1.
+    _n_jobs : int, default=1
+        Number of threads to use in fit as determined by n_jobs.
+    state_info : array-like, default=None
+        An array containing the state info for each decision in X.
     """
 
     _tags = {
