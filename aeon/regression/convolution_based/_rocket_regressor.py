@@ -175,7 +175,9 @@ class RocketRegressor(BaseRegressor):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeCV() if self.estimator is None else self.estimator,
+            RidgeCV(alphas=np.logspace(-3, 3, 10))
+            if self.estimator is None
+            else self.estimator,
             self.random_state,
         )
         self.pipeline_ = make_pipeline(
@@ -213,10 +215,7 @@ class RocketRegressor(BaseRegressor):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {"num_kernels": 20}
