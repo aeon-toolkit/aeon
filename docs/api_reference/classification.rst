@@ -181,7 +181,6 @@ Composition
 
     ClassifierPipeline
     ChannelEnsembleClassifier
-    ComposableTimeSeriesForestClassifier
     SklearnClassifierPipeline
     WeightedEnsembleClassifier
 
