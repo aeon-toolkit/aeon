@@ -20,6 +20,9 @@ class TimeSeriesCLARA(BaseClusterer):
     samples the dataset, applies PAM [2] to the sample, and then uses the
     medoids from the sample to seed PAM on the entire dataset.
 
+    For a comparison of using CLARA for time series compared to other k-medoids
+    algorithms see [3].
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -93,8 +96,14 @@ class TimeSeriesCLARA(BaseClusterer):
     ----------
     .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
     10.1016/B978-0-444-87877-9.50039-X.
+
     .. [2] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
     10.1016/B978-0-444-87877-9.50039-X.
+
+    .. [3] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    Clustering time series with k-medoids based algorithms.
+    In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
+    Data (AALTD 2023).
     """
 
     _tags = {
