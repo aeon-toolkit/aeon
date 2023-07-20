@@ -10,20 +10,17 @@ All classifiers in ``aeon`` can be listed using the ``aeon.registry
 using ``estimator_types="classifier"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
-Composition
------------
+Convolution-based
+------------
 
-.. currentmodule:: aeon.classification.compose
+.. currentmodule:: aeon.classification.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    ClassifierPipeline
-    ChannelEnsembleClassifier
-    ComposableTimeSeriesForestClassifier
-    SklearnClassifierPipeline
-    WeightedEnsembleClassifier
+    Arsenal
+    RocketClassifier
 
 Deep learning
 -------------
@@ -37,6 +34,8 @@ Deep learning
     CNNClassifier
     FCNClassifier
     MLPClassifier
+    InceptionTimeClassifier
+    IndividualInceptionClassifier
     TapNetClassifier
 
 Dictionary-based
@@ -70,18 +69,6 @@ Distance-based
     KNeighborsTimeSeriesClassifier
     ShapeDTW
 
-Early classification
---------------------
-
-.. currentmodule:: aeon.classification.early_classification
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ProbabilityThresholdEarlyClassifier
-    TEASER
-
 Feature-based
 -------------
 
@@ -94,7 +81,6 @@ Feature-based
     Catch22Classifier
     FreshPRINCEClassifier
     MatrixProfileClassifier
-    RandomIntervalClassifier
     SignatureClassifier
     SummaryClassifier
     TSFreshClassifier
@@ -125,18 +111,7 @@ Interval-based
     RandomIntervalSpectralEnsemble
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
-
-Kernel-based
-------------
-
-.. currentmodule:: aeon.classification.convolution_based
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Arsenal
-    RocketClassifier
+    RandomIntervalClassifier
 
 Shapelet-based
 --------------
@@ -148,6 +123,8 @@ Shapelet-based
     :template: class.rst
 
     ShapeletTransformClassifier
+    MrSQMClassifier
+    RDSTClassifier
 
 sklearn
 -------
@@ -160,6 +137,54 @@ sklearn
 
     ContinuousIntervalTree
     RotationForestClassifier
+
+Early classification
+--------------------
+
+.. currentmodule:: aeon.classification.early_classification
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ProbabilityThresholdEarlyClassifier
+    TEASER
+
+
+Ordinal classification
+----------------------
+
+.. currentmodule:: aeon.classification.ordinal_classification
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    IndividualOrdinalTDE
+    OrdinalTDE
+
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    histogram_intersection
+
+Composition
+-----------
+
+.. currentmodule:: aeon.classification.compose
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ClassifierPipeline
+    ChannelEnsembleClassifier
+    ComposableTimeSeriesForestClassifier
+    SklearnClassifierPipeline
+    WeightedEnsembleClassifier
+
 
 Base
 ----

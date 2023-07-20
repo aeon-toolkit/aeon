@@ -157,6 +157,7 @@ def distance(
             y,
             kwargs.get("window"),
             kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
@@ -300,6 +301,7 @@ def pairwise_distance(
             y,
             kwargs.get("window"),
             kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
@@ -465,6 +467,7 @@ def alignment_path(
             y,
             kwargs.get("window"),
             kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
@@ -586,6 +589,7 @@ def cost_matrix(
             y,
             kwargs.get("window"),
             kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":

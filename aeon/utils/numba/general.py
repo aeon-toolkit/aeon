@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """General numba utilities."""
 
-__author__ = ["MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "baraline"]
 __all__ = [
     "unique_count",
     "first_order_differences",
@@ -367,10 +367,9 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length))
-    means = np.zeros(n_channels)
-    stds = np.zeros(n_channels)
-
+    values = np.zeros((n_channels, length), dtype=np.float64)
+    means = np.zeros(n_channels, dtype=np.float64)
+    stds = np.zeros(n_channels, dtype=np.float64)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -385,7 +384,9 @@ def get_subsequence_with_mean_std(
             idx += dilation
 
         means[i_channel] = _sum / length
-        stds[i_channel] = ((_sum2 / length) - means[i_channel] ** 2) ** 0.5
+        _s = (_sum2 / length) - (means[i_channel] ** 2)
+        if _s > 0:
+            stds[i_channel] = _s**0.5
 
     return values, means, stds
 
@@ -415,51 +416,54 @@ def sliding_mean_std_one_series(
     """
     n_channels, n_timestamps = X.shape
     n_subs = n_timestamps - (length - 1) * dilation
+    if n_subs <= 0:
+        raise ValueError(
+            "Invalid input parameter for sliding mean and std computations"
+        )
     mean = np.zeros((n_channels, n_subs))
     std = np.zeros((n_channels, n_subs))
 
-    for i_channel in prange(n_channels):
-        mod_dil = n_subs % dilation
-        for i_mod_dilation in prange(dilation):
-            if i_mod_dilation + (length - 1) * dilation >= n_timestamps:
-                break
+    for i_mod_dil in prange(dilation):
+        # Array mainting indexes of a dilated subsequence
+        _idx_sub = np.zeros(length, dtype=np.int32)
+        for i_length in prange(length):
+            _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
 
-            _idx = i_mod_dilation
-            _sum = 0
-            _sum2 = 0
-            # Init First sums
-            for _ in prange(length):
-                _v = X[i_channel, _idx]
-                _sum += _v
-                _sum2 += _v * _v
-                _idx += dilation
+        _sum = np.zeros(n_channels)
+        _sum2 = np.zeros(n_channels)
 
-            mean[i_channel, i_mod_dilation] = _sum / length
-            _s = (_sum2 / length) - (mean[i_channel, i_mod_dilation] ** 2)
-            if _s > 0:
-                std[i_channel, i_mod_dilation] = _s**0.5
-            # Number of remaining subsequence for each starting i_mod_dilation index
+        # Initialize first subsequence if it is valid
+        if np.all(_idx_sub < n_timestamps):
+            for i_length in prange(length):
+                _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
+                for i_channel in prange(n_channels):
+                    _v = X[i_channel, _idx_sub[i_length]]
+                    _sum[i_channel] += _v
+                    _sum2[i_channel] += _v * _v
 
-            n_subs_mod_d = n_subs // dilation
-            if mod_dil > 0:
-                n_subs_mod_d += 1
-                mod_dil -= 1
-            # Iteratively update sums
-            start_idx_sub = i_mod_dilation + dilation
-            for _ in prange(1, n_subs_mod_d):
-                # New value, not present in the previous subsequence
-                _v_new = X[i_channel, start_idx_sub + ((length - 1) * dilation)]
-                # Index of the old value, not present in the current subsequence
-                _v_old = X[i_channel, start_idx_sub - dilation]
-
-                _sum += _v_new - _v_old
-                _sum2 += (_v_new * _v_new) - (_v_old * _v_old)
-
-                mean[i_channel, start_idx_sub] = _sum / length
-                _s = (_sum2 / length) - (mean[i_channel, start_idx_sub] ** 2)
+            # Compute means and stds
+            for i_channel in prange(n_channels):
+                mean[i_channel, i_mod_dil] = _sum[i_channel] / length
+                _s = (_sum2[i_channel] / length) - (mean[i_channel, i_mod_dil] ** 2)
                 if _s > 0:
-                    std[i_channel, start_idx_sub] = _s**0.5
-                start_idx_sub += dilation
+                    std[i_channel, i_mod_dil] = _s**0.5
+
+        _idx_sub += dilation
+        # As long as subsequences further subsequences are valid
+        while np.all(_idx_sub < n_timestamps):
+            # Update sums and mean stds arrays
+            for i_channel in prange(n_channels):
+                _v_new = X[i_channel, _idx_sub[-1]]
+                _v_old = X[i_channel, _idx_sub[0] - dilation]
+                _sum[i_channel] += _v_new - _v_old
+                _sum2[i_channel] += (_v_new * _v_new) - (_v_old * _v_old)
+
+                mean[i_channel, _idx_sub[0]] = _sum[i_channel] / length
+                _s = (_sum2[i_channel] / length) - (mean[i_channel, _idx_sub[0]] ** 2)
+                if _s > 0:
+                    std[i_channel, _idx_sub[0]] = _s**0.5
+            _idx_sub += dilation
+
     return mean, std
 
 
