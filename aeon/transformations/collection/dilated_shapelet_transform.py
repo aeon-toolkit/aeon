@@ -105,9 +105,6 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     affecting a random feature subsets to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
-    It also speeds up the shapelet computation with early abandoning, online
-    normalization and use of the dot product to compute z-normalized squared Euclidean
-    distances.
 
     References
     ----------
@@ -183,9 +180,10 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
-        self._random_state = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
-        )
+        if isinstance(self.random_state, int):
+            self._random_state = np.int32(self.random_state)
+        else:
+            self._random_state = np.int32(np.random.randint(0, 2**31))
 
         self.n_instances, self.n_channels, self.series_length = X.shape
 
@@ -205,7 +203,6 @@ class RandomDilatedShapeletTransform(BaseTransformer):
                 "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
                 "with input length = {}".format(self.series_length),
             )
-
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
             y,
@@ -217,7 +214,17 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             self.use_prime_dilations,
             self._random_state,
         )
-
+        if len(self.shapelets_[0]) == 0:
+            raise RuntimeError(
+                "No shapelets were extracted during the fit method with the specified"
+                " parameters."
+            )
+        if np.isnan(self.shapelets_[0]).any():
+            raise RuntimeError(
+                "Got NaN values in the extracted shapelet values. This may happen if "
+                "you have NaN values in your data. We do not currently support NaN "
+                "values for shapelet transformation."
+            )
         return self
 
     def _transform(self, X, y=None):
@@ -234,6 +241,14 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             The transformed data.
         """
         X_new = dilated_shapelet_transform(X, self.shapelets_)
+        if np.isinf(X_new).any() or np.isnan(X_new).any():
+            warnings.warn(
+                "Some invalid values (inf or nan) where converted from to 0 during the"
+                " shapelet transformation.",
+                stacklevel=2,
+            )
+            X_new = np.nan_to_num(X_new, nan=0.0, posinf=0.0, neginf=0.0)
+
         return X_new
 
     def _check_input_params(self):
@@ -262,7 +277,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
                     "Some values in 'shapelet_lengths' are inferior to 2."
-                    "These values will be ignored."
+                    "These values will be ignored.",
+                    stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths[
                     self.shapelet_lengths_ >= 2
@@ -271,7 +287,8 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             if not np.all(self.shapelet_lengths_ <= self.series_length):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
-                    + "the series length. Shapelet lengths above it will be ignored."
+                    + "the series length. Shapelet lengths above it will be ignored.",
+                    stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
                     self.shapelet_lengths_ <= self.series_length
@@ -772,7 +789,6 @@ def compute_shapelet_features(X_subs, values, length, threshold):
 
     for i_sub in prange(n_subsequences):
         _dist = manhattan_distance(X_subs[i_sub], values[:, :length])
-
         if _dist < _min:
             _min = _dist
             _argmin = i_sub
