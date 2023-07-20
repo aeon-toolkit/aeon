@@ -31,7 +31,8 @@ class TimeSeriesKMedoids(BaseClusterer):
     PAM (Partition Around Medoids)[3] algorithm and is the default method used in this
     implementation. However, an adaptation of lloyds method classically used for k-means
     is also available by specifying method='alternate'. Alternate is faster but less
-    accurate than PAM.
+    accurate than PAM. For a full review of varations of k-medoids for time series
+    see [5].
 
     K-medoids for time series uses a dissimilarity measure to compute the distance
     between time series. The default is 'msm' (move split merge) as
@@ -120,15 +121,23 @@ class TimeSeriesKMedoids(BaseClusterer):
     ----------
     .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
     Data Analysis based on the L1-Norm and Related Methods. 405-416.
+
     .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
     A Review and Evaluation of Elastic Distance Functions for Time Series Clustering.
     10.48550/arXiv.2205.15181.
+
     .. [3] Kaufman, L. and Rousseeuw, P.J. (1990). Partitioning Around Medoids
     (Program PAM). In Finding Groups in Data (eds L. Kaufman and P.J. Rousseeuw).
     https://doi.org/10.1002/9780470316801.ch2
+
     .. [4] Arthur, David & Vassilvitskii, Sergei. (2007). K-Means++: The Advantages of
     Careful Seeding. Proc. of the Annu. ACM-SIAM Symp. on Discrete Algorithms.
     8. 1027-1035. 10.1145/1283383.1283494.
+
+    .. [5] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    Clustering time series with k-medoids based algorithms.
+    In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
+    Data (AALTD 2023).
     """
 
     _tags = {
