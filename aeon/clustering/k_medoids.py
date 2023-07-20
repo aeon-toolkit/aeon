@@ -314,6 +314,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                     "convergence. Consider increasing max_iter to "
                     "improve the fit.",
                     ConvergenceWarning,
+                    stacklevel=1,
                 )
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
@@ -475,7 +476,8 @@ class TimeSeriesKMedoids(BaseClusterer):
             if self.n_init != 10 and self.n_init > 1:
                 warnings.warn(
                     "When using build n_init does not need to be greater than 1. "
-                    "Consider setting n_init to 1.",
+                    "As such n_init will be set to 1.",
+                    stacklevel=1,
                 )
 
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
