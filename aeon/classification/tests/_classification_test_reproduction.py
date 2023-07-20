@@ -32,7 +32,7 @@ from aeon.classification.interval_based import (
     CanonicalIntervalForest,
     DrCIF,
     RandomIntervalClassifier,
-    RandomIntervalSpectralEnsemble,
+    RandomIntervalSpectralEnsembleClassifier,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
@@ -408,9 +408,9 @@ if __name__ == "__main__":
         ),
     )
     _print_array(
-        "RandomIntervalSpectralEnsemble - UnitTest",
+        "RandomIntervalSpectralEnsembleClassifier - UnitTest",
         _reproduce_classification_unit_test(
-            RandomIntervalSpectralEnsemble(n_estimators=10, random_state=0)
+            RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
         ),
     )
     _print_array(

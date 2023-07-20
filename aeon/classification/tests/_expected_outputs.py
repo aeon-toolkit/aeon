@@ -248,7 +248,7 @@ unit_test_proba["DrCIF"] = np.array(
         [1.0, 0.0],
     ]
 )
-unit_test_proba["RandomIntervalSpectralEnsemble"] = np.array(
+unit_test_proba["RandomIntervalSpectralEnsembleClassifier"] = np.array(
     [
         [0.1, 0.9],
         [0.8, 0.2],
