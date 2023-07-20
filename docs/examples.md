@@ -178,12 +178,22 @@ Channel selection in multivariate TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/tser.png
+:img-top: examples/regression/img/reg.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
 
 Extrinsic regression
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
+:link: /examples/regression/regression_reduction.ipynb
+:link-type: ref
+:text-align: center
+
+Forecasting reduced to regression
 
 :::
 
@@ -197,14 +207,35 @@ Extrinsic regression
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/tscl.png
-:link: /examples/clustering/partitional_clustering.ipynb
+:img-top: examples/clustering/img/clst.png
+:link: /examples/clustering/distance_clustering.ipynb
 :link-type: ref
 :text-align: center
 
 Distance based clustering
 
 :::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/feature_clst.png
+:link: /examples/clustering/feature_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Feature based clustering
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/clustering/img/dl_clst.png
+:link: /examples/clustering/dl_clustering.ipynb
+:link-type: ref
+:text-align: center
+
+Deep learning based clustering
+
+:::
+
 
 ::::
 
@@ -216,7 +247,7 @@ Distance based clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/trans.png
-:link: /examples/transformations/transformers.ipynb
+:link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -225,7 +256,7 @@ Transformers
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/tsfresh.png
 :link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
@@ -236,7 +267,7 @@ Feature based
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/rocket.png
 :link: /examples/transformations/rocket.ipynb
 :link-type: ref
 :text-align: center
@@ -246,7 +277,7 @@ Convolution based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/shapelets.png
+:img-top: examples/transformations/img/leaves_shapelets.png
 :link: /examples/transformations/shapelets.ipynb
 :link-type: ref
 :text-align: center
@@ -256,7 +287,7 @@ Shapelet based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/interpolation.png
 :link: /examples/transformations/interpolation.ipynb
 :link-type: ref
 :text-align: center
@@ -267,32 +298,32 @@ Interpolation
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/plateau.png
 :link: /examples/transformations/plateau_finder.ipynb
 :link-type: ref
 :text-align: center
 
-PlateauFinder
+Plateau finding
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/signature.png
 :link: /examples/transformations/signature_method.ipynb
 :link-type: ref
 :text-align: center
 
-Signature Method
+Signature method
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/theta.png
 :link: /examples/transformations/theta_transform.ipynb
 :link-type: ref
 :text-align: center
 
-Theta
+Theta transform
 
 :::
 
@@ -306,7 +337,7 @@ Theta
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/annotation/img/segmentation_use_cases.png
 :link: /examples/annotation/segmentation_use_cases.ipynb
 :link-type: ref
 :text-align: center
@@ -326,7 +357,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center

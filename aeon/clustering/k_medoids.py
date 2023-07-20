@@ -13,25 +13,29 @@ from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
+from aeon.distances._distance import DISTANCE_NAMES
 
 
 class TimeSeriesKMedoids(BaseClusterer):
-    """Time series K-medoids implementation.
+    r"""Time series K-medoids implementation.
 
     K-medoids [1] is a clustering algorithm that aims to partition n observations into k
     clusters in which each observation belongs to the cluster with the nearest
     medoid/centroid. This results in a partitioning of the data space into Voronoi
-    cells. The problem is computationally difficult (NP-hard). There have been a number
-    of algorithms published to solve the problem. The most common is the PAM (Partition
-    Around Medoids)[3] algorithm and is the default method used in this implementation.
-    However, an adaptation of lloyds method classically used for k-means is also
-    available by specifying method='alternate'. Alternate is faster but less accurate
-    than PAM.
+    cells. The problem of finding k-medoids is known to be NP-hard and has a time
+    complexity of :
+    .. math::  \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
+
+    Where n is the number of time series and k is the number of clusters. There have
+    been a number of algorithms published to solve the problem. The most common is the
+    PAM (Partition Around Medoids)[3] algorithm and is the default method used in this
+    implementation. However, an adaptation of lloyds method classically used for k-means
+    is also available by specifying method='alternate'. Alternate is faster but less
+    accurate than PAM. For a full review of varations of k-medoids for time series
+    see [5].
 
     K-medoids for time series uses a dissimilarity measure to compute the distance
-    between time series. The dissimilarity measure can be any of the following:
-    ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw', 'wddtw',
-    'msm', 'twe']. The default is 'msm' (Matrix Profile based Similarity Measure) as
+    between time series. The default is 'msm' (move split merge) as
     it was found to significantly outperform the other measures in [2].
 
     Parameters
@@ -49,9 +53,9 @@ class TimeSeriesKMedoids(BaseClusterer):
         First is the fastest method and simply chooses the first k time series as
         centroids.
     distance: str or Callable, defaults = 'msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe']
+        Distance metric to compute similarity between time series. For a list of valid
+        distances see `aeons.distances
+        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
         If a callable is passed it must be a function that takes two 2d numpy arrays as
         input and returns a float.
     method: str, defaults = 'pam'
@@ -115,15 +119,23 @@ class TimeSeriesKMedoids(BaseClusterer):
     ----------
     .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
     Data Analysis based on the L1-Norm and Related Methods. 405-416.
+
     .. [2] Holder, Christopher & Middlehurst, Matthew & Bagnall, Anthony. (2022).
     A Review and Evaluation of Elastic Distance Functions for Time Series Clustering.
     10.48550/arXiv.2205.15181.
+
     .. [3] Kaufman, L. and Rousseeuw, P.J. (1990). Partitioning Around Medoids
     (Program PAM). In Finding Groups in Data (eds L. Kaufman and P.J. Rousseeuw).
     https://doi.org/10.1002/9780470316801.ch2
+
     .. [4] Arthur, David & Vassilvitskii, Sergei. (2007). K-Means++: The Advantages of
     Careful Seeding. Proc. of the Annu. ACM-SIAM Symp. on Discrete Algorithms.
     8. 1027-1035. 10.1145/1283383.1283494.
+
+    .. [5] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    Clustering time series with k-medoids based algorithms.
+    In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
+    Data (AALTD 2023).
     """
 
     _tags = {
@@ -211,11 +223,11 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _compute_new_cluster_centers(
         self, X: np.ndarray, assignment_indexes: np.ndarray
     ) -> np.ndarray:
-        new_centre_indexes = []
+        new_center_indexes = []
         for i in range(self.n_clusters):
             curr_indexes = np.where(assignment_indexes == i)[0]
-            new_centre_indexes.append(self._compute_medoids(X, curr_indexes))
-        return np.array(new_centre_indexes)
+            new_center_indexes.append(self._compute_medoids(X, curr_indexes))
+        return np.array(new_center_indexes)
 
     def _compute_distance(self, X: np.ndarray, first_index: int, second_index: int):
         # Check cache
@@ -308,9 +320,9 @@ class TimeSeriesKMedoids(BaseClusterer):
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
 
         labels, inertia = self._assign_clusters(X, medoids_idxs)
-        centres = X[medoids_idxs]
+        centers = X[medoids_idxs]
 
-        return labels, centres, inertia, i + 1
+        return labels, centers, inertia, i + 1
 
     def _compute_optimal_swaps(
         self,
@@ -383,11 +395,11 @@ class TimeSeriesKMedoids(BaseClusterer):
             return None
 
     def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
-        cluster_centre_indexes = self._init_algorithm(X)
+        cluster_center_indexes = self._init_algorithm(X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):
-            indexes, inertia = self._assign_clusters(X, cluster_centre_indexes)
+            indexes, inertia = self._assign_clusters(X, cluster_center_indexes)
 
             if np.abs(old_inertia - inertia) < self.tol:
                 break
@@ -401,21 +413,21 @@ class TimeSeriesKMedoids(BaseClusterer):
                 break
             old_indexes = indexes
 
-            cluster_centre_indexes = self._compute_new_cluster_centers(X, indexes)
+            cluster_center_indexes = self._compute_new_cluster_centers(X, indexes)
 
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
 
-        labels, inertia = self._assign_clusters(X, cluster_centre_indexes)
-        centres = X[cluster_centre_indexes]
+        labels, inertia = self._assign_clusters(X, cluster_center_indexes)
+        centers = X[cluster_center_indexes]
 
-        return labels, centres, inertia, i + 1
+        return labels, centers, inertia, i + 1
 
     def _assign_clusters(
-        self, X: np.ndarray, cluster_centre_indexes: np.ndarray
+        self, X: np.ndarray, cluster_center_indexes: np.ndarray
     ) -> Tuple[np.ndarray, float]:
         X_indexes = np.arange(X.shape[0], dtype=int)
-        pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_centre_indexes)
+        pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
     def _check_params(self, X: np.ndarray) -> None:

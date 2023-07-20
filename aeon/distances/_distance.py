@@ -728,3 +728,4 @@ DISTANCES = [
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
+DISTANCE_NAMES = [d["name"] for d in DISTANCES]
