@@ -125,14 +125,14 @@ class RocketClassifier(BaseClassifier):
         super(RocketClassifier, self).__init__()
 
     def _fit(self, X, y):
-        """Fit Arsenal to training data.
+        """Fit Rocket variant to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.array
+            The training data of shape = (n_instances, n_channels, n_timepoints).
+        y : 3D np.array
+            The class labels shape = (n_instances,).
 
         Returns
         -------
