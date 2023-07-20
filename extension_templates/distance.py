@@ -6,30 +6,83 @@ This is a quick guide on how to implement a new aeon distance function. A wish l
 for distance functions we would like to see is here
 https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3Adistances+
 
-You need to implement three public functions for a distance called "my"
+You need to implement three public functions for a distance called "foo"
 
-my_distance: distance between two series, returns a float
-my_pairwise_distance: distance between a collection of series, returns a matrix
-my_alignment_path: path constructed to find distance, returns a list of (x,y) pairs
+TODO 1: foo_distance: distance between two series, returns a float
+
+Optional:
+TODO 2: foo_pairwise_distance: distance between a collection of series, returns a matrix
+TODO 3: foo_alignment_path: path constructed to find distance, returns a list of (x,
+y) pairs
+TODO 4: foo_cost_matrix: path constructed to find distance, returns a list of (x,
+y) pairs
 
 Note many elastic distances calculate a cost
 matrix. Look at any of the distances to see how we structure this, but ultimately it
 is your choice how to internally design the calculationds. Please use numba where
 ever possible.
+
+To contribute the distance to aeon, you need to adjust the file
+aeon/distance/_distance.py to make sure it is tested and available via the function
+distance. There are three things to do
+
+TODO 5: function distance
+in the function
+    def distance(
+        x: np.ndarray,
+        y: np.ndarray,
+        metric: Union[str, DistanceFunction],
+        **kwargs: Any,
+    ) -> float:
+add an if clause here returning a distance with relevant parameters (necessary because
+numba cant handle kwargs)
+    elif metric == "foo":
+        return foo_distance(
+            x,
+            y,
+            kwargs.get("para1"),
+            kwargs.get("para2"),
+        )
+TODO 6: function pairwise_distance (if foo_pairwise_distance implemented)
+in the function
+    def pairwise_distance(
+        x: np.ndarray,
+        y: np.ndarray = None,
+        metric: Union[str, DistanceFunction] = None,
+        **kwargs: Any,
+    ) -> np.ndarray:
+ad an if clause returning the pairwise distance.
+    elif metric == "foo":
+        return foo_pairwise_distance(x, y, kwargs.get("para1", kwargs.get("para2"))
+TODO 7: DISTANCES list
+Add your distance to the list of DISTANCES used in testing
+DISTANCES = [
+    {
+        "name": "foo",
+        "distance": foo_distance,
+        "pairwise_distance": foo_pairwise_distance,
+        "cost_matrix": foo_cost_matrix,
+        "alignment_path": foo_alignment_path,
+    },
 """
 import numpy as np
 from numba import njit
 
 
+# TODO 1: distance function
+# Give function a sensible name
 # The decorator means it will be JIT compiled and be much much faster!
-# TODO: give function a sensible name
+# distance functions should accept both 1D and 2D arrrays (1D are univariate time
+# series shape (n_timepoints), 2D are multivariate (n_channels, n_timepoints). The
+# n_channels should match for both series, but distance functions should be able to
+# handle unequal length series.
 @njit(cache=True, fastmath=True)
-def my_distance(
+def foo_distance(
     x: np.ndarray, y: np.ndarray, para1: float = 0.1, para2: int = 3
 ) -> float:
     r"""Compute the my_distance between two time series.
 
-    TODO given docstring formal definition of my distance. We use a meaningless
+    # give docstring formal definition of foo distance. We use a meaningless
     definition as an example
 
     .. math::
@@ -60,10 +113,9 @@ def my_distance(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import euclidean_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> my_distance(x, y, para1)
+    >>> foo_distance(x, y, para1)
     -11
     """
     # Note our distances are configured to work with either 1D or 2D
@@ -77,17 +129,26 @@ def my_distance(
         for i in range(x.shape[0]):
             sum = sum + x[i][0] - y[i][0]
         return para1 * sum + para2
-    raise ValueError("x and y must be 1D or 2D")
+    raise ValueError("x and y must be 1D or 2D and of the same dinension")
 
 
+# TODO 2: Implement pairwise distances
+# Pairwise distance functions return a matrix of distances between sets of time
+# series. They take two arguments: the first argument, X, is required and must be a
+# collection. This is important, because it is used to infer the type of the optional
+# second argument, y.
+# If it is 3D (X.ndim == 3) then it is a collection (n_cases, n_channels,
+# n_timepoints) assume it
+# is
 @njit(cache=True, fastmath=True)
-def my_pairwise_distance(
+def foo_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, para1: float = None, para2: float = None
 ) -> np.ndarray:
     """Compute the pairwise my distance between a collection of time series.
 
     For pairwise, 2D np.ndarray are treated as a collection of 1D series,
-    and 3D np.ndarray as a collection of 2D series
+    and 3D np.ndarray as a collection of 2D series.
+
     Parameters
     ----------
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
@@ -114,10 +175,9 @@ def my_pairwise_distance(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import dtw_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> dtw_pairwise_distance(X)
+    >>> my_pairwise_distance(X)
     array([[  0.,  26., 108.],
            [ 26.,   0.,  26.],
            [108.,  26.,   0.]])
