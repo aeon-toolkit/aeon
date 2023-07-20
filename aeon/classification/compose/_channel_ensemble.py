@@ -213,6 +213,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
         estimator must support `fit` and `transform`.
     verbose : bool, default=False
         Whether to print debug info.
+
     Examples
     --------
     >>> from aeon.classification.dictionary_based import ContractableBOSS
