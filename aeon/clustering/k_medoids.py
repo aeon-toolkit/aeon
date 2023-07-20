@@ -10,6 +10,7 @@ from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
+from aeon.distances._distance import DISTANCE_NAMES
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
@@ -21,17 +22,19 @@ class TimeSeriesKMedoids(BaseClusterer):
     K-medoids [1] is a clustering algorithm that aims to partition n observations into k
     clusters in which each observation belongs to the cluster with the nearest
     medoid/centroid. This results in a partitioning of the data space into Voronoi
-    cells. The problem is computationally difficult (NP-hard). There have been a number
-    of algorithms published to solve the problem. The most common is the PAM (Partition
-    Around Medoids)[3] algorithm and is the default method used in this implementation.
-    However, an adaptation of lloyds method classically used for k-means is also
-    available by specifying method='alternate'. Alternate is faster but less accurate
-    than PAM.
+    cells. The problem of finding k-medoids is known to be NP-hard and has a time
+    complexity of :
+    .. math::  \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
+
+    Where n is the number of time series and k is the number of clusters. There have
+    been a number of algorithms published to solve the problem. The most common is the
+    PAM (Partition Around Medoids)[3] algorithm and is the default method used in this
+    implementation. However, an adaptation of lloyds method classically used for k-means
+    is also available by specifying method='alternate'. Alternate is faster but less
+    accurate than PAM.
 
     K-medoids for time series uses a dissimilarity measure to compute the distance
-    between time series. The dissimilarity measure can be any of the following:
-    ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw', 'wddtw',
-    'msm', 'twe']. The default is 'msm' (Matrix Profile based Similarity Measure) as
+    between time series. The default is 'msm' (move split merge) as
     it was found to significantly outperform the other measures in [2].
 
     Parameters
@@ -40,7 +43,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         The number of clusters to form as well as the number of
         centroids to generate.
     init_algorithm: str, defaults = 'random'
-        Method for initializing cluster centers. Any of the following are valid:
+        Method for initializing cluster centres. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to be
         perform about as well as the other methods.
@@ -49,9 +52,9 @@ class TimeSeriesKMedoids(BaseClusterer):
         First is the fastest method and simply chooses the first k time series as
         centroids.
     distance: str or Callable, defaults = 'msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe']
+        Distance metric to compute similarity between time series. For a list of valid
+        distances see `aeons.distances
+        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
         If a callable is passed it must be a function that takes two 2d numpy arrays as
         input and returns a float.
     method: str, defaults = 'pam'
@@ -68,7 +71,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         run.
     tol: float, defaults = 1e-6
         Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
+        in the cluster centres of two consecutive iterations to declare
         convergence.
     verbose: bool, defaults = False
         Verbosity mode.
@@ -79,14 +82,14 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     Attributes
     ----------
-    cluster_centers_: np.ndarray (3d array of shape (n_clusters, n_dimensions,
+    cluster_centres_: np.ndarray (3d array of shape (n_clusters, n_dimensions,
         series_length))
-        Time series that represent each of the cluster centers. If the algorithm stops
+        Time series that represent each of the cluster centres. If the algorithm stops
         before fully converging these will not be consistent with labels_.
     labels_: np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_: float
-        Sum of squared distances of samples to their closest cluster center, weighted by
+        Sum of squared distances of samples to their closest cluster centre, weighted by
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
@@ -155,7 +158,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.distance_params = distance_params
         self.method = method
 
-        self.cluster_centers_ = None
+        self.cluster_centres_ = None
         self.labels_ = None
         self.inertia_ = None
         self.n_iter_ = 0
@@ -175,22 +178,22 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
 
-        best_centers = None
+        best_centres = None
         best_inertia = np.inf
         best_labels = None
         best_iters = self.max_iter
 
         for _ in range(self.n_init):
-            labels, centers, inertia, n_iters = self._fit_method(X)
+            labels, centres, inertia, n_iters = self._fit_method(X)
             if inertia < best_inertia:
-                best_centers = centers
+                best_centres = centres
                 best_labels = labels
                 best_inertia = inertia
                 best_iters = n_iters
 
         self.labels_ = best_labels
         self.inertia_ = best_inertia
-        self.cluster_centers_ = best_centers
+        self.cluster_centres_ = best_centres
         self.n_iter_ = best_iters
 
     def _score(self, X, y=None):
@@ -199,18 +202,18 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centres_, metric=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
-                self.cluster_centers_,
+                self.cluster_centres_,
                 self._distance_callable,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
 
-    def _compute_new_cluster_centers(
+    def _compute_new_cluster_centres(
         self, X: np.ndarray, assignment_indexes: np.ndarray
     ) -> np.ndarray:
         new_centre_indexes = []
@@ -400,7 +403,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                 break
             old_indexes = indexes
 
-            cluster_centre_indexes = self._compute_new_cluster_centers(X, indexes)
+            cluster_centre_indexes = self._compute_new_cluster_centres(X, indexes)
 
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
@@ -422,13 +425,13 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         if isinstance(self.init_algorithm, str):
             if self.init_algorithm == "random":
-                self._init_algorithm = self._random_center_initializer
+                self._init_algorithm = self._random_centre_initializer
             elif self.init_algorithm == "kmedoids++":
-                self._init_algorithm = self._kmedoids_plus_plus_center_initializer
+                self._init_algorithm = self._kmedoids_plus_plus_centre_initializer
             elif self.init_algorithm == "first":
-                self._init_algorithm = self._first_center_initializer
+                self._init_algorithm = self._first_centre_initializer
             elif self.init_algorithm == "build":
-                self._init_algorithm = self._pam_build_center_initializer
+                self._init_algorithm = self._pam_build_centre_initializer
         else:
             self._init_algorithm = self.init_algorithm
 
@@ -466,29 +469,29 @@ class TimeSeriesKMedoids(BaseClusterer):
                     "Consider setting n_init to 1.",
                 )
 
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
+    def _random_centre_initializer(self, X: np.ndarray) -> np.ndarray:
         return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
 
-    def _first_center_initializer(self, _) -> np.ndarray:
+    def _first_centre_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
-    def _kmedoids_plus_plus_center_initializer(
+    def _kmedoids_plus_plus_centre_initializer(
         self,
         X: np.ndarray,
         n_local_trials: int = None,
     ):
-        centers_indexes = np.empty(self.n_clusters, dtype=int)
+        centres_indexes = np.empty(self.n_clusters, dtype=int)
         n_samples, n_timestamps, n_features = X.shape
 
         if n_local_trials is None:
             n_local_trials = 2 + int(np.log(self.n_clusters))
 
-        center_id = self._random_state.randint(n_samples)
+        centre_id = self._random_state.randint(n_samples)
         all_x_indexes = np.arange(n_samples, dtype=int)
-        centers_indexes[0] = center_id
+        centres_indexes[0] = centre_id
 
         closest_dist_sq = (
-            self._compute_pairwise(X, np.array([center_id]), all_x_indexes) ** 2
+            self._compute_pairwise(X, np.array([centre_id]), all_x_indexes) ** 2
         )
         current_pot = closest_dist_sq.sum()
 
@@ -511,11 +514,11 @@ class TimeSeriesKMedoids(BaseClusterer):
             closest_dist_sq = distance_to_candidates[best_candidate]
             best_candidate = candidate_ids[best_candidate]
 
-            centers_indexes[c] = best_candidate
+            centres_indexes[c] = best_candidate
 
-        return centers_indexes
+        return centres_indexes
 
-    def _pam_build_center_initializer(
+    def _pam_build_centre_initializer(
         self,
         X: np.ndarray,
     ):
