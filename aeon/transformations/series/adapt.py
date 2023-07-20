@@ -13,7 +13,8 @@ from aeon.transformations.base import BaseTransformer
 
 
 class TabularToSeriesAdaptor(BaseTransformer):
-    """Adapt scikit-learn transformation interface to time series setting.
+    """
+    Adapt scikit-learn transformation interface to time series setting.
 
     This is useful for applying scikit-learn :term:`tabular` transformations
     to :term:`series <Time series>`, but only works with transformations that
@@ -71,10 +72,10 @@ class TabularToSeriesAdaptor(BaseTransformer):
     ----------
     transformer_ : Estimator
         Transformer that is fitted to data, clone of transformer.
-    fit_in_transform: bool, optional, default=False
-        whether transformer_ should be fitted in transform (True), or in fit (False)
-        recommended setting in forecasting (single series or hierarchical): False
-        recommended setting in ts classification, regression, clustering: True
+    fit_in_transform : bool, default=False
+        Whether transformer_ should be fitted in transform (True), or in fit (False)
+        recommended setting in forecasting (single series or hierarchical): False.
+        recommended setting in classification, regression, clustering: True.
 
     Examples
     --------
@@ -222,7 +223,8 @@ class TabularToSeriesAdaptor(BaseTransformer):
 
 
 class PandasTransformAdaptor(BaseTransformer):
-    """Adapt pandas transformations to aeon interface.
+    """
+    Adapt pandas transformations to aeon interface.
 
     In `transform`, executes `pd.DataFrame` method of name `method` on data,
     optionally with keywords arguments passed, via `kwargs` hyper-parameter.
@@ -235,16 +237,16 @@ class PandasTransformAdaptor(BaseTransformer):
     Parameters
     ----------
     method : str, optional, default = None = identity transform
-        name of the method of DataFrame that is applied in transform
+        Name of the method of DataFrame that is applied in transform.
     kwargs : dict, optional, default = empty dict (no kwargs passed to method)
-        arguments passed to DataFrame.method
+        Arguments passed to DataFrame.method.
     apply_to : str, one of "call", "all", "all_subset", optional, default = "call"
         "call" = method is applied to `X` seen in transform only
         "all" = method is applied to all `X` seen in `fit`, `update`, `transform`
             more precisely, the application to `self._X` is returned
         "all_subset" = method is applied to all `X` like for "all" value,
             but before returning, result is sub-set to indices of `X` in `transform`
-        in "all", "all_subset", `X` seen in `transform` do not update `self._X`
+        in "all", "all_subset", `X` seen in `transform` do not update `self._X`.
 
     Examples
     --------
