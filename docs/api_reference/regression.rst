@@ -48,7 +48,7 @@ Distance-based
 Dummy
 -----
 
-.. currentmodule:: aeon.regression.dummy
+.. currentmodule:: aeon.regression
 
 .. autosummary::
     :toctree: auto_generated/

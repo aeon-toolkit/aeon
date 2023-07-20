@@ -39,7 +39,7 @@ class _TestClassifier(BaseClassifier):
 
 
 class _TestHandlesAllInput(BaseClassifier):
-    """Test classifier for testing base class fit/predict/predict_proba."""
+    """Dummy classifier for testing base class fit/predict/predict_proba."""
 
     _tags = {
         "capability:multivariate": True,

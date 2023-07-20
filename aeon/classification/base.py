@@ -40,7 +40,8 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseClassifier(BaseEstimator, ABC):
-    """Abstract base class for time series classifiers.
+    """
+    Abstract base class for time series classifiers.
 
     Attributes with an underscore suffix are set in the method fit.
 
@@ -548,31 +549,6 @@ class BaseClassifier(BaseEstimator, ABC):
                 )
 
         return X_metadata
-
-    def _internal_convert(self, X, y=None):
-        """Convert X and y to supported types.
-
-        Convert X to a 3D numpy array if it is a 2D and convert y into an 1D numpy
-        array if passed as a pd.Series.
-
-        Parameters
-        ----------
-        X : an object of any supported type
-        y : np.ndarray or pd.Series
-
-        Returns
-        -------
-        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged
-        y: np.ndarray
-        """
-        if isinstance(X, np.ndarray) and X.ndim == 2:
-            X = X.reshape(X.shape[0], 1, X.shape[1])
-        if y is not None and isinstance(y, pd.Series):
-            # y should be a numpy array, although we allow Series for user convenience
-            y = pd.Series.to_numpy(y)
-        if y is None:
-            return X
-        return X, y
 
 
 def _get_n_cases(X):

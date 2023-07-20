@@ -50,7 +50,7 @@ class ResNetClassifier(BaseDeepClassifier):
             in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         use_bias                    : bool or list of bool, default = True,
-            condition on wether or not to use bias values in
+            condition on whether or not to use bias values in
             the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
 

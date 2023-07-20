@@ -19,7 +19,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class ShapeletTransformClassifier(BaseClassifier):
-    """A shapelet transform classifier (STC).
+    """
+    A shapelet transform classifier (STC).
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
     of [1][2] but with random shapelet sampling. Transforms the data using the
