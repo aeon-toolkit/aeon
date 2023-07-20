@@ -651,7 +651,6 @@ def _resolve_key_from_distance(metric: str, key: str) -> Any:
     return dist_callable
 
 
-
 DISTANCES = [
     {
         "name": "euclidean",
@@ -729,4 +728,4 @@ DISTANCES = [
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
-DISTANCE_NAMES = [d['name'] for d in DISTANCES]
+DISTANCE_NAMES = [d["name"] for d in DISTANCES]
