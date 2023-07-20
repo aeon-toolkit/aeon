@@ -31,6 +31,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import check_is_scitype, convert_to
@@ -492,7 +493,7 @@ class BaseClassifier(BaseEstimator, ABC):
         Parameters
         ----------
         X : check whether X is a valid input type
-        y : check whether y is a pd.Series or np.array
+        y : check whether y is a pd.Series or np.array and is discrete
         enforce_min_instances : int, optional (default=1)
             check there are a minimum number of instances.
 
@@ -535,10 +536,11 @@ class BaseClassifier(BaseEstimator, ABC):
                     f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
                     f"{n_labels}"
                 )
-            if isinstance(y, np.ndarray) and y.ndim > 1:
+            y_type = type_of_target(y)
+            if y_type != "binary" and y_type != "multiclass":
                 raise ValueError(
-                    f"np.ndarray y must be 1-dimensional, "
-                    f"but found {y.ndim} dimensions"
+                    f"y type is {y_type} which is not valid for classification. "
+                    f"Should be binary or multiclass occording to type_of_target"
                 )
             # warn if only a single class label is seen
             # this should not raise exception since this can occur by train subsampling

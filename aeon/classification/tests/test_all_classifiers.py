@@ -7,6 +7,7 @@ import inspect
 
 import numpy as np
 
+from aeon.classification.base import _get_n_cases
 from aeon.classification.tests._expected_outputs import (
     basic_motions_proba,
     unit_test_proba,
@@ -49,25 +50,24 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         data, and that predict_proba probability estimates add up to one.
         """
         n_classes = scenario.get_tag("n_classes")
-        X_new = scenario.args["predict"]["X"]
-        y_train = scenario.args["fit"]["y"]
+        X = scenario.args["predict"]["X"]
+        y = scenario.args["fit"]["y"]
         # we use check_is_scitype to get the number instances in X_new
         #   this is more robust against different scitypes in X_new
-        _, _, X_new_metadata = check_is_scitype(X_new, "Panel", return_metadata=True)
-        X_new_instances = X_new_metadata["n_instances"]
+        n_cases = _get_n_cases(X)
 
         # run fit and predict
         y_pred = scenario.run(estimator_instance, method_sequence=["fit", "predict"])
 
         # check predict
         assert isinstance(y_pred, np.ndarray)
-        assert y_pred.shape == (X_new_instances,)
-        assert np.all(np.isin(np.unique(y_pred), np.unique(y_train)))
+        assert y_pred.shape == (n_cases,)
+        assert np.all(np.isin(np.unique(y_pred), np.unique(y)))
 
         # check predict proba (all classifiers have predict_proba by default)
         y_proba = scenario.run(estimator_instance, method_sequence=["predict_proba"])
         assert isinstance(y_proba, np.ndarray)
-        assert y_proba.shape == (X_new_instances, n_classes)
+        assert y_proba.shape == (n_cases, n_classes)
         np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
     def test_classifier_on_unit_test_data(self, estimator_class):
