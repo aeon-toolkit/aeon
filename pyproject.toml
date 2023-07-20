@@ -68,7 +68,6 @@ all_extras = [
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
-    "plotly-resampler==0.9.0rc6", # statsforecast dependency, see https://github.com/predict-idlab/plotly-resampler/issues/203
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
