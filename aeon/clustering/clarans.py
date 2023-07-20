@@ -21,6 +21,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     total deviation is reduced. This random selection gives CLARANS an advantage when
     handling large datasets by avoiding local minima.
 
+    For a comparison of using CLARANS for time series compared to other k-medoids
+    algorithms see [2].
+
     Parameters
     ----------
     n_clusters: int, defaults = 8
@@ -88,6 +91,11 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     .. [1] R. T. Ng and Jiawei Han, "CLARANS: a method for clustering objects for
     spatial data mining," in IEEE Transactions on Knowledge and Data Engineering,
     vol. 14, no. 5, pp. 1003-1016, Sept.-Oct. 2002, doi: 10.1109/TKDE.2002.1033770.
+
+    .. [2] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    Clustering time series with k-medoids based algorithms.
+    In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
+    Data (AALTD 2023).
     """
 
     def __init__(
@@ -169,3 +177,33 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         self.inertia_ = inertia
         self.cluster_centers_ = X[best_centers]
         self.n_iter_ = 0
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        return {
+            "n_clusters": 2,
+            "init_algorithm": "random",
+            "distance": "euclidean",
+            "max_neighbours": None,
+            "n_init": 1,
+            "verbose": False,
+            "random_state": 1,
+            "distance_params": None,
+        }
