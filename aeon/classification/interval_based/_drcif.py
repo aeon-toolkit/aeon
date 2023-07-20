@@ -28,7 +28,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class DrCIF(BaseClassifier):
-    """Diverse Representation Canonical Interval Forest Classifier (DrCIF).
+    """
+    Diverse Representation Canonical Interval Forest Classifier (DrCIF).
 
     Extension of the CIF algorithm using multple representations. Implementation of the
     interval based forest making use of the catch22 feature set on randomly selected
@@ -113,6 +114,7 @@ class DrCIF(BaseClassifier):
     See Also
     --------
     CanonicalIntervalForest
+        Earlier version of DrCIF.
 
     Notes
     -----
