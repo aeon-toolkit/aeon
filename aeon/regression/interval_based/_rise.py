@@ -1,31 +1,29 @@
 # -*- coding: utf-8 -*-
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Random Interval Spectral Ensemble (RISE) classifier."""
+"""Random Interval Spectral Ensemble (RISE) regressor."""
 
 __author__ = ["TonyBagnall", "MatthewMiddlehurst"]
-__all__ = ["RandomIntervalSpectralEnsembleClassifier"]
+__all__ = ["RandomIntervalSpectralEnsembleRegressor"]
 
 import numpy as np
 
 from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
-from aeon.classification import BaseClassifier
-from aeon.classification.sklearn import ContinuousIntervalTree
+from aeon.regression import BaseRegressor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     PeriodogramTransformer,
 )
 
 
-class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifier):
-    """
-    Random Interval Spectral Ensemble (RISE) classifier.
+class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor):
+    """Random Interval Spectral Ensemble (RISE) regressor.
 
     Input: n series length m
     For each tree
         - sample a random intervals
         - take the ACF and PS over this interval, and concatenate features
         - build a tree on new features
-    Ensemble the trees through averaging probabilities.
+    Ensemble the trees through averaging predictions.
 
     Parameters
     ----------
@@ -48,8 +46,6 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         Different maximum interval lengths for each series_transformers series can be
         specified using a list or tuple. Any list or tuple input must be the same length
         as the number of series_transformers.
-
-        Ignored for supervised interval_selection_method inputs.
     acf_lag : int or callable, default=100
         The maximum number of autocorrelation terms to use. If callable, the function
         should take a 3D numpy array of shape (n_instances, n_channels, n_timepoints)
@@ -89,10 +85,6 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         The number of dimensions per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
@@ -106,13 +98,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
 
     See Also
     --------
-    RandomIntervalSpectralEnsembleRegressor
-
-    Notes
-    -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/tsml/
-    classifiers/interval_based/RISE.java>`_.
+    RandomIntervalSpectralEnsembleClassifier
 
     References
     ----------
@@ -122,15 +108,15 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
 
     Examples
     --------
-    >>> from aeon.classification.interval_based import (
-    ...     RandomIntervalSpectralEnsembleClassifier
+    >>> from aeon.regression.interval_based import (
+    ...     RandomIntervalSpectralEnsembleRegressor
     ... )
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
-    >>> clf = RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
+    >>> clf = RandomIntervalSpectralEnsembleRegressor(n_estimators=10, random_state=0)
     >>> clf.fit(X, y)
-    RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
+    RandomIntervalSpectralEnsembleRegressor(n_estimators=10, random_state=0)
     >>> clf.predict(X)
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
@@ -147,7 +133,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         self,
         base_estimator=None,
         n_estimators=200,
-        min_interval_length=3,
+        min_interval_length=16,
         max_interval_length=np.inf,
         acf_lag=100,
         acf_min_values=4,
@@ -166,19 +152,13 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": "pyfftw"})
 
-        if isinstance(base_estimator, ContinuousIntervalTree):
-            replace_nan = "nan"
-        else:
-            replace_nan = 0
-
         interval_features = [
             PeriodogramTransformer(use_pyfftw=True, pad_with="mean"),
             AutocorrelationFunctionTransformer(
                 n_lags=acf_lag, min_values=acf_min_values
             ),
         ]
-
-        super(RandomIntervalSpectralEnsembleClassifier, self).__init__(
+        super(RandomIntervalSpectralEnsembleRegressor, self).__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",
@@ -188,7 +168,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             interval_features=interval_features,
             series_transformers=None,
             att_subsample_size=None,
-            replace_nan=replace_nan,
+            replace_nan=0,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
             save_transformed_data=save_transformed_data,
@@ -206,7 +186,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            RandomIntervalSpectralEnsembleClassifier provides the following special
+            RandomIntervalSpectralEnsembleRegressor provides the following special
             sets:
                 "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
