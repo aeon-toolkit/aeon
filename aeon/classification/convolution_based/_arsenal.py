@@ -79,8 +79,7 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    transformed_data_ : list of shape (n_estimators)
         The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 
