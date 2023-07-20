@@ -21,17 +21,17 @@ class Filter(BaseTransformer):
 
     Parameters
     ----------
-    sfreq: int or float
+    sfreq : int or float
         sampling frequency of the recorded data in Hz
-    l_freq: float or None
-        For FIR filters, the lower pass-band edge;
+    l_freq : float or None
+        For FIR filtersh, the lower pass-band edge;
         for IIR filters, the lower cutoff frequency.
         If None the data are only low-passed.
-    h_freq: float or None
+    h_freq : float or None
         For FIR filters, the upper pass-band edge;
         for IIR filters, the upper cutoff frequency.
         If None the data are only high-passed.
-    filter_kwargs: dict or None
+    filter_kwargs : dict or None
         Additional parameters passed on to ``mne.filter.filter_data``.
         See ``mne.filter.filter_data``
         documentation for a detailed description of all options.

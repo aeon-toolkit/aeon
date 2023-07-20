@@ -26,7 +26,8 @@ from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV1(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
     An ensemble of the STC, TSF, RISE and cBOSS classifiers from different feature
     representations using the CAWPE structure as described in [1]_. The default
@@ -66,7 +67,6 @@ class HIVECOTEV1(BaseClassifier):
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
-
     Attributes
     ----------
     n_classes_ : int
@@ -84,8 +84,11 @@ class HIVECOTEV1(BaseClassifier):
 
     See Also
     --------
-    HIVECOTEV2, ShapeletTransformClassifier, TimeSeriesForestClassifier,
+    ShapeletTransformClassifier, TimeSeriesForestClassifier,
     RandomIntervalSpectralForest, ContractableBOSS
+        All components of HIVECOTE.
+    HIVECOTEV2
+        Successor to HIVECOTEV1.
 
     Notes
     -----

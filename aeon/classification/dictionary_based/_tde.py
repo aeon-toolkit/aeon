@@ -27,7 +27,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
-    """Temporal Dictionary Ensemble (TDE).
+    """
+    Temporal Dictionary Ensemble (TDE).
 
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
@@ -66,10 +67,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Maximum window length as a proportion of series length, must be between 0 and 1.
     min_window : int, default=10
         Minimum window length.
-    randomly_selected_params: int, default=50
+    randomly_selected_params : int, default=50
         Number of parameters randomly selected before the Gaussian process parameter
         selection is used.
-    bigrams : boolean or None, default=None
+    bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
@@ -118,6 +119,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     See Also
     --------
     IndividualTDE, ContractableBOSS
+        Components usable in TDE.
 
     Notes
     -----
@@ -219,10 +221,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The class labels shape = (n_instances).
 
         Returns
         -------
@@ -373,13 +375,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -390,17 +393,21 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         )
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
+        """
+        Predict class probabilities for n instances in X.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        1D np.ndarray
+            Predicted probabilities using the ordering in classes_, shape = (
+            n_instances, n_classes_).
+
         """
         _, _, series_length = X.shape
         if series_length != self.series_length_:
@@ -565,7 +572,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
@@ -600,7 +607,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualTDE(BaseClassifier):
-    """Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
+    """
+    Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
 
     Base classifier for the TDE classifier. Implementation of single TDE base model
     from Middlehurst (2021). [1]_
@@ -662,6 +670,7 @@ class IndividualTDE(BaseClassifier):
     See Also
     --------
     TemporalDictinaryEnsemble, SFA
+        TDE extends BOSS and uses SFA.
 
     Notes
     -----
@@ -776,10 +785,10 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -856,13 +865,14 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         num_cases = X.shape[0]
 

@@ -125,7 +125,8 @@ def _produce_intervals(
 
 
 class RandomIntervalSpectralEnsemble(BaseClassifier):
-    """Random Interval Spectral Ensemble (RISE).
+    """
+    Random Interval Spectral Ensemble (RISE).
 
     Input: n series length m
     For each tree
@@ -138,6 +139,8 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
     ----------
     n_estimators : int, default=200
         The number of trees in the forest.
+    max_interval : int, default=0
+        The maximum width of an interval, if 0 max is n_timepoints.
     min_interval : int, default=16
         The minimum width of an interval.
     acf_lag : int, default=100
