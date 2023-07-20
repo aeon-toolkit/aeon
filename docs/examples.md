@@ -16,13 +16,12 @@ Forecasting with aeon
 :::
 
 :::{grid-item-card}
-:link: /examples/01a_forecasting_sklearn.ipynb
+:img-top: examples/forecasting/img/splitter.png
+:link: /examples/forecasting/window_splitters.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
-
-:::
+Window splitters for reduction to regression
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
@@ -30,7 +29,7 @@ Forecasting with aeon - appendix: forecasting, supervised regression, and pitfal
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with aeon
+Probabilistic forecasting
 
 :::
 
@@ -40,17 +39,18 @@ Probabilistic Forecasting with aeon
 :link-type: ref
 :text-align: center
 
-Hierarchical, Global, and Panel Forecasting
+Hierarchical, global, and panel forecasting
+
+:::
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:link: /examples/forecasting/window_splitters.ipynb
+:link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
-Window splitters for reduction to regression
+Forecasting with aeon and scikit learn
 
 :::
 
@@ -247,7 +247,7 @@ Deep learning based clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/trans.png
-:link: /examples/transformations/transformers.ipynb
+:link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -256,7 +256,7 @@ Transformers
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/tsfresh.png
 :link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
@@ -267,7 +267,7 @@ Feature based
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/rocket.png
 :link: /examples/transformations/rocket.ipynb
 :link-type: ref
 :text-align: center
@@ -277,7 +277,7 @@ Convolution based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/shapelets.png
+:img-top: examples/transformations/img/leaves_shapelets.png
 :link: /examples/transformations/shapelets.ipynb
 :link-type: ref
 :text-align: center
@@ -287,7 +287,7 @@ Shapelet based
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/interpolation.png
 :link: /examples/transformations/interpolation.ipynb
 :link-type: ref
 :text-align: center
@@ -298,32 +298,32 @@ Interpolation
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/plateau.png
 :link: /examples/transformations/plateau_finder.ipynb
 :link-type: ref
 :text-align: center
 
-PlateauFinder
+Plateau finding
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/signature.png
 :link: /examples/transformations/signature_method.ipynb
 :link-type: ref
 :text-align: center
 
-Signature Method
+Signature method
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/theta.png
 :link: /examples/transformations/theta_transform.ipynb
 :link-type: ref
 :text-align: center
 
-Theta
+Theta transform
 
 :::
 
@@ -337,7 +337,7 @@ Theta
 
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/annotation/img/segmentation_use_cases.png
 :link: /examples/annotation/segmentation_use_cases.ipynb
 :link-type: ref
 :text-align: center
@@ -357,12 +357,13 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
 Hidalgo segmentation
+
 :::
 
 
@@ -381,22 +382,67 @@ Hidalgo segmentation
 :text-align: center
 
 Distance functions
+
 :::
 
+
 :::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/bounding_examples.ipynb
+:img-top: examples/distances/img/svm.png
+:link: /examples/distances/sklearn_distances.ipynb
 :link-type: ref
 :text-align: center
 
-Bounding function examples
-:::
+Using aeon distances with scikit-learn
+
+::::
+
+## Data Formatting and Loading
+
+::::{grid} 2 4 4 4
+:gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/distances/img/bounding_window.png
-:link: /examples/distances/ml_with_distances.ipynb
+:link: /examples/datasets/data_storage.ipynb
 :link-type: ref
 :text-align: center
 
-Using aeon distances with scikit-learn:::
+Storing time series in arrays and data frames
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/data_files_structures.ipynb
+:link-type: ref
+:text-align: center
+
+How series are stored in file
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/data_loading.ipynb
+:link-type: ref
+:text-align: center
+
+Loading data into memory
+
+:::
+
+
+:::{grid-item-card}
+:link: /examples/datasets/provided_data.ipynb
+:link-type: ref
+:text-align: center
+
+Example data sets
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/benchmarking_data.ipynb
+:link-type: ref
+:text-align: center
+
+Getting data for benchmarking
+
 ::::

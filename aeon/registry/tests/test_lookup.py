@@ -2,7 +2,7 @@
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Testing of registry lookup functionality."""
 
-__author__ = ["fkiraly"]
+__author__ = ["fkiraly", "MatthewMiddlehurst"]
 
 import pytest
 
@@ -10,6 +10,7 @@ from aeon.base import BaseObject
 from aeon.registry import all_estimators, all_tags, scitype
 from aeon.registry._base_classes import BASE_CLASS_LOOKUP, BASE_CLASS_SCITYPE_LIST
 from aeon.registry._lookup import _check_estimator_types
+from aeon.transformations.base import BaseTransformer
 
 VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
 
@@ -19,6 +20,7 @@ SCITYPES_WITHOUT_TAGS = [
     "object",
     "splitter",
     "network",
+    "collection-transformer",
 ]
 
 # shorthands for easy reading
@@ -135,9 +137,23 @@ def test_all_estimators_return_names(return_names):
     assert all([isinstance(estimator, type) for estimator in estimators])
 
 
+def test_all_estimators_exclude_type():
+    """Test exclude_estimator_types argument in all_estimators."""
+    estimators = all_estimators(
+        return_names=True, exclude_estimator_types="transformer"
+    )
+    assert isinstance(estimators, list)
+    assert len(estimators) > 0
+    names, estimators = list(zip(*estimators))
+
+    for estimator in estimators:
+        assert not isinstance(estimator, BaseTransformer)
+
+
 # arbitrary list for exclude_estimators argument test
 EXCLUDE_ESTIMATORS = [
     "ElasticEnsemble",
+    "NaiveForecaster",
 ]
 
 

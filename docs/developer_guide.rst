@@ -31,7 +31,7 @@ If you’re already familiar with scikit-learn, you may still learn something ne
 .. toctree::
    :maxdepth: 1
 
-   installation
+   developer_guide/dev_installation.md
    developer_guide/git_workflow
    developer_guide/continuous_integration
    developer_guide/coding_standards

@@ -2,8 +2,6 @@
 show_missing = True
 
 [run]
+branch = True
 source = aeon
-omit =
-    */setup.py
-    */aeon/__init__.py
-    */aeon/setup.py
+parallel = True
