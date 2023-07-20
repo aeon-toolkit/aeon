@@ -2,7 +2,7 @@
 """Test function of DummyRegressor."""
 
 from aeon.datasets import load_unit_test
-from aeon.regression.dummy import DummyRegressor
+from aeon.regression import DummyRegressor
 
 
 def test_dummy_regressor():

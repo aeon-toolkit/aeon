@@ -32,7 +32,8 @@ MAX_WINDOW_LARGE = 84
 
 
 class WEASEL_V2(BaseClassifier):
-    """Word Extraction for Time Series Classification (WEASEL) v2.0.
+    """
+    Word Extraction for Time Series Classification (WEASEL) v2.0.
 
     Overview: Input 'n' series length 'm'
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
@@ -55,38 +56,38 @@ class WEASEL_V2(BaseClassifier):
     ----------
     min_window : int, default=4,
         Minimal length of the subsequences to compute words from.
-    norm_options : array of bool, default=[False],
+    norm_options : array of bool, default=[False]
         If the array contains True, words are computed over mean-normed TS
         If the array contains False, words are computed over raw TS
         If both are set, words are computed for both.
         A value will be randomly chosen for each parameter-configuration.
-    word_lengths : array of int, default=[7, 8],
+    word_lengths : array of int, default=[7, 8]
         Length of the words to compute. A value will be randomly chosen for each
         parameter-configuration.
-    use_first_differences: array of bool, default=[True, False],
+    use_first_differences : array of bool, default=[True, False],
         If the array contains True, words are computed over first order differences.
         If the array contains False, words are computed over the raw time series.
         If both are set, words are computed for both.
-    feature_selection: {"chi2_top_k", "none", "random"}, default: chi2_top_k
-        Sets the feature selections strategy to be used. Large amounts of memory may be
-        needed depending on the setting of bigrams (true is more) or
-        alpha (larger is more).
+    feature_selection : str, default = "chi2_top_k"
+        Sets the feature selections strategy to be used. Options from {"chi2_top_k",
+        "none", "random"}. Large amounts of memory may be needed depending on the
+        setting of bigrams (true is more) or alpha (larger is more).
         'chi2_top_k' reduces the number of words to at most 'max_feature_count',
         dropping values based on p-value.
-        'random' reduces the number to at most 'max_feature_count',
-        by randomly selecting features.
+        'random' reduces the number to at most 'max_feature_count', by randomly
+        selecting features.
         'none' does not apply any feature selection and yields large bag of words
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
-    support_probabilities: bool, default: False
+    support_probabilities : bool, default = False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accurate. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    random_state: int or None, default=None
-        Seed for random, integer
+    random_state : int or None, default=None
+        Seed for random, integer.
 
     Attributes
     ----------
@@ -156,10 +157,10 @@ class WEASEL_V2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The class labels shape = (n_instances).
 
         Returns
         -------
@@ -207,13 +208,14 @@ class WEASEL_V2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            Predicted class labels shape = (n_instances).
         """
         bag = self.transform.transform(X)
         return self.clf.predict(bag)
@@ -252,7 +254,7 @@ class WEASEL_V2(BaseClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

@@ -75,7 +75,8 @@ class Tabularizer(BaseTransformer):
 
 
 class TimeBinner(BaseTransformer):
-    """Turns time series/panel data into tabular data based on intervals.
+    """
+    Turns time series/panel data into tabular data based on intervals.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in
@@ -90,11 +91,11 @@ class TimeBinner(BaseTransformer):
     Parameters
     ----------
     idx : pd.IntervalIndex
-        IntervalIndex defining intervals considered by aggfunc
+        IntervalIndex defining intervals considered by aggfunc.
     aggfunc : callable
         Function used to aggregate the values in intervals.
         Should have signature 1D -> float and defaults
-        to mean if None
+        to mean if None.
     """
 
     _tags = {
@@ -117,13 +118,15 @@ class TimeBinner(BaseTransformer):
         self.aggfunc = aggfunc
         if self.aggfunc is None:
             self._aggfunc = np.mean
-            warnings.warn("No aggfunc was passed, defaulting to mean")
+            warnings.warn("No aggfunc was passed, defaulting to mean", stacklevel=2)
         else:
             assert callable(aggfunc), (
                 "aggfunc should be callable with" "signature 1D -> float"
             )
             if aggfunc.__name__ == "<lambda>":
-                warnings.warn("Save and load will not work with lambda functions")
+                warnings.warn(
+                    "Save and load will not work with lambda functions", stacklevel=2
+                )
             self._aggfunc = self.aggfunc
         self.idx = idx
 

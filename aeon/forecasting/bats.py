@@ -144,9 +144,4 @@ class BATS(_TbatsAdapter):
             "n_jobs": 1,
         }
 
-        params2 = {
-            "use_box_cox": False,
-            "sp": [2, 12],
-        }
-
-        return [params1, params2]
+        return [params1]
