@@ -2,9 +2,11 @@
 """Result loading tests."""
 import os
 
+import pytest
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
+    NAME_ALIASES,
     estimator_alias,
     get_estimator_results,
     get_estimator_results_as_array,
@@ -52,3 +54,33 @@ def test_alias():
     assert name == "WEASEL-Dilation" and name2 == "WEASEL-Dilation"
     with raises(ValueError):
         estimator_alias("NotAClassifier")
+
+
+"""Tests for the results loaders that should not be part of the general CI."""
+
+
+@pytest.mark.skip(
+    reason="Only run locally, this depends on " "timeseriesclassification.com"
+)
+def test_load_all_classifier_results():
+    """Run through all classifiers in NAME_ALIASES."""
+    for type in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
+        for name_key in NAME_ALIASES.keys():
+            res, names = get_estimator_results_as_array(
+                estimators=[name_key],
+                include_missing=False,
+                type=type,
+                default_only=False,
+            )
+            assert res.shape[0] >= 112
+            assert res.shape[1] == 1
+            res = get_estimator_results_as_array(
+                estimators=[name_key],
+                include_missing=True,
+                type=type,
+                default_only=False,
+            )
+            from aeon.datasets.tsc_data_lists import univariate as UCR
+
+            assert res.shape[0] == len(UCR)
+            assert res.shape[1] == 1
