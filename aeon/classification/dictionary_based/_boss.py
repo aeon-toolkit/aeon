@@ -34,17 +34,15 @@ class BOSSEnsemble(BaseClassifier):
     a set of parameter values, evaluating each with a LOOCV. It then retains
     all ensemble members within 92% of the best by default for use in the ensemble.
     There are three primary parameters:
-        - *alpha*: alphabet size
-        - *w*: window length
-        - *l*: word length.
-
+       - *alpha*: alphabet size
+       - *w*: window length
+       - *l*: word length.
     For any combination, a single BOSS slides a window length *w* along the
     series. The w length window is shortened to an *l* length word through
     taking a Fourier transform and keeping the first *l/2* complex coefficients.
     These *l* coefficients are then discretized into alpha possible values,
     to form a word length *l*. A histogram of words for each
     series is formed and stored.
-
     Fit involves finding "n" histograms.
 
     Predict uses 1 nearest neighbor with a bespoke BOSS distance function.
@@ -70,7 +68,7 @@ class BOSSEnsemble(BaseClassifier):
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
         may be needed.
-   alphabet_size : default = 4
+    alphabet_size : default = 4
         Number of possible letters (values) for each word.
     use_boss_distance : bool, default=True
         The Boss-distance is an asymmetric distance measure. It provides higher
@@ -96,7 +94,7 @@ class BOSSEnsemble(BaseClassifier):
     See Also
     --------
     IndividualBOSS, ContractableBOSS
-        Variants of the BOSS classifier.
+        Variants of the single BOSS classifier.
 
     Notes
     -----
@@ -496,20 +494,20 @@ class IndividualBOSS(BaseClassifier):
         the dictionary of words is returned. If True, the array is saved, which
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
-     feature_selection : str, default: "none"
+    feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selection and yields large bag of words, e.g. much memory
         may be needed.
-   alphabet_size : default = 4
+    alphabet_size : default = 4
         Number of possible letters (values) for each word.
-   use_boss_distance : bool, default=True
-        The Boss-distance is an asymmetric distance measure. It provides higher
-        accuracy, yet is signifaicantly slower to compute.
-   n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+    use_boss_distance : bool, default=True
+         The Boss-distance is an asymmetric distance measure. It provides higher
+         accuracy, yet is signifaicantly slower to compute.
+    n_jobs : int, default=1
+         The number of jobs to run in parallel for both `fit` and `predict`.
+         ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
 
