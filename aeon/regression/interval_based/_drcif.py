@@ -99,6 +99,9 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
+    use_pyfftw : bool, default=False
+        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
+        package to be installed.
     save_transformed_data : bool, default=False
         Save the data transformed in fit for use in _get_train_preds.
     random_state : int, RandomState instance or None, default=None
