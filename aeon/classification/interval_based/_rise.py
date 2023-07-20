@@ -1,166 +1,93 @@
 # -*- coding: utf-8 -*-
-"""Random Interval Spectral Ensemble (RISE)."""
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
+"""Random Interval Spectral Ensemble (RISE) classifier."""
 
-__author__ = ["TonyBagnall"]
-__all__ = [
-    "RandomIntervalSpectralEnsemble",
-    "acf",
-    "matrix_acf",
-    "ps",
-]
-
-import numpy as np
-from joblib import Parallel, delayed
-from numba import int64, jit, prange
-from sklearn.base import clone
-from sklearn.ensemble._base import _partition_estimators
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.utils.validation import check_random_state
-
-from aeon.classification.base import BaseClassifier
+__author__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = ["RandomIntervalSpectralEnsembleClassifier"]
 
 
-def _transform(X, interval, lag):
-    """Compute the ACF and PS for given intervals of input data X."""
-    n_instances, _ = X.shape
-    acf_x = np.empty(shape=(n_instances, lag))
-    ps_len = _round_to_nearest_power_of_two(interval[1] - interval[0])
-    ps_x = np.empty(shape=(n_instances, ps_len))
-    for j in range(n_instances):
-        interval_x = X[j, interval[0] : interval[1]]
-        acf_x[j] = acf(interval_x, lag)
-        ps_x[j] = ps(interval_x, n=ps_len * 2)
-    # interval_x = X[:, interval[0]: interval[1]]
-    # acf_x = matrix_acf(interval_x, n_instances, lag)
-    # ps_x = _ps(interval_x, n=ps_len*2)
-    transformed_x = np.concatenate((ps_x, acf_x), axis=1)
-
-    return transformed_x
-
-
-def _parallel_build_trees(X, y, tree, interval, lag, acf_min_values):
-    """Private function used to fit a single tree in parallel."""
-    temp_lag = lag
-    if temp_lag > interval[1] - interval[0] - acf_min_values:
-        temp_lag = interval[1] - interval[0] - acf_min_values
-    if temp_lag < 0:
-        temp_lag = 1
-    temp_lag = int(temp_lag)
-    transformed_x = _transform(X, interval, temp_lag)
-    tree.fit(transformed_x, y)
-
-    return temp_lag, tree
-
-
-def _predict_proba_for_estimator(X, estimator, interval, lag):
-    """Private function used to predict class probabilities in parallel."""
-    transformed_x = _transform(X, interval, lag)
-    return estimator.predict_proba(transformed_x)
-
-
-def _make_estimator(base_estimator, random_state=None):
-    """Make and configure a copy of the `base_estimator` attribute.
-
-    Warning: This method should be used to properly instantiate new
-    sub-estimators.
-    """
-    estimator = clone(base_estimator)
-    estimator.set_params(**{"random_state": random_state})
-    return estimator
-
-
-def _select_interval(min_interval, max_interval, series_length, rng, method=3):
-    """Private function used to select an interval for a single tree."""
-    interval = np.empty(2, dtype=int)
-    if method == 0:
-        interval[0] = rng.randint(series_length - min_interval)
-        interval[1] = rng.randint(interval[0] + min_interval, series_length)
-    else:
-        if rng.randint(2):
-            interval[0] = rng.randint(series_length - min_interval)
-            interval_range = min(series_length - interval[0], max_interval)
-            length = rng.randint(min_interval, interval_range)
-            interval[1] = interval[0] + length
-        else:
-            interval[1] = rng.randint(min_interval, series_length)
-            interval_range = min(interval[1], max_interval)
-            length = (
-                3
-                if interval_range == min_interval
-                else rng.randint(min_interval, interval_range)
-            )
-            interval[0] = interval[1] - length
-    return interval
-
-
-def _produce_intervals(
-    n_estimators, min_interval, max_interval, series_length, rng, method=3
-):
-    """Private function used to produce intervals for all trees."""
-    intervals = np.empty((n_estimators, 2), dtype=int)
-    if method == 0:
-        # just keep it as a backup, untested
-        intervals[:, 0] = rng.randint(series_length - min_interval, size=n_estimators)
-        intervals[:, 1] = rng.randint(
-            intervals[:, 0] + min_interval, series_length, size=n_estimators
-        )
-    elif method == 3:
-        bools = rng.randint(2, size=n_estimators)
-        true = np.where(bools == 1)[0]
-        intervals[true, 0] = rng.randint(series_length - min_interval, size=true.size)
-        interval_range = np.fmin(series_length - intervals[true, 0], max_interval)
-        length = rng.randint(min_interval, interval_range)
-        intervals[true, 1] = intervals[true, 0] + length
-
-        false = np.where(bools == 0)[0]
-        intervals[false, 1] = rng.randint(min_interval, series_length, size=false.size)
-        interval_range = np.fmin(intervals[false, 1], max_interval)
-        min_mask = interval_range == min_interval
-        length = np.empty(false.size)
-        length[min_mask] = 3
-        length[~min_mask] = rng.randint(min_interval, interval_range[~min_mask])
-        intervals[false, 0] = intervals[false, 1] - length
-
-    return intervals
-
-
-class RandomIntervalSpectralEnsemble(BaseClassifier):
-    """Random Interval Spectral Ensemble (RISE).
+class RandomIntervalSpectralEnsembleClassifier(ClassifierMixin, BaseIntervalForest):
+    """Random Interval Spectral Ensemble (RISE) classifier.
 
     Input: n series length m
     For each tree
         - sample a random intervals
         - take the ACF and PS over this interval, and concatenate features
-        - build tree on new features
+        - build a tree on new features
     Ensemble the trees through averaging probabilities.
 
     Parameters
     ----------
+    base_estimator : BaseEstimator or None, default=None
+        scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
+        simple decision tree.
     n_estimators : int, default=200
-        The number of trees in the forest.
-    min_interval : int, default=16
-        The minimum width of an interval.
-    acf_lag : int, default=100
-        The maximum number of autocorrelation terms to use.
-    acf_min_values : int, default=4
-        Never use fewer than this number of terms to find a correlation.
+        Number of estimators to build for the ensemble.
+    min_interval_length : int, float, list, or tuple, default=3
+        Minimum length of intervals to extract from series. float inputs take a
+        proportion of the series length to use as the minimum interval length.
+
+        Different minimum interval lengths for each series_transformers series can be
+        specified using a list or tuple. Any list or tuple input must be the same length
+        as the number of series_transformers.
+    max_interval_length : int, float, list, or tuple, default=np.inf
+        Maximum length of intervals to extract from series. float inputs take a
+        proportion of the series length to use as the maximum interval length.
+
+        Different maximum interval lengths for each series_transformers series can be
+        specified using a list or tuple. Any list or tuple input must be the same length
+        as the number of series_transformers.
+
+        Ignored for supervised interval_selection_method inputs.
+    time_limit_in_minutes : int, default=0
+        Time contract to limit build time in minutes, overriding n_estimators.
+        Default of 0 means n_estimators are used.
+    contract_max_n_estimators : int, default=500
+        Max number of estimators when time_limit_in_minutes is set.
+    save_transformed_data : bool, default=False
+        Save the data transformed in fit for use in _get_train_probs.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int, RandomState instance or None, default=None
-        If int, random_state is the seed used by the random number generator;
-        If RandomState instance, random_state is the random number generator;
-        If None, the random number generator is the RandomState instance used
-        by `np.random`.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
+        value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
+    n_instances_ : int
+        The number of train cases in the training set.
+    n_channels_ : int
+        The number of dimensions per case in the training set.
+    n_timepoints_ : int
+        The length of each series in the training set.
     n_classes_ : int
-        The number of classes.
-    classes_ : list
-        The classes labels.
-    intervals_ : array of shape = [n_estimators][2]
-        Stores indexes of start and end points for all classifiers.
+        Number of classes. Extracted from the data.
+    classes_ : ndarray of shape (n_classes_)
+        Holds the label for each class.
+    class_dictionary_ : dict
+        A dictionary mapping class labels to class indices in classes_.
+    total_intervals_ : int
+        Total number of intervals per tree from all representations.
+    estimators_ : list of shape (n_estimators) of BaseEstimator
+        The collections of estimators trained in fit.
+    intervals_ : list of shape (n_estimators) of TransformerMixin
+        Stores the interval extraction transformer for all estimators.
+    transformed_data_ : list of shape (n_estimators) of ndarray with shape
+    (n_instances_ ,total_intervals * att_subsample_size)
+        The transformed dataset for all estimators. Only saved when
+        save_transformed_data is true.
+
+    See Also
+    --------
+    RISERegressor
 
     Notes
     -----
@@ -173,192 +100,116 @@ class RandomIntervalSpectralEnsemble(BaseClassifier):
     .. [1] Jason Lines, Sarah Taylor and Anthony Bagnall, "Time Series Classification
        with HIVE-COTE: The Hierarchical Vote Collective of Transformation-Based
        Ensembles", ACM Transactions on Knowledge and Data Engineering, 12(5): 2018
+
+    Examples
+    --------
+    >>> from tsml.interval_based import RISEClassifier
+    >>> from tsml.utils.testing import generate_3d_test_data
+    >>> X, y = generate_3d_test_data(n_samples=10, series_length=12, random_state=0)
+    >>> clf = RISEClassifier(n_estimators=10, random_state=0)
+    >>> clf.fit(X, y)
+    RISEClassifier(...)
+    >>> clf.predict(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
+        "capability:multivariate": True,
+        "capability:train_estimate": True,
+        "capability:contractable": True,
         "capability:multithreading": True,
         "algorithm_type": "interval",
     }
 
     def __init__(
         self,
-        n_estimators=500,
-        max_interval=0,
-        min_interval=16,
+        base_estimator=None,
+        n_estimators=200,
+        min_interval_length=3,
+        max_interval_length=np.inf,
         acf_lag=100,
         acf_min_values=4,
-        n_jobs=1,
+        time_limit_in_minutes=None,
+        contract_max_n_estimators=500,
+        use_pyfftw=True,
+        save_transformed_data=False,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
-        self.n_estimators = n_estimators
-        self.max_interval = max_interval
-        self.min_interval = min_interval
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-        self.n_jobs = n_jobs
-        self.random_state = random_state
 
-        self.intervals_ = []
+        self.use_pyfftw = use_pyfftw
+        if use_pyfftw:
+            _check_optional_dependency("pyfftw", "pyfftw", self)
 
-        self.base_estimator = DecisionTreeClassifier(random_state=random_state)
+        if isinstance(base_estimator, CITClassifier):
+            replace_nan = "nan"
+        else:
+            replace_nan = 0
 
-        super(RandomIntervalSpectralEnsemble, self).__init__()
-
-    @property
-    def feature_importances_(self):
-        """Feature importance not supported for the RISE classifier."""
-        raise NotImplementedError(
-            "The impurity-based feature importances of "
-            "RandomIntervalSpectralForest is currently not supported."
-        )
-
-    def _fit(self, X, y):
-        """Build a forest of trees from the training set (X, y).
-
-        using random intervals and spectral features.
-
-        Parameters
-        ----------
-        X : array-like or sparse matrix of shape = [n_instances,
-        series_length] or shape = [n_instances,n_columns]
-            The training input samples. If a Pandas data frame is passed it
-            must have a single column (i.e., univariate classification).
-            RISE has no bespoke method for multivariate classification as yet.
-        y : array-like, shape = [n_instances]
-            The class labels.
-
-        Returns
-        -------
-        self : object
-        """
-        X = X.squeeze(1)
-        n_instances, self.series_length = X.shape
-        self.min_interval_, self.max_interval_ = self.min_interval, self.max_interval
-        if self.max_interval_ not in range(1, self.series_length):
-            self.max_interval_ = self.series_length
-        if self.min_interval_ not in range(1, self.series_length + 1):
-            self.min_interval_ = self.series_length // 2
-
-        rng = check_random_state(self.random_state)
-
-        self.estimators_ = []
-        # self.intervals = _produce_intervals(
-        #     self.n_estimators,
-        #     self.min_interval,
-        #     self.max_interval,
-        #     self.series_length,
-        #     rng
-        # )
-        self.intervals_ = np.empty((self.n_estimators, 2), dtype=int)
-        self.intervals_[:] = [
-            _select_interval(
-                self.min_interval_, self.max_interval_, self.series_length, rng
-            )
-            for _ in range(self.n_estimators)
+        interval_features = [
+            PeriodogramTransformer(use_pyfftw=True, pad_with="mean"),
+            AutocorrelationFunctionTransformer(
+                n_lags=acf_lag, min_values=acf_min_values
+            ),
         ]
 
-        # Check lag against global properties
-        self.acf_lag_ = self.acf_lag
-        if self.acf_lag > self.series_length - self.acf_min_values:
-            self.acf_lag_ = self.series_length - self.acf_min_values
-        if self.acf_lag < 0:
-            self.acf_lag_ = 1
-        self.lags = np.zeros(self.n_estimators, dtype=int)
-
-        trees = [
-            _make_estimator(
-                self.base_estimator, random_state=rng.randint(np.iinfo(np.int32).max)
-            )
-            for _ in range(self.n_estimators)
-        ]
-
-        # Parallel loop
-        worker_rets = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(_parallel_build_trees)(
-                X,
-                y,
-                tree,
-                self.intervals_[i],
-                self.acf_lag_,
-                self.acf_min_values,
-            )
-            for i, tree in enumerate(trees)
+        super(RISEClassifier, self).__init__(
+            base_estimator=base_estimator,
+            n_estimators=n_estimators,
+            interval_selection_method="random",
+            n_intervals=1,
+            min_interval_length=min_interval_length,
+            max_interval_length=max_interval_length,
+            interval_features=interval_features,
+            series_transformers=None,
+            att_subsample_size=None,
+            replace_nan=replace_nan,
+            time_limit_in_minutes=time_limit_in_minutes,
+            contract_max_n_estimators=contract_max_n_estimators,
+            save_transformed_data=save_transformed_data,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            parallel_backend=parallel_backend,
         )
 
-        # Collect lags and newly grown trees
-        for i, (lag, tree) in enumerate(worker_rets):
-            self.lags[i] = lag
-            self.estimators_.append(tree)
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Find predictions for all cases in X.
-
-        Built on top of `predict_proba`.
+    def predict_proba(self, X: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+        """Predicts labels probabilities for sequences in X.
 
         Parameters
         ----------
-        X : array-like or sparse matrix of shape = [n_instances, n_columns]
-            The input samples. If a Pandas data frame is passed it must have a
-            single column (i.e., univariate classification). RISE has no
-            bespoke method for multivariate classification as yet.
+        X : 3D np.array of shape (n_instances, n_channels, n_timepoints)
+            The testing data.
 
         Returns
         -------
-        y : array of shape = [n_instances]
-            The predicted classes.
+        y : array-like of shape (n_instances, n_classes_)
+            Predicted probabilities using the ordering in classes_.
         """
-        proba = self._predict_proba(X)
-        return np.asarray([self.classes_[np.argmax(prob)] for prob in proba])
+        return self._predict_proba(X)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Find probability estimates for each class for all cases in X.
+    @classmethod
+    def get_test_params(
+        cls, parameter_set: Union[str, None] = None
+    ) -> Union[dict, List[dict]]:
+        """Return unit test parameter settings for the estimator.
 
         Parameters
         ----------
-        X : array-like or sparse matrix of shape = [n_instances, n_columns]
-            The input samples. If a Pandas data frame is passed it must have a
-            single column (i.e., univariate classification). RISE has no
-            bespoke method for multivariate classification as yet.
-
-        Attributes
-        ----------
-        n_instances : int
-            Number of cases to classify.
-        n_columns : int
-            Number of attributes in X, must match `series_length` determined
-            in `fit`.
+        parameter_set : None or str, default=None
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
-        output : array of shape = [n_instances, n_classes]
-            The class probabilities of all cases.
+        params : dict or list of dict
+            Parameters to create testing instances of the class.
         """
-        X = X.squeeze(1)
-
-        n_instances, n_columns = X.shape
-        if n_columns != self.series_length:
-            raise ValueError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data."
-            )
-
-        # Assign chunk of trees to jobs
-        n_jobs, _, _ = _partition_estimators(self.n_estimators, self._n_jobs)
-
-        # Parallel loop
-        all_proba = Parallel(n_jobs=n_jobs, prefer="threads")(
-            delayed(_predict_proba_for_estimator)(
-                X,
-                self.estimators_[i],
-                self.intervals_[i],
-                self.lags[i],
-            )
-            for i in range(self.n_estimators)
-        )
-
-        return np.sum(all_proba, axis=0) / self.n_estimators
+        return {
+            "n_estimators": 2,
+        }
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
