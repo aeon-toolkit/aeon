@@ -24,7 +24,7 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting2.png
+:img-top: examples/img/forecasting/forecasting2.png
 :text-align: center
 
 Forecasting
@@ -35,7 +35,7 @@ Get started with time series forecasting.
 
 +++
 
-```{button-ref} /examples/01_forecasting.ipynb
+```{button-ref} /examples/forecasting/forecasting.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -79,7 +79,7 @@ Get started with time series extrinsic regression.
 
 +++
 
-```{button-ref} examples-regression
+```{button-ref} /examples/regression/regression.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -112,7 +112,7 @@ Clustering
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/transformation.png
+:img-top: examples/transformations/img/transformation.png
 :text-align: center
 
 Transformation
@@ -123,7 +123,7 @@ Get started with time series transformations.
 
 +++
 
-```{button-ref} examples-transformation
+```{button-ref} examples/transformations/transformations.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -178,6 +178,5 @@ about.md
 
 glossary.md
 changelog.md
-estimator_overview
 related_software
 ```
