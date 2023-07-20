@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""CIF classifier.
+"""CIF regressor.
 
-Interval based CIF classifier extracting catch22 features from random intervals.
+Interval-based CIF regressor extracting catch22 features from random intervals.
 """
-
-__author__ = ["MatthewMiddlehurst"]
-__all__ = ["CanonicalIntervalForestClassifier"]
 
 import numpy as np
 
 from aeon.base.estimator.interval_based import BaseIntervalForest
-from aeon.classification import BaseClassifier
-from aeon.classification.sklearn import ContinuousIntervalTree
+from aeon.regression import BaseRegressor
 from aeon.transformations.collection import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
-class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
-    """Canonical Interval Forest (CIF) Classifier.
+class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
+    """Canonical Interval Forest (CIF) Regressor.
 
     Implementation of the interval-based forest making use of the catch22 feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
@@ -31,7 +27,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         - Calculate attributes for each interval, concatenate to form new
           data set
         - Build a decision tree on new data set
-    ensemble the trees with averaged probability estimates
+    ensemble the trees with averaged label estimates
 
     Parameters
     ----------
@@ -59,10 +55,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         specified using a nested list or tuple. Any list or tuple input containing
         another list or tuple must be the same length as the number of
         series_transformers.
-
-        While random interval extraction will extract the n_intervals intervals total
-        (removing duplicates), supervised intervals will run the supervised extraction
-        process n_intervals times, returning more intervals than specified.
     min_interval_length : int, float, list, or tuple, default=3
         Minimum length of intervals to extract from series. float inputs take a
         proportion of the series length to use as the minimum interval length.
@@ -77,8 +69,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Different maximum interval lengths for each series_transformers series can be
         specified using a list or tuple. Any list or tuple input must be the same length
         as the number of series_transformers.
-
-        Ignored for supervised interval_selection_method inputs.
     att_subsample_size : int, float, list, tuple or None, default=None
         The number of attributes to subsample for each estimator. If None, use all
 
@@ -117,10 +107,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         The number of dimensions per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
@@ -134,14 +120,8 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
     See Also
     --------
-    CanonicalIntervalForestRegressor
-    DrCIFClassifier
-
-    Notes
-    -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
-    /tsml/classifiers/interval_based/CIF.java>`_.
+    CanonicalIntervalForestClassifier
+    DrCIFRegressor
 
     References
     ----------
@@ -151,15 +131,17 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.interval_based import CanonicalIntervalForestClassifier
+    >>> from aeon.regression.interval_based import CanonicalIntervalForestRegressor
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
-    >>> clf = CanonicalIntervalForestClassifier(n_estimators=10, random_state=0)
-    >>> clf.fit(X, y)
-    CanonicalIntervalForestClassifier(n_estimators=10, random_state=0)
-    >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> reg = CanonicalIntervalForestRegressor(n_estimators=10, random_state=0)
+    >>> reg.fit(X, y)
+    CanonicalIntervalForestRegressor(n_estimators=10, random_state=0)
+    >>> reg.predict(X)
+    array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
+           0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
 
     _tags = {
@@ -180,7 +162,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         att_subsample_size=8,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pycatch22=False,
+        use_pycatch22=True,
         save_transformed_data=False,
         random_state=None,
         n_jobs=1,
@@ -190,11 +172,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
-        if isinstance(base_estimator, ContinuousIntervalTree):
-            replace_nan = "nan"
-        else:
-            replace_nan = 0
-
         interval_features = [
             Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
             row_mean,
@@ -202,7 +179,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             row_slope,
         ]
 
-        super(CanonicalIntervalForestClassifier, self).__init__(
+        super(CanonicalIntervalForestRegressor, self).__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",
@@ -212,7 +189,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             interval_features=interval_features,
             series_transformers=None,
             att_subsample_size=att_subsample_size,
-            replace_nan=replace_nan,
+            replace_nan=0,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
             save_transformed_data=save_transformed_data,
@@ -230,7 +207,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            CanonicalIntervalForestClassifier provides the following special sets:
+            CanonicalIntervalForestRegressor provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
