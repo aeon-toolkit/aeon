@@ -133,38 +133,40 @@ def foo_distance(
 
 
 # TODO 2: Implement pairwise distances
-# Pairwise distance functions return a matrix of distances between sets of time
-# series. They take two arguments: the first argument, X, is required and must be a
-# collection. This is important, because it is used to infer the type of the optional
-# second argument, y.
-# If it is 3D (X.ndim == 3) then it is a collection (n_cases, n_channels,
-# n_timepoints) assume it
-# is
+# If you dont implement this, then a general version will be used. If you could speed
+# the pairwise calculations up with numba, please do implement it.
 @njit(cache=True, fastmath=True)
 def foo_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, para1: float = None, para2: float = None
+    X: np.ndarray, y: np.ndarray = None, para1: float = None, para2: int = None
 ) -> np.ndarray:
     """Compute the pairwise my distance between a collection of time series.
 
-    For pairwise, 2D np.ndarray are treated as a collection of 1D series,
-    and 3D np.ndarray as a collection of 2D series.
+    # Pairwise distance functions return a matrix of distances between a single
+    # collection of time series, two collections of time series or a collection of time
+    # series and a single series.
 
     Parameters
     ----------
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
+    # For X 3D np.ndarray as a collection of 2D series and 2D np.ndarray are treated
+    as a collection of 1D series.
     y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    # If y is passed, its structure is inferred from X. If X is 3D, y must be either
+    3D (a collection of series) or 2D (a single series). If X is 2D, y must
+    be either 2d (a collection of univariate series) or 1D (a single univariate
+    series).
+    para1: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        dtw pairwise matrix between the instances of X.
+        pairwise matrix of foo_distances between the instances of X.
 
     Raises
     ------
@@ -193,4 +195,16 @@ def foo_pairwise_distance(
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     """
-    return 0
+    from aeon.distances._utils import reshape_pairwise_to_multiple
+
+    if y is None:
+        # To self
+        if X.ndim == 2:
+            X = X.reshape((X.shape[0], 1, X.shape[1]))
+        if X.ndim != 3:
+            raise ValueError("x and y must be 2D or 3D arrays")
+    else:
+        X, y = reshape_pairwise_to_multiple(X, y)
+    # NOW FIND AND RETURN PAIRWISE DISTANCE. If y is none, only calculate one
+    # diagonal and copy the other
+    return None
