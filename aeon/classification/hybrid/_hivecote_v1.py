@@ -89,6 +89,7 @@ class HIVECOTEV1(BaseClassifier):
         All components of HIVECOTE.
     HIVECOTEV2
         Successor to HIVECOTEV1.
+
     Notes
     -----
     For the Java version, see
