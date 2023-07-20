@@ -94,6 +94,10 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
+    use_pycatch22 : bool, optional, default=False
+        Wraps the C based pycatch22 implementation for aeon.
+        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
+        ``pycatch22`` package to be installed if True.
     save_transformed_data : bool, default=False
         Save the data transformed in fit for use in _get_train_preds and
         _get_train_probs.
