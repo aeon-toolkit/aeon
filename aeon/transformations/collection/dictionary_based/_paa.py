@@ -8,7 +8,8 @@ __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
 
 class PAA(BaseTransformer):
-    """Piecewise Aggregate Approximation Transformer (PAA).
+    """
+    Piecewise Aggregate Approximation Transformer (PAA).
 
     (PAA) Piecewise Aggregate Approximation Transformer, as described in [1]. For
     each series reduce the dimensionality to n_segments, where each value is the
@@ -16,8 +17,8 @@ class PAA(BaseTransformer):
 
     Parameters
     ----------
-    n_segments   : int, default = 8
-        Dimension of the transformed data
+    n_segments : int, default = 8
+        Dimension of the transformed data.
 
     Notes
     -----
@@ -97,11 +98,13 @@ class PAA(BaseTransformer):
         ----------
         X : np.ndarray of shape = (n_instances, n_channels, n_segments)
             The output of the PAA transformation
+        original_length : int
+            The original length of the series.
 
         Returns
         -------
-        paa_inverse : np.ndarray(n_instances, n_channels, series_length)
-            The inverse of paa transform
+        np.ndarray
+            (n_instances, n_channels, n_timepoints) the inverse of paa transform.
         """
         if original_length % self.n_segments == 0:
             return np.repeat(X, repeats=int(original_length / self.n_segments), axis=-1)

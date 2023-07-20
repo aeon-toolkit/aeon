@@ -18,7 +18,8 @@ from aeon.transformations.collection.random_intervals import RandomIntervals
 
 
 class RandomIntervalClassifier(BaseClassifier):
-    """Random Interval Classifier.
+    """
+    Random Interval Classifier.
 
     Extracts multiple intervals with random length, position and dimension from series
     and concatenates them into a feature vector. Builds an estimator on the

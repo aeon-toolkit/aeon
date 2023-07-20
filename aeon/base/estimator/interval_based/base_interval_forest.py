@@ -88,7 +88,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         as the number of series_transformers.
 
         Ignored for supervised interval_selection_method inputs.
-    interval_features : TransformerMixin, callable, list, tuple, or None, default=None
+    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
@@ -101,7 +101,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Different features for each series_transformers series can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
         must be the same length as the number of series_transformers.
-    series_transformers : TransformerMixin, list, tuple, or None, default=None
+    series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
@@ -127,7 +127,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+        Save the data transformed in fit for use in _get_train_preds and
+        _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -157,7 +158,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    (n_instances_ ,total_intervals * att_subsample_size)
         The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 

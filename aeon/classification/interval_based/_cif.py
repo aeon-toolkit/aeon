@@ -18,7 +18,8 @@ from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
 class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
-    """Canonical Interval Forest (CIF) Classifier.
+    """
+    Canonical Interval Forest Classifier (CIF).
 
     Implementation of the interval-based forest making use of the catch22 feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
@@ -94,7 +95,8 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+        Save the data transformed in fit for use in _get_train_preds and
+        _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -129,7 +131,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
     (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
+        The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 
     See Also
