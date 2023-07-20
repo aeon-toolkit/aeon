@@ -1032,7 +1032,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
             p = Parallel(
                 n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
             )(
-                delayed(self._train_preds_for_estimator)(
+                delayed(self._train_estimate_for_estimator)(
                     y,
                     i,
                 )
@@ -1072,9 +1072,10 @@ class BaseIntervalForest(metaclass=ABCMeta):
         p = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
-            delayed(self._train_probas_for_estimator)(
+            delayed(self._train_estimate_for_estimator)(
                 y,
                 i,
+                probas=True,
             )
             for i in range(self._n_estimators)
         )
