@@ -77,41 +77,12 @@ def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
     )
     cliques[cliques < 0] = np.inf
     cliques = cliques < cd
-    for i in range(n_estimators - 1, 0, -1):
-        if np.all(cliques[i - 1, cliques[i, :]] == cliques[i, cliques[i, :]]):
-            cliques[i, :] = 0
+    cliques = build_cliques(cliques, n_estimators)
 
-    n = np.sum(cliques, 1)
-    cliques = cliques[n > 1, :]
     return cliques
 
 
-def bonferroni_cliques(n_estimators, n_datasets, avranks, alpha):
-    """Find cliques using post hoc Bonferroni test."""
-    # Get critical value, there is an exact way now
-    qalpha = get_qalpha(alpha)
-    # calculate critical difference with Nemenyi
-    cd = qalpha[n_estimators] * np.sqrt(
-        n_estimators * (n_estimators + 1) / (6 * n_datasets)
-    )
-    # compute statistically similar cliques
-    cliques = np.tile(avranks, (n_estimators, 1)) - np.tile(
-        np.vstack(avranks.T), (1, n_estimators)
-    )
-
-    cliques[cliques < 0] = np.inf
-    cliques = cliques < cd
-
-    for i in range(n_estimators - 1, 0, -1):
-        if np.all(cliques[i - 1, cliques[i, :]] == cliques[i, cliques[i, :]]):
-            cliques[i, :] = 0
-
-    n = np.sum(cliques, 1)
-    cliques = cliques[n > 1, :]
-    return cliques
-
-
-def holm_cliques(results, labels, avranks, alpha):
+def wilcoxon_holm_cliques(results, labels, avranks, alpha):
     """Find cliques using Wilcoxon and post hoc Holm test."""
     # get number of strategies:
     n_estimators = results.shape[1]
@@ -144,7 +115,7 @@ def holm_cliques(results, labels, avranks, alpha):
     # correct alpha with holm
     new_alpha = float(alpha / (n_estimators - 1))
 
-    # print(new_alpha)
+    # print(f"{new_alpha=}")
 
     ordered_labels = [i for _, i in sorted(zip(avranks, labels))]
 
@@ -165,39 +136,48 @@ def holm_cliques(results, labels, avranks, alpha):
     # print(ordered_labels)
     # print(same)
 
-    # maybe this can be simplified.
+    cliques = build_cliques(same, n_estimators)
+
+    return cliques
+
+
+def build_cliques(same, n_estimators):
+    """Build cliques."""
     for i in range(n_estimators):
         for j in range(n_estimators):
-            if i > j:
+            if i < j:
                 same[i, j] = 0
 
-    for i in range(n_estimators - 1, 0, -1):
-        for j in range(i, 0, -1):
-            if np.all(same[j - 1, same[i, :]] == same[i, same[i, :]]):
-                same[i, :] = 0
-
-    # maybe remove it.
     for i in range(n_estimators):
-        for j in range(i, n_estimators - 1):
-            if np.all(same[j + 1, same[i, :]] == same[i, same[i, :]]):
-                same[i, :] = 0
+        if np.sum(same[i, :]) >= 1:
+            true_values_i = np.where(same[i, :] == 1)[0]
+            first_true_i = true_values_i[0]
+            last_true_i = true_values_i[-1]
+            for j in range(n_estimators):
+                if i != j and np.sum(same[j, :]) >= 1:
+                    true_values_j = np.where(same[j, :] == 1)[0]
+                    first_true_j = true_values_j[0]
+                    last_true_j = true_values_j[-1]
+                    if first_true_i <= first_true_j and last_true_i >= last_true_j:
+                        same[j, :] = 0
 
+    # print(same)
     n = np.sum(same, 1)
     cliques = same[n > 1, :]
 
-    # print(cliques)
     return cliques
 
 
 def plot_critical_difference(
     scores,
     labels,
+    highlight=None,
     errors=False,
     cliques=None,
     clique_method="nemenyi",
     alpha=0.05,
-    width=10,
-    textspace=2.5,
+    width=6,
+    textspace=1.5,
     reverse=True,
 ):
     """
@@ -223,21 +203,24 @@ def plot_critical_difference(
         scores : np.array
             scores (either accuracies or errors) of dataset x strategy
         labels : list of estimators
-            list with names of the estimators
+            list with names of the estimators. Order should be the same as scores
+        highlight: dict with labels and HTML colours to be used, default = None
+            dict with labels and HTML colours to be used for highlighting. Order should
+            be the same as scores
         errors : bool, default = False
             indicates whether scores are passed as errors (default) or accuracies
         alpha : float default = 0.05
              Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
         cliques : lists of bit vectors, default = None
-            e.g. [[0,1,1,1,0,0] [0,0,0,0,1,1]]
+            e.g. [[0,1,1,1,0,0], [0,0,0,0,1,1]]
             statistically similiar cliques of estimators
-            If none, cliques will be computed dependent on clique_method
+            If none, cliques will be computed depending on clique_method
         clique_method : string, default = "nemenyi"
-            clique forming method, to include "nemenyi", "bonferonni" and "holm"
-        width : int, default = 10
+            clique forming method, to include "nemenyi" and "holm"
+        width : int, default = 6
            width in inches
         textspace : int
-           space on figure sides (in inches) for the method names (default: 2.5)
+           space on figure sides (in inches) for the method names (default: 1.5)
         reverse : bool, default = True
            if set to 'True', the lowest rank is on the right
     """
@@ -270,6 +253,16 @@ def plot_critical_difference(
         avranks[i] = s
         temp_labels.append(n)
         i = i + 1
+
+    # sort out colours for labels
+    if highlight is not None:
+        colours = [
+            highlight[label] if label in highlight else "#000000"
+            for label in temp_labels
+        ]
+    else:
+        colours = ["#000000"] * len(temp_labels)
+
     # Step 3 : check whether Friedman test is significant
     is_significant = _check_friedman(n_estimators, n_datasets, ranked_data, alpha)
     # Step 4: If Friedman test is significant find cliques
@@ -277,10 +270,10 @@ def plot_critical_difference(
         if cliques is None:
             if clique_method == "nemenyi":
                 cliques = nemenyi_cliques(n_estimators, n_datasets, avranks, alpha)
-            elif clique_method == "bonferroni":
-                cliques = bonferroni_cliques(n_estimators, n_datasets, avranks, alpha)
             elif clique_method == "holm":
-                cliques = holm_cliques(scores, labels, ranked_data.mean(axis=0), alpha)
+                cliques = wilcoxon_holm_cliques(
+                    scores, labels, ranked_data.mean(axis=0), alpha
+                )
             else:
                 raise ValueError(
                     "clique methods available are only nemenyi, bonferroni and holm."
@@ -304,10 +297,10 @@ def plot_critical_difference(
     textspace = float(textspace)
 
     cline = 0.6  # space needed above scale
-    linesblank = 0  # lines between scale and text
+    linesblank = 1  # lines between scale and text
     scalewidth = width - 2 * textspace
 
-    # calculate heigh needed height
+    # calculate needed height
     minnotsignificant = max(2 * 0.2, linesblank)
     height = cline + ((n_estimators + 1) / 2) * 0.2 + minnotsignificant + 0.2
 
@@ -321,7 +314,7 @@ def plot_critical_difference(
 
     # Upper left corner is (0,0).
     ax.plot([0, 1], [0, 1], c="w")
-    ax.set_xlim(0, 1)
+    ax.set_xlim(0.1, 0.9)
     ax.set_ylim(1, 0)
 
     def _lloc(lst, n):
@@ -394,25 +387,28 @@ def plot_critical_difference(
                 [
                     (_rankpos(avranks[i]), cline),
                     (_rankpos(avranks[i]), chei),
-                    (textspace + scalewidth + 0.1, chei),
+                    (textspace + scalewidth + 0.2, chei),
                 ],
                 linewidth=linewidth,
+                color=colours[i],
             )
-            _text(
-                textspace + scalewidth + 0.2,
+            _text(  # labels left side.
+                textspace + scalewidth + 0.3,
                 chei,
                 temp_labels[i],
                 ha="left",
                 va="center",
                 size=16,
+                color=colours[i],
             )
-            _text(
+            _text(  # ranks left side.
                 textspace + scalewidth - 0.3,
                 chei - 0.075,
                 format(avranks[i], ".4f"),
                 ha="left",
                 va="center",
                 size=10,
+                color=colours[i],
             )
         else:
             _line(
@@ -422,22 +418,25 @@ def plot_critical_difference(
                     (textspace - 0.1, chei),
                 ],
                 linewidth=linewidth,
+                color=colours[i],
             )
-            _text(
+            _text(  # labels left side.
                 textspace - 0.2,
                 chei,
                 temp_labels[i],
                 ha="right",
                 va="center",
                 size=16,
+                color=colours[i],
             )
-            _text(
-                textspace + 0.3,
+            _text(  # ranks left side.
+                textspace + 0.4,
                 chei - 0.075,
                 format(avranks[i], ".4f"),
                 ha="right",
                 va="center",
                 size=10,
+                color=colours[i],
             )
 
     for i in range(math.ceil(len(avranks) / 2), len(avranks)):
@@ -450,22 +449,25 @@ def plot_critical_difference(
                     (textspace - 0.1, chei),
                 ],
                 linewidth=linewidth,
+                color=colours[i],
             )
-            _text(
+            _text(  # labels right side.
                 textspace - 0.2,
                 chei,
                 temp_labels[i],
                 ha="right",
                 va="center",
                 size=16,
+                color=colours[i],
             )
-            _text(
-                textspace + 0.3,
+            _text(  # ranks right side.
+                textspace + 0.4,
                 chei - 0.075,
                 format(avranks[i], ".4f"),
                 ha="right",
                 va="center",
                 size=10,
+                color=colours[i],
             )
         else:
             _line(
@@ -475,37 +477,36 @@ def plot_critical_difference(
                     (textspace + scalewidth + 0.1, chei),
                 ],
                 linewidth=linewidth,
+                color=colours[i],
             )
-            _text(
+            _text(  # labels right side.
                 textspace + scalewidth + 0.2,
                 chei,
                 temp_labels[i],
                 ha="left",
                 va="center",
                 size=16,
+                color=colours[i],
             )
-            _text(
-                textspace + scalewidth - 0.3,
+            _text(  # ranks right side.
+                textspace + scalewidth - 0.4,
                 chei - 0.075,
                 format(avranks[i], ".4f"),
                 ha="left",
                 va="center",
                 size=10,
+                color=colours[i],
             )
 
     # draw lines for cliques
     start = cline + 0.2
-    side = -0.02
+    side = -0.02 if reverse else 0.02
     height = 0.1
     i = 1
-    # achieved_half = False
     for clq in cliques:
         positions = np.where(np.array(clq) == 1)[0]
         min_idx = np.array(positions).min()
         max_idx = np.array(positions).max()
-        # if not (min_idx >= len(labels) / 2 and achieved_half):
-        #     start = cline + 0.25
-        #     achieved_half = True
         _line(
             [
                 (_rankpos(avranks[min_idx]) - side, start),
