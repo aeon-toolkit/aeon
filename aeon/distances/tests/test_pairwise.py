@@ -111,6 +111,7 @@ def _validate_single_to_multiple_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
+    """Test pairwise distance function."""
     _validate_pairwise_result(
         create_test_distance_numpy(5, 5),
         dist["name"],
@@ -135,6 +136,7 @@ def test_pairwise_distance(dist):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_multiple_to_multiple_distances(dist):
+    "Test multiple to multiple distances."
     # Univariate tests
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_multiple_to_multiple_result(
