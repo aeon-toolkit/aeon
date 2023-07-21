@@ -24,15 +24,11 @@ from aeon.transformations.collection.rocket import (
 
 
 class RocketRegressor(_DelegatedRegressor, BaseRegressor):
-    """Regressor wrapped for the Rocket transformer using RidgeCV regressor.
+    """
+    Regressor wrapped for the Rocket transformer using RidgeCV regressor.
 
-    This regressor simply transforms the input data using the Rocket [1]_
-    transformer and builds a RidgeCV estimator using the transformed data.
-
-    Shorthand for the pipeline
-    `rocket * StandardScaler(with_mean=False) * RidgeCV(alphas)`
-    where `alphas = np.logspace(-3, 3, 10)`, and
-    where `rocket` depends on params `rocket_transform`, `use_multivariate` as follows:
+    This regressor simply transforms the input data using one of the Rocket [1]_
+    transformers and builds a RidgeCV estimator using the transformed data.
 
         | rocket_transform | `use_multivariate` | rocket (class)          |
         |------------------|--------------------|-------------------------|
@@ -44,21 +40,18 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
 
     classes are aeon classes, other parameters are passed on to the rocket class.
 
-    To build other regressors with rocket transformers, use `make_pipeline` or the
-    pipeline dunder `*`, and different transformers/regressors in combination.
-
     Parameters
     ----------
     num_kernels : int, optional, default=10,000
         The number of kernels the for Rocket transform.
-    rocket_transform : str, optional, default="rocket"
+    rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
-        Valid inputs = ["rocket", "minirocket", "multirocket"]
+        Valid inputs = ["rocket", "minirocket", "multirocket"].
     max_dilations_per_kernel : int, optional, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, optional, default=4
         MultiRocket only. The number of features per kernel.
-    use_multivariate : str, ["auto", "yes", "no"], optional, default="auto"
+    use_multivariate : str, ["auto", "yes", "no"], default="auto"
         whether to use multivariate rocket transforms or univariate ones
         "auto" = multivariate iff data seen in fit is multivariate, otherwise univariate
         "yes" = always uses multivariate transformers, native multi/univariate
@@ -207,7 +200,7 @@ class RocketRegressor(_DelegatedRegressor, BaseRegressor):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
