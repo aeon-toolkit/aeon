@@ -260,9 +260,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
         return indexes[np.argmin(sum(distance_matrix))]
 
-    def _clara_fit(self, X: np.ndarray):
-        pass
-
     def _pam_fit(self, X: np.ndarray):
         old_inertia = np.inf
         n_instances = X.shape[0]

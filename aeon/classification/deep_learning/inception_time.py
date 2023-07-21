@@ -47,7 +47,7 @@ class InceptionTimeClassifier(BaseClassifier):
             module, if not a list,
             the same is used in all inception modules
         use_max_pooling     : bool or list of bool, default = True,
-            conditioning wether or not to use max pooling layer
+            conditioning whether or not to use max pooling layer
             in inception modules,if not a list,
             the same is used in all inception modules
         max_pool_size       : int or list of int, default = 3,
@@ -70,34 +70,34 @@ class InceptionTimeClassifier(BaseClassifier):
             module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
-            conditioning wether or not convolutions should
+            conditioning whether or not convolutions should
             use bias values in each inception
             module, if not a list,
             the same is used in all inception modules
-        use_residual        : bool, default = True,
-            condition wether or not to use residual
+        use_residual : bool, default = True,
+            condition whether or not to use residual
             connections all over Inception
-        use_bottleneck      : bool, default = True,
-            confition wether or not to use bottlesnecks
+        use_bottleneck : bool, default = True,
+            condition whether or not to use bottlenecks
             all over Inception
-        bottleneck_size     : int, default = 32,
+        bottleneck_size : int, default = 32,
             the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = True,
-            condition on wether or not to use custom
+        use_custom_filters : bool, default = True,
+            condition on whether or not to use custom
             filters in the first inception module
-        batch_size          : int, default = 64
+        batch_size : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
             condition on using the mini batch size
             formula Wang et al.
-        n_epochs           : int, default = 1500
+        n_epochs : int, default = 1500
             the number of epochs to train the model.
-        callbacks           : callable or None, default
+        callbacks : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = "./"
+        file_path : str, default = "./"
             file_path when saving model_Checkpoint callback
-        save_best_model     : bool, default = False
+        save_best_model : bool, default = False
             Whether or not to save the best model, if the
             modelcheckpoint callback is used by default,
             this condition, if True, will prevent the
@@ -372,7 +372,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the head kernel size used for each inception module, if not a list,
             the same is used in all inception modules
         use_max_pooling     : bool or list of bool, default = True,
-            conditioning wether or not to use max pooling layer
+            conditioning whether or not to use max pooling layer
             in inception modules,if not a list,
             the same is used in all inception modules
         max_pool_size       : int or list of int, default = 3,
@@ -393,18 +393,18 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the activation function used in each inception module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
-            conditioning wether or not convolutions should
+            conditioning whether or not convolutions should
             use bias values in each inception
             module, if not a list,
             the same is used in all inception modules
         use_residual        : bool, default = True,
-            condition wether or not to use residual connections all over Inception
+            condition whether or not to use residual connections all over Inception
         use_bottleneck      : bool, default = True,
-            confition wether or not to use bottlesnecks all over Inception
+            confition whether or not to use bottlenecks all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
         use_custom_filters  : bool, default = True,
-            condition on wether or not to use custom filters
+            condition on whether or not to use custom filters
             in the first inception module
         batch_size          : int, default = 64
             the number of samples per gradient update.

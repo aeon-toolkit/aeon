@@ -20,7 +20,8 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RSTSF(BaseClassifier):
-    """Random Supervised Time Series Forest (RSTSF) Classifier.
+    """
+    Random Supervised Time Series Forest (RSTSF) Classifier.
 
     An ensemble of decision trees built on intervals selected through a supervised
     process as described in _[1].
