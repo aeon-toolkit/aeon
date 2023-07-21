@@ -238,6 +238,7 @@ def get_estimator_results_as_array(
         type=type,
         path=path,
     )
+
     all_res = []
     names = []
     for d in datasets:
@@ -252,7 +253,6 @@ def get_estimator_results_as_array(
                     r[i] = np.average(temp[d])
             elif not include_missing:  # Skip whole problem
                 include = False
-                continue
             else:
                 r[i] = False
         if include:
@@ -260,6 +260,6 @@ def get_estimator_results_as_array(
             names.append(d)
 
     if include_missing:
-        return np.array(all_res, dtype=np.float32)
+        return np.array(all_res)
     else:
-        return np.array(all_res, dtype=np.float32), names
+        return np.array(all_res), names
