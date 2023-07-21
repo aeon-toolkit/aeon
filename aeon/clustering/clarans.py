@@ -26,10 +26,10 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     Parameters
     ----------
-    n_clusters: int, defaults = 8
+    n_clusters : int, defaults = 8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm: str, defaults = 'random'
+    init_algorithm : str, defaults = 'random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to be
@@ -38,39 +38,39 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         random. It does this by choosing centroids that are distant from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-    distance: str or Callable, defaults = 'msm'
+    distance : str or Callable, defaults = 'msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
         If a callable is passed it must be a function that takes two 2d numpy arrays as
         input and returns a float.
-    max_neighbours: int, default = None,
+    max_neighbours : int, default = None,
         The maximum number of neighbouring solutions that the algorithm will explore
         for each set of medoids. A neighbouring solution is obtained by replacing
         one of the medoids with a non-medoid and seeing if total cost reduces. If
         not specified max_neighbours is set to 1.25% of the total number of possible
         swaps (as suggested in the orginal paper).
-    n_init: int, defaults = 5
+    n_init : int, defaults = 5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    verbose: bool, defaults = False
+    verbose : bool, defaults = False
         Verbosity mode.
-    random_state: int or np.random.RandomState instance or None, defaults = None
+    random_state : int or np.random.RandomState instance or None, defaults = None
         Determines random number generation for centroid initialization.
-    distance_params: dict, defaults = None
+    distance_params : dict, defaults = None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
-    cluster_centers_: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centres.
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
-    inertia_: float
+    inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
-    n_iter_: int
+    n_iter_ : int
         Number of iterations run.
 
     Examples
