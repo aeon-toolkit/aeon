@@ -75,9 +75,9 @@ def lcss_distance(
     epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -141,9 +141,9 @@ def lcss_cost_matrix(
     epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -242,9 +242,9 @@ def lcss_pairwise_distance(
     epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -358,9 +358,9 @@ def lcss_alignment_path(
     epsilon: float, defaults=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------

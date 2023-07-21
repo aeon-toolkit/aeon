@@ -62,9 +62,9 @@ def twe_distance(
         twe measure. Must be > 0.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -130,9 +130,9 @@ def twe_cost_matrix(
         twe measure. Must be > 0.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -265,9 +265,9 @@ def twe_pairwise_distance(
         twe measure. Must be > 0.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -407,9 +407,9 @@ def twe_alignment_path(
         twe measure. Must be > 0.
     lmbda: float, defaults = 1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------

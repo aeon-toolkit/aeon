@@ -60,9 +60,9 @@ def edr_distance(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -128,9 +128,9 @@ def edr_cost_matrix(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -236,9 +236,9 @@ def edr_pairwise_distance(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -353,9 +353,9 @@ def edr_alignment_path(
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------

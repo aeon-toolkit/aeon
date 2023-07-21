@@ -73,9 +73,9 @@ def dtw_distance(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -132,9 +132,9 @@ def dtw_cost_matrix(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -227,9 +227,9 @@ def dtw_pairwise_distance(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -330,9 +330,9 @@ def dtw_alignment_path(
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    itakura_max_slope: float, defaults=None
+    itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1..
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
