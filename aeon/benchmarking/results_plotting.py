@@ -12,14 +12,14 @@ __all__ = [
 __author__ = ["dguijo"]
 
 import numpy as np
-import seaborn as sns
 
 from aeon.benchmarking._critical_difference import plot_critical_difference
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-_check_soft_dependencies("matplotlib")
+_check_soft_dependencies("matplotlib", "seaborn")
 
 import matplotlib.pyplot as plt  # noqa:E402
+import seaborn as sns  # noqa:E402
 
 
 def plot_boxplot_median(
