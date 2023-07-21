@@ -17,7 +17,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCERegressor(BaseRegressor):
-    """Fresh Pipeline with RotatIoN forest Regressor.
+    """
+    Fresh Pipeline with RotatIoN forest Regressor.
 
     This regressor simply transforms the input data using the TSFresh [1]_
     transformer with comprehensive features and builds a RotationForestRegressor

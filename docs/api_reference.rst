@@ -29,4 +29,3 @@ For a scientific manual, see the :ref:`user_guide`.
     api_reference/utils
     api_reference/exceptions
     api_reference/performance_metrics
-    api_reference/series_as_features
