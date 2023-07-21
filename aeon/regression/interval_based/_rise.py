@@ -113,12 +113,14 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     ... )
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
-    >>> clf = RandomIntervalSpectralEnsembleRegressor(n_estimators=10, random_state=0)
-    >>> clf.fit(X, y)
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> reg = RandomIntervalSpectralEnsembleRegressor(n_estimators=10, random_state=0)
+    >>> reg.fit(X, y)
     RandomIntervalSpectralEnsembleRegressor(n_estimators=10, random_state=0)
-    >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    >>> reg.predict(X)
+    array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
+           0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
 
     _tags = {
