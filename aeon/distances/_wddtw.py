@@ -247,7 +247,7 @@ def wddtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _wddtw_pairwise_distance(
-    X: np.ndarray, window: float, g: float, itakura_max_slope: float = None
+    X: np.ndarray, window: float, g: float, itakura_max_slope: float
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -275,7 +275,7 @@ def _wddtw_from_multiple_to_multiple_distance(
     y: np.ndarray,
     window: float,
     g: float,
-    itakura_max_slope: float = None,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]

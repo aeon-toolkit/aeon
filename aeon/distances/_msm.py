@@ -417,7 +417,7 @@ def _msm_pairwise_distance(
     window: float,
     independent: bool,
     c: float,
-    itakura_max_slope: float = None,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -440,7 +440,7 @@ def _msm_from_multiple_to_multiple_distance(
     window: float,
     independent: bool,
     c: float,
-    itakura_max_slope: float = None,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
