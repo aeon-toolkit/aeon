@@ -13,30 +13,40 @@ import pandas as pd
 
 from aeon.datasets.tsc_data_lists import univariate as UCR
 
-VALID_RESULT_TYPES = ["accuracy", "auroc", "balancedaccuracy"]
+VALID_RESULT_TYPES = ["accuracy", "auroc", "balancedaccuracy", "nll"]
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 NAME_ALIASES = {
+    "Arsenal": {"ARSENAL", "TheArsenal", "AFC", "ArsenalClassifier"},
+    "BOSS": {"TheBOSS", "boss", "BOSSClassifier"},
+    "cBOSS": {"CBOSS", "CBOSSClassifier", "cboss"},
+    "CIF": {"CanonicalIntervalForest", "CIFClassifier"},
+    "CNN": {"cnn", "CNNClassifier"},
+    "Catch22": {"catch22", "Catch22Classifier"},
+    "DrCIF": {"DrCIF", "DrCIFClassifier"},
+    "FreshPRINCE": {"FP", "freshPrince", "FreshPrince", "FreshPRINCEClassifier"},
+    "HC1": {"HIVECOTE1", "HIVECOTEV1", "hc", "HIVE-COTEv1"},
     "HC2": {"HIVECOTE2", "HIVECOTEV2", "hc2", "HIVE-COTE", "HIVE-COTEv2"},
-    "FreshPRINCE": {
-        "freshprince",
-        "FP",
-        "freshPrince",
-        "FreshPrince",
-        "FreshPRINCEClassifier",
-    },
-    "InceptionT": {
-        "InceptionTime",
-        "IT",
-        "InceptionT",
-        "inceptiontime",
-        "InceptionTimeClassifier",
-    },
-    "Hydra-MR": {"Hydra-MultiROCKET", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
+    "Hydra-MultiROCKET": {"Hydra-MR", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
+    "InceptionTime": {"IT", "InceptionT", "inceptiontime", "InceptionTimeClassifier"},
+    "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
+    "MrSQM": {"mrsqm", "MrSQMClassifier"},
+    "MultiROCKET": {"MultiRocket", "MultiROCKETClassifier"},
+    "ProximityForest": {"PF", "ProximityForestV1", "PFV1"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
+    "RISE": {"RISEClassifier", "rise"},
+    "ROCKET": {"Rocket", "RocketClassifier", "ROCKETClassifier"},
+    "RSF": {"rsf", "RSFClassifier"},
     "RSTSF": {"R_RSTF", "RandomSTF", "RSTFClassifier"},
-    "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
-    "WEASEL-D": {"WEASEL", "WEASEL-Dilation", "Weasel-D"},
+    "ResNet": {"R_RSTF", "RandomSTF", "RSTFClassifier"},
+    "STC": {"ShapeletTransform", "STCClassifier", "RandomShapeletTransformClassifier"},
+    "STSF": {"stsf", "STSFClassifier"},
+    "Signatures": {"SignaturesClassifier"},
+    "TDE": {"tde", "TDEClassifier"},
+    "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
+    "TSF": {"tsf", "TimeSeriesForest"},
+    "TSFresh": {"tsfresh", "TSFreshClassifier"},
+    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
 }
 
 
@@ -180,7 +190,7 @@ def get_estimator_results_as_array(
     datasets=UCR,
     default_only=True,
     task="Classification",
-    type="Accuracy",
+    type="accuracy",
     include_missing=False,
     path="https://timeseriesclassification.com/results/ReferenceResults",
 ):

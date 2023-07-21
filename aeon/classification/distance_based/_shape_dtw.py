@@ -32,7 +32,8 @@ __author__ = ["vincent-nich12"]
 
 
 class ShapeDTW(BaseClassifier):
-    """ShapeDTW classifier.
+    """
+    ShapeDTW classifier.
 
     ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
     each data point in a time series. These subseries are then passed into a
@@ -42,53 +43,35 @@ class ShapeDTW(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbours : int, default =1
-        number of neighbours, k, for the k-NN classifier.
+    n_neighbors : int, default =1
+        Number of neighbours, k, for the k-NN classifier.
     subsequence_length : int, default=sqrt(n_timepoints)
-        length of the subseries to extract.
-    shape_descriptor_function : string, default = 'raw'
-        defines the function to describe the set of subsequences
+        Length of the subseries to extract.
+    shape_descriptor_function : str, default = 'raw'
+        Defines the function to describe the set of subsequences
         The possible shape descriptor functions are as follows:
-        - 'raw'                 : use the raw subsequence as the
-                                  shape descriptor function.
-                                - params = None
-        - 'paa'                 : use PAA as the shape descriptor function.
-                                - params = num_intervals_paa (default=8)
-        - 'dwt'                 : use DWT (Discrete Wavelet Transform)
-                                  as the shape descriptor function.
-                                - params = num_levels_dwt (default=3)
-        - 'slope'               : use the gradient of each subsequence
-                                  fitted by a total least squares
-                                  regression as the shape descriptor
-                                  function.
-                                - params = num_intervals_slope (default=8)
-        - 'derivative'          : use the derivative of each subsequence
-                                  as the shape descriptor function.
-                                - params = None
-        - 'hog1d'               : use a histogram of gradients in one
-                                  dimension as the shape desciptor
-                                  function.
-                                - params = num_intervals_hog1d
-                                                    (defualt=2)
-                                         = num_bins_hod1d
-                                                    (default=8)
-                                         = scaling_factor_hog1d
-                                                    (default=0.1)
-        - 'compound'            : use a combination of two shape
-                                  descriptors simultaneously.
-                                - params = weighting_factor
-                                          (default=None)
-                                           Defines how to scale
-                                           values of a shape
-                                           descriptor.
-                                           If a value is not given,
-                                           this value is tuned
-                                           by 10-fold cross-validation
-                                           on the training data.
-    shape_descriptor_functions  : List of string, default = ['raw','derivative']
-        only applicable when the shape_descriptor_function is set to 'compound'. Use
+        - 'raw' : use the raw subsequence as the shape descriptor function.
+        - 'paa' : use PAA as the shape descriptor function. params =
+        num_intervals_paa (default=8).
+        - 'dwt' : use DWT (Discrete Wavelet Transform) as the shape descriptor
+        function. params = num_levels_dwt (default=3).
+        - 'slope' : use the gradient of each subsequence fitted by a total least
+        squares regression as the shape descriptor function. params =
+        num_intervals_slope (default=8).
+        - 'derivative' : use the derivative of each subsequence as the shape
+        descriptor function.
+        - 'hog1d' : use a histogram of gradients in one dimension as the shape
+        descriptor function. params = num_intervals_hog1d (default=2), num_bins_hod1d
+        (default=8), scaling_factor_hog1d (default=0.1).
+        - 'compound'  : use a combination of two shape descriptors simultaneously.
+        params = weighting_factor (default=None). Defines how to scale values of a
+        shape descriptor.  If a value is not given, this value is tuned by 10-fold
+        cross-validation on the training data.
+    shape_descriptor_functions : List of str, default = ['raw','derivative']
+        Only applicable when the shape_descriptor_function is set to 'compound'. Use
         a list of shape descriptor functions at the same time.
-    metric_params               : dictionary for metric parameters, default = None
+    metric_params : dict, default = None
+        Dictionary for metric parameters.
 
     Notes
     -----
@@ -138,7 +121,9 @@ class ShapeDTW(BaseClassifier):
         Parameters
         ----------
         X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-        y - list of class labels of shape [n_instances].
+            The training data.
+        y : array-like, shape = [n_instances]
+            The class labels.
 
         Returns
         -------
@@ -257,12 +242,15 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        output : numpy array of shape =
-                [n_instances, num_classes] of probabilities
+        1D np.ndarray
+            Predicted probabilities using the ordering in classes_, shape = (
+            n_instances, n_classes_).
         """
         # Transform the test data in the same way as the training data.
         X = self._preprocess(X)
@@ -275,11 +263,14 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : The testing input samples of shape [n_instances,1].
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        output : numpy array of shape = [n_instances]
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         # Transform the test data in the same way as the training data.
         X = self._preprocess(X)

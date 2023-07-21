@@ -12,7 +12,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
-    """Configurable interval extracting forest classifier.
+    """
+    Configurable interval extracting forest classifier.
 
     Extracts multiple phase-dependent intervals from time series data and builds a
     base classifier on summary statistic extracted from each interval. Forms and
@@ -76,7 +77,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         as the number of series_transformers.
 
         Ignored for supervised interval_selection_method inputs.
-    interval_features : TransformerMixin, callable, list, tuple, or None, default=None
+    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
@@ -89,12 +90,11 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Different features for each series_transformers series can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
         must be the same length as the number of series_transformers.
-    series_transformers : TransformerMixin, list, tuple, or None, default=None
+    series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        Both transformers and functions should be able to take a 3D np.ndarray input.
-        A list or tuple of transformers and/or functions will extract intervals from
+        A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
     att_subsample_size : int, float, list, tuple or None, default=None
@@ -146,7 +146,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    (n_instances_ ,total_intervals * att_subsample_size)
         The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 

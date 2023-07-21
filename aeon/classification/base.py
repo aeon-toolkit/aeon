@@ -39,7 +39,8 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseClassifier(BaseEstimator, ABC):
-    """Abstract base class for time series classifiers.
+    """
+    Abstract base class for time series classifiers.
 
     The base classifier specifies the methods and method signatures that all
     classifiers have to implement. Attributes with an underscore suffix are set in the

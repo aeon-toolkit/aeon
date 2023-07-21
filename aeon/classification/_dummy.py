@@ -11,7 +11,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class DummyClassifier(BaseClassifier):
-    """DummyClassifier makes predictions that ignore the input features.
+    """
+    DummyClassifier makes predictions that ignore the input features.
 
     This classifier is a wrapper for SklearnDummyClassifier that serves as a simple
     baseline to compare against other more complex classifiers.
