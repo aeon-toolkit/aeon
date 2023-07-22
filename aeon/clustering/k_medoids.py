@@ -66,7 +66,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter: int, defaults = 30
+    max_iter: int, defaults = 300
         Maximum number of iterations of the k-medoids algorithm for a single
         run.
     tol: float, defaults = 1e-6
@@ -82,10 +82,8 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     Attributes
     ----------
-    cluster_centers_: np.ndarray (3d array of shape (n_clusters, n_dimensions,
-        series_length))
-        Time series that represent each of the cluster centers. If the algorithm stops
-        before fully converging these will not be consistent with labels_.
+    cluster_centers_: np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+        A collection of time series instances that represent the cluster centres.
     labels_: np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_: float
