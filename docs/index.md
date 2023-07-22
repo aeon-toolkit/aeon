@@ -101,7 +101,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} examples-clustering
+```{button-ref} /examples/clustering/clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -137,7 +137,7 @@ Transformation
 :img-top: examples/distances/img/dtw_vis.png
 :text-align: center
 
-Transformation
+Distances
 
 ^^^
 
