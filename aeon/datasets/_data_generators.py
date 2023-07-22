@@ -179,26 +179,6 @@ def make_example_long_table(n_cases=50, n_channels=2, n_timepoints=20):
     return df
 
 
-def make_example_nested_dataframe(n_instances=10, n_channels=3, n_timepoints=20):
-    """Generate example nested dataframe, type "nested_univ".
-
-    Parameters
-    ----------
-    n_instances : int
-        Number of instances.
-    n_channels : int
-        Number of columns (series) in multi-indexed DataFrame.
-    n_timepoints : int
-        Number of timepoints per instance-column pair.
-
-    Returns
-    -------
-    nested_df : pd.DataFrame. each cell a pd.Series length n_timepoints
-
-    """
-    return None
-
-
 def make_example_multi_index_dataframe(n_instances=50, n_channels=3, n_timepoints=20):
     """Generate example multi-index DataFrame.
 
