@@ -107,7 +107,7 @@ class DrCIF(BaseClassifier):
     dims_ : list of shape (n_estimators) of array with shape (total_intervals)
         The dimension to extract attributes from each interval for all classifiers.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    (n_instances_ ,total_intervals * att_subsample_size)
         The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 
