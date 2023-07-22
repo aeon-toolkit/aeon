@@ -155,6 +155,52 @@ Distances
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/annotation/img/clasp.png
+:text-align: center
+
+Benchmarking
+
+^^^
+
+Annotation
+
++++
+
+```{button-ref} examples/annotation/annotation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Annotation
+```
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/benchmarking/img/benchmarking.png
+:text-align: center
+
+Benchmarking
+
+^^^
+
+How to benchmark algorithms.
+
++++
+
+```{button-ref} examples/benchmarking/benchmarking.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Benchmarking
+```
+
+:::
+
+
 ::::
 
 ## Community Channels
