@@ -24,7 +24,7 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting/forecasting2.png
+:img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 
 Forecasting
@@ -129,6 +129,28 @@ Get started with time series transformations.
 :expand:
 
 Transformation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/distances/img/dtw_vis.png
+:text-align: center
+
+Transformation
+
+^^^
+
+Get started with time series distances.
+
++++
+
+```{button-ref} examples/distances/distances.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Distances
 ```
 
 :::
