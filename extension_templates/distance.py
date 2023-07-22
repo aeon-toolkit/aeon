@@ -41,7 +41,7 @@ numba cant handle kwargs)
             x,
             y,
             kwargs.get("para1"),
-            kwargs.get("para2"),
+            kwargs.get("para2",3),
         )
 TODO 6: function pairwise_distance (if foo_pairwise_distance implemented)
 in the function
@@ -51,11 +51,17 @@ in the function
         metric: Union[str, DistanceFunction] = None,
         **kwargs: Any,
     ) -> np.ndarray:
-ad an if clause returning the pairwise distance.
+add an if clause returning the pairwise distance.
     elif metric == "foo":
         return foo_pairwise_distance(x, y, kwargs.get("para1", kwargs.get("para2"))
 TODO 7: DISTANCES list
 Add your distance to the list of DISTANCES used in testing
+DISTANCES = [
+    {
+        "name": "foo",
+        "distance": foo_distance,
+    },
+If you add the optional functions, you can add them too
 DISTANCES = [
     {
         "name": "foo",
@@ -78,7 +84,7 @@ from numba import njit
 # handle unequal length series.
 @njit(cache=True, fastmath=True)
 def foo_distance(
-    x: np.ndarray, y: np.ndarray, para1: float = 0.1, para2: int = 3
+    x: np.ndarray, y: np.ndarray, para1: float = None, para2: int = 3
 ) -> float:
     r"""Compute the my_distance between two time series.
 
@@ -95,7 +101,7 @@ def foo_distance(
     y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     para1 : float, default = 0.1
-        Parameter for distance, usually a float or int.
+        Parameter for distance, usually None, a float or int.
     para2 : int, default = 3
         Parameter for distance, usually a float or int.
 
