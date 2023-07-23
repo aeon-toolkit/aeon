@@ -27,9 +27,6 @@ comparison.
 :img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 
-Forecasting
-
-^^^
 
 Get started with time series forecasting.
 
@@ -49,9 +46,6 @@ Forecasting
 :img-top: examples/img/tsc.png
 :text-align: center
 
-Classification
-
-^^^
 
 Get started with time series classification.
 
@@ -71,9 +65,6 @@ Classification
 :img-top: examples/img/tser.png
 :text-align: center
 
-Regression
-
-^^^
 
 Get started with time series extrinsic regression.
 
@@ -93,9 +84,6 @@ Regression
 :img-top: examples/img/tscl.png
 :text-align: center
 
-Clustering
-
-^^^
 
 Get started with time series clustering.
 
@@ -115,9 +103,6 @@ Clustering
 :img-top: examples/transformations/img/transformation.png
 :text-align: center
 
-Transformation
-
-^^^
 
 Get started with time series transformations.
 
@@ -137,9 +122,6 @@ Transformation
 :img-top: examples/distances/img/dtw_vis.png
 :text-align: center
 
-Distances
-
-^^^
 
 Get started with time series distances.
 
@@ -159,9 +141,6 @@ Distances
 :img-top: examples/annotation/img/clasp.png
 :text-align: center
 
-Benchmarking
-
-^^^
 
 Annotation
 
