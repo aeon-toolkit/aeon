@@ -615,6 +615,7 @@ class STLForecaster(BaseForecaster):
         from aeon.forecasting.naive import NaiveForecaster
 
         params_list = [
+            {},
             {
                 "sp": 3,
                 "seasonal": 7,
