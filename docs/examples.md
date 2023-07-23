@@ -302,11 +302,11 @@ Theta transform
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/segmentation_use_cases.png
-:link: /examples/annotation/segmentation_use_cases.ipynb
+:link: /examples/annotation/annotation.ipynb
 :link-type: ref
 :text-align: center
 
-Segmentation use cases
+Intro to annotation
 
 :::
 
