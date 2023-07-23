@@ -16,16 +16,6 @@ Forecasting overview
 :::
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:link: /examples/forecasting/window_splitters.ipynb
-:link-type: ref
-:text-align: center
-
-Window splitters for reduction to regression
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
 :link: /examples/forecasting/forecasting_proba.ipynb
 :link-type: ref
