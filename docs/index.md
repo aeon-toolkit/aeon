@@ -177,6 +177,62 @@ Benchmarking
 
 :::
 
+:::{grid-item-card}
+:img-top: /examples/datasets/img/data.png
+:text-align: center
+
+Loading, storing and saving data.
+
++++
+
+```{button-ref} /examples/datasets/datasets.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Datasets
+```
+
+:::
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/networks/img/Inception.png
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/utils/img/Inception.png
+:text-align: center
+
+General utility
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
 ::::
 
 ## Community Channels

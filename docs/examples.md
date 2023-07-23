@@ -1,6 +1,7 @@
 # Examples
 
-## Forecasting
+Overview examples for aeon module are listed below. For more details, see the
+[user guide](user_guide.md)
 
 ::::{grid} 2 4 4 4
 :gutter: 1
@@ -11,45 +12,9 @@
 :link-type: ref
 :text-align: center
 
-Forecasting overview
+Forecasting
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/proba.png
-:link: /examples/forecasting/forecasting_proba.ipynb
-:link-type: ref
-:text-align: center
-
-Probabilistic forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/hierarchytree_grouped.png
-:link: /examples/forecasting/forecasting_hierarchical_global.ipynb
-:link-type: ref
-:text-align: center
-
-Hierarchical, global, and panel forecasting
-
-:::
-
-:::{grid-item-card}
-:link: /examples/forecasting/forecasting_sklearn.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting with aeon and scikit learn
-
-:::
-
-::::
-
-## Classification
-
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :img-top: examples/classification/img/tsc.png
@@ -57,114 +22,9 @@ Forecasting with aeon and scikit learn
 :link-type: ref
 :text-align: center
 
-Overview of Time Series Classification (TSC)
+Time Series Classification (TSC)
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/convolution.png
-:link: /examples/classification/convolution_based.ipynb
-:link-type: ref
-:text-align: center
-
-Convolution based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/it.png
-:link: /examples/classification/deep_learning.ipynb
-:link-type: ref
-:text-align: center
-Deep learning based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/hist.png
-:link: /examples/classification/dictionary_based.ipynb
-:link-type: ref
-:text-align: center
-
-Dictionary based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/dtw.png
-:link: /examples/classification/distance_based.ipynb
-:link-type: ref
-:text-align: center
-
-Distance based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/pipeline.png
-:link: /examples/classification/feature_based.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/hc2.png
-:link: /examples/classification/hybrid.ipynb
-:link-type: ref
-:text-align: center
-
-Hybrid TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/interval.png
-:link: /examples/classification/interval_based.ipynb
-:link-type: ref
-:text-align: center
-
-Interval based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/shapelet.png
-:link: /examples/classification/shapelet_based.ipynb
-:link-type: ref
-:text-align: center
-
-Shapelet based TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/tser.png
-:link: /examples/classification/early_classification.ipynb
-:link-type: ref
-:text-align: center
-
-Early TSC
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/classification/img/tser.png
-:link: /examples/classification/channel_selection.ipynb
-:link-type: ref
-:text-align: center
-
-Channel selection in multivariate TSC
-
-:::
-
-::::
-
-## Regression
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :img-top: /examples/regression/img/tser.png
@@ -172,16 +32,9 @@ Channel selection in multivariate TSC
 :link-type: ref
 :text-align: center
 
-Overview of Time Series Regression (TSR)
+Time Series Regression (TSR)
 
 :::
-
-::::
-
-## Clustering
-
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :img-top: examples/clustering/img/tscl.png
@@ -189,16 +42,9 @@ Overview of Time Series Regression (TSR)
 :link-type: ref
 :text-align: center
 
-Overview of Time Series Clustering (TSCL)
+Time Series Clustering (TSCL)
 
 :::
-
-::::
-
-## Transformation
-
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/trans.png
@@ -206,89 +52,9 @@ Overview of Time Series Clustering (TSCL)
 :link-type: ref
 :text-align: center
 
-Overview of Transformation
+Transformations
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/tsfresh.png
-:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/rocket.png
-:link: /examples/transformations/rocket.ipynb
-:link-type: ref
-:text-align: center
-
-Convolution based
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/leaves_shapelets.png
-:link: /examples/transformations/shapelets.ipynb
-:link-type: ref
-:text-align: center
-
-Shapelet based
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
-:link: /examples/transformations/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Interpolation
-
-:::
-
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/plateau.png
-:link: /examples/transformations/plateau_finder.ipynb
-:link-type: ref
-:text-align: center
-
-Plateau finding
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/signature.png
-:link: /examples/transformations/signature_method.ipynb
-:link-type: ref
-:text-align: center
-
-Signature method
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
-:link: /examples/transformations/theta_transform.ipynb
-:link-type: ref
-:text-align: center
-
-Theta transform
-
-:::
-
-::::
-
-
-## Annotation
-
-::::{grid} 2 4 4 4
-:gutter: 1
-
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/segmentation_use_cases.png
@@ -296,38 +62,10 @@ Theta transform
 :link-type: ref
 :text-align: center
 
-Intro to annotation
+Time Series Annotation
 
 :::
 
-:::{grid-item-card}
-:img-top: examples/transformations/img/clasp.png
-:link: /examples/annotation/segmentation_with_clasp.ipynb
-:link-type: ref
-:text-align: center
-
-ClaSP segmentation
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/hidalgo.png
-:link: /examples/annotation/hidalgo_segmentation.ipynb
-:link-type: ref
-:text-align: center
-
-Hidalgo segmentation
-
-:::
-
-
-::::
-
-
-## Distances
-
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :img-top: examples/distances/img/dtw_vis.png
@@ -335,25 +73,9 @@ Hidalgo segmentation
 :link-type: ref
 :text-align: center
 
-Distance functions
+Elastic Distance Functions
 
 :::
-
-
-:::{grid-item-card}
-:img-top: examples/distances/img/svm.png
-:link: /examples/distances/sklearn_distances.ipynb
-:link-type: ref
-:text-align: center
-
-Using aeon distances with scikit-learn
-
-::::
-
-## Data Formatting and Loading
-
-::::{grid} 2 4 4 4
-:gutter: 1
 
 :::{grid-item-card}
 :link: /examples/datasets/data_storage.ipynb
@@ -363,40 +85,5 @@ Using aeon distances with scikit-learn
 Storing time series in arrays and data frames
 
 :::
-
-:::{grid-item-card}
-:link: /examples/datasets/data_files_structures.ipynb
-:link-type: ref
-:text-align: center
-
-How series are stored in file
-
-:::
-
-:::{grid-item-card}
-:link: /examples/datasets/data_loading.ipynb
-:link-type: ref
-:text-align: center
-
-Loading data into memory
-
-:::
-
-
-:::{grid-item-card}
-:link: /examples/datasets/provided_data.ipynb
-:link-type: ref
-:text-align: center
-
-Example data sets
-
-:::
-
-:::{grid-item-card}
-:link: /examples/datasets/benchmarking_data.ipynb
-:link-type: ref
-:text-align: center
-
-Getting data for benchmarking
 
 ::::
