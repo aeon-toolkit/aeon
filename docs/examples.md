@@ -6,12 +6,12 @@
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting2.png
+:img-top: /examples/forecasting/img/forecasting2.png
 :link: /examples/forecasting/forecasting.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon
+Forecasting overview
 
 :::
 
@@ -22,6 +22,8 @@ Forecasting with aeon
 :text-align: center
 
 Window splitters for reduction to regression
+
+:::
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
@@ -40,8 +42,6 @@ Probabilistic forecasting
 :text-align: center
 
 Hierarchical, global, and panel forecasting
-
-:::
 
 :::
 
@@ -67,7 +67,7 @@ Forecasting with aeon and scikit learn
 :link-type: ref
 :text-align: center
 
-Time Series Classification (TSC) with aeon
+Overview of Time Series Classification (TSC)
 
 :::
 
@@ -172,74 +172,39 @@ Channel selection in multivariate TSC
 
 ::::
 
-(examples-regression)=
 ## Regression
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/reg.png
+:img-top: /examples/regression/img/tser.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
 
-Extrinsic regression
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:link: /examples/regression/regression_reduction.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting reduced to regression
+Overview of Time Series Regression (TSR)
 
 :::
 
 ::::
 
-
-(examples-clustering)=
 ## Clustering
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/clst.png
-:link: /examples/clustering/distance_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-Distance based clustering
+Overview of Time Series Clustering (TSCL)
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/feature_clst.png
-:link: /examples/clustering/feature_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based clustering
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/dl_clst.png
-:link: /examples/clustering/dl_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Deep learning based clustering
-
-:::
-
 
 ::::
 
-(examples-transformation)=
 ## Transformation
 
 ::::{grid} 2 4 4 4
@@ -251,7 +216,7 @@ Deep learning based clustering
 :link-type: ref
 :text-align: center
 
-Transformers
+Overview of Transformation
 
 :::
 
@@ -264,7 +229,6 @@ Transformers
 Feature based
 
 :::
-
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/rocket.png
