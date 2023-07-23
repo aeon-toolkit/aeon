@@ -47,6 +47,8 @@ Forecasting
 :text-align: center
 
 
+
+
 Get started with time series classification.
 
 +++
@@ -89,7 +91,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} /examples/clustering/clustering.ipynb
+```{button-ref} /examples/clustering/partitional_clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -108,12 +110,12 @@ Get started with time series transformations.
 
 +++
 
-```{button-ref} examples/transformations/transformations.ipynb
+```{button-ref} /examples/transformations/transformations.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Transformation
+Transformations
 ```
 
 :::
@@ -127,7 +129,7 @@ Get started with time series distances.
 
 +++
 
-```{button-ref} examples/distances/distances.ipynb
+```{button-ref} /examples/distances/distances.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -146,7 +148,7 @@ Annotation
 
 +++
 
-```{button-ref} examples/annotation/annotation.ipynb
+```{button-ref} /examples/annotation/annotation.ipynb
 :color: primary
 :click-parent:
 :expand:
