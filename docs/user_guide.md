@@ -1,15 +1,10 @@
-
-.. _user_guide:
-
-==========
-User Guide
-==========
+# User Guide
 
 The user guide consists of notebooks, ordered by learning task, that
 expand on the introductory [examples](examples.md).
 
-The notebook files can be found `here <https://github.com/aeon-toolkit/aeon/blob/main/examples>`_.
 
+## Forecasting
 
 ::::{grid} 2 4 4 4
 :gutter: 1
@@ -210,7 +205,7 @@ Overview of Time Series Clustering (TSCL)
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/transformation.png
 :link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
@@ -309,7 +304,7 @@ Intro to annotation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/clasp.png
+:img-top: examples/annotation/img/clasp.png
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
@@ -319,7 +314,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/hidalgo.png
+:img-top: examples/annotation/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
@@ -400,11 +395,29 @@ Example data sets
 
 :::
 
+::::
+
+## Benchmarking
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
 :::{grid-item-card}
-:link: /examples/datasets/benchmarking_data.ipynb
+:link: /examples/benchmarking/benchmarkings.ipynb
 :link-type: ref
 :text-align: center
 
-Getting data for benchmarking
+Benchmarking algorithms
+
+:::
+
+:::{grid-item-card}
+:link: /examples/benchmarking/results_loading.ipynb
+:link-type: ref
+:text-align: center
+
+Geting published results
+
+:::
 
 ::::
