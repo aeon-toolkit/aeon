@@ -374,10 +374,18 @@ class SquaringResiduals(BaseForecaster):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
+        from aeon.forecasting.croston import Croston
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import TrendForecaster
 
         params = [
+            {
+                "forecaster": Croston(),
+                "residual_forecaster": Croston(),
+                "initial_window": 2,
+                "distr": "t",
+                "distr_kwargs": {"df": 21},
+            },
             {
                 "forecaster": TrendForecaster(),
                 "residual_forecaster": NaiveForecaster(),
