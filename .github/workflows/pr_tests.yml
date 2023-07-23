@@ -14,7 +14,8 @@ concurrency:
 
 jobs:
   code-quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
@@ -37,94 +38,80 @@ jobs:
         shell: bash
 
   run-notebook-examples:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install .[all_extras,binder,dev]
+
+      - name: Install aeon and dependencies
+        run: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
         run: build_tools/run_examples.sh
         shell: bash
 
   test-nosoftdeps:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
 
       - name: Install aeon and dependencies
-        run: |
-          python -m pip install .[dev]
+        run: python -m pip install .[dev]
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--matrixdesign=True --timeout=600" test_softdeps
+        run: |
+          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
+          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
+          python -m pytest --pyargs aeon.tests.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
 
       - name: Install aeon and dependencies
-        run: |
-          python -m pip install .[dev]
+        run: python -m pip install .[dev]
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: make PYTESTOPTIONS="--matrixdesign=True --timeout=600" test_softdeps_full
+        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
 
-  test-windows:
+  pytest:
     needs: test-nosoftdeps
-    runs-on: windows-2019
+    runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/setup-python@v4
         with:
-          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: anaconda, conda-forge,
-
-      - run: conda --version
-      - run: which python
-
-      - name: Fix windows paths
-        if: ${{ runner.os == 'Windows' }}
-        run: echo "C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Install conda libpython
-        run: conda install -c anaconda libpython
 
       - name: Install aeon and dependencies
         run: python -m pip install .[all_extras,dev]
@@ -133,37 +120,4 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: |
-          mkdir -p testdir/
-          cp .coveragerc testdir/
-          cp setup.cfg testdir/
-          python -m pytest --matrixdesign=True
-
-  test-unix:
-    needs: test-nosoftdeps
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
-        os: [ubuntu-20.04, macOS-11]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-
-      - name: Install aeon and dependencies
-        run: |
-          python -m pip install .[all_extras,dev] --no-cache-dir
-
-      - name: Show dependencies
-        run: python -m pip list
-
-      - name: Run tests
-        run: make test
+        run: python -m pytest --matrixdesign True

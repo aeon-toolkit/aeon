@@ -14,8 +14,6 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.encoder import EncoderNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class EncoderClassifier(BaseDeepClassifier):
     """

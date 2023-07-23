@@ -18,8 +18,6 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.tapnet import TapNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class TapNetClassifier(BaseDeepClassifier):
     """Time series attentional prototype network (TapNet), as described in [1]_.
