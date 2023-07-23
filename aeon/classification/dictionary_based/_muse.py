@@ -22,64 +22,63 @@ from aeon.transformations.collection.dictionary_based import SFAFast
 
 
 class MUSE(BaseClassifier):
-    """MUSE (MUltivariate Symbolic Extension).
+    """
+    MUSE (MUltivariate Symbolic Extension).
 
     Also known as WEASEL-MUSE: implementation of multivariate version of WEASEL,
     referred to as just MUSE from [1].
 
     Overview: Input n series length m
-     WEASEL+MUSE is a multivariate  dictionary classifier that builds a
-     bag-of-patterns using SFA for different window lengths and learns a
-     logistic regression classifier on this bag.
+    WEASEL+MUSE is a multivariate  dictionary classifier that builds a
+    bag-of-patterns using SFA for different window lengths and learns a
+    logistic regression classifier on this bag.
 
-     There are these primary parameters:
-             alphabet_size: alphabet size
+    There are these primary parameters:
              chi2-threshold: used for feature selection to select best words
-             anova: select best l/2 fourier coefficients other than first ones
-             bigrams: using bigrams of SFA words
              binning_strategy: the binning strategy used to disctrtize into SFA words.
 
     Parameters
     ----------
-    anova: boolean, default=True
+    anova : bool, default=True
         If True, the Fourier coefficient selection is done via a one-way
-        ANOVA test. If False, the first Fourier coefficients are selected.
-        Only applicable if labels are given
-    variance: boolean, default = False
-            If True, the Fourier coefficient selection is done via the largest
-            variance. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-    bigrams: boolean, default=True
-        whether to create bigrams of SFA words
-    window_inc: int, default=2
-        WEASEL create a BoP model for each window sizes. This is the
-        increment used to determine the next window size.
+        ANOVA test to select best l/2 fourier coefficients other than first
+        one. If False, the first l/2 Fourier coefficients are selected. Only
+        applicable if labels are given.
+    variance : bool, default = False
+        If True, the Fourier coefficient selection is done via the largest
+        variance. If False, the first Fourier coefficients are selected. Only
+        applicable if labels are given.
+    bigrams : bool, default=True
+        whether to create bigrams of SFA words.
+    window_inc : int, default=2
+        WEASEL creates a BoP model for each window sizes. This is the increment used
+        to determine the next window size.
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
-    p_threshold: int, default=0.05 (disabled by default)
-        Used when feature selection is applied based on the chi-squared test.
-        This is the p-value threshold to use for chi-squared test on bag-of-words
-        (lower means more strict). 1 indicates that the test
-        should not be performed.
-    use_first_order_differences: boolean, default=True
+    use_first_order_differences : bool, default = True
         If set to True will add the first order differences of each dimension
         to the data.
-    support_probabilities: bool, default: False
+    feature_selection : str, default = "chi2"
+        Sets the feature selections strategy to be used, one of
+        {"chi2", "none", "random"}. "chi2" reduces the number of words significantly
+        and is thus much faster (preferred). Random also reduces the number
+        significantly. None applies not feature selectiona and yields large
+        bag of words, e.g. much memory may be needed.
+    p_threshold : int, default=0.05
+        Used when feature selection is applied based on the chi-squared test.
+        This is the p-value threshold to use for chi-squared test on bag-of-words
+        (lower means more strict). 1 indicates that the test should not be performed.
+    support_probabilities : bool, default = False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accuracy. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    feature_selection: {"chi2", "none", "random"}, default: chi2
-        Sets the feature selections strategy to be used. Chi2 reduces the number
-        of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selectiona and yields large
-        bag of words, e.g. much memory may be needed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state: int or None, default=None
-        Seed for random, integer
+    random_state : int or None, default=None
+        Seed for random.
 
     Attributes
     ----------
@@ -91,6 +90,7 @@ class MUSE(BaseClassifier):
     See Also
     --------
     WEASEL
+        MUSE is the multivariare version of WEASEL.
 
     References
     ----------
@@ -168,10 +168,10 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -262,12 +262,14 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         bag = self._transform_words(X)
         return self.clf.predict(bag)
@@ -277,12 +279,15 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        2D np.ndarray
+            Predicted probabilities using the ordering in classes_, shape = (
+            n_instances, n_classes_).
         """
         bag = self._transform_words(X)
         if self.support_probabilities:
@@ -327,13 +332,13 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

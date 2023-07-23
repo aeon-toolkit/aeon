@@ -143,4 +143,5 @@ class BATS(_TbatsAdapter):
             "use_arma_errors": False,
             "n_jobs": 1,
         }
+
         return [params1]

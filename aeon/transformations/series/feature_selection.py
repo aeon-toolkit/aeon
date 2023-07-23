@@ -1,6 +1,4 @@
-#!/usr/bin/env python3 -u
 # -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements feature selection algorithms."""
 
 __author__ = ["aiwalter"]
@@ -15,7 +13,8 @@ from aeon.utils.validation.forecasting import check_regressor
 
 
 class FeatureSelection(BaseTransformer):
-    """Select exogenous features.
+    """
+    Select exogenous features.
 
     Transformer to enable tuneable feauture selection of exogenous data. The
     FeatureSelection implements multiple methods to select features (columns).
@@ -24,7 +23,7 @@ class FeatureSelection(BaseTransformer):
 
     Parameters
     ----------
-    method : str, required
+    method : str
         The method of how to select the features. Implemeted methods are:
         * "feature-importances": Use feature_importances_ of the regressor (meta-model)
           to select n_columns with highest importance values.
@@ -33,13 +32,13 @@ class FeatureSelection(BaseTransformer):
         * "columns": Select features by given names.
         * "none": Remove all columns by setting Z to None.
         * "all": Select all given features.
-    regressor : sklearn-like regressor, optional, default=None.
+    n_columns : int, default = None
+        Number of feautres (columns) to select. n_columns must be <=
+        number of X columns. Some methods require n_columns to be given.
+    regressor : sklearn-like regressor, default=None
         Used as meta-model for the method "feature-importances". The given
         regressor must have an attribute "feature_importances_". If None,
         then a GradientBoostingRegressor(max_depth=5) is used.
-    n_columns : int, optional
-        Number of feautres (columns) to select. n_columns must be <=
-        number of X columns. Some methods require n_columns to be given.
     random_state : int, RandomState instance or None, default=None
         Used to set random_state of the default regressor and to
         set random.seed() if method="random".

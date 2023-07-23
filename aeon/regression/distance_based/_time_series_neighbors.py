@@ -18,7 +18,8 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
-    """KNN Time Series Regressor.
+    """
+    KNN Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 
@@ -28,12 +29,13 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     Parameters
     ----------
-    n_neighbors : int, set k for knn (default =1)
-    weights : string or callable function, optional. default = 'uniform'
-        mechanism for weighting a vot
-        one of: 'uniform', 'distance', or a callable function
-    distance : str or callable, optional. default ='dtw'
-        distance measure between time series
+    n_neighbors : int, default =1
+        Set k for knn.
+    weights : str or callable function, default = 'uniform'
+        Mechanism for weighting a vote.
+        one of: 'uniform', 'distance', or a callable function.
+    distance : str or callable, default ='dtw'
+        Distance measure between time series
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
             'lcss', 'edr', 'erp', 'msm', 'twe'
@@ -42,9 +44,9 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 metric='mpdist', metric_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
-            output must be mxn array if X is array of m Series, X2 of n Series
-    distance_params : dict, optional. default = None.
-        dictionary for metric parameters , in case that distance is a str
+            output must be mxn array if X is array of m Series, X2 of n Series.
+    distance_params : dict, default = None
+        Dictionary for metric parameters , in case that distance is a str.
 
     Examples
     --------
