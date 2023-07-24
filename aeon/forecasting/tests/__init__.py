@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Config for forecasting tags."""
+"""Config for forecasting tags.
+
+Uses MATRIXDESIGN flag to switch between full parameter combinations
+(MATRIXDESIGN==False) and running a reduced parameter combination (MATRIXDESIGN==True).
+"""
+
 from aeon.tests.test_all_estimators import MATRIXDESIGN
 
 __all__ = [
