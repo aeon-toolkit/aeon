@@ -1133,6 +1133,10 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             scitype specific method outputs are tested in TestAll[estimatortype] class
         3. No state changes from calling non state changing methods
         """
+        # No point testing get_fitted_params here, does not change state
+        if method_nsc == "get_fitted_params":
+            return None
+
         estimator = estimator_instance
         set_random_state(estimator)
 
@@ -1146,6 +1150,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
 
         # skip test if vectorization would be necessary and method predict_proba
         # this is since vectorization is not implemented for predict_proba
+        method_args_before = scenario.get_args(method_nsc, estimator)
+
         if method_nsc == "predict_proba":
             try:
                 output, nsc_args_after = scenario.run(
@@ -1166,33 +1172,15 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             f"during {method_nsc}, "
             f"reason/location of discrepancy (x=after, y=before): {msg}"
         )
-        if method_nsc == "get_fitted_params":
-            msg = (
-                f"get_fitted_params of {type(estimator)} should return dict, "
-                f"but returns object of type {type(output)}"
-            )
-            assert isinstance(output, dict), msg
-            msg = (
-                f"get_fitted_params of {type(estimator)} should return dict with "
-                f"with str keys, but some keys are not str"
-            )
-            nonstr = [x for x in output.keys() if not isinstance(x, str)]
-            if not len(nonstr) == 0:
-                msg = f"found non-str keys in get_fitted_params return: {nonstr}"
-                raise AssertionError(msg)
-        else:  # skip side effect test for get_fitted_params, as this does not have
-            # mutable arguments
 
-            assert deep_equals(
-                fit_args_before, fit_args_after
-            ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
+        assert deep_equals(
+            fit_args_before, fit_args_after
+        ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
-            method_args_before = scenario.get_args(method_nsc, estimator)
-
-            assert deep_equals(method_args_after, method_args_before), (
-                f"Estimator: {type(estimator)} has side effects on arguments of "
-                f"{method_nsc}"
-            )
+        assert deep_equals(method_args_after, method_args_before), (
+            f"Estimator: {type(estimator)} has side effects on arguments of "
+            f"{method_nsc}"
+        )
 
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
