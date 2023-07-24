@@ -1040,6 +1040,87 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
 class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     """Package level tests for all aeon estimators, i.e., objects with fit."""
 
+    def test_raises_not_fitted_error(self, estimator_instance, scenario, method_nsc):
+        """Check exception raised for non-fit method calls to unfitted estimators.
+
+        Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
+        but before fit has been called on the estimator.
+
+        This should raise a NotFittedError if correctly caught,
+        normally by a self.check_is_fitted() call in the method's boilerplate.
+
+        Raises
+        ------
+        Exception if NotFittedError is not raised by non-state changing method
+        """
+        # call methods without prior fitting and check that they raise NotFittedError
+        with pytest.raises(NotFittedError, match=r"has not been fitted"):
+            scenario.run(estimator_instance, method_sequence=[method_nsc])
+
+    def test_non_state_changing_method_contract(
+        self, estimator_instance, scenario, method_nsc
+    ):
+        """Check that non-state-changing methods behave as per interface contract.
+
+        Check the following contract on non-state-changing methods:
+        1. do not change state of the estimator, i.e., any attributes
+            (including hyper-parameters and fitted parameters)
+        2. expected output type of the method matches actual output type
+            - only for abstract BaseEstimator methods, common to all estimator scitypes
+            list of BaseEstimator methods tested: get_fitted_params
+            scitype specific method outputs are tested in TestAll[estimatortype] class
+        3. No state changes from calling non state changing methods
+        """
+        # No point testing get_fitted_params here, does not change state
+        if method_nsc == "get_fitted_params":
+            return None
+
+        estimator = estimator_instance
+        set_random_state(estimator)
+
+        _, args_after = scenario.run(
+            estimator, method_sequence=["fit"], return_args=True
+        )
+        fit_args_after = args_after[0]
+        fit_args_before = scenario.args["fit"]
+        assert deep_equals(
+            fit_args_before, fit_args_after
+        ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
+
+        # dict_before = copy of dictionary of estimator before predict, post fit
+        dict_before = estimator.__dict__.copy()
+
+        # skip test if vectorization would be necessary and method predict_proba
+        # this is since vectorization is not implemented for predict_proba
+
+        if method_nsc == "predict_proba":
+            try:
+                _, args_after = scenario.run(
+                    estimator, method_sequence=[method_nsc], return_args=True
+                )
+            except NotImplementedError:
+                return None
+        else:
+            # dict_after = dictionary of estimator after predict and fit
+            _, args_after = scenario.run(
+                estimator, method_sequence=[method_nsc], return_args=True
+            )
+
+        method_args_after = args_after[0]
+        method_args_before = scenario.get_args(method_nsc, estimator)
+
+        assert deep_equals(method_args_after, method_args_before), (
+            f"Estimator: {type(estimator)} has side effects on arguments of "
+            f"{method_nsc}"
+        )
+        dict_after = estimator.__dict__
+        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
+        assert is_equal, (
+            f"Estimator: {type(estimator).__name__} changes __dict__ "
+            f"during {method_nsc}, "
+            f"reason/location of discrepancy (x=after, y=before): {msg}"
+        )
+
     def test_fit_updates_state(self, estimator_instance, scenario):
         """Check fit/update state change.
 
@@ -1101,86 +1182,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
                 " the parameter %s from %s to %s during fit."
                 % (estimator.__class__.__name__, param_name, original_value, new_value)
             )
-
-    def test_raises_not_fitted_error(self, estimator_instance, scenario, method_nsc):
-        """Check exception raised for non-fit method calls to unfitted estimators.
-
-        Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
-        but before fit has been called on the estimator.
-
-        This should raise a NotFittedError if correctly caught,
-        normally by a self.check_is_fitted() call in the method's boilerplate.
-
-        Raises
-        ------
-        Exception if NotFittedError is not raised by non-state changing method
-        """
-        # call methods without prior fitting and check that they raise NotFittedError
-        with pytest.raises(NotFittedError, match=r"has not been fitted"):
-            scenario.run(estimator_instance, method_sequence=[method_nsc])
-
-    def test_non_state_changing_method_contract(
-        self, estimator_instance, scenario, method_nsc
-    ):
-        """Check that non-state-changing methods behave as per interface contract.
-
-        Check the following contract on non-state-changing methods:
-        1. do not change state of the estimator, i.e., any attributes
-            (including hyper-parameters and fitted parameters)
-        2. expected output type of the method matches actual output type
-            - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methods tested: get_fitted_params
-            scitype specific method outputs are tested in TestAll[estimatortype] class
-        3. No state changes from calling non state changing methods
-        """
-        # No point testing get_fitted_params here, does not change state
-        if method_nsc == "get_fitted_params":
-            return None
-
-        estimator = estimator_instance
-        set_random_state(estimator)
-
-        _, args_after = scenario.run(
-            estimator, method_sequence=["fit"], return_args=True
-        )
-        fit_args_after = args_after[0]
-        fit_args_before = scenario.args["fit"]
-        # dict_before = copy of dictionary of estimator before predict, post fit
-        dict_before = estimator.__dict__.copy()
-
-        # skip test if vectorization would be necessary and method predict_proba
-        # this is since vectorization is not implemented for predict_proba
-        method_args_before = scenario.get_args(method_nsc, estimator)
-
-        if method_nsc == "predict_proba":
-            try:
-                output, nsc_args_after = scenario.run(
-                    estimator, method_sequence=[method_nsc], return_args=True
-                )
-            except NotImplementedError:
-                return None
-        else:
-            # dict_after = dictionary of estimator after predict and fit
-            output, method_args_after = scenario.run(
-                estimator, method_sequence=[method_nsc], return_args=True
-            )
-        dict_after = estimator.__dict__
-
-        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
-        assert is_equal, (
-            f"Estimator: {type(estimator).__name__} changes __dict__ "
-            f"during {method_nsc}, "
-            f"reason/location of discrepancy (x=after, y=before): {msg}"
-        )
-
-        assert deep_equals(
-            fit_args_before, fit_args_after
-        ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
-
-        assert deep_equals(method_args_after, method_args_before), (
-            f"Estimator: {type(estimator)} has side effects on arguments of "
-            f"{method_nsc}"
-        )
 
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
@@ -1261,15 +1262,14 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             deserialized_estimator, method_sequence=[method_nsc]
         )
 
-        msg = (
-            f"Results of {method_nsc} differ between when pickling and not pickling, "
-            f"estimator {type(estimator_instance).__name__}"
-        )
         _assert_array_almost_equal(
             vanilla_result,
             deserialized_result,
             decimal=6,
-            err_msg=msg,
+            err_msg=(
+                f"Results of {method_nsc} difference between when pickling and not "
+                f"pickling, estimator {type(estimator_instance).__name__}"
+            ),
         )
 
     def test_dl_constructor_initializes_deeply(self, estimator_class):
