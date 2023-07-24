@@ -29,6 +29,7 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.tests._config import (
     EXCLUDE_ESTIMATORS,
     EXCLUDED_TESTS,
+    MATRIXDESIGN,
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
@@ -51,10 +52,6 @@ from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,
     _check_estimator_deps,
 )
-
-# whether to subsample estimators per os/version partition matrix design
-# default is False, can be set to True by pytest --matrixdesign True flag
-MATRIXDESIGN = False
 
 
 def subsample_by_version_os(x):
@@ -1186,7 +1183,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
-        """Check that calling fit twice is equivalent to calling it once."""
+        """Check that calling fit twice is equivalent to calling it once, and also
+        tests pickling (done here to save time)."""
         # escape known non-deterministic estimators
         if estimator_instance.get_tag(
             "non-deterministic", tag_value_default=False, raise_error=False

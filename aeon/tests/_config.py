@@ -6,6 +6,10 @@ __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
+# whether to subsample estimators per os/version partition matrix design
+# default is False, can be set to True by pytest --matrixdesign True flag
+MATRIXDESIGN = False
+
 EXCLUDE_ESTIMATORS = [
     # SFA is non-compliant with any transformer interfaces, #2064
     "SFA",
