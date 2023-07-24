@@ -270,7 +270,6 @@ def _check_dict_of_dict(obj, name="obj"):
     ):
         raise TypeError(
             f"Argument {name} with must be a dict of dict, with str keys, "
-            f""
             f"found {type(obj)}"
         )
     return obj
