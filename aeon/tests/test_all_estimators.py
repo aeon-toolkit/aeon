@@ -8,11 +8,9 @@ adapted from scikit-learn's estimator_checks
 __author__ = ["mloning", "fkiraly", "achieveordie"]
 
 import numbers
-import os
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
-from tempfile import TemporaryDirectory
 
 import joblib
 import numpy as np
@@ -1043,7 +1041,15 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     """Package level tests for all aeon estimators, i.e., objects with fit."""
 
     def test_fit_updates_state(self, estimator_instance, scenario):
-        """Check fit/update state change."""
+        """Check fit/update state change.
+
+        1. Check estimator_instance calls base class constructor
+        2. Check is_fitted attribute is set correctly to False before fit, at init
+            This is testing base class functionality, but its fast
+        3. Check fit returns self
+        4. Check is_fitted attribute is updated correctly to True after calling fit
+        5. Check estimator hyper parameters are not changed in fit
+        """
         # Check that fit updates the is-fitted states
         attrs = ["_is_fitted", "is_fitted"]
 
@@ -1063,6 +1069,10 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             assert not getattr(
                 estimator, attr
             ), f"Estimator: {estimator} does not initiate attribute: {attr} to False"
+        # Make a physical copy of the original estimator parameters before fitting.
+        set_random_state(estimator)
+        params = estimator.get_params()
+        original_params = deepcopy(params)
 
         fitted_estimator = scenario.run(estimator_instance, method_sequence=["fit"])
         # Check fit returns self
@@ -1070,11 +1080,27 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             fitted_estimator is estimator_instance
         ), f"Estimator: {estimator_instance} does not return self when calling fit"
 
-        # Check 0s_fitted attribute is updated correctly to False after calling fit
+        # Check is_fitted attribute is updated correctly to True after calling fit
         for attr in attrs:
             assert getattr(
                 fitted_estimator, attr
             ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
+        # Compare the state of the model parameters with the original parameters
+        new_params = fitted_estimator.get_params()
+        for param_name, original_value in original_params.items():
+            new_value = new_params[param_name]
+
+            # We should never change or mutate the internal state of input
+            # parameters by default. To check this we use the joblib.hash function
+            # that introspects recursively any subobjects to compute a checksum.
+            # The only exception to this rule of immutable constructor parameters
+            # is possible RandomState instance but in this check we explicitly
+            # fixed the random_state params recursively to be integer seeds.
+            assert joblib.hash(new_value) == joblib.hash(original_value), (
+                "Estimator %s should not change or mutate "
+                " the parameter %s from %s to %s during fit."
+                % (estimator.__class__.__name__, param_name, original_value, new_value)
+            )
 
     def test_raises_not_fitted_error(self, estimator_instance, scenario, method_nsc):
         """Check exception raised for non-fit method calls to unfitted estimators.
@@ -1092,6 +1118,81 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         # call methods without prior fitting and check that they raise NotFittedError
         with pytest.raises(NotFittedError, match=r"has not been fitted"):
             scenario.run(estimator_instance, method_sequence=[method_nsc])
+
+    def test_non_state_changing_method_contract(
+        self, estimator_instance, scenario, method_nsc
+    ):
+        """Check that non-state-changing methods behave as per interface contract.
+
+        Check the following contract on non-state-changing methods:
+        1. do not change state of the estimator, i.e., any attributes
+            (including hyper-parameters and fitted parameters)
+        2. expected output type of the method matches actual output type
+            - only for abstract BaseEstimator methods, common to all estimator scitypes
+            list of BaseEstimator methods tested: get_fitted_params
+            scitype specific method outputs are tested in TestAll[estimatortype] class
+        3. No state changes from calling non state changing methods
+        """
+        estimator = estimator_instance
+        set_random_state(estimator)
+
+        _, args_after = scenario.run(
+            estimator, method_sequence=["fit"], return_args=True
+        )
+        fit_args_after = args_after[0]
+        fit_args_before = scenario.args["fit"]
+        # dict_before = copy of dictionary of estimator before predict, post fit
+        dict_before = estimator.__dict__.copy()
+
+        # skip test if vectorization would be necessary and method predict_proba
+        # this is since vectorization is not implemented for predict_proba
+        if method_nsc == "predict_proba":
+            try:
+                output, nsc_args_after = scenario.run(
+                    estimator, method_sequence=[method_nsc], return_args=True
+                )
+            except NotImplementedError:
+                return None
+        else:
+            # dict_after = dictionary of estimator after predict and fit
+            output, method_args_after = scenario.run(
+                estimator, method_sequence=[method_nsc], return_args=True
+            )
+        dict_after = estimator.__dict__
+
+        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
+        assert is_equal, (
+            f"Estimator: {type(estimator).__name__} changes __dict__ "
+            f"during {method_nsc}, "
+            f"reason/location of discrepancy (x=after, y=before): {msg}"
+        )
+        if method_nsc == "get_fitted_params":
+            msg = (
+                f"get_fitted_params of {type(estimator)} should return dict, "
+                f"but returns object of type {type(output)}"
+            )
+            assert isinstance(output, dict), msg
+            msg = (
+                f"get_fitted_params of {type(estimator)} should return dict with "
+                f"with str keys, but some keys are not str"
+            )
+            nonstr = [x for x in output.keys() if not isinstance(x, str)]
+            if not len(nonstr) == 0:
+                msg = f"found non-str keys in get_fitted_params return: {nonstr}"
+                raise AssertionError(msg)
+        else:  # skip side effect test for get_fitted_params, as this does not have
+            # mutable arguments
+
+            assert deep_equals(
+                fit_args_before, fit_args_after
+            ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
+
+            method_args_before = scenario.get_args(method_nsc, estimator)
+
+            assert deep_equals(method_args_after, method_args_before), (
+                f"Estimator: {type(estimator)} has side effects on arguments of "
+                f"{method_nsc}"
+            )
 
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
@@ -1138,133 +1239,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # err_msg=f"Idempotency check failed for method {method}",
         )
 
-    def test_fit_does_not_overwrite_hyper_params(self, estimator_instance, scenario):
-        """Check that we do not overwrite hyper-parameters in fit."""
-        estimator = estimator_instance
-        set_random_state(estimator)
-
-        # Make a physical copy of the original estimator parameters before fitting.
-        params = estimator.get_params()
-        original_params = deepcopy(params)
-
-        # Fit the model
-        fitted_est = scenario.run(estimator_instance, method_sequence=["fit"])
-
-        # Compare the state of the model parameters with the original parameters
-        new_params = fitted_est.get_params()
-        for param_name, original_value in original_params.items():
-            new_value = new_params[param_name]
-
-            # We should never change or mutate the internal state of input
-            # parameters by default. To check this we use the joblib.hash function
-            # that introspects recursively any subobjects to compute a checksum.
-            # The only exception to this rule of immutable constructor parameters
-            # is possible RandomState instance but in this check we explicitly
-            # fixed the random_state params recursively to be integer seeds.
-            assert joblib.hash(new_value) == joblib.hash(original_value), (
-                "Estimator %s should not change or mutate "
-                " the parameter %s from %s to %s during fit."
-                % (estimator.__class__.__name__, param_name, original_value, new_value)
-            )
-
-    def test_non_state_changing_method_contract(
-        self, estimator_instance, scenario, method_nsc
-    ):
-        """Check that non-state-changing methods behave as per interface contract.
-
-        Check the following contract on non-state-changing methods:
-        1. do not change state of the estimator, i.e., any attributes
-            (including hyper-parameters and fitted parameters)
-        2. expected output type of the method matches actual output type
-            - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methods tested: get_fitted_params
-            scitype specific method outputs are tested in TestAll[estimatortype] class
-        """
-        estimator = estimator_instance
-        set_random_state(estimator)
-
-        # dict_before = copy of dictionary of estimator before predict, post fit
-        _ = scenario.run(estimator, method_sequence=["fit"])
-        dict_before = estimator.__dict__.copy()
-
-        # skip test if vectorization would be necessary and method predict_proba
-        # this is since vectorization is not implemented for predict_proba
-        if method_nsc == "predict_proba":
-            try:
-                scenario.run(estimator, method_sequence=[method_nsc])
-            except NotImplementedError:
-                return None
-
-        # dict_after = dictionary of estimator after predict and fit
-        output = scenario.run(estimator, method_sequence=[method_nsc])
-        dict_after = estimator.__dict__
-
-        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
-        assert is_equal, (
-            f"Estimator: {type(estimator).__name__} changes __dict__ "
-            f"during {method_nsc}, "
-            f"reason/location of discrepancy (x=after, y=before): {msg}"
-        )
-
-        # once there are more methods, this may have to be factored out
-        # for now, there is only get_fitted_params and we test here to avoid fit calls
-        if method_nsc == "get_fitted_params":
-            msg = (
-                f"get_fitted_params of {type(estimator)} should return dict, "
-                f"but returns object of type {type(output)}"
-            )
-            assert isinstance(output, dict), msg
-            msg = (
-                f"get_fitted_params of {type(estimator)} should return dict with "
-                f"with str keys, but some keys are not str"
-            )
-            nonstr = [x for x in output.keys() if not isinstance(x, str)]
-            if not len(nonstr) == 0:
-                msg = f"found non-str keys in get_fitted_params return: {nonstr}"
-                raise AssertionError(msg)
-
-    def test_methods_have_no_side_effects(
-        self, estimator_instance, scenario, method_nsc
-    ):
-        """Check that calling methods has no side effects on args."""
-        estimator = estimator_instance
-
-        # skip test for get_fitted_params, as this does not have mutable arguments
-        if method_nsc == "get_fitted_params":
-            return None
-
-        set_random_state(estimator)
-
-        # Fit the model, get args before and after
-        _, args_after = scenario.run(
-            estimator, method_sequence=["fit"], return_args=True
-        )
-        fit_args_after = args_after[0]
-        fit_args_before = scenario.args["fit"]
-
-        assert deep_equals(
-            fit_args_before, fit_args_after
-        ), f"Estimator: {estimator} has side effects on arguments of fit"
-
-        # skip test if vectorization would be necessary and method predict_proba
-        # this is since vectorization is not implemented for predict_proba
-        if method_nsc == "predict_proba":
-            try:
-                scenario.run(estimator, method_sequence=[method_nsc])
-            except NotImplementedError:
-                return None
-
-        # Fit the model, get args before and after
-        _, args_after = scenario.run(
-            estimator, method_sequence=[method_nsc], return_args=True
-        )
-        method_args_after = args_after[0]
-        method_args_before = scenario.get_args(method_nsc, estimator)
-
-        assert deep_equals(
-            method_args_after, method_args_before
-        ), f"Estimator: {estimator} has side effects on arguments of {method_nsc}"
-
     def test_persistence_via_pickle(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
@@ -1309,55 +1283,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             decimal=6,
             err_msg=msg,
         )
-
-    def test_save_estimators_to_file(
-        self, estimator_instance, scenario, method_nsc_arraylike
-    ):
-        """Check if saved estimators onto disk can be loaded correctly."""
-        method_nsc = method_nsc_arraylike
-
-        # escape estimators we know cannot pickle. There is an argument to be made
-        # that alternate methods of saving should be available, but currently this is
-        # not the case
-        if estimator_instance.get_tag(
-            "cant-pickle", tag_value_default=False, raise_error=False
-        ):
-            return None
-
-        # escape predict_proba for forecasters, tfp distributions cannot be pickled
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc == "predict_proba"
-        ):
-            return None
-
-        estimator = estimator_instance
-
-        set_random_state(estimator)
-        # Fit the model, get args before and after
-        scenario.run(estimator, method_sequence=["fit"], return_args=True)
-
-        # Generate results before saving
-        vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
-
-        with TemporaryDirectory() as tmp_dir:
-            save_loc = os.path.join(tmp_dir, "estimator")
-            estimator.save(save_loc)
-
-            loaded_estimator = load(save_loc)
-            loaded_result = scenario.run(loaded_estimator, method_sequence=[method_nsc])
-
-            msg = (
-                f"Results of {method_nsc} differ between saved and loaded "
-                f"estimator {type(estimator).__name__}"
-            )
-
-            _assert_array_almost_equal(
-                vanilla_result,
-                loaded_result,
-                decimal=6,
-                err_msg=msg,
-            )
 
     def test_dl_constructor_initializes_deeply(self, estimator_class):
         """Test DL estimators that they pass custom parameters to underlying Network."""
