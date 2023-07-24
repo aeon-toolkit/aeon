@@ -3,8 +3,8 @@
 """Interval-based time series classifiers."""
 
 __all__ = [
-    "CanonicalIntervalForest",
-    "DrCIF",
+    "CanonicalIntervalForestClassifier",
+    "DrCIFClassifier",
     "IntervalForestClassifier",
     "RandomIntervalClassifier",
     "SupervisedIntervalClassifier",
@@ -14,8 +14,8 @@ __all__ = [
     "TimeSeriesForestClassifier",
 ]
 
-from aeon.classification.interval_based._cif import CanonicalIntervalForest
-from aeon.classification.interval_based._drcif import DrCIF
+from aeon.classification.interval_based._cif import CanonicalIntervalForestClassifier
+from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.interval_based._interval_pipelines import (
     RandomIntervalClassifier,

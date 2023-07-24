@@ -83,7 +83,8 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+        Save the data transformed in fit for use in _get_train_preds and
+        _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -110,8 +111,6 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
-    class_dictionary_ : dict
-        A dictionary mapping class labels to class indices in classes_.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
@@ -120,7 +119,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
     (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
+        The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 
     Notes
