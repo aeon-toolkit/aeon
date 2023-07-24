@@ -13,8 +13,6 @@ EXCLUDE_ESTIMATORS = [
     "ColumnTransformer",
     # below are removed due to mac failures we don't fully understand, see #3103
     "HIVECOTEV1",
-    "RandomIntervalSpectralEnsemble",
-    "RandomInvervals",
     "RandomIntervalSegmenter",
     "RandomIntervalFeatureExtractor",
     "RandomIntervalClassifier",
