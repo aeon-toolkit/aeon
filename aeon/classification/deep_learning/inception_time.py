@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -271,6 +272,7 @@ class InceptionTimeClassifier(BaseClassifier):
             )
             cls.fit(X, y)
             self.classifers_.append(cls)
+            gc.collect()
 
         return self
 
@@ -347,7 +349,6 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
-            "use_bottleneck": True,
         }
 
         return [param1]
@@ -665,6 +666,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod

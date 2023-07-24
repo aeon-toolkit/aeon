@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus"]
 __all__ = ["MLPClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -241,6 +242,7 @@ class MLPClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod

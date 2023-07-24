@@ -10,6 +10,7 @@ __all__ = [
     "TapNetClassifier",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -239,6 +240,7 @@ class TapNetClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod

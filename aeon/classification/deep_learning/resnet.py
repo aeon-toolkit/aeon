@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -302,6 +303,7 @@ class ResNetClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
