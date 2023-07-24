@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Config for forecasting tags."""
+from aeon.tests.test_all_estimators import MATRIXDESIGN
 
-full_config = False
 __all__ = [
     "TEST_CUTOFFS_INT_LIST",
     "TEST_CUTOFFS_INT_ARR",
@@ -33,7 +33,7 @@ __all__ = [
     "INDEX_TYPE_LOOKUP",
 ]
 
-if full_config:
+if not MATRIXDESIGN:
     from aeon.forecasting.tests._config_full import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,

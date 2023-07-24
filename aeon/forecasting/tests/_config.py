@@ -94,20 +94,10 @@ TEST_N_ITERS = [1]
 VALID_INDEX_FH_COMBINATIONS = [
     # index type, fh type, is_relative
     ("int", "int", True),
-    ("int", "int", False),
-    ("range", "int", True),
-    ("range", "int", False),
-    ("period", "int", True),
-    ("period", "period", False),
-    ("datetime", "int", True),
     ("datetime", "datetime", False),
-    ("datetime", "timedelta", True),
 ]
 
 INDEX_TYPE_LOOKUP = {
     "int": pd.Index,
-    "range": pd.RangeIndex,
     "datetime": pd.DatetimeIndex,
-    "period": pd.PeriodIndex,
-    "timedelta": pd.TimedeltaIndex,
 }
