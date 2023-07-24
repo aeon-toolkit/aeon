@@ -1,31 +1,45 @@
 # -*- coding: utf-8 -*-
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Random Interval Spectral Ensemble (RISE) classifier."""
+"""DrCIF regressor.
 
-__author__ = ["TonyBagnall", "MatthewMiddlehurst"]
-__all__ = ["RandomIntervalSpectralEnsembleClassifier"]
+Interval-based DrCIF regressor extracting catch22 features from random intervals on
+periodogram and differences representations as well as the base series.
+"""
 
-import numpy as np
+from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
-from aeon.classification import BaseClassifier
-from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.transformations.collection import (
-    AutocorrelationFunctionTransformer,
-    PeriodogramTransformer,
+from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.regression import BaseRegressor
+from aeon.transformations.collection import Catch22, PeriodogramTransformer
+from aeon.utils.numba.general import first_order_differences_3d
+from aeon.utils.numba.stats import (
+    row_iqr,
+    row_mean,
+    row_median,
+    row_numba_max,
+    row_numba_min,
+    row_slope,
+    row_std,
 )
 
 
-class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifier):
-    """
-    Random Interval Spectral Ensemble (RISE) classifier.
+class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
+    """Diverse Representation Canonical Interval Forest (DrCIF) Regressor.
 
-    Input: n series length m
+    Extension of the CIF algorithm using multiple representations. Implementation of the
+    interval-based forest making use of the catch22 feature set on randomly selected
+    intervals on the base series, periodogram representation and differences
+    representation described in the HIVE-COTE 2.0 paper Middlehurst et al (2021). [1]_
+
+    Overview: Input "n" series with "d" dimensions of length "m".
     For each tree
-        - sample a random intervals
-        - take the ACF and PS over this interval, and concatenate features
-        - build a tree on new features
-    Ensemble the trees through averaging probabilities.
+        - Sample n_intervals intervals per representation of random position and length
+        - Subsample att_subsample_size catch22 or summary statistic attributes randomly
+        - Randomly select dimension for each interval
+        - Calculate attributes for each interval from its representation, concatenate
+          to form new data set
+        - Build a decision tree on new data set
+    Ensemble the trees with averaged label estimates
 
     Parameters
     ----------
@@ -34,6 +48,25 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
+    n_intervals : int, str, list or tuple, default="sqrt"
+        Number of intervals to extract per tree for each series_transformers series.
+
+        An int input will extract that number of intervals from the series, while a str
+        input will return a function of the series length (may differ per
+        series_transformers output) to extract that number of intervals.
+        Valid str inputs are:
+            - "sqrt": square root of the series length.
+            - "sqrt-div": sqrt of series length divided by the number
+                of series_transformers.
+
+        A list or tuple of ints and/or strs will extract the number of intervals using
+        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
+        will extract sqrt(n_timepoints) + 4 intervals.
+
+        Different number of intervals for each series_transformers series can be
+        specified using a nested list or tuple. Any list or tuple input containing
+        another list or tuple must be the same length as the number of
+        series_transformers.
     min_interval_length : int, float, list, or tuple, default=3
         Minimum length of intervals to extract from series. float inputs take a
         proportion of the series length to use as the minimum interval length.
@@ -48,25 +81,29 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         Different maximum interval lengths for each series_transformers series can be
         specified using a list or tuple. Any list or tuple input must be the same length
         as the number of series_transformers.
+    att_subsample_size : int, float, list, tuple or None, default=None
+        The number of attributes to subsample for each estimator. If None, use all
 
-        Ignored for supervised interval_selection_method inputs.
-    acf_lag : int or callable, default=100
-        The maximum number of autocorrelation terms to use. If callable, the function
-        should take a 3D numpy array of shape (n_instances, n_channels, n_timepoints)
-        and return an integer.
-    acf_min_values : int, default=0
-        Never use fewer than this number of terms to find a correlation unless the
-        series length is too short. This will reduce n_lags if needed.
+        If int, use that number of attributes for all estimators. If float, use that
+        proportion of attributes for all estimators.
+
+        Different subsample sizes for each series_transformers series can be specified
+        using a list or tuple. Any list or tuple input must be the same length as the
+        number of series_transformers.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding n_estimators.
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
+    use_pycatch22 : bool, optional, default=False
+        Wraps the C based pycatch22 implementation for aeon.
+        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
+        ``pycatch22`` package to be installed if True.
     use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
     save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+        Save the data transformed in fit for use in _get_train_preds.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -89,10 +126,6 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         The number of dimensions per case in the training set.
     n_timepoints_ : int
         The length of each series in the training set.
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
     total_intervals_ : int
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
@@ -101,38 +134,33 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
     (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
+        The transformed dataset for all regressors. Only saved when
         save_transformed_data is true.
 
     See Also
     --------
-    RandomIntervalSpectralEnsembleRegressor
-
-    Notes
-    -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/tsml/
-    classifiers/interval_based/RISE.java>`_.
+    DrCIFClassifier
+    CanonicalIntervalForestRegressor
 
     References
     ----------
-    .. [1] Jason Lines, Sarah Taylor and Anthony Bagnall, "Time Series Classification
-       with HIVE-COTE: The Hierarchical Vote Collective of Transformation-Based
-       Ensembles", ACM Transactions on Knowledge and Data Engineering, 12(5): 2018
+    .. [1] Middlehurst, Matthew, James Large, Michael Flynn, Jason Lines, Aaron Bostrom,
+       and Anthony Bagnall. "HIVE-COTE 2.0: a new meta ensemble for time series
+       classification." arXiv preprint arXiv:2104.07551 (2021).
 
     Examples
     --------
-    >>> from aeon.classification.interval_based import (
-    ...     RandomIntervalSpectralEnsembleClassifier
-    ... )
+    >>> from aeon.regression.interval_based import DrCIFRegressor
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
-    >>> clf = RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
-    >>> clf.fit(X, y)
-    RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
-    >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> reg = DrCIFRegressor(n_estimators=10, random_state=0)
+    >>> reg.fit(X, y)
+    DrCIFRegressor(n_estimators=10, random_state=0)
+    >>> reg.predict(X)
+    array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
+           0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
 
     _tags = {
@@ -147,48 +175,58 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         self,
         base_estimator=None,
         n_estimators=200,
+        n_intervals=(4, "sqrt-div"),
         min_interval_length=3,
-        max_interval_length=np.inf,
-        acf_lag=100,
-        acf_min_values=4,
+        max_interval_length=0.5,
+        att_subsample_size=10,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
+        use_pycatch22=False,
         use_pyfftw=False,
         save_transformed_data=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
-        self.acf_lag = acf_lag
-        self.acf_min_values = acf_min_values
-
+        d = []
+        self.use_pycatch22 = use_pycatch22
+        if use_pycatch22:
+            d.append("pycatch22")
         self.use_pyfftw = use_pyfftw
         if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
+            d.append("pyfftw")
 
-        if isinstance(base_estimator, ContinuousIntervalTree):
-            replace_nan = "nan"
-        else:
-            replace_nan = 0
+        if d:
+            self.set_tags(**{"python_dependencies": d})
 
-        interval_features = [
-            PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
-            AutocorrelationFunctionTransformer(
-                n_lags=acf_lag, min_values=acf_min_values
-            ),
+        series_transformers = [
+            None,
+            FunctionTransformer(func=first_order_differences_3d, validate=False),
+            PeriodogramTransformer(use_pyfftw=use_pyfftw),
         ]
 
-        super(RandomIntervalSpectralEnsembleClassifier, self).__init__(
+        interval_features = [
+            Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
+            row_mean,
+            row_std,
+            row_slope,
+            row_median,
+            row_iqr,
+            row_numba_min,
+            row_numba_max,
+        ]
+
+        super(DrCIFRegressor, self).__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",
-            n_intervals=1,
+            n_intervals=n_intervals,
             min_interval_length=min_interval_length,
             max_interval_length=max_interval_length,
             interval_features=interval_features,
-            series_transformers=None,
-            att_subsample_size=None,
-            replace_nan=replace_nan,
+            series_transformers=series_transformers,
+            att_subsample_size=att_subsample_size,
+            replace_nan=0,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
             save_transformed_data=save_transformed_data,
@@ -206,9 +244,8 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            RandomIntervalSpectralEnsembleClassifier provides the following special
-            sets:
-                "results_comparison" - used in some classifiers to compare against
+            DrCIFRegressor provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
                 "contracting" - used in classifiers that set the
@@ -227,16 +264,20 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
-            return {"n_estimators": 10}
+            return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+                "att_subsample_size": 2,
             }
         elif parameter_set == "train_estimate":
             return {
                 "n_estimators": 2,
+                "n_intervals": 2,
+                "att_subsample_size": 2,
                 "save_transformed_data": True,
             }
         else:
-            return {"n_estimators": 2}
+            return {"n_estimators": 2, "n_intervals": 2, "att_subsample_size": 2}
