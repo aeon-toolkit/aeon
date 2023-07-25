@@ -47,10 +47,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
-        Kmedoids++ is a variant of kmeans++ [4] and is slower but often more accurate than
-        random. It works by choosing centroids that are distant from one another.
-        First is the fastest method and simply chooses the first k time series as
-        centroids.
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
+        accurate than random. It works by choosing centroids that are distant
+        from one another. First is the fastest method and simply chooses the
+        first k time series as centroids.
     distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. For a list of valid
         distances see `aeons.distances
