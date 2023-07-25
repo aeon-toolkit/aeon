@@ -28,16 +28,16 @@ comparison.
 :text-align: center
 
 
-Storing and loading data
+Data structures and containers used in aeon
 
 +++
 
-```{button-ref} /examples/forecasting/forecasting.ipynb
+```{button-ref} /examples/datasets/datasets.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Forecasting
+Data
 ```
 
 :::
