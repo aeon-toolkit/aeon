@@ -21,7 +21,7 @@ Time series classification
 
 Time series extrinsic regression
     A learning task focused on using the patterns across instances between the time
-    series and a continuous target variable that is .
+    series and a continuous target variable.
 
 Time series clustering
     A learning task focused on discovering groups consisting of instances with similar
