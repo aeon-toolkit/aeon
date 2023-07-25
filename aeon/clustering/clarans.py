@@ -30,7 +30,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         The number of clusters to form as well as the number of
         centroids to generate.
     init_algorithm : str, default='random'
-        Method for initializing cluster centres. Any of the following are valid:
+        Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
@@ -63,12 +63,12 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     Attributes
     ----------
-    cluster_centres_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        A collection of time series instances that represent the cluster centres.
+    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+        A collection of time series instances that represent the cluster centers.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float
-        Sum of squared distances of samples to their closest cluster centre, weighted by
+        Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
     n_iter_ : int
         Number of iterations run.
@@ -162,20 +162,20 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
                 (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters))
             )
 
-        best_centres = None
+        best_centers = None
         best_cost = np.inf
 
         for _ in range(self.n_init):
-            centres, cost = self._fit_one_init(X, max_neighbours)
+            centers, cost = self._fit_one_init(X, max_neighbours)
             if cost < best_cost:
-                best_centres = centres
+                best_centers = centers
                 best_cost = cost
 
-        labels, inertia = self._assign_clusters(X, best_centres)
+        labels, inertia = self._assign_clusters(X, best_centers)
 
         self.labels_ = labels
         self.inertia_ = inertia
-        self.cluster_centres_ = X[best_centres]
+        self.cluster_centers_ = X[best_centers]
         self.n_iter_ = 0
 
     @classmethod

@@ -47,7 +47,7 @@ class TimeSeriesCLARA(BaseClusterer):
         Number of samples to sample from the dataset. If None, then
         min(n_instances, 40 + 2 * n_clusters) is used.
     n_sampling_iters : int, default=5,
-        Number of different subsets of samples to try. The best subset cluster centres
+        Number of different subsets of samples to try. The best subset cluster centers
         are used.
     n_init : int, default=5
         Number of times the PAM algorithm will be run with different
@@ -70,7 +70,7 @@ class TimeSeriesCLARA(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        A collection of time series instances that represent the cluster centres.
+        A collection of time series instances that represent the cluster centers.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float

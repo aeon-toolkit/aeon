@@ -83,7 +83,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     Attributes
     ----------
     cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        A collection of time series instances that represent the cluster centres.
+        A collection of time series instances that represent the cluster centers.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float
