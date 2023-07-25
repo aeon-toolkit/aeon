@@ -26,49 +26,49 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     Parameters
     ----------
-    n_clusters : int, defaults = 8
+    n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, defaults = 'random'
-        Method for initializing cluster centers. Any of the following are valid:
+    init_algorithm : str, default='random'
+        Method for initializing cluster centres. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-        Random is the default as it is very fast and it was found in [2] to be
+        Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
-        Kmedoids++ is a variant of kmeans++ [4] and is slower but more accurate than
-        random. It does this by choosing centroids that are distant from one another.
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but often more accurate than
+        random. It works by choosing centroids that are distant from one another.
         First is the fastest method and simply chooses the first k time series as
         centroids.
-    distance : str or Callable, defaults = 'msm'
+    distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe']
         If a callable is passed it must be a function that takes two 2d numpy arrays as
         input and returns a float.
-    max_neighbours : int, default = None,
+    max_neighbours : int, default=None,
         The maximum number of neighbouring solutions that the algorithm will explore
         for each set of medoids. A neighbouring solution is obtained by replacing
         one of the medoids with a non-medoid and seeing if total cost reduces. If
         not specified max_neighbours is set to 1.25% of the total number of possible
         swaps (as suggested in the orginal paper).
-    n_init : int, defaults = 5
+    n_init : int, default=5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    verbose : bool, defaults = False
+    verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, defaults = None
+    random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    distance_params : dict, defaults = None
+    distance_params : dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
-    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+    cluster_centres_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centres.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float
-        Sum of squared distances of samples to their closest cluster center, weighted by
+        Sum of squared distances of samples to their closest cluster centre, weighted by
         the sample weights if provided.
     n_iter_ : int
         Number of iterations run.
@@ -162,20 +162,20 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
                 (1.25 / 100) * (self.n_clusters * (X.shape[0] - self.n_clusters))
             )
 
-        best_centers = None
+        best_centres = None
         best_cost = np.inf
 
         for _ in range(self.n_init):
-            centers, cost = self._fit_one_init(X, max_neighbours)
+            centres, cost = self._fit_one_init(X, max_neighbours)
             if cost < best_cost:
-                best_centers = centers
+                best_centres = centres
                 best_cost = cost
 
-        labels, inertia = self._assign_clusters(X, best_centers)
+        labels, inertia = self._assign_clusters(X, best_centres)
 
         self.labels_ = labels
         self.inertia_ = inertia
-        self.cluster_centers_ = X[best_centers]
+        self.cluster_centres_ = X[best_centres]
         self.n_iter_ = 0
 
     @classmethod
@@ -188,10 +188,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
-
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
