@@ -15,11 +15,11 @@ def create_bounding_matrix(
 
     Parameters
     ----------
-    x_size: int
+    x_size : int
         Size of the first time series.
-    y_size: int
+    y_size : int
         Size of the second time series.
-    window: float, defaults=None
+    window : float, default=None
         Window size as a percentage of the smallest time series.
         If None, the bounding matrix will be full.
     itakura_max_slope : float, default = None

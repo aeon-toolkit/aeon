@@ -459,7 +459,7 @@ class RandomIntervals(BaseCollectionTransformer):
             else:
                 length += 1
 
-        if len(arr) != length * self.n_intervals or not all(
+        if len(arr) != length * self.n_intervals_ or not all(
             isinstance(b, bool) for b in arr
         ):
             if raise_error:
