@@ -24,6 +24,25 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
+:img-top: examples/datasets/img/datasets.png
+:text-align: center
+
+
+Storing and loading data
+
++++
+
+```{button-ref} /examples/forecasting/forecasting.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Forecasting
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 

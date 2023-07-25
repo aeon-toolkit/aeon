@@ -356,7 +356,7 @@ Using aeon distances with scikit-learn
 
 :::{grid-item-card}
 :img-top: examples/datasets/img/data.png
-:link: /examples/datasets/data_storage.ipynb
+:link: /examples/datasets/datasets.ipynb
 :link-type: ref
 :text-align: center
 
