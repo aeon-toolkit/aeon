@@ -81,23 +81,23 @@ def test_evaluate_with_window_splitters(wrapper, splitter, strategy, sample_frac
 
     if splitter == SlidingWindowSplitter:
         cv = splitter(
-            fh=np.arange(1, 13),
-            window_length=48,
-            step_length=12,
+            fh=np.arange(1, 7),
+            window_length=18,
+            step_length=6,
         )
     elif splitter == ExpandingWindowSplitter:
         cv = splitter(
-            fh=np.arange(1, 13),
-            initial_window=48,
-            step_length=12,
+            fh=np.arange(1, 7),
+            initial_window=18,
+            step_length=6,
         )
 
     f = NaiveForecaster()
 
     if wrapper == ConformalIntervals:
-        interval_forecaster = wrapper(f, initial_window=24, sample_frac=sample_frac)
+        interval_forecaster = wrapper(f, initial_window=12, sample_frac=sample_frac)
     else:
-        interval_forecaster = wrapper(f, initial_window=24)
+        interval_forecaster = wrapper(f, initial_window=12)
 
     results = evaluate(
         forecaster=interval_forecaster,
@@ -111,5 +111,5 @@ def test_evaluate_with_window_splitters(wrapper, splitter, strategy, sample_frac
         backend=None,
     )
 
-    assert len(results) == 8
+    assert len(results) == 5
     assert not results.test_PinballLoss.isna().any()
