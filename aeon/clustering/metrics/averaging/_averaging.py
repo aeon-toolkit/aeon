@@ -43,7 +43,7 @@ def _resolve_average_callable(
 
     Parameters
     ----------
-    averaging_method: str or Callable, defaults = 'mean'
+    averaging_method: str or Callable, default='mean'
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].

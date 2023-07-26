@@ -38,19 +38,19 @@ def elastic_barycenter_average(
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances to take the average from.
-    metric: str or Callable, defaults = 'dtw'
+    metric: str or Callable, default='dtw'
         String that is the distance metric to use for averaging.
         If Callable provided must be of the form (x, y) -> (float, np.ndarray)
         where the first element is the distance and the second is the alignment path.
-    max_iters: int, defaults = 30
+    max_iters: int, default=30
         Maximum number iterations for dba to update over.
     tol : float (default: 1e-5)
         Tolerance to use for early stopping: if the decrease in cost is lower
         than this value, the Expectation-Maximization procedure stops.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
-                defaults = None
+                default=None
         Precomputed medoids pairwise.
-    verbose: bool, defaults = False
+    verbose: bool, default=False
         Boolean that controls the verbosity.
     **kwargs
         Keyword arguments to pass to the distance metric.
