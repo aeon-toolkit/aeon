@@ -24,7 +24,7 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/datasets/img/datasets.png
+:img-top: examples/datasets/img/data.png
 :text-align: center
 
 
