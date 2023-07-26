@@ -2,15 +2,22 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
+      - id: check-ast
       - id: check-added-large-files
         args: ["--maxkb=1200"]
       - id: check-case-conflict
+      - id: check-docstring-first
       - id: check-merge-conflict
       - id: check-symlinks
+      - id: check-toml
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
+      - id: fix-byte-order-marker
       - id: fix-encoding-pragma
+        args: [ "--remove" ]
+      - id: name-tests-test
+        args: [ "--pytest-test-first" ]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
 
@@ -31,7 +38,7 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        additional_dependencies: [ flake8-bugbear, flake8-print ]
+        additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/nbQA-dev/nbQA
@@ -58,7 +65,7 @@ repos:
     rev: v1.0.1
     hooks:
       - id: mypy
-        files: tsml_estimator_evaluation/
+        files: aeon/
         additional_dependencies: [ pytest ]
 
   - repo: https://github.com/mgedmin/check-manifest

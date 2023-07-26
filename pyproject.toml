@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>61", "wheel", "toml", "build"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "aeon"
 version = "0.3.0"
@@ -78,6 +82,11 @@ all_extras = [
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
 ]
+dl = [
+    "keras-self-attention",
+    "tensorflow<2.13.0",
+    "tensorflow-probability<0.21.0",
+]
 unstable_extras = [
     "pycatch22",  # known to fail installation on some setups
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
@@ -96,12 +105,10 @@ dev = [
     "botocore",  # mlflow related
     "moto",  # mlflow related
 ]
-
 binder = [
     "notebook",
     "jupyterlab",
 ]
-
 docs = [
     "jupyter",
     "myst-parser",
@@ -116,26 +123,16 @@ docs = [
     "sphinxext-opengraph",
 ]
 
-dl = [
-    "keras-self-attention",
-    "tensorflow<2.13.0",
-    "tensorflow-probability<0.21.0",
-]
-
 [project.urls]
 Homepage = "https://www.aeon-toolkit.org"
 Repository = "https://github.com/aeon-toolkit/aeon"
 Documentation = "https://www.aeon-toolkit.org"
+Changelog = "https://www.aeon-toolkit.org/en/stable/changelog.html"
 Download = "https://pypi.org/project/aeon/#files"
-"API Reference" = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.aeon-toolkit.org/en/stable/changelog.html"
+API = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
 
 [project.license]
 file = "LICENSE"
-
-[build-system]
-requires = ["setuptools>61", "wheel", "toml", "build"]
-build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 zip-safe = true
@@ -154,40 +151,32 @@ aeon = [
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
 
+[tool.check-manifest]
+ignore = [
+    ".binder/**",
+    "build_tools/**",
+    "docs/**",
+    "examples/**",
+    ".all-contributorsrc",
+    ".coveragerc",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+    "*.yaml",
+    "*.yml",
+]
+
 [tool.pytest.ini_options]
 # ignore certain folders and pytest warnings
+testpaths = "aeon"
 addopts = '''
-    --ignore build_tools
-    --ignore examples
-    --ignore docs
     --doctest-modules
-    --durations 10
+    --durations 20
     --timeout 600
-    --cov aeon
-    --cov-report xml
-    --cov-report html
     --showlocals
-    --matrixdesign True
-    -n auto
+    --numprocesses auto
 '''
 filterwarnings = '''
     ignore::UserWarning
     ignore:numpy.dtype size changed
     ignore:numpy.ufunc size changed
 '''
-
-[tool.check-manifest]
-ignore = [
-    ".binder/**",
-    ".all-contributorsrc",
-    ".coveragerc",
-    "examples/**",
-    "build_tools/**",
-    "__check_build/**",
-    "docs/**",
-    "Makefile",
-    "CODEOWNERS",
-    "CONTRIBUTING.md",
-    "*.yaml",
-    "*.yml",
-]
