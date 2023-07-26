@@ -14,7 +14,7 @@ __all__ = [
     "FreshPRINCEClassifier",
 ]
 
-from aeon.classification.feature_based._catch22_classifier import Catch22Classifier
+from aeon.classification.feature_based._catch22 import Catch22Classifier
 from aeon.classification.feature_based._fresh_prince import FreshPRINCEClassifier
 from aeon.classification.feature_based._matrix_profile_classifier import (
     MatrixProfileClassifier,

@@ -10,7 +10,7 @@ import pytest
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
 from aeon.datatypes._panel._convert import (
-    from_nested_to_df_list_adp,
+    from_nested_to_dflist_adp,
     from_nested_to_multi_index,
 )
 from aeon.utils._testing.collection import (
@@ -35,13 +35,6 @@ class _DummyClassifier(BaseClassifier):
     def _predict_proba(self, X):
         """Predict proba dummy."""
         return self
-
-
-class _DummyComposite(_DummyClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
-
-    def __init__(self, foo):
-        self.foo = foo
 
 
 class _DummyHandlesAllInput(BaseClassifier):
@@ -121,7 +114,6 @@ def test_base_classifier_fit():
 def test_check_capabilities(missing, multivariate, unequal):
     """Test the checking of capabilities."""
     handles_none = _DummyClassifier()
-    handles_none_composite = _DummyComposite(_DummyClassifier())
 
     # checks that errors are raised
     if missing:
@@ -135,18 +127,6 @@ def test_check_capabilities(missing, multivariate, unequal):
             handles_none._check_capabilities(missing, multivariate, unequal)
     if not missing and not multivariate and not unequal:
         handles_none._check_capabilities(missing, multivariate, unequal)
-
-    if missing:
-        with pytest.warns(UserWarning, match=missing_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.warns(UserWarning, match=multivariate_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.warns(UserWarning, match=unequal_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none_composite._check_capabilities(missing, multivariate, unequal)
 
     handles_all = _DummyHandlesAllInput()
     handles_all._check_capabilities(missing, multivariate, unequal)
@@ -242,7 +222,7 @@ def test_input_conversion_fit_predict(input_type):
         X = from_nested_to_multi_index(X)
     elif input_type == "df-list":
         X, y = make_nested_dataframe_data()
-        X = from_nested_to_df_list_adp(X)
+        X = from_nested_to_dflist_adp(X)
     clf = _DummyHandlesAllInput()
     clf.fit(X, y)
     clf.predict(X)

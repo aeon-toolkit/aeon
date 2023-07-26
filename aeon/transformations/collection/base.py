@@ -77,8 +77,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -119,8 +117,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -165,7 +161,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         return Xt
 
     def fit_transform(self, X, y=None):
-        """Fit to data, then transform it.
+        """
+        Fit to data, then transform it.
 
         Fits the transformer to X and y and returns a transformed version of X.
 
@@ -177,7 +174,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         _X : X, coerced copy of X, if remember_data tag is True
             possibly coerced to inner type or update_data compatible type
             by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
+        model attributes (ending in "_") : dependent on estimator.
 
         Parameters
         ----------
@@ -186,10 +183,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -218,7 +213,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Example: i-th row of the return has mean and variance of the i-th series
             if `X` is `Series` and `transform-output` is `Panel`
                 then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
+                Example: i-th instance of the output is the i-th window running over
+                `X`.
         """
         # input checks and datatype conversion
         X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
@@ -251,8 +247,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -302,8 +296,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True
@@ -336,36 +328,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         self._update(X=X_inner, y=y_inner)
 
         return self
-
-    def _fit_checks(self, X, y, early_abandon=True, return_metadata=False):
-        """Input checks and conversions for fit and fit_transform."""
-        self.reset()
-
-        X_inner = None
-        y_inner = None
-        metadata = None
-
-        # skip everything if fit_is_empty is True and we do not need to remember data
-        if (
-            not early_abandon
-            or not self.get_tag("fit_is_empty")
-            or self.get_tag("remember_data", False)
-        ):
-            # if requires_y is set, y is required in fit and update
-            if self.get_tag("requires_y") and y is None:
-                raise ValueError(f"{self.__class__.__name__} requires `y` in `fit`.")
-
-            # check and convert X/y
-            X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
-            # memorize X as self._X, if remember_data tag is set to True
-            if self.get_tag("remember_data", False):
-                self._X = update_data(None, X_new=X_inner)
-
-        if return_metadata:
-            return X_inner, y_inner, metadata
-        else:
-            return X_inner, y_inner
 
     def _check_X_y(self, X=None, y=None, return_metadata=False):
         """Check and coerce X/y for fit/transform functions.
@@ -438,6 +400,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             scitype="Panel",
             return_metadata=True,
             var_name="X",
+            exclude_mtypes=[],
         )
 
         if not X_valid:
@@ -483,6 +446,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             to_type=X_inner_mtype,
             store=metadata["_converter_store_X"],
             store_behaviour="reset",
+            exclude_mtypes=[],
         )
 
         # converts y, returns None if y is None

@@ -14,7 +14,8 @@ from aeon.utils.multiindex import flatten_multiindex
 
 
 class WindowSummarizer(BaseTransformer):
-    """Transformer for extracting time series features.
+    """
+    Transformer for extracting time series features.
 
     The WindowSummarizer transforms input series to features based
     on a provided dictionary of window summarizer, window shifts
@@ -25,10 +26,10 @@ class WindowSummarizer(BaseTransformer):
     n_jobs : int, optional (default=-1)
         The number of jobs to run in parallel for applying the window functions.
         ``-1`` means using all processors.
-    target_cols: list of str, optional (default = None)
+    target_cols : list of str, optional (default = None)
         Specifies which columns in X to target for applying the window functions.
         ``None`` will target the first column
-    lag_feature: dict of str and list, optional (default = dict containing first lag)
+    lag_feature : dict of str and list, optional (default = dict containing first lag)
         Dictionary specifying as key the type of function to be used and as value
         the argument `window`.
         For the function `lag`, the argument `window` is an integer or a list of
@@ -64,7 +65,6 @@ class WindowSummarizer(BaseTransformer):
         | * * * * * * * * x x z * * |
         |---------------------------|
 
-
         Special case ´lag´: Since lags are frequently used and window length is
         redundant, you only need to provide a list of `lag` values.
         So `window = [1]` will result in the first lag:
@@ -98,7 +98,7 @@ class WindowSummarizer(BaseTransformer):
             lag parameter and the window_length (if not a lag).
         second value (window): list of integers
             List containg lag and window_length parameters.
-        truncate: str, optional (default = None)
+        truncate : str, optional default = None
             Defines how to deal with NAs that were created as a result of applying the
             functions in the lag_feature dict across windows that are longer than
             the remaining history of data.
@@ -112,7 +112,6 @@ class WindowSummarizer(BaseTransformer):
             None will keep the NAs generated, and would leave it for the user to choose
             an estimator that can correctly deal with observations with missing values,
             "bfill" will fill the NAs by carrying the first observation backwards.
-
 
     Attributes
     ----------
@@ -192,7 +191,7 @@ class WindowSummarizer(BaseTransformer):
         ],  # which mtypes do _fit/_predict support for X?
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "handles-missing-data": True,  # can estimator handle missing data?
+        "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True

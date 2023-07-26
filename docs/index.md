@@ -24,18 +24,15 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting2.png
+:img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 
-Forecasting
-
-^^^
 
 Get started with time series forecasting.
 
 +++
 
-```{button-ref} /examples/01_forecasting.ipynb
+```{button-ref} /examples/forecasting/forecasting.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -49,9 +46,8 @@ Forecasting
 :img-top: examples/img/tsc.png
 :text-align: center
 
-Classification
 
-^^^
+
 
 Get started with time series classification.
 
@@ -71,15 +67,12 @@ Classification
 :img-top: examples/img/tser.png
 :text-align: center
 
-Regression
-
-^^^
 
 Get started with time series extrinsic regression.
 
 +++
 
-```{button-ref} examples-regression
+```{button-ref} /examples/regression/regression.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -93,15 +86,12 @@ Regression
 :img-top: examples/img/tscl.png
 :text-align: center
 
-Clustering
-
-^^^
 
 Get started with time series clustering.
 
 +++
 
-```{button-ref} examples-clustering
+```{button-ref} /examples/clustering/partitional_clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -112,23 +102,133 @@ Clustering
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/transformation.png
+:img-top: examples/transformations/img/transformation.png
 :text-align: center
 
-Transformation
-
-^^^
 
 Get started with time series transformations.
 
 +++
 
-```{button-ref} examples-transformation
+```{button-ref} /examples/transformations/transformations.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Transformation
+Transformations
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/distances/img/dtw_vis.png
+:text-align: center
+
+
+Get started with time series distances.
+
++++
+
+```{button-ref} /examples/distances/distances.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Distances
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/annotation/img/clasp.png
+:text-align: center
+
+
+Annotation
+
++++
+
+```{button-ref} /examples/annotation/annotation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Annotation
+```
+
+:::
+
+
+:::{grid-item-card}
+:img-top: /examples/benchmarking/img/benchmarking.png
+:text-align: center
+
+How to benchmark algorithms.
+
++++
+
+```{button-ref} /examples/benchmarking/benchmarking.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Benchmarking
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/datasets/img/data.png
+:text-align: center
+
+Loading, storing and saving data.
+
++++
+
+```{button-ref} /examples/datasets/datasets.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Datasets
+```
+
+:::
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/networks/img/Inception.png
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/utils/img/Inception.png
+:text-align: center
+
+General utility
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
 ```
 
 :::
@@ -149,7 +249,7 @@ Transformation
 :caption: Using aeon
 :hidden:
 
-installation
+installation.md
 getting_started.md
 user_guide
 api_reference
@@ -178,6 +278,5 @@ about.md
 
 glossary.md
 changelog.md
-estimator_overview
 related_software
 ```

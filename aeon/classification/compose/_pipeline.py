@@ -57,17 +57,17 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Parameters
     ----------
     classifier : aeon classifier, i.e., estimator inheriting from BaseClassifier
-        this is a "blueprint" classifier, state does not change when `fit` is called
-    transformers : list of aeon transformers, or
-        list of tuples (str, transformer) of aeon transformers
-        these are "blueprint" transformers, states do not change when `fit` is called
+        This is a "blueprint" classifier, state does not change when `fit` is called.
+    transformers : list of aeon transformers
+        List of tuples (str, transformer) of aeon transformers
+        these are "blueprint" transformers, states do not change when `fit` is called.
 
     Attributes
     ----------
     classifier_ : aeon classifier, clone of classifier in `classifier`
-        this clone is fitted in the pipeline when `fit` is called
+        This clone is fitted in the pipeline when `fit` is called
     transformers_ : list of tuples (str, transformer) of aeon transformers
-        clones of transformers in `transformers` which are fitted in the pipeline
+        Clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
         i-th transformer in `transformers_` is clone of i-th in `transformers`
@@ -104,7 +104,9 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         # can handle missing values iff: both classifier and all transformers can,
         #   *or* transformer chain removes missing data
         missing = classifier.get_tag("capability:missing_values", False)
-        missing = missing and self.transformers_.get_tag("handles-missing-data", False)
+        missing = missing and self.transformers_.get_tag(
+            "capability:missing_values", False
+        )
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )
@@ -400,7 +402,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         # can handle missing values iff transformer chain removes missing data
         # sklearn classifiers might be able to handle missing data (but no tag there)
         # so better set the tag liberally
-        missing = self.transformers_.get_tag("handles-missing-data", False)
+        missing = self.transformers_.get_tag("capability:missing_values", False)
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )

@@ -10,7 +10,8 @@ from aeon.classification import BaseClassifier
 
 
 class MrSQMClassifier(BaseClassifier):
-    """Multiple Representations Sequence Miner (MrSQM) classifier.
+    """
+    Multiple Representations Sequence Miner (MrSQM) classifier.
 
     This is a wrapper for the MrSQMClassifier algorithm from the `mrsqm` package.
     MrSQM is not included in all extras as it requires gcc and fftw
@@ -23,9 +24,9 @@ class MrSQMClassifier(BaseClassifier):
 
     Parameters
     ----------
-    strat : 'R','S','SR', or 'RS;, default="RS"
-        Feature selection strategy. R and S are single-stage filters while
-        RS and SR are two-stage filters. By default set to 'RS'.
+    strat : str, default="RS"
+        Feature selection strategy. One of 'R','S','SR', or 'RS. R and S are
+        single-stage filters while RS and SR are two-stage filters.
     features_per_rep : int, default=500
         The (maximum) number of features selected per representation.
     selection_per_rep : int, default=2000
@@ -96,6 +97,7 @@ class MrSQMClassifier(BaseClassifier):
     _tags = {
         "X_inner_mtype": "nested_univ",  # we don't like this, but it's the only input!
         "algorithm_type": "shapelet",
+        "cant-pickle": True,
         "python_dependencies": "mrsqm",
     }
 
