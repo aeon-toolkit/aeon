@@ -448,10 +448,7 @@ def _load_tsc_dataset(
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = (
-                "https://timeseriesclassification.com/ClassificationDownloads/%s.zip"
-                % name
-            )
+            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
