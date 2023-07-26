@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus"]
 __all__ = ["MLPClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -13,8 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.mlp import MLPNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class MLPClassifier(BaseDeepClassifier):
@@ -243,6 +242,7 @@ class MLPClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
