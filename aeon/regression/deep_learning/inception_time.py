@@ -4,6 +4,7 @@
 __author__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeRegressor"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -15,8 +16,6 @@ from aeon.networks.inception import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class InceptionTimeRegressor(BaseRegressor):
@@ -275,6 +274,7 @@ class InceptionTimeRegressor(BaseRegressor):
             )
             rgs.fit(X, y)
             self.regressors_.append(rgs)
+            gc.collect()
 
         return self
 
@@ -330,7 +330,6 @@ class InceptionTimeRegressor(BaseRegressor):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
-            "use_bottleneck": True,
         }
 
         return [param1]
@@ -644,6 +643,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod

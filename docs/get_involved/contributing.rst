@@ -18,10 +18,9 @@ Recommended steps for first time contributors, or to get started with regular co
 
 1. Say hello (in the contributors channel on `Slack`_)!
 2. Get set up for development, see `instructions in the developer guide <https://www.aeon-toolkit.org/en/stable/developer_guide.html>`_.
-3. Pick a good first issue to work on, see a collection `in this summary issue <https://github.com/aeon-toolkit/aeon/issues/1147>`_ , or from `this list <https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
+3. Pick a good first issue to work on from `this list <https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
    suggestion: pick something small with simple content to learn the “process”
-4. Feel free to attend the regular community collab sessions or one of the topic specific stand-ups and tech sessions (see schedule on `Slack`_)
-5. Once your first PR is merged and you’ve seen how things work, you could consider contributing more regularly: optionally, continue attending the Friday community collaboration sessions and stand-ups; or, optionally, `apply for mentoring <https://www.aeon-toolkit.org/en/stable/get_involved/mentoring.html#mentoring>`_
+4. Feel free to attend the regular community meetings (see schedule on `Slack`_)
 
 .. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
 
@@ -144,6 +143,6 @@ All contributions are recorded in
 .. toctree::
    :maxdepth: 1
 
-   contributing/enhancement_proposals
-   contributing/reporting_bugs
-   contributing/reviewer_guide
+   ../contributing/enhancement_proposals
+   ../contributing/reporting_bugs
+   ../contributing/reviewer_guide

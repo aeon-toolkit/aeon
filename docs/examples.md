@@ -141,7 +141,6 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: examples/classification/img/tser.png
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
 :text-align: center
@@ -151,7 +150,6 @@ Early TSC
 :::
 
 :::{grid-item-card}
-:img-top: examples/classification/img/tser.png
 :link: /examples/classification/channel_selection.ipynb
 :link-type: ref
 :text-align: center
@@ -310,7 +308,6 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
@@ -356,20 +353,29 @@ Using aeon distances with scikit-learn
 
 :::{grid-item-card}
 :img-top: examples/datasets/img/data.png
-:link: /examples/datasets/data_storage.ipynb
+:link: /examples/datasets/datasets.ipynb
 :link-type: ref
 :text-align: center
 
-Data
+Data in aeon
 
 :::
 
 :::{grid-item-card}
-:link: /examples/datasets/data_files_structures.ipynb
+:link: /examples/datasets/data_structures.ipynb
 :link-type: ref
 :text-align: center
 
-How series are stored in file
+Data structures and containers used in aeon
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/data_conversions.ipynb
+:link-type: ref
+:text-align: center
+
+Conversions between data structures
 
 :::
 
@@ -378,10 +384,9 @@ How series are stored in file
 :link-type: ref
 :text-align: center
 
-Loading data into memory
+How series are stored in file and loaded into memory
 
 :::
-
 
 :::{grid-item-card}
 :link: /examples/datasets/provided_data.ipynb
@@ -389,6 +394,17 @@ Loading data into memory
 :text-align: center
 
 Example data sets
+
+:::
+
+:::
+
+:::{grid-item-card}
+:link: /examples/datasets/load_data_from_web.ipynb
+:link-type: ref
+:text-align: center
+
+Loading data from the web
 
 :::
 
