@@ -193,25 +193,6 @@ How to benchmark algorithms.
 
 Benchmarking
 ```
-
-:::
-
-:::{grid-item-card}
-:img-top: /examples/datasets/img/data.png
-:text-align: center
-
-Loading, storing and saving data.
-
-+++
-
-```{button-ref} /examples/datasets/datasets.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Datasets
-```
-
 :::
 
 :::{grid-item-card}
