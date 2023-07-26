@@ -431,7 +431,7 @@ def _load_tsc_dataset(
     # Allow user to have non standard extract path
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"

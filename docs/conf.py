@@ -184,18 +184,6 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "announcement": """
-        <b>DISCLAIMER</b>: This is a fork of the sktime repository. Work is ongoing to change links
-        and documentation to reflect this.
-
-        Join our
-        <a href="https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA">Slack</a>
-        to discuss the projects goals, ask usage questions and discuss contributions.
-
-        We do not recommend using this repository in any
-        production setting, but welcome any contributors willing to help us update the
-        project. Links and buttons are likely to be broken in the current state.
-    """,  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
