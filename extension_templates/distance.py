@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Extension template for time series distance function.
+"""Extension template for time series distance function.
 
 This is a quick guide on how to implement a new aeon distance function. A wish list
 for distance functions we would like to see is here
@@ -11,23 +10,45 @@ You need to implement three public functions for a distance called "foo"
 TODO 1: foo_distance: distance between two series, returns a float
 
 Optional:
-TODO 2: foo_pairwise_distance: distance between a collection of series, returns a matrix
-TODO 3: foo_alignment_path: path constructed to find distance, returns a list of (x,
-y) pairs
-TODO 4: foo_cost_matrix: path constructed to find distance, returns a list of (x,
-y) pairs
+TODO 2: foo_pairwise_distance: distance between a collection of series, returns
+a matrix
+TODO 3: foo_cost_matrix: cost matrix produced to compute distance between
+series.
+TODO 4: foo_alignment_path: path constructed to find distance, returns a list
+of (x, y) pairs
 
 Note many elastic distances calculate a cost
-matrix. Look at any of the distances to see how we structure this, but ultimately it
-is your choice how to internally design the calculationds. Please use numba where
-ever possible.
+matrix. Look at any of the distances to see how we structure this, but
+ultimately it is your choice how to internally design the calculations. Please
+use numba where ever possible.
 
 To contribute the distance to aeon, you need to adjust the file
 aeon/distance/_distance.py to make sure it is tested and available via the function
 distance. There are three things to do
 
-TODO 5: function distance
-in the function
+TODO 5: Add your distance to the DISTANCES list in aeon/distance/_distance.py
+At the bottom of the file there is a list containing all their distances and
+functions. The only required two keys are "name" and "distance". The others are optional
+DISTANCES = [
+    {
+        "name": "foo",
+        "distance": foo_distance,
+    },
+If you add the optional functions, you can add them too
+DISTANCES = [
+    {
+        "name": "foo",
+        "distance": foo_distance,
+        "pairwise_distance": foo_pairwise_distance,
+        "cost_matrix": foo_cost_matrix,
+        "alignment_path": foo_alignment_path,
+    },
+
+TODO 6: add your distance function to the utility functions in
+aeon/distances/_distance.py
+There are multiple utility functions in _distance.py that allow users to import a single
+function and call the distance via a string e.g. distance(x, y, metric="foo").
+For example to add your distance to the distance utility function:
     def distance(
         x: np.ndarray,
         y: np.ndarray,
@@ -43,45 +64,28 @@ numba cant handle kwargs)
             kwargs.get("para1"),
             kwargs.get("para2",3),
         )
-TODO 6: function pairwise_distance (if foo_pairwise_distance implemented)
-in the function
-    def pairwise_distance(
-        x: np.ndarray,
-        y: np.ndarray = None,
-        metric: Union[str, DistanceFunction] = None,
-        **kwargs: Any,
-    ) -> np.ndarray:
-add an if clause returning the pairwise distance.
-    elif metric == "foo":
-        return foo_pairwise_distance(x, y, kwargs.get("para1", kwargs.get("para2"))
-TODO 7: DISTANCES list
-Add your distance to the list of DISTANCES used in testing
-DISTANCES = [
-    {
-        "name": "foo",
-        "distance": foo_distance,
-    },
-If you add the optional functions, you can add them too
-DISTANCES = [
-    {
-        "name": "foo",
-        "distance": foo_distance,
-        "pairwise_distance": foo_pairwise_distance,
-        "cost_matrix": foo_cost_matrix,
-        "alignment_path": foo_alignment_path,
-    },
 """
 import numpy as np
 from numba import njit
 
+# Basic examples are given below but we highly recommend you look at the other
+# distances in aeon/distances/ to see how they are implemented. In particular, look at
+# aeon/distances/_euclidean.py for the basic structure and for more complex distances
+# that have a alignment path or a cost matrix. look at aeon/distances/_dtw.py
+
+
+# Simple example of implementing a distance function:
+
 
 # TODO 1: distance function
 # Give function a sensible name
-# The decorator means it will be JIT compiled and be much much faster!
+# The decorator means it will be JIT compiled and be much much faster (but it does not
+# have to be numba compiled)!
 # distance functions should accept both 1D and 2D arrrays (1D are univariate time
 # series shape (n_timepoints), 2D are multivariate (n_channels, n_timepoints). The
 # n_channels should match for both series, but distance functions should be able to
-# handle unequal length series.
+# handle unequal length series. See aeon/distances/_euclidean.py for an example of how
+# to handle this.
 @njit(cache=True, fastmath=True)
 def foo_distance(
     x: np.ndarray, y: np.ndarray, para1: float = None, para2: int = 3
