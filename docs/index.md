@@ -24,25 +24,6 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/datasets/img/data.png
-:text-align: center
-
-
-Data structures and containers used in aeon
-
-+++
-
-```{button-ref} /examples/datasets/datasets.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Data
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 
@@ -177,6 +158,24 @@ Annotation
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/datasets/img/data.png
+:text-align: center
+
+
+Data structures and containers used in aeon
+
++++
+
+```{button-ref} /examples/datasets/datasets.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Data
+```
+
+:::
 
 :::{grid-item-card}
 :img-top: /examples/benchmarking/img/benchmarking.png
