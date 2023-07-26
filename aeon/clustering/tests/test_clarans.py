@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Tests for time series k-medoids."""
 import numpy as np
 from sklearn import metrics
 
-from aeon.clustering.clara import TimeSeriesCLARA
+from aeon.clustering.clarans import TimeSeriesCLARANS
 from aeon.datasets import load_basic_motions, load_gunpoint
 
 
-def test_clara_uni():
-    """Test implementation of CLARA."""
+def test_clarans_uni():
+    """Test implementation of CLARANS."""
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
@@ -18,20 +17,18 @@ def test_clara_uni():
     X_test = X_test[:num_points]
     y_test = y_test[:num_points]
 
-    clara = TimeSeriesCLARA(
+    clarans = TimeSeriesCLARANS(
         random_state=1,
-        n_samples=10,
         n_init=2,
-        max_iter=5,
         init_algorithm="first",
         distance="euclidean",
         n_clusters=2,
     )
-    train_medoids_result = clara.fit_predict(X_train)
+    train_medoids_result = clarans.fit_predict(X_train)
     train_score = metrics.rand_score(y_train, train_medoids_result)
-    test_medoids_result = clara.predict(X_test)
+    test_medoids_result = clarans.predict(X_test)
     test_score = metrics.rand_score(y_test, test_medoids_result)
-    proba = clara.predict_proba(X_test)
+    proba = clarans.predict_proba(X_test)
     assert np.array_equal(
         test_medoids_result,
         [1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0],
@@ -42,16 +39,18 @@ def test_clara_uni():
     )
     assert test_score == 0.5578947368421052
     assert train_score == 0.49473684210526314
-    assert np.isclose(clara.inertia_, 58.60738409905514)
-    assert clara.n_iter_ == 2
-    assert np.array_equal(clara.labels_, [1, 1, 1, 1, 1, 0, 0, 1, 0, 0])
-    assert isinstance(clara.cluster_centers_, np.ndarray)
+    assert np.isclose(clarans.inertia_, 94.22886366617668)
+    assert clarans.n_iter_ == 0
+    assert np.array_equal(
+        clarans.labels_, [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1]
+    )
+    assert isinstance(clarans.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
 
 
 def test_clara_multi():
-    """Test implementation of CLARA."""
+    """Test implementation of CLARANS."""
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -61,33 +60,34 @@ def test_clara_multi():
     X_test = X_test[:num_points]
     y_test = y_test[:num_points]
 
-    clara = TimeSeriesCLARA(
+    clarans = TimeSeriesCLARANS(
         random_state=1,
-        n_samples=10,
         n_init=2,
-        max_iter=5,
         init_algorithm="first",
         distance="euclidean",
         n_clusters=2,
     )
-    train_medoids_result = clara.fit_predict(X_train)
+
+    train_medoids_result = clarans.fit_predict(X_train)
     train_score = metrics.rand_score(y_train, train_medoids_result)
-    test_medoids_result = clara.predict(X_test)
+    test_medoids_result = clarans.predict(X_test)
     test_score = metrics.rand_score(y_test, test_medoids_result)
-    proba = clara.predict_proba(X_test)
+    proba = clarans.predict_proba(X_test)
     assert np.array_equal(
         test_medoids_result,
-        [1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
     )
     assert np.array_equal(
         train_medoids_result,
-        [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
     )
     assert test_score == 0.4789473684210526
     assert train_score == 0.4789473684210526
-    assert np.isclose(clara.inertia_, 125.98332898508893)
-    assert clara.n_iter_ == 2
-    assert np.array_equal(clara.labels_, [1, 1, 0, 0, 1, 0, 1, 0, 0, 0])
-    assert isinstance(clara.cluster_centers_, np.ndarray)
+    assert np.isclose(clarans.inertia_, 1762.5323632597904)
+    assert clarans.n_iter_ == 0
+    assert np.array_equal(
+        clarans.labels_, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    )
+    assert isinstance(clarans.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
