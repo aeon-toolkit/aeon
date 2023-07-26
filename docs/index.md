@@ -167,7 +167,6 @@ Data structures and containers used in aeon
 
 +++
 
-```{button-ref} /examples/datasets/datasets.ipynb
 :color: primary
 :click-parent:
 :expand:
