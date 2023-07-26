@@ -141,7 +141,6 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: examples/classification/img/tser.png
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
 :text-align: center
@@ -151,7 +150,6 @@ Early TSC
 :::
 
 :::{grid-item-card}
-:img-top: examples/classification/img/tser.png
 :link: /examples/classification/channel_selection.ipynb
 :link-type: ref
 :text-align: center
@@ -310,7 +308,6 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
