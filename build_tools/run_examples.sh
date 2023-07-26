@@ -10,6 +10,8 @@ excluded=(
   "examples/benchmarking/results_loading.ipynb"
 )
 
+runetimes=()
+
 # Loop over all notebooks in the examples directory.
 find "examples/" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
@@ -19,6 +21,10 @@ find "examples/" -name "*.ipynb" -print0 |
     # Run the notebook.
     else
       echo "Running: $notebook"
+      start=`date +%s`
       $CMD "$notebook"
+      end=`date +%s`
+
+      $((end-start))
     fi
   done
