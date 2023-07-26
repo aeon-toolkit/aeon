@@ -25,52 +25,52 @@ class TimeSeriesCLARA(BaseClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default = 8
+    n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, default = 'random'
+    init_algorithm : str, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-        Random is the default as it is very fast and it was found in [2] to be
+        Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
-        Kmedoids++ is a variant of kmeans++ [4] and is slower but more accurate than
-        random. It does this by choosing centroids that are distant from one another.
-        First is the fastest method and simply chooses the first k time series as
-        centroids.
-    distance : str or Callable, default = 'msm'
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
+        accurate than random. It works by choosing centroids that are distant from
+        one another. First is the fastest method and simply chooses the first k
+        time series as centroids.
+    distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw', 'msm', 'twe'].
         If a callable is passed it must be a function that takes two 2d numpy arrays as
         input and returns a float.
-    n_samples : int, default = None,
+    n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_instances, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default = 5,
-        Number of different subsets of samples to try. The best subset cluster centres
+    n_sampling_iters : int, default=5,
+        Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default = 5
+    n_init : int, default=5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter : int, default = 300
+    max_iter : int, default=300
         Maximum number of iterations of the PAM algorithm for a single
         run.
-    tol : float, default = 1e-6
+    tol : float, default=1e-6
         Relative tolerance with regards to Frobenius norm of the difference
         in the cluster centers of two consecutive iterations to declare
         convergence.
-    verbose : bool, default = False
+    verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default = None
+    random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    distance_params : dict, default = None
+    distance_params : dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
     cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        A collection of time series instances that represent the cluster centres.
+        A collection of time series instances that represent the cluster centers.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float
@@ -223,7 +223,7 @@ class TimeSeriesCLARA(BaseClusterer):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
