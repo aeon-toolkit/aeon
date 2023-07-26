@@ -6,22 +6,14 @@
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting2.png
+:img-top: /examples/forecasting/img/forecasting2.png
 :link: /examples/forecasting/forecasting.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon
+Forecasting overview
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:link: /examples/forecasting/window_splitters.ipynb
-:link-type: ref
-:text-align: center
-
-Window splitters for reduction to regression
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
@@ -40,8 +32,6 @@ Probabilistic forecasting
 :text-align: center
 
 Hierarchical, global, and panel forecasting
-
-:::
 
 :::
 
@@ -67,7 +57,7 @@ Forecasting with aeon and scikit learn
 :link-type: ref
 :text-align: center
 
-Time Series Classification (TSC) with aeon
+Overview of Time Series Classification (TSC)
 
 :::
 
@@ -172,86 +162,51 @@ Channel selection in multivariate TSC
 
 ::::
 
-(examples-regression)=
 ## Regression
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/regression/img/reg.png
+:img-top: /examples/regression/img/tser.png
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
 
-Extrinsic regression
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:link: /examples/regression/regression_reduction.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting reduced to regression
+Overview of Time Series Regression (TSR)
 
 :::
 
 ::::
 
-
-(examples-clustering)=
 ## Clustering
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/clustering/img/clst.png
-:link: /examples/clustering/distance_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-Distance based clustering
+Overview of Time Series Clustering (TSCL)
 
 :::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/feature_clst.png
-:link: /examples/clustering/feature_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Feature based clustering
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/clustering/img/dl_clst.png
-:link: /examples/clustering/dl_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Deep learning based clustering
-
-:::
-
 
 ::::
 
-(examples-transformation)=
 ## Transformation
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/trans.png
+:img-top: examples/transformations/img/transformation.png
 :link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
 
-Transformers
+Overview of Transformation
 
 :::
 
@@ -264,7 +219,6 @@ Transformers
 Feature based
 
 :::
-
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/rocket.png
@@ -329,7 +283,6 @@ Theta transform
 
 ::::
 
-
 ## Annotation
 
 ::::{grid} 2 4 4 4
@@ -338,16 +291,16 @@ Theta transform
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/segmentation_use_cases.png
-:link: /examples/annotation/segmentation_use_cases.ipynb
+:link: /examples/annotation/annotation.ipynb
 :link-type: ref
 :text-align: center
 
-Segmentation use cases
+Intro to annotation
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/clasp.png
+:img-top: examples/annotation/img/clasp.png
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
@@ -357,7 +310,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/hidalgo.png
+:img-top: examples/annotation/img/hidalgo.png
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
@@ -402,11 +355,12 @@ Using aeon distances with scikit-learn
 :gutter: 1
 
 :::{grid-item-card}
+:img-top: examples/datasets/img/data.png
 :link: /examples/datasets/data_storage.ipynb
 :link-type: ref
 :text-align: center
 
-Storing time series in arrays and data frames
+Data
 
 :::
 
@@ -438,11 +392,29 @@ Example data sets
 
 :::
 
+::::
+
+## Benchmarking
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
 :::{grid-item-card}
-:link: /examples/datasets/benchmarking_data.ipynb
+:link: /examples/benchmarking/benchmarkings.ipynb
 :link-type: ref
 :text-align: center
 
-Getting data for benchmarking
+Benchmarking algorithms
+
+:::
+
+:::{grid-item-card}
+:link: /examples/benchmarking/results_loading.ipynb
+:link-type: ref
+:text-align: center
+
+Geting published results
+
+:::
 
 ::::

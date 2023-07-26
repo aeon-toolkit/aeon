@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Time Series Forest (TSF) Classifier.
 
 Interval-based TSF classifier, extracts basic summary features from random intervals.
