@@ -24,12 +24,9 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting/forecasting2.png
+:img-top: examples/forecasting/img/forecasting.png
 :text-align: center
 
-Forecasting
-
-^^^
 
 Get started with time series forecasting.
 
@@ -49,9 +46,8 @@ Forecasting
 :img-top: examples/img/tsc.png
 :text-align: center
 
-Classification
 
-^^^
+
 
 Get started with time series classification.
 
@@ -71,9 +67,6 @@ Classification
 :img-top: examples/img/tser.png
 :text-align: center
 
-Regression
-
-^^^
 
 Get started with time series extrinsic regression.
 
@@ -93,15 +86,12 @@ Regression
 :img-top: examples/img/tscl.png
 :text-align: center
 
-Clustering
-
-^^^
 
 Get started with time series clustering.
 
 +++
 
-```{button-ref} examples-clustering
+```{button-ref} /examples/clustering/partitional_clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -115,20 +105,108 @@ Clustering
 :img-top: examples/transformations/img/transformation.png
 :text-align: center
 
-Transformation
-
-^^^
 
 Get started with time series transformations.
 
 +++
 
-```{button-ref} examples/transformations/transformations.ipynb
+```{button-ref} /examples/transformations/transformations.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Transformation
+Transformations
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/distances/img/dtw_vis.png
+:text-align: center
+
+
+Get started with time series distances.
+
++++
+
+```{button-ref} /examples/distances/distances.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Distances
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/annotation/img/clasp.png
+:text-align: center
+
+
+Annotation
+
++++
+
+```{button-ref} /examples/annotation/annotation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Annotation
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+
+Data structures and containers used in aeon
+
++++
+
+```{button-ref} /examples/datasets/datasets.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Data
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: /examples/benchmarking/img/benchmarking.png
+:text-align: center
+
+How to benchmark algorithms.
+
++++
+
+```{button-ref} /examples/benchmarking/benchmarking.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Benchmarking
+```
+:::
+
+:::{grid-item-card}
+:img-top: /examples/networks/img/Inception.png
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
 ```
 
 :::
