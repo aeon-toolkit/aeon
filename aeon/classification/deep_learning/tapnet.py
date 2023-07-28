@@ -10,6 +10,7 @@ __all__ = [
     "TapNetClassifier",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -17,8 +18,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.tapnet import TapNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class TapNetClassifier(BaseDeepClassifier):
@@ -241,6 +240,7 @@ class TapNetClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod

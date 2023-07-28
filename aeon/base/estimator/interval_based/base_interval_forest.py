@@ -23,6 +23,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import RandomIntervals, SupervisedIntervals
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation.panel import check_X_y
 
 
 class BaseIntervalForest(metaclass=ABCMeta):
@@ -87,7 +88,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         as the number of series_transformers.
 
         Ignored for supervised interval_selection_method inputs.
-    interval_features : TransformerMixin, callable, list, tuple, or None, default=None
+    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
         The features to extract from the intervals using transformers or callable
         functions. If None, use the mean, standard deviation, and slope of the series.
 
@@ -100,12 +101,11 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Different features for each series_transformers series can be specified using a
         nested list or tuple. Any list or tuple input containing another list or tuple
         must be the same length as the number of series_transformers.
-    series_transformers : TransformerMixin, list, tuple, or None, default=None
+    series_transformers : BaseTransformer, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals. If None,
         use the series as is.
 
-        Both transformers and functions should be able to take a 3D np.ndarray input.
-        A list or tuple of transformers and/or functions will extract intervals from
+        A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
     att_subsample_size : int, float, list, tuple or None, default=None
@@ -127,7 +127,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+        Save the data transformed in fit for use in _get_train_preds and
+        _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -157,7 +158,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    (n_instances_ ,total_intervals * att_subsample_size)
         The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 
@@ -870,7 +871,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     warnings.warn(
                         f"Attribute subsample size {att_subsample_size} is larger than "
                         f"or equal to the number of attributes {num_features} for "
-                        f"series {self._series_transformers[r]}"
+                        f"series {self._series_transformers[r]}",
+                        stacklevel=2,
                     )
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):
@@ -1022,6 +1024,152 @@ class BaseIntervalForest(metaclass=ABCMeta):
             return estimator.predict_proba(interval_features)
         else:
             return estimator.predict(interval_features)
+
+    def _get_train_preds(self, X, y) -> np.ndarray:
+        n_instances = self._train_est_setup(X, y)
+
+        if is_regressor(self):
+            p = Parallel(
+                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+            )(
+                delayed(self._train_estimate_for_estimator)(
+                    y,
+                    i,
+                )
+                for i in range(self._n_estimators)
+            )
+            y_preds, oobs = zip(*p)
+
+            results = np.sum(y_preds, axis=0)
+            divisors = np.zeros(n_instances)
+            for oob in oobs:
+                for inst in oob:
+                    divisors[inst] += 1
+
+            label_average = np.mean(y)
+            for i in range(n_instances):
+                results[i] = (
+                    label_average if divisors[i] == 0 else results[i] / divisors[i]
+                )
+        else:
+            return np.array(
+                [
+                    self.classes_[int(np.argmax(prob))]
+                    for prob in self._get_train_probs(X)
+                ]
+            )
+
+        return results
+
+    def _get_train_probs(self, X, y) -> np.ndarray:
+        if is_regressor(self):
+            raise ValueError(
+                "Train probability estimates are only available for classification"
+            )
+
+        n_instances = self._train_est_setup(X, y, True)
+
+        p = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._train_estimate_for_estimator)(
+                y,
+                i,
+                probas=True,
+            )
+            for i in range(self._n_estimators)
+        )
+        y_probas, oobs = zip(*p)
+
+        results = np.sum(y_probas, axis=0)
+        divisors = np.zeros(n_instances)
+        for oob in oobs:
+            for inst in oob:
+                divisors[inst] += 1
+
+        for i in range(n_instances):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
+
+    def _train_est_setup(self, X, y, probas=False):
+        self.check_is_fitted()
+        X, y = check_X_y(X, y, coerce_to_numpy=True)
+
+        # treat case of single class seen in fit
+        if is_classifier(self) and self.n_classes_ == 1:
+            return (
+                np.repeat([[1]], X.shape[0], axis=0)
+                if probas
+                else np.repeat(list(self._class_dictionary.keys()), X.shape[0], axis=0)
+            )
+
+        n_instances, n_channels, n_timepoints = X.shape
+
+        if (
+            n_instances != self.n_instances_
+            or n_channels != self.n_channels_
+            or n_timepoints != self.n_timepoints_
+        ):
+            raise ValueError(
+                "n_instances, n_channels, n_timepoints mismatch. X should be "
+                "the same as the training data used in fit for generating train "
+                f"{type}."
+            )
+
+        if not self.save_transformed_data:
+            raise ValueError("Currently only works with saved transform data from fit.")
+
+        return n_instances
+
+    def _train_estimate_for_estimator(self, y, idx, probas=False):
+        rs = 255 if self.random_state == 0 else self.random_state
+        rs = (
+            None
+            if self.random_state is None
+            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
+        )
+        rng = check_random_state(rs)
+
+        indices = range(self.n_instances_)
+        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        oob = [n for n in indices if n not in subsample]
+
+        results = (
+            np.zeros((self.n_instances_, self.n_classes_))
+            if probas
+            else np.zeros(self.n_instances_)
+        )
+        if len(oob) == 0:
+            return [results, oob]
+
+        clf = _clone_estimator(self._base_estimator, rs)
+        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
+        preds = (
+            clf.predict_proba(self.transformed_data_[idx][oob])
+            if probas
+            else clf.predict(self.transformed_data_[idx][oob])
+        )
+
+        if probas and preds.shape[1] != self.n_classes_:
+            new_probas = np.zeros((preds.shape[0], self.n_classes_))
+            for i, cls in enumerate(clf.classes_):
+                cls_idx = self._class_dictionary[cls]
+                new_probas[:, cls_idx] = preds[:, i]
+            preds = new_probas
+
+        if probas:
+            for n, proba in enumerate(preds):
+                results[oob[n]] += proba
+        else:
+            for n, pred in enumerate(preds):
+                results[oob[n]] = pred
+
+        return [results, oob]
 
 
 def _is_transformer(obj):

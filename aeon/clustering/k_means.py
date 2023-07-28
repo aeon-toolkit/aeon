@@ -12,56 +12,57 @@ from aeon.clustering.partitioning import TimeSeriesLloyds
 
 
 class TimeSeriesKMeans(TimeSeriesLloyds):
-    """Time series K-means clustering algorithm.
+    """
+    Time series K-means clustering algorithm.
 
     Parameters
     ----------
-    n_clusters: int, defaults = 8
-        The number of clusters to form as well as the number of
-        centroids to generate.
-    init_algorithm: str, defaults = 'forgy'
+    n_clusters : int, default=8
+        The number of clusters to form as well as the number of centroids to generate.
+    init_algorithm : str, default='forgy'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmeans++', 'random', 'forgy'].
-    metric: str or Callable, defaults = 'dtw'
+    metric : str or Callable, default='dtw'
         Distance metric to compute similarity between time series. Any of the following
         are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
         'wddtw'].
-    n_init: int, defaults = 10
+    n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter: int, defaults = 30
+    max_iter : int, default=30
         Maximum number of iterations of the k-means algorithm for a single
         run.
-    tol: float, defaults = 1e-6
+    tol : float, default=1e-6
         Relative tolerance with regards to Frobenius norm of the difference
         in the cluster centers of two consecutive iterations to declare
         convergence.
-    verbose: bool, defaults = False
+    verbose : bool, default=False
         Verbosity mode.
-    random_state: int or np.random.RandomState instance or None, defaults = None
+    random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    averaging_method: str or Callable, defaults = 'mean'
+    averaging_method : str or Callable, default='mean'
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'dba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
-    average_params: dict, defaults = None = no parameters
-        Dictonary containing kwargs for averaging_method.
-    distance_params: dict, defaults = None = no parameters
-        Dictonary containing kwargs for the distance metric being used.
+    average_params : dict, default=None
+        Dictionary containing kwargs for averaging_method.
+    distance_params : dict, default=None
+        Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
-    cluster_centers_: np.ndarray (3d array of shape (n_clusters, n_dimensions,
-        series_length))
+    cluster_centers_ : 3d np.ndarray
+        Array of shape (n_clusters, n_channels, n_timepoints))
         Time series that represent each of the cluster centers. If the algorithm stops
         before fully converging these will not be consistent with labels_.
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_ : 1d np.ndarray
+        1d array of shape (n_instance,)
         Labels that is the index each time series belongs to.
-    inertia_: float
+    inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
-    n_iter_: int
+    n_iter_ : int
         Number of iterations run.
     """
 
@@ -138,7 +139,7 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

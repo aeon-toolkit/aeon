@@ -17,7 +17,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCEClassifier(BaseClassifier):
-    """Fresh Pipeline with RotatIoN forest Classifier.
+    """
+    Fresh Pipeline with RotatIoN forest Classifier.
 
     This classifier simply transforms the input data using the TSFresh [1]_
     transformer with comprehensive features and builds a RotationForestClassifier
@@ -30,8 +31,10 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
+    save_transformed_data: bool, default=False
+        Whether to save the transformed data.
     verbose : int, default=0
-        Level of output printed to the console (for information only)
+        Level of output printed to the console (for information only).
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -51,6 +54,7 @@ class FreshPRINCEClassifier(BaseClassifier):
     See Also
     --------
     TSFreshFeatureExtractor, TSFreshClassifier, RotationForestClassifier
+        TSFresh related classes.
 
     References
     ----------
@@ -102,10 +106,10 @@ class FreshPRINCEClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -146,13 +150,14 @@ class FreshPRINCEClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        y : 1D np.ndarray
+            The predicted class labels, shape = (n_instances).
         """
         return self._rotf.predict(self._tsfresh.transform(X))
 
@@ -161,13 +166,15 @@ class FreshPRINCEClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        y : 2D np.ndarray
+            Predicted probabilities using the ordering in classes_ shape = (
+            n_instances, n_classes_).
         """
         return self._rotf.predict_proba(self._tsfresh.transform(X))
 

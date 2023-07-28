@@ -37,7 +37,7 @@ class ElasticEnsemble(BaseClassifier):
 
     Parameters
     ----------
-    distance_measures : list of strings, default="all"
+    distance_measures : str or list of str, default="all"
       A list of strings identifying which distance measures to include. Valid values
       are one or more of: euclidean, dtw, wdtw, ddtw, dwdtw, lcss, erp, msm, twe, all
     proportion_of_param_options : float, default=1
@@ -54,15 +54,16 @@ class ElasticEnsemble(BaseClassifier):
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False
-      Whether to use majority vote or weighted vote
+      Whether to use majority vote or weighted vote.
 
     Attributes
     ----------
     estimators_ : list
-      A list storing all classifiers
-    train_accs_by_classifier_ : ndarray
-      Store the train accuracies of the classifiers
-    constituent_build_times_ : build time for each member of the ensemble
+      A list storing all classifiers.
+    train_accs_by_classifier_ : np.ndarray
+      Store the train accuracies of the classifiers.
+    constituent_build_times_ : array of float
+        build time for each member of the ensemble.
 
     Notes
     -----
