@@ -1,6 +1,6 @@
 recursive-include docs *
 recursive-include examples *
-recursive-include aeon *.py
+recursive-include aeon *.py *.csv
 recursive-include aeon *.c *.h *.pyx *.pxd *.pxi *.tp
 recursive-include aeon/datasets *.csv *.csv.gz *.arff *.arff.gz *.txt *.ts *.tsv *.tsf
 include *.rst
