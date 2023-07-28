@@ -139,7 +139,7 @@ def _check_soft_dependencies(
             if severity == "error":
                 raise ModuleNotFoundError(msg) from e
             elif severity == "warning":
-                warnings.warn(msg)
+                warnings.warn(msg, stacklevel=2)
                 return False
             elif severity == "none":
                 return False
@@ -162,7 +162,7 @@ def _check_soft_dependencies(
             if obj is not None:
                 msg = msg + (
                     f"This version requirement is not one by aeon, but specific "
-                    f"to the module, class or object with name {obj}."
+                    f"to the module, class or object with name {class_name}."
                 )
 
             # raise error/warning or return False if version is incompatible
@@ -171,7 +171,7 @@ def _check_soft_dependencies(
                 if severity == "error":
                     raise ModuleNotFoundError(msg)
                 elif severity == "warning":
-                    warnings.warn(msg)
+                    warnings.warn(msg, stacklevel=2)
                 elif severity == "none":
                     return False
                 else:
@@ -223,7 +223,7 @@ def _check_dl_dependencies(msg=None, severity="error"):
         if severity == "error":
             raise ModuleNotFoundError(msg) from e
         elif severity == "warning":
-            warnings.warn(msg)
+            warnings.warn(msg, stacklevel=2)
             return False
         elif severity == "none":
             return False
@@ -295,7 +295,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     if severity == "error":
         raise ModuleNotFoundError(msg)
     elif severity == "warning":
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=2)
     elif severity == "none":
         return False
     else:
