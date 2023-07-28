@@ -14,9 +14,12 @@ include README.md
 include setup.cfg
 
 recursive-exclude .binder *
+recursive-exclude .github *
 recursive-exclude build_tools *
 exclude .all-contributorsrc
 exclude .codecov.yml
+exclude .gitattributes
+exclude .gitignore
 exclude .pre-commit-config.yaml
 exclude .readthedocs.yml
 exclude CHANGELOG.md
