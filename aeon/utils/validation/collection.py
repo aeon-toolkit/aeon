@@ -8,6 +8,8 @@ __author__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 
+COLLECTIONS_DATA_TYPES = ["numpy3D"]
+
 
 def get_n_cases(X):
     """Return the number of cases in a collectiom.
