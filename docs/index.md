@@ -2,10 +2,6 @@
 hide-toc: true
 ---
 
-:align: center
-:alt: aeon logo
-:width: 80%
-```
 # Welcome to **aeon**
 
 <br>
