@@ -153,6 +153,12 @@ class BaseClassifier(BaseEstimator, ABC):
         self.reset()
 
         start = int(round(time.time() * 1000))
+        # Convert X to X_inner_mtype if possible
+
+        # Convert y to numpy and get class info
+        # Convert y to numpy array
+        # Check capabilities for self to deal with X
+
         # convenience conversions to allow user flexibility:
         # if X is 2D array, convert to 3D, if y is Series, convert to numpy
         X, y = self._internal_convert(X, y)
