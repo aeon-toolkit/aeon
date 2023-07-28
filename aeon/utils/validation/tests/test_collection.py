@@ -24,8 +24,8 @@ for _ in range(10):
 df_list = []
 for _ in range(10):
     df_list.append(pd.DataFrame(np.random.random(size=(2, 20))))
-nested, _ = make_nested_dataframe_data()
-multi = make_example_multi_index_dataframe()
+nested, _ = make_nested_dataframe_data(n_cases=10)
+multi = make_example_multi_index_dataframe(n_instances=10)
 
 EQUAL_LENGTH_DATA_EXAMPLES = {
     "numpy3D": np.random.random(size=(10, 3, 20)),
@@ -87,7 +87,7 @@ def test_is_unequal_length(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_has_missing(data):
-    assert not has_missing(data)
+    assert not has_missing(EQUAL_LENGTH_DATA_EXAMPLES[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
