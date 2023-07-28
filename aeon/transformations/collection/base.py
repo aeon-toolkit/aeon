@@ -77,8 +77,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -119,8 +117,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -187,8 +183,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb.
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation.
 
@@ -253,8 +247,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -304,8 +296,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True

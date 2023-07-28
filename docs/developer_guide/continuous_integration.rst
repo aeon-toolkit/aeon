@@ -83,7 +83,7 @@ integration services we use.
 | Platform      | Operation             | Configuration                       |
 +===============+=======================+=====================================+
 | `GitHub       | Build/test/           | `.github/workflows/ <https://gi     |
-| Actions       | distribute            | thub.com/aeon/skti |
+| Actions       | distribute            | thub.com/aeon/skti                  |
 | <https:/      | on Linux, MacOS and   | me/blob/main/.github/workflows/>`__ |
 | /docs.github. | Windows,              |                                     |
 | com/en/free-p | run code quality      |                                     |
@@ -92,15 +92,15 @@ integration services we use.
 +---------------+-----------------------+-------------------------------------+
 | `Read the     | Build/deploy          | `.readthedocs.yml                   |
 | Docs <h       | documentation         | <https://github.com/alan-tu         |
-| ttps://readth |                       | ring-institute/aeon/blob/main/.gi |
+| ttps://readth |                       | ring-institute/aeon/blob/main/.gi   |
 | edocs.org>`__ |                       | thub/workflows/code-quality.yml>`__ |
 +---------------+-----------------------+-------------------------------------+
 | `Codecov      | Test coverage         | `.codecov.yml <https                |
-| <https://c    |                       | ://github.com/aeon |
-| odecov.io>`__ |                       | /aeon/blob/main/.codecov.yml>`__, |
+| <https://c    |                       | ://github.com/aeon                  |
+| odecov.io>`__ |                       | /aeon/blob/main/.codecov.yml>`__,   |
 |               |                       | `.coveragerc <htt                   |
 |               |                       | ps://github.com/alan-turing-institu |
-|               |                       | te/aeon/blob/main/.coveragerc>`__ |
+|               |                       | te/aeon/blob/main/.coveragerc>`__   |
 +---------------+-----------------------+-------------------------------------+
 
 Additional scripts used for building, unit testing and distribution can

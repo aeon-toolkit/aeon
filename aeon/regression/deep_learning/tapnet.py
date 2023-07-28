@@ -8,6 +8,7 @@ __all__ = [
     "TapNetRegressor",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -227,6 +228,7 @@ class TapNetRegressor(BaseDeepRegressor):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod

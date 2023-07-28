@@ -45,6 +45,22 @@ Clustering models
 
     TimeSeriesKernelKMeans
 
+.. currentmodule:: aeon.clustering.clara
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TimeSeriesCLARA
+
+.. currentmodule:: aeon.clustering.clarans
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TimeSeriesCLARANS
+
 Base
 ----
 
