@@ -8,7 +8,18 @@ __author__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 
-COLLECTIONS_DATA_TYPES = ["numpy3D"]
+COLLECTIONS_DATA_TYPES = [
+    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
+    "np-list",  # python list of 2D numpy array of length [n_cases],
+    # each of shape (n_channels, n_timepoints_i)
+    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
+    # shape (n_channels, n_timepoints_i)
+    "numpyflat",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
+    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
+    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
+    "pd-multiindex",  # d.DataFrame with multi-index,
+    # To add "dask_panel": but not currently used anywhere
+]
 
 
 def get_n_cases(X):
@@ -200,7 +211,7 @@ def has_missing(X):
         return X.isnull().any().any()
     if type == "nested_univ":
         for i in range(len(X)):
-            for j in range(X.columns):
+            for j in range(X.shape[1]):
                 if X.iloc[i, j].hasnans:
                     return True
         return False
