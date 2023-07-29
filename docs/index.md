@@ -2,17 +2,13 @@
 hide-toc: true
 ---
 
-```{image} images/logo/aeon-logo-blue-compact.png
-:align: center
-:alt: aeon logo
-:width: 80%
-```
-# Welcome to the documentation for **aeon**
+# <p style="text-align: center;">Welcome to **aeon**</p>
 
 <br>
+<p>
+aeon is a scikit learn compatible toolkit for time series tasks such as
+  forecasting, classification and clustering.</p>
 
-- scikit learn compatible Framework for time series tasks such as forecasting and
-classification.
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
@@ -45,8 +41,6 @@ Forecasting
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
 :text-align: center
-
-
 
 
 Get started with time series classification.
@@ -140,6 +134,24 @@ Distances
 :::
 
 :::{grid-item-card}
+:img-top: /examples/networks/img/Inception.png
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
 :text-align: center
 
@@ -159,8 +171,8 @@ Annotation
 :::
 
 :::{grid-item-card}
+:img-top: <img src="/examples/datasets/img/data.png" style="max-width:100px; margin:auto;">
 :text-align: center
-
 
 Data structures and containers used in aeon
 
@@ -190,23 +202,6 @@ How to benchmark algorithms.
 :expand:
 
 Benchmarking
-```
-:::
-
-:::{grid-item-card}
-:img-top: /examples/networks/img/Inception.png
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/networks/deep_learning.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
 ```
 
 :::
