@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-# Welcome to **aeon**
+# <p style="text-align: center;">Welcome to **aeon**</p>
 
 <br>
 
