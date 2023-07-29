@@ -152,7 +152,7 @@ Annotation
 ```
 
 :::
-
+```{button-ref}<img src="/examples/datasets/img/data.png" style="max-width:100px;margin:auto;" alt="data"/>
 :::{grid-item-card}
 :text-align: center
 
