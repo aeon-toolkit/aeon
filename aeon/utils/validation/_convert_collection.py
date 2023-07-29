@@ -22,6 +22,41 @@ import numpy as np
 import pandas as pd
 
 
+def _nested_univ_is_equal(X):
+    """Check whether series are unequal length."""
+    length = X.iloc[0, 0].size
+    for i in range(1, X.shape[0]):
+        if X.iloc[i, 0].size != length:
+            return False
+    return True
+
+
+def _is_nested_univ_dataframe(X):
+    """Check if X is nested dataframe."""
+    # Otherwise check all entries are pd.Series
+    if not isinstance(X, pd.DataFrame):
+        return False
+    for _, series in X.items():
+        for cell in series:
+            if not isinstance(cell, pd.Series):
+                return False
+    return True
+
+
+def _is_pd_wide(X):
+    """Check whether the input nested DataFrame is "pd-wide" type."""
+    # only test is if all values are float. This from chatgpt seems stupid
+    if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
+        if _is_nested_univ_dataframe(X):
+            return False
+        float_cols = X.select_dtypes(include=[float]).columns
+        for col in float_cols:
+            if not np.issubdtype(X[col].dtype, np.floating):
+                return False
+        return True
+    return False
+
+
 def convert_identity(X):
     """Convert identity."""
     return X
@@ -79,8 +114,8 @@ def _from_numpy3d_to_df_list(X):
     if not isinstance(X, np.ndarray) and X.ndim != 3:
         raise TypeError(numpy3D_error)
     df_list = []
-    for arr in X:
-        df_list.append(pd.DataFrame(arr))
+    for x in X:
+        df_list.append(pd.DataFrame(np.transpose(x)))
     return df_list
 
 
@@ -177,7 +212,7 @@ def _from_np_list_to_df_list(X):
     n_cases = len(X)
     df_list = []
     for i in range(n_cases):
-        df_list.append(pd.DataFrame(X[i]))
+        df_list.append(pd.DataFrame(np.transpose(X[i])))
     return df_list
 
 
@@ -222,21 +257,37 @@ def _from_df_list_to_np_list(X):
     list = []
     n_cases = len(X)
     for i in range(n_cases):
-        list.append(np.array(X[i]))
+        list.append(np.transpose(np.array(X[i])))
     return list
 
 
 def _from_df_list_to_numpy3d(X):
-    np_list = _from_df_list_to_np_list(X)
-    return _from_np_list_to_numpy3d(np_list)
+    n = len(X[0])
+    cols = set(X[0].columns)
+
+    for i in range(len(X)):
+        if not n == len(X[i]) or not set(X[i].columns) == cols:
+            raise TypeError("elements of obj must have same length and columns")
+    nump3D = np.array([x.to_numpy().transpose() for x in X])
+    return nump3D
 
 
 def _from_df_list_to_numpyflat(X):
+    if not _equal_length(X, "df-list"):
+        raise TypeError(
+            f"{type(X)} does not store equal length series, "
+            f"cannot convert to  numpy flat"
+        )
     np_list = _from_df_list_to_np_list(X)
     return _from_np_list_to_numpyflat(np_list)
 
 
 def _from_df_list_to_pd_wide(X):
+    if not _equal_length(X, "df-list"):
+        raise TypeError(
+            f"{type(X)} does not store equal length series, "
+            f"cannot convert to  pd wide"
+        )
     np_list = _from_df_list_to_np_list(X)
     return _from_np_list_to_pd_wide(np_list)
 
@@ -259,7 +310,6 @@ numpyflat_error = (
 
 
 def _from_numpyflat_to_numpy3d(X):
-    """Convert numpyflat collection to 3D by simply adding a dimension."""
     if X.ndim != 2:
         raise TypeError(numpyflat_error)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
@@ -267,18 +317,6 @@ def _from_numpyflat_to_numpy3d(X):
 
 
 def _from_numpyflat_to_np_list(X):
-    """Convert numpyflat collection to list of numpy shape (1,n_timepoints).
-
-    Parameters
-    ----------
-    X : np.ndarray
-        2-dimensional np.ndarray (n_instances, n_timepoints)
-
-    Returns
-    -------
-    X_mi : list
-        list of np.ndarray (n_instances, 1, n_timepoints)
-    """
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(numpyflat_error)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
@@ -306,7 +344,7 @@ def _from_numpyflat_to_df_list(X):
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
     X_list = []
     for x in X_3d:
-        X_list.append(pd.DataFrame(x))
+        X_list.append(pd.DataFrame(np.transpose(x)))
     return X_list
 
 
@@ -380,6 +418,11 @@ def _from_nested_univ_to_numpy3d(X):
 
     Needs to check equal length, but this is legacy only.
     """
+    if not _nested_univ_is_equal(X):
+        raise TypeError(
+            "Error, nested univ contains unequal length series, "
+            "cannot convert to numpy3D"
+        )
 
     def _convert_series_cell_to_numpy(cell):
         if isinstance(cell, pd.Series):
@@ -431,6 +474,8 @@ def _from_nested_univ_to_df_list(X):
 
 
 def _from_nested_univ_to_numpyflat(X):
+    if not _nested_univ_is_equal(X):
+        raise TypeError("Cannot convert unequal length series to numpyflat")
     # convert nested data into tabular data
     if isinstance(X, pd.Series):
         Xt = np.array(X.tolist())
@@ -446,10 +491,10 @@ def _from_nested_univ_to_numpyflat(X):
                 Xt = X.iloc[0, 0].values
             else:
                 raise
-        if Xt.ndim != 2:
-            raise ValueError("Cannot convert to numpyflat")
+    #        if Xt.ndim != 2:
+    #            raise TypeError("Cannot convert nested_univ to numpyflat")
     else:
-        raise ValueError(
+        raise TypeError(
             f"Expected input is pandas Series or pandas DataFrame, "
             f"but found: {type(X)}"
         )
@@ -457,8 +502,8 @@ def _from_nested_univ_to_numpyflat(X):
 
 
 def _from_nested_univ_to_pd_wide(X):
-    npflat = _from_nested_univ_to_numpyflat(X)
-    return _from_numpyflat_to_pd_wide(npflat)
+    npflat = _from_nested_univ_to_numpy3d(X)
+    return _from_numpy3d_to_pd_wide(npflat)
 
 
 def _from_pd_multiindex_to_df_list(X):
@@ -514,3 +559,53 @@ def _from_pd_multiindex_to_nested_univ(X):
     assert (x_nested.columns == X.columns).all(), col_msg
 
     return x_nested
+
+
+def _equal_length(X, input_type):
+    """Test if X contains equal length time series.
+
+    Assumes input_type is a valid type (COLLECTIONS_DATA_TYPES).
+
+    Parameters
+    ----------
+    X : data structure.
+    input_type : string, one of COLLECTIONS_DATA_TYPES
+
+    Returns
+    -------
+    boolean: True if all series in X are equal length, False otherwise
+
+    Raises
+    ------
+    ValueError if input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+
+    Example
+    -------
+    >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
+    True
+    """
+    always_equal = {"numpy3D", "numpyflat", "pd-wide"}
+    if input_type in always_equal:
+        return True
+    if input_type == "np-list":
+        first = X[0].shape[1]
+        for i in range(1, len(X)):
+            if X[i].shape[1] != first:
+                return False
+        return True
+    if input_type == "df-list":
+        first = X[0].shape[1]
+        for i in range(1, len(X)):
+            if X[i].shape[1] != first:
+                return False
+        return True
+    if input_type == "nested_univ":  # Nested univariate or hierachical
+        return _nested_univ_is_equal(X)
+    if input_type == "pd-multiindex":
+        # TEMPORARY: WORK OUT HOW TO TEST THESE
+        return True
+    #        raise ValueError(" Multi index not supported here ")
+    if input_type == "dask_panel":
+        raise ValueError(" DASK panel not supported here ")
+    raise ValueError(f" unknown input type {input_type}")
+    return False
