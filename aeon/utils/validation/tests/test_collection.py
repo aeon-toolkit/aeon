@@ -20,14 +20,14 @@ from aeon.utils.validation.collection import (  # _nested_uni_is_equal,; ,
 
 np_list = []
 for _ in range(10):
-    np_list.append(np.random.random(size=(2, 20)))
+    np_list.append(np.random.random(size=(1, 20)))
 df_list = []
 for _ in range(10):
-    df_list.append(pd.DataFrame(np.random.random(size=(2, 20))))
+    df_list.append(pd.DataFrame(np.random.random(size=(1, 20))))
 nested, _ = make_nested_dataframe_data(n_cases=10)
 multi = make_example_multi_index_dataframe(n_instances=10)
 
-EQUAL_LENGTH_DATA_EXAMPLES = {
+EQUAL_LENGTH_UNIVARIATE = {
     "numpy3D": np.random.random(size=(10, 1, 20)),
     "np-list": np_list,
     "df-list": df_list,
@@ -59,25 +59,25 @@ UNEQUAL_LENGTH_DATA_EXAMPLES = {
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_get_n_cases(data):
     """Test getting the number of cases."""
-    assert get_n_cases(EQUAL_LENGTH_DATA_EXAMPLES[data]) == 10
+    assert get_n_cases(EQUAL_LENGTH_UNIVARIATE[data]) == 10
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_get_type(data):
     """Test getting the type."""
-    assert get_type(EQUAL_LENGTH_DATA_EXAMPLES[data]) == data
+    assert get_type(EQUAL_LENGTH_UNIVARIATE[data]) == data
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_equal_length(data):
     """Test if equal length series correctly identified."""
-    assert equal_length(EQUAL_LENGTH_DATA_EXAMPLES[data], data)
+    assert equal_length(EQUAL_LENGTH_UNIVARIATE[data], data)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_is_equal_length(data):
     """Test if equal length series correctly identified."""
-    assert is_equal_length(EQUAL_LENGTH_DATA_EXAMPLES[data])
+    assert is_equal_length(EQUAL_LENGTH_UNIVARIATE[data])
 
 
 @pytest.mark.parametrize("data", ["df-list", "np-list"])
@@ -94,12 +94,12 @@ def test_is_unequal_length(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_has_missing(data):
-    assert not has_missing(EQUAL_LENGTH_DATA_EXAMPLES[data])
+    assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__is_nested_univ_dataframe(data):
     if data == "nested_univ":
-        assert _is_nested_univ_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
+        assert _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
     else:
-        assert not _is_nested_univ_dataframe(EQUAL_LENGTH_DATA_EXAMPLES[data])
+        assert not _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])

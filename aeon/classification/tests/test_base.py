@@ -7,10 +7,10 @@ import pandas as pd
 import pytest
 
 from aeon.classification import DummyClassifier
-from aeon.classification.base import BaseClassifier
+from aeon.classification.base import BaseClassifier, _get_metadata
 from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
-    EQUAL_LENGTH_DATA_EXAMPLES,
+    EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_DATA_EXAMPLES,
 )
 
@@ -35,11 +35,11 @@ class _TestClassifier(BaseClassifier):
 
     def _predict(self, X):
         """Predict dummy."""
-        return self
+        return np.zeros(shape=(len(X),))
 
     def _predict_proba(self, X):
         """Predict proba dummy."""
-        return self
+        return np.zeros(shape=(len(X), 2))
 
 
 class _TestHandlesAllInput(BaseClassifier):
@@ -76,7 +76,7 @@ incorrect_y_data_structure = r"must be 1-dimensional"
 def test_base_classifier(data):
     """Test basic functionality with valid input for the BaseClassifier."""
     dummy = _TestClassifier()
-    X = EQUAL_LENGTH_DATA_EXAMPLES[data]
+    X = EQUAL_LENGTH_UNIVARIATE[data]
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     result = dummy.fit(X, y)
     # Fit returns self
@@ -86,6 +86,16 @@ def test_base_classifier(data):
     assert len(preds) == 10
     preds = dummy.predict_proba(X)
     assert preds.shape == (10, 2)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test__get_metadata(data):
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    meta = _get_metadata(X)
+    assert not meta["multivariate"]
+    assert not meta["missing_values"]
+    assert not meta["unequal_length"]
+    assert meta["n_cases"] == 10
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)

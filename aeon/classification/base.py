@@ -335,7 +335,7 @@ class BaseClassifier(BaseEstimator, ABC):
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+                list of 2D np.ndarray of length = [n_instances]
 
         Returns
         -------
@@ -373,40 +373,6 @@ class BaseClassifier(BaseEstimator, ABC):
             dists[i, self._class_dictionary[preds[i]]] = 1
 
         return dists
-
-    def _get_metadata(self, X):
-        # Get and store X meta data. Tags to match capabilities
-        metadata = {}
-        metadata["multivariate"] = not is_univariate(X)
-        metadata["missing_values"] = has_missing(X)
-        metadata["unequal_length"] = not is_equal_length(X)
-        metadata["n_cases"] = get_n_cases(X)
-        allow_multivariate = self.get_tag("capability:multivariate")
-        allow_missing = self.get_tag("capability:missing_values")
-        allow_unequal = self.get_tag("capability:unequal_length")
-
-        self_name = type(self).__name__
-
-        # identify problems, mismatch of capability and inputs
-        problems = []
-        if metadata["missing_values"] and not allow_missing:
-            problems += ["missing values"]
-        if metadata["multivariate"] and not allow_multivariate:
-            problems += ["multivariate series"]
-        if metadata["unequal_length"] and not allow_unequal:
-            problems += ["unequal length series"]
-
-        if problems:
-            # construct error message
-            problems_and = " and ".join(problems)
-            problems_or = " or ".join(problems)
-            msg = (
-                f"Data seen by {self_name} instance has {problems_and}, "
-                f"but this {self_name} instance cannot handle {problems_or}. "
-            )
-            raise ValueError(msg)
-
-        return metadata
 
     def convertX(self, X):
         """Docstring to follow."""
@@ -478,3 +444,14 @@ class BaseClassifier(BaseEstimator, ABC):
         for index, class_val in enumerate(self.classes_):
             self._class_dictionary[class_val] = index
         return y
+
+
+def _get_metadata(X):
+    # Get and store X meta data.
+    metadata = {}
+    metadata["multivariate"] = not is_univariate(X)
+    metadata["missing_values"] = has_missing(X)
+    metadata["unequal_length"] = not is_equal_length(X)
+    metadata["n_cases"] = get_n_cases(X)
+
+    return metadata
