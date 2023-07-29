@@ -6,7 +6,7 @@ set -euxo pipefail
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
 excluded=(
-  "examples/datasets/benchmarking_data.ipynb"
+  "examples/datasets/load_data_from_web.ipynb"
   "examples/benchmarking/results_loading.ipynb"
 )
 
