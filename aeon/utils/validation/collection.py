@@ -280,6 +280,7 @@ def has_missing(X):
 
     Example
     -------
+    >>> from aeon.utils.validation.collection import has_missing
     >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
     """
@@ -320,7 +321,7 @@ def is_univariate(X):
     if type == "df-list" or type == "np-list":
         return X[0].shape[0] == 1
     if type == "pd-multiindex":
-        return X.columns == 1
+        return X.columns.shape[0] == 1
 
 
 def _nested_univ_is_equal(X):
@@ -347,8 +348,12 @@ def _is_nested_univ_dataframe(X):
 def _is_pd_wide(X):
     """Check whether the input nested DataFrame is "pd-wide" type."""
     # only test is if all values are float. This from chatgpt seems stupid
-    float_cols = X.select_dtypes(include=[float]).columns
-    for col in float_cols:
-        if not np.issubdtype(X[col].dtype, np.floating):
+    if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
+        if _is_nested_univ_dataframe(X):
             return False
-    return True
+        float_cols = X.select_dtypes(include=[float]).columns
+        for col in float_cols:
+            if not np.issubdtype(X[col].dtype, np.floating):
+                return False
+        return True
+    return False
