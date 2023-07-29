@@ -149,7 +149,7 @@ def get_type(X):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import convertX
+    >>> from aeon.utils.validation.collection import get_type
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
     """
@@ -206,7 +206,7 @@ def is_equal_length(X):
 
     Example
     -------
-    >>> equal_length( np.zeros(shape=(10, 3, 20)))
+    >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
     """
     return equal_length(X, get_type(X))
