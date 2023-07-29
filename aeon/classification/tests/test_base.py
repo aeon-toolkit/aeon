@@ -90,6 +90,7 @@ def test_base_classifier(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__get_metadata(data):
+    """Test get meta data."""
     X = EQUAL_LENGTH_UNIVARIATE[data]
     meta = _get_metadata(X)
     assert not meta["multivariate"]
@@ -98,9 +99,9 @@ def test__get_metadata(data):
     assert meta["n_cases"] == 10
 
 
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_convertX(data):
-    """Directly test the conversions."""
+# @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+# def test_convertX(data):
+#    """Directly test the conversions."""
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
