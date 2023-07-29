@@ -22,6 +22,95 @@ COLLECTIONS_DATA_TYPES = [
 ]
 
 
+def resolve_equal_length_inner_type(inner_type):
+    """Hierarchy of preference for internal supported types for equal length."""
+    if "numpy3D" in inner_type:
+        return "numpy3D"
+    if "np-list" in inner_type:
+        return "np-list"
+    if "numpyflat" in inner_type:
+        return "numpyflat"
+    if "pd-multiindex" in inner_type:
+        return "pd-multiindex"
+    if "df-list" in inner_type:
+        return "df-list"
+    if "pd-wide" in inner_type:
+        return "pd-multiindex"
+    if "nested_univ" in inner_type:
+        return "nested_univ"
+    raise ValueError(
+        f"Error, no valid inner types in {inner_type} must be one of "
+        f"{COLLECTIONS_DATA_TYPES}"
+    )
+
+
+def resolve_unequal_length_inner_type(inner_type):
+    """Hierarchy of preference for internal supported types for unequal length."""
+    if "np-list" in inner_type:
+        return "np-list"
+    if "df-list" in inner_type:
+        return "df-list"
+    if "pd-multiindex" in inner_type:
+        return "pd-multiindex"
+    if "nested_univ" in inner_type:
+        return "nested_univ"
+    raise ValueError(
+        f"Error, no valid inner types for unequal series in {inner_type} "
+        f"must be one of np-list, df-list, pd-multiindex or nested_univ"
+    )
+
+
+def convertX(X, output_type):
+    """Convert from one of collections compatible data structure to another.
+
+    See aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE for the list.
+
+    Parameters
+    ----------
+    X : data structure.
+    output_type : string, one of COLLECTIONS_DATA_TYPES
+
+    Returns
+    -------
+    Data structure conforming to "to_type"
+
+    Raises
+    ------
+    ValueError if
+        X pd.ndarray but wrong dimension
+        X is list but not of np.ndarray or p.DataFrame.
+        X is a pd.DataFrame of non float primitives.
+
+    Example
+    -------
+    >>> from aeon.utils.validation.collection import convertX, get_type
+    >>> X=convertX(np.zeros(shape=(10, 3, 20)), "np-list")
+    >>> type(X)
+    <class 'list'>
+    >>> get_type(X)
+    'np-list'
+    """
+    # Temporarily retain the current conversion
+    from aeon.datatypes import convert_to
+
+    input_type = get_type(X)
+    if output_type not in COLLECTIONS_DATA_TYPES:
+        raise ValueError(
+            f"Error with convertX, trying to convert to {output_type} "
+            f"which is not a valid collection type: {COLLECTIONS_DATA_TYPES}"
+        )
+    # Temporary fix because numpyflat does not work with old conversions
+    if input_type == "numpyflat":
+        X = X.reshape(X.shape[0], 1, X.shape[1])
+    else:
+        X = convert_to(
+            X,
+            to_type=output_type,
+            as_scitype="Panel",
+        )
+    return X
+
+
 def get_n_cases(X):
     """Return the number of cases in a collectiom.
 

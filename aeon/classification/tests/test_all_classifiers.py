@@ -7,7 +7,6 @@ import inspect
 
 import numpy as np
 
-from aeon.classification.base import _get_n_cases
 from aeon.classification.tests._expected_outputs import (
     basic_motions_proba,
     unit_test_proba,
@@ -17,6 +16,7 @@ from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.scenarios_classification import ClassifierFitPredict
+from aeon.utils.validation.collection import get_n_cases
 
 
 class ClassifierFixtureGenerator(BaseFixtureGenerator):
@@ -52,9 +52,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         n_classes = scenario.get_tag("n_classes")
         X = scenario.args["predict"]["X"]
         y = scenario.args["fit"]["y"]
-        # we use check_is_scitype to get the number instances in X_new
-        #   this is more robust against different scitypes in X_new
-        n_cases = _get_n_cases(X)
+        n_cases = get_n_cases(X)
 
         # run fit and predict
         y_pred = scenario.run(estimator_instance, method_sequence=["fit", "predict"])

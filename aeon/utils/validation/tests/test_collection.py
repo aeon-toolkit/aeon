@@ -28,7 +28,7 @@ nested, _ = make_nested_dataframe_data(n_cases=10)
 multi = make_example_multi_index_dataframe(n_instances=10)
 
 EQUAL_LENGTH_DATA_EXAMPLES = {
-    "numpy3D": np.random.random(size=(10, 3, 20)),
+    "numpy3D": np.random.random(size=(10, 1, 20)),
     "np-list": np_list,
     "df-list": df_list,
     "numpyflat": np.zeros(shape=(10, 20)),
@@ -38,14 +38,21 @@ EQUAL_LENGTH_DATA_EXAMPLES = {
 }
 np_list_uneq = []
 for i in range(10):
-    np_list_uneq.append(np.random.random(size=(2, 20 + i)))
+    np_list_uneq.append(np.random.random(size=(1, 20 + i)))
 df_list_uneq = []
 for i in range(10):
-    df_list_uneq.append(pd.DataFrame(np.random.random(size=(2, 20 + i))))
+    df_list_uneq.append(pd.DataFrame(np.random.random(size=(1, 20 + i))))
 
-UNEQUAL_DATA_EXAMPLES = {
+nested_univ_uneq = pd.DataFrame(dtype=np.float32)
+instance_list = []
+for i in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20 + i)))
+nested_univ_uneq["channel0"] = instance_list
+
+UNEQUAL_LENGTH_DATA_EXAMPLES = {
     "np-list": np_list_uneq,
     "df-list": df_list_uneq,
+    "nested_univ": nested_univ_uneq,
 }
 
 
@@ -76,13 +83,13 @@ def test_is_equal_length(data):
 @pytest.mark.parametrize("data", ["df-list", "np-list"])
 def test_unequal_length(data):
     """Test if unequal length series correctly identified."""
-    assert not equal_length(UNEQUAL_DATA_EXAMPLES[data], data)
+    assert not equal_length(UNEQUAL_LENGTH_DATA_EXAMPLES[data], data)
 
 
 @pytest.mark.parametrize("data", ["df-list", "np-list"])
 def test_is_unequal_length(data):
     """Test if unequal length series correctly identified."""
-    assert not is_equal_length(UNEQUAL_DATA_EXAMPLES[data])
+    assert not is_equal_length(UNEQUAL_LENGTH_DATA_EXAMPLES[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
