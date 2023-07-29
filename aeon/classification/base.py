@@ -376,7 +376,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
     def convertX(self, X):
         """Docstring to follow."""
-        metadata = self._get_metadata(X)
+        metadata = _get_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
