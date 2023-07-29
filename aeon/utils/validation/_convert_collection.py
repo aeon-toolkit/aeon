@@ -34,7 +34,7 @@ numpy3D_error = (
 
 
 def _from_numpy3d_to_np_list(X):
-    """Convert 3D np.darray to a list of 2D numpy.
+    """Convert 3D np.ndarray to a list of 2D numpy.
 
     Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
     a 2D list length [n_instances] each of shape (n_channels, n_timepoints)
@@ -289,7 +289,7 @@ def _from_numpyflat_to_np_list(X):
 
 
 def _from_numpyflat_to_df_list(X):
-    """Convert numpyflat collection to list of numpy shape (1,n_timepoints).
+    """Convert numpyflat collection to list of dataframe shape (1,n_timepoints).
 
     Parameters
     ----------
@@ -352,13 +352,11 @@ def _from_pd_wide_to_numpy3d(X):
 
 
 def _from_pd_wide_to_np_list(X):
-    """Docstring placeholder."""
     X = X.to_numpy()
     return _from_numpyflat_to_np_list(X)
 
 
 def _from_pd_wide_to_df_list(X):
-    """Docstring placeholder."""
     X = X.to_numpy()
     return _from_numpyflat_to_df_list(X)
 
@@ -368,7 +366,6 @@ def _from_pd_wide_to_numpyflat(X):
 
 
 def _from_pd_wide_to_nested_univ(X):
-    """Convert wide pd.DataFrame to nested_univ format pd.DataFrame."""
     X = X.to_numpy()
     return _from_numpyflat_to_nested_univ(X)
 
@@ -405,7 +402,6 @@ def _from_nested_univ_to_np_list(X):
 
 
 def _from_nested_univ_to_pd_multiindex(X):
-    """Convert nested pandas Panel to multi-index pandas Panel."""
     X_mi = pd.DataFrame()
     instance_index = "instances"
     time_index = "timepoints"
@@ -435,7 +431,6 @@ def _from_nested_univ_to_df_list(X):
 
 
 def _from_nested_univ_to_numpyflat(X):
-    """Convert nested_univ to numpyflat."""
     # convert nested data into tabular data
     if isinstance(X, pd.Series):
         Xt = np.array(X.tolist())
