@@ -135,6 +135,24 @@ Distances
 :::
 
 :::{grid-item-card}
+:img-top: /examples/networks/img/Inception.png
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
 :text-align: center
 
@@ -152,8 +170,9 @@ Annotation
 ```
 
 :::
-```{button-ref}<img src="/examples/datasets/img/data.png" style="max-width:100px;margin:auto;" alt="data"/>
+
 :::{grid-item-card}
+:img-top: <img src="/examples/datasets/img/data.png" style="max-width:100px; margin:auto;">
 :text-align: center
 
 
@@ -186,24 +205,6 @@ How to benchmark algorithms.
 
 Benchmarking
 ```
-:::
-
-:::{grid-item-card}
-:img-top: /examples/networks/img/Inception.png
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/networks/deep_learning.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
-```
-
 :::
 
 ::::
