@@ -258,7 +258,7 @@ def _is_nested_univ_dataframe(X):
 def _is_pd_wide(X):
     """Check whether the input nested DataFrame is "pd-wide" type."""
     # only test is if all values are float. This from chatgpt seems stupid
-    float_cols = X.select_dtypes(include=[np.float]).columns
+    float_cols = X.select_dtypes(include=[float]).columns
     for col in float_cols:
         if not np.issubdtype(X[col].dtype, np.floating):
             return False
