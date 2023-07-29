@@ -13,7 +13,6 @@ __all__ = [
     "check_window_length",
     "get_n_cases",
     "get_type",
-    "equal_length",
     "is_equal_length",
     "has_missing",
     "is_univariate",
@@ -28,7 +27,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.utils.validation.collection import (
-    equal_length,
     get_n_cases,
     get_type,
     has_missing,
