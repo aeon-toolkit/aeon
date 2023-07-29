@@ -5,9 +5,10 @@ hide-toc: true
 # <p style="text-align: center;">Welcome to **aeon**</p>
 
 <br>
+<p>
+aeon is a scikit learn compatible toolkit for time series tasks such as
+  forecasting, classification and clustering.</p>
 
-- scikit learn compatible Framework for time series tasks such as forecasting and
-classification.
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
@@ -40,8 +41,6 @@ Forecasting
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
 :text-align: center
-
-
 
 
 Get started with time series classification.
@@ -175,7 +174,6 @@ Annotation
 :img-top: <img src="/examples/datasets/img/data.png" style="max-width:100px; margin:auto;">
 :text-align: center
 
-
 Data structures and containers used in aeon
 
 +++
@@ -205,6 +203,7 @@ How to benchmark algorithms.
 
 Benchmarking
 ```
+
 :::
 
 ::::
