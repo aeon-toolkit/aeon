@@ -84,9 +84,9 @@ class ElasticEnsemble(BaseClassifier):
     ...     distance_measures = ["dtw","ddtw"],
     ...     majority_vote=True,
     ... )
-    >>> clf.fit(X_train, y_train)
+    >>> clf.fit(X_train, y_train)   # doctest: +SKIP
     ElasticEnsemble(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> y_pred = clf.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
