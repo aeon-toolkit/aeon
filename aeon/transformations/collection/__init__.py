@@ -39,7 +39,6 @@ __all__ = [
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
-from aeon.transformations.collection._scaler import TimeSeriesScaler
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
