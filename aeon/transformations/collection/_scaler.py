@@ -62,17 +62,12 @@ class TimeSeriesScaler(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import TimeSeriesScaler
-    >>> series = [[[0, 0, 0], [0, 0, 0]], [[1, 1, 1], [1, 1, 1]]]
+    >>> series = np.array([[[0, 0, 0], [0, 0, 0]], [[1, 1, 1], [1, 1, 1]]])
     >>> scaler = TimeSeriesScaler()
-    >>> print(scaler.fit(data))
+    >>> print(scaler.fit(series))
     TimeSeriesScaler()
-    >>> print(scaler.transform(data))
-    [[-1. -1.]
-     [-1. -1.]
-     [ 1.  1.]
-     [ 1.  1.]]
-    >>> print(scaler.transform([[2, 2]]))
-    [[3. 3.]]
+    >>> scaler.transform(series)[0][0]
+    array([0., 0., 0.])
     """
 
     _tags = {
