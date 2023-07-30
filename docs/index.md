@@ -257,5 +257,5 @@ about.md
 glossary.md
 changelog.md
 related_software
-papersusingaeon.md
+papers_using_aeon.md
 ```
