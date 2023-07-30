@@ -30,6 +30,7 @@ __all__ = [
     "SlopeTransformer",
     "SevenNumberSummaryTransformer",
     "SupervisedIntervals",
+    "TimeSeriesScaler",
     "TruncationTransformer",
     "TSFreshFeatureExtractor",
     "TSFreshRelevantFeatureExtractor",
