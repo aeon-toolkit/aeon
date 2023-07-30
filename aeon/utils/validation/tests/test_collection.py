@@ -8,8 +8,8 @@ from aeon.datasets import make_example_multi_index_dataframe
 
 # from aeon.datasets._data_generators import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
-from aeon.utils.validation import _equal_length
 from aeon.utils.validation._convert_collection import (
+    _equal_length,
     _is_nested_univ_dataframe,
     _is_pd_wide,
 )

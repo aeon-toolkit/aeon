@@ -329,7 +329,11 @@ def is_univariate(X):
         return True
     if type == "numpy3D" or type == "nested_univ":
         return X.shape[1] == 1
-    if type == "df-list" or type == "np-list":
+    # df list (n_timepoints, n_channels)
+    if type == "df-list":
+        return X[0].shape[1] == 1
+    # np list (n_channels, n_timepoints)
+    if type == "np-list":
         return X[0].shape[0] == 1
     if type == "pd-multiindex":
         return X.columns.shape[0] == 1
