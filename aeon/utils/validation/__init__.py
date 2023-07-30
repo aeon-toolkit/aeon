@@ -13,6 +13,7 @@ __all__ = [
     "check_window_length",
     "get_n_cases",
     "get_type",
+    "equal_length",
     "is_equal_length",
     "has_missing",
     "is_univariate",
