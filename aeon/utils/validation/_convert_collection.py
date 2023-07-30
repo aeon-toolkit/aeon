@@ -587,16 +587,18 @@ def _equal_length(X, input_type):
     always_equal = {"numpy3D", "numpyflat", "pd-wide"}
     if input_type in always_equal:
         return True
+    # np-list are shape (n_channels, n_timepoints)
     if input_type == "np-list":
         first = X[0].shape[1]
         for i in range(1, len(X)):
             if X[i].shape[1] != first:
                 return False
         return True
+    # df-list are shape (n_timepoints, n_channels)
     if input_type == "df-list":
-        first = X[0].shape[1]
+        first = X[0].shape[0]
         for i in range(1, len(X)):
-            if X[i].shape[1] != first:
+            if X[i].shape[0] != first:
                 return False
         return True
     if input_type == "nested_univ":  # Nested univariate or hierachical
