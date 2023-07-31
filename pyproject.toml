@@ -112,6 +112,7 @@ docs = [
     "sphinx-design>=0.3.0",
     "sphinx-copybutton",
     "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
+    "sphinx-remove-toctrees",
     "tabulate",
     "sphinxext-opengraph",
 ]
