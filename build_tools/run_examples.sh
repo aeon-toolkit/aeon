@@ -10,7 +10,9 @@ excluded=(
   "examples/benchmarking/results_loading.ipynb"
 )
 
-runetimes=()
+shopt -s lastpipe
+notebooks=()
+runtimes=()
 
 # Loop over all notebooks in the examples directory.
 find "examples/" -name "*.ipynb" -print0 |
@@ -21,10 +23,16 @@ find "examples/" -name "*.ipynb" -print0 |
     # Run the notebook.
     else
       echo "Running: $notebook"
-      start=`date +%s`
-      $CMD "$notebook"
-      end=`date +%s`
 
-      $((end-start))
+      start=$(date +%s)
+      $CMD "$notebook"
+      end=$(date +%s)
+
+      notebooks+=("$notebook")
+      runtimes+=($((end-start)))
     fi
   done
+
+# print runtimes and notebooks
+echo "Runtimes:"
+paste <(printf "%s\n" "${runtimes[@]}") <(printf "%s\n" "${notebooks[@]}")
