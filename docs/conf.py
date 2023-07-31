@@ -120,6 +120,7 @@ issues_github_path = "aeon-toolkit/aeon"
 copybutton_exclude = ".linenos, .gp, .go"
 
 # sphinx-remove-toctrees configuration
+# see https://github.com/pradyunsg/furo/pull/674
 remove_from_toctrees = ["api_reference/auto_generated/*"]
 
 # MyST Parser configuration
