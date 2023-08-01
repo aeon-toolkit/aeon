@@ -185,7 +185,7 @@ def test_typed_dict():
     # the test currently fails when numba is disabled. See issue #622
     import os
 
-    if os.environ["NUMBA_DISABLE_JIT"] == "1":
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
         return None
 
     # load training data

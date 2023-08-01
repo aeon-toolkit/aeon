@@ -16,7 +16,7 @@ def test_catch22_on_basic_motions():
     # the test currently fails when numba is disabled. See issue #622
     import os
 
-    if os.environ["NUMBA_DISABLE_JIT"] == "1":
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
         return None
 
     # load basic motions data

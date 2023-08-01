@@ -26,7 +26,7 @@ EXCLUDE_ESTIMATORS = [
 ]
 
 # the test currently fails when numba is disabled. See issue #622
-if os.environ["NUMBA_DISABLE_JIT"] == "1":
+if os.environ.get("NUMBA_DISABLE_JIT") == "1":
     EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
