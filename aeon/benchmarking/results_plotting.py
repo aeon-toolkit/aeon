@@ -16,11 +16,6 @@ import numpy as np
 from aeon.benchmarking._critical_difference import plot_critical_difference
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-_check_soft_dependencies("matplotlib", "seaborn", severity="warning")
-
-import matplotlib.pyplot as plt  # noqa:E402
-import seaborn as sns  # noqa:E402
-
 
 def plot_boxplot_median(
     results,
@@ -63,6 +58,10 @@ def plot_boxplot_median(
     fig: matplotlib.figure
         Figure created.
     """
+    _check_soft_dependencies("matplotlib", "seaborn")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     # Obtains deviation from median for each independent experiment.
     medians = np.median(results, axis=1)
     deviation_from_median = results / (results + medians[:, np.newaxis])
@@ -147,6 +146,10 @@ def plot_scatter_predictions(
     fig: matplotlib.figure
         Figure created.
     """
+    _check_soft_dependencies("matplotlib", "seaborn")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     fig = plt.figure(figsize=(10, 6))
     min_value = min(y.min(), y_pred.min()) * 0.97
     max_value = max(y.max(), y_pred.max()) * 1.03
@@ -206,6 +209,10 @@ def plot_scatter(
     fig: matplotlib.figure
         Figure created.
     """
+    _check_soft_dependencies("matplotlib", "seaborn")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
     fig = plt.figure(figsize=(10, 6))
 
     differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
