@@ -100,9 +100,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of PAM clustering
-    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", random_state=1)
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
     >>> km.fit(X_train)
-    TimeSeriesKMedoids(distance='dtw', n_clusters=3, random_state=1)
+    TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
     >>> pam_pred = km.predict(X_test)
 
     # Example of alternate clustering
