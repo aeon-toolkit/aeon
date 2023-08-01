@@ -80,6 +80,7 @@ class TimeSeriesScaler(BaseCollectionTransformer):
         self.with_std = with_std
         self.copy = copy
         self.scaler = StandardScaler(copy=copy, with_mean=with_mean, with_std=with_std)
+        super(TimeSeriesScaler, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
