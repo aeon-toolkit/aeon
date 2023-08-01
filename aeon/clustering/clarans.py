@@ -81,9 +81,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of PAM clustering
-    >>> km = TimeSeriesCLARANS(n_clusters=3, distance="dtw", random_state=1)
+    >>> km = TimeSeriesCLARANS(n_clusters=3, distance="euclidean", random_state=1)
     >>> km.fit(X_train)
-    TimeSeriesCLARANS(distance='dtw', n_clusters=3, random_state=1)
+    TimeSeriesCLARANS(distance='euclidean', n_clusters=3, random_state=1)
     >>> preds = km.predict(X_test)
 
     References
