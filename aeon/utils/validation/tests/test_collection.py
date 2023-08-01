@@ -5,15 +5,15 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import make_example_multi_index_dataframe
-
-# from aeon.datasets._data_generators import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
-from aeon.utils.validation.collection import (  # _nested_uni_is_equal,; ,
-    COLLECTIONS_DATA_TYPES,
+from aeon.utils.validation._convert_collection import (
+    _equal_length,
     _is_nested_univ_dataframe,
     _is_pd_wide,
+)
+from aeon.utils.validation.collection import (
+    COLLECTIONS_DATA_TYPES,
     convertX,
-    equal_length,
     get_n_cases,
     get_type,
     has_missing,
@@ -28,7 +28,7 @@ for _ in range(10):
     np_list.append(np.random.random(size=(1, 20)))
 df_list = []
 for _ in range(10):
-    df_list.append(pd.DataFrame(np.random.random(size=(1, 20))))
+    df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
 nested, _ = make_nested_dataframe_data(n_cases=10)
 multiindex = make_example_multi_index_dataframe(
     n_instances=10, n_channels=1, n_timepoints=20
@@ -48,7 +48,7 @@ for i in range(10):
     np_list_uneq.append(np.random.random(size=(1, 20 + i)))
 df_list_uneq = []
 for i in range(10):
-    df_list_uneq.append(pd.DataFrame(np.random.random(size=(1, 20 + i))))
+    df_list_uneq.append(pd.DataFrame(np.random.random(size=(20 + i, 1))))
 
 nested_univ_uneq = pd.DataFrame(dtype=float)
 instance_list = []
@@ -56,7 +56,7 @@ for i in range(0, 10):
     instance_list.append(pd.Series(np.random.randn(20 + i)))
 nested_univ_uneq["channel0"] = instance_list
 
-UNEQUAL_LENGTH_DATA_EXAMPLES = {
+UNEQUAL_LENGTH_UNIVARIATE = {
     "np-list": np_list_uneq,
     "df-list": df_list_uneq,
     "nested_univ": nested_univ_uneq,
@@ -66,19 +66,19 @@ for _ in range(10):
     np_list_multi.append(np.random.random(size=(2, 20)))
 df_list_multi = []
 for _ in range(10):
-    df_list_multi.append(pd.DataFrame(np.random.random(size=(2, 20))))
+    df_list_multi.append(pd.DataFrame(np.random.random(size=(20, 2))))
 multi = make_example_multi_index_dataframe(
     n_instances=10, n_channels=2, n_timepoints=20
 )
 
 nested_univ_multi = pd.DataFrame(dtype=float)
 instance_list = []
-for i in range(0, 10):
-    instance_list.append(pd.Series(np.random.randn(20 + i)))
+for _ in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20)))
 nested_univ_multi["channel0"] = instance_list
 instance_list = []
-for i in range(0, 10):
-    instance_list.append(pd.Series(np.random.randn(20 + i)))
+for _ in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20)))
 nested_univ_multi["channel1"] = instance_list
 
 
@@ -89,42 +89,37 @@ EQUAL_LENGTH_MULTIVARIATE = {
     "nested_univ": nested_univ_multi,
     "pd-multiindex": multi,
 }
-# NotImplementedError: no conversion defined from type np-list to numpy3D under the
-# datatypes definitions. SOON TO CHANGE!
-
-NOT_IMPLEMENTED_CONVERSIONS = [
-    ("np-list", "numpy3D"),
-    ("pd-wide", "numpy3D"),
-    ("numpyflat", "np-list"),
-    ("pd-wide", "np-list"),
-    ("numpyflat", "df-list"),
-    ("pd-wide", "df-list"),
-    ("np-list", "numpyflat"),
-    ("numpyflat", "numpyflat"),
-    ("pd-wide", "numpyflat"),
-    ("numpy3D", "pd-wide"),
-    ("pd-wide", "pd-wide"),
-    ("pd-multiindex", "pd-wide"),
-    ("np-list", "pd-wide"),
-    ("df-list", "pd-wide"),
-    ("numpyflat", "pd-wide"),
-    ("numpyflat", "nested_univ"),
-    ("pd-wide", "nested_univ"),
-    ("numpyflat", "pd-multiindex"),
-    ("pd-wide", "pd-multiindex"),
-]
 
 
 @pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("output_data", COLLECTIONS_DATA_TYPES)
 def test_convertX(input_data, output_data):
     """Test all valid and invalid conversions."""
-    # This should be possible for all, but under the current the following are not
-    # defined
-    if (input_data, output_data) not in NOT_IMPLEMENTED_CONVERSIONS:
-        X = convertX(EQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+    # All should work with univariate equal length
+    X = convertX(EQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+    assert get_type(X) == output_data
+    # Test with multivariate
+    if input_data in EQUAL_LENGTH_MULTIVARIATE:
+        X = convertX(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
         assert get_type(X) == output_data
-    # TODO: expand this test when conversions finished.
+    # Test with unequal length
+    if input_data in UNEQUAL_LENGTH_UNIVARIATE:
+        if output_data in UNEQUAL_LENGTH_UNIVARIATE or output_data == "pd-multiindex":
+            X = convertX(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+            assert get_type(X) == output_data
+        else:
+            with pytest.raises(TypeError):
+                X = convertX(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+
+
+@pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
+def test_convert_df_list(input_data):
+    """Test that df list is correctly transposed."""
+    X = convertX(EQUAL_LENGTH_UNIVARIATE[input_data], "df-list")
+    assert X[0].shape == (20, 1)
+    if input_data in EQUAL_LENGTH_MULTIVARIATE:
+        X = convertX(EQUAL_LENGTH_MULTIVARIATE[input_data], "df-list")
+        assert X[0].shape == (20, 2)
 
 
 def test_resolve_equal_length_inner_type():
@@ -166,7 +161,7 @@ def test_get_type(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_equal_length(data):
     """Test if equal length series correctly identified."""
-    assert equal_length(EQUAL_LENGTH_UNIVARIATE[data], data)
+    assert _equal_length(EQUAL_LENGTH_UNIVARIATE[data], data)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -178,13 +173,13 @@ def test_is_equal_length(data):
 @pytest.mark.parametrize("data", ["df-list", "np-list"])
 def test_unequal_length(data):
     """Test if unequal length series correctly identified."""
-    assert not equal_length(UNEQUAL_LENGTH_DATA_EXAMPLES[data], data)
+    assert not _equal_length(UNEQUAL_LENGTH_UNIVARIATE[data], data)
 
 
 @pytest.mark.parametrize("data", ["df-list", "np-list"])
 def test_is_unequal_length(data):
     """Test if unequal length series correctly identified."""
-    assert not is_equal_length(UNEQUAL_LENGTH_DATA_EXAMPLES[data])
+    assert not is_equal_length(UNEQUAL_LENGTH_UNIVARIATE[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)

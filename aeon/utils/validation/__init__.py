@@ -28,7 +28,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.utils.validation.collection import (
-    equal_length,
     get_n_cases,
     get_type,
     has_missing,
