@@ -193,7 +193,7 @@ consistent and fair. Enforcement of the Code of Conduct should be
 respectful and not include any harassing behaviours.
 
 4.1 The Code of Conduct Committee (COCC)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The aeon Code of Conduct committee currently consists of members listed
 `here <https://github.com/aeon-toolkit/aeon/blob/main/docs/about/team.rst>`__.

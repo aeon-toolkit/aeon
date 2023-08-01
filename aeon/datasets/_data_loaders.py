@@ -431,7 +431,7 @@ def _load_tsc_dataset(
     # Allow user to have non standard extract path
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"
@@ -448,10 +448,7 @@ def _load_tsc_dataset(
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = (
-                "https://timeseriesclassification.com/ClassificationDownloads/%s.zip"
-                % name
-            )
+            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
@@ -509,8 +506,6 @@ def load_tsf_to_dataframe(
         - other valid mtype strings are Panel or Hierarchical mtypes in
             datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
             conversion to that mtype will be attempted
-        For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
 
     Returns
     -------

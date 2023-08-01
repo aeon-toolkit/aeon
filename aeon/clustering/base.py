@@ -24,7 +24,7 @@ class BaseClusterer(BaseEstimator, ABC):
 
     Parameters
     ----------
-    n_clusters: int, defaults = None
+    n_clusters: int, default=None
         Number of clusters for model.
     """
 
