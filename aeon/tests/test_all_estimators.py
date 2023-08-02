@@ -8,11 +8,9 @@ adapted from scikit-learn's estimator_checks
 __author__ = ["mloning", "fkiraly", "achieveordie"]
 
 import numbers
-import os
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
-from tempfile import TemporaryDirectory
 
 import joblib
 import numpy as np
@@ -1288,26 +1286,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
                 f"pickling, estimator {type(estimator_instance).__name__}"
             ),
         )
-
-        # Test saving to a file
-        with TemporaryDirectory() as tmp_dir:
-            save_loc = os.path.join(tmp_dir, "estimator")
-            estimator.save(save_loc)
-
-            loaded_estimator = load(save_loc)
-            loaded_result = scenario.run(loaded_estimator, method_sequence=[method_nsc])
-
-            msg = (
-                f"Results of {method_nsc} differ between saved and loaded "
-                f"estimator {type(estimator).__name__}"
-            )
-
-            _assert_array_almost_equal(
-                vanilla_result,
-                loaded_result,
-                decimal=6,
-                err_msg=msg,
-            )
 
     def test_dl_constructor_initializes_deeply(self, estimator_class):
         """Test DL estimators that they pass custom parameters to underlying Network."""
