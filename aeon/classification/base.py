@@ -396,8 +396,8 @@ class BaseClassifier(BaseEstimator, ABC):
             problems_and = " and ".join(problems)
             problems_or = " or ".join(problems)
             msg = (
-                f"Data seen by instance of {self.__name__} has {problems_and}, "
-                f"but {self.__name__} cannot handle {problems_or}. "
+                f"Data seen by instance of {type(self).__name__} has {problems_and}, "
+                f"but {type(self).__name__} cannot handle {problems_or}. "
             )
             raise ValueError(msg)
 
