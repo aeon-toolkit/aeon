@@ -1240,10 +1240,10 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # err_msg=f"Idempotency check failed for method {method}",
         )
 
-    def test_persistence_via_pickle_and_save(
+    def test_persistence_via_pickle(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
-        """Check that we can pickle and save all estimators."""
+        """Check that we can pickle all estimators."""
         method_nsc = method_nsc_arraylike
 
         # escape estimators we know cannot pickle. For saving there is an argument to
