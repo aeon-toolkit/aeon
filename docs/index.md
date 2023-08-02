@@ -17,7 +17,7 @@ comparison.
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -37,7 +37,7 @@ Forecasting
 
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -57,7 +57,7 @@ Classification
 
 :::{grid-item-card}
 :img-top: examples/img/tser.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -77,7 +77,7 @@ Regression
 
 :::{grid-item-card}
 :img-top: examples/img/tscl.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -97,7 +97,7 @@ Clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/transformation.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -117,7 +117,7 @@ Transformations
 
 :::{grid-item-card}
 :img-top: examples/distances/img/dtw_vis.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -137,7 +137,7 @@ Distances
 
 :::{grid-item-card}
 :img-top: examples/networks/img/Inception.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 Deep learning networks.
@@ -156,7 +156,7 @@ Networks
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 
@@ -176,7 +176,7 @@ Annotation
 
 :::{grid-item-card}
 :img-top: examples/datasets/img/data.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 Data structures and containers used in aeon
@@ -195,7 +195,7 @@ Data
 
 :::{grid-item-card}
 :img-top: examples/benchmarking/img/benchmarking.png
-:class-img-top: sd-avatar-xl sd-border-1
+:class-img-top: sd-pt-5 sd-pb-5
 :text-align: center
 
 How to benchmark algorithms.
