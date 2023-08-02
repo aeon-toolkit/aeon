@@ -19,9 +19,17 @@ img.avatar {
 
 /* card images */
 
-.aeon-card-image {
+.aeon-card-image-m {
   width: 100%;
-  height: 12.5rem;
+  height: 150px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.aeon-card-image,
+.aeon-card-image-l {
+  width: 100%;
+  height: 200px;
   object-fit: contain;
   object-position: center;
 }

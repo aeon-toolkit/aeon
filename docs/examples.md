@@ -7,7 +7,7 @@
 
 :::{grid-item-card}
 :img-top: /examples/forecasting/img/forecasting2.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/forecasting/forecasting.ipynb
 :link-type: ref
 :text-align: center
@@ -18,7 +18,7 @@ Forecasting overview
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/proba.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/forecasting/forecasting_proba.ipynb
 :link-type: ref
 :text-align: center
@@ -29,7 +29,7 @@ Probabilistic forecasting
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/hierarchytree_grouped.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/forecasting/forecasting_hierarchical_global.ipynb
 :link-type: ref
 :text-align: center
@@ -56,7 +56,7 @@ Forecasting with aeon and scikit learn
 
 :::{grid-item-card}
 :img-top: examples/classification/img/tsc.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/classification.ipynb
 :link-type: ref
 :text-align: center
@@ -67,7 +67,7 @@ Overview of Time Series Classification (TSC)
 
 :::{grid-item-card}
 :img-top: examples/classification/img/convolution.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/convolution_based.ipynb
 :link-type: ref
 :text-align: center
@@ -78,7 +78,7 @@ Convolution based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/it.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/deep_learning.ipynb
 :link-type: ref
 :text-align: center
@@ -88,7 +88,7 @@ Deep learning based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/hist.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/dictionary_based.ipynb
 :link-type: ref
 :text-align: center
@@ -99,7 +99,7 @@ Dictionary based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/dtw.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/distance_based.ipynb
 :link-type: ref
 :text-align: center
@@ -110,7 +110,7 @@ Distance based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/pipeline.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/feature_based.ipynb
 :link-type: ref
 :text-align: center
@@ -121,7 +121,7 @@ Feature based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/hc2.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/hybrid.ipynb
 :link-type: ref
 :text-align: center
@@ -132,7 +132,7 @@ Hybrid TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/interval.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/interval_based.ipynb
 :link-type: ref
 :text-align: center
@@ -143,7 +143,7 @@ Interval based TSC
 
 :::{grid-item-card}
 :img-top: examples/classification/img/shapelet.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/classification/shapelet_based.ipynb
 :link-type: ref
 :text-align: center
@@ -178,7 +178,7 @@ Channel selection in multivariate TSC
 
 :::{grid-item-card}
 :img-top: /examples/regression/img/tser.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/regression/regression.ipynb
 :link-type: ref
 :text-align: center
@@ -196,7 +196,7 @@ Overview of Time Series Regression (TSR)
 
 :::{grid-item-card}
 :img-top: examples/clustering/img/tscl.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
@@ -214,7 +214,7 @@ Overview of Time Series Clustering (TSCL)
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/transformation.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
@@ -225,7 +225,7 @@ Overview of Transformation
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/tsfresh.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
 :link-type: ref
 :text-align: center
@@ -236,7 +236,7 @@ Feature based
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/rocket.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/rocket.ipynb
 :link-type: ref
 :text-align: center
@@ -247,7 +247,7 @@ Convolution based
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/leaves_shapelets.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/shapelets.ipynb
 :link-type: ref
 :text-align: center
@@ -258,7 +258,7 @@ Shapelet based
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/interpolation.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/interpolation.ipynb
 :link-type: ref
 :text-align: center
@@ -270,7 +270,7 @@ Interpolation
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/plateau.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/plateau_finder.ipynb
 :link-type: ref
 :text-align: center
@@ -281,7 +281,7 @@ Plateau finding
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/signature.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/signature_method.ipynb
 :link-type: ref
 :text-align: center
@@ -292,7 +292,7 @@ Signature method
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/theta.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/transformations/theta_transform.ipynb
 :link-type: ref
 :text-align: center
@@ -311,7 +311,7 @@ Theta transform
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/segmentation_use_cases.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/annotation/annotation.ipynb
 :link-type: ref
 :text-align: center
@@ -322,7 +322,7 @@ Intro to annotation
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
@@ -351,7 +351,7 @@ Hidalgo segmentation
 
 :::{grid-item-card}
 :img-top: examples/distances/img/dtw_vis.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/distances/distances.ipynb
 :link-type: ref
 :text-align: center
@@ -363,7 +363,7 @@ Distance functions
 
 :::{grid-item-card}
 :img-top: examples/distances/img/svm.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/distances/sklearn_distances.ipynb
 :link-type: ref
 :text-align: center
@@ -379,7 +379,7 @@ Using aeon distances with scikit-learn
 
 :::{grid-item-card}
 :img-top: examples/datasets/img/data.png
-:class-img-top: aeon-card-image
+:class-img-top: aeon-card-image-s
 :link: /examples/datasets/datasets.ipynb
 :link-type: ref
 :text-align: center
