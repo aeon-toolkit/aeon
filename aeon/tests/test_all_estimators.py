@@ -1178,6 +1178,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             assert getattr(
                 fitted_estimator, attr
             ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
+
         # Compare the state of the model parameters with the original parameters
         new_params = fitted_estimator.get_params()
         for param_name, original_value in original_params.items():
@@ -1241,21 +1242,24 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # err_msg=f"Idempotency check failed for method {method}",
         )
 
-    def test_persistence_via_pickle(
+    def test_persistence_via_pickle_and_save(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
-        """Check that we can pickle all estimators."""
+        """Check that we can pickle and save all estimators."""
         method_nsc = method_nsc_arraylike
+
+        # escape estimators we know cannot pickle. For saving there is an argument to
+        # be made that alternate methods of saving should be available, but currently
+        # this is not the case
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
+            return None
+
         # escape predict_proba for forecasters, tfp distributions cannot be pickled
         if (
             isinstance(estimator_instance, BaseForecaster)
             and method_nsc == "predict_proba"
-        ):
-            return None
-
-        # escape estimators we know cannot pickle
-        if estimator_instance.get_tag(
-            "cant-pickle", tag_value_default=False, raise_error=False
         ):
             return None
 
@@ -1284,6 +1288,26 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
                 f"pickling, estimator {type(estimator_instance).__name__}"
             ),
         )
+
+        # Test saving to a file
+        with TemporaryDirectory() as tmp_dir:
+            save_loc = os.path.join(tmp_dir, "estimator")
+            estimator.save(save_loc)
+
+            loaded_estimator = load(save_loc)
+            loaded_result = scenario.run(loaded_estimator, method_sequence=[method_nsc])
+
+            msg = (
+                f"Results of {method_nsc} differ between saved and loaded "
+                f"estimator {type(estimator).__name__}"
+            )
+
+            _assert_array_almost_equal(
+                vanilla_result,
+                loaded_result,
+                decimal=6,
+                err_msg=msg,
+            )
 
     def test_dl_constructor_initializes_deeply(self, estimator_class):
         """Test DL estimators that they pass custom parameters to underlying Network."""
@@ -1353,53 +1377,4 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
                 result_single_process,
                 result_multiple_process,
                 err_msg="Results are not equal for n_jobs=1 and n_jobs=-1",
-            )
-
-    def test_save_estimators_to_file(
-        self, estimator_instance, scenario, method_nsc_arraylike
-    ):
-        """Check if saved estimators onto disk can be loaded correctly."""
-        method_nsc = method_nsc_arraylike
-
-        # escape estimators we know cannot pickle. There is an argument to be made
-        # that alternate methods of saving should be available, but currently this is
-        # not the case
-        if estimator_instance.get_tag(
-            "cant-pickle", tag_value_default=False, raise_error=False
-        ):
-            return None
-
-        # escape predict_proba for forecasters, tfp distributions cannot be pickled
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc == "predict_proba"
-        ):
-            return None
-
-        estimator = estimator_instance
-
-        set_random_state(estimator)
-        # Fit the model, get args before and after
-        scenario.run(estimator, method_sequence=["fit"], return_args=True)
-
-        # Generate results before saving
-        vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
-
-        with TemporaryDirectory() as tmp_dir:
-            save_loc = os.path.join(tmp_dir, "estimator")
-            estimator.save(save_loc)
-
-            loaded_estimator = load(save_loc)
-            loaded_result = scenario.run(loaded_estimator, method_sequence=[method_nsc])
-
-            msg = (
-                f"Results of {method_nsc} differ between saved and loaded "
-                f"estimator {type(estimator).__name__}"
-            )
-
-            _assert_array_almost_equal(
-                vanilla_result,
-                loaded_result,
-                decimal=6,
-                err_msg=msg,
             )
