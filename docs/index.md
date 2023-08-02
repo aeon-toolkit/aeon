@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-# Welcome to aeon
+# <h1 align="center">Welcome to aeon</h1>
 
 aeon is a scikit learn compatible toolkit for time series tasks such as
 forecasting, classification and clustering.</p>
