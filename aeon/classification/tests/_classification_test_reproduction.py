@@ -252,34 +252,34 @@ if __name__ == "__main__":
     #         MatrixProfileClassifier(subsequence_length=4, random_state=0)
     #     ),
     # )
-    # _print_array(
-    #     "RandomIntervalClassifier - UnitTest",
-    #     _reproduce_classification_unit_test(
-    #         RandomIntervalClassifier(
-    #             n_intervals=3,
-    #             interval_transformers=SummaryTransformer(
-    #                 summary_function=("mean", "std", "min", "max"),
-    #                 quantiles=(0.25, 0.5, 0.75),
-    #             ),
-    #             estimator=RandomForestClassifier(n_estimators=10),
-    #             random_state=0,
-    #         )
-    #     ),
-    # )
-    # _print_array(
-    #     "RandomIntervalClassifier - BasicMotions",
-    #     _reproduce_classification_basic_motions(
-    #         RandomIntervalClassifier(
-    #             n_intervals=3,
-    #             interval_transformers=SummaryTransformer(
-    #                 summary_function=("mean", "std", "min", "max"),
-    #                 quantiles=(0.25, 0.5, 0.75),
-    #             ),
-    #             estimator=RandomForestClassifier(n_estimators=10),
-    #             random_state=0,
-    #         )
-    #     ),
-    # )
+    _print_array(
+        "RandomIntervalClassifier - UnitTest",
+        _reproduce_classification_unit_test(
+            RandomIntervalClassifier(
+                n_intervals=3,
+                features=SummaryTransformer(
+                    summary_function=("mean", "std", "min", "max"),
+                    quantiles=(0.25, 0.5, 0.75),
+                ),
+                estimator=RandomForestClassifier(n_estimators=10),
+                random_state=0,
+            )
+        ),
+    )
+    _print_array(
+        "RandomIntervalClassifier - BasicMotions",
+        _reproduce_classification_basic_motions(
+            RandomIntervalClassifier(
+                n_intervals=3,
+                features=SummaryTransformer(
+                    summary_function=("mean", "std", "min", "max"),
+                    quantiles=(0.25, 0.5, 0.75),
+                ),
+                estimator=RandomForestClassifier(n_estimators=10),
+                random_state=0,
+            )
+        ),
+    )
     # _print_array(
     #     "SignatureClassifier - UnitTest",
     #     _reproduce_classification_unit_test(
@@ -312,201 +312,201 @@ if __name__ == "__main__":
     #         )
     #     ),
     # )
-    # _print_array(
-    #     "HIVECOTEV1 - UnitTest",
-    #     _reproduce_classification_unit_test(
-    #         HIVECOTEV1(
-    #             stc_params={
-    #                 "estimator": RandomForestClassifier(n_estimators=3),
-    #                 "n_shapelet_samples": 50,
-    #                 "max_shapelets": 5,
-    #                 "batch_size": 10,
-    #             },
-    #             tsf_params={"n_estimators": 3},
-    #             rise_params={"n_estimators": 3},
-    #             cboss_params={"n_parameter_samples": 5, "max_ensemble_size": 3},
+    _print_array(
+        "HIVECOTEV1 - UnitTest",
+        _reproduce_classification_unit_test(
+            HIVECOTEV1(
+                stc_params={
+                    "estimator": RandomForestClassifier(n_estimators=3),
+                    "n_shapelet_samples": 50,
+                    "max_shapelets": 5,
+                    "batch_size": 10,
+                },
+                tsf_params={"n_estimators": 3},
+                rise_params={"n_estimators": 3},
+                cboss_params={"n_parameter_samples": 5, "max_ensemble_size": 3},
+                random_state=0,
+            )
+        ),
+    )
+    # # _print_array(
+    # #     "HIVECOTEV2 - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         HIVECOTEV2(
+    # #             stc_params={
+    # #                 "estimator": RandomForestClassifier(n_estimators=3),
+    # #                 "n_shapelet_samples": 50,
+    # #                 "max_shapelets": 5,
+    # #                 "batch_size": 10,
+    # #             },
+    # #             drcif_params={
+    # #                 "n_estimators": 3,
+    # #                 "n_intervals": 2,
+    # #                 "att_subsample_size": 2,
+    # #             },
+    # #             arsenal_params={"num_kernels": 50, "n_estimators": 3},
+    # #             tde_params={
+    # #                 "n_parameter_samples": 5,
+    # #                 "max_ensemble_size": 3,
+    # #                 "randomly_selected_params": 3,
+    # #             },
+    # #             random_state=0,
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "HIVECOTEV2 - BasicMotions",
+    # #     _reproduce_classification_basic_motions(
+    # #         HIVECOTEV2(
+    # #             stc_params={
+    # #                 "estimator": RandomForestClassifier(n_estimators=3),
+    # #                 "n_shapelet_samples": 50,
+    # #                 "max_shapelets": 5,
+    # #                 "batch_size": 10,
+    # #             },
+    # #             drcif_params={
+    # #                 "n_estimators": 3,
+    # #                 "n_intervals": 2,
+    # #                 "att_subsample_size": 2,
+    # #             },
+    # #             arsenal_params={"num_kernels": 50, "n_estimators": 3},
+    # #             tde_params={
+    # #                 "n_parameter_samples": 5,
+    # #                 "max_ensemble_size": 3,
+    # #                 "randomly_selected_params": 3,
+    # #             },
+    # #             random_state=0,
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "CanonicalIntervalForestClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         CanonicalIntervalForestClassifier(
+    # #             n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "CanonicalIntervalForestClassifier - BasicMotions",
+    # #     _reproduce_classification_basic_motions(
+    # #         CanonicalIntervalForestClassifier(
+    # #             n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "DrCIFClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         DrCIFClassifier(
+    # #             n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "DrCIFClassifier - BasicMotions",
+    # #     _reproduce_classification_basic_motions(
+    # #         DrCIFClassifier(
+    # #             n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "RandomIntervalSpectralEnsembleClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "SupervisedTimeSeriesForest - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         SupervisedTimeSeriesForest(n_estimators=10, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "TimeSeriesForestClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         TimeSeriesForestClassifier(n_estimators=10, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "Arsenal - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         Arsenal(num_kernels=20, n_estimators=5, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "Arsenal - BasicMotions",
+    # #     _reproduce_classification_basic_motions(
+    # #         Arsenal(num_kernels=20, n_estimators=5, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "RocketClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         RocketClassifier(num_kernels=100, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "RocketClassifier - BasicMotions",
+    # #     _reproduce_classification_basic_motions(
+    # #         RocketClassifier(num_kernels=100, random_state=0)
+    # #     ),
+    # # )
+    # # _print_array(
+    # #     "ShapeletTransformClassifier - UnitTest",
+    # #     _reproduce_classification_unit_test(
+    # #         ShapeletTransformClassifier(
+    # #             estimator=RandomForestClassifier(n_estimators=5),
+    # #             n_shapelet_samples=50,
+    # #             max_shapelets=10,
+    # #             batch_size=10,
+    # #             random_state=0,
+    # #         )
+    # #     ),
+    # # )
+    # # _print_array(
+    #     "ShapeletTransformClassifier - BasicMotions",
+    #     _reproduce_classification_basic_motions(
+    #         ShapeletTransformClassifier(
+    #             estimator=RandomForestClassifier(n_estimators=5),
+    #             n_shapelet_samples=50,
+    #             max_shapelets=10,
+    #             batch_size=10,
     #             random_state=0,
     #         )
     #     ),
     # )
-    _print_array(
-        "HIVECOTEV2 - UnitTest",
-        _reproduce_classification_unit_test(
-            HIVECOTEV2(
-                stc_params={
-                    "estimator": RandomForestClassifier(n_estimators=3),
-                    "n_shapelet_samples": 50,
-                    "max_shapelets": 5,
-                    "batch_size": 10,
-                },
-                drcif_params={
-                    "n_estimators": 3,
-                    "n_intervals": 2,
-                    "att_subsample_size": 2,
-                },
-                arsenal_params={"num_kernels": 50, "n_estimators": 3},
-                tde_params={
-                    "n_parameter_samples": 5,
-                    "max_ensemble_size": 3,
-                    "randomly_selected_params": 3,
-                },
-                random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "HIVECOTEV2 - BasicMotions",
-        _reproduce_classification_basic_motions(
-            HIVECOTEV2(
-                stc_params={
-                    "estimator": RandomForestClassifier(n_estimators=3),
-                    "n_shapelet_samples": 50,
-                    "max_shapelets": 5,
-                    "batch_size": 10,
-                },
-                drcif_params={
-                    "n_estimators": 3,
-                    "n_intervals": 2,
-                    "att_subsample_size": 2,
-                },
-                arsenal_params={"num_kernels": 50, "n_estimators": 3},
-                tde_params={
-                    "n_parameter_samples": 5,
-                    "max_ensemble_size": 3,
-                    "randomly_selected_params": 3,
-                },
-                random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "CanonicalIntervalForestClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            CanonicalIntervalForestClassifier(
-                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
-            )
-        ),
-    )
-    _print_array(
-        "CanonicalIntervalForestClassifier - BasicMotions",
-        _reproduce_classification_basic_motions(
-            CanonicalIntervalForestClassifier(
-                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
-            )
-        ),
-    )
-    _print_array(
-        "DrCIFClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            DrCIFClassifier(
-                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
-            )
-        ),
-    )
-    _print_array(
-        "DrCIFClassifier - BasicMotions",
-        _reproduce_classification_basic_motions(
-            DrCIFClassifier(
-                n_estimators=10, n_intervals=2, att_subsample_size=4, random_state=0
-            )
-        ),
-    )
-    _print_array(
-        "RandomIntervalSpectralEnsembleClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
-        ),
-    )
-    _print_array(
-        "SupervisedTimeSeriesForest - UnitTest",
-        _reproduce_classification_unit_test(
-            SupervisedTimeSeriesForest(n_estimators=10, random_state=0)
-        ),
-    )
-    _print_array(
-        "TimeSeriesForestClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            TimeSeriesForestClassifier(n_estimators=10, random_state=0)
-        ),
-    )
-    _print_array(
-        "Arsenal - UnitTest",
-        _reproduce_classification_unit_test(
-            Arsenal(num_kernels=20, n_estimators=5, random_state=0)
-        ),
-    )
-    _print_array(
-        "Arsenal - BasicMotions",
-        _reproduce_classification_basic_motions(
-            Arsenal(num_kernels=20, n_estimators=5, random_state=0)
-        ),
-    )
-    _print_array(
-        "RocketClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            RocketClassifier(num_kernels=100, random_state=0)
-        ),
-    )
-    _print_array(
-        "RocketClassifier - BasicMotions",
-        _reproduce_classification_basic_motions(
-            RocketClassifier(num_kernels=100, random_state=0)
-        ),
-    )
-    _print_array(
-        "ShapeletTransformClassifier - UnitTest",
-        _reproduce_classification_unit_test(
-            ShapeletTransformClassifier(
-                estimator=RandomForestClassifier(n_estimators=5),
-                n_shapelet_samples=50,
-                max_shapelets=10,
-                batch_size=10,
-                random_state=0,
-            )
-        ),
-    )
-    _print_array(
-        "ShapeletTransformClassifier - BasicMotions",
-        _reproduce_classification_basic_motions(
-            ShapeletTransformClassifier(
-                estimator=RandomForestClassifier(n_estimators=5),
-                n_shapelet_samples=50,
-                max_shapelets=10,
-                batch_size=10,
-                random_state=0,
-            )
-        ),
-    )
-
-    _print_array(
-        "ProbabilityThresholdEarlyClassifier - UnitTest",
-        _reproduce_early_classification_unit_test(
-            ProbabilityThresholdEarlyClassifier(
-                random_state=0,
-                classification_points=[6, 10, 16, 24],
-                estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
-            )
-        ),
-    )
-    _print_array(
-        "TEASER - UnitTest",
-        _reproduce_early_classification_unit_test(
-            TEASER(
-                random_state=0,
-                classification_points=[6, 10, 16, 24],
-                estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
-            )
-        ),
-    )
-    _print_array(
-        "TEASER-IF - UnitTest",
-        _reproduce_early_classification_unit_test(
-            TEASER(
-                random_state=0,
-                classification_points=[6, 10, 16, 24],
-                estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
-                one_class_classifier=IsolationForest(n_estimators=5),
-                one_class_param_grid={"bootstrap": [True, False]},
-            )
-        ),
-    )
+    #
+    # _print_array(
+    #     "ProbabilityThresholdEarlyClassifier - UnitTest",
+    #     _reproduce_early_classification_unit_test(
+    #         ProbabilityThresholdEarlyClassifier(
+    #             random_state=0,
+    #             classification_points=[6, 10, 16, 24],
+    #             estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
+    #         )
+    #     ),
+    # )
+    # _print_array(
+    #     "TEASER - UnitTest",
+    #     _reproduce_early_classification_unit_test(
+    #         TEASER(
+    #             random_state=0,
+    #             classification_points=[6, 10, 16, 24],
+    #             estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
+    #         )
+    #     ),
+    # )
+    # _print_array(
+    #     "TEASER-IF - UnitTest",
+    #     _reproduce_early_classification_unit_test(
+    #         TEASER(
+    #             random_state=0,
+    #             classification_points=[6, 10, 16, 24],
+    #             estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
+    #             one_class_classifier=IsolationForest(n_estimators=5),
+    #             one_class_param_grid={"bootstrap": [True, False]},
+    #         )
+    #     ),
+    # )
