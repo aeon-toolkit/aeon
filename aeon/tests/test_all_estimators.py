@@ -1071,7 +1071,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             scitype specific method outputs are tested in TestAll[estimatortype] class
         3. the state of method arguments does not change
         """
-
         estimator = estimator_instance
         set_random_state(estimator)
 
@@ -1087,18 +1086,16 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         # dict_before = copy of dictionary of estimator before predict, post fit
         dict_before = estimator.__dict__.copy()
 
-        # skip test if vectorization would be necessary and method predict_proba
-        # this is since vectorization is not implemented for predict_proba
-
+        # skip test if predict_proba is not implemented
         if method_nsc == "predict_proba":
             try:
-                _, args_after = scenario.run(
+                output, args_after = scenario.run(
                     estimator, method_sequence=[method_nsc], return_args=True
                 )
             except NotImplementedError:
                 return None
         else:
-            _, args_after = scenario.run(
+            output, args_after = scenario.run(
                 estimator, method_sequence=[method_nsc], return_args=True
             )
 
@@ -1109,6 +1106,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             f"Estimator: {type(estimator)} has side effects on arguments of "
             f"{method_nsc}"
         )
+
+        # dict_after = dictionary of estimator after predict and fit
         dict_after = estimator.__dict__
         is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
         assert is_equal, (
@@ -1116,6 +1115,23 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             f"during {method_nsc}, "
             f"reason/location of discrepancy (x=after, y=before): {msg}"
         )
+
+        # test get_fitted_params here to avoid extra fit calls
+        if method_nsc == "get_fitted_params":
+            msg = (
+                f"get_fitted_params of {type(estimator)} should return dict, "
+                f"but returns object of type {type(output)}"
+            )
+            assert isinstance(output, dict), msg
+
+            nonstr = [x for x in output.keys() if not isinstance(x, str)]
+            if not len(nonstr) == 0:
+                msg = (
+                    f"get_fitted_params of {type(estimator)} should return dict with "
+                    f"with str keys, but some keys are not str."
+                    f"found {nonstr}"
+                )
+                raise AssertionError(msg)
 
     def test_fit_updates_state(self, estimator_instance, scenario):
         """Check fit/update state change.
