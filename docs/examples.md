@@ -39,7 +39,7 @@ Hierarchical, global, and panel forecasting
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
@@ -155,7 +155,7 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
@@ -166,7 +166,7 @@ Early TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/channel_selection.ipynb
 :link-type: ref
@@ -338,7 +338,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
@@ -397,7 +397,7 @@ Data in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_structures.ipynb
 :link-type: ref
@@ -408,7 +408,7 @@ Data structures and containers used in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_conversions.ipynb
 :link-type: ref
@@ -419,7 +419,7 @@ Conversions between data structures
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
@@ -430,7 +430,7 @@ How series are stored in file and loaded into memory
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/provided_data.ipynb
 :link-type: ref
@@ -443,7 +443,7 @@ Example data sets
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/load_data_from_web.ipynb
 :link-type: ref
@@ -461,7 +461,7 @@ Loading data from the web
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/benchmarkings.ipynb
 :link-type: ref
@@ -472,7 +472,7 @@ Benchmarking algorithms
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-compact.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/results_loading.ipynb
 :link-type: ref
