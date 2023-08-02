@@ -42,6 +42,7 @@ from aeon.utils._testing._conditional_fixtures import (
 from aeon.utils._testing.deep_equals import deep_equals
 from aeon.utils._testing.estimator_checks import (
     _assert_array_almost_equal,
+    _assert_array_equal,
     _get_args,
     _has_capability,
     _list_required_methods,
@@ -1300,3 +1301,42 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             # skip them for the underlying network
             if vars(estimator._network).get(key) is not None:
                 assert vars(estimator._network)[key] == value
+
+    # todo: this needs to be diagnosed and fixed - temporary skip
+    @pytest.mark.skip(reason="hangs on mac and unix remote tests")
+    def test_multiprocessing_idempotent(
+        self, estimator_instance, scenario, method_nsc_arraylike
+    ):
+        """Test that single and multi-process run results are identical.
+
+        Check that running an estimator on a single process is no different to running
+        it on multiple processes. We also check that we can set n_jobs=-1 to make use
+        of all CPUs. The test is not really necessary though, as we rely on joblib for
+        parallelization and can trust that it works as expected.
+        """
+        method_nsc = method_nsc_arraylike
+        params = estimator_instance.get_params()
+
+        if "n_jobs" in params:
+            # run on a single process
+            # -----------------------
+            estimator = deepcopy(estimator_instance)
+            estimator.set_params(n_jobs=1)
+            set_random_state(estimator)
+            result_single_process = scenario.run(
+                estimator, method_sequence=["fit", method_nsc]
+            )
+
+            # run on multiple processes
+            # -------------------------
+            estimator = deepcopy(estimator_instance)
+            estimator.set_params(n_jobs=-1)
+            set_random_state(estimator)
+            result_multiple_process = scenario.run(
+                estimator, method_sequence=["fit", method_nsc]
+            )
+            _assert_array_equal(
+                result_single_process,
+                result_multiple_process,
+                err_msg="Results are not equal for n_jobs=1 and n_jobs=-1",
+            )
