@@ -8,9 +8,11 @@ adapted from scikit-learn's estimator_checks
 __author__ = ["mloning", "fkiraly", "achieveordie"]
 
 import numbers
+import os
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
+from tempfile import TemporaryDirectory
 
 import joblib
 import numpy as np
@@ -1067,11 +1069,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             - only for abstract BaseEstimator methods, common to all estimator scitypes
             list of BaseEstimator methods tested: get_fitted_params
             scitype specific method outputs are tested in TestAll[estimatortype] class
-        3. No state changes from calling non state changing methods
+        3. the state of method arguments does not change
         """
-        # No point testing get_fitted_params here, does not change state
-        if method_nsc == "get_fitted_params":
-            return None
 
         estimator = estimator_instance
         set_random_state(estimator)
@@ -1099,7 +1098,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             except NotImplementedError:
                 return None
         else:
-            # dict_after = dictionary of estimator after predict and fit
             _, args_after = scenario.run(
                 estimator, method_sequence=[method_nsc], return_args=True
             )
@@ -1339,4 +1337,53 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
                 result_single_process,
                 result_multiple_process,
                 err_msg="Results are not equal for n_jobs=1 and n_jobs=-1",
+            )
+
+    def test_save_estimators_to_file(
+        self, estimator_instance, scenario, method_nsc_arraylike
+    ):
+        """Check if saved estimators onto disk can be loaded correctly."""
+        method_nsc = method_nsc_arraylike
+
+        # escape estimators we know cannot pickle. There is an argument to be made
+        # that alternate methods of saving should be available, but currently this is
+        # not the case
+        if estimator_instance.get_tag(
+            "cant-pickle", tag_value_default=False, raise_error=False
+        ):
+            return None
+
+        # escape predict_proba for forecasters, tfp distributions cannot be pickled
+        if (
+            isinstance(estimator_instance, BaseForecaster)
+            and method_nsc == "predict_proba"
+        ):
+            return None
+
+        estimator = estimator_instance
+
+        set_random_state(estimator)
+        # Fit the model, get args before and after
+        scenario.run(estimator, method_sequence=["fit"], return_args=True)
+
+        # Generate results before saving
+        vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
+
+        with TemporaryDirectory() as tmp_dir:
+            save_loc = os.path.join(tmp_dir, "estimator")
+            estimator.save(save_loc)
+
+            loaded_estimator = load(save_loc)
+            loaded_result = scenario.run(loaded_estimator, method_sequence=[method_nsc])
+
+            msg = (
+                f"Results of {method_nsc} differ between saved and loaded "
+                f"estimator {type(estimator).__name__}"
+            )
+
+            _assert_array_almost_equal(
+                vanilla_result,
+                loaded_result,
+                decimal=6,
+                err_msg=msg,
             )
