@@ -96,6 +96,7 @@ class TimeSeriesKShapes(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KShape
 
         self._tslearn_k_shapes = KShape(

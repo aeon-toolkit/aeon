@@ -113,6 +113,6 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=tsml_eval --cov-report=xml
+        run: python -m pytest --cov=aeon --cov-report=xml
 
       - uses: codecov/codecov-action@v3
