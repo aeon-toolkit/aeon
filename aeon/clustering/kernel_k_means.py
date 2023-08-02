@@ -117,6 +117,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
