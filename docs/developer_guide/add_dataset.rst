@@ -14,6 +14,7 @@ To add a new dataset into :code:`aeon` internal dataset repository, please proce
 
    * The list of supported file formats is available in the :code:`aeon/MANIFEST.in` file (*e.g.*, :code:`.csv`, :code:`.txt`).
    * If your file format ``<EXT>`` does not figure in the list, simply add it in the :code:`aeon/MANIFEST.in` file:
+
    ::
 
       "aeon/MANIFEST.in"

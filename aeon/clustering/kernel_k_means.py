@@ -16,7 +16,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     Parameters
     ----------
-    n_clusters: int, defaults = 8
+    n_clusters: int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
     kernel : string, or callable (default: "gak")
@@ -25,7 +25,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         by `scikit-learn's pairwise_kernels
         <https://scikit-learn.org/stable/modules/generated/\
         sklearn.metrics.pairwise.pairwise_kernels.html>`_
-    n_init: int, defaults = 10
+    n_init: int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
@@ -36,15 +36,15 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         If set to 'auto', it is computed based on a sampling of the training
         set
         (cf :ref:`tslearn.metrics.sigma_gak <fun-tslearn.metrics.sigma_gak>`).
-        If no specific value is set for `sigma`, its defaults to 1.
-    max_iter: int, defaults = 300
+        If no specific value is set for `sigma`, its defaultto 1.
+    max_iter: int, default=300
         Maximum number of iterations of the k-means algorithm for a single
         run.
-    tol: float, defaults = 1e-4
+    tol: float, default=1e-4
         Relative tolerance with regards to Frobenius norm of the difference
         in the cluster centers of two consecutive iterations to declare
         convergence.
-    verbose: bool, defaults = False
+    verbose: bool, default=False
         Verbosity mode.
     n_jobs : int or None, optional (default=None)
         The number of jobs to run in parallel for GAK cross-similarity matrix
@@ -53,7 +53,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         ``-1`` means using all processors. See scikit-learns'
         `Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>`_
         for more details.
-    random_state: int or np.random.RandomState instance or None, defaults = None
+    random_state: int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
 
     Attributes
@@ -117,6 +117,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
@@ -172,7 +173,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
