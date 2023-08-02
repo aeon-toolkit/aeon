@@ -252,16 +252,15 @@ if __name__ == "__main__":
     #         MatrixProfileClassifier(subsequence_length=4, random_state=0)
     #     ),
     # )
+    from aeon.utils.numba.stats import row_mean, row_numba_min
+
     _print_array(
         "RandomIntervalClassifier - UnitTest",
         _reproduce_classification_unit_test(
             RandomIntervalClassifier(
                 n_intervals=3,
-                features=SummaryTransformer(
-                    summary_function=("mean", "std", "min", "max"),
-                    quantiles=(0.25, 0.5, 0.75),
-                ),
                 estimator=RandomForestClassifier(n_estimators=10),
+                features=[row_mean, row_numba_min],
                 random_state=0,
             )
         ),
@@ -271,11 +270,8 @@ if __name__ == "__main__":
         _reproduce_classification_basic_motions(
             RandomIntervalClassifier(
                 n_intervals=3,
-                features=SummaryTransformer(
-                    summary_function=("mean", "std", "min", "max"),
-                    quantiles=(0.25, 0.5, 0.75),
-                ),
                 estimator=RandomForestClassifier(n_estimators=10),
+                features=[row_mean, row_numba_min],
                 random_state=0,
             )
         ),
