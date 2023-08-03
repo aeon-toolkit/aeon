@@ -13,7 +13,7 @@ by default, this is off, including for default local runs of pytest
 
 __author__ = ["fkiraly"]
 
-from aeon.tests import test_all_estimators
+from aeon.tests import _config
 
 
 def pytest_addoption(parser):
@@ -28,4 +28,4 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     """Pytest configuration preamble."""
     if config.getoption("--matrixdesign") in [True, "True"]:
-        test_all_estimators.MATRIXDESIGN = True
+        _config.MATRIXDESIGN = True

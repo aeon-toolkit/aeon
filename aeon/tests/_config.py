@@ -3,8 +3,14 @@
 __author__ = ["mloning"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
+import os
+
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
+
+# whether to subsample estimators per os/version partition matrix design
+# default is False, can be set to True by pytest --matrixdesign True flag
+MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
     # SFA is non-compliant with any transformer interfaces, #2064
@@ -22,6 +28,10 @@ EXCLUDE_ESTIMATORS = [
     "TapNetRegressor",
     "TapNetClassifier",
 ]
+
+# the test currently fails when numba is disabled. See issue #622
+if os.environ.get("NUMBA_DISABLE_JIT") == "1":
+    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
     # InceptionTimeClassifier contains deep learners, it isnt one itself, so still

@@ -134,7 +134,7 @@ remove_from_toctrees = ["api_reference/auto_generated/*"]
 suppress_warnings = ["myst.mathjax"]
 
 # Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = ["colon_fence", "html_image"]
 
 myst_heading_anchors = 2
 
