@@ -37,7 +37,7 @@ from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
-    convertCollection,
+    convert_collection,
     get_n_cases,
     has_missing,
     is_equal_length,
@@ -415,7 +415,7 @@ class BaseClassifier(BaseEstimator, ABC):
                 inner_type = resolve_unequal_length_inner_type(inner_type)
             else:
                 inner_type = resolve_equal_length_inner_type(inner_type)
-        X = convertCollection(X, inner_type)
+        X = convert_collection(X, inner_type)
         return X
 
     def _check_y(self, y, n_cases):

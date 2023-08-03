@@ -38,7 +38,7 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseEstimator
 from aeon.classification import BaseClassifier
 from aeon.utils.validation.collection import (
-    convertCollection,
+    convert_collection,
     get_n_cases,
     has_missing,
     is_equal_length,
@@ -682,7 +682,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
                 inner_type = resolve_unequal_length_inner_type(inner_type)
             else:
                 inner_type = resolve_equal_length_inner_type(inner_type)
-        X = convertCollection(X, inner_type)
+        X = convert_collection(X, inner_type)
         return X
 
     def _check_y(self, y, n_cases):

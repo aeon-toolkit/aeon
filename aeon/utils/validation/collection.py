@@ -87,7 +87,7 @@ convert_dictionary[
 ] = conv._from_pd_multiindex_to_nested_univ
 
 
-def convertCollection(X, output_type):
+def convert_collection(X, output_type):
     """Convert from one of collections compatible data structure to another.
 
     See aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE for the list.
@@ -110,8 +110,8 @@ def convertCollection(X, output_type):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import convertCollection, get_type
-    >>> X=convertCollection(np.zeros(shape=(10, 3, 20)), "np-list")
+    >>> from aeon.utils.validation.collection import convert_collection, get_type
+    >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
     >>> type(X)
     <class 'list'>
     >>> get_type(X)
@@ -141,7 +141,7 @@ def resolve_equal_length_inner_type(inner_type):
     if "df-list" in inner_type:
         return "df-list"
     if "pd-wide" in inner_type:
-        return "pd-multiindex"
+        return "pd-wide"
     if "nested_univ" in inner_type:
         return "nested_univ"
     raise ValueError(

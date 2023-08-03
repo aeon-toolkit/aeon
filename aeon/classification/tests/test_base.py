@@ -12,6 +12,7 @@ from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
+    get_type,
 )
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
@@ -156,17 +157,63 @@ def test_checkX():
         ValueError, match=r"cannot handle missing values or multivariate series"
     ):
         dummy1.checkX(X)
-    X = []
-    X.append(np.random.random(size=(1, 10)))
-    X.append(np.random.random(size=(1, 20)))
+    X = [np.random.random(size=(1, 10)), np.random.random(size=(1, 20))]
     assert dummy2.checkX(X)
     with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
         dummy1.checkX(X)
 
 
+@pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_convertX(data):
-    pass
+def test_convertX(internal_type, data):
+    """Test conversion function.
+
+    The conversion functionality of convertCollection is tested in the utils module.
+    This test runs a subset of these but also checks classifiers with multiple
+    internal types.
+    """
+
+    class _MutableClassifier(BaseClassifier):
+        """Classifier for testing with different internal_types."""
+
+        def _fit(self, X, y):
+            """Fit dummy."""
+            return self
+
+        def _predict(self, X):
+            """Predict dummy."""
+            return np.zeros(shape=(len(X),))
+
+        def _predict_proba(self, X):
+            """Predict proba dummy."""
+            return np.zeros(shape=(len(X), 2))
+
+    cls = _MutableClassifier()
+    # Equal length should default to numpy3D
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    cls.metadata_ = cls.checkX(X)
+    X2 = cls.convertX(X)
+    internal = cls.get_tag("X_inner_mtype")
+    assert get_type(X2) == internal
+    # Add the internal_type tag to cls, should still all revert to numpy3D
+    cls.set_tags(**{"X_inner_mtype": ["numpy3D", internal_type]})
+    X2 = cls.convertX(X)
+    assert get_type(X2) == "numpy3D"
+    # Set cls inner type to just internal_type, should convert to internal_type
+    cls.set_tags(**{"X_inner_mtype": internal_type})
+    X2 = cls.convertX(X)
+    assert get_type(X2) == internal_type
+    # Set to single type but in a list
+    cls.set_tags(**{"X_inner_mtype": [internal_type]})
+    X2 = cls.convertX(X)
+    assert get_type(X2) == internal_type
+    # Set to the lowest priority data type, should convert to internal_type
+    cls.set_tags(**{"X_inner_mtype": ["nested_univ", internal_type]})
+    X2 = cls.convertX(X)
+    assert get_type(X2) == internal_type
+    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+        cls.set_tags(**{"capability:unequal": True})
+        X = UNEQUAL_LENGTH_UNIVARIATE[data]
 
 
 def test__check_y():
