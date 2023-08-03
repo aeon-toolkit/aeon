@@ -13,6 +13,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pre-test:
+    runs-on: ubuntu-22.04
+
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - uses: fkirc/skip-duplicate-actions@v5
+        with:
+          skip_after_successful_duplicate: 'true'
+          paths: '["**/aeon/**"]'
+
   code-quality:
     runs-on: ubuntu-22.04
 
@@ -38,6 +49,8 @@ jobs:
         shell: bash
 
   run-notebook-examples:
+    needs: pre-test
+    if: needs.pre-test.outputs.should_skip != 'true'
     runs-on: ubuntu-22.04
 
     steps:
@@ -55,6 +68,8 @@ jobs:
         shell: bash
 
   test-nosoftdeps:
+    needs: pre-test
+    if: needs.pre-test.outputs.should_skip != 'true'
     runs-on: ubuntu-22.04
 
     steps:
