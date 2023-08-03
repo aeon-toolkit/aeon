@@ -377,7 +377,36 @@ class BaseClassifier(BaseEstimator, ABC):
         return dists
 
     def checkX(self, X):
-        """To follow."""
+        """Check classifier input X is valid.
+
+        Check if the input data is a compatible type, and that this classifier is
+        able to handle the data characteristics. This is done by matching the
+        capabilities of the classifier against the metadata for X for
+        univariate/multivariate, equal length/unequal length and no missing
+        values/missing values.
+
+        Parameters
+        ----------
+        X : object.
+
+        Returns
+        -------
+        bool : True if classifier can deal with X.
+
+        See Also
+        --------
+        convertX : function that converts X after it has been checked.
+
+        Examples
+        --------
+        >>> from aeon.classification import BaseClassifier
+        >>> import numpy as np
+        >>> X = np.random.random(size=(5,3,10))
+        >>> X[0][1][3] = np.NAN # X is equal length, multivariate, with missing
+        >>> dc = BaseClassifier()
+        >>> dc.checkX(X)    # DummyClassifier can handle this
+        True
+        """
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
@@ -405,13 +434,54 @@ class BaseClassifier(BaseEstimator, ABC):
         return metadata
 
     def convertX(self, X):
-        """Docstring to follow."""
+        """Convert X to type defined by tag X_inner_mtype.
+
+        if self.metadata_ has not been set, it is set here from X, because we need to
+        know if the data is unequal length in order to choose between different
+        allowed input types. If multiple types are allowed by self, then the best
+        one for the data is selected. So, for example, if X_inner_tag is `["np-list",
+        "numpy3D"]` and an `np-list` is passed containing equal length series,
+        X will be converted to numpy3D.
+
+        Parameters
+        ----------
+        X : data structure
+        must be of type aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES.
+
+        Returns
+        -------
+        data structure of type one of self.get_tag("X_inner_mtype").
+
+
+        See Also
+        --------
+        checkX : function that checks X is valid and finds metadata.
+
+        Examples
+        --------
+        >>> from aeon.classification import BaseClassifier
+        >>> import numpy as np
+        >>> from aeon.utils.validation.collection import get_type
+        >>> X = [np.random.random(size=(5,10), np.random.random(size=(5,10)]
+        >>> get_type(X)
+        np-list
+        >>> dc = BaseClassifier()
+        >>> dc.get_tag("X_inner_mtype")
+        ["np-list", "numpy3D"]
+        >>> X = dc.convertX(X)
+        >>> get_type(X)
+        numpy3D
+        """
+        if len(self.metadata_) == 0:
+            metadata = _get_metadata(X)
+        else:
+            metadata = self.metadata_
         # Convert X to X_inner_mtype if possible
         inner_type = self.get_tag("X_inner_mtype")
         if type(inner_type) == list:
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal
-            if self.metadata_["unequal_length"]:
+            if metadata["unequal_length"]:
                 inner_type = resolve_unequal_length_inner_type(inner_type)
             else:
                 inner_type = resolve_equal_length_inner_type(inner_type)
