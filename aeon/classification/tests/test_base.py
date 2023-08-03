@@ -114,9 +114,20 @@ def test_incorrect_input():
     with pytest.raises(TypeError, match=r"found type: <class 'list'>"):
         dummy.fit(X, y)
     # Test size mismatch
+    y = np.array([0, 0, 1, 1, 1, 1])
+    # Multivariate y
     y = np.ndarray([0, 0, 1, 1, 1, 1])
-
-    with pytest.raises(TypeError, match=r"found type: <class 'list'>"):
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+        dummy.fit(X, y)
+    # Multivariate y
+    y = np.array([[0, 0], [1, 1], [1, 1]])
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+        dummy.fit(X, y)
+    # Continuous y
+    y = np.random.random(5)
+    with pytest.raises(
+        ValueError, match=r"y type is continuous which is not valid for classification"
+    ):
         dummy.fit(X, y)
 
 
