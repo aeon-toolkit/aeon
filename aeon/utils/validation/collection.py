@@ -231,6 +231,11 @@ def get_type(X):
                 if not isinstance(a, pd.DataFrame):
                     raise TypeError("ERROR df-list must only contain pd.DataFrame")
             return "df-list"
+        else:
+            raise TypeError(
+                f"ERROR passed a list containing {type(X[0])}, "
+                f"lists should either 2D numpy arrays or pd.DataFrames."
+            )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
         if conv._is_nested_univ_dataframe(X):
             return "nested_univ"
@@ -244,7 +249,7 @@ def get_type(X):
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
-    raise ValueError(f"ERROR unknown input type {type(X)}")
+    raise TypeError(f"ERROR passed input of type {type(X)}")
 
 
 def is_equal_length(X):

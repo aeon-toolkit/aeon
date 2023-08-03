@@ -421,11 +421,11 @@ class BaseClassifier(BaseEstimator, ABC):
     def _check_y(self, y, n_cases):
         # Check y valid input
         if not isinstance(y, (pd.Series, np.ndarray)):
-            raise ValueError(
+            raise TypeError(
                 f"y must be a np.ndarray or a pd.Series, but found type: {type(y)}"
             )
         if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise ValueError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
         # Check matching number of labels
         n_labels = y.shape[0]
         if n_cases != n_labels:

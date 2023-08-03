@@ -94,6 +94,32 @@ def test_equal_length(data):
     _assert_fit_predict(dummy, X, y)
 
 
+def test_incorrect_input():
+    """Test informative errors raised with wrong X and/or y.
+
+    Errors are raise in aeon/utils/validation/collection.py and tested again here.
+    """
+    dummy = _TestClassifier()
+    X = ["list", "of", "string", "invalid"]
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    with pytest.raises(
+        TypeError, match=r"ERROR passed a list containing <class 'str'>"
+    ):
+        dummy.fit(X, y)
+    X = {"dict": 0, "is": "not", "valid": True}
+    with pytest.raises(TypeError, match=r"ERROR passed input of type <class 'dict'>"):
+        dummy.fit(X, y)
+    X = np.random.random(size=(5, 1, 10))
+    y = ["cannot", "pass", "list", "for", "y"]
+    with pytest.raises(TypeError, match=r"found type: <class 'list'>"):
+        dummy.fit(X, y)
+    # Test size mismatch
+    y = np.ndarray([0, 0, 1, 1, 1, 1])
+
+    with pytest.raises(TypeError, match=r"found type: <class 'list'>"):
+        dummy.fit(X, y)
+
+
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_unequal_length(data):
     """Test with unequal length failures and passes."""
