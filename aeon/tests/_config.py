@@ -8,9 +8,9 @@ import os
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
-# whether to subsample estimators per os/version partition matrix design
-# default is False, can be set to True by pytest --matrixdesign True flag
-MATRIXDESIGN = False
+# whether to use smaller parameter matrices for test generation and subsample estimators
+# per os/version default is False, can be set to True by pytest --prtesting True flag
+PR_TESTING = False
 
 EXCLUDE_ESTIMATORS = [
     # SFA is non-compliant with any transformer interfaces, #2064
