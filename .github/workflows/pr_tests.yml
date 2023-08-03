@@ -22,7 +22,7 @@ jobs:
       - uses: fkirc/skip-duplicate-actions@v5
         with:
           skip_after_successful_duplicate: 'true'
-          paths: '["**/aeon/**"]'
+          paths: '["aeon/**"]'
 
   code-quality:
     runs-on: ubuntu-22.04
