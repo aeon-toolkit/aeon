@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """Piecewise Aggregate Approximation Transformer (PAA)."""
-import numpy as np
 
-from aeon.transformations.base import BaseTransformer
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
+import numpy as np
 
-class PAA(BaseTransformer):
+from aeon.transformations.collection import BaseCollectionTransformer
+
+
+class PAA(BaseCollectionTransformer):
     """
     Piecewise Aggregate Approximation Transformer (PAA).
 
