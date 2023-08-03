@@ -89,7 +89,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
         else:
             self.random_state_ = random_state
 
-        super(MiniRocketMultivariate, self).__init__(_output_convert=False)
+        super(MiniRocketMultivariate, self).__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.

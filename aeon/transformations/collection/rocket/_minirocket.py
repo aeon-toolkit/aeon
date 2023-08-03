@@ -79,7 +79,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(MiniRocket, self).__init__(_output_convert=False)
+        super(MiniRocket, self).__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
