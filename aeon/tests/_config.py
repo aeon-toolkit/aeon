@@ -17,11 +17,6 @@ EXCLUDE_ESTIMATORS = [
     "SFA",
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
-    # below are removed due to mac failures we don't fully understand, see #3103
-    "HIVECOTEV1",
-    "RandomIntervalSegmenter",
-    "RandomIntervalFeatureExtractor",
-    "RandomIntervalClassifier",
     "MiniRocket",
     "MatrixProfileTransformer",
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
