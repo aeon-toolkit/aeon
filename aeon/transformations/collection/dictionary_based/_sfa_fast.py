@@ -236,9 +236,6 @@ class SFAFast(BaseCollectionTransformer):
         self.random_state = random_state
         super(SFAFast, self).__init__()
 
-        if not return_pandas_data_series:
-            self._output_convert = "off"
-
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it."""
         if self.alphabet_size < 2:
