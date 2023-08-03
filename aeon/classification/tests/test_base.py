@@ -85,15 +85,6 @@ def _assert_fit_predict(dummy, X, y):
     assert preds.shape == (10, 2)
 
 
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_equal_length(data):
-    """Test basic functionality with valid input for the BaseClassifier."""
-    dummy = _TestClassifier()
-    X = EQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
-    _assert_fit_predict(dummy, X, y)
-
-
 def _assert_incorrect_input(dummy, correctX, correcty, X, y, msg):
     with pytest.raises(TypeError, match=msg):
         dummy.fit(X, y)
@@ -145,8 +136,45 @@ def test_incorrect_input():
         dummy.fit(X, y)
 
 
+def test_checkX():
+    """Test if capabilities correctly tested."""
+    dummy1 = _TestClassifier()
+    dummy2 = _TestHandlesAllInput()
+    X = np.random.random(size=(5, 1, 10))
+    assert dummy1.checkX(X) and dummy2.checkX(X)
+    X[3][0][6] = np.NAN
+    assert dummy2.checkX(X)
+    with pytest.raises(ValueError, match=r"cannot handle missing values"):
+        dummy1.checkX(X)
+    X = np.random.random(size=(5, 3, 10))
+    assert dummy2.checkX(X)
+    with pytest.raises(ValueError, match=r"cannot handle multivariate"):
+        dummy1.checkX(X)
+    X[2][2][6] = np.NAN
+    assert dummy2.checkX(X)
+    with pytest.raises(
+        ValueError, match=r"cannot handle missing values or multivariate series"
+    ):
+        dummy1.checkX(X)
+    X = []
+    X.append(np.random.random(size=(1, 10)))
+    X.append(np.random.random(size=(1, 20)))
+    assert dummy2.checkX(X)
+    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+        dummy1.checkX(X)
+
+
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_unequal_length(data):
+def test_convertX(data):
+    pass
+
+
+def test__check_y():
+    pass
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_unequal_length_input(data):
     """Test with unequal length failures and passes."""
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
@@ -160,6 +188,17 @@ def test_unequal_length(data):
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_equal_length_input(data):
+    """Test with unequal length failures and passes."""
+    dummy = _TestClassifier()
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    _assert_fit_predict(dummy, X, y)
+    dummy = _TestHandlesAllInput()
+    _assert_fit_predict(dummy, X, y)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__get_metadata(data):
     """Test get meta data."""
     X = EQUAL_LENGTH_UNIVARIATE[data]
@@ -168,11 +207,6 @@ def test__get_metadata(data):
     assert not meta["missing_values"]
     assert not meta["unequal_length"]
     assert meta["n_cases"] == 10
-
-
-# @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-# def test_convertX(data):
-#    """Directly test the conversions."""
 
 
 def test_classifier_score():
