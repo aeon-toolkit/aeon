@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class MiniRocketMultivariateVariable(BaseTransformer):
+class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """MINIROCKET (Multivariate, unequal length).
 
     MINImally RandOm Convolutional KErnel Transform. [1]_
@@ -183,12 +183,14 @@ class MiniRocketMultivariateVariable(BaseTransformer):
         if lengths_1darray.min() == lengths_1darray.max():
             warnings.warn(
                 "X is of equal length, consider using MiniRocketMultivariate for "
-                "speedup and stability instead."
+                "speedup and stability instead.",
+                stacklevel=2,
             )
         if X_2d_t.shape[0] == 1:
             warnings.warn(
-                "X is univariate, consider using MiniRocket as Univariante for "
-                "speedup and stability instead."
+                "X is univariate, consider using the univariate MiniRocket for "
+                "speedup and stability instead.",
+                stacklevel=2,
             )
 
         self.parameters = _fit_multi_var(

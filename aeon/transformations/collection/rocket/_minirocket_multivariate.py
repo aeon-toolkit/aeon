@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Multivariate MiniRocket transformer."""
 
-__author__ = "angus924"
+__author__ = ["angus924"]
 __all__ = ["MiniRocketMultivariate"]
 
 import multiprocessing
@@ -9,10 +9,10 @@ import multiprocessing
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class MiniRocketMultivariate(BaseTransformer):
+class MiniRocketMultivariate(BaseCollectionTransformer):
     """MINImally RandOm Convolutional KErnel Transform (MiniRocket) multivariate.
 
     MiniRocketMultivariate [1]_ is an almost deterministic version of Rocket. If creates

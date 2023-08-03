@@ -6,10 +6,10 @@ import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.datatypes import convert
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class MultiRocket(BaseTransformer):
+class MultiRocket(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
     MultiRocket [1]_ is uses the same set of kernels as MiniRocket on both the raw

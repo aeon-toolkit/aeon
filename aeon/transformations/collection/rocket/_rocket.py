@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Rocket transformer."""
 
-__author__ = "angus924"
+__author__ = ["angus924"]
 __all__ = ["Rocket"]
 
 import multiprocessing
@@ -9,10 +9,10 @@ import multiprocessing
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class Rocket(BaseTransformer):
+class Rocket(BaseCollectionTransformer):
     """RandOm Convolutional KErnel Transform (ROCKET).
 
     A kernel (or convolution) is a subseries used to create features that can be used
