@@ -29,7 +29,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
@@ -46,7 +46,7 @@ simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
 
-class SFAFast(BaseCollectionTransformer):
+class SFAFast(BaseTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     Overview: for each series:
@@ -236,7 +236,10 @@ class SFAFast(BaseCollectionTransformer):
         self.random_state = random_state
         super(SFAFast, self).__init__()
 
-    def fit_transform(self, X, y=None):
+        if not return_pandas_data_series:
+            self._output_convert = "off"
+
+    def _fit_transform(self, X, y=None):
         """Fit to data, then transform it."""
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
@@ -311,7 +314,7 @@ class SFAFast(BaseCollectionTransformer):
         # fitting: learns the feature selection strategy, too
         return self.transform_to_bag(words, self.word_length_actual, y)
 
-    def fit(self, X, y=None):
+    def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
 
         Parameters
@@ -327,7 +330,7 @@ class SFAFast(BaseCollectionTransformer):
         self.fit_transform(X, y)
         return self
 
-    def transform(self, X, y=None):
+    def _transform(self, X, y=None):
         """Transform data into SFA words.
 
         Parameters
@@ -339,7 +342,6 @@ class SFAFast(BaseCollectionTransformer):
         -------
         List of dictionaries containing SFA words
         """
-        self.check_is_fitted()
         X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
