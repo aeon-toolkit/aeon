@@ -37,7 +37,7 @@ from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
-    convertX,
+    convertCollection,
     get_n_cases,
     has_missing,
     is_equal_length,
@@ -82,7 +82,7 @@ class BaseClassifier(BaseEstimator, ABC):
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = 0  # number of unique classes in y
         self.fit_time_ = 0  # time elapsed in last fit call
-        self._X_metadata = {}  # metadata/properties of X seen in fit
+        self.metadata_ = {}  # metadata/properties of data seen in fit
         self._class_dictionary = {}
         self._n_jobs = 1
 
@@ -161,8 +161,9 @@ class BaseClassifier(BaseEstimator, ABC):
 
         # All of this can move up to BaseCollection
         start = int(round(time.time() * 1000))
-        X, self._X_metadata = self.convertX(X)
-        y = self._check_y(y, self._X_metadata["n_cases"])
+        self.metadata_ = self.checkX(X)
+        X = self.convertX(X)
+        y = self._check_y(y, self.metadata_["n_cases"])
 
         # escape early and do not fit if only one class label has been seen
         #   in this case, we later predict the single class label seen
@@ -211,8 +212,9 @@ class BaseClassifier(BaseEstimator, ABC):
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_instances)
-        # Convert X to X_inner_mtype if possible
-        X, _ = self.convertX(X)
+        # Check X and convert X to X_inner_mtype if possible
+        self.checkX(X)
+        X = self.convertX(X)
         return self._predict(X)
 
     @final
@@ -243,8 +245,8 @@ class BaseClassifier(BaseEstimator, ABC):
             n_instances = get_n_cases(X)
             return np.repeat([[1]], n_instances, axis=0)
         # Convert X to X_inner_mtype if possible
-        X, _ = self.convertX(X)
-
+        self.checkX(X)
+        X = self.convertX(X)
         # call internal _predict_proba
         return self._predict_proba(X)
 
@@ -374,8 +376,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         return dists
 
-    def convertX(self, X):
-        """Docstring to follow."""
+    def checkX(self, X):
+        """To follow."""
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
@@ -400,20 +402,21 @@ class BaseClassifier(BaseEstimator, ABC):
                 f"but {type(self).__name__} cannot handle {problems_or}. "
             )
             raise ValueError(msg)
+        return metadata
 
+    def convertX(self, X):
+        """Docstring to follow."""
         # Convert X to X_inner_mtype if possible
         inner_type = self.get_tag("X_inner_mtype")
         if type(inner_type) == list:
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal
-            if metadata["unequal_length"]:
+            if self.metadata_["unequal_length"]:
                 inner_type = resolve_unequal_length_inner_type(inner_type)
             else:
                 inner_type = resolve_equal_length_inner_type(inner_type)
-
-        X = convertX(X, inner_type)
-
-        return X, metadata
+        X = convertCollection(X, inner_type)
+        return X
 
     def _check_y(self, y, n_cases):
         # Check y valid input

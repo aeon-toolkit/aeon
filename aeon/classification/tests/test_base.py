@@ -11,17 +11,19 @@ from aeon.classification.base import BaseClassifier, _get_metadata
 from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_DATA_EXAMPLES,
+    UNEQUAL_LENGTH_UNIVARIATE,
 )
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
 """
  Need to test:
-    1. base class fit, predict and predict_proba wortk with valid input
-    2. checkX
+    1. base class fit, predict and predict_proba works with valid input,
+    raises exception with invalid
+    2. checkX and convertX, valid and invald
     3. _get_metadata
     4. _check_y
+    5. score
 
 """
 
@@ -58,11 +60,11 @@ class _TestHandlesAllInput(BaseClassifier):
 
     def _predict(self, X):
         """Predict dummy."""
-        return self
+        return np.zeros(shape=(len(X),))
 
     def _predict_proba(self, X):
         """Predict proba dummy."""
-        return self
+        return np.zeros(shape=(len(X), 2))
 
 
 multivariate_message = r"multivariate series"
@@ -72,16 +74,7 @@ incorrect_X_data_structure = r"must be a np.ndarray or a pd.Series"
 incorrect_y_data_structure = r"must be 1-dimensional"
 
 
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_base_classifier(data):
-    """Test basic functionality with valid input for the BaseClassifier."""
-    # Exclude np-list and pd-wide because no converters
-    # TODO: remove this once conversions fixed
-    if data in {"np-list", "pd-wide"}:
-        return
-    dummy = _TestClassifier()
-    X = EQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+def _assert_fit_predict(dummy, X, y):
     result = dummy.fit(X, y)
     # Fit returns self
     assert result is dummy
@@ -90,6 +83,29 @@ def test_base_classifier(data):
     assert len(preds) == 10
     preds = dummy.predict_proba(X)
     assert preds.shape == (10, 2)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_equal_length(data):
+    """Test basic functionality with valid input for the BaseClassifier."""
+    dummy = _TestClassifier()
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    _assert_fit_predict(dummy, X, y)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_unequal_length(data):
+    """Test with unequal length failures and passes."""
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+        dummy = _TestClassifier()
+        X = UNEQUAL_LENGTH_UNIVARIATE[data]
+        y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+        with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+            dummy.fit(X, y)
+        dummy = _TestHandlesAllInput()
+        _assert_fit_predict(dummy, X, y)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -106,18 +122,6 @@ def test__get_metadata(data):
 # @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 # def test_convertX(data):
 #    """Directly test the conversions."""
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_unequal(data):
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
-    if data in UNEQUAL_LENGTH_DATA_EXAMPLES.keys():
-        all = _TestHandlesAllInput()
-        #        none = _TestClassifier()
-        all.fit(data, y)
-
-
-#        assert dummy = _TestClassifier() fails
 
 
 def test_classifier_score():
