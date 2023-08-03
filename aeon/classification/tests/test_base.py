@@ -29,7 +29,7 @@ __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achiev
 
 
 class _TestClassifier(BaseClassifier):
-    """Cassifier for testing base class fit/predict/predict_proba."""
+    """Classifier for testing base class fit/predict/predict_proba."""
 
     def _fit(self, X, y):
         """Fit dummy."""
@@ -94,40 +94,54 @@ def test_equal_length(data):
     _assert_fit_predict(dummy, X, y)
 
 
+def _assert_incorrect_input(dummy, correctX, correcty, X, y, msg):
+    with pytest.raises(TypeError, match=msg):
+        dummy.fit(X, y)
+    dummy.fit(correctX, correcty)
+    with pytest.raises(TypeError, match=msg):
+        dummy.predict(X)
+    with pytest.raises(TypeError, match=msg):
+        dummy.predict_proba(X)
+
+
 def test_incorrect_input():
     """Test informative errors raised with wrong X and/or y.
 
     Errors are raise in aeon/utils/validation/collection.py and tested again here.
     """
     dummy = _TestClassifier()
+    correctX = np.random.random(size=(5, 1, 10))
+    correcty = np.array([0, 0, 1, 1, 1])
     X = ["list", "of", "string", "invalid"]
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
-    with pytest.raises(
-        TypeError, match=r"ERROR passed a list containing <class 'str'>"
-    ):
-        dummy.fit(X, y)
+    m1 = r"ERROR passed a list containing <class 'str'>"
+    m2 = r"ERROR passed input of type <class 'dict'>"
+    m3 = r"y must be a np.ndarray or a pd.Series, but found type: <class 'list'>"
+    m4 = r"Mismatch in number of cases"
+    m5 = r"y must be 1-dimensional"
+    m6 = r"y type is continuous which is not valid for classification"
+    _assert_incorrect_input(dummy, correctX, correcty, X, y, m1)
     X = {"dict": 0, "is": "not", "valid": True}
-    with pytest.raises(TypeError, match=r"ERROR passed input of type <class 'dict'>"):
-        dummy.fit(X, y)
+    _assert_incorrect_input(dummy, correctX, correcty, X, y, m2)
     X = np.random.random(size=(5, 1, 10))
     y = ["cannot", "pass", "list", "for", "y"]
-    with pytest.raises(TypeError, match=r"found type: <class 'list'>"):
+    with pytest.raises(TypeError, match=m3):
         dummy.fit(X, y)
     # Test size mismatch
     y = np.array([0, 0, 1, 1, 1, 1])
+    with pytest.raises(ValueError, match=m4):
+        dummy.fit(X, y)
     # Multivariate y
     y = np.ndarray([0, 0, 1, 1, 1, 1])
-    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+    with pytest.raises(TypeError, match=m5):
         dummy.fit(X, y)
     # Multivariate y
     y = np.array([[0, 0], [1, 1], [1, 1]])
-    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+    with pytest.raises(TypeError, match=m5):
         dummy.fit(X, y)
     # Continuous y
     y = np.random.random(5)
-    with pytest.raises(
-        ValueError, match=r"y type is continuous which is not valid for classification"
-    ):
+    with pytest.raises(ValueError, match=m6):
         dummy.fit(X, y)
 
 
