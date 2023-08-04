@@ -29,7 +29,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
@@ -46,7 +46,7 @@ simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
 
-class SFAFast(BaseTransformer):
+class SFAFast(BaseCollectionTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     Overview: for each series:
@@ -153,14 +153,9 @@ class SFAFast(BaseTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
-        "requires_y": True,  # does y need to be passed in fit?
+        "scitype:transform-output": "Primitives",
+        "scitype:instancewise": False,
+        "requires_y": True,
     }
 
     def __init__(
@@ -327,7 +322,7 @@ class SFAFast(BaseTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self.fit_transform(X, y)
+        self._fit_transform(X, y)
         return self
 
     def _transform(self, X, y=None):
