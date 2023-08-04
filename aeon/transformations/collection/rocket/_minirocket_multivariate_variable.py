@@ -83,15 +83,10 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": False,
         "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
         "capability:unequal_length": True,
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": False,
         "X_inner_mtype": "df-list",
-        "y_inner_mtype": "None",
-        "requires_y": False,
     }
 
     def __init__(

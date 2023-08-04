@@ -62,9 +62,6 @@ class MiniRocket(BaseCollectionTransformer):
         "univariate-only": True,
         "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
     }
 
     def __init__(
