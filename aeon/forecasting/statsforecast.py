@@ -161,7 +161,7 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
     """
 
     _tags = {
-        "python_dependencies": "statsforecast",
+        "python_dependencies": ["statsforecast", "pandas<2.0.0"],
     }
 
     def __init__(
