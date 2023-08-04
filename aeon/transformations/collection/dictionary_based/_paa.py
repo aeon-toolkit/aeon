@@ -39,14 +39,6 @@ class PAA(BaseCollectionTransformer):
     >>> X_test_paa = paa.transform(X_test)
     """
 
-    _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "capability:multivariate": True,
-    }
-
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 

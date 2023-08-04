@@ -103,12 +103,9 @@ class SFA(BaseCollectionTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-output": "Series",
         "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "numpy1D",  # and for y?
         "requires_y": True,
-        "fit_is_empty": False,
+        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
