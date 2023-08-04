@@ -55,9 +55,6 @@ from aeon import utils
 from aeon.utils.multiindex import flatten_multiindex
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-if _check_soft_dependencies("mlflow", severity="warning"):
-    from mlflow import pyfunc
-
 FLAVOR_NAME = "mlflow_aeon"
 
 PYFUNC_PREDICT_CONF = "pyfunc_predict_conf"
@@ -213,6 +210,7 @@ def save_model(
     >>> loaded_model.predict(fh=[1, 2, 3])  # doctest: +SKIP
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
+    from mlflow import pyfunc
     from mlflow.exceptions import MlflowException
     from mlflow.models import Model
     from mlflow.models.model import MLMODEL_FILE_NAME
@@ -585,6 +583,7 @@ def _load_pyfunc(path):
     .. [1] https://www.mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow.pyfunc.load_model
     """  # noqa: E501
     _check_soft_dependencies("mlflow", severity="error")
+    from mlflow import pyfunc
     from mlflow.exceptions import MlflowException
     from mlflow.utils.model_utils import _get_flavor_configuration
 

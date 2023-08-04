@@ -18,9 +18,6 @@ from warnings import warn
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("filterpy", severity="warning")
 
 
 def _get_t_matrix(time_t, matrices, shape, time_steps):
