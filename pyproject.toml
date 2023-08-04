@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.3.0"
+version = "0.4.0"
 description = "A unified framework for machine learning with time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -119,6 +119,7 @@ docs = [
     "sphinx-design>=0.3.0",
     "sphinx-copybutton",
     "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
+    "sphinx-remove-toctrees",
     "tabulate",
     "sphinxext-opengraph",
 ]

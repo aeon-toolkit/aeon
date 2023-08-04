@@ -17,7 +17,7 @@ class TimeSeriesCLARA(BaseClusterer):
     """Time series CLARA implementation.
 
     Clustering LARge Applications (CLARA) [1] is a clustering algorithm that
-    samples the dataset, applies PAM [2] to the sample, and then uses the
+    samples the dataset, applies PAM to the sample, and then uses the
     medoids from the sample to seed PAM on the entire dataset.
 
     For a comparison of using CLARA for time series compared to other k-medoids
@@ -87,9 +87,9 @@ class TimeSeriesCLARA(BaseClusterer):
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of PAM clustering
-    >>> km = TimeSeriesCLARA(n_clusters=3, distance="dtw", random_state=1)
+    >>> km = TimeSeriesCLARA(n_clusters=3, distance="euclidean", random_state=1)
     >>> km.fit(X_train)
-    TimeSeriesCLARA(distance='dtw', n_clusters=3, random_state=1)
+    TimeSeriesCLARA(distance='euclidean', n_clusters=3, random_state=1)
     >>> preds = km.predict(X_test)
 
     References
@@ -97,10 +97,7 @@ class TimeSeriesCLARA(BaseClusterer):
     .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
     10.1016/B978-0-444-87877-9.50039-X.
 
-    .. [2] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
-    10.1016/B978-0-444-87877-9.50039-X.
-
-    .. [3] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    .. [2] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
     Clustering time series with k-medoids based algorithms.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
