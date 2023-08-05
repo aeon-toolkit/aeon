@@ -28,7 +28,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     A warping path .. math::
         P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
-    is a set of pairs of indices that  define a traversal of matrix :math:'M'. A
+    is a set of pairs of indices that  define a traversal of matrix :math:`M`. A
     valid warping path must start at location :math:`(1,1)` and end at point :math:`(
     m,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
     \leq f_{i+1}- f_i \leq 1` for all :math:`1< i < m`.
@@ -43,18 +43,18 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     is the path that has the minimum distance, hence the DTW distance between series is
     .. math::
         d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
-    The optimal warping path $P^*$ can be found exactly through a dynamic programming
-    formulation. This can be a time consuming operation, and it is common to put a
-    restriction on the amount of warping allowed. This is implemented through
+    The optimal warping path :math:`P^*` can be found exactly through a dynamic
+    programming formulation. This can be a time consuming operation, and it is common to
+    put a restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
     The most common bounding strategies include the Sakoe-Chiba band [2].
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     window: float, default=None
@@ -105,7 +105,7 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     r"""Compute the dtw cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
-    :math:'M_{i,j}=   (a_i-b_j)^2'. It is used inthe dtw path calculations.
+    :math:`M_{i,j}=(a_i-b_j)^2`. It is used in the dtw path calculations.
 
     Parameters
     ----------
@@ -193,14 +193,16 @@ def dtw_pairwise_distance(
 ) -> np.ndarray:
     r"""Compute the dtw pairwise distance between a set of time series.
 
-    By default, this takes a collection of `n` time series `X` and returns a matrix
-    `D` where $D_{i,j}$ is the dtw distance between the $i^{th}$ and the $j^th$
-    series in $X$. If $X$ is 2 dimensional, it is assumed to be a collection of
-    univariate series with shape `(n_instances, n_timepoints)`. If it is 3
-    dimensional, it is assumed to be shape `(n_instances, n_channels, n_timepoints)`.
+    By default, this takes a collection of :math:`n` time series :math:`X` and returns a
+    matrix
+    :math:`D` where :math:`D_{i,j}` is the dtw distance between the :math:`i^{th}`
+    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    it is assumed to be a collection of univariate series with shape `(n_instances,
+    n_timepoints)`. If it is 3 dimensional, it is assumed to be shape `(n_instances,
+    n_channels, n_timepoints)`.
 
     This function has an optional argument, `y`, to allow calculation of the distance
-    matrix between $X$ and one or more series stored in $y$. If $y$ is 1 dimensional, we
+    matrix between `X` and one or more series stored in `y`. If `y` is 1 dimensional, we
     assume it is a single univariate series and the distance matrix returned is
     shape `(n_instances,1)`. If it is 2D, we assume it is a
     collection of univariate series with shape `(m_instances, m_timepoints)` and the
