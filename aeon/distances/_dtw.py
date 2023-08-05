@@ -27,7 +27,8 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     where :math:`M_{i,j}=   (a_i-b_j)^2`.
 
     A warping path
-    ..math:: P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
+    .. math::
+        P = \\{(e_1, f_1), (e_2, f_2), \\ldots, (e_s, f_s)\\}
     is a set of pairs of indices that  define a traversal of matrix :math:`M`. A
     valid warping path must start at location :math:`(1,1)` and end at point :math:`(
     m,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
