@@ -21,8 +21,9 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]. For two series
     .. math:'\mathbf{a}=\{a_1,a_2,\ldots,a_m\}' and .. math:'\mathbf{b}=\{b_1,b_2,
-    \ldots,
-    b_m\}',  (assumed equal length for simplicity), DTW first calculates  :math:'M(
+    \ldots,    b_m\}',
+
+    (assumed equal length for simplicity), DTW first calculates  :math:'M(
     \mathbf{a},\mathbf{b})', the :math:'m \times m'
     pointwise distance matrix between series :math:'\mathbf{a}' and :math:'\mathbf{b}',
     where :math:'M_{i,j}=   (a_i-b_j)^2'. A warping path
