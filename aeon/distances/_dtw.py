@@ -22,12 +22,12 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     each other. A good background into DTW can be found in [1]. For two series
     :math:`\mathbf{a}=\{a_1,a_2,\ldots,a_n\}` and
     :math:`\mathbf{b}=\{b_1,b_2, \ldots,b_m\}` DTW first calculates
-    :math:`M(\mathbf{a},\mathbf{b})`, the :math:`m \times m`
+    :math:`M(\mathbf{a},\mathbf{b})`, the :math:`n \times m`
     pointwise distance matrix between series :math:`\mathbf{a}` and :math:`\mathbf{b}`,
     where :math:`M_{i,j}=   (a_i-b_j)^2`.
 
-    A warping path .. math::
-        P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
+    A warping path
+    ..math:: P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
     is a set of pairs of indices that  define a traversal of matrix :math:`M`. A
     valid warping path must start at location :math:`(1,1)` and end at point :math:`(
     m,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
@@ -36,13 +36,11 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     The DTW distance between
     series is the path through :math:`M` that minimizes the total distance. The
     distance for any path :math:`P` of length :math:`s` is
-    .. math::
-        D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
+    .. math:: D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
 
     If :math:`\mathcal{P}` is the space of all possible paths, the DTW path :math:`P^*`
     is the path that has the minimum distance, hence the DTW distance between series is
-    .. math::
-        d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
+    .. math:: d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
     The optimal warping path :math:`P^*` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
     put a restriction on the amount of warping allowed. This is implemented through

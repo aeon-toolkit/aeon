@@ -1,24 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""Derivative Dynamic Time Warping (DDTW) distance.
+"""Derivative Dynamic Time Warping (DDTW) distance."""
 
-DDTW is an adaptation of DTW originally proposed in [1]_. DDTW attempts to
-improve on dtw by better account for the 'shape' of the time series.
-This is done by considering y axis data points as higher level features of 'shape'.
-To do this the first derivative of the sequence is taken, and then using this
-derived sequence a dtw computation is done.
-The default derivative used is:
-
-.. math::
-    D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-
-Where q is the original time series and d_q is the derived time series.
-
-References
-----------
-.. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
-    First SIAM International Conference on Data Mining.
-    1. 10.1137/1.9781611972719.1.
-"""
 __author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
@@ -33,14 +15,24 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    r"""Compute the ddtw distance between two time series.
+    r"""Compute the DDTW distance between two time series.
+
+    Derivative dynamic time warping (DDTW) is an adaptation of DTW originally proposed
+    in [1]_. DDTW takes a version of the first derivatives of the series
+    prior to performing standard DTW [LINK?]. The derivative function, defined in [
+    1]_, is:
+    .. math:: d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+
+    Where q is the original time series and d_q is the derived time series.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
+        Second time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -55,6 +47,12 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     ValueError
         If x and y are not 1D or 2D arrays.
         If n_timepoints or m_timepoints are less than 2.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -82,12 +80,17 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
     r"""Compute the ddtw cost matrix between two time series.
 
+    This involves taking the difference of the series then using the same cost
+    function as DTW.
+
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
