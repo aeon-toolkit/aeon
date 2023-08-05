@@ -594,7 +594,7 @@ class BaseForecaster(BaseEstimator):
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
-            if self.get_tag("X-y-must-have-same-index"), must contain fh.index
+            if self.get_tag("X-y-must-have-same-index"), must contain fh.index.
         coverage : float or list of float of unique values, default=0.9
             Nominal coverage(s) of predictive interval(s).
 
