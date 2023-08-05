@@ -35,10 +35,13 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     \leq f_{i+1}- f_i \leq 1' for all :math:'1< i < m'. The DTW distance between
     series is the path through :math:'M' that minimizes the total distance. The
     distance for any path :math:'P' of length :math:'s' is
-    .. math::  D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}.
+    .. math::
+        D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
+
     If :math:'\mathcal{P}' is the space of all possible paths, the DTW path :math:'P^*'
     is the path that has the minimum distance, hence the DTW distance between series is
-    .. math::  d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
+    .. math::
+        d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
     The optimal warping path $P^*$ can be found exactly through a dynamic programming
     formulation. This can be a time consuming operation, and it is common to put a
     restriction on the amount of warping allowed. This is implemented through
