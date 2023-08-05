@@ -15,7 +15,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    r"""Compute the dtw distance between two time series.
+    r"""Compute the dtw distance between two time series TEST :math:`X`.
 
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
