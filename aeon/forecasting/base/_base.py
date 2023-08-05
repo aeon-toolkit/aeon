@@ -739,7 +739,7 @@ class BaseForecaster(BaseEstimator):
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index.
         marginal : bool, default=True
-            whether returned distribution is marginal by time index.
+            Whether returned distribution is marginal by time index.
 
         Returns
         -------
@@ -906,9 +906,9 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details see  examples/forecasting, or examples/datasets
+            For further details see  examples/forecasting, or examples/datasets.
         cv : temporal cross-validation generator inheriting from BaseSplitter, optional
-            for example, SlidingWindowSplitter or ExpandingWindowSplitter
+            For example, SlidingWindowSplitter or ExpandingWindowSplitter
             default = ExpandingWindowSplitter with `initial_window=1` and defaults
                 = individual data points in y/X are added and forecast one-by-one,
                 `initial_window = 1`, `step_length = 1` and `fh = 1`
@@ -917,11 +917,11 @@ class BaseForecaster(BaseEstimator):
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain y.index and fh.index both
-            there are no restrictions on number of columns (unlike for y)
+            there are no restrictions on number of columns (unlike for y).
         update_params : bool, optional (default=True)
-            whether model parameters should be updated in each update step
+            Whether model parameters should be updated in each update step.
         reset_forecaster : bool, optional (default=True)
-            if True, will not change the state of the forecaster,
+            If True, will not change the state of the forecaster,
                 i.e., update/predict sequence is run with a copy,
                 and cutoff, model parameters, data memory of self do not change
             if False, will update self when the update/predict sequence is run
@@ -930,7 +930,7 @@ class BaseForecaster(BaseEstimator):
         Returns
         -------
         y_pred : object that tabulates point forecasts from multiple split batches
-            format depends on pairs (cutoff, absolute horizon) forecast overall
+            Format depends on pairs (cutoff, absolute horizon) forecast overall
             if collection of absolute horizon points is unique:
                 type is time series in aeon compatible data container format
                 cutoff is suppressed in output
@@ -941,7 +941,7 @@ class BaseForecaster(BaseEstimator):
                 row index corresponds to cutoffs that are predicted from
                 column index corresponds to absolut horizons that are predicted
                 entry is the point prediction of col index predicted from row index
-                entry is nan if no prediction is made at that (cutoff, horizon) pair
+                entry is nan if no prediction is made at that (cutoff, horizon) pair.
         """
         from aeon.forecasting.model_selection import ExpandingWindowSplitter
 
@@ -1010,15 +1010,15 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
                 if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details see  examples/forecasting, or examples/datasets
+            For further details see  examples/forecasting, or examples/datasets.
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
-            if has not been passed in fit, must be passed, not optional
+            if has not been passed in fit, must be passed, not optional.
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
-                X.index must contain y.index and fh.index both
+                X.index must contain y.index and fh.index both.
         update_params : bool, optional (default=False)
 
         Returns
