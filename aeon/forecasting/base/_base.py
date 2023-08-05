@@ -104,7 +104,6 @@ class BaseForecaster(BaseEstimator):
 
     def __init__(self):
         self._is_fitted = False
-
         self._y = None
         self._X = None
 
@@ -311,14 +310,14 @@ class BaseForecaster(BaseEstimator):
             For further details:
                 on usage, see forecasting examples/forecasting
                 on specification of formats, examples/datasets
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
-            The forecasting horizon encoding the time stamps to forecast at.
-            if self.get_tag("requires-fh-in-fit"), must be passed, not optional
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
             there are no restrictions on number of columns (unlike for y)
+        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+            The forecasting horizon encoding the time stamps to forecast at.
+            if self.get_tag("requires-fh-in-fit"), must be passed, not optional.
 
         Returns
         -------
@@ -996,7 +995,7 @@ class BaseForecaster(BaseEstimator):
         Parameters
         ----------
         y : time series in aeon compatible data container format
-                Time series to which to fit the forecaster in the update.
+            Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 for vanilla forecasting, one time series
