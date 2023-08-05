@@ -56,7 +56,7 @@ class BaseClassifier(BaseEstimator, ABC):
     Attributes
     ----------
     classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of ``classes_``)
+    n_classes_          : integer, number of classes (length of classes_``)
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _X_metadata         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers
@@ -136,16 +136,17 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.array
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
+                of shape ``(n_instances, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+                of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``
+                , where ``n_timepoints_i`` is length of series ``i``
             other types are allowed and converted into one of the above.
-        y : 1D np.array, of shape (n_instances) - class labels for fitting
-            indices correspond to instance indices in X
+        y : 1D np.array, of shape ``(n_instances)`` - class labels for fitting
+            indices correspond to instance indices in X.
 
         Returns
         -------
@@ -193,10 +194,11 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.array
+            any number of channels, equal length series of shape `(n_instances,
+            n_channels, n_timepoints).
             or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
+                of shape (n_instances, n_timepoints).
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
@@ -273,7 +275,6 @@ class BaseClassifier(BaseEstimator, ABC):
         from sklearn.metrics import accuracy_score
 
         self.check_is_fitted()
-
         return accuracy_score(y, self.predict(X), normalize=True)
 
     @classmethod
@@ -368,6 +369,8 @@ class BaseClassifier(BaseEstimator, ABC):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
+        if not self.is_fitted:
+            raise ValueError("Cannot call _predict_proba without calling fit first")
         preds = self._predict(X)
         n_pred = len(preds)
         dists = np.zeros((n_pred, self.n_classes_))
@@ -399,12 +402,12 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Examples
         --------
-        >>> from aeon.classification import BaseClassifier
+        >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10))
         >>> X[0][1][3] = np.NAN # X is equal length, multivariate, with missing
-        >>> dc = BaseClassifier()
-        >>> dc.checkX(X)    # DummyClassifier can handle this
+        >>> hc = HIVECOTEV2()
+        >>> hc.checkX(X)    # HC2 can handle this
         True
         """
         metadata = _get_metadata(X)
@@ -459,16 +462,16 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Examples
         --------
-        >>> from aeon.classification import BaseClassifier
+        >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> from aeon.utils.validation.collection import get_type
         >>> X = [np.random.random(size=(5,10), np.random.random(size=(5,10)]
         >>> get_type(X)
         np-list
-        >>> dc = BaseClassifier()
-        >>> dc.get_tag("X_inner_mtype")
+        >>> hc = HIVECOTEV2()
+        >>> hc.get_tag("X_inner_mtype")
         ["np-list", "numpy3D"]
-        >>> X = dc.convertX(X)
+        >>> X = hc.convertX(X)
         >>> get_type(X)
         numpy3D
         """
@@ -492,7 +495,7 @@ class BaseClassifier(BaseEstimator, ABC):
         # Check y valid input
         if not isinstance(y, (pd.Series, np.ndarray)):
             raise TypeError(
-                f"y must be a np.ndarray or a pd.Series, but found type: {type(y)}"
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
             )
         if isinstance(y, np.ndarray) and y.ndim > 1:
             raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
@@ -507,7 +510,7 @@ class BaseClassifier(BaseEstimator, ABC):
         if y_type != "binary" and y_type != "multiclass":
             raise ValueError(
                 f"y type is {y_type} which is not valid for classification. "
-                f"Should be binary or multiclass occording to type_of_target"
+                f"Should be binary or multiclass according to type_of_target"
             )
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)

@@ -17,17 +17,6 @@ from aeon.utils.validation.tests.test_collection import (
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
-"""
- Need to test:
-    1. base class fit, predict and predict_proba works with valid input,
-    raises exception with invalid
-    2. checkX and convertX, valid and invald
-    3. _get_metadata
-    4. _check_y
-    5. score
-
-"""
-
 
 class _TestClassifier(BaseClassifier):
     """Classifier for testing base class fit/predict/predict_proba."""
@@ -39,10 +28,6 @@ class _TestClassifier(BaseClassifier):
     def _predict(self, X):
         """Predict dummy."""
         return np.zeros(shape=(len(X),))
-
-    def _predict_proba(self, X):
-        """Predict proba dummy."""
-        return np.zeros(shape=(len(X), 2))
 
 
 class _TestHandlesAllInput(BaseClassifier):
@@ -108,7 +93,7 @@ def test_incorrect_input():
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     m1 = r"ERROR passed a list containing <class 'str'>"
     m2 = r"ERROR passed input of type <class 'dict'>"
-    m3 = r"y must be a np.ndarray or a pd.Series, but found type: <class 'list'>"
+    m3 = r"y must be a np.array or a pd.Series, but found type: <class 'list'>"
     m4 = r"Mismatch in number of cases"
     m5 = r"y must be 1-dimensional"
     m6 = r"y type is continuous which is not valid for classification"
@@ -177,10 +162,6 @@ class _MutableClassifier(BaseClassifier):
         """Predict dummy."""
         return np.zeros(shape=(len(X),))
 
-    def _predict_proba(self, X):
-        """Predict proba dummy."""
-        return np.zeros(shape=(len(X), 2))
-
 
 @pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -214,15 +195,38 @@ def test_convertX(internal_type, data):
     X2 = cls.convertX(X)
     assert get_type(X2) == internal_type
     if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
-        cls.set_tags(**{"capability:unequal_length": True})
-        cls.set_tags(**{"X_inner_mtype": ["nested_univ", "np-list", internal_type]})
-        X = UNEQUAL_LENGTH_UNIVARIATE[data]
-        X2 = cls.convertX(X)
-        assert get_type(X2) == "np-list"
+        if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
+            cls.set_tags(**{"capability:unequal_length": True})
+            cls.set_tags(**{"X_inner_mtype": ["nested_univ", "np-list", internal_type]})
+            X = UNEQUAL_LENGTH_UNIVARIATE[data]
+            X2 = cls.convertX(X)
+            assert get_type(X2) == "np-list"
 
 
 def test__check_y():
-    pass
+    """Test private method _check_y."""
+    # Correct outcomes
+    cls = _TestClassifier()
+    y = np.random.randint(0, 4, 100, dtype=int)
+    cls._check_y(y, 100)
+    assert len(cls.classes_) == cls.n_classes_ == len(cls._class_dictionary) == 4
+    y = pd.Series(y)
+    cls._check_y(y, 100)
+    assert len(cls.classes_) == cls.n_classes_ == len(cls._class_dictionary) == 4
+    # Test error raising
+    # y wrong length
+    with pytest.raises(ValueError, match=r"Mismatch in number of cases"):
+        cls._check_y(y, 99)
+    # y invalid type
+    y = ["This", "is", "tested", "lots"]
+    with pytest.raises(TypeError, match=r"np.array or a pd.Series"):
+        cls._check_y(y, 4)
+    y = np.ndarray([1, 2, 1, 2, 1, 2])
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+        cls._check_y(y, 6)
+    y = np.random.rand(10)
+    with pytest.raises(ValueError, match=r"Should be binary or multiclass"):
+        cls._check_y(y, 10)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -289,3 +293,16 @@ def test_predict_single_class():
     assert y_pred_proba.ndim == 2
     assert y_pred_proba.shape == (10, 1)
     assert all(list(y_pred_proba == 1))
+
+
+def test__predict_proba():
+    """Test default _predict_proba."""
+    cls = _TestClassifier()
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    msg = "Cannot call _predict_proba without calling fit first"
+    with pytest.raises(ValueError, match=msg):
+        cls._predict_proba(X)
+    cls.fit(X, y)
+    p = cls._predict_proba(X)
+    assert p.shape == (5, 2)
