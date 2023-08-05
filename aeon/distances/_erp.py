@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Edit real penalty (erp) distance between two time series.
-
-ERP, first proposed in [1]_, attempts to align time series
-by better considering how indexes are carried forward through the cost matrix.
-Usually in the dtw cost matrix, if an alignment can't be found the previous value
-is carried forward. Erp instead proposes the idea of gaps or sequences of points
-that have no matches. These gaps are then punished based on their distance from 'g'.
-
-References
-----------
-.. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-In Proceedings of the Thirtieth international conference on Very large data bases
- - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
-"""
+r"""Edit real penalty (erp) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple, Union
@@ -37,18 +24,19 @@ def erp_distance(
     g: float = 0.0,
     g_arr: np.ndarray = None,
 ) -> float:
-    """Compute the ERP distance between two time series.
+    r"""Compute the ERP distance between two time series.
 
     ERP, first proposed in [1]_, attempts to align time series
     by better considering how indexes are carried forward through the cost matrix.
     Usually in the dtw cost matrix, if an alignment can't be found the previous value
     is carried forward. Erp instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from 'g'.
+    that have no matches. These gaps are then punished based on their distance from
+    :math:`g`.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
+    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma],
+    where :math:`\sigma` is the standard deviation of the training data. When a
+    series is multivariate (more than one channel), :math:`g` is an array where the
+    :math:`n^{th}` value is the standard deviation of the :math:`n^{th}` channel.
 
     Parameters
     ----------

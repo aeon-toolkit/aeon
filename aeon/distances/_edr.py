@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Edit distance for real sequences (EDR) between two time series.
-
-ERP was adapted in [1] specifically for distances between trajectories. Like LCSS,
-EDR uses a distance threshold to define when two elements of a series match.
-However, rather than simply count matches and look for the longest sequence,
-ERP applies a (constant) penalty for non-matching elements
-where gaps are inserted to create an optimal alignment.
-
-References
-----------
-.. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
-object trajectories. In: Proceedings of the ACM SIGMOD International Conference
-on Management of Data, 2005
-"""
+"""Edit distance for real sequences (EDR) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -35,6 +22,12 @@ def edr_distance(
 ) -> float:
     """Compute the edr distance between two time series.
 
+    Edit Distance  was adapted in [1]_ for distances between trajectories. Like LCSS [
+    LINK], EDR uses a distance threshold to define when two elements of a series match.
+    However, rather than simply count matches and look for the longest sequence,
+    EDR applies a (constant) penalty for non-matching elements
+    where gaps are inserted to create an optimal alignment.
+
     EDR computes the minimum number of elements (as a percentage) that must be removed
     from x and y so that the sum of the distance between the remaining signal elements
     lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
@@ -42,6 +35,12 @@ def edr_distance(
     The value returned will be between 0 and 1 per time series. The value will
     represent as a percentage of elements that must be removed for the time series to
     be an exact match.
+
+    References
+    ----------
+    .. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
+    object trajectories. In: Proceedings of the ACM SIGMOD International Conference
+    on Management of Data, 2005
 
     Parameters
     ----------
