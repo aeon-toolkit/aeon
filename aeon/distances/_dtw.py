@@ -20,7 +20,8 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]. For two series
-    :math:'\mathbf{a}=\{a_1,a_2,\ldots,a_m\}' and :math:'\mathbf{b}=\{b_1,b_2,\ldots,
+    .. math:'\mathbf{a}=\{a_1,a_2,\ldots,a_m\}' and .. math:'\mathbf{b}=\{b_1,b_2,
+    \ldots,
     b_m\}',  (assumed equal length for simplicity), DTW first calculates  :math:'M(
     \mathbf{a},\mathbf{b})', the :math:'m \times m'
     pointwise distance matrix between series :math:'\mathbf{a}' and :math:'\mathbf{b}',
@@ -44,10 +45,10 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     window: float, default=None
@@ -95,17 +96,17 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
 @njit(cache=True, fastmath=True)
 def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
-    """Compute the dtw cost matrix between two time series.
+    r"""Compute the dtw cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
     :math:'M_{i,j}=   (a_i-b_j)^2'. It is used inthe dtw path calculations.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     window: float, default=None
@@ -184,7 +185,7 @@ def _dtw_cost_matrix(
 def dtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None
 ) -> np.ndarray:
-    """Compute the dtw pairwise distance between a set of time series.
+    r"""Compute the dtw pairwise distance between a set of time series.
 
     By default, this takes a collection of `n` time series `X` and returns a matrix
     `D` where $D_{i,j}$ is the dtw distance between the $i^{th}$ and the $j^th$
@@ -202,12 +203,12 @@ def dtw_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
+    X: np.ndarray, of shape (n_instances, n_timepoints) or (n_instances, n_channels,
+    n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A a single series or a collection of time series.
+    y: np.ndarray, of shape (m_timepoints,) or (m_instances, m_timepoints) or (
+    m_instances, m_channels, m_timepoints) default=None
+        A single series or a collection of time series.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
