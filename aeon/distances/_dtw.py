@@ -15,22 +15,20 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    r"""Compute the dtw distance between two time series TEST :math:`X`.
+    r"""Compute the dtw distance between two time series.
 
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]. For two series
-
-    .. math::
-        '\mathbf{a}=\{a_1,a_2,\ldots,a_n\}'
-    and
-    .. math::
-        '\mathbf{b}=\{b_1,b_2, \ldots,    b_m\}'
-
-    DTW first calculates :math:'M(\mathbf{a},\mathbf{b})', the :math:'m \times m'
+    :math:'\mathbf{a}=\{a_1,a_2,\ldots,a_n\}' and
+    :math:'\mathbf{b}=\{b_1,b_2, \ldots,b_m\}' DTW first calculates
+    :math:'M(\mathbf{a},\mathbf{b})', the :math:'m \times m'
     pointwise distance matrix between series :math:'\mathbf{a}' and :math:'\mathbf{b}',
-    where :math:'M_{i,j}=   (a_i-b_j)^2'. A warping path
-    .. math::  P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
+    where :math:'M_{i,j}=   (a_i-b_j)^2'.
+
+    A warping path
+    .. math::
+        P=<(e_1,f_1),(e_2,f_2),\ldots, (e_s,f_s)>
     is a set of pairs of indices that  define a traversal of matrix :math:'M'. A
     valid warping path must start at location :math:'(1,1)' and end at point :math:'(
     m,m)' and not backtrack, i.e. :math:'0 \leq e_{i+1}-e_{i} \leq 1' and :math:'0
