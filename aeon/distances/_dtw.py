@@ -27,6 +27,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     and
 
     .. math::
+
     '\mathbf{b}=\{b_1,b_2, \ldots,    b_m\}'
 
     DTW first calculates  .. math::'M(
