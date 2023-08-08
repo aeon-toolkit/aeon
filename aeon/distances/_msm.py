@@ -51,10 +51,12 @@ def msm_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
+        Second time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
     window: float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -89,7 +91,7 @@ def msm_distance(
 
     References
     ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
+    .. [1] A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
     for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
     25(6):1425–1438, 2013.
     """
