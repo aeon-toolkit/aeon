@@ -13,8 +13,6 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
-    # SFA is non-compliant with any transformer interfaces, #2064
-    "SFA",
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
     "MiniRocket",
