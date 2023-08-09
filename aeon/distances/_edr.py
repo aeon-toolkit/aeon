@@ -36,12 +36,6 @@ def edr_distance(
     represent as a percentage of elements that must be removed for the time series to
     be an exact match.
 
-    References
-    ----------
-    .. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
-    object trajectories. In: Proceedings of the ACM SIGMOD International Conference
-    on Management of Data, 2005
-
     Parameters
     ----------
     x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
@@ -66,6 +60,13 @@ def edr_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+
+    References
+    ----------
+    .. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
+    object trajectories. In: Proceedings of the ACM SIGMOD International Conference
+    on Management of Data, 2005
+
     Examples
     --------
     >>> import numpy as np
@@ -73,14 +74,6 @@ def edr_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = edr_distance(x, y)
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

@@ -1,19 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Time Warp Edit (TWE) distance between two time series.
-
-The Time Warp Edit (TWE) distance is a distance measure for discrete time series
-matching with time 'elasticity'. In comparison to other distance measures, (e.g.
-DTW (Dynamic Time Warping) or LCS (Longest Common Subsequence Problem)), TWE is a
-metric. Its computational time complexity is O(n^2), but can be drastically reduced
-in some specific situation by using a corridor to reduce the search space. Its
-memory space complexity can be reduced to O(n). It was first proposed in [1].
-
-References
-----------
-.. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
-Intelligence. 31 (2): 306–318.
-"""
+"""Time Warp Edit (TWE) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -72,6 +58,12 @@ def twe_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+    References
+    ----------
+    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
+    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
+    Intelligence. 31 (2): 306–318.
+
     Examples
     --------
     >>> import numpy as np
@@ -79,12 +71,6 @@ def twe_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = twe_distance(x, y)
-
-    References
-    ----------
-    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
-    Intelligence. 31 (2): 306–318.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

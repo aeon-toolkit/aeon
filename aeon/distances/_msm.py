@@ -47,8 +47,6 @@ def msm_distance(
     itself, and the merge operation is used to delete a value if it directly follows
     an identical value.
 
-    Currently only works with univariate series.
-
     Parameters
     ----------
     x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
@@ -88,12 +86,6 @@ def msm_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = msm_distance(x, y)
-
-    References
-    ----------
-    .. [1] A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

@@ -62,6 +62,12 @@ def erp_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+    References
+    ----------
+    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
+    In Proceedings of the Thirtieth international conference on Very large data bases
+     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
+
     Examples
     --------
     >>> import numpy as np
@@ -69,12 +75,6 @@ def erp_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> dist = erp_distance(x, y)
-
-    References
-    ----------
-    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-    In Proceedings of the Thirtieth international conference on Very large data bases
-     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
