@@ -29,14 +29,14 @@ def erp_distance(
     ERP, first proposed in [1]_, attempts to align time series
     by better considering how indexes are carried forward through the cost matrix.
     Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. Erp instead proposes the idea of gaps or sequences of points
+    is carried forward. ERP instead proposes the idea of gaps or sequences of points
     that have no matches. These gaps are then punished based on their distance from
     :math:`g`.
 
-    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma],
-    where :math:`\sigma` is the standard deviation of the training data. When a
+    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma]`
+    , where :math:`\sigma` is the standard deviation of the training data. When a
     series is multivariate (more than one channel), :math:`g` is an array where the
-    :math:`n^{th}` value is the standard deviation of the :math:`n^{th}` channel.
+    :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
 
     Parameters
     ----------
