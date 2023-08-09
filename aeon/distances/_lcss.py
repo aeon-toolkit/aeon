@@ -78,8 +78,10 @@ def lcss_distance(
 
     References
     ----------
-    .. [1] D. Hirschberg, Algorithms for the longest common subsequence problem, Journal
-    of the ACM 24(4), 664--675, 1977
+    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
+        Similar Multidimensional Trajectories", In Proceedings of the
+        18th International Conference on Data Engineering (ICDE '02).
+        IEEE Computer Society, USA, 673.
 
     Examples
     --------
@@ -88,13 +90,6 @@ def lcss_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = lcss_distance(x, y)
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
