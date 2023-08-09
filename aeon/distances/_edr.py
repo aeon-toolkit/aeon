@@ -22,8 +22,8 @@ def edr_distance(
 ) -> float:
     """Compute the edr distance between two time series.
 
-    Edit Distance  was adapted in [1]_ for distances between trajectories. Like LCSS [
-    LINK], EDR uses a distance threshold to define when two elements of a series match.
+    Edit Distance  was adapted in [1]_ for distances between trajectories. Like LCSS,
+    EDR uses a distance threshold to define when two elements of a series match.
     However, rather than simply count matches and look for the longest sequence,
     EDR applies a (constant) penalty for non-matching elements
     where gaps are inserted to create an optimal alignment.
