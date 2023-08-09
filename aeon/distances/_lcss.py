@@ -20,28 +20,29 @@ def lcss_distance(
     r"""Return the lcss distance between x and y.
 
     The LCSS distance for time series is based on the solution to the
-    longest common subsequence problem in pattern matching [1]. The typical problem
+    longest common subsequence problem in pattern matching [1]_. The typical problem
     is to find the longest subsequence that is common to two discrete series based on
     the edit distance. This approach can be extended to consider real-valued time series
     by using a distance threshold epsilon, which defines the maximum difference
     between a pair of values that is allowed for them to be considered a match.
     LCSS finds the optimal alignment between two series by find the greatest number
-    of matching pairs. The LCSS distance uses a matrix :math:'L' that records the
-    sequence of matches over valid warpings. For two series :math:'a = a_1,... a_m
-    and b = b_1,... b_m, L' is found by iterating over all valid windows (i.e.
+    of matching pairs. The LCSS distance uses a matrix :math:`L` that records the
+    sequence of matches over valid warpings. For two series :math:`a = a_1,... a_n`
+    and :math:`b = b_1,... b_m, L'` is found by iterating over all valid windows (i.e.
     where bounding_matrix is not infinity, which by default is the constant band
-    :math:'|i-j|<w*m', where :math:'w' is the window parameter value and m is series
-    length), then calculating
+    :math:`|i-j|<w*m`, where :math:`w` is the window parameter value and :math:`m` is
+    series length), then calculating
 
-    ::math
-    if(|a_i - b_j| < espilon) \\
+    :: math..
+        if(|a_i - b_j| < espilon) \\
             &L_{i,j} \leftarrow L_{i-1,j-1}+1 \\
-    else\\
+        else\\
             &L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})\\
 
     The distance is an inverse function of the final LCSS.
-    ::math
-    d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.\]
+
+    :: math..
+        d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.
 
     Note that series a and b need not be equal length.
 
@@ -81,7 +82,6 @@ def lcss_distance(
     .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
         Similar Multidimensional Trajectories", In Proceedings of the
         18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
 
     Examples
     --------
