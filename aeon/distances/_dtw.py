@@ -19,7 +19,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
-    each other. A good background into DTW can be found in [1]. For two series
+    each other. A good background into DTW can be found in [1]_. For two series
     :math:`\mathbf{a}=\{a_1,a_2,\ldots,a_n\}` and
     :math:`\mathbf{b}=\{b_1,b_2, \ldots,b_m\}` DTW first calculates
     :math:`M(\mathbf{a},\mathbf{b})`, the :math:`n \times m`
@@ -27,33 +27,39 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     where :math:`M_{i,j}=   (a_i-b_j)^2`.
 
     A warping path
+
     .. math::
-        P = \\{(e_1, f_1), (e_2, f_2), \\ldots, (e_s, f_s)\\}
+        P = <(e_1, f_1), (e_2, f_2), \ldots, (e_s, f_s)>
+
     is a set of pairs of indices that  define a traversal of matrix :math:`M`. A
     valid warping path must start at location :math:`(1,1)` and end at point :math:`(
-    m,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
+    n,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
     \leq f_{i+1}- f_i \leq 1` for all :math:`1< i < m`.
 
     The DTW distance between
     series is the path through :math:`M` that minimizes the total distance. The
     distance for any path :math:`P` of length :math:`s` is
-    .. math:: D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
+    .. math::
+        D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
 
     If :math:`\mathcal{P}` is the space of all possible paths, the DTW path :math:`P^*`
     is the path that has the minimum distance, hence the DTW distance between series is
-    .. math:: d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
+
+    .. math::
+        d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
+
     The optimal warping path :math:`P^*` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
     put a restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
-    The most common bounding strategies include the Sakoe-Chiba band [2].
+    The most common bounding strategies include the Sakoe-Chiba band [2]_.
 
     Parameters
     ----------
-    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
+    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     window: float, default=None
@@ -74,18 +80,22 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     References
     ----------
     .. [1] Ratanamahatana C and Keogh E.: Three myths about dynamic time warping data
-    mining Proceedings of 5th SIAM International Conference on Data Mining, 2005
+    mining, Proceedings of 5th SIAM International Conference on Data Mining, 2005.
     .. [2] Sakoe H. and Chiba S.: Dynamic programming algorithm optimization for
     spoken word recognition. IEEE Transactions on Acoustics, Speech, and Signal
-    Processing 26(1):43–49, 1978
+    Processing 26(1):43–49, 1978.
 
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import dtw_distance
+    >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    >>> dtw_distance(x, y) # 1D series
+    768.0
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dtw_distance(x, y)
+    >>> dtw_distance(x, y) # 2D series
     768.0
     """
     if x.ndim == 1 and y.ndim == 1:
