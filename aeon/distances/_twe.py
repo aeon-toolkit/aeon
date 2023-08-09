@@ -26,12 +26,10 @@ def twe_distance(
 ) -> float:
     """Compute the TWE distance between two time series.
 
-    The Time Warp Edit (TWE) distance is a distance measure for discrete time series
-    matching with time 'elasticity'. In comparison to other distance measures, (e.g.
-    DTW (Dynamic Time Warping) or LCS (Longest Common Subsequence Problem)), TWE is a
-    metric. Its computational time complexity is O(n^2), but can be drastically reduced
-    in some specific situation by using a corridor to reduce the search space. Its
-    memory space complexity can be reduced to O(n). It was first proposed in [1].
+    Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
+    series matching with time 'elasticity'. In comparison to other distance measures,
+    (e.g. DTW (Dynamic Time Warping) or LCSS (Longest Common Subsequence)), TWE is a
+    metric. It's  run time complexity is :math:`O(n^2)`.
 
     Parameters
     ----------
@@ -216,7 +214,7 @@ def twe_pairwise_distance(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> np.ndarray:
-    """Compute the twe pairwise distance between a set of time series.
+    """Compute the TWE pairwise distance between a set of time series.
 
     Parameters
     ----------

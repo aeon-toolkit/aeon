@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Move-split-merge (MSM) distance between two time series."""
+"""Move-split-merge (MSM) distance between two time series."""
 __author__ = ["chrisholder", "jlines", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -34,7 +34,7 @@ def msm_distance(
     the cost of the cheapest sequence of operations that transforms the first time
     series into the second one.
 
-    (MSM) [1] is a distance measure that is conceptually similar to other edit
+    (MSM) [1]_ is a distance measure that is conceptually similar to other edit
     distance-based approaches, where similarity is calculated by using a set of
     operations to transform one series into another. Each operation has an
     associated cost, and three operations are defined for MSM: move, split, and merge.
@@ -49,10 +49,10 @@ def msm_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
+    y: np.ndarray, of shape `m_timepoints,) or (m_channels, m_timepoints)
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     window: float, default=None
@@ -77,7 +77,7 @@ def msm_distance(
     References
     ----------
     .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
-    series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013
+    series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
     Examples
     --------

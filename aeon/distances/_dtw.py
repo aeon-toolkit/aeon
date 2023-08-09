@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Dynamic time warping (dtw) between two time series."""
+r"""Dynamic time warping (DTW) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -39,6 +39,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     The DTW distance between
     series is the path through :math:`M` that minimizes the total distance. The
     distance for any path :math:`P` of length :math:`s` is
+
     .. math::
         D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
 
@@ -93,10 +94,10 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     >>> dtw_distance(x, y) # 1D series
     768.0
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dtw_distance(x, y) # 2D series
-    768.0
+    >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
+    >>> y = np.array([[11, 12, 13, 14],[7, 8, 9, 20],[1, 3, 4, 5]] )
+    >>> dtw_distance(x, y) # 2D series with 3 channels, unequal length
+    564.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -238,8 +239,7 @@ def dtw_pairwise_distance(
     Raises
     ------
     ValueError
-        If X is not 2D or 3D array when only passing X.
-        If X and y are not 1D, 2D or 3D arrays when passing both X and y.
+        If X is not 2D or 3D array and if y is not 1D, 2D or 3D arrays when passing y.
 
     Examples
     --------
