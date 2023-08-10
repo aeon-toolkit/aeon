@@ -172,7 +172,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        checkX(X) : function that checks X is valid and finds metadata.
+        checkX : function that checks X is valid and finds metadata.
 
         Examples
         --------
