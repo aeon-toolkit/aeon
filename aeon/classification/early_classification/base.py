@@ -32,20 +32,9 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
-import pandas as pd
-from sklearn.utils.multiclass import type_of_target
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseCollectionEstimator, BaseEstimator
 from aeon.classification import BaseClassifier
-from aeon.utils.validation.collection import (
-    convert_collection,
-    get_n_cases,
-    has_missing,
-    is_equal_length,
-    is_univariate,
-    resolve_equal_length_inner_type,
-    resolve_unequal_length_inner_type,
-)
 
 
 class BaseEarlyClassifier(BaseEstimator, ABC):
@@ -81,6 +70,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
     }
 
     def __init__(self):
+        self.metadata_ = {}  # metadata/properties of data seen in fit
         self.classes_ = []
         self.n_classes_ = 0
         self.fit_time_ = 0
@@ -547,182 +537,18 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         """
         ...
 
-    def _check_convert_X_for_predict(self, X):
-        """Input checks, capability checks, repeated in all predict/score methods.
-
-        Parameters
-        ----------
-        X : any object (to check/convert)
-            should be of a supported input type or 2D numpy.ndarray
-
-        Returns
-        -------
-        X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
-
-        Raises
-        ------
-        ValueError if X is of invalid input data type, or there is not enough data
-        ValueError if the capabilities in self._tags do not handle the data.
-        """
-        _check_convert_X_for_predict = BaseClassifier._check_convert_X_for_predict
-        return _check_convert_X_for_predict(self, X)
-
-    def _check_capabilities(self, missing, multivariate, unequal):
-        """Check whether this classifier can handle the data characteristics.
-
-        Parameters
-        ----------
-        missing : boolean, does the data passed to fit contain missing values?
-        multivariate : boolean, does the data passed to fit contain missing values?
-        unequal : boolea, do the time series passed to fit have variable lengths?
-
-        Raises
-        ------
-        ValueError if the capabilities in self._tags do not handle the data.
-        """
-        _check_capabilities = BaseClassifier._check_capabilities
-        return _check_capabilities(self, missing, multivariate, unequal)
-
-    def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
-
-        Parameters
-        ----------
-        self : this classifier
-        X : pd.DataFrame or np.ndarray. Input attribute data
-
-        Returns
-        -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a 3D np.ndarray
-            Checked and possibly converted input data
-        """
-        _convert_X = BaseClassifier._convert_X
-        return _convert_X(self, X)
-
-    def _check_classifier_input(self, X, y=None, enforce_min_cases=1):
-        """Check whether input X and y are valid formats with minimum data.
-
-        Raises a ValueError if the input is not valid.
-
-        Parameters
-        ----------
-        X : check whether conformant with any aeon input type specification
-        y : check whether a pd.Series or np.array
-        enforce_min_cases : int, optional (default=1)
-            check there are a minimum number of instances.
-
-        Returns
-        -------
-        metadata : dict with metadata for X returned by datatypes.check_is_scitype
-
-        Raises
-        ------
-        ValueError
-            If y or X is invalid input data type, or there is not enough data
-        """
-        _check_classifier_input = BaseClassifier._check_classifier_input
-        return _check_classifier_input(self, X, y, enforce_min_cases)
-
-    def _internal_convert(self, X, y=None):
-        """Convert X and y if necessary as a user convenience.
-
-        Convert X to a 3D numpy array if already a 2D and convert y into an 1D numpy
-        array if passed as a Series.
-
-        Parameters
-        ----------
-        X : an object of a supported input type including 2D numpy.ndarray
-        y : np.ndarray or pd.Series
-
-        Returns
-        -------
-        X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
-        y: np.ndarray
-        """
-        _internal_convert = BaseClassifier._internal_convert
-        return _internal_convert(self, X, y)
+    def preprocess_collection(self, X):
+        """Add comment."""
+        return BaseCollectionEstimator.preprocess_collection(self, X)
 
     def checkX(self, X):
-        """To follow."""
-        metadata = _get_metadata(X)
-        # Check classifier capabilities for X
-        allow_multivariate = self.get_tag("capability:multivariate")
-        allow_missing = self.get_tag("capability:missing_values")
-        allow_unequal = self.get_tag("capability:unequal_length")
-
-        # Check capabilities vs input
-        problems = []
-        if metadata["missing_values"] and not allow_missing:
-            problems += ["missing values"]
-        if metadata["multivariate"] and not allow_multivariate:
-            problems += ["multivariate series"]
-        if metadata["unequal_length"] and not allow_unequal:
-            problems += ["unequal length series"]
-
-        if problems:
-            # construct error message
-            problems_and = " and ".join(problems)
-            problems_or = " or ".join(problems)
-            msg = (
-                f"Data seen by instance of {type(self).__name__} has {problems_and}, "
-                f"but {type(self).__name__} cannot handle {problems_or}. "
-            )
-            raise ValueError(msg)
-        return metadata
+        """Add comment."""
+        return BaseCollectionEstimator.checkX(self, X)
 
     def convertX(self, X):
-        """Docstring to follow."""
-        # Convert X to X_inner_mtype if possible
-        inner_type = self.get_tag("X_inner_mtype")
-        if type(inner_type) == list:
-            # If self can handle more than one internal type, resolve correct conversion
-            # If unequal, choose data structure that can hold unequal
-            if self.metadata_["unequal_length"]:
-                inner_type = resolve_unequal_length_inner_type(inner_type)
-            else:
-                inner_type = resolve_equal_length_inner_type(inner_type)
-        X = convert_collection(X, inner_type)
-        return X
+        """Add comment."""
+        return BaseCollectionEstimator.convertX(self, X)
 
     def _check_y(self, y, n_cases):
-        # Check y valid input
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise ValueError(
-                f"y must be a np.ndarray or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise ValueError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-        # Check matching number of labels
-        n_labels = y.shape[0]
-        if n_cases != n_labels:
-            raise ValueError(
-                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-                f"{n_labels}"
-            )
-        y_type = type_of_target(y)
-        if y_type != "binary" and y_type != "multiclass":
-            raise ValueError(
-                f"y type is {y_type} which is not valid for classification. "
-                f"Should be binary or multiclass occording to type_of_target"
-            )
-        if isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-        # remember class labels
-        self.classes_ = np.unique(y)
-        self.n_classes_ = self.classes_.shape[0]
-        self._class_dictionary = {}
-        for index, class_val in enumerate(self.classes_):
-            self._class_dictionary[class_val] = index
-        return y
-
-
-def _get_metadata(X):
-    # Get and store X meta data.
-    metadata = {}
-    metadata["multivariate"] = not is_univariate(X)
-    metadata["missing_values"] = has_missing(X)
-    metadata["unequal_length"] = not is_equal_length(X)
-    metadata["n_cases"] = get_n_cases(X)
-
-    return metadata
+        """Add comment."""
+        return BaseClassifier._check_y(self, y, n_cases)

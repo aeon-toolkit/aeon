@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 """Unit tests for regression base class functionality."""
 import numpy as np
+import pandas as pd
 import pytest
 
-from aeon.datasets import load_unit_test
+from aeon.datasets import load_covid_3month
 from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
+from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation.tests.test_collection import (
+    EQUAL_LENGTH_UNIVARIATE,
+    UNEQUAL_LENGTH_UNIVARIATE,
+)
 
 
-class _DummyRegressor(BaseRegressor):
+class _TestRegressor(BaseRegressor):
     """Dummy regressor for testing base class fit/predict."""
 
     def _fit(self, X, y):
@@ -17,11 +23,11 @@ class _DummyRegressor(BaseRegressor):
 
     def _predict(self, X):
         """Predict dummy."""
-        return self
+        return np.random.random(size=(len(X)))
 
 
 class _DummyHandlesAllInput(BaseRegressor):
-    """Dummy regress for testing base class fit/predict."""
+    """Dummy regressor for testing base class fit/predict."""
 
     _tags = {
         "capability:multivariate": True,
@@ -36,7 +42,26 @@ class _DummyHandlesAllInput(BaseRegressor):
 
     def _predict(self, X):
         """Predict dummy."""
+        return np.random.random(size=(len(X)))
+
+
+class _TestHandlesAllInput(BaseRegressor):
+    """Dummy regressor for testing base class fit/predict/predict_proba."""
+
+    _tags = {
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:missing_values": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
+    }
+
+    def _fit(self, X, y):
+        """Fit dummy."""
         return self
+
+    def _predict(self, X):
+        """Predict dummy."""
+        return np.random.random(size=(len(X)))
 
 
 multivariate_message = r"multivariate series"
@@ -44,6 +69,65 @@ missing_message = r"missing values"
 unequal_message = r"unequal length series"
 incorrect_X_data_structure = r"must be a np.array or a pd.Series"
 incorrect_y_data_structure = r"must be 1-dimensional"
+
+
+def _assert_fit_predict(dummy, X, y):
+    result = dummy.fit(X, y)
+    # Fit returns self
+    assert result is dummy
+    preds = dummy.predict(X)
+    assert isinstance(preds, np.ndarray)
+    assert len(preds) == 10
+
+
+def test__check_y():
+    """Test private method _check_y."""
+    # Correct outcomes
+    reg = _TestRegressor()
+    y = np.random.random(size=(100))
+    reg._check_y(y, 100)
+    assert isinstance(y, np.ndarray)
+    y = pd.Series(y)
+    y = reg._check_y(y, 100)
+    assert isinstance(y, np.ndarray)
+    # Test error raising
+    # y wrong length
+    with pytest.raises(ValueError, match=r"Mismatch in number of cases"):
+        reg._check_y(y, 99)
+    # y invalid type
+    y = ["This", "is", "tested", "lots"]
+    with pytest.raises(TypeError, match=r"np.array or a pd.Series"):
+        reg._check_y(y, 4)
+    y = np.ndarray([1, 2, 1, 2, 1, 2])
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+        reg._check_y(y, 6)
+    y = np.random.randint(0, 4, 10, dtype=int)
+    with pytest.raises(ValueError, match=r"not valid for regression"):
+        reg._check_y(y, 10)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_unequal_length_input(data):
+    """Test with unequal length failures and passes."""
+    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+        dummy = _TestRegressor()
+        X = UNEQUAL_LENGTH_UNIVARIATE[data]
+        y = np.random.random(size=10)
+        with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+            dummy.fit(X, y)
+        dummy = _TestHandlesAllInput()
+        _assert_fit_predict(dummy, X, y)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_equal_length_input(data):
+    """Test with unequal length failures and passes."""
+    dummy = _TestRegressor()
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    y = np.random.random(size=10)
+    _assert_fit_predict(dummy, X, y)
+    dummy = _TestHandlesAllInput()
+    _assert_fit_predict(dummy, X, y)
 
 
 def test_base_regressor_fit():
@@ -58,7 +142,7 @@ def test_base_regressor_fit():
     5. Set is_fitted after a call to _fit.
     6. Return self.
     """
-    dummy = _DummyRegressor()
+    dummy = _TestRegressor()
     cases = 5
     length = 10
     test_X1 = np.random.uniform(-1, 1, size=(cases, length))
@@ -70,41 +154,18 @@ def test_base_regressor_fit():
         result = dummy.fit(test_X2, test_y1)
     assert result is dummy
     # Raise a specific error if y is in a 2D matrix (1,cases)
-    test_y2 = np.array([test_y1])
+    np.array([test_y1])
     # What if y is in a 2D matrix (cases,1)?
     test_y2 = np.array([test_y1]).transpose()
-    with pytest.raises(ValueError, match=incorrect_y_data_structure):
-        result = dummy.fit(test_X1, test_y2)
-
-
-@pytest.mark.parametrize("missing", [True, False])
-@pytest.mark.parametrize("multivariate", [True, False])
-@pytest.mark.parametrize("unequal", [True, False])
-def test_check_capabilities(missing, multivariate, unequal):
-    """Test the checking of capabilities."""
-    handles_none = _DummyRegressor()
-
-    # checks that errors are raised
-    if missing:
-        with pytest.raises(ValueError, match=missing_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.raises(ValueError, match=multivariate_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.raises(ValueError, match=unequal_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none._check_capabilities(missing, multivariate, unequal)
-
-    handles_all = _DummyHandlesAllInput()
-    handles_all._check_capabilities(missing, multivariate, unequal)
+    with pytest.raises(TypeError, match=incorrect_y_data_structure):
+        dummy.fit(test_X1, test_y2)
 
 
 def test_score():
+    """Test score with continuous and binary regression."""
     dummy = DummyRegressor()
-    x_train, y_train = load_unit_test(split="train")
-    x_test, y_test = load_unit_test(split="test")
+    x_train, y_train = load_covid_3month(split="train")
+    x_test, y_test = load_covid_3month(split="test")
     dummy.fit(x_train, y_train)
     r = dummy.score(x_test, y_test)
-    np.testing.assert_almost_equal(r, -0.008333, decimal=6)
+    np.testing.assert_almost_equal(r, -0.004303695, decimal=6)

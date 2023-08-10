@@ -34,7 +34,6 @@ from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.utils.sklearn import is_sklearn_transformer
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -137,32 +136,19 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         # reset estimator at the start of fit
         self.reset()
-
-        # All of this can move up to BaseCollection if we enhance fit here with super
-        start = int(round(time.time() * 1000))
-        self.metadata_ = self.checkX(X)
-        X = self.convertX(X)
-        multithread = self.get_tag("capability:multithreading")
-        if multithread:
-            try:
-                self._n_jobs = check_n_jobs(self.n_jobs)
-            except NameError:
-                raise AttributeError(
-                    "self.n_jobs must be set if capability:multithreading is True"
-                )
-
+        _start_time = 0
+        X = self.preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
         # escape early and do not fit if only one class label has been seen
         #   in this case, we later predict the single class label seen
         if len(self.classes_) == 1:
-            self.fit_time_ = int(round(time.time() * 1000)) - start
+            self.fit_time_ = int(round(time.time() * 1000)) - _start_time
             self._is_fitted = True
             return self
         # pass checked and converted data to inner _fit
         self._fit(X, y)
-        self.finish()
-        # this should happen last
+        self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         self._is_fitted = True
         return self
 
@@ -190,11 +176,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self.check_is_fitted()
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            n_instances = get_n_cases(X)
-            return np.repeat(list(self._class_dictionary.keys()), n_instances)
+            n_cases = get_n_cases(X)
+            return np.repeat(list(self._class_dictionary.keys()), n_cases)
         # Check X and convert X to X_inner_mtype if possible
-        self.checkX(X)
-        X = self.convertX(X)
+        X = self.preprocess_collection(X)
         return self._predict(X)
 
     @final
@@ -222,11 +207,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self.check_is_fitted()
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            n_instances = get_n_cases(X)
-            return np.repeat([[1]], n_instances, axis=0)
+            n_cases = get_n_cases(X)
+            return np.repeat([[1]], n_cases, axis=0)
         # Convert X to X_inner_mtype if possible
-        self.checkX(X)
-        X = self.convertX(X)
+        X = self.preprocess_collection(X)
         # call internal _predict_proba
         return self._predict_proba(X)
 

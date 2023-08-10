@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Base class for estimators that fit collections of time series."""
-import time
 
 from aeon.base._base import BaseEstimator
 from aeon.utils.validation import check_n_jobs
@@ -35,12 +34,11 @@ class BaseCollectionEstimator(BaseEstimator):
     def __init__(self, n_jobs=None):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
-        self.n_jobs = n_jobs
-        self._start_time = 0
+        self._n_jobs = 1
         super(BaseCollectionEstimator, self).__init__()
         _check_estimator_deps(self)
 
-    def preprocess_fit(self, X):
+    def preprocess_collection(self, X):
         """Preprocess input X prior to call to fit.
 
         1. reset estimator.
@@ -50,21 +48,19 @@ class BaseCollectionEstimator(BaseEstimator):
         5. Check multi-threading and capabilities
         """
         # All of this can move up to BaseCollection if we enhance fit here with super
-        self._start_time = int(round(time.time() * 1000))
-        self.metadata_ = self.checkX(X)
+        meta = self.checkX(X)
+        if len(self.metadata_) == 0:
+            self.metadata_ = meta
         X = self.convertX(X)
         multithread = self.get_tag("capability:multithreading")
         if multithread:
-            try:
+            if hasattr(self, "n_jobs"):
                 self._n_jobs = check_n_jobs(self.n_jobs)
-            except NameError:
+            else:
                 raise AttributeError(
                     "self.n_jobs must be set if capability:multithreading is True"
                 )
-
-    def finish(self):
-        """Find final time for fit."""
-        self.fit_time_ = int(round(time.time() * 1000)) - self._start_time
+        return X
 
     def checkX(self, X):
         """Check classifier input X is valid.
@@ -91,11 +87,9 @@ class BaseCollectionEstimator(BaseEstimator):
         --------
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
-        >>> X = np.random.random(size=(5,3,10))
-        >>> X[0][1][3] = np.NAN # X is equal length, multivariate, with missing
+        >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> hc.checkX(X)    # HC2 can handle this
-        True
+        >>> m = hc.checkX(X)    # HC2 can handle this
         """
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
@@ -152,15 +146,15 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> from aeon.utils.validation.collection import get_type
-        >>> X = [np.random.random(size=(5,10), np.random.random(size=(5,10)]
+        >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
         >>> get_type(X)
-        np-list
+        'np-list'
         >>> hc = HIVECOTEV2()
         >>> hc.get_tag("X_inner_mtype")
-        ["np-list", "numpy3D"]
+        'numpy3D'
         >>> X = hc.convertX(X)
         >>> get_type(X)
-        numpy3D
+        'numpy3D'
         """
         if len(self.metadata_) == 0:
             metadata = _get_metadata(X)

@@ -103,18 +103,20 @@ def test_preprocess_fit(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()
-    cls.preprocess_fit(data)
+    X = cls.preprocess_collection(data)
     assert cls._start_time > 0
     assert cls._n_jobs == 1
     assert len(cls.metadata_) == 4
-    assert cls._n_jobs == 1
+    assert get_type(X) == "numpy3D"
     tags = {"capability:multithreading": True}
     cls = BaseCollectionEstimator()
     cls.set_tags(**tags)
-    cls = BaseCollectionEstimator(n_jobs=2)
-    cls.preprocess_fit(data)
-    assert cls._n_jobs == 2
-
-
-def test_finish():
-    pass
+    with pytest.raises(AttributeError, match="self.n_jobs must be set"):
+        cls.preprocess_collection(data)
+    # Test two calls do not overwrite metadata (predict should not reset fit meta)
+    cls = BaseCollectionEstimator()
+    cls.preprocess_collection(data)
+    meta = cls.metadata_
+    d2 = np.random.random(size=(11, 3, 30))
+    d2.preprocess_collection(data)
+    assert meta == cls.metadata_
