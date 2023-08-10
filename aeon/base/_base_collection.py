@@ -19,7 +19,10 @@ class BaseCollectionEstimator(BaseEstimator):
     """Base class for estimators that fit collections of time series.
 
     Groups common functions that are used by BaseClassifier, BaseRegressor,
-    BaseClusterer and BaseCollectionTransformer.
+    BaseClusterer and BaseCollectionTransformer for the checking and
+    conversion of input to fit, predict and predict_proba, where relevant.
+
+    It also stores the common tags used by all the subclasses
     """
 
     _tags = {

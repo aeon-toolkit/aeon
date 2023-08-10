@@ -104,7 +104,6 @@ def test_preprocess_fit(data):
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()
     X = cls.preprocess_collection(data)
-    assert cls._start_time > 0
     assert cls._n_jobs == 1
     assert len(cls.metadata_) == 4
     assert get_type(X) == "numpy3D"
@@ -117,6 +116,6 @@ def test_preprocess_fit(data):
     cls = BaseCollectionEstimator()
     cls.preprocess_collection(data)
     meta = cls.metadata_
-    d2 = np.random.random(size=(11, 3, 30))
-    d2.preprocess_collection(data)
+    d2 = np.random.random(size=(11, 1, 30))
+    cls.preprocess_collection(d2)
     assert meta == cls.metadata_

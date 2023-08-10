@@ -538,17 +538,17 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         ...
 
     def preprocess_collection(self, X):
-        """Add comment."""
+        """Wrap BaseCollectionEstimator.preprocess_collection."""
         return BaseCollectionEstimator.preprocess_collection(self, X)
 
     def checkX(self, X):
-        """Add comment."""
+        """Wrap BaseCollectionEstimator.checkX."""
         return BaseCollectionEstimator.checkX(self, X)
 
     def convertX(self, X):
-        """Add comment."""
+        """Wrap BaseCollectionEstimator.convertX."""
         return BaseCollectionEstimator.convertX(self, X)
 
     def _check_y(self, y, n_cases):
-        """Add comment."""
+        """Wrap BaseCollectionEstimator._check_y."""
         return BaseClassifier._check_y(self, y, n_cases)
