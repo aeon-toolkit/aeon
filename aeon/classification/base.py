@@ -45,15 +45,21 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     Attributes
     ----------
-    fit_time_           : integer, time (in milliseconds) for fit to run.
-    metadata_           : metadata/properties of X seen in fit
-    _n_jobs             : number of threads to use in ``fit`` as determined by
-    classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of classes_``)
-    _class_dictionary   : dictionary mapping classes_ onto integers
+    fit_time_ : integer
+        Time (in milliseconds) for fit to run.
+    metadata_ : dict
+        Metadata/properties of X seen in ``fit``.
+    _n_jobs : int
+        Number of threads to use in ``fit``.
+    classes_ : np.ndarray
+        Class labels, possibly strings.
+    n_classes_ : integer
+        Number of classes (length of ``classes_``)
+    _class_dictionary : dict
+        Dictionary mapping ``classes_`` onto integers
         0...``n_classes_``-1.
-        ``n_jobs``.
-    _estimator_type     : string required by sklearn, set to "classifier"
+    _estimator_type : str
+        Type of estimator, required by sklearn, set to "classifier".
     """
 
     _tags = {
@@ -62,11 +68,9 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     }
 
     def __init__(self):
-        # reserved attributes written to in fit
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = 0  # number of unique classes in y
         self._class_dictionary = {}
-        # required for compatibility with some sklearn classes
         self._estimator_type = "classifier"
         super(BaseClassifier, self).__init__()
 
@@ -78,12 +82,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        other: `aeon` transformer, must inherit from BaseTransformer
-            otherwise, `NotImplemented` is returned
+        other: `aeon` transformer
+            must inherit from BaseTransformer otherwise, `NotImplemented` is returned.
 
         Returns
         -------
-        ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
+        ClassifierPipeline
+            Concatenation of `other` (first) with `self` (last).
         """
         from aeon.classification.compose import ClassifierPipeline
         from aeon.transformations.base import BaseTransformer
@@ -136,7 +141,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         # reset estimator at the start of fit
         self.reset()
-        _start_time = 0
+        _start_time = int(round(time.time() * 1000))
         X = self.preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 

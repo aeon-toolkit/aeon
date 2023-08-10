@@ -13,11 +13,11 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseClusterer(BaseCollectionEstimator, ABC):
-    """Abstract base class for time series clusterer.
+    """Abstract base class for time series clusterers.
 
     Parameters
     ----------
-    n_clusters: int, default=None
+    n_clusters : int, default=None
         Number of clusters for model.
     """
 
@@ -33,9 +33,14 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : Training time series instances to cluster. np.ndarray (2d or 3d array of
-        shape (n_instances, series_length) or shape (n_instances, n_channels,
-        series_length)).
+        X : 3D np.array (any number of channels, equal length series)
+                of shape (n_instances, n_channels, n_timepoints)
+            or 2D np.array (univariate, equal length series)
+                of shape (n_instances, n_timepoints)
+            or list of numpy arrays (any number of channels, unequal length series)
+                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                n_timepoints_i is length of series i
+            other types are allowed and converted into one of the above.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -43,11 +48,9 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self:
             Fitted estimator.
         """
-        # reset estimator at the start of fit
         self.reset()
-        _start_time = 0
+        _start_time = int(round(time.time() * 1000))
         X = self.preprocess_collection(X)
-
         self._fit(X)
         self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         self._is_fitted = True
@@ -93,7 +96,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self.fit(X)
         return self.predict(X)
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
         Default behaviour is to call _predict and set the predicted class probability
@@ -138,7 +141,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         X = self.preprocess_collection(X)
         return self._score(X, y)
 
-    def _predict_proba(self, X):
+    def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
         Default behaviour is to call _predict and set the predicted class probability

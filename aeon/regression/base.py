@@ -62,9 +62,6 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._class_dictionary = {}
         self._threads_to_use = 1
         self._X_metadata = {}
-
-        # required for compatability with some sklearn interfaces
-        # i.e. CalibratedRegressorCV
         self._estimator_type = "regressor"
 
         super(BaseRegressor, self).__init__()
@@ -132,7 +129,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         ending in "_" and sets is_fitted flag to True.
         """
         self.reset()
-        _start_time = 0
+        _start_time = int(round(time.time() * 1000))
         X = self.preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
         self._fit(X, y)
@@ -204,7 +201,6 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
         y : 1D np.array of float, of shape (n_instances) - regression labels for
         fitting indices correspond to instance indices in X
 
@@ -229,7 +225,6 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
 
         Returns
         -------

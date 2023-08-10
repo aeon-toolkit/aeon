@@ -16,13 +16,13 @@ from aeon.utils.validation.collection import (
 
 
 class BaseCollectionEstimator(BaseEstimator):
-    """Base class for estimators that fit collections of time series.
+    """Base class for estimators that use collections of time series for method fit.
 
-    Groups common functions that are used by BaseClassifier, BaseRegressor,
+    Provides functions that are common to BaseClassifier, BaseRegressor,
     BaseClusterer and BaseCollectionTransformer for the checking and
     conversion of input to fit, predict and predict_proba, where relevant.
 
-    It also stores the common tags used by all the subclasses
+    It also stores the common default tags used by all the subclasses.
     """
 
     _tags = {
@@ -34,7 +34,7 @@ class BaseCollectionEstimator(BaseEstimator):
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
 
-    def __init__(self, n_jobs=None):
+    def __init__(self):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
         self._n_jobs = 1
@@ -44,11 +44,35 @@ class BaseCollectionEstimator(BaseEstimator):
     def preprocess_collection(self, X):
         """Preprocess input X prior to call to fit.
 
-        1. reset estimator.
-        2. record start time.
-        3. check characteristics of X and store metadata
-        4. convert X to X_inner_type
-        5. Check multi-threading and capabilities
+        1. Checks the characteristics of X, store metadata, checks self can handle
+        the data
+        2. convert X to X_inner_type
+        3. Check multi-threading against capabilities
+
+        Parameters
+        ----------
+        X : data structure
+            See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+            on aeon supported data structures.
+
+        Returns
+        -------
+        Data structure of type self.tags["x_inner_mtype"]
+
+        See Also
+        --------
+        checkX(X) : function that checks X is valid before conversion.
+        convertX(X) : function that converts to inner type.
+
+        Examples
+        --------
+        >>> from aeon.base import BaseCollectionEstimator
+        >>> import numpy as np
+        >>> bce = BaseCollectionEstimator()
+        >>> X = np.random.random(size=(10,20))
+        >>> X2 = bce.preprocess_collection(X)
+        >>> X2.shape
+        (10, 1, 20)
         """
         # All of this can move up to BaseCollection if we enhance fit here with super
         meta = self.checkX(X)
@@ -76,15 +100,21 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : object.
+        X : data structure
+           See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+           on aeon supported data structures.
 
         Returns
         -------
-        bool : True if classifier can deal with X.
+        dict
+            Meta data about X, with flags:
+            metadata["missing_values"] : whether X has missing values or not
+            metadata["multivariate"] : whether X has more than one channel or not
+            metadata["unequal_length"] : whether X contains unequal length series.
 
         See Also
         --------
-        convertX : function that converts X after it has been checked.
+        convertX(X) : function that converts X after it has been checked.
 
         Examples
         --------
@@ -142,7 +172,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        checkX : function that checks X is valid and finds metadata.
+        checkX(X) : function that checks X is valid and finds metadata.
 
         Examples
         --------
