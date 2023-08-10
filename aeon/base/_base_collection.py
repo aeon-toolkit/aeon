@@ -36,7 +36,6 @@ class BaseCollectionEstimator(BaseEstimator):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
         self.n_jobs = n_jobs
-        self._n_jobs = 1
         self._start_time = 0
         super(BaseCollectionEstimator, self).__init__()
         _check_estimator_deps(self)
@@ -56,7 +55,12 @@ class BaseCollectionEstimator(BaseEstimator):
         X = self.convertX(X)
         multithread = self.get_tag("capability:multithreading")
         if multithread:
-            self._n_jobs = check_n_jobs(self.n_jobs)
+            try:
+                self._n_jobs = check_n_jobs(self.n_jobs)
+            except NameError:
+                raise AttributeError(
+                    "self.n_jobs must be set if capability:multithreading is True"
+                )
 
     def finish(self):
         """Find final time for fit."""
