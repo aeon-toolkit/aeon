@@ -40,16 +40,16 @@ def erp_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g : float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -104,16 +104,16 @@ def erp_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y :  np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g :  float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -237,18 +237,18 @@ def erp_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -356,16 +356,16 @@ def erp_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns

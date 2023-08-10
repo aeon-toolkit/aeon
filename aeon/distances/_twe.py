@@ -33,17 +33,17 @@ def twe_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series
-    window: int, defaults = None
+    window : int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
-    nu: float, defaults = 0.001
+    nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe measure. Must be > 0.
-    lmbda: float, defaults = 1.0
+    lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
 
     Returns
@@ -93,17 +93,17 @@ def twe_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: int, defaults = None
+    window: int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
-    nu: float, defaults = 0.001
+    nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe measure. Must be > 0.
-    lmbda: float, defaults = 1.0
+    lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
 
     Returns
@@ -218,19 +218,19 @@ def twe_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    nu: float, defaults = 0.001
+    nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe measure. Must be > 0.
-    lmbda: float, defaults = 1.0
+    lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
 
     Returns
@@ -347,17 +347,17 @@ def twe_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    nu: float, defaults = 0.001
+    nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
         twe measure. Must be > 0.
-    lmbda: float, defaults = 1.0
+    lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
 
     Returns

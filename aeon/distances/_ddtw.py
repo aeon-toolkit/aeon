@@ -19,7 +19,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     Derivative dynamic time warping (DDTW) is an adaptation of DTW originally proposed
     in [1]_. DDTW takes a version of the first derivatives of the series
-    prior to performing standard DTW [LINK?]. The derivative function, defined in [
+    prior to performing standard DTW. The derivative function, defined in [
     1]_, is:
     .. math:: d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
 
@@ -27,13 +27,13 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     Parameters
     ----------
-    x: np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+    x : np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
+    y : np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
@@ -85,13 +85,13 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y: np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
         Second time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    window: float, default=None
+    window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
@@ -143,13 +143,13 @@ def ddtw_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
@@ -255,11 +255,11 @@ def ddtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
@@ -307,12 +307,12 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    q: np.ndarray (n_channels, n_timepoints)
+    q : np.ndarray (n_channels, n_timepoints)
         Time series to take derivative of.
 
     Returns
     -------
-    np.ndarray  (n_channels, n_timepoints - 2)
+    np.ndarray (n_channels, n_timepoints - 2)
         Array containing the derivative of q.
 
     Raises
