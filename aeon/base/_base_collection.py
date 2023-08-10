@@ -61,8 +61,8 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        checkX(X) : function that checks X is valid before conversion.
-        convertX(X) : function that converts to inner type.
+        checkX : function that checks X is valid before conversion.
+        convertX : function that converts to inner type.
 
         Examples
         --------
