@@ -96,3 +96,25 @@ def test_convertX(internal_type, data):
             X = UNEQUAL_LENGTH_UNIVARIATE[data]
             X2 = cls.convertX(X)
             assert get_type(X2) == "np-list"
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_preprocess_fit(data):
+    """Test the functionality for preprocessing fit."""
+    data = EQUAL_LENGTH_UNIVARIATE[data]
+    cls = BaseCollectionEstimator()
+    cls.preprocess_fit(data)
+    assert cls._start_time > 0
+    assert cls._n_jobs == 1
+    assert len(cls.metadata_) == 4
+    assert cls._n_jobs == 1
+    tags = {"capability:multithreading": True}
+    cls = BaseCollectionEstimator()
+    cls.set_tags(**tags)
+    cls = BaseCollectionEstimator(n_jobs=2)
+    cls.preprocess_fit(data)
+    assert cls._n_jobs == 2
+
+
+def test_finish():
+    pass

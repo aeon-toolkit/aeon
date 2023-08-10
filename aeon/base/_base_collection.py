@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Base class for estimators that fit collections of time series."""
+import time
+
 from aeon.base._base import BaseEstimator
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
     convert_collection,
@@ -25,15 +28,39 @@ class BaseCollectionEstimator(BaseEstimator):
         "capability:unequal_length": False,
         "capability:missing_values": False,
         "X_inner_mtype": "numpy3D",
+        "capability:multithreading": False,
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
 
-    def __init__(self):
+    def __init__(self, n_jobs=None):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
+        self.n_jobs = n_jobs
         self._n_jobs = 1
+        self._start_time = 0
         super(BaseCollectionEstimator, self).__init__()
         _check_estimator_deps(self)
+
+    def preprocess_fit(self, X):
+        """Preprocess input X prior to call to fit.
+
+        1. reset estimator.
+        2. record start time.
+        3. check characteristics of X and store metadata
+        4. convert X to X_inner_type
+        5. Check multi-threading and capabilities
+        """
+        # All of this can move up to BaseCollection if we enhance fit here with super
+        self._start_time = int(round(time.time() * 1000))
+        self.metadata_ = self.checkX(X)
+        X = self.convertX(X)
+        multithread = self.get_tag("capability:multithreading")
+        if multithread:
+            self._n_jobs = check_n_jobs(self.n_jobs)
+
+    def finish(self):
+        """Find final time for fit."""
+        self.fit_time_ = int(round(time.time() * 1000)) - self._start_time
 
     def checkX(self, X):
         """Check classifier input X is valid.
@@ -66,7 +93,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> hc.checkX(X)    # HC2 can handle this
         True
         """
-        self.metadata_ = _get_metadata(X)
+        metadata = _get_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
@@ -74,11 +101,11 @@ class BaseCollectionEstimator(BaseEstimator):
 
         # Check capabilities vs input
         problems = []
-        if self.metadata_["missing_values"] and not allow_missing:
+        if metadata["missing_values"] and not allow_missing:
             problems += ["missing values"]
-        if self.metadata_["multivariate"] and not allow_multivariate:
+        if metadata["multivariate"] and not allow_multivariate:
             problems += ["multivariate series"]
-        if self.metadata_["unequal_length"] and not allow_unequal:
+        if metadata["unequal_length"] and not allow_unequal:
             problems += ["unequal length series"]
 
         if problems:
@@ -90,7 +117,7 @@ class BaseCollectionEstimator(BaseEstimator):
                 f"but {type(self).__name__} cannot handle {problems_or}. "
             )
             raise ValueError(msg)
-        return self.metadata_
+        return metadata
 
     def convertX(self, X):
         """Convert X to type defined by tag X_inner_mtype.

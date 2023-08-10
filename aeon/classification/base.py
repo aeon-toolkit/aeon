@@ -59,7 +59,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     _tags = {
         "capability:train_estimate": False,
-        "capability:multithreading": False,
         "capability:contractable": False,
     }
 
@@ -141,7 +140,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         # All of this can move up to BaseCollection if we enhance fit here with super
         start = int(round(time.time() * 1000))
-        self.checkX(X)
+        self.metadata_ = self.checkX(X)
         X = self.convertX(X)
         multithread = self.get_tag("capability:multithreading")
         if multithread:
@@ -162,7 +161,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return self
         # pass checked and converted data to inner _fit
         self._fit(X, y)
-        self.fit_time_ = int(round(time.time() * 1000)) - start
+        self.finish()
         # this should happen last
         self._is_fitted = True
         return self
