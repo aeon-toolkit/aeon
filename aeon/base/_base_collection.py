@@ -114,7 +114,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        convertX(X) : function that converts X after it has been checked.
+        convertX : function that converts X after it has been checked.
 
         Examples
         --------
