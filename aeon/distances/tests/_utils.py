@@ -20,9 +20,9 @@ def create_test_distance_numpy(
         Number of instances to create.
     n_columns: int
         Number of columns to create.
-    n_timepoints: int, defaults = None
+    n_timepoints: int, default=None
         Number of timepoints to create in each column.
-    random_state: int, defaults = 1
+    random_state: int, default=1
         Random state to initialise with.
 
     Returns

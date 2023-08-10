@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Edit real penalty (erp) distance between two time series.
-
-ERP, first proposed in [1]_, attempts to align time series
-by better considering how indexes are carried forward through the cost matrix.
-Usually in the dtw cost matrix, if an alignment can't be found the previous value
-is carried forward. Erp instead proposes the idea of gaps or sequences of points
-that have no matches. These gaps are then punished based on their distance from 'g'.
-
-References
-----------
-.. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-In Proceedings of the Thirtieth international conference on Very large data bases
- - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
-"""
+r"""Edit real penalty (erp) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple, Union
@@ -37,31 +24,32 @@ def erp_distance(
     g: float = 0.0,
     g_arr: np.ndarray = None,
 ) -> float:
-    """Compute the ERP distance between two time series.
+    r"""Compute the ERP distance between two time series.
 
     ERP, first proposed in [1]_, attempts to align time series
     by better considering how indexes are carried forward through the cost matrix.
     Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. Erp instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from 'g'.
+    is carried forward. ERP instead proposes the idea of gaps or sequences of points
+    that have no matches. These gaps are then punished based on their distance from
+    :math:`g`.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
+    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma]`
+    , where :math:`\sigma` is the standard deviation of the training data. When a
+    series is multivariate (more than one channel), :math:`g` is an array where the
+    :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g : float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -74,6 +62,12 @@ def erp_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+    References
+    ----------
+    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
+    In Proceedings of the Thirtieth international conference on Very large data bases
+     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
+
     Examples
     --------
     >>> import numpy as np
@@ -81,12 +75,6 @@ def erp_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> dist = erp_distance(x, y)
-
-    References
-    ----------
-    .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-    In Proceedings of the Thirtieth international conference on Very large data bases
-     - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -116,16 +104,16 @@ def erp_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y :  np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g :  float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -249,18 +237,18 @@ def erp_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns
@@ -368,16 +356,16 @@ def erp_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     g: float.
         The reference value to penalise gaps. The default is 0.
-    g_arr: np.ndarray of shape (n_channels), defaults=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
 
     Returns

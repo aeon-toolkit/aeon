@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Weighted derivative dynamic time warping (wddtw) distance between two series.
-
-Takes the first order derivative, then applies _weighted_cost_matrix to find WDTW
-distance.
-"""
+"""Weighted derivative dynamic time warping (wddtw) distance between two series."""
 __author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
@@ -24,8 +20,10 @@ def wddtw_distance(
 ) -> float:
     r"""Compute the wddtw distance between two time series.
 
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
+    Takes the first order derivative, then applies `_weighted_cost_matrix` to find WDTW
+    distance. WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a
+    weight to the derivative it means the alignment isn't only considering the shape
+    of the
     time series, but also the phase.
 
     Formally the derivative is calculated as:
@@ -33,21 +31,16 @@ def wddtw_distance(
     .. math::
         D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
 
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
-
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 
@@ -62,6 +55,12 @@ def wddtw_distance(
         If x and y are not 1D or 2D arrays.
         If n_timepoints or m_timepoints are less than 2.
 
+    References
+    ----------
+    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
+    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
+    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+
     Examples
     --------
     >>> import numpy as np
@@ -69,12 +68,6 @@ def wddtw_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
     >>> dist = wddtw_distance(x, y)
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
@@ -97,14 +90,14 @@ def wddtw_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 
@@ -156,16 +149,16 @@ def wddtw_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 
@@ -268,14 +261,14 @@ def wddtw_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
 

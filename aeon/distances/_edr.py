@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Edit distance for real sequences (EDR) between two time series.
-
-ERP was adapted in [1] specifically for distances between trajectories. Like LCSS,
-EDR uses a distance threshold to define when two elements of a series match.
-However, rather than simply count matches and look for the longest sequence,
-ERP applies a (constant) penalty for non-matching elements
-where gaps are inserted to create an optimal alignment.
-
-References
-----------
-.. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
-object trajectories. In: Proceedings of the ACM SIGMOD International Conference
-on Management of Data, 2005
-"""
+"""Edit distance for real sequences (EDR) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -35,6 +22,12 @@ def edr_distance(
 ) -> float:
     """Compute the edr distance between two time series.
 
+    Edit Distance  was adapted in [1]_ for distances between trajectories. Like LCSS,
+    EDR uses a distance threshold to define when two elements of a series match.
+    However, rather than simply count matches and look for the longest sequence,
+    EDR applies a (constant) penalty for non-matching elements
+    where gaps are inserted to create an optimal alignment.
+
     EDR computes the minimum number of elements (as a percentage) that must be removed
     from x and y so that the sum of the distance between the remaining signal elements
     lies within the tolerance (epsilon). EDR was originally proposed in [1]_.
@@ -45,14 +38,14 @@ def edr_distance(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults = None
+    epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
@@ -67,6 +60,13 @@ def edr_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+
+    References
+    ----------
+    .. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
+    object trajectories. In: Proceedings of the ACM SIGMOD International Conference
+    on Management of Data, 2005
+
     Examples
     --------
     >>> import numpy as np
@@ -74,14 +74,6 @@ def edr_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = edr_distance(x, y)
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -102,14 +94,14 @@ def edr_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults = None
+    epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
@@ -197,16 +189,16 @@ def edr_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults = None
+    epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
@@ -299,14 +291,14 @@ def edr_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    epsilon : float, defaults = None
+    epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
         epsilon is set to a quarter of the maximum standard deviation.
