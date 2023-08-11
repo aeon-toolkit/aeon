@@ -20,6 +20,7 @@ import pandas as pd
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base import BaseForecaster
+from aeon.tests._config import MATRIXDESIGN
 from aeon.utils._testing.collection import _make_collection_X
 from aeon.utils._testing.hierarchical import _make_hierarchical
 from aeon.utils._testing.scenarios import TestScenario
@@ -292,4 +293,7 @@ forecasting_scenarios_extended = [
     ForecasterFitPredictHierarchicalSimple,
 ]
 
-scenarios_forecasting = forecasting_scenarios_extended
+if MATRIXDESIGN:
+    scenarios_forecasting = forecasting_scenarios_simple
+else:
+    scenarios_forecasting = forecasting_scenarios_extended
