@@ -101,9 +101,9 @@ def test__check_y():
     y = np.ndarray([1, 2, 1, 2, 1, 2])
     with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
         reg._check_y(y, 6)
-    y = np.random.randint(0, 4, 10, dtype=int)
+    y = np.random.randint(0, 4, 100, dtype=int)
     with pytest.raises(ValueError, match=r"not valid for regression"):
-        reg._check_y(y, 10)
+        reg._check_y(y, 100)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
