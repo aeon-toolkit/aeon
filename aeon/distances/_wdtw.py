@@ -17,33 +17,39 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def wdtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
-    r"""Compute the wdtw distance between two time series.
+    r"""Compute the weighted DTW distance between two time series.
 
     First proposed in [1]_, WDTW uses DTW with a weighted pairwise distance matrix
     rather than a window. When
-    creating the distance matrix :math:'M', a weight penalty  :math:'w_{|i-j|}' for a
-    warping distance of :math:'|i-j|' is applied, so that for series
-    :math:`a = <a_1, ..., a_m>` and :math:`b=<b_1,...,b_m>`,
+    creating the distance matrix :math:`M`, a weight penalty  :math:`w_{|i-j|}` for a
+    warping distance of :math:`|i-j|` is applied, so that for series
+    :math:`a = <a_1, ..., a_n>` and :math:`b=<b_1,...,b_m>`,
+
     .. math::
         M_{i,j}=  w(|i-j|) (a_i-b_j)^2.
-    A logistic weight function, proposed in [1] is used, so that a warping of :math:`x`
+
+    A logistic weight function proposed in [1]_ is used, so that a warping of :math:`x`
     places imposes a weighting of
+
     .. math::
         w(x)=\frac{w_{max}}{1+e^{-g(x-m/2)}},
+
     where :math:`w_{max}` is an upper bound on the weight (set to 1), :math:`m` is
     the series length and :math:`g` is a parameter that controls the penalty level
     for larger warpings. The greater :math:`g` is, the greater the penalty for warping.
     Once :math:`M` is found, standard dynamic time warping is applied.
 
     WDTW is set up so you can use it with a bounding box in addition to the weight
-    function is so desired. This is for consistency with the other distance functions.
+    function if so desired. This is for consistency with the other distance functions.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
