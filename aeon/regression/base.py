@@ -28,7 +28,6 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
-from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.utils.sklearn import is_sklearn_transformer
@@ -250,10 +249,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             )
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
-        y_type = type_of_target(y)
-        if y_type != "continuous" and y_type != "binary":
+        if isinstance(y[0], str):
             raise ValueError(
-                f"y type is {y_type} which is not valid for regression. "
-                f"type_of_target should return continuous"
+                "y contains strings, cannot fit a regressor. If suitable, convert "
+                "to string."
             )
         return y
