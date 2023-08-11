@@ -45,10 +45,11 @@ Move-Split-Merge (MSM)
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
+
     msm_distance
+    msm_pairwise_distance
     msm_alignment_path
     msm_cost_matrix
-    msm_pairwise_distance
 
 Derivative Dynamic Time Warping (DDTW)
 --------------------------------------
@@ -64,7 +65,7 @@ Derivative Dynamic Time Warping (DDTW)
     ddtw_alignment_path
     ddtw_cost_matrix
 
-Weighted Dynamic Time Warping (DTW)
+Weighted Dynamic Time Warping (WDTW)
 -----------------------------------
 
 .. currentmodule:: aeon.distances
