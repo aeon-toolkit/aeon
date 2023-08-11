@@ -16,7 +16,7 @@ EXCLUDE_ESTIMATORS = [
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
     "MiniRocket",
-    "MatrixProfileTransformer",
+    #    "MatrixProfileTransformer",
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
     "TapNetRegressor",
     "TapNetClassifier",
