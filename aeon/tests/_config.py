@@ -14,12 +14,12 @@ MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
     # Interface is outdated, needs a rework.
-    # "ColumnTransformer",
+    "ColumnTransformer",
     "MiniRocket",
     "MatrixProfileTransformer",
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
-    "TapNetRegressor",
-    "TapNetClassifier",
+    # "TapNetRegressor",
+    # "TapNetClassifier",
 ]
 
 # the test currently fails when numba is disabled. See issue #622
