@@ -33,15 +33,15 @@ def lcss_distance(
     :math:`|i-j|<w*m`, where :math:`w` is the window parameter value and :math:`m` is
     series length), then calculating
 
-    :: math..
-        if(|a_i - b_j| < espilon) \\
-            &L_{i,j} \leftarrow L_{i-1,j-1}+1 \\
-        else\\
-            &L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})\\
+    .. math::
+        if(|a_i - b_j| < espilon)
+            L_{i,j} \leftarrow L_{i-1,j-1}+1
+        else
+            L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})
 
     The distance is an inverse function of the final LCSS.
 
-    :: math..
+    .. math::
         d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.
 
     Note that series a and b need not be equal length.
@@ -54,12 +54,16 @@ def lcss_distance(
     The value returned will be between 0.0 and 1.0, where 0.0 means the two time series
     are exactly the same and 1.0 means they are complete opposites.
 
+    Supports multivariate and unequal length series.
+
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `m_timepoints` or multivariate with
+        `m_channels` channels and length `m_timepoints`.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

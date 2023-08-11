@@ -61,8 +61,8 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
     y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        Second time series either univariate length `m_timepoints` or multivariate with
+        `m_channels` channels and length `m_timepoints`.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if window = 0.1,

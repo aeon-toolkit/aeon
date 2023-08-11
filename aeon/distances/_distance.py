@@ -82,10 +82,12 @@ def distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `m_timepoints` or multivariate with
+        `m_channels` channels and length `m_timepoints`.
     metric : str or Callable
         The distance metric to use.
         If a string is given, the value must be one of the following strings:

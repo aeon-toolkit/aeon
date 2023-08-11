@@ -21,18 +21,20 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     in [1]_. DDTW takes a version of the first derivatives of the series
     prior to performing standard DTW. The derivative function, defined in [
     1]_, is:
-    .. math:: d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+
+    .. math::
+        d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
 
     Where q is the original time series and d_q is the derived time series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length `n_timepoints` or multivariate with
         `n_channels` channels and length `n_timepoints`.
-    y : np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `m_timepoints` or multivariate with
+        `m_channels` channels and length `m_timepoints`.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
