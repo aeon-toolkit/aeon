@@ -90,7 +90,7 @@ def distance(
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
         'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'msm', 'twe'
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
     kwargs : Any
