@@ -462,7 +462,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Examples
         --------
-        >>> from aeon.classification.distance_based import HIVECOTEV2
+        >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> from aeon.utils.validation.collection import get_type
         >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
