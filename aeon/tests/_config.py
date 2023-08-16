@@ -14,7 +14,6 @@ MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
     # Interface is outdated, needs a rework.
-    "ColumnTransformer",
     "MiniRocket",
     "MatrixProfileTransformer",
     # tapnet based estimators fail stochastically for unknown reasons, see #3525
