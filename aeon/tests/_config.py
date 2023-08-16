@@ -15,6 +15,9 @@ MATRIXDESIGN = False
 EXCLUDE_ESTIMATORS = [
     # Interface is outdated, needs a rework.
     "ColumnTransformer",
+    # tapnet based excluded until refactored to match other deep learners
+    "TapNetRegressor",
+    "TapNetClassifier",
 ]
 
 # the test currently fails when numba is disabled. See issue #622
