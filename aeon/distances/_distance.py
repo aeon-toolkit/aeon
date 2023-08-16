@@ -36,6 +36,7 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -89,8 +90,8 @@ def distance(
     metric : str or Callable
         The distance metric to use.
         If a string is given, the value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        'euclidean', 'manhattan', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss',
+        'edr', 'erp', 'msm', 'twe'
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
     kwargs : Any
@@ -121,6 +122,8 @@ def distance(
         return squared_distance(x, y)
     elif metric == "euclidean":
         return euclidean_distance(x, y)
+    elif metric == "manhattan":
+        return manhattan_distance(x, y)
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"))
     elif metric == "ddtw":
@@ -230,6 +233,8 @@ def pairwise_distance(
         return squared_pairwise_distance(x, y)
     elif metric == "euclidean":
         return euclidean_pairwise_distance(x, y)
+    elif metric == "manhattan":
+        return manhattan_pairwise_distance(x, y)
     elif metric == "dtw":
         return dtw_pairwise_distance(x, y, kwargs.get("window"))
     elif metric == "ddtw":
