@@ -465,7 +465,7 @@ class BaseClassifier(BaseEstimator, ABC):
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> from aeon.utils.validation.collection import get_type
-        >>> X = [np.random.random(size=(5,10), np.random.random(size=(5,10)]
+        >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
         >>> get_type(X)
         np-list
         >>> hc = HIVECOTEV2()
