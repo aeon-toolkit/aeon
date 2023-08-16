@@ -8,6 +8,7 @@ from pytest import raises
 from aeon.benchmarking.results_loaders import (
     NAME_ALIASES,
     estimator_alias,
+    get_available_estimators,
     get_estimator_results,
     get_estimator_results_as_array,
 )
@@ -28,6 +29,19 @@ def test_get_estimator_results():
     """
     res = get_estimator_results(estimators=cls, datasets=data, path=data_path)
     assert res["HC2"]["Chinatown"] == 0.9825072886297376
+    with pytest.raises(ValueError):
+        res = get_estimator_results(
+            estimators=cls, datasets=data, path=data_path, type="ARSENAL"
+        )
+    with pytest.raises(ValueError):
+        res = get_estimator_results(
+            estimators=cls, datasets=data, path=data_path, task="ARSENAL"
+        )
+
+
+def test_get_available_estimators():
+    with pytest.raises(ValueError):
+        get_available_estimators(task="ARSENAL")
 
 
 def test_get_estimator_results_as_array():
@@ -39,6 +53,15 @@ def test_get_estimator_results_as_array():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     assert res[0][0] == 0.9825072886297376
+    temp = ["Chinatown", "FOOBAR"]
+    res, names = get_estimator_results_as_array(
+        estimators=cls, datasets=temp, path=data_path, include_missing=False
+    )
+    assert res.shape[0] == 1
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=temp, path=data_path, include_missing=True
+    )
+    assert res.shape[0] == 2
 
 
 def test_alias():
