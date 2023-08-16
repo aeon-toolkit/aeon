@@ -14,11 +14,14 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
     load_from_long_to_dataframe,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
+    load_regression,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -427,7 +430,6 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         os.path.dirname(aeon.__file__),
         input_path,
     )
-
     expected_metadata = {
         "frequency": "yearly",
         "forecast_horizon": 4,
@@ -435,15 +437,106 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         "contain_equal_length": False,
     }
 
-    if return_type == "default_tsf":
-        df, metadata = load_from_tsf_file(data_path)
-    else:
-        df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
+    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
 
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
     if return_type != "default_tsf":
         assert check_is_mtype(obj=df, mtype=return_type)
+
+
+def test_load_from_tsf_file():
+    """Test the tsf loader that has no conversions."""
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 4,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, metadata = load_from_tsf_file(data_path)
+    assert metadata == expected_metadata
+    assert df.shape == (3, 3)
+
+
+def test_load_forecasting():
+    """Test load forecasting for baked in data."""
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 6,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, meta = load_forecasting("m1_yearly_dataset")
+    assert meta == expected_metadata
+    assert df.shape == (181, 3)
+    with pytest.raises(FileNotFoundError):
+        X, y, meta = load_regression("m1_yearly_dataset", extract_path="?>S")
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+
+
+def test_load_regression():
+    """Test the load regression function."""
+    expected_metadata = {
+        "problemname": "covid3month",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": True,
+        "classlabel": False,
+        "class_values": [],
+    }
+    X, y, meta = load_regression("Covid3Month")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (201, 1, 84)
+    assert y.shape == (201,)
+    with pytest.raises(FileNotFoundError):
+        X, y, meta = load_regression("Covid3Month", extract_path="?>S")
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+
+
+def test_load_classification():
+    """Test load classification."""
+    expected_metadata = {
+        "problemname": "unittest",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": False,
+        "classlabel": True,
+        "class_values": ["1", "2"],
+    }
+    X, y, meta = load_classification("UnitTest")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (42, 1, 24)
+    assert y.shape == (42,)
+    with pytest.raises(FileNotFoundError):
+        X, y, meta = load_regression("m1_yearly_dataset", extract_path="?>S")
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
