@@ -721,6 +721,7 @@ def load_from_arff_file(
     is_multi_variate = False
     is_first_case = True
     n_cases = 0
+    n_channels = 1
     with open(full_file_path_and_name, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
@@ -736,7 +737,6 @@ def load_from_arff_file(
                     continue
                 # if the 'data tag has been found, the header information
                 # has been cleared and now data can be loaded
-                n_channels = 1
                 if data_started:
                     line = line.replace("?", replace_missing_vals_with)
 
@@ -752,8 +752,8 @@ def load_from_arff_file(
                         elif len(channels) != n_channels:
                             raise ValueError(
                                 f" Number of channels not equal in "
-                                f"dataset, first case had {n_channels} "
-                                f"but {n_cases+1} case hase "
+                                f"dataset, first case had {n_channels} channel "
+                                f"but case number {n_cases+1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
