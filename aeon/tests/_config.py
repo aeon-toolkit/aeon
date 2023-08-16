@@ -14,8 +14,9 @@ MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
     # Interface is outdated, needs a rework.
-    "ColumnTransformer",
-    # tapnet based excluded until refactored to match other deep learners
+    "MiniRocket",
+    "MatrixProfileTransformer",
+    # tapnet based estimators fail stochastically for unknown reasons, see #3525
     "TapNetRegressor",
     "TapNetClassifier",
 ]
