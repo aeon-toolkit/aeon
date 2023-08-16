@@ -402,12 +402,13 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Examples
         --------
-        >>> from aeon.classification import HIVECOTEV2
+        >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> hc.checkX(X)    # HC2 can handle this
-        True
+        >>> meta = hc.checkX(X)    # HC2 can handle this
+        >>> meta["n_cases"]
+        5
         """
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
@@ -461,7 +462,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Examples
         --------
-        >>> from aeon.classification.hybrid import HIVECOTEV2
+        >>> from aeon.classification.distance_based import HIVECOTEV2
         >>> import numpy as np
         >>> from aeon.utils.validation.collection import get_type
         >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
@@ -469,7 +470,7 @@ class BaseClassifier(BaseEstimator, ABC):
         'np-list'
         >>> hc = HIVECOTEV2()
         >>> hc.get_tag("X_inner_mtype")
-        ["np-list", "numpy3D"]
+        'numpy3D'
         >>> X = hc.convertX(X)
         >>> get_type(X)
         'numpy3D'
