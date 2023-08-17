@@ -52,6 +52,17 @@ class FreshPRINCERegressor(BaseRegressor):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+
+    Examples
+    --------
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+    >>> fp = FreshPRINCERegressor(n_estimators=10)
+    >>> fp.fit(X_train, y_train)
+    FreshPRINCERegressor(n_estimators=10)
+    >>> y_pred = fp.predict(X_test)
     """
 
     _tags = {
