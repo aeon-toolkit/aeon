@@ -62,7 +62,7 @@ def test_load_numpy2d_uni(loader):
     X, y = loader(return_type="numpy2d")
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
-    assert X.ndim == 3
+    assert X.ndim == 2
     assert y.ndim == 1
 
 
