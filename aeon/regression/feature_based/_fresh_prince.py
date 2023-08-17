@@ -61,8 +61,7 @@ class FreshPRINCERegressor(BaseRegressor):
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> fp = FreshPRINCERegressor(n_estimators=10) # doctest: +SKIP
     >>> fp.fit(X_train, y_train) # doctest: +SKIP
-    FreshPRINCERegressor(n_estimators=10)
-    >>> y_pred = fp.predict(X_test)
+    >>> y_pred = fp.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
