@@ -104,8 +104,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
     >>> km.fit(X_train)
     TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
-    >>> pam_pred = km.predict(X_test)
-    # Example of alternate clustering
+    >>> pam_pred = km.predict(X_test)    # Example of alternate clustering
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
     ...                         random_state=1)
     >>> km.fit(X_train)
