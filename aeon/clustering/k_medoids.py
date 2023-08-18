@@ -18,30 +18,31 @@ from aeon.distances import get_distance_function, pairwise_distance
 class TimeSeriesKMedoids(BaseClusterer):
     r"""Time series K-medoids implementation.
 
-    K-medoids [1] is a clustering algorithm that aims to partition n observations into k
-    clusters in which each observation belongs to the cluster with the nearest
+    K-medoids [1]_ is a clustering algorithm that aims to partition n observations
+    into k clusters in which each observation belongs to the cluster with the nearest
     medoid/centroid. This results in a partitioning of the data space into Voronoi
     cells. The problem of finding k-medoids is known to be NP-hard and has a time
     complexity of :
-    .. math::  \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
+
+    .. math::
+        \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
 
     Where n is the number of time series and k is the number of clusters. There have
     been a number of algorithms published to solve the problem. The most common is the
-    PAM (Partition Around Medoids)[3] algorithm and is the default method used in this
+    PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
     implementation. However, an adaptation of lloyds method classically used for k-means
     is also available by specifying method='alternate'. Alternate is faster but less
     accurate than PAM. For a full review of varations of k-medoids for time series
-    see [5].
+    see [5]_.
 
     K-medoids for time series uses a dissimilarity measure to compute the distance
     between time series. The default is 'msm' (move split merge) as
-    it was found to significantly outperform the other measures in [2].
+    it was found to significantly outperform the other measures in [2]_.
 
     Parameters
     ----------
     n_clusters : int, default=8
-        The number of clusters to form as well as the number of
-        centroids to generate.
+        The number of clusters to form as well as the number of centroids to generate.
     init_algorithm : str, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
@@ -54,9 +55,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. For a list of valid
         distances see `aeons.distances
-        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_ or
+        aeon.distances.SUPPORTED_DISTANCE_FUNCTIONS. If a callable is passed it must
+        be a function that takes two 2d numpy arrays as input and returns a float.
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
@@ -104,7 +105,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     >>> km.fit(X_train)
     TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
     >>> pam_pred = km.predict(X_test)
-
     # Example of alternate clustering
     >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
     ...                         random_state=1)
@@ -112,7 +112,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
                        random_state=1)
     >>> alternate_pred = km.predict(X_test)
-
 
     References
     ----------

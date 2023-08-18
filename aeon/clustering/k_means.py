@@ -23,9 +23,8 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         Method for initializing cluster centers. Any of the following are valid:
         ['kmeans++', 'random', 'forgy'].
     metric : str or Callable, default='dtw'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw'].
+        Distance metric to compute similarity between time series. For valid
+        distance strings, see aeon.distances.SUPPORTED_DISTANCE_FUNCTIONS.
     n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
