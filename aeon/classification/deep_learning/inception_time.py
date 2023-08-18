@@ -142,9 +142,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.inception_time import (
-    >>>     InceptionTimeClassifier
-    >>> )
+    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
@@ -472,9 +470,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.inception_time import (
-    >>>     IndividualInceptionClassifier
-    >>> )
+    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
