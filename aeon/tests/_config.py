@@ -13,10 +13,7 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
-    # Interface is outdated, needs a rework.
-    "MiniRocket",
-    "MatrixProfileTransformer",
-    # tapnet based estimators fail stochastically for unknown reasons, see #3525
+    # tapnet basedare being reworked, will remove exclusion after refactor
     "TapNetRegressor",
     "TapNetClassifier",
 ]
