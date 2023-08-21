@@ -27,6 +27,10 @@
     <p><a href='https://github.com/MatthewMiddlehurst'>Matthew Middlehurst</a></p>
     </div>
     <div>
+    <a href='https://github.com/dguijo'><img src='https://avatars.githubusercontent.com/u/47889499?v=4' class='avatar' /></a> <br />
+    <p><a href='https://github.com/dguijo'>David Guijo Rubio</a></p>
+    </div>
+    <div>
     <a href='https://github.com/patrickzib'><img src='https://avatars.githubusercontent.com/u/7783034?v=4' class='avatar' /></a> <br />
     <p><a href='https://github.com/patrickzib'>Patrick Schäfer</a></p>
     </div>
