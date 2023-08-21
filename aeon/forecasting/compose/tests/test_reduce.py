@@ -33,7 +33,7 @@ from aeon.forecasting.model_selection import (
     temporal_train_test_split,
 )
 from aeon.forecasting.model_selection.tests.test_split import _get_windows
-from aeon.forecasting.tests._config import TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
+from aeon.forecasting.tests import TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.regression.base import BaseRegressor
 from aeon.regression.interval_based import TimeSeriesForestRegressor
