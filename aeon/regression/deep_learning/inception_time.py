@@ -142,6 +142,16 @@ class InceptionTimeRegressor(BaseRegressor):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.regression.deep_learning import InceptionTimeRegressor
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> inctime = InceptionTimeRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X, y)  # doctest: +SKIP
+    InceptionTimeRegressor(...)
     """
 
     _tags = {
@@ -440,6 +450,17 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.regression.deep_learning import IndividualInceptionRegressor
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> inc = IndividualInceptionRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X, y)  # doctest: +SKIP
+    IndividualInceptionRegressor(...)
     """
 
     def __init__(
