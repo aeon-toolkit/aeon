@@ -2,23 +2,6 @@
 # -*- coding: utf-8 -*-
 
 __author__ = ["mloning"]
-__all__ = [
-    "TEST_YS",
-    "TEST_SPS",
-    "TEST_ALPHAS",
-    "TEST_FHS",
-    "TEST_STEP_LENGTHS_INT",
-    "TEST_STEP_LENGTHS",
-    "TEST_INS_FHS",
-    "TEST_OOS_FHS",
-    "TEST_WINDOW_LENGTHS_INT",
-    "TEST_WINDOW_LENGTHS",
-    "TEST_INITIAL_WINDOW_INT",
-    "TEST_INITIAL_WINDOW",
-    "VALID_INDEX_FH_COMBINATIONS",
-    "INDEX_TYPE_LOOKUP",
-    "TEST_N_ITERS",
-]
 
 import numpy as np
 import pandas as pd
@@ -36,7 +19,7 @@ TEST_CUTOFFS_TIMESTAMP = [
 ]
 TEST_CUTOFFS = [*TEST_CUTOFFS_INT_LIST, *TEST_CUTOFFS_INT_ARR, *TEST_CUTOFFS_TIMESTAMP]
 
-TEST_WINDOW_LENGTHS_INT = [1]
+TEST_WINDOW_LENGTHS_INT = [1, 5]
 TEST_WINDOW_LENGTHS_TIMEDELTA = [pd.Timedelta(1, unit="D")]
 TEST_WINDOW_LENGTHS_DATEOFFSET = [pd.offsets.Day(1)]
 TEST_WINDOW_LENGTHS = [

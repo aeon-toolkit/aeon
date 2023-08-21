@@ -2158,6 +2158,16 @@
       "contributions": [
         "code"
       ]
-    }
+    },
+    {
+       "login": "sylvaincom",
+       "name": "Sylvain Combettes",
+       "avatar_url": "https://avatars.githubusercontent.com/u/48064216?v=4",
+       "profile": "https://github.com/sylvaincom",
+       "contributions": [
+        "code",
+        "bug",
+       ]
+    },
   ]
 }

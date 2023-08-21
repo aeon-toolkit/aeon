@@ -5,7 +5,7 @@ Uses MATRIXDESIGN flag to switch between full parameter combinations
 (MATRIXDESIGN==False) and running a reduced parameter combination (MATRIXDESIGN==True).
 """
 
-from aeon.tests._config import MATRIXDESIGN
+from aeon.tests.test_all_estimators import MATRIXDESIGN
 
 __all__ = [
     "TEST_CUTOFFS_INT_LIST",

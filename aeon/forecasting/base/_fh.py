@@ -59,7 +59,8 @@ DELEGATED_METHODS = (
 
 
 def _delegator(method):
-    """Automatically decorate ForecastingHorizon class with pandas.Index methods.
+    """
+    Automatically decorate ForecastingHorizon class with pandas.Index methods.
 
     Also delegates method calls to wrapped pandas.Index object.
     methods from pandas.Index and delegate method calls to wrapped pandas.Index
@@ -72,7 +73,8 @@ def _delegator(method):
 
 
 def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
-    """Validate forecasting horizon values.
+    """
+    Validate forecasting horizon values.
 
     Validation checks validity and also converts forecasting horizon values
     to supported pandas.Index types if possible.
@@ -142,7 +144,8 @@ def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
 
 
 def _check_freq(obj):
-    """Coerce obj to a pandas frequency offset for the ForecastingHorizon.
+    """
+    Coerce obj to a pandas frequency offset for the ForecastingHorizon.
 
     Parameters
     ----------
