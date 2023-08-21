@@ -13,17 +13,7 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 MATRIXDESIGN = False
 
 EXCLUDE_ESTIMATORS = [
-    # SFA is non-compliant with any transformer interfaces, #2064
-    "SFA",
-    # Interface is outdated, needs a rework.
-    "ColumnTransformer",
-    # below are removed due to mac failures we don't fully understand, see #3103
-    "HIVECOTEV1",
-    "RandomIntervalSegmenter",
-    "RandomIntervalFeatureExtractor",
-    "RandomIntervalClassifier",
-    "MatrixProfileTransformer",
-    # tapnet based estimators fail stochastically for unknown reasons, see #3525
+    # tapnet is being reworked, will remove exclusion after refactor
     "TapNetRegressor",
     "TapNetClassifier",
 ]
@@ -33,18 +23,6 @@ if os.environ.get("NUMBA_DISABLE_JIT") == "1":
     EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
-    # InceptionTimeClassifier contains deep learners, it isnt one itself, so still
-    # exclude
-    "InceptionTimeClassifier": [
-        "test_fit_deterministic",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-    ],
-    "InceptionTimeRegressor": [
-        "test_fit_deterministic",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
-    ],
     # issue when predicting residuals, see #3479
     "SquaringResiduals": ["test_predict_residuals"],
     # known issue when X is passed, wrong time indices are returned, #1364
@@ -80,7 +58,6 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    "CNNNetwork": "test_inheritance",  # not a registered base class, WiP, see #3028
     "VARMAX": [
         "test_update_predict_single",  # see 2997, sporadic failure, unknown cause
         "test__y_when_refitting",  # see 3176
