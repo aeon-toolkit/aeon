@@ -19,7 +19,7 @@ from sklearn.feature_selection import f_classif
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
@@ -32,7 +32,7 @@ binning_methods = {
 }
 
 
-class SFA(BaseTransformer):
+class SFA(BaseCollectionTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     Overview: for each series:
@@ -103,12 +103,10 @@ class SFA(BaseTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-output": "Series",
         "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "numpy1D",  # and for y?
-        "requires_y": True,
         "fit_is_empty": False,
+        "requires_y": True,
+        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
@@ -183,7 +181,7 @@ class SFA(BaseTransformer):
         self.level_bits = 0
         self.level_max = 0
 
-        super(SFA, self).__init__(_output_convert=False)
+        super(SFA, self).__init__()
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.

@@ -24,7 +24,7 @@ from aeon.forecasting.base._fh import (
 from aeon.forecasting.ets import AutoETS
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.forecasting.tests._config import (
+from aeon.forecasting.tests import (
     INDEX_TYPE_LOOKUP,
     TEST_FHS,
     TEST_FHS_TIMEDELTA,

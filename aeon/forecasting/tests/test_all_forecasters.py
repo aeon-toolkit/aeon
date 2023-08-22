@@ -19,7 +19,7 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
     temporal_train_test_split,
 )
-from aeon.forecasting.tests._config import (
+from aeon.forecasting.tests import (
     TEST_ALPHAS,
     TEST_FHS,
     TEST_OOS_FHS,

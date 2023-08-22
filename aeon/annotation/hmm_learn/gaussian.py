@@ -9,12 +9,9 @@ Please see the original library
 from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["miraep8"]
 __all__ = ["GaussianHMM"]
-
-_check_soft_dependencies("hmmlearn.hmm", severity="warning")
 
 
 class GaussianHMM(BaseHMMLearn):
