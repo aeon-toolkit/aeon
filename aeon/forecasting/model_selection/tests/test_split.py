@@ -18,7 +18,7 @@ from aeon.forecasting.model_selection import (
     temporal_train_test_split,
 )
 from aeon.forecasting.model_selection._split import _inputs_are_supported
-from aeon.forecasting.tests._config import (
+from aeon.forecasting.tests import (
     TEST_CUTOFFS,
     TEST_FHS,
     TEST_FHS_TIMEDELTA,
