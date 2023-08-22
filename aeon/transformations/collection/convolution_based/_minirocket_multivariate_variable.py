@@ -47,7 +47,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.rocket import (
+    >>> from aeon.transformations.collection.convolution_based import (
     ...     MiniRocketMultivariateVariable
     ... )
     >>> from aeon.datasets import load_japanese_vowels
