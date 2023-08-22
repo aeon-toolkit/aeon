@@ -46,8 +46,9 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.collection.convolution_based import
-     ...                                                        MiniRocketMultivariate
+    >>> from aeon.transformations.collection.convolution_based import (
+    ...     MiniRocketMultivariate
+    ... )
      >>> from aeon.datasets import load_basic_motions
      >>> X_train, y_train = load_basic_motions(split="train")
      >>> X_test, y_test = load_basic_motions(split="test")
