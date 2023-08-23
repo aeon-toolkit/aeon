@@ -55,9 +55,9 @@ class TimeSeriesKMedoids(BaseClusterer):
     distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. For a list of valid
         distances see `aeons.distances
-        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_ or
-        aeon.distances.SUPPORTED_DISTANCE_FUNCTIONS. If a callable is passed it must
-        be a function that takes two 2d numpy arrays as input and returns a float.
+        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
+        If a callable is passed it must be a function that takes two 2d numpy arrays
+        as input and returns a float.
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
@@ -93,25 +93,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     n_iter_ : int
         Number of iterations run.
 
-    Examples
-    --------
-    >>> from aeon.clustering import TimeSeriesKMedoids
-    >>> from aeon.datasets import load_basic_motions
-    >>> # Load data
-    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
-    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
-    >>> # Example of PAM clustering
-    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
-    >>> km.fit(X_train)
-    TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
-    >>> pam_pred = km.predict(X_test)    # Example of alternate clustering
-    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
-    ...                         random_state=1)
-    >>> km.fit(X_train)
-    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
-                       random_state=1)
-    >>> alternate_pred = km.predict(X_test)
-
     References
     ----------
     .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
@@ -133,6 +114,30 @@ class TimeSeriesKMedoids(BaseClusterer):
     Clustering time series with k-medoids based algorithms.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKMedoids
+    >>> from aeon.datasets import load_basic_motions
+    >>> from aeon.clustering.k_means import TimeSeriesKMeans
+    >>> from aeon.distances import valid_distances
+    >>> dists = valid_distances() # Get a list of valid distance string identifiers
+    >>> dists[0]
+    'euclidean'
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
+    >>> pam_pred = km.predict(X_test)    # Example of alternate clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
+    ...                         random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
+                       random_state=1)
+    >>> alternate_pred = km.predict(X_test)
     """
 
     _tags = {
