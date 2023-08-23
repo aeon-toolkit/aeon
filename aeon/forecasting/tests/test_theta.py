@@ -11,7 +11,7 @@ import pytest
 
 from aeon.datasets import load_airline
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.forecasting.tests._config import TEST_OOS_FHS
+from aeon.forecasting.tests import TEST_OOS_FHS
 from aeon.forecasting.theta import ThetaForecaster, ThetaModularForecaster
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_fh

@@ -20,7 +20,7 @@ COLLECTIONS_DATA_TYPES = [
     "numpyflat",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
-    "pd-multiindex",  # d.DataFrame with multi-index,
+    "pd-multiindex",  # pd.DataFrame with multi-index,
     # To add "dask_panel": but not currently used anywhere
 ]
 
