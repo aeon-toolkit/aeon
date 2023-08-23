@@ -140,3 +140,7 @@ SUPPORTED_DISTANCE_FUNCTIONS = [
     "twe",
     "manhattan",
 ]
+
+
+def valid_distances():
+    return SUPPORTED_DISTANCE_FUNCTIONS
