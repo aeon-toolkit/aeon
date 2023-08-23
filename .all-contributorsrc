@@ -1,6 +1,8 @@
 {
   "projectName": "aeon",
   "projectOwner": "aeon-toolkit",
+  "repoType": "github",
+  "repoHost": "https://github.com",
   "commitConvention": "none",
   "files": [
     "CONTRIBUTORS.md"
