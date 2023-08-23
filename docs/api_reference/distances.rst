@@ -45,6 +45,7 @@ Move-Split-Merge (MSM)
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
+
     msm_distance
     msm_alignment_path
     msm_cost_matrix
