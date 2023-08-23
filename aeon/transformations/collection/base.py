@@ -77,8 +77,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -119,8 +117,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -165,7 +161,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         return Xt
 
     def fit_transform(self, X, y=None):
-        """Fit to data, then transform it.
+        """
+        Fit to data, then transform it.
 
         Fits the transformer to X and y and returns a transformed version of X.
 
@@ -177,7 +174,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         _X : X, coerced copy of X, if remember_data tag is True
             possibly coerced to inner type or update_data compatible type
             by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
+        model attributes (ending in "_") : dependent on estimator.
 
         Parameters
         ----------
@@ -186,10 +183,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -218,7 +213,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Example: i-th row of the return has mean and variance of the i-th series
             if `X` is `Series` and `transform-output` is `Panel`
                 then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
+                Example: i-th instance of the output is the i-th window running over
+                `X`.
         """
         # input checks and datatype conversion
         X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
@@ -251,8 +247,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -302,8 +296,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True

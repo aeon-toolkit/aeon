@@ -13,10 +13,10 @@ def reshape_pairwise_to_multiple(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    x : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints) or (n_timepoints,)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,)
         A collection of time series instances.
 

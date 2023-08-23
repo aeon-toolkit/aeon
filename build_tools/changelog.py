@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Myst Markdown changelog generator."""
 
-import os
+import sys
 from collections import OrderedDict
 from typing import Dict, List, Tuple
 
@@ -194,11 +194,11 @@ def render_changelog(prs: List[Dict], assigned: Dict):
 
 
 if __name__ == "__main__":
-    # don't commit the actual token, it will get revoked!
-    os.environ["GITHUB_TOKEN"] = ""
+    print("access token:", file=sys.stderr)  # noqa: T201
+    token = input()
 
-    if os.getenv("GITHUB_TOKEN") is not None and os.getenv("GITHUB_TOKEN") != "":
-        HEADERS["Authorization"] = f"token {os.getenv('GITHUB_TOKEN')}"
+    if token is not None and token != "":
+        HEADERS["Authorization"] = f"token {token}"
 
     # if you edit these, consider editing the PR template as well
     packages = [

@@ -1,0 +1,86 @@
+name: PR pytest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "aeon/**"
+      - ".github/workflows/**"
+      - "pyproject.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-nosoftdeps:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install aeon and dependencies
+        run: python -m pip install .[dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: |
+          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
+          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
+          python -m pytest --pyargs aeon.tests.test_softdeps
+
+  test-nosoftdeps-full:
+    needs: test-nosoftdeps
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install aeon and dependencies
+        run: python -m pip install .[dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+
+  pytest:
+    needs: test-nosoftdeps
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install aeon and dependencies
+        run: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --matrixdesign True

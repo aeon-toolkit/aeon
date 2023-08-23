@@ -4,7 +4,6 @@
 
 import os
 import sys
-from importlib import import_module
 
 import aeon
 
@@ -46,6 +45,7 @@ extensions = [
     "sphinx_design",
     "sphinx_issues",
     "sphinx_copybutton",
+    "sphinx_remove_toctrees",
     "myst_parser",
 ]
 
@@ -119,6 +119,10 @@ issues_github_path = "aeon-toolkit/aeon"
 # sphinx-copybutton configuration
 copybutton_exclude = ".linenos, .gp, .go"
 
+# sphinx-remove-toctrees configuration
+# see https://github.com/pradyunsg/furo/pull/674
+remove_from_toctrees = ["api_reference/auto_generated/*"]
+
 # MyST Parser configuration
 
 # When building HTML using the sphinx.ext.mathjax (enabled by default),
@@ -130,7 +134,7 @@ copybutton_exclude = ".linenos, .gp, .go"
 suppress_warnings = ["myst.mathjax"]
 
 # Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = ["colon_fence", "html_image"]
 
 myst_heading_anchors = 2
 
@@ -184,18 +188,6 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "announcement": """
-        <b>DISCLAIMER</b>: This is a fork of the sktime repository. Work is ongoing to change links
-        and documentation to reflect this.
-
-        Join our
-        <a href="https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA">Slack</a>
-        to discuss the projects goals, ask usage questions and discuss contributions.
-
-        We do not recommend using this repository in any
-        production setting, but welcome any contributors willing to help us update the
-        project. Links and buttons are likely to be broken in the current state.
-    """,  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
@@ -272,9 +264,6 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
-html_js_files = [
-    "js/dynamic_table.js",
-]
 
 html_show_sourcelink = False
 
@@ -325,99 +314,6 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
-
-
-def _make_estimator_overview(app):
-    """Make estimator overview table."""
-    import pandas as pd
-
-    from aeon.registry import all_estimators
-
-    def _process_author_info(author_info):
-        """
-        Process author information from source code files.
-
-        Parameters
-        ----------
-        author_info : str
-            Author information string from source code files.
-
-        Returns
-        -------
-        author_info : str
-            Preprocessed author information.
-
-        Notes
-        -----
-        A list of author names is turned into a string.
-        Multiple author names will be separated by a comma,
-        with the final name always preceded by "&".
-        """
-        if isinstance(author_info, list):
-            if len(author_info) > 1:
-                return ", ".join(author_info[:-1]) + " & " + author_info[-1]
-            else:
-                return author_info[0]
-        else:
-            return author_info
-
-    def _does_not_start_with_underscore(input_string):
-        return not input_string.startswith("_")
-
-    # creates dataframe as df
-    COLNAMES = ["Class Name", "Estimator Type", "Authors"]
-
-    df = pd.DataFrame([], columns=COLNAMES)
-
-    for modname, modclass in all_estimators():
-        algorithm_type = "::".join(str(modclass).split(".")[1:-2])
-        try:
-            author_info = _process_author_info(modclass.__author__)
-        except AttributeError:
-            try:
-                author_info = _process_author_info(
-                    import_module(modclass.__module__).__author__
-                )
-            except AttributeError:
-                author_info = "no author info"
-
-        # includes part of class string
-        modpath = str(modclass)[8:-2]
-        path_parts = modpath.split(".")
-        # joins strings excluding starting with '_'
-        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
-        # adds html link reference
-        modname = str(
-            '<a href="https://www.aeon-toolkit.org/en/latest/api_reference'
-            + "/auto_generated/"
-            + clean_path
-            + '.html">'
-            + modname
-            + "</a>"
-        )
-
-        record = pd.DataFrame([modname, algorithm_type, author_info], index=COLNAMES).T
-        df = pd.concat([df, record], ignore_index=True)
-    with open("estimator_overview_table.md", "w") as file:
-        df.to_markdown(file, index=False)
-
-
-def setup(app):
-    """Set up sphinx builder.
-
-    Parameters
-    ----------
-    app : Sphinx application object
-    """
-
-    def adds(pth):
-        print("Adding stylesheet: %s" % pth)  # noqa: T201, T001
-        app.add_css_file(pth)
-
-    adds("fields.css")  # for parameters, etc.
-
-    app.connect("builder-inited", _make_estimator_overview)
-
 
 # -- Extension configuration -------------------------------------------------
 

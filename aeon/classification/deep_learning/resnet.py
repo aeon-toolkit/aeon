@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -13,8 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.resnet import ResNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class ResNetClassifier(BaseDeepClassifier):
@@ -50,7 +49,7 @@ class ResNetClassifier(BaseDeepClassifier):
             in one residual block, if not
             a list, the same kernel size is used in all convolution layers
         use_bias                    : bool or list of bool, default = True,
-            condition on wether or not to use bias values in
+            condition on whether or not to use bias values in
             the convolution layers in one residual block, if not
             a list, the same kernel size is used in all convolution layers
 
@@ -304,6 +303,7 @@ class ResNetClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
