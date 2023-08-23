@@ -14,8 +14,6 @@ from aeon.utils.validation import check_window_length
 class IntervalSegmenter(BaseTransformer):
     """Interval segmentation transformer.
 
-    Segments an equal
-
     Parameters
     ----------
     intervals : int, np.ndarray or list of np.ndarrays with one for each
