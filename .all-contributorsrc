@@ -1,8 +1,6 @@
 {
   "projectName": "aeon",
   "projectOwner": "aeon-toolkit",
-  "repoType": "github",
-  "repoHost": "https://github.com",
   "commitConvention": "none",
   "files": [
     "CONTRIBUTORS.md"
@@ -10,6 +8,7 @@
   "imageSize": 80,
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
+  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
   "contributors": [
     {
@@ -2168,6 +2167,6 @@
         "code",
         "bug",
        ]
-    },
+    }
   ]
 }
