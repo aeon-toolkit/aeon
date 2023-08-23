@@ -219,7 +219,7 @@ def load_from_tsfile(
     """
     # Check file ends in .ts, if not, insert
     if not full_file_path_and_name.endswith(".ts"):
-        full_file_path_and_name = os.path.join(full_file_path_and_name, ".ts")
+        full_file_path_and_name = full_file_path_and_name + ".ts"
     # Open file
     with open(full_file_path_and_name, "r", encoding="utf-8") as file:
         # Read in headers
