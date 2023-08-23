@@ -155,7 +155,7 @@ def _assert_correct_columns(y_pred, y_train):
 
 def _make_fh(cutoff, steps, fh_type, is_relative):
     """Construct forecasting horizons for testing."""
-    from aeon.forecasting.tests._config import INDEX_TYPE_LOOKUP
+    from aeon.forecasting.tests import INDEX_TYPE_LOOKUP
 
     fh_class = INDEX_TYPE_LOOKUP[fh_type]
 

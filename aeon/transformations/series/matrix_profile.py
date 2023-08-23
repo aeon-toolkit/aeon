@@ -7,9 +7,6 @@ __author__ = ["mloning"]
 __all__ = ["MatrixProfileTransformer"]
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("stumpy", severity="warning")
 
 
 class MatrixProfileTransformer(BaseTransformer):

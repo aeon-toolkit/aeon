@@ -34,9 +34,8 @@ aeon/performance_metrics/annotation/ @lmmentel
 
 aeon/pipeline/ @aiwalter
 
-aeon/regression/ @MatthewMiddlehurst @TonyBagnall
-aeon/regression/feature_based/_fresh_prince.py @dguijo @MatthewMiddlehurst @TonyBagnall
-aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
+aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
+aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo
 
 aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
