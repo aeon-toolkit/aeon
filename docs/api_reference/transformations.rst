@@ -58,20 +58,13 @@ Pipeline building
     TransformerPipeline
     FeatureUnion
     ColumnwiseTransformer
+    ColumnTransformer
     FitInTransform
     MultiplexTransformer
     OptionalPassthrough
     InvertTransform
     Id
     YtoX
-
-.. currentmodule:: aeon.transformations.collection.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnTransformer
 
 .. currentmodule:: aeon.transformations.series.func_transform
 
