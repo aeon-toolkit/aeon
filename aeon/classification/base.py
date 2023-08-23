@@ -56,7 +56,7 @@ class BaseClassifier(BaseEstimator, ABC):
     Attributes
     ----------
     classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of classes_``)
+    n_classes_          : integer, number of classes (``length of classes_``)
     fit_time_           : integer, time (in milliseconds) for fit to run.
     _X_metadata         : metadata/properties of X seen in fit
     _class_dictionary   : dictionary mapping classes_ onto integers
@@ -96,7 +96,7 @@ class BaseClassifier(BaseEstimator, ABC):
     def __rmul__(self, other):
         """Magic * method, return concatenated ClassifierPipeline, transformers on left.
 
-        Overloaded multiplication operation for classifiers. Implemented for `other`
+        Overloaded multiplication operation for classifiers. Implemented for ``other``
         being a transformer, otherwise returns `NotImplemented`.
 
         Parameters
@@ -139,14 +139,15 @@ class BaseClassifier(BaseEstimator, ABC):
         X : 3D np.array
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
-            or 2D np.array (univariate, equal length series)
-                of shape ``(n_instances, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``
-                , where ``n_timepoints_i`` is length of series ``i``
-            other types are allowed and converted into one of the above.
-        y : 1D np.array, of shape ``(n_instances)`` - class labels for fitting
-            indices correspond to instance indices in X.
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+        np.array
+            shape ``(n_instances)`` - class labels for fitting indices correspond to
+            instance indices in X.
 
         Returns
         -------
@@ -194,27 +195,30 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
-            any number of channels, equal length series of shape `(n_instances,
-            n_channels, n_timepoints).
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints).
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``
             other types are allowed and converted into one of the above.
 
         Returns
         -------
-        y : 1D np.array, of shape [n_instances] - predicted class labels
-            indices correspond to instance indices in X
+        np.array
+            shape ``[n_instances]`` - predicted class labels indices correspond to
+            instance indices in X
         """
         self.check_is_fitted()
+
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_instances)
-        # Check X and convert X to X_inner_mtype if possible
+
+        # Check X is valid and convert to innter_mtype
         self.checkX(X)
         X = self.convertX(X)
         return self._predict(X)
@@ -225,27 +229,31 @@ class BaseClassifier(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
+        X : 3D np.array
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
-            other types are allowed and converted into one of the above.
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
 
         Returns
         -------
-        y : 2D array of shape (n_cases, n_classes) - predicted class probabilities
+        np.ndarray
+            2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
         """
         self.check_is_fitted()
+
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat([[1]], n_instances, axis=0)
+
         # Convert X to X_inner_mtype if possible
         self.checkX(X)
         X = self.convertX(X)
@@ -263,14 +271,15 @@ class BaseClassifier(BaseEstimator, ABC):
                 of shape (n_instances, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+                n_timepoints_i is length of series i.
             other types are allowed and converted into one of the above.
         y : 1D np.ndarray of shape [n_instances] - class labels (ground truth)
-            indices correspond to instance indices in X
+            indices correspond to instance indices in X.
 
         Returns
         -------
-        float, accuracy score of predict(X) vs y
+        float
+            accuracy score of predict(X) vs y.
         """
         from sklearn.metrics import accuracy_score
 
@@ -369,8 +378,6 @@ class BaseClassifier(BaseEstimator, ABC):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        if not self.is_fitted:
-            raise ValueError("Cannot call _predict_proba without calling fit first")
         preds = self._predict(X)
         n_pred = len(preds)
         dists = np.zeros((n_pred, self.n_classes_))
