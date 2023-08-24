@@ -78,7 +78,7 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
 @njit(cache=True, fastmath=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
-    r"""Compute the ddtw cost matrix between two time series.
+    r"""Compute the DDTW cost matrix between two time series.
 
     This involves taking the difference of the series then using the same cost
     function as DTW.
@@ -139,7 +139,7 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 def ddtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None
 ) -> np.ndarray:
-    """Compute the ddtw pairwise distance between a set of time series.
+    """Compute the DDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
