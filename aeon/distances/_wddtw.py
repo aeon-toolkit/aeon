@@ -18,7 +18,7 @@ from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 def wddtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
-    r"""Compute the wddtw distance between two time series.
+    r"""Compute the WDDTW distance between two time series.
 
     Takes the first order derivative, then applies `_weighted_cost_matrix` to find WDTW
     distance. WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a
@@ -47,7 +47,7 @@ def wddtw_distance(
     Returns
     -------
     float
-        wddtw distance between x and y.
+        WDDTW distance between x and y.
 
     Raises
     ------
@@ -86,7 +86,7 @@ def wddtw_distance(
 def wddtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wddtw cost matrix between two time series.
+    """Compute the WDDTW cost matrix between two time series.
 
     Parameters
     ----------
@@ -104,7 +104,7 @@ def wddtw_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wddtw cost matrix between x and y.
+        WDDTW cost matrix between x and y.
 
     Raises
     ------
@@ -145,7 +145,7 @@ def wddtw_cost_matrix(
 def wddtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wddtw pairwise distance between a set of time series.
+    """Compute the WDDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -257,7 +257,7 @@ def _wddtw_from_multiple_to_multiple_distance(
 def wddtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wddtw alignment path between two time series.
+    """Compute the WDDTW alignment path between two time series.
 
     Parameters
     ----------
