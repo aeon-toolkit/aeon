@@ -343,7 +343,7 @@ def twe_alignment_path(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the twe alignment path between two time series.
+    """Compute the TWE alignment path between two time series.
 
     Parameters
     ----------
