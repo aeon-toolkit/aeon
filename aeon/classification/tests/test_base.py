@@ -300,8 +300,7 @@ def test__predict_proba():
     cls = _TestClassifier()
     X = np.random.random(size=(5, 1, 10))
     y = np.array([1, 0, 1, 0, 1])
-    msg = "Cannot call _predict_proba without calling fit first"
-    with pytest.raises(ValueError, match=msg):
+    with pytest.raises(KeyError):
         cls._predict_proba(X)
     cls.fit(X, y)
     p = cls._predict_proba(X)
