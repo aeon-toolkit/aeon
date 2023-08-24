@@ -228,7 +228,7 @@ def erp_pairwise_distance(
     g: float = 0.0,
     g_arr: np.ndarray = None,
 ) -> np.ndarray:
-    """Compute the erp pairwise distance between a set of time series.
+    """Compute the ERP pairwise distance between a set of time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
@@ -254,7 +254,7 @@ def erp_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        erp pairwise matrix between the instances of X.
+        ERP pairwise matrix between the instances of X.
 
 
     Raises
@@ -347,7 +347,7 @@ def erp_alignment_path(
     g: float = 0.0,
     g_arr: np.ndarray = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the erp alignment path between two time series.
+    """Compute the ERP alignment path between two time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
