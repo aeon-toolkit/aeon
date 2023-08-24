@@ -59,13 +59,13 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     ----------
     x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
         First time series either univariate length ``n_timepoints`` or multivariate with
-        ``n_channels`` channels and length `n_timepoints`.
+        ``n_channels`` channels and length ``n_timepoints``.
     y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        Second time series either univariate length ``n_timepoints`` or multivariate
+        with ``n_channels`` channels and length ``n_timepoints``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1``
+        is used. window is a percentage deviation, so if ``window = 0.1`` then
         10% of the series length is the max warping allowed.
 
     Returns
@@ -222,20 +222,21 @@ def dtw_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_timepoints) or (n_instances, n_channels,
-    n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_timepoints,) or (m_instances, m_timepoints) or (
-    m_instances, m_channels, m_timepoints) default=None
-        A single series or a collection of time series.
-    window : float, default=None
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+         or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+       A single series or a collection of time series of shape ``(m_timepoints,)`` or
+       ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
+    window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
-        DTW pairwise matrix between the instances of X.
+    np.ndarray
+        DTW pairwise matrix between the instances of X of shape
+        ``(n_instances, n_instances)``.
 
     Raises
     ------
@@ -317,10 +318,10 @@ def dtw_alignment_path(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)`` or ``(n_timepoints,)``.
+    y : np.ndarray
+        Second time series, shape ``(m_channels, m_timepoints)`` or ``(m_timepoints,)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

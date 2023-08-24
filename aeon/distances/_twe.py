@@ -27,8 +27,7 @@ def twe_distance(
     """Compute the TWE distance between two time series.
 
     Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
-    series matching with time 'elasticity'. In comparison to other distance measures,
-    (e.g. DTW (Dynamic Time Warping) or LCSS (Longest Common Subsequence)), TWE is a
+    series matching with time 'elasticity'. Unlike DTW (Dynamic Time Warping), TWE is a
     metric. It's  run time complexity is :math:`O(n^2)`.
 
     Parameters
