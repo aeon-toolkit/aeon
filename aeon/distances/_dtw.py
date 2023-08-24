@@ -15,7 +15,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
-    r"""Compute the dtw distance between two time series.
+    r"""Compute the DTW distance between two time series.
 
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
@@ -58,20 +58,20 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     Parameters
     ----------
     x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
-        First time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        First time series either univariate length 'n_timepoints' or multivariate with
+        `n_channels` channels and length 'n_timepoints'.
     y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        Second time series either univariate length 'n_timepoints' or multivariate with
+        'n_channels' channels and length 'n_timepoints'.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if window = 0.1,
+        is used. window is a percentage deviation, so if 'window = 0.1'
         10% of the series length is the max warping allowed.
 
     Returns
     -------
     float
-        dtw distance between x and y, minimum value 0.
+        DTW distance between x and y, minimum value 0.
 
     Raises
     ------
@@ -82,6 +82,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     ----------
     .. [1] Ratanamahatana C and Keogh E.: Three myths about dynamic time warping data
     mining, Proceedings of 5th SIAM International Conference on Data Mining, 2005.
+
     .. [2] Sakoe H. and Chiba S.: Dynamic programming algorithm optimization for
     spoken word recognition. IEEE Transactions on Acoustics, Speech, and Signal
     Processing 26(1):43–49, 1978.
@@ -112,7 +113,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
 @njit(cache=True, fastmath=True)
 def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
-    r"""Compute the dtw cost matrix between two time series.
+    r"""Compute the DTW cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
     :math:`M_{i,j}=(a_i-b_j)^2`. It is used in the dtw path calculations.
@@ -120,14 +121,14 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     Parameters
     ----------
     x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
-        First time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        First time series either univariate length 'n_timepoints' or multivariate with
+        `n_channels` channels and length 'n_timepoints'.
     y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+        Second time series either univariate length 'n_timepoints' or multivariate with
+        'n_channels' channels and length 'n_timepoints'.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if window = 0.1,
+        is used. window is a percentage deviation, so if 'window = 0.1',
         10% of the series length is the max warping allowed.
 
     Returns
@@ -201,7 +202,7 @@ def _dtw_cost_matrix(
 def dtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None
 ) -> np.ndarray:
-    r"""Compute the dtw pairwise distance between a set of time series.
+    r"""Compute the DTW pairwise distance between a set of time series.
 
     By default, this takes a collection of :math:`n` time series :math:`X` and returns a
     matrix
@@ -234,7 +235,7 @@ def dtw_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        dtw pairwise matrix between the instances of X.
+        DTW pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -312,7 +313,7 @@ def _dtw_from_multiple_to_multiple_distance(
 def dtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the dtw alignment path between two time series.
+    """Compute the DTW alignment path between two time series.
 
     Parameters
     ----------
@@ -331,7 +332,7 @@ def dtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The dtw distance betweeen the two time series.
+        The DTW distance betweeen the two time series.
 
     Raises
     ------
