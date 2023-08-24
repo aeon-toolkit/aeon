@@ -17,7 +17,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def lcss_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> float:
-    r"""Return the lcss distance between x and y.
+    r"""Return the LCSS distance between x and y.
 
     The LCSS distance for time series is based on the solution to the
     longest common subsequence problem in pattern matching [1]_. The typical problem
@@ -70,7 +70,7 @@ def lcss_distance(
     Returns
     -------
     float
-        The lcss distance between x and y.
+        The LCSS distance between x and y.
 
     Raises
     ------
@@ -106,7 +106,7 @@ def lcss_distance(
 def lcss_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
-    r"""Return the lcss cost matrix between x and y.
+    r"""Return the LCSS cost matrix between x and y.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def lcss_cost_matrix(
     Returns
     -------
     np.ndarray
-        The lcss cost matrix between x and y.
+        The LCSS cost matrix between x and y.
 
     Raises
     ------
@@ -194,7 +194,7 @@ def _lcss_cost_matrix(
 def lcss_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
 ) -> np.ndarray:
-    """Compute the lcss pairwise distance between a set of time series.
+    """Compute the LCSS pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -214,7 +214,7 @@ def lcss_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        lcss pairwise matrix between the instances of X.
+        LCSS pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -293,7 +293,7 @@ def _lcss_from_multiple_to_multiple_distance(
 def lcss_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the lcss alignment path between two time series.
+    """Compute the LCSS alignment path between two time series.
 
     Parameters
     ----------
@@ -316,7 +316,7 @@ def lcss_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The lcss distance between the two time series.
+        The LCSS distance between the two time series.
 
     Raises
     ------
