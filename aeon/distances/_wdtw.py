@@ -17,7 +17,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def wdtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
-    r"""Compute the wdtw distance between two time series.
+    r"""Compute the WDTW distance between two time series.
 
     First proposed in [1]_, WDTW uses DTW with a weighted pairwise distance matrix
     rather than a window. When
@@ -54,7 +54,7 @@ def wdtw_distance(
     Returns
     -------
     float
-        wdtw distance between x and y.
+        WDTW distance between x and y.
 
     Raises
     ------
@@ -91,7 +91,7 @@ def wdtw_distance(
 def wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wdtw cost matrix between two time series.
+    """Compute the WDTW cost matrix between two time series.
 
     Parameters
     ----------
@@ -109,7 +109,7 @@ def wdtw_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wdtw cost matrix between x and y.
+        WDTW cost matrix between x and y.
 
     Raises
     ------
@@ -204,7 +204,7 @@ def _wdtw_cost_matrix(
 def wdtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wdtw pairwise distance between a set of time series.
+    """Compute the WDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -224,7 +224,7 @@ def wdtw_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        wdtw pairwise matrix between the instances of X.
+        WDTW pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -303,7 +303,7 @@ def _wdtw_from_multiple_to_multiple_distance(
 def wdtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wdtw alignment path between two time series.
+    """Compute the WDTW alignment path between two time series.
 
     Parameters
     ----------
@@ -325,7 +325,7 @@ def wdtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The wdtw distance betweeen the two time series.
+        The WDTW distance betweeen the two time series.
 
     Raises
     ------
