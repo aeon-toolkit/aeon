@@ -334,6 +334,8 @@ class ResNetRegressor(BaseDeepRegressor):
         param = {
             "n_epochs": 10,
             "batch_size": 4,
+            "n_residual_blocks": 1,
+            "n_conv_per_residual_block": 1,
         }
 
         return [param]

@@ -289,8 +289,12 @@ class EncoderClassifier(BaseDeepClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 8,
             "batch_size": 4,
+            "use_bias": False,
+            "fc_units": 8,
+            "strides": 2,
+            "dropout_proba": 0,
         }
 
         test_params = [param1]
