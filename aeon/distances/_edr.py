@@ -20,9 +20,9 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def edr_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> float:
-    """Compute the edr distance between two time series.
+    """Compute the EDR distance between two time series.
 
-    Edit Distance  was adapted in [1]_ for distances between trajectories. Like LCSS,
+    Edit Distance was adapted in [1]_ for distances between trajectories. Like LCSS,
     EDR uses a distance threshold to define when two elements of a series match.
     However, rather than simply count matches and look for the longest sequence,
     EDR applies a (constant) penalty for non-matching elements
@@ -53,7 +53,7 @@ def edr_distance(
     Returns
     -------
     float
-        edr distance between x and y.
+        EDR distance between x and y.
 
     Raises
     ------
@@ -90,7 +90,7 @@ def edr_distance(
 def edr_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> np.ndarray:
-    """Compute the edr cost matrix between two time series.
+    """Compute the EDR cost matrix between two time series.
 
     Parameters
     ----------
@@ -109,7 +109,7 @@ def edr_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints, m_timepoints)
-        edr cost matrix between x and y.
+        EDR cost matrix between x and y.
 
     Raises
     ------
@@ -185,7 +185,7 @@ def _edr_cost_matrix(
 def edr_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = None
 ) -> np.ndarray:
-    """Compute the pairwise edr distance between a set of time series.
+    """Compute the pairwise EDR distance between a set of time series.
 
     Parameters
     ----------
@@ -206,7 +206,7 @@ def edr_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        edr pairwise matrix between the instances of X.
+        EDR pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -287,7 +287,7 @@ def _edr_from_multiple_to_multiple_distance(
 def edr_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the edr alignment path between two time series.
+    """Compute the EDR alignment path between two time series.
 
     Parameters
     ----------
@@ -310,7 +310,7 @@ def edr_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The edr distance between the two time series.
+        The EDR distance between the two time series.
 
     Raises
     ------
