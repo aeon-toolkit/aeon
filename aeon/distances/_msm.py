@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Move-split-merge (MSM) distance between two time series.
-
-(MSM) [1] is a distance measure that is conceptually similar to other edit
-distance-based approaches, where similarity is calculated by using a set of
-operations to transform one series into another. Each operation has an
-associated cost, and three operations are defined for MSM: move, split, and merge.
-Move is synonymous with a substitution operation, where one value is replaced by
-another. Split and merge differ from other approaches, as they attempt to add
-context to insertions and deletions. The cost of inserting and deleting values
-depends on the value itself and adjacent values, rather than treating all
-insertions and deletions equally (for example, as in ERP). Therefore, the split
-operation is introduced to insert an identical copy of a value immediately after
-itself, and the merge operation is used to delete a value if it directly follows
-an identical value.
-
-Currently only works with univariate series.
-
-References
-----------
-.. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
-series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013
-"""
+"""Move-split-merge (MSM) distance between two time series."""
 __author__ = ["chrisholder", "jlines", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -55,19 +34,34 @@ def msm_distance(
     the cost of the cheapest sequence of operations that transforms the first time
     series into the second one.
 
+    (MSM) [1]_ is a distance measure that is conceptually similar to other edit
+    distance-based approaches, where similarity is calculated by using a set of
+    operations to transform one series into another. Each operation has an
+    associated cost, and three operations are defined for MSM: move, split, and merge.
+    Move is synonymous with a substitution operation, where one value is replaced by
+    another. Split and merge differ from other approaches, as they attempt to add
+    context to insertions and deletions. The cost of inserting and deleting values
+    depends on the value itself and adjacent values, rather than treating all
+    insertions and deletions equally (for example, as in ERP). Therefore, the split
+    operation is introduced to insert an identical copy of a value immediately after
+    itself, and the merge operation is used to delete a value if it directly follows
+    an identical value.
+
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
-    window: float, default=None
+    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
+        First time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    y : np.ndarray, of shape `m_timepoints,) or (m_channels, m_timepoints)
+        Second time series either univariate length `n_timepoints` or multivariate with
+        `n_channels` channels and length `n_timepoints`.
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    independent: bool, defaults=True
+    independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
-    c: float, defaults=1.
+    c : float, default=1.
         Cost for split or merge operation. Default is 1.
 
     Returns
@@ -80,6 +74,11 @@ def msm_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+    References
+    ----------
+    .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
+    series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
+
     Examples
     --------
     >>> import numpy as np
@@ -87,12 +86,6 @@ def msm_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = msm_distance(x, y)
-
-    References
-    ----------
-    .. [1]A.  Stefan,  V.  Athitsos,  and  G.  Das.   The  Move-Split-Merge  metric
-    for time  series. IEEE  Transactions  on  Knowledge  and  Data  Engineering,
-    25(6):1425–1438, 2013.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -117,17 +110,17 @@ def msm_cost_matrix(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: int or None
+    window : float, default=None
         The window size to use for the bounding matrix. If None, the
         bounding matrix is not used.
-    independent: bool, defaults=True
+    independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
-    c: float, defaults=1.
+    c : float, default=1.
         Cost for split or merge operation. Default is 1.
 
     Returns
@@ -305,19 +298,19 @@ def msm_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    independent: bool, defaults=True
+    independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
-    c: float, defaults=1.
+    c : float, default=1.
         Cost for split or merge operation. Default is 1.
 
     Returns
@@ -434,17 +427,17 @@ def msm_alignment_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    independent: bool, defaults=True
+    independent : bool, default=True
         Whether to use the independent or dependent MSM distance. The
         default is True (to use independent).
-    c: float, defaults=1.
+    c : float, default=1.
         Cost for split or merge operation. Default is 1.
 
     Returns
