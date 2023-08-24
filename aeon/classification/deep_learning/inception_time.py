@@ -360,6 +360,8 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -718,6 +720,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]

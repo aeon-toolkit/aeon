@@ -55,7 +55,7 @@ from aeon import utils
 from aeon.utils.multiindex import flatten_multiindex
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-if _check_soft_dependencies("mlflow", severity="warning"):
+if _check_soft_dependencies("mlflow", severity="none"):
     from mlflow import pyfunc
 
 FLAVOR_NAME = "mlflow_aeon"

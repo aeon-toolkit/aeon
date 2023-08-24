@@ -342,6 +342,8 @@ class InceptionTimeRegressor(BaseRegressor):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -697,6 +699,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]

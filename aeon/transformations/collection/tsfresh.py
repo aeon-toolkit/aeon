@@ -8,9 +8,6 @@ __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tsfresh", severity="warning")
 
 
 class _TSFreshFeatureExtractor(BaseCollectionTransformer):

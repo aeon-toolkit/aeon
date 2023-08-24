@@ -8,8 +8,6 @@ from numpy.random import RandomState
 from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-_check_soft_dependencies("tslearn", severity="warning")
-
 
 class TimeSeriesKShapes(BaseClusterer):
     """Kshape algorithm wrapper tslearns implementation.
