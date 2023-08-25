@@ -23,20 +23,6 @@ Dynamic Time Warping (DTW)
     dtw_cost_matrix
     dtw_alignment_path
 
-Time Warp Edit (TWE)
---------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    twe_distance
-    twe_pairwise_distance
-    twe_cost_matrix
-    twe_alignment_path
-
 Move-Split-Merge (MSM)
 ----------------------
 
@@ -50,6 +36,20 @@ Move-Split-Merge (MSM)
     msm_pairwise_distance
     msm_cost_matrix
     msm_alignment_path
+
+Time Warp Edit (TWE)
+--------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    twe_distance
+    twe_pairwise_distance
+    twe_cost_matrix
+    twe_alignment_path
 
 Derivative Dynamic Time Warping (DDTW)
 --------------------------------------

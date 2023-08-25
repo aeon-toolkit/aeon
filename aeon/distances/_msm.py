@@ -26,33 +26,22 @@ def msm_distance(
 ) -> float:
     r"""Compute the MSM distance between two time series.
 
-    Move-Split-MErge (MSM) [1]_ is a distance measure that is conceptually similar to
+    Move-Split-Merge (MSM) [1]_ is a distance measure that is conceptually similar to
     other edit distance-based approaches, where similarity is calculated by using a
     set of operations to transform one series into another. Each operation has an
     associated cost, and three operations are defined for MSM: move, split, and merge.
     Move is called match in other distance function terminology, wherea split and
     merge are equivalent to insert and delete.
 
-    For two series, possibly of unequal length, $\mathbf{x}=\{x_1,x_2,\ldots,x_n\}$ and
-    :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` MSM works by iterating over series
-    lengths $n$ and $m$ to find the cost matrix $D$ as follows.
+    For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
+    x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` MSM works by iterating over
+    series lengths $n$ and $m$ to find the cost matrix $D$ as follows.
 
     .. math::
         move  &=  D(i-1,j-1)+ d({x_{i},y_{j}}) \\
         split &= D_{i,j-1}+cost(b_j,b_{j-1},a_i,c)\\
         merge &= D(i,j-1)+d(y_{j},y_{j-1}) + +cost(a_i,a_{i-1},b_j,c)\\
         D(i,j) &= min(move,split, merge)
-
-     where $c$ is a parameter, $d$ is a pointwise distance function (the
-     absolute distance in [1]_) and $cost$ is the following cost function
-
-    .. math::
-        :nowrap:
-        \begin{eqnarray}
-            cost(x,y,z,c) &=& c & \textbf{if} $y \leq x \leq z $ \textbf{or} $y \geq
-            x \geq z$} \\
-                            &=& c+min(|x-y|,|x-z|) \textbf{otherwise}
-        \end{eqnarray}
 
     The move operation in MSM uses the absolute difference rather than the squared
     distance
@@ -70,6 +59,20 @@ def msm_distance(
     operation is introduced to insert an identical copy of a value immediately after
     itself, and the merge operation is used to delete a value if it directly follows
     an identical value. MSM satisfies triangular inequality and is a metric.
+
+
+    where $c$ is a parameter, $d$ is a pointwise distance function (the absolute
+    distance in [1]_) and $cost$ is the following cost function
+
+    .. math::
+        :nowrap:
+        \begin{eqnarray}
+            cost(x,y,z,c) &=& c & \textbf{if} $y \leq x \leq z $ \textbf{or} $y \geq
+            x \geq z$} \\
+                            &=& c+min(|x-y|,|x-z|) \textbf{otherwise}
+        \end{eqnarray}
+
+
 
     Parameters
     ----------
