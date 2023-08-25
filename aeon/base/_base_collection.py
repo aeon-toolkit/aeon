@@ -22,7 +22,8 @@ class BaseCollectionEstimator(BaseEstimator):
     BaseClusterer and BaseCollectionTransformer for the checking and
     conversion of input to fit, predict and predict_proba, where relevant.
 
-    It also stores the common default tags used by all the subclasses.
+    It also stores the common default tags used by all the subclasses and meta data
+    describing the characteristics of time series passed to ``fit``.
     """
 
     _tags = {
