@@ -24,11 +24,26 @@ def twe_distance(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> float:
-    """Compute the TWE distance between two time series.
+    r"""Compute the TWE distance between two time series.
 
     Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
-    series matching with time 'elasticity'. Unlike DTW (Dynamic Time Warping), TWE is a
-    metric. It's  run time complexity is :math:`O(n^2)`.
+    series matching with time 'elasticity'. TWE works by interating over series
+    lengths $n$ and $m$ to find the matrix $D$ as follows.
+
+    .. math::
+        match  &=  D(i-1,j-1)+ d({a_{i},b_{j}})+d({a_{i-1},b_{j-1}}) +2\nu(|i-j|) \\
+        delete &=  D(i-1,j)+d(a_{i},a_{i-1}) + \lambda+\nu \\
+        insert = D(i,j-1)+d(b_{j},b_{j-1}) + \lambda+\nu \\
+        D(i,j) = min(match,insert, delete)
+
+    TWE combines warping and edit distance through combines The warping, called {\em
+    stiffness}, is controlled by a parameter $\nu$. Stiffness enforces a
+    multiplicative penalty on the distance between matched points in a way that is
+    similar to weighted DTW, where $\nu = 0$ gives no warping penalty. The edit
+    penalty, \lambda, is applied to both the ``delete`` and ``insert`` operations.
+
+    Unlike DTW (Dynamic Time Warping), TWE is a metric. It's  run time complexity is
+    :math:`O(n^2)`.
 
     Parameters
     ----------
@@ -59,8 +74,8 @@ def twe_distance(
 
     References
     ----------
-    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
+    .. [1] Marteau, P.; F. (2009). Time Warp Edit Distance with Stiffness Adjustment
+    for Time Series Matching. IEEE Transactions on Pattern Analysis and Machine
     Intelligence. 31 (2): 306–318.
 
     Examples
@@ -69,7 +84,8 @@ def twe_distance(
     >>> from aeon.distances import twe_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = twe_distance(x, y)
+    >>> twe_distance(x, y)
+    46.017999999999994
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
