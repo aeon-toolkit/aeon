@@ -13,7 +13,7 @@ from aeon.utils.validation._convert_collection import (
 )
 from aeon.utils.validation.collection import (
     COLLECTIONS_DATA_TYPES,
-    convertX,
+    convert_collection,
     get_n_cases,
     get_type,
     has_missing,
@@ -93,32 +93,34 @@ EQUAL_LENGTH_MULTIVARIATE = {
 
 @pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("output_data", COLLECTIONS_DATA_TYPES)
-def test_convertX(input_data, output_data):
+def test_convert_collection(input_data, output_data):
     """Test all valid and invalid conversions."""
     # All should work with univariate equal length
-    X = convertX(EQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+    X = convert_collection(EQUAL_LENGTH_UNIVARIATE[input_data], output_data)
     assert get_type(X) == output_data
     # Test with multivariate
     if input_data in EQUAL_LENGTH_MULTIVARIATE:
-        X = convertX(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
+        X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
         assert get_type(X) == output_data
     # Test with unequal length
     if input_data in UNEQUAL_LENGTH_UNIVARIATE:
         if output_data in UNEQUAL_LENGTH_UNIVARIATE or output_data == "pd-multiindex":
-            X = convertX(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+            X = convert_collection(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
             assert get_type(X) == output_data
         else:
             with pytest.raises(TypeError):
-                X = convertX(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
+                X = convert_collection(
+                    UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data
+                )
 
 
 @pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
 def test_convert_df_list(input_data):
     """Test that df list is correctly transposed."""
-    X = convertX(EQUAL_LENGTH_UNIVARIATE[input_data], "df-list")
+    X = convert_collection(EQUAL_LENGTH_UNIVARIATE[input_data], "df-list")
     assert X[0].shape == (20, 1)
     if input_data in EQUAL_LENGTH_MULTIVARIATE:
-        X = convertX(EQUAL_LENGTH_MULTIVARIATE[input_data], "df-list")
+        X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], "df-list")
         assert X[0].shape == (20, 2)
 
 
