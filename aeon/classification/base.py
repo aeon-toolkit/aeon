@@ -163,8 +163,8 @@ class BaseClassifier(BaseEstimator, ABC):
 
         # All of this can move up to BaseCollection
         start = int(round(time.time() * 1000))
-        self.metadata_ = self.checkX(X)
-        X = self.convertX(X)
+        self.metadata_ = self._check_X(X)
+        X = self._convert_X(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
         # escape early and do not fit if only one class label has been seen
@@ -219,8 +219,8 @@ class BaseClassifier(BaseEstimator, ABC):
             return np.repeat(list(self._class_dictionary.keys()), n_instances)
 
         # Check X is valid and convert to innter_mtype
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
         return self._predict(X)
 
     @final
@@ -255,8 +255,8 @@ class BaseClassifier(BaseEstimator, ABC):
             return np.repeat([[1]], n_instances, axis=0)
 
         # Convert X to X_inner_mtype if possible
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
         # call internal _predict_proba
         return self._predict_proba(X)
 
@@ -386,7 +386,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         return dists
 
-    def checkX(self, X):
+    def _check_X(self, X):
         """Check classifier input X is valid.
 
         Check if the input data is a compatible type, and that this classifier is
@@ -405,7 +405,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         See Also
         --------
-        convertX : function that converts X after it has been checked.
+        _convert_X : function that converts X after it has been checked.
 
         Examples
         --------
@@ -413,7 +413,7 @@ class BaseClassifier(BaseEstimator, ABC):
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> meta = hc.checkX(X)    # HC2 can handle this
+        >>> meta = hc._check_X(X)    # HC2 can handle this
         >>> meta["n_cases"]
         5
         """
@@ -443,7 +443,7 @@ class BaseClassifier(BaseEstimator, ABC):
             raise ValueError(msg)
         return metadata
 
-    def convertX(self, X):
+    def _convert_X(self, X):
         """Convert X to type defined by tag X_inner_mtype.
 
         if self.metadata_ has not been set, it is set here from X, because we need to
@@ -465,7 +465,7 @@ class BaseClassifier(BaseEstimator, ABC):
 
         See Also
         --------
-        checkX : function that checks X is valid and finds metadata.
+        _check_X : function that checks X is valid and finds metadata.
 
         Examples
         --------
@@ -478,7 +478,7 @@ class BaseClassifier(BaseEstimator, ABC):
         >>> hc = HIVECOTEV2()
         >>> hc.get_tag("X_inner_mtype")
         'numpy3D'
-        >>> X = hc.convertX(X)
+        >>> X = hc._convert_X(X)
         >>> get_type(X)
         'numpy3D'
         """
