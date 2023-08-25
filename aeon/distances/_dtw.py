@@ -60,10 +60,10 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     Parameters
     ----------
     x : np.ndarray
-        First time series either univariate, shape ``(n_timepoints,)``, or
+        First time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     y : np.ndarray
-        Second time series either univariate, shape ``(n_timepoints,)``, or
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -122,12 +122,12 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
-        First time series either univariate length ``n_timepoints`` or multivariate with
-        ``n_channels`` channels and length ``n_timepoints``.
-    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length ``n_timepoints`` or multivariate
-        with ``n_channels`` channels and length ``n_timepoints``.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1``,
