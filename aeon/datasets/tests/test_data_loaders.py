@@ -473,7 +473,7 @@ def test_load_forecasting():
     df, meta = load_forecasting("m1_yearly_dataset")
     assert meta == expected_metadata
     assert df.shape == (181, 3)
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(OSError):
         X, y, meta = load_regression("m1_yearly_dataset", extract_path="?>S")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -501,7 +501,7 @@ def test_load_regression():
     assert isinstance(y, np.ndarray)
     assert X.shape == (201, 1, 84)
     assert y.shape == (201,)
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(OSError):
         X, y, meta = load_regression("Covid3Month", extract_path="?>S")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -529,7 +529,7 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(OSError):
         X, y, meta = load_classification("UnitTest", extract_path="?>S")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),

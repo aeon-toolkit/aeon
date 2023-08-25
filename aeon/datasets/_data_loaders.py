@@ -1089,7 +1089,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     from aeon.datasets.tsf_data_lists import tsf_all
 
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
