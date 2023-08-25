@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.signature_based._rescaling import (
     _rescale_path,
     _rescale_signature,
@@ -11,7 +11,7 @@ from aeon.transformations.collection.signature_based._rescaling import (
 from aeon.transformations.collection.signature_based._window import _window_getter
 
 
-class _WindowSignatureTransform(BaseTransformer):
+class _WindowSignatureTransform(BaseCollectionTransformer):
     """Perform the signature transform over given windows.
 
     Given data of shape [N, L, C] and specification of a window method from the
