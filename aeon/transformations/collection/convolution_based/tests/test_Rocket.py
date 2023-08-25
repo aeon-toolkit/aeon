@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,

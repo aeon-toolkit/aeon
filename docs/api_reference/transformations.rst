@@ -155,7 +155,7 @@ Shapelets, wavelets, and convolution
 
     RandomDilatedShapeletTransform
 
-.. currentmodule:: aeon.transformations.collection.rocket
+.. currentmodule:: aeon.transformations.collection.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
