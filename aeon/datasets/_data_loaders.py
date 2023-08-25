@@ -430,7 +430,7 @@ def _load_tsc_dataset(
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -1176,7 +1176,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     from aeon.datasets.tser_data_lists import tser_all
 
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -1294,7 +1294,7 @@ def download_all_regression(extract_path=None):
         where to download the fip file. If none, it goes in
     """
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE

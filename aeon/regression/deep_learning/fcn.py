@@ -314,6 +314,9 @@ class FCNRegressor(BaseDeepRegressor):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
         return [param]

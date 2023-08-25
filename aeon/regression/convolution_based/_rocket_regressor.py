@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base._base import _clone_estimator
 from aeon.pipeline import make_pipeline
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
