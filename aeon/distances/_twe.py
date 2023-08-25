@@ -30,18 +30,19 @@ def twe_distance(
     series matching with time 'elasticity'. For two series, possibly of unequal length,
     $\mathbf{x}=\{x_1,x_2,\ldots,x_n\}$ and
     :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` TWE works by iterating over series
-    lengths $n$ and $m$ to find the matrix $D$ as follows.
+    lengths $n$ and $m$ to find the cost matrix $D$ as follows.
 
     .. math::
         match  &=  D(i-1,j-1)+ d({x_{i},y_{j}})+d({x_{i-1},y_{j-1}}) +2\nu(|i-j|) \\
         delete &=  D(i-1,j)+d(x_{i},x_{i-1}) + \lambda+\nu \\
         insert &= D(i,j-1)+d(y_{j},y_{j-1}) + \lambda+\nu \\
         D(i,j) &= min(match,insert, delete)
-    The TWE distance is then the final value, $D(n,m)$.
-    TWE combines warping and edit distance. Warping is controlled by the `stiffness`
-    parameter $\nu$. Stiffness enforces a multiplicative penalty on the distance
-    between matched points in a way that is
-    similar to weighted DTW, where $\nu = 0$ gives no warping penalty. The edit
+
+    Where $\nu$ and $\lambda$ are parameters and $d$ is a pointwise distance function.
+    The TWE distance is then the final value, $D(n,m)$. TWE combines warping and edit
+    distance. Warping is controlled by the `stiffness` parameter $\nu$. Stiffness
+    enforces a multiplicative penalty on the distance between matched points in a way
+    that is similar to weighted DTW, where $\nu = 0$ gives no warping penalty. The edit
     penalty, $\lambda$, is applied to both the ``delete`` and ``insert`` operations
     to penalise moving off the diagonal.
 
@@ -60,10 +61,10 @@ def twe_distance(
         Window size. If None, the window size is set to the length of the
         shortest time series.
     nu : float, default=0.001
-        A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
+        A non-negative constant called the stiffness, which penalises moves off the
+        diagonal Must be > 0.
     lmbda : float, default=1.0
-        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+        A constant penalty for insert or delete operations. Must be >= 1.0.
 
     Returns
     -------
