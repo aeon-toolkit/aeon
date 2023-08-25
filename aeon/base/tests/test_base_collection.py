@@ -23,7 +23,7 @@ def test__get_metadata(data):
     assert meta["n_cases"] == 10
 
 
-def test_checkX():
+def test__check_X():
     """Test if capabilities correctly tested."""
     dummy1 = BaseCollectionEstimator()
     dummy2 = BaseCollectionEstimator()
@@ -60,7 +60,7 @@ def test_checkX():
 
 @pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_convertX(internal_type, data):
+def test__convert_X(internal_type, data):
     """Test conversion function.
 
     The conversion functionality of convertCollection is tested in the utils module.
