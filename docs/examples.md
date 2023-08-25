@@ -12,7 +12,7 @@
 :link-type: ref
 :text-align: center
 
-Forecasting overview
+Overview of forecasting
 
 :::
 
@@ -39,13 +39,24 @@ Hierarchical, global, and panel forecasting
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: images/logo/forecasting-to-regression-reduction.png
 :class-img-top: aeon-card-image-m
 :link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
 Forecasting with aeon and scikit learn
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/splitter.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/window_splitters.ipynb
+:link-type: ref
+:text-align: center
+
+Window splitters for forecasting
 
 :::
 
