@@ -159,8 +159,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._predict(X)
 
@@ -199,8 +199,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         if self.state_info is None:
             return self._predict(X)
@@ -240,8 +240,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._predict_proba(X)
 
@@ -282,8 +282,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         if self.state_info is None:
             return self._predict_proba(X)
@@ -311,8 +311,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        self.checkX(X)
-        X = self.convertX(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._score(X, y)
 
@@ -583,23 +583,6 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         _check_capabilities = BaseClassifier._check_capabilities
         return _check_capabilities(self, missing, multivariate, unequal)
 
-    def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
-
-        Parameters
-        ----------
-        self : this classifier
-        X : pd.DataFrame or np.ndarray. Input attribute data
-
-        Returns
-        -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a 3D np.ndarray
-            Checked and possibly converted input data
-        """
-        _convert_X = BaseClassifier._convert_X
-        return _convert_X(self, X)
-
     def _check_classifier_input(self, X, y=None, enforce_min_cases=1):
         """Check whether input X and y are valid formats with minimum data.
 
@@ -643,7 +626,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         _internal_convert = BaseClassifier._internal_convert
         return _internal_convert(self, X, y)
 
-    def checkX(self, X):
+    def _check_X(self, X):
         """To follow."""
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
@@ -671,7 +654,7 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
             raise ValueError(msg)
         return metadata
 
-    def convertX(self, X):
+    def _convert_X(self, X):
         """Docstring to follow."""
         # Convert X to X_inner_mtype if possible
         inner_type = self.get_tag("X_inner_mtype")
