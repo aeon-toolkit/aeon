@@ -36,9 +36,6 @@ EXCLUDED_TESTS = {
         "test_classifier_on_unit_test_data",
         "test_classifier_on_basic_motions",
     ],
-    # sth is not quite right with the RowTransformer-s changing state,
-    #   but these are anyway on their path to deprecation, see #2370
-    "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
     # Early classifiers (EC) intentionally retain information from previous predict
     # calls for #1 (test_non_state_changing_method_contract).
     # #2 (test_fit_deterministic), #3 (test_persistence_via_pickle) and #4
