@@ -7,11 +7,12 @@ import pandas as pd
 import pytest
 
 from aeon.classification import DummyClassifier
-from aeon.classification.base import BaseClassifier
+from aeon.classification.base import BaseClassifier, _get_metadata
 from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
+    get_type,
 )
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
@@ -121,6 +122,35 @@ def test_incorrect_input():
         dummy.fit(X, y)
 
 
+def test_checkX():
+    """Test if capabilities correctly tested."""
+    dummy1 = _TestClassifier()
+    dummy2 = _TestHandlesAllInput()
+    X = np.random.random(size=(5, 1, 10))
+    assert dummy1._check_X(X) and dummy2._check_X(X)
+    X[3][0][6] = np.NAN
+    assert dummy2._check_X(X)
+    with pytest.raises(ValueError, match=r"cannot handle missing values"):
+        dummy1._check_X(X)
+    X = np.random.random(size=(5, 3, 10))
+    assert dummy2._check_X(X)
+    with pytest.raises(ValueError, match=r"cannot handle multivariate"):
+        dummy1._check_X(X)
+    X[2][2][6] = np.NAN
+    assert dummy2._check_X(X)
+    with pytest.raises(
+        ValueError, match=r"cannot handle missing values or multivariate"
+    ):
+        dummy1._check_X(X)
+    X = [np.random.random(size=(1, 10)), np.random.random(size=(1, 20))]
+    assert dummy2._check_X(X)
+    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+        dummy1._check_X(X)
+    X = ["Does", "Not", "Accept", "List", "of", "String"]
+    with pytest.raises(TypeError, match=r"passed a list containing <class 'str'>"):
+        dummy1._check_X(X)
+
+
 class _MutableClassifier(BaseClassifier):
     """Classifier for testing with different internal_types."""
 
@@ -131,6 +161,46 @@ class _MutableClassifier(BaseClassifier):
     def _predict(self, X):
         """Predict dummy."""
         return np.zeros(shape=(len(X),))
+
+
+@pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_convertX(internal_type, data):
+    """Test conversion function.
+
+    The conversion functionality of convertCollection is tested in the utils module.
+    This test runs a subset of these but also checks classifiers with multiple
+    internal types.
+    """
+    cls = _MutableClassifier()
+    # Equal length should default to numpy3D
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    cls.metadata_ = cls._check_X(X)
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == cls.get_tag("X_inner_mtype")
+    # Add the internal_type tag to cls, should still all revert to numpy3D
+    cls.set_tags(**{"X_inner_mtype": ["numpy3D", internal_type]})
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == "numpy3D"
+    # Set cls inner type to just internal_type, should convert to internal_type
+    cls.set_tags(**{"X_inner_mtype": internal_type})
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == internal_type
+    # Set to single type but in a list
+    cls.set_tags(**{"X_inner_mtype": [internal_type]})
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == internal_type
+    # Set to the lowest priority data type, should convert to internal_type
+    cls.set_tags(**{"X_inner_mtype": ["nested_univ", internal_type]})
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == internal_type
+    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+        if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
+            cls.set_tags(**{"capability:unequal_length": True})
+            cls.set_tags(**{"X_inner_mtype": ["nested_univ", "np-list", internal_type]})
+            X = UNEQUAL_LENGTH_UNIVARIATE[data]
+            X2 = cls._convert_X(X)
+            assert get_type(X2) == "np-list"
 
 
 def test__check_y():
@@ -184,6 +254,17 @@ def test_equal_length_input(data):
     _assert_fit_predict(dummy, X, y)
 
 
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test__get_metadata(data):
+    """Test get meta data."""
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    meta = _get_metadata(X)
+    assert not meta["multivariate"]
+    assert not meta["missing_values"]
+    assert not meta["unequal_length"]
+    assert meta["n_cases"] == 10
+
+
 def test_classifier_score():
     """Test the base class score() function."""
     X = np.random.random(size=(6, 10))
@@ -219,8 +300,7 @@ def test__predict_proba():
     cls = _TestClassifier()
     X = np.random.random(size=(5, 1, 10))
     y = np.array([1, 0, 1, 0, 1])
-    msg = "Cannot call _predict_proba without calling fit first"
-    with pytest.raises(ValueError, match=msg):
+    with pytest.raises(KeyError):
         cls._predict_proba(X)
     cls.fit(X, y)
     p = cls._predict_proba(X)

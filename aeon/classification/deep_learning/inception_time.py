@@ -140,6 +140,15 @@ class InceptionTimeClassifier(BaseClassifier):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> inctime = InceptionTimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X_train, y_train)  # doctest: +SKIP
+    InceptionTimeClassifier(...)
     """
 
     _tags = {
@@ -351,6 +360,8 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -458,6 +469,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X_train, y_train)  # doctest: +SKIP
+    IndividualInceptionClassifier(...)
     """
 
     def __init__(
@@ -699,6 +720,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
