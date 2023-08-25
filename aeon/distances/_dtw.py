@@ -226,7 +226,7 @@ def dtw_pairwise_distance(
     ----------
     X : np.ndarray
         A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-         or ``(n_instances, n_channels, n_timepoints)``.
+        or ``(n_instances, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
        A single series or a collection of time series of shape ``(m_timepoints,)`` or
        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
