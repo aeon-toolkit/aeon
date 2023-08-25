@@ -19,7 +19,8 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
-    each other. A good background into DTW can be found in [1]_. For two series
+    each other. A good background into DTW can be found in [1]_. For two series,
+    possibly of unequal length,
     :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
     :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` DTW first calculates
     :math:`M(\mathbf{x},\mathbf{y})`, the :math:`n \times m`
@@ -53,7 +54,7 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     put a restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
     The most common bounding strategies include the Sakoe-Chiba band [2]_. The width
-    of the allowed warping is controlled through the window parameter, ``w``,
+    of the allowed warping is controlled through the ``window`` parameter
     which sets the maximum proportion of warping allowed.
 
     Parameters
