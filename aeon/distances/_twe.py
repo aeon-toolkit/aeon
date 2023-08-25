@@ -33,8 +33,8 @@ def twe_distance(
     .. math::
         match  &=  D(i-1,j-1)+ d({a_{i},b_{j}})+d({a_{i-1},b_{j-1}}) +2\nu(|i-j|) \\
         delete &=  D(i-1,j)+d(a_{i},a_{i-1}) + \lambda+\nu \\
-        insert = D(i,j-1)+d(b_{j},b_{j-1}) + \lambda+\nu \\
-        D(i,j) = min(match,insert, delete)
+        insert &= D(i,j-1)+d(b_{j},b_{j-1}) + \lambda+\nu \\
+        D(i,j) &= min(match,insert, delete)
 
     TWE combines warping and edit distance through combines The warping, called {\em
     stiffness}, is controlled by a parameter $\nu$. Stiffness enforces a
