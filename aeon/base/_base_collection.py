@@ -61,8 +61,8 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        checkX : function that checks X is valid before conversion.
-        convertX : function that converts to inner type.
+        _check_X : function that checks X is valid before conversion.
+        _convert_X : function that converts to inner type.
 
         Examples
         --------
@@ -75,10 +75,10 @@ class BaseCollectionEstimator(BaseEstimator):
         (10, 1, 20)
         """
         # All of this can move up to BaseCollection if we enhance fit here with super
-        meta = self.checkX(X)
+        meta = self._check_X(X)
         if len(self.metadata_) == 0:
             self.metadata_ = meta
-        X = self.convertX(X)
+        X = self._convert_X(X)
         multithread = self.get_tag("capability:multithreading")
         if multithread:
             if hasattr(self, "n_jobs"):
@@ -89,7 +89,7 @@ class BaseCollectionEstimator(BaseEstimator):
                 )
         return X
 
-    def checkX(self, X):
+    def _check_X(self, X):
         """Check classifier input X is valid.
 
         Check if the input data is a compatible type, and that this classifier is
@@ -114,7 +114,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        convertX : function that converts X after it has been checked.
+        _convert_X : function that converts X after it has been checked.
 
         Examples
         --------
@@ -122,7 +122,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> m = hc.checkX(X)    # HC2 can handle this
+        >>> m = hc._check_X(X)    # HC2 can handle this
         """
         metadata = _get_metadata(X)
         # Check classifier capabilities for X
@@ -150,7 +150,7 @@ class BaseCollectionEstimator(BaseEstimator):
             raise ValueError(msg)
         return metadata
 
-    def convertX(self, X):
+    def _convert_X(self, X):
         """Convert X to type defined by tag X_inner_mtype.
 
         if self.metadata_ has not been set, it is set here from X, because we need to
@@ -172,7 +172,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         See Also
         --------
-        checkX : function that checks X is valid and finds metadata.
+        _check_X : function that checks X is valid and finds metadata.
 
         Examples
         --------
@@ -185,7 +185,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> hc = HIVECOTEV2()
         >>> hc.get_tag("X_inner_mtype")
         'numpy3D'
-        >>> X = hc.convertX(X)
+        >>> X = hc._convert_X(X)
         >>> get_type(X)
         'numpy3D'
         """
