@@ -118,26 +118,25 @@ Instance
     May also be referred to as cases, samples, examples, observations or records
     depending on the discipline and context.
 
-[//]: # (Panel time series)
+Panel
+Panel time series
+    Common alternative name for {term}`time series collection`.
 
-[//]: # (    A form of time series data where the same time series are observed observed for)
+Time series collection
+Time series collections
+    A datatype which contains multiple {term}`instances` of time series. These series
+    may be {term}`univariate time series` or {term}`multivariate time series`. The time
+    series contained within may be of different lengths, sampled at different
+    frequencies, contain differing {term}`timepoints` etc.
 
-[//]: # (    multiple observational units. The observed series may consist of {term}`univariate)
+    Commonly referred to as a {term}`panel time series` depending on context and
+    discipline.
 
-[//]: # (    time series` or {term}`multivariate time series`. Accordingly, the data varies)
-
-[//]: # (    across time, observational unit and series &#40;i.e. variables&#41;.)
-
-[//]: # ()
-[//]: # (Time series collection)
-
-[//]: # (Time series collections)
-
-[//]: # (    todo)
-
+Univariate
 Univariate time series
     A single {term}`time series`.
 
+Multivariate
 Multivariate time series
     A {term}`time series` with multiple {term}`channels`. Typically observed for the
     same observational unit. Multivariate time series is typically used to refer to
@@ -172,12 +171,16 @@ Tabular
     are N instances of time series and each has T {term}`timepoint`, this would yield
     a matrix with shape (N, T): N rows, T columns.
 
-[//]: # (random_state)
+random_state
+    A parameter for controlling random number generation in estimators and functions.
+    Follows the conventions of [scikit-learn](https://scikit-learn.org/stable/glossary.html#term-random_state).
 
-[//]: # (    https://scikit-learn.org/stable/glossary.html#term-random_state)
+    If `int`, random_state is the seed used by the random number generator;
+    If `RandomState` instance, random_state is the random number generator;
+    If `None`, the random number generator is the `RandomState` instance used by
+    `np.random`.
 
-[//]: # ()
-[//]: # (n_jobs)
-
-[//]: # (    https://scikit-learn.org/stable/glossary.html#term-random_state)
+n_jobs
+    A parameter for controlling the number of threads used in estimators.
+    Follows the conventions of [scikit-learn](https://scikit-learn.org/stable/glossary.html#term-n_jobs)
 ```
