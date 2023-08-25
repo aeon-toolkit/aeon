@@ -20,11 +20,11 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     DTW is the most widely researched and used elastic distance measure. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]_. For two series
-    :math:`\mathbf{a}=\{a_1,a_2,\ldots,a_n\}` and
-    :math:`\mathbf{b}=\{b_1,b_2, \ldots,b_m\}` DTW first calculates
-    :math:`M(\mathbf{a},\mathbf{b})`, the :math:`n \times m`
-    pointwise distance matrix between series :math:`\mathbf{a}` and :math:`\mathbf{b}`,
-    where :math:`M_{i,j}=   (a_i-b_j)^2`.
+    :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
+    :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` DTW first calculates
+    :math:`M(\mathbf{x},\mathbf{y})`, the :math:`n \times m`
+    pointwise distance matrix between series :math:`\mathbf{x}` and :math:`\mathbf{y}`,
+    where :math:`M_{i,j}=   (x_i-y_j)^2`.
 
     A warping path
 
@@ -36,24 +36,25 @@ def dtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     n,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
     \leq f_{i+1}- f_i \leq 1` for all :math:`1< i < m`.
 
-    The DTW distance between
-    series is the path through :math:`M` that minimizes the total distance. The
-    distance for any path :math:`P` of length :math:`s` is
+    The DTW distance between series is the path through :math:`M` that minimizes the
+    total distance. The distance for any path :math:`P` of length :math:`s` is
 
     .. math::
-        D_P(\mathbf{a},\mathbf{b}, M) =\sum_{i=1}^s M_{e_i,f_i}
+        D_P(\mathbf{x},\mathbf{y}, M) =\sum_{i=1}^s M_{e_i,f_i}
 
     If :math:`\mathcal{P}` is the space of all possible paths, the DTW path :math:`P^*`
     is the path that has the minimum distance, hence the DTW distance between series is
 
     .. math::
-        d_{dtw}(\mathbf{a}, \mathbf{b}) =D_{P*}(\mathbf{a},\mathbf{b}, M).
+        d_{dtw}(\mathbf{x}, \mathbf{x}) =D_{P*}(\mathbf{x},\mathbf{x}, M).
 
     The optimal warping path :math:`P^*` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
     put a restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
-    The most common bounding strategies include the Sakoe-Chiba band [2]_.
+    The most common bounding strategies include the Sakoe-Chiba band [2]_. The width
+    of the allowed warping is controlled through the window parameter, ``w``,
+    which sets the maximum proportion of warping allowed.
 
     Parameters
     ----------
@@ -116,7 +117,7 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     r"""Compute the DTW cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(a_i-b_j)^2`. It is used in the dtw path calculations.
+    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the dtw path calculations.
 
     Parameters
     ----------
@@ -208,17 +209,17 @@ def dtw_pairwise_distance(
     matrix
     :math:`D` where :math:`D_{i,j}` is the dtw distance between the :math:`i^{th}`
     and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
-    it is assumed to be a collection of univariate series with shape `(n_instances,
-    n_timepoints)`. If it is 3 dimensional, it is assumed to be shape `(n_instances,
-    n_channels, n_timepoints)`.
+    it is assumed to be a collection of univariate series with shape ``(n_instances,
+    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_instances,
+    n_channels, n_timepoints)``.
 
-    This function has an optional argument, `y`, to allow calculation of the distance
-    matrix between `X` and one or more series stored in `y`. If `y` is 1 dimensional, we
-    assume it is a single univariate series and the distance matrix returned is
-    shape `(n_instances,1)`. If it is 2D, we assume it is a
-    collection of univariate series with shape `(m_instances, m_timepoints)` and the
-    distance `(n_instances,m_instances)`. If it is 3 dimensional, it is assumed to be
-    shape `(m_instances, m_channels, m_timepoints)`.
+    This function has an optional argument, :math:`y`, to allow calculation of the
+    distance matrix between :math:`X` and one or more series stored in :math:`y`. If
+    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    distance matrix returned is shape ``(n_instances,1)``. If it is 2D, we assume it
+    is a collection of univariate series with shape ``(m_instances, m_timepoints)``
+    and the distance ``(n_instances,m_instances)``. If it is 3 dimensional,
+    it is assumed to be shape ``(m_instances, m_channels, m_timepoints)``.
 
     Parameters
     ----------
@@ -236,7 +237,8 @@ def dtw_pairwise_distance(
     -------
     np.ndarray
         DTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)``.
+        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
+        n_instances)``.
 
     Raises
     ------
