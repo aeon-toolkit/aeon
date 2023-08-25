@@ -13,7 +13,7 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 PR_TESTING = False
 
 EXCLUDE_ESTIMATORS = [
-    # tapnet basedare being reworked, will remove exclusion after refactor
+    # tapnet is being reworked, will remove exclusion after refactor
     "TapNetRegressor",
     "TapNetClassifier",
 ]

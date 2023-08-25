@@ -93,6 +93,6 @@ class CollectionToSeriesWrapper(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.transformations.collection.rocket import Rocket
+        from aeon.transformations.collection.convolution_based import Rocket
 
         return {"transformer": Rocket(num_kernels=50)}

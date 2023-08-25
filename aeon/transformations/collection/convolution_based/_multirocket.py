@@ -6,10 +6,10 @@ import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.datatypes import convert
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class MultiRocket(BaseTransformer):
+class MultiRocket(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
     MultiRocket [1]_ is uses the same set of kernels as MiniRocket on both the raw
@@ -61,7 +61,7 @@ class MultiRocket(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.collection.rocket import MultiRocket
+     >>> from aeon.transformations.collection.convolution_based import MultiRocket
      >>> from aeon.datasets import load_unit_test
      >>> X_train, y_train = load_unit_test(split="train")
      >>> X_test, y_test = load_unit_test(split="test")
@@ -75,13 +75,7 @@ class MultiRocket(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
     }
 
     def __init__(
