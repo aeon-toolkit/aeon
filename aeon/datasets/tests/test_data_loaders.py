@@ -530,13 +530,13 @@ def test_load_classification():
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
     with pytest.raises(FileNotFoundError):
-        X, y, meta = load_regression("m1_yearly_dataset", extract_path="?>S")
+        X, y, meta = load_classification("UnitTest", extract_path="?>S")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
