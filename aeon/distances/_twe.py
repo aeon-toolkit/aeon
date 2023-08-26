@@ -46,7 +46,7 @@ def twe_distance(
     penalty, $\lambda$, is applied to both the ``delete`` and ``insert`` operations
     to penalise moving off the diagonal.
 
-    Unlike DTW (Dynamic Time Warping), TWE is a metric. It's  run time complexity is
+    Unlike DTW (Dynamic Time Warping), TWE is a metric. It has run time complexity of
     :math:`O(n^2)`.
 
     Parameters
