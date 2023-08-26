@@ -40,8 +40,8 @@ def msm_distance(
 
     .. math::
         move  &=  D(i-1,j-1)+ d({x_{i},y_{j}}) \\
-        split &= D_{i,j-1}+cost(b_j,b_{j-1},a_i,c)\\
-        merge &= D(i,j-1)+d(y_{j},y_{j-1}) + +cost(a_i,a_{i-1},b_j,c)\\
+        split &= D_{i,j-1}+cost(y_j,y_{j-1},x_i,c)\\
+        merge &= D(i,j-1)+cost(x_i,x_{i-1},y_j,c)\\
         D_{i,j} &= min(move,split, merge)
 
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to a constant value,
