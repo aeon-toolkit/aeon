@@ -157,7 +157,7 @@ exclude = ["tests", "tests.*"]
 ignore = [
     # Ignore virtual environments in local builds
     "venv/**",
-    # Ignore the docs examples symlink to examples and its contents
+    # Ignore the docs symlink and its contents
     "docs/examples",
     "docs/examples/**",
 ]
