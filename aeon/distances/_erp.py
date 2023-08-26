@@ -26,15 +26,25 @@ def erp_distance(
 ) -> float:
     r"""Compute the ERP distance between two time series.
 
-    ERP, first proposed in [1]_, attempts to align time series
-    by better considering how indexes are carried forward through the cost matrix.
-    Usually in the dtw cost matrix, if an alignment can't be found the previous value
+    Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
+    time series by better considering how indexes are carried forward through the
+    cost matrix.
+    Usually in the dtw cost matrix, if an alignment cannott be found the previous value
     is carried forward. ERP instead proposes the idea of gaps or sequences of points
     that have no matches. These gaps are then punished based on their distance from
-    :math:`g`.
+    the parameter :math:`g`.
 
-    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma]`
-    , where :math:`\sigma` is the standard deviation of the training data. When a
+    .. math::
+        match  &=  D(i-1,j-1)+ d({x_{i},y_{j}})\\
+        delete &=   D(i-1,j-1)+ d({x_{i},y_{j}})\\
+        insert &=  D(i-1,j-1)+ d({x_{i},y_{j}})\\
+        D(i,j) &= min(match,insert, delete)
+
+    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to $g$.
+
+    The value of :math:`g` is by default 0, but in [1]_ it is data dependent,
+    selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
+    average standard deviation of the training time series. When a
     series is multivariate (more than one channel), :math:`g` is an array where the
     :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
 
@@ -76,7 +86,7 @@ def erp_distance(
     >>> from aeon.distances import erp_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> dist = erp_distance(x, y)
+    >>> erp_distance(x, y)
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -99,17 +109,14 @@ def erp_cost_matrix(
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
-
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y :  np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

@@ -43,6 +43,7 @@ def msm_distance(
         split &= D_{i,j-1}+cost(b_j,b_{j-1},a_i,c)\\
         merge &= D(i,j-1)+d(y_{j},y_{j-1}) + +cost(a_i,a_{i-1},b_j,c)\\
         D_{i,j} &= min(move,split, merge)
+
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to a constant value,
     and $c$ is a parameter that represents the cost of moving off the diagonal.
     The pointwise distance function $d$ is the absolute difference rather than the
