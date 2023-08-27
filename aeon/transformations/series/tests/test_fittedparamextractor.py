@@ -9,7 +9,7 @@ import pytest
 
 from aeon.datasets import load_gunpoint
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
-from aeon.transformations.collection.summarize import FittedParamExtractor
+from aeon.transformations.series.summarize import FittedParamExtractor
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 X_train, y_train = load_gunpoint("train", return_type="nested_univ")
@@ -20,7 +20,7 @@ X_train, y_train = load_gunpoint("train", return_type="nested_univ")
     reason="skip test if required soft dependency for hmmlearn not available",
 )
 @pytest.mark.parametrize("param_names", ["initial_level"])
-def test_FittedParamExtractor(param_names):
+def test_fitted_param_extractor(param_names):
     forecaster = ExponentialSmoothing()
     t = FittedParamExtractor(forecaster=forecaster, param_names=param_names)
     Xt = t.fit_transform(X_train)
