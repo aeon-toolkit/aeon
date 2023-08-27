@@ -24,12 +24,16 @@ def wdtw_distance(
     creating the distance matrix :math:'M', a weight penalty  :math:'w_{|i-j|}' for a
     warping distance of :math:'|i-j|' is applied, so that for series
     :math:`a = <a_1, ..., a_m>` and :math:`b=<b_1,...,b_m>`,
+
     .. math::
         M_{i,j}=  w(|i-j|) (a_i-b_j)^2.
+
     A logistic weight function, proposed in [1] is used, so that a warping of :math:`x`
     places imposes a weighting of
+
     .. math::
         w(x)=\frac{w_{max}}{1+e^{-g(x-m/2)}},
+
     where :math:`w_{max}` is an upper bound on the weight (set to 1), :math:`m` is
     the series length and :math:`g` is a parameter that controls the penalty level
     for larger warpings. The greater :math:`g` is, the greater the penalty for warping.
@@ -76,7 +80,8 @@ def wdtw_distance(
     >>> from aeon.distances import wdtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = wdtw_distance(x, y)
+    >>> wdtw_distance(x, y)
+    356.5017799592854
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

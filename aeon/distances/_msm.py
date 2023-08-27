@@ -55,9 +55,9 @@ def msm_distance(
     as in ERP).
 
     .. math::
-        cost(x,y,z,c) &= c & if y \leq x \leq z \\
-                      &= c &  if y \geq x \geq z \\
-                      &= c+min(|x-y|,|x-z|) otherwise\\
+        cost(x,y,z,c) &= c & if & y \leq x \leq z \\
+                      &= c &  if & y \geq x \geq z \\
+                      &= c+min(|x-y|,|x-z|) & otherwise\\
 
     If $x$ and $y$ are multivariate, then there are two ways of calculating the MSM
     distance. The independent approach is to find the distance for each channel
