@@ -23,14 +23,6 @@ if os.environ.get("NUMBA_DISABLE_JIT") == "1":
     EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
-    # issue when predicting residuals, see #3479
-    "SquaringResiduals": ["test_predict_residuals"],
-    # known issue when X is passed, wrong time indices are returned, #1364
-    "StackingForecaster": ["test_predict_time_index_with_X"],
-    # known side effects on multivariate arguments, #2072
-    "WindowSummarizer": ["test_methods_have_no_side_effects"],
-    # test fails in the Panel case for Differencer, see #2522
-    "Differencer": ["test_transform_inverse_transform_equivalent"],
     # Early classifiers (EC) intentionally retain information from previous predict
     # calls for #1 (test_non_state_changing_method_contract).
     # #2 (test_fit_deterministic), #3 (test_persistence_via_pickle) and #4
@@ -48,11 +40,8 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    "VARMAX": [
-        "test_update_predict_single",  # see 2997, sporadic failure, unknown cause
-        "test__y_when_refitting",  # see 3176
-    ],
-    # GGS inherits from BaseEstimator which breaks this test
+    # GGS inherits from BaseEstimator which breaks this test: see issue #699
+    # https://github.com/aeon-toolkit/aeon/issues/699
     "GreedyGaussianSegmentation": ["test_inheritance", "test_create_test_instance"],
     "InformationGainSegmentation": [
         "test_inheritance",
