@@ -36,13 +36,16 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    # GGS inherits from BaseEstimator which breaks this test: see issue #699
+    # GGS inherits from BaseEstimator which breaks this test: see
     # https://github.com/aeon-toolkit/aeon/issues/699
     "GreedyGaussianSegmentation": ["test_inheritance", "test_create_test_instance"],
     "InformationGainSegmentation": [
         "test_inheritance",
         "test_create_test_instance",
     ],
+    # test fails several variants of inversion, see
+    # https://github.com/aeon-toolkit/aeon/issues/700
+    "Differencer": ["test_transform_inverse_transform_equivalent"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
