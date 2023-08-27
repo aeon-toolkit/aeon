@@ -29,7 +29,10 @@ def wddtw_distance(
     Formally the derivative is calculated as:
 
     .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
+
+    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    series.
 
     Parameters
     ----------

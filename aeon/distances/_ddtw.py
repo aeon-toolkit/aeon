@@ -21,9 +21,12 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     in [1]_. DDTW takes a version of the first derivatives of the series
     prior to performing standard DTW. The derivative function, defined in [
     1]_, is:
-    .. math:: d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
 
-    Where q is the original time series and d_q is the derived time series.
+    .. math::
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
+
+    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    series.
 
     Parameters
     ----------

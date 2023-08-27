@@ -34,15 +34,16 @@ def lcss_distance(
     series length), then calculating
 
     :: math..
-        if(|a_i - b_j| < espilon) \\
-            &L_{i,j} \leftarrow L_{i-1,j-1}+1 \\
+        if(|a_i - b_j| < \espilon) \\
+            & L_{i,j} = L_{i-1,j-1}+1 \\
         else\\
-            &L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})\\
+            &L_{i,j} = \max(L_{i,j-1}, L_{i-1,j})\\
 
-    The distance is an inverse function of the final LCSS.
+    The distance is an inverse function of the longest common subsequence
+    length, :math:`L_{n,m}`.
 
     :: math..
-        d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.
+        d_{LCSS}({\bfx,by}) = 1- \frac{L_{n,m}.
 
     Note that series a and b need not be equal length.
 
