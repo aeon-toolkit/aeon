@@ -30,7 +30,7 @@ def edr_distance(
     where gaps are inserted to create an optimal alignment.
 
     .. math::
-        if |ai − bj | < ϵ then\\
+        if \;\; |ai − bj | < ϵ\\
             c &= 0\\
         else\\
             c &= 1\\
