@@ -34,10 +34,10 @@ def erp_distance(
     gaps are then penalised based on their distance from the parameter :math:`g`.
 
     .. math::
-        match  &=  D(i-1,j-1)+ d({x_{i},y_{j}})\\
-        delete &=   D(i-1,j-1)+ d({x_{i},g})\\
-        insert &=  D(i-1,j-1)+ d({g,y_{j}})\\
-        D(i,j) &= min(match,insert, delete)
+        match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})\\
+        delete &=   D_{i-1,j}+ d({x_{i},g})\\
+        insert &=  D_{i,j-1}+ d({g,y_{j}})\\
+        D_{i,j} &= min(match,insert, delete)
 
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
     distances to $g$ for each series.

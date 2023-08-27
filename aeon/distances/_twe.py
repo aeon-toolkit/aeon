@@ -33,10 +33,10 @@ def twe_distance(
     lengths $n$ and $m$ to find the cost matrix $D$ as follows.
 
     .. math::
-        match  &=  D(i-1,j-1)+ d({x_{i},y_{j}})+d({x_{i-1},y_{j-1}}) +2\nu(|i-j|) \\
-        delete &=  D(i-1,j)+d(x_{i},x_{i-1}) + \lambda+\nu \\
-        insert &= D(i,j-1)+d(y_{j},y_{j-1}) + \lambda+\nu \\
-        D(i,j) &= min(match,insert, delete)
+        match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})+d({x_{i-1},y_{j-1}}) +2\nu(|i-j|) \\
+        delete &=  D_{i-1,j}+d(x_{i},x_{i-1}) + \lambda+\nu \\
+        insert &= D_{i,j-1}+d(y_{j},y_{j-1}) + \lambda+\nu \\
+        D_{i,j} &= min(match,insert, delete)
 
     Where $\nu$ and $\lambda$ are parameters and $d$ is a pointwise distance function.
     The TWE distance is then the final value, $D(n,m)$. TWE combines warping and edit

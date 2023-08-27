@@ -20,13 +20,24 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def edr_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = None
 ) -> float:
-    """Compute the EDR distance between two time series.
+    r"""Compute the EDR distance between two time series.
 
-    Edit Distance was adapted in [1]_ for distances between trajectories. Like LCSS,
-    EDR uses a distance threshold to define when two elements of a series match.
-    However, rather than simply count matches and look for the longest sequence,
-    EDR applies a (constant) penalty for non-matching elements
+    Edit Distance on Real Sequences (EDR) was proposed as an adaptation of standard
+    edit distance on discrete sequences in [1]_, specifically for distances between
+    trajectories. Like LCSS, EDR uses a distance threshold to define when two
+    elements of a series match. However, rather than simply count matches and look
+    for the longest sequence, EDR applies a (constant) penalty for non-matching elements
     where gaps are inserted to create an optimal alignment.
+
+    .. math::
+        if |ai − bj | < ϵ then\\
+            c &= 0\\
+        else\\
+            c &= 1\\
+        match  &=  D_{i-1,j-1}+ c)\\
+        delete &=   D_{i-1,j}+ d({x_{i},g})\\
+        insert &=  D_{i-1,j-1}+ d({g,y_{j}})\\
+        D_{i,j} &= min(match,insert, delete)
 
     EDR computes the minimum number of elements (as a percentage) that must be removed
     from x and y so that the sum of the distance between the remaining signal elements
@@ -75,7 +86,8 @@ def edr_distance(
     >>> from aeon.distances import edr_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = edr_distance(x, y)
+    >>> edr_distance(x, y)
+    1.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

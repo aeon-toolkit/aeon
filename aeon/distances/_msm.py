@@ -35,13 +35,13 @@ def msm_distance(
 
     For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
     x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` MSM works by iterating over
-    series lengths $i = 1 \ldots n$ and $j = 1 \ldote m$ to find the cost matrix $D$ as
-    follows.
+    series lengths math:`i = 1 \ldots n` and math:`j = 1 \ldote m` to find the cost
+    matrix $D$ as follows.
 
     .. math::
-        move  &=  D(i-1,j-1)+ d({x_{i},y_{j}}) \\
-        split &= D_{i,j-1}+cost(y_j,y_{j-1},x_i,c)\\
-        merge &= D(i,j-1)+cost(x_i,x_{i-1},y_j,c)\\
+        move  &=  D_{i-1,j-1}+ d({x_{i},y_{j}}) \\
+        split &= D_{i-1,j}+cost(y_j,y_{j-1},x_i,c)\\
+        merge &= D_{i,j-1}+cost(x_i,x_{i-1},y_j,c)\\
         D_{i,j} &= min(move,split, merge)
 
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to a constant value,
