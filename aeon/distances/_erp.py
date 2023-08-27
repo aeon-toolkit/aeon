@@ -28,19 +28,19 @@ def erp_distance(
 
     Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
     time series by better considering how indexes are carried forward through the
-    cost matrix.
-    Usually in the dtw cost matrix, if an alignment cannott be found the previous value
-    is carried forward. ERP instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from
-    the parameter :math:`g`.
+    cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
+    previous value is carried forward in  the move off the diagonal. ERP instead
+    proposes the idea of gaps or sequences of points that have no matches. These
+    gaps are then penalised based on their distance from the parameter :math:`g`.
 
     .. math::
         match  &=  D(i-1,j-1)+ d({x_{i},y_{j}})\\
-        delete &=   D(i-1,j-1)+ d({x_{i},y_{j}})\\
-        insert &=  D(i-1,j-1)+ d({x_{i},y_{j}})\\
+        delete &=   D(i-1,j-1)+ d({x_{i},g})\\
+        insert &=  D(i-1,j-1)+ d({g,y_{j}})\\
         D(i,j) &= min(match,insert, delete)
 
-    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to $g$.
+    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
+    distances to $g$ for each series.
 
     The value of :math:`g` is by default 0, but in [1]_ it is data dependent,
     selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
@@ -59,10 +59,13 @@ def erp_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g : float.
-        The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
-        Numpy array that must be the length of the number of channels in x and y.
+    g : float
+        The reference constant used to penalise moves off the diagonal. The default
+        is 0.
+    g_arr : np.ndarray, default=None
+        Array of shape ``(n_channels)``,
+        Numpy array with a separate ``g`` value for each channel. Must be the
+        length of the number of channels in x and y.
 
     Returns
     -------
@@ -85,8 +88,9 @@ def erp_distance(
     >>> import numpy as np
     >>> from aeon.distances import erp_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[2, 2, 2, 2, 5, 6, 7, 8, 9, 10]])
     >>> erp_distance(x, y)
+    4.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

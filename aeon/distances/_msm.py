@@ -55,12 +55,9 @@ def msm_distance(
     as in ERP).
 
     .. math::
-        :nowrap:
-        \begin{eqnarray}
-            cost(x,y,z,c) &=& c & if $y \leq x \leq z \\
-                          &=& c & $ if $y \geq x \geq z$} \\
-                            &=& c+min(|x-y|,|x-z|) otherwise\\
-        \end{eqnarray}
+        cost(x,y,z,c) &= c & if $y \leq x \leq z \\
+                      &= c & $ if $y \geq x \geq z$} \\
+                      &= c+min(|x-y|,|x-z|) otherwise\\
 
     MSM satisfies triangular inequality and is a metric. It has run time complexity of
     :math:`O(n^2)`.
