@@ -63,9 +63,6 @@ EXCLUDED_TESTS = {
         "test_inheritance",
         "test_create_test_instance",
     ],
-    # this needs to be fixed, was not tested previously due to legacy exception
-    "Prophet": ":test_hierarchical_with_exogeneous",
-    # Prophet does not support datetime indices, see #2475 for the known issue
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
