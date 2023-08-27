@@ -31,6 +31,11 @@ EXCLUDED_TESTS = {
     "WindowSummarizer": ["test_methods_have_no_side_effects"],
     # test fails in the Panel case for Differencer, see #2522
     "Differencer": ["test_transform_inverse_transform_equivalent"],
+    # tagged in issue #2490
+    "SignatureClassifier": [
+        "test_classifier_on_unit_test_data",
+        "test_classifier_on_basic_motions",
+    ],
     # sth is not quite right with the RowTransformer-s changing state,
     #   but these are anyway on their path to deprecation, see #2370
     "SeriesToSeriesRowTransformer": ["test_non_state_changing_method_contract"],
