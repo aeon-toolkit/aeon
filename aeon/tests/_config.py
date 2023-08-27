@@ -12,11 +12,7 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-EXCLUDE_ESTIMATORS = [
-    # tapnet is being reworked, will remove exclusion after refactor
-    "TapNetRegressor",
-    "TapNetClassifier",
-]
+EXCLUDE_ESTIMATORS = []
 
 # the test currently fails when numba is disabled. See issue #622
 if os.environ.get("NUMBA_DISABLE_JIT") == "1":
