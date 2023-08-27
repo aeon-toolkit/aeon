@@ -118,7 +118,7 @@ def dtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.nd
     r"""Compute the DTW cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the dtw path calculations.
+    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the DTW path calculations.
 
     Parameters
     ----------
@@ -208,7 +208,7 @@ def dtw_pairwise_distance(
 
     By default, this takes a collection of :math:`n` time series :math:`X` and returns a
     matrix
-    :math:`D` where :math:`D_{i,j}` is the dtw distance between the :math:`i^{th}`
+    :math:`D` where :math:`D_{i,j}` is the DTW distance between the :math:`i^{th}`
     and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
     it is assumed to be a collection of univariate series with shape ``(n_instances,
     n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_instances,

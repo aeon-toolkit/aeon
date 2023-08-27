@@ -28,7 +28,7 @@ def twe_distance(
 
     Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
     series matching with time 'elasticity'. For two series, possibly of unequal length,
-    $\mathbf{x}=\{x_1,x_2,\ldots,x_n\}$ and
+    :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
     :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` TWE works by iterating over series
     lengths $n$ and $m$ to find the cost matrix $D$ as follows.
 
@@ -38,16 +38,16 @@ def twe_distance(
         insert &= D_{i,j-1}+d(y_{j},y_{j-1}) + \lambda+\nu \\
         D_{i,j} &= min(match,insert, delete)
 
-    Where $\nu$ and $\lambda$ are parameters and $d$ is a pointwise distance function.
-    The TWE distance is then the final value, $D(n,m)$. TWE combines warping and edit
-    distance. Warping is controlled by the `stiffness` parameter $\nu$. Stiffness
-    enforces a multiplicative penalty on the distance between matched points in a way
-    that is similar to weighted DTW, where $\nu = 0$ gives no warping penalty. The edit
-    penalty, $\lambda$, is applied to both the ``delete`` and ``insert`` operations
-    to penalise moving off the diagonal.
+    Where :math:`\nu` and :math:`\lambda` are parameters and $d$ is a pointwise
+    distance function. The TWE distance is then the final value, $D(n,m)$. TWE
+    combines warping and edit distance. Warping is controlled by the `stiffness`
+    parameter :math:`\nu` (called ``nu``).  Stiffness enforces a multiplicative
+    penalty on the distance between matched points in a way that is similar to
+    weighted DTW, where $\nu = 0$ gives no warping penalty. The edit penalty,
+    :math:`\lambda` (called ``lmbda``), is applied to both the ``delete`` and
+    ``insert`` operations to penalise moving off the diagonal.
 
-    Unlike DTW (Dynamic Time Warping), TWE is a metric. It has run time complexity of
-    :math:`O(n^2)`.
+    TWE is a metric.
 
     Parameters
     ----------
@@ -114,10 +114,12 @@ def twe_cost_matrix(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window: int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.

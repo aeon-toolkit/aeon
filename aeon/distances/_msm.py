@@ -55,12 +55,15 @@ def msm_distance(
     as in ERP).
 
     .. math::
-        cost(x,y,z,c) &= c & if $y \leq x \leq z \\
-                      &= c & $ if $y \geq x \geq z$} \\
+        cost(x,y,z,c) &= c & if y \leq x \leq z \\
+                      &= c &  if y \geq x \geq z \\
                       &= c+min(|x-y|,|x-z|) otherwise\\
 
-    MSM satisfies triangular inequality and is a metric. It has run time complexity of
-    :math:`O(n^2)`.
+    If $x$ and $y$ are multivariate, then there are two ways of calculating the MSM
+    distance. The independent approach is to find the distance for each channel
+    independently, then return the sum. The dependent approach adopts the adaptation
+    described in [2]_ for computing the pointwise MSM distance over channels.
+    MSM satisfies triangular inequality and is a metric.
 
 
     Parameters
@@ -95,6 +98,9 @@ def msm_distance(
     .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
+    ..[2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
+    distance measures for multivariate time series. Knowl. Inf. Syst. 65(6), 2023.
+
     Examples
     --------
     >>> import numpy as np
@@ -124,12 +130,31 @@ def msm_cost_matrix(
 ) -> np.ndarray:
     """Compute the MSM cost matrix between two time series.
 
+    By default, this takes a collection of :math:`n` time series :math:`X` and returns a
+    matrix
+    :math:`D` where :math:`D_{i,j}` is the MSM distance between the :math:`i^{th}`
+    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    it is assumed to be a collection of univariate series with shape ``(n_instances,
+    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_instances,
+    n_channels, n_timepoints)``.
+
+    This function has an optional argument, :math:`y`, to allow calculation of the
+    distance matrix between :math:`X` and one or more series stored in :math:`y`. If
+    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    distance matrix returned is shape ``(n_instances,1)``. If it is 2D, we assume it
+    is a collection of univariate series with shape ``(m_instances, m_timepoints)``
+    and the distance ``(n_instances,m_instances)``. If it is 3 dimensional,
+    it is assumed to be shape ``(m_instances, m_channels, m_timepoints)``.
+
+
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window size to use for the bounding matrix. If None, the
         bounding matrix is not used.
