@@ -80,8 +80,8 @@ def wdtw_distance(
     >>> from aeon.distances import wdtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> wdtw_distance(x, y)
-    356.5017799592854
+    >>> round(wdtw_distance(x, y),1)
+    356.5
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))

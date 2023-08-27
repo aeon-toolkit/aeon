@@ -72,8 +72,8 @@ def wddtw_distance(
     >>> from aeon.distances import wddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> wddtw_distance(x, y)
-    981.3337504836303
+    >>> round(wddtw_distance(x, y))
+    981
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))

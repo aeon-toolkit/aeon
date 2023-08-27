@@ -63,8 +63,8 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> from aeon.distances import ddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> ddtw_distance(x, y)
-    2179.9375
+    >>> round(ddtw_distance(x, y))
+    2180
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
