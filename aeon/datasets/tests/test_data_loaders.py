@@ -474,13 +474,13 @@ def test_load_forecasting():
     assert meta == expected_metadata
     assert df.shape == (181, 3)
     with pytest.raises((OSError, ValueError)):
-        X, y, meta = load_regression("m1_yearly_dataset", extract_path="?>S")
+        X, y, meta = load_forecasting("m1_yearly_dataset", extract_path="?>S")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test_load_regression():
