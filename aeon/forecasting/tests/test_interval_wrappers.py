@@ -25,13 +25,13 @@ if PR_TESTING:
     CV_SPLITTERS = [SlidingWindowSplitter]
     EVALUATE_STRATEGY = ["update"]
     SAMPLE_FRACS = [0.5]
-    MTYPES_SERIES = ["pd.Series", "pd.DataFrame"]
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame"]
 else:
     INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
     CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
     EVALUATE_STRATEGY = ["update", "refit"]
     SAMPLE_FRACS = [None, 0.5]
-    MTYPES_SERIES = [
+    SERIES_TYPES = [
         "pd.Series",
         "pd.DataFrame",
         "np.ndarray",
@@ -40,10 +40,10 @@ else:
     ]
 
 
-@pytest.mark.parametrize("mtype", MTYPES_SERIES)
-@pytest.mark.parametrize("override_y_mtype", [True, False])
+@pytest.mark.parametrize("input_type", SERIES_TYPES)
+@pytest.mark.parametrize("override_y_type", [True, False])
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
-def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
+def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     """Test that interval wrappers behave nicely with different internal y_mtypes.
 
     The wrappers require y to be pd.Series, and the internal estimator can have
@@ -57,11 +57,11 @@ def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
     "pd.DataFrame only" forecaster by restricting its y_inner_mtype tag to pd.Series.
     """
     y = load_airline()
-    y = convert_to(y, to_type=mtype)
+    y = convert_to(y, to_type=input_type)
 
     f = NaiveForecaster()
 
-    if override_y_mtype:
+    if override_y_type:
         f.set_tags(**{"y_inner_mtype": "pd.DataFrame"})
 
     interval_forecaster = wrapper(f)
