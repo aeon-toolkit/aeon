@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Move-split-merge (MSM) distance between two time series.
-
-(MSM) [1] is a distance measure that is conceptually similar to other edit
-distance-based approaches, where similarity is calculated by using a set of
-operations to transform one series into another. Each operation has an
-associated cost, and three operations are defined for MSM: move, split, and merge.
-Move is synonymous with a substitution operation, where one value is replaced by
-another. Split and merge differ from other approaches, as they attempt to add
-context to insertions and deletions. The cost of inserting and deleting values
-depends on the value itself and adjacent values, rather than treating all
-insertions and deletions equally (for example, as in ERP). Therefore, the split
-operation is introduced to insert an identical copy of a value immediately after
-itself, and the merge operation is used to delete a value if it directly follows
-an identical value.
-
-Currently only works with univariate series.
-
-References
-----------
-.. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
-series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013
-"""
+"""Move-split-merge (MSM) distance between two time series."""
 __author__ = ["chrisholder", "jlines", "TonyBagnall"]
 
 from typing import List, Tuple
