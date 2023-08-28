@@ -353,7 +353,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         return dists
 
     def _check_y(self, y, n_cases):
-        # Check y valid input
+        # Check y valid input for classification task
         if not isinstance(y, (pd.Series, np.ndarray)):
             raise TypeError(
                 f"y must be a np.array or a pd.Series, but found type: {type(y)}"
