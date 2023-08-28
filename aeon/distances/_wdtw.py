@@ -17,19 +17,23 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def wdtw_distance(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> float:
-    r"""Compute the wdtw distance between two time series.
+    r"""Compute the WDTW distance between two time series.
 
-    First proposed in [1]_, WDTW uses DTW with a weighted pairwise distance matrix
-    rather than a window. When
+    First proposed in [1]_, weighted dynamic time warping (WDTW) uses DTW with a
+    weighted pairwise distance matrix rather than a window. When
     creating the distance matrix :math:'M', a weight penalty  :math:'w_{|i-j|}' for a
     warping distance of :math:'|i-j|' is applied, so that for series
     :math:`a = <a_1, ..., a_m>` and :math:`b=<b_1,...,b_m>`,
+
     .. math::
         M_{i,j}=  w(|i-j|) (a_i-b_j)^2.
+
     A logistic weight function, proposed in [1] is used, so that a warping of :math:`x`
     places imposes a weighting of
+
     .. math::
         w(x)=\frac{w_{max}}{1+e^{-g(x-m/2)}},
+
     where :math:`w_{max}` is an upper bound on the weight (set to 1), :math:`m` is
     the series length and :math:`g` is a parameter that controls the penalty level
     for larger warpings. The greater :math:`g` is, the greater the penalty for warping.
@@ -40,10 +44,12 @@ def wdtw_distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -54,7 +60,7 @@ def wdtw_distance(
     Returns
     -------
     float
-        wdtw distance between x and y.
+        WDTW distance between x and y.
 
     Raises
     ------
@@ -74,7 +80,8 @@ def wdtw_distance(
     >>> from aeon.distances import wdtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = wdtw_distance(x, y)
+    >>> round(wdtw_distance(x, y),1)
+    356.5
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -91,14 +98,16 @@ def wdtw_distance(
 def wdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wdtw cost matrix between two time series.
+    """Compute the WDTW cost matrix between two time series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -109,7 +118,7 @@ def wdtw_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wdtw cost matrix between x and y.
+        WDTW cost matrix between x and y.
 
     Raises
     ------
@@ -204,7 +213,7 @@ def _wdtw_cost_matrix(
 def wdtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
 ) -> np.ndarray:
-    """Compute the wdtw pairwise distance between a set of time series.
+    """Compute the WDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -224,7 +233,7 @@ def wdtw_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        wdtw pairwise matrix between the instances of X.
+        WDTW pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -303,7 +312,7 @@ def _wdtw_from_multiple_to_multiple_distance(
 def wdtw_alignment_path(
     x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wdtw alignment path between two time series.
+    """Compute the WDTW alignment path between two time series.
 
     Parameters
     ----------
@@ -325,7 +334,7 @@ def wdtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The wdtw distance betweeen the two time series.
+        The WDTW distance betweeen the two time series.
 
     Raises
     ------
