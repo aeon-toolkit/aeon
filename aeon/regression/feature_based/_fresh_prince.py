@@ -126,12 +126,12 @@ class FreshPRINCERegressor(BaseRegressor):
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._tsfresh = TSFreshFeatureExtractor(
             default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             chunksize=self.chunksize,
             show_warnings=self.verbose > 1,
             disable_progressbar=self.verbose < 1,

@@ -58,9 +58,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
     def __init__(self):
         self.fit_time_ = 0
-        self._class_dictionary = {}
-        self._threads_to_use = 1
-        self._X_metadata = {}
+        self._n_jobs = 1
         self._estimator_type = "regressor"
 
         super(BaseRegressor, self).__init__()
@@ -102,25 +100,26 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         else:
             return NotImplemented
 
-    def fit(self, X, y):
+    def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
             other types are allowed and converted into one of the above.
-        y : 1D np.array of float, of shape (n_instances) - regression labels for fitting
-            indices correspond to instance indices in X
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets or
+            fitting indices correspond to instance indices in X.
 
         Returns
         -------
-        self : Reference to self.
+        BaseCollectionEstimator
+            Reference to self.
 
         Notes
         -----
@@ -142,18 +141,18 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
             other types are allowed and converted into one of the above.
 
         Returns
         -------
-        y : 1D np.array of float, of shape (n_instances) - predicted regression labels
+        np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
@@ -165,17 +164,16 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
             other types are allowed and converted into one of the above.
-        y : 1D np.array of float, of shape (n_instances) - regression labels (ground
-        truth)
-            indices correspond to instance indices in X
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets or
+            fitting indices correspond to instance indices in X.
 
         Returns
         -------

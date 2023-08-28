@@ -23,7 +23,6 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
     def __init__(self, n_clusters: int = None):
         self.fit_time_ = 0
-        self._class_dictionary = {}
         self.n_clusters = n_clusters
         super(BaseClusterer, self).__init__()
         _check_estimator_deps(self)
