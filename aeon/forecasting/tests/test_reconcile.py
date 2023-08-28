@@ -90,7 +90,6 @@ def test_reconcilerforecaster_exog(n_columns):
     """Test that ReconcilerForecaster works without aggregated input, see #3980."""
     from aeon.datatypes._utilities import get_window
     from aeon.forecasting.reconcile import ReconcilerForecaster
-    from aeon.forecasting.sarimax import SARIMAX
 
     y = _make_hierarchical(
         hierarchy_levels=(2, 4),
@@ -113,7 +112,8 @@ def test_reconcilerforecaster_exog(n_columns):
     X_train = get_window(X, lag=2)
     X_test = get_window(X, window_length=2)
 
-    forecaster = SARIMAX()
+    forecaster = ExponentialSmoothing(sp=12)
+
     estimator_instance = ReconcilerForecaster(forecaster, method="mint_shrink")
     fh = [1, 2]
     estimator_instance.fit(y=y_train, X=X_train, fh=fh)
