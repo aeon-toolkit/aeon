@@ -527,6 +527,27 @@ def test_exponential_smoothing():
     )
 
 
+def test_one_off_case():
+    """Test failure case from #1435.
+
+    AutoETS is replaced by NaiveForecaster.
+
+    https://github.com/sktime/sktime/issues/1435#issue-1000175469
+    """
+    freq = "30T"
+    _y = np.arange(50) + np.random.rand(50) + np.sin(np.arange(50) / 4) * 10
+    t = pd.date_range("2021-09-19", periods=50, freq=freq)
+    y = pd.Series(_y, index=t)
+    y.index = y.index.to_period(freq=freq)
+    forecaster = NaiveForecaster()
+    forecaster.fit(y)
+    y_pred = forecaster.predict(fh=[1, 2, 3])
+    pd.testing.assert_index_equal(
+        y_pred.index,
+        pd.date_range("2021-09-19", periods=53, freq=freq)[-3:].to_period(freq=freq),
+    )
+
+
 def test_extract_freq_from_inputs() -> None:
     """Test extract frequency from inputs."""
     assert _check_freq(None) is None
