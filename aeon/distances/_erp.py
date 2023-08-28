@@ -67,7 +67,7 @@ def erp_distance(
         Array of shape ``(n_channels)``,
         Numpy array with a separate ``g`` value for each channel. Must be the
         length of the number of channels in x and y.
-    itakura_max_slope : float, default = None
+    itakura_max_slope : float, default=None
         Maximum slope as a % of the number of time points used to create Itakura
         parallelogram on the bounding matrix. Must be between 0. and 1.
 
@@ -137,7 +137,7 @@ def erp_cost_matrix(
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
-    itakura_max_slope : float, default = None
+    itakura_max_slope : float, default=None
         Maximum slope as a % of the number of time points used to create Itakura
         parallelogram on the bounding matrix. Must be between 0. and 1.
 
@@ -280,7 +280,7 @@ def erp_pairwise_distance(
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
-    itakura_max_slope : float, default = None
+    itakura_max_slope : float, default=None
         Maximum slope as a % of the number of time points used to create Itakura
         parallelogram on the bounding matrix. Must be between 0. and 1.
 
@@ -409,7 +409,7 @@ def erp_alignment_path(
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
-    itakura_max_slope : float, default = None
+    itakura_max_slope : float, default=None
         Maximum slope as a % of the number of time points used to create Itakura
         parallelogram on the bounding matrix. Must be between 0. and 1.
 
