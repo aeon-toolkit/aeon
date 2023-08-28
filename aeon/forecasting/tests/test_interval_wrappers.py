@@ -40,9 +40,9 @@ else:
     ]
 
 
-@pytest.mark.parametrize("input_type", SERIES_TYPES)
-@pytest.mark.parametrize("override_y_type", [True, False])
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
+@pytest.mark.parametrize("override_y_type", [True, False])
+@pytest.mark.parametrize("input_type", SERIES_TYPES)
 def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     """Test that interval wrappers behave nicely with different internal y_mtypes.
 
