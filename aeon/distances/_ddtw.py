@@ -14,10 +14,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def ddtw_distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        window: float = None,
-        itakura_max_slope: float = None
+    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
 ) -> float:
     r"""Compute the DDTW distance between two time series.
 
