@@ -20,6 +20,7 @@ from aeon.forecasting.compose import (
     TransformedTargetForecaster,
     make_reduction,
 )
+from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import (
     ExpandingWindowSplitter,
     ForecastingGridSearchCV,
@@ -40,10 +41,7 @@ from aeon.transformations.series.outlier_detection import HampelFilter
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.series import _make_series
 from aeon.utils.estimators import MockForecaster
-from aeon.utils.validation._dependencies import (
-    _check_estimator_deps,
-    _check_soft_dependencies,
-)
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_pipeline():
@@ -218,10 +216,6 @@ def test_pipeline_with_dimension_changing_transformer():
     gscv.fit(train_model, X=X_train)
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
-)
 def test_nested_pipeline_with_index_creation_y_before_X():
     """Tests a nested pipeline where y indices are created before X indices.
 
@@ -236,7 +230,7 @@ def test_nested_pipeline_with_index_creation_y_before_X():
     X_test = get_window(X, window_length=1)
 
     # Aggregator creates indices for y (via *), then for X (via ForecastingPipeline)
-    f = Aggregator() * ForecastingPipeline([Aggregator(), SARIMAX()])
+    f = Aggregator() * ForecastingPipeline([Aggregator(), ExponentialSmoothing(sp=12)])
 
     f.fit(y=y_train, X=X_train, fh=1)
     y_pred = f.predict(X=X_test)
@@ -247,10 +241,6 @@ def test_nested_pipeline_with_index_creation_y_before_X():
     assert len(y_pred) == 9
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
-)
 def test_nested_pipeline_with_index_creation_X_before_y():
     """Tests a nested pipeline where X indices are created before y indices.
 
@@ -265,7 +255,7 @@ def test_nested_pipeline_with_index_creation_X_before_y():
     X_test = get_window(X, window_length=1)
 
     # Aggregator creates indices for X (via ForecastingPipeline), then for y (via *)
-    f = ForecastingPipeline([Aggregator(), Aggregator() * SARIMAX()])
+    f = ForecastingPipeline([Aggregator(), Aggregator() * ExponentialSmoothing(sp=12)])
 
     f.fit(y=y_train, X=X_train, fh=1)
     y_pred = f.predict(X=X_test)
@@ -312,10 +302,6 @@ def test_forecasting_pipeline_dunder_endog():
     np.testing.assert_array_equal(actual, expected)
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
-)
 def test_forecasting_pipeline_dunder_exog():
     """Test forecasting pipeline dunder for exogeneous transformation."""
     y = _make_series()
@@ -323,17 +309,23 @@ def test_forecasting_pipeline_dunder_exog():
     X = _make_series(n_columns=2)
     X_train, X_test = temporal_train_test_split(X)
 
-    forecaster = ExponentTransformer() ** MinMaxScaler() ** SARIMAX(random_state=3)
-    forecaster_alt = (ExponentTransformer() * MinMaxScaler()) ** SARIMAX(random_state=3)
+    forecaster = (
+        ExponentTransformer()
+        ** MinMaxScaler()
+        ** ExponentialSmoothing(sp=12, random_state=3)
+    )
+    forecaster_alt = (ExponentTransformer() * MinMaxScaler()) ** ExponentialSmoothing(
+        sp=12, random_state=3
+    )
 
     assert isinstance(forecaster, ForecastingPipeline)
     assert isinstance(forecaster.steps[0], ExponentTransformer)
     assert isinstance(forecaster.steps[1], TabularToSeriesAdaptor)
-    assert isinstance(forecaster.steps[2], SARIMAX)
+    assert isinstance(forecaster.steps[2], ExponentialSmoothing)
     assert isinstance(forecaster_alt, ForecastingPipeline)
     assert isinstance(forecaster_alt.steps[0], ExponentTransformer)
     assert isinstance(forecaster_alt.steps[1], TabularToSeriesAdaptor)
-    assert isinstance(forecaster_alt.steps[2], SARIMAX)
+    assert isinstance(forecaster_alt.steps[2], ExponentialSmoothing)
 
     fh = np.arange(len(y_test)) + 1
     forecaster.fit(y_train, fh=fh, X=X_train)
@@ -350,7 +342,7 @@ def test_forecasting_pipeline_dunder_exog():
         Xt = t1.fit_transform(Xt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         Xt = t2.fit_transform(Xt)
-        forecaster = SARIMAX(random_state=3)
+        forecaster = ExponentialSmoothing(sp=12, random_state=3)
         forecaster.fit(yt, fh=fh, X=Xt)
 
         # predicting
@@ -392,10 +384,6 @@ def test_tag_handles_missing_data():
     X_pipe.fit(y)
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
-)
 def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
     y = _make_series(n_columns=3)
@@ -405,7 +393,7 @@ def test_subset_getitem():
     X.columns = ["a", "b", "c"]
     X_train, X_test = temporal_train_test_split(X)
 
-    f = SARIMAX(random_state=3)
+    f = ExponentialSmoothing(sp=12, random_state=3)
 
     f_before = f[["a", "b"]]
     f_before_with_colon = f[["a", "b"], :]
@@ -417,7 +405,7 @@ def test_subset_getitem():
     assert isinstance(f_after_with_colon, TransformedTargetForecaster)
     assert isinstance(f_before_with_colon, ForecastingPipeline)
     assert isinstance(f_both, TransformedTargetForecaster)
-    assert isinstance(f_none, SARIMAX)
+    assert isinstance(f_none, ExponentialSmoothing)
 
     y_pred = f.fit(y_train, X_train, fh=X_test.index).predict(X=X_test)
 
