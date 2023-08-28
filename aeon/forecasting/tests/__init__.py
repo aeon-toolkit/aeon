@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Config for forecasting tags.
 
-Uses MATRIXDESIGN flag to switch between full parameter combinations
-(MATRIXDESIGN==False) and running a reduced parameter combination (MATRIXDESIGN==True).
+Uses PR_TESTING flag to switch between full parameter combinations
+(PR_TESTING==False) and running a reduced parameter combination (PR_TESTING==True).
 """
 
-from aeon.tests.test_all_estimators import MATRIXDESIGN
+from aeon.tests.test_all_estimators import PR_TESTING
 
 __all__ = [
     "TEST_CUTOFFS_INT_LIST",
@@ -38,7 +38,7 @@ __all__ = [
     "INDEX_TYPE_LOOKUP",
 ]
 
-if not MATRIXDESIGN:
+if not PR_TESTING:
     from aeon.forecasting.tests._config_full import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,

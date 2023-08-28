@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Rocket transformer."""
 
-__author__ = "angus924"
+__author__ = ["angus924"]
 __all__ = ["Rocket"]
 
 import multiprocessing
@@ -9,10 +9,10 @@ import multiprocessing
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class Rocket(BaseTransformer):
+class Rocket(BaseCollectionTransformer):
     """RandOm Convolutional KErnel Transform (ROCKET).
 
     A kernel (or convolution) is a subseries used to create features that can be used
@@ -51,7 +51,7 @@ class Rocket(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.rocket import Rocket
+    >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
@@ -63,12 +63,8 @@ class Rocket(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": False,
         "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
@@ -76,7 +72,7 @@ class Rocket(BaseTransformer):
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(Rocket, self).__init__(_output_convert=False)
+        super(Rocket, self).__init__()
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
