@@ -14,7 +14,6 @@ from pytest import raises
 
 from aeon.datasets import load_airline
 from aeon.datatypes._utilities import get_cutoff
-from aeon.forecasting.arima import AutoARIMA
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import (
     DELEGATED_METHODS,
@@ -24,6 +23,7 @@ from aeon.forecasting.base._fh import (
 from aeon.forecasting.ets import AutoETS
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import temporal_train_test_split
+from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests import (
     INDEX_TYPE_LOOKUP,
     TEST_FHS,
@@ -435,10 +435,6 @@ def test_to_absolute_int_fh_with_freq(idx: int, freq: str):
     assert_array_equal(fh + idx, absolute_int)
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(AutoETS, severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
-)
 @pytest.mark.parametrize("freqstr", ["W-WED", "W-SUN", "W-SAT"])
 def test_estimator_fh(freqstr):
     """Test model fitting with anchored frequency."""
@@ -446,7 +442,7 @@ def test_estimator_fh(freqstr):
         np.random.uniform(low=2000, high=7000, size=(104,)),
         index=pd.date_range("2019-01-02", freq=freqstr, periods=104),
     )
-    forecaster = AutoETS(auto=True, sp=52, n_jobs=-1, restrict=True)
+    forecaster = NaiveForecaster()
     forecaster.fit(train)
     fh = ForecastingHorizon(np.arange(1, 27))
     pred = forecaster.predict(fh)
@@ -531,50 +527,22 @@ def test_exponential_smoothing():
     )
 
 
-# TODO: Replace this long running test with fast unit test
-@pytest.mark.skipif(
-    not _check_estimator_deps(AutoARIMA, severity="none"),
-    reason="skip test if required soft dependencies not available",
-)
-def test_auto_arima():
-    """Test failure case from #805.
+def test_one_off_case():
+    """Test failure case from #1435.
 
-    https://github.com/sktime/sktime/issues/805#issuecomment-891848228.
+    AutoETS is replaced by NaiveForecaster.
     """
-    time_index = pd.date_range("January 1, 2021", periods=8, freq="1D")
-    X = pd.DataFrame(
-        np.random.randint(0, 4, 24).reshape(8, 3),
-        columns=["First", "Second", "Third"],
-        index=time_index,
-    )
-    y = pd.Series([1, 3, 2, 4, 5, 2, 3, 1], index=time_index)
-
-    fh_ = ForecastingHorizon(X.index[5:], is_relative=False)
-
-    a_clf = AutoARIMA(start_p=2, start_q=2, max_p=5, max_q=5)
-    clf = a_clf.fit(X=X[:5], y=y[:5])
-    y_pred_sk = clf.predict(fh=fh_, X=X[5:])
-
+    freq = "30T"
+    _y = np.arange(50) + np.random.rand(50) + np.sin(np.arange(50) / 4) * 10
+    t = pd.date_range("2021-09-19", periods=50, freq=freq)
+    y = pd.Series(_y, index=t)
+    y.index = y.index.to_period(freq=freq)
+    forecaster = NaiveForecaster()
+    forecaster.fit(y)
+    y_pred = forecaster.predict(fh=[1, 2, 3])
     pd.testing.assert_index_equal(
-        y_pred_sk.index, pd.date_range("January 6, 2021", periods=3, freq="1D")
-    )
-
-    time_index = pd.date_range("January 1, 2021", periods=8, freq="2D")
-    X = pd.DataFrame(
-        np.random.randint(0, 4, 24).reshape(8, 3),
-        columns=["First", "Second", "Third"],
-        index=time_index,
-    )
-    y = pd.Series([1, 3, 2, 4, 5, 2, 3, 1], index=time_index)
-
-    fh = ForecastingHorizon(X.index[5:], is_relative=False)
-
-    a_clf = AutoARIMA(start_p=2, start_q=2, max_p=5, max_q=5)
-    clf = a_clf.fit(X=X[:5], y=y[:5])
-    y_pred_sk = clf.predict(fh=fh, X=X[5:])
-
-    pd.testing.assert_index_equal(
-        y_pred_sk.index, pd.date_range("January 11, 2021", periods=3, freq="2D")
+        y_pred.index,
+        pd.date_range("2021-09-19", periods=53, freq=freq)[-3:].to_period(freq=freq),
     )
 
 
