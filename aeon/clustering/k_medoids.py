@@ -53,11 +53,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. For a list of valid
-        distances see `aeons.distances
-        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
-        If a callable is passed it must be a function that takes two 2d numpy arrays
-        as input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].

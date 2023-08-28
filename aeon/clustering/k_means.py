@@ -23,12 +23,10 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         Method for initializing cluster centers. Any of the following are valid:
         ['kmeans++', 'random', 'forgy'].
     metric : str or Callable, default='dtw'
-        Distance metric to compute similarity between time series. To get a list of
-        valid distance strings, see the example below or see `aeons.distances
-        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`.
-        If a callable is passed it must be a function that takes two 2d numpy arrays
-        as input and returns a float.
-
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     n_init : int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -72,14 +70,10 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
     --------
     >>> import numpy as np
     >>> from aeon.clustering.k_means import TimeSeriesKMeans
-    >>> from aeon.distances import valid_distances
-    >>> dists = valid_distances() # Get a list of valid distance string identifiers
-    >>> dists[0]
-    'euclidean'
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= TimeSeriesKMeans(metric=dists[1],n_clusters=2)
+    >>> clst= TimeSeriesKMeans(metric="euclidean",n_clusters=2)
     >>> clst.fit(X)
-    TimeSeriesKMeans(metric='squared', n_clusters=2)
+    TimeSeriesKMeans(metric='euclidean', n_clusters=2)
     >>> preds = clst.predict(X)
     """
 
