@@ -2,25 +2,22 @@
 hide-toc: true
 ---
 
-# <p style="text-align: center;">Welcome to **aeon**</p>
+<h1 style="text-align: center;">Welcome to aeon</h1>
 
-<br>
-<p>
-aeon is a scikit learn compatible toolkit for time series tasks such as
-  forecasting, classification and clustering.</p>
+`aeon` is a scikit-learn compatible toolkit for time series tasks such as
+forecasting, classification and clustering.</p>
 
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
 
-<br>
-
 ::::{grid} 1 2 2 2
 :gutter: 3
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -40,6 +37,7 @@ Forecasting
 
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -59,6 +57,7 @@ Classification
 
 :::{grid-item-card}
 :img-top: examples/img/tser.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -78,6 +77,7 @@ Regression
 
 :::{grid-item-card}
 :img-top: examples/img/tscl.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -97,6 +97,7 @@ Clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/transformation.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -116,6 +117,7 @@ Transformations
 
 :::{grid-item-card}
 :img-top: examples/distances/img/dtw_vis.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -134,7 +136,8 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: /examples/networks/img/Inception.png
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 Deep learning networks.
@@ -153,6 +156,7 @@ Networks
 
 :::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -171,7 +175,8 @@ Annotation
 :::
 
 :::{grid-item-card}
-:img-top: <img src="/examples/datasets/img/data.png" style="max-width:100px; margin:auto;">
+:img-top: examples/datasets/img/data.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 Data structures and containers used in aeon
@@ -189,7 +194,8 @@ Data
 :::
 
 :::{grid-item-card}
-:img-top: /examples/benchmarking/img/benchmarking.png
+:img-top: examples/benchmarking/img/benchmarking.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 How to benchmark algorithms.
@@ -251,6 +257,5 @@ about.md
 
 glossary.md
 changelog.md
-related_software
 papers_using_aeon.md
 ```

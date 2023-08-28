@@ -20,7 +20,7 @@ COLLECTIONS_DATA_TYPES = [
     "numpyflat",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
-    "pd-multiindex",  # d.DataFrame with multi-index,
+    "pd-multiindex",  # pd.DataFrame with multi-index,
     # To add "dask_panel": but not currently used anywhere
 ]
 
@@ -87,7 +87,7 @@ convert_dictionary[
 ] = conv._from_pd_multiindex_to_nested_univ
 
 
-def convertX(X, output_type):
+def convert_collection(X, output_type):
     """Convert from one of collections compatible data structure to another.
 
     See aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE for the list.
@@ -110,8 +110,8 @@ def convertX(X, output_type):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import convertX, get_type
-    >>> X=convertX(np.zeros(shape=(10, 3, 20)), "np-list")
+    >>> from aeon.utils.validation.collection import convert_collection, get_type
+    >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
     >>> type(X)
     <class 'list'>
     >>> get_type(X)
@@ -141,7 +141,7 @@ def resolve_equal_length_inner_type(inner_type):
     if "df-list" in inner_type:
         return "df-list"
     if "pd-wide" in inner_type:
-        return "pd-multiindex"
+        return "pd-wide"
     if "nested_univ" in inner_type:
         return "nested_univ"
     raise ValueError(
@@ -231,6 +231,11 @@ def get_type(X):
                 if not isinstance(a, pd.DataFrame):
                     raise TypeError("ERROR df-list must only contain pd.DataFrame")
             return "df-list"
+        else:
+            raise TypeError(
+                f"ERROR passed a list containing {type(X[0])}, "
+                f"lists should either 2D numpy arrays or pd.DataFrames."
+            )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
         if conv._is_nested_univ_dataframe(X):
             return "nested_univ"
@@ -244,7 +249,7 @@ def get_type(X):
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
-    raise ValueError(f"ERROR unknown input type {type(X)}")
+    raise TypeError(f"ERROR passed input of type {type(X)}")
 
 
 def is_equal_length(X):

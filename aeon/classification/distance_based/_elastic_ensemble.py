@@ -24,7 +24,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.transformations.collection.summarize._extract import series_slope_derivative
+from aeon.utils.numba.general import slope_derivative_2d
 
 
 class ElasticEnsemble(BaseClassifier):
@@ -157,7 +157,7 @@ class ElasticEnsemble(BaseClassifier):
         ) or self._distance_measures.__contains__("wddtw"):
             der_X = []  # use list to allow for unequal length
             for x in X:
-                der_X.append(series_slope_derivative(x))
+                der_X.append(slope_derivative_2d(x))
             if isinstance(X, np.ndarray):
                 der_X = np.array(der_X)
         else:
@@ -347,7 +347,7 @@ class ElasticEnsemble(BaseClassifier):
         ) or self._distance_measures.__contains__("wddtw"):
             der_X = []  # use list to allow for unequal length
             for x in X:
-                der_X.append(series_slope_derivative(x))
+                der_X.append(slope_derivative_2d(x))
             if isinstance(X, np.ndarray):
                 der_X = np.array(der_X)
         else:

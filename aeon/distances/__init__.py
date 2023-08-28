@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Distance computation."""
 __author__ = ["chrisholder", "TonyBagnall", "baraline"]
+
 __all__ = [
     "create_bounding_matrix",
     "squared_distance",
@@ -54,6 +55,7 @@ __all__ = [
     "get_pairwise_distance_function",
     "get_alignment_path_function",
 ]
+
 
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import (

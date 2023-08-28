@@ -29,7 +29,7 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.forecasting.tests._config import TEST_FHS, TEST_STEP_LENGTHS_INT
+from aeon.forecasting.tests import TEST_FHS, TEST_STEP_LENGTHS_INT
 from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanAbsoluteScaledError,

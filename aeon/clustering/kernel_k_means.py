@@ -8,8 +8,6 @@ from numpy.random import RandomState
 from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-_check_soft_dependencies("tslearn", severity="warning")
-
 
 class TimeSeriesKernelKMeans(BaseClusterer):
     """Kernel algorithm wrapper tslearns implementation.
@@ -117,6 +115,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
