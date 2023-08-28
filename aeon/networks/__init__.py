@@ -9,7 +9,9 @@ __all__ = [
     "MLPNetwork",
     "ResNetNetwork",
     "TapNetNetwork",
+    "AEFCNNetwork",
 ]
+from aeon.networks.ae_fcn import AEFCNNetwork
 from aeon.networks.base import BaseDeepNetwork
 from aeon.networks.cnn import CNNNetwork
 from aeon.networks.encoder import EncoderNetwork
