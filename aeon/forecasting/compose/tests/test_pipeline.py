@@ -216,6 +216,10 @@ def test_pipeline_with_dimension_changing_transformer():
     gscv.fit(train_model, X=X_train)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_nested_pipeline_with_index_creation_y_before_X():
     """Tests a nested pipeline where y indices are created before X indices.
 
@@ -241,6 +245,10 @@ def test_nested_pipeline_with_index_creation_y_before_X():
     assert len(y_pred) == 9
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_nested_pipeline_with_index_creation_X_before_y():
     """Tests a nested pipeline where X indices are created before y indices.
 
@@ -302,6 +310,10 @@ def test_forecasting_pipeline_dunder_endog():
     np.testing.assert_array_equal(actual, expected)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_forecasting_pipeline_dunder_exog():
     """Test forecasting pipeline dunder for exogeneous transformation."""
     y = _make_series()
@@ -334,6 +346,10 @@ def test_forecasting_pipeline_dunder_exog():
     forecaster_alt.fit(y_train, fh=fh, X=X_train)
     actual_alt = forecaster_alt.predict(X=X_test)
 
+    @pytest.mark.skipif(
+        not _check_soft_dependencies("statsmodels", severity="none"),
+        reason="skip test if required soft dependency not available",
+    )
     def compute_expected_y_pred(y_train, X_train, X_test, fh):
         # fitting
         yt = y_train.copy()
@@ -384,6 +400,10 @@ def test_tag_handles_missing_data():
     X_pipe.fit(y)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
     y = _make_series(n_columns=3)
