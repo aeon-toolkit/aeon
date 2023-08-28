@@ -123,17 +123,9 @@ These transformers extract simple summary features.
 
     SummaryTransformer
     WindowSummarizer
-
-.. currentmodule:: aeon.transformations.collection.summarize
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DerivativeSlopeTransformer
     PlateauFinder
-    RandomIntervalFeatureExtractor
     FittedParamExtractor
+
 
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,7 +147,7 @@ Shapelets, wavelets, and convolution
 
     RandomDilatedShapeletTransform
 
-.. currentmodule:: aeon.transformations.collection.rocket
+.. currentmodule:: aeon.transformations.collection.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/

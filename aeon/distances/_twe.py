@@ -24,27 +24,47 @@ def twe_distance(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> float:
-    """Compute the TWE distance between two time series.
+    r"""Compute the TWE distance between two time series.
 
     Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
-    series matching with time 'elasticity'. In comparison to other distance measures,
-    (e.g. DTW (Dynamic Time Warping) or LCSS (Longest Common Subsequence)), TWE is a
-    metric. It's  run time complexity is :math:`O(n^2)`.
+    series matching with time 'elasticity'. For two series, possibly of unequal length,
+    :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
+    :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` TWE works by iterating over series
+    lengths $n$ and $m$ to find the cost matrix $D$ as follows.
+
+    .. math::
+        match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})+d({x_{i-1},y_{j-1}}) +2\nu(|i-j|) \\
+        delete &=  D_{i-1,j}+d(x_{i},x_{i-1}) + \lambda+\nu \\
+        insert &= D_{i,j-1}+d(y_{j},y_{j-1}) + \lambda+\nu \\
+        D_{i,j} &= min(match,insert, delete)
+
+    Where :math:`\nu` and :math:`\lambda` are parameters and $d$ is a pointwise
+    distance function. The TWE distance is then the final value, $D(n,m)$. TWE
+    combines warping and edit distance. Warping is controlled by the `stiffness`
+    parameter :math:`\nu` (called ``nu``).  Stiffness enforces a multiplicative
+    penalty on the distance between matched points in a way that is similar to
+    weighted DTW, where $\nu = 0$ gives no warping penalty. The edit penalty,
+    :math:`\lambda` (called ``lmbda``), is applied to both the ``delete`` and
+    ``insert`` operations to penalise moving off the diagonal.
+
+    TWE is a metric.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
     nu : float, default=0.001
-        A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
+        A non-negative constant called the stiffness, which penalises moves off the
+        diagonal Must be > 0.
     lmbda : float, default=1.0
-        A constant penalty that punishes the editing efforts. Must be >= 1.0.
+        A constant penalty for insert or delete operations. Must be >= 1.0.
 
     Returns
     -------
@@ -58,8 +78,8 @@ def twe_distance(
 
     References
     ----------
-    .. [1] Marteau, P.; F. (2009). "Time Warp Edit Distance with Stiffness Adjustment
-    for Time Series Matching". IEEE Transactions on Pattern Analysis and Machine
+    .. [1] Marteau, P.; F. (2009). Time Warp Edit Distance with Stiffness Adjustment
+    for Time Series Matching. IEEE Transactions on Pattern Analysis and Machine
     Intelligence. 31 (2): 306–318.
 
     Examples
@@ -68,7 +88,8 @@ def twe_distance(
     >>> from aeon.distances import twe_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = twe_distance(x, y)
+    >>> twe_distance(x, y)
+    46.017999999999994
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -93,10 +114,12 @@ def twe_cost_matrix(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window: int, default=None
         Window size. If None, the window size is set to the length of the
         shortest time series.
@@ -343,7 +366,7 @@ def twe_alignment_path(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the twe alignment path between two time series.
+    """Compute the TWE alignment path between two time series.
 
     Parameters
     ----------

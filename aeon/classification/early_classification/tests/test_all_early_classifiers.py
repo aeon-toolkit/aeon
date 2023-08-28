@@ -9,9 +9,6 @@ from aeon.classification.tests._expected_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )
-from aeon.classification.tests.test_all_classifiers import (
-    TestAllClassifiers as ClassifierTests,
-)
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
@@ -40,11 +37,6 @@ class EarlyClassifierFixtureGenerator(BaseFixtureGenerator):
 
 class TestAllEarlyClassifiers(EarlyClassifierFixtureGenerator, QuickTester):
     """Module level tests for all aeon classifiers."""
-
-    def test_multivariate_input_exception(self, estimator_instance):
-        """Test univariate early classifiers raise exception on multivariate X."""
-        test = ClassifierTests.test_multivariate_input_exception
-        test(self, estimator_instance)
 
     def test_classifier_output(self, estimator_instance, scenario):
         """Test classifier outputs the correct data types and values.
