@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.datatypes import convert_to, scitype_to_mtype
+from aeon.datatypes import convert_to
 from aeon.forecasting.conformal import ConformalIntervals
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.forecasting.model_selection import (
@@ -18,12 +18,26 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
 from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
+from aeon.tests.test_all_estimators import PR_TESTING
 
-INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
-CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
-EVALUATE_STRATEGY = ["update", "refit"]
-SAMPLE_FRACS = [None, 0.5]
-MTYPES_SERIES = scitype_to_mtype("Series", softdeps="present")
+if PR_TESTING:
+    INTERVAL_WRAPPERS = [NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter]
+    EVALUATE_STRATEGY = ["update"]
+    SAMPLE_FRACS = [0.5]
+    MTYPES_SERIES = ["pd.Series", "pd.DataFrame"]
+else:
+    INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
+    EVALUATE_STRATEGY = ["update", "refit"]
+    SAMPLE_FRACS = [None, 0.5]
+    MTYPES_SERIES = [
+        "pd.Series",
+        "pd.DataFrame",
+        "np.ndarray",
+        "xr.DataArray",
+        "dask_series",
+    ]
 
 
 @pytest.mark.parametrize("mtype", MTYPES_SERIES)
