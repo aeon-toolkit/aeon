@@ -370,6 +370,8 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     the time series is now a multivariate one.
 
+    Proposed in the ShapeDTW algorithm.
+
     Parameters
     ----------
         window_length : int, optional, default=5.
@@ -378,8 +380,6 @@ class SlidingWindowSegmenter(BaseTransformer):
     Returns
     -------
         np.array [n_instances, n_timepoints, window_length]
-
-    Proposed in the ShapeDTW algorithm.
 
     Examples
     --------
