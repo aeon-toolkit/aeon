@@ -1,27 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Weighted dynamic time warping (WDTW) distance between two time series.
-
-WDTW uses DTW with a weighted pairwise distance matrix rather than a window. When
-creating the distance matrix :math:'M', a weight penalty  :math:'w_{|i-j|}' for a
-warping distance of :math:'|i-j|' is applied, so that for series
-:math:'a = <a_1, ..., a_m>' and :math:'b=<b_1,...,b_m>',
-.. math:: M_{i,j}=  w(|i-j|) (a_i-b_j)^2.
-A logistic weight function, proposed in [1] is used, so that a warping of :math:'x'
-places imposes a weighting of
-.. math:: w(x)=\frac{w_{max}}{1+e^{-g(x-m/2)}},
-where :math:'w_{max}' is an upper bound on the weight (set to 1), :math:'m' is
-the series length and :math:'g' is a parameter that controls the penalty level
-for larger warpings. The greater :math:'g' is, the greater the penalty for warping.
-Once :math:'M' is found, standard dynamic time warping is applied.
-
-WDTW is set up so you can use it with a bounding box in addition to the weight
-function is so desired. This is for consistency with the other distance functions.
-
-References
-----------
-.. [1] Jeong, Y., Jeong, M., Omitaomu, O.: Weighted dynamic time warping for time
-series classification. Pattern Recognition 44, 2231–2240 (2011)
-"""
+r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -43,27 +21,39 @@ def wdtw_distance(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> float:
-    """Compute the wdtw distance between two time series.
+    r"""Compute the WDTW distance between two time series.
 
-    First proposed in [1]_, WDTW adds a  adds a multiplicative weight penalty based on
-    the warping distance. This means that time series with lower phase difference have
-    a smaller weight imposed (i.e less penalty imposed) and time series with larger
-    phase difference have a larger weight imposed (i.e. larger penalty imposed).
-
-    Formally this can be described as:
+    First proposed in [1]_, weighted dynamic time warping (WDTW) uses DTW with a
+    weighted pairwise distance matrix rather than a window. When
+    creating the distance matrix :math:'M', a weight penalty  :math:'w_{|i-j|}' for a
+    warping distance of :math:'|i-j|' is applied, so that for series
+    :math:`a = <a_1, ..., a_m>` and :math:`b=<b_1,...,b_m>`,
 
     .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(x_{i} - y_{j})||
+        M_{i,j}=  w(|i-j|) (a_i-b_j)^2.
 
-    Where d_w is the distance with a the weight applied to it for points i, j, where
-    w(|i-j|) is a positive weight between the two points x_i and y_j.
+    A logistic weight function, proposed in [1] is used, so that a warping of :math:`x`
+    places imposes a weighting of
+
+    .. math::
+        w(x)=\frac{w_{max}}{1+e^{-g(x-m/2)}},
+
+    where :math:`w_{max}` is an upper bound on the weight (set to 1), :math:`m` is
+    the series length and :math:`g` is a parameter that controls the penalty level
+    for larger warpings. The greater :math:`g` is, the greater the penalty for warping.
+    Once :math:`M` is found, standard dynamic time warping is applied.
+
+    WDTW is set up so you can use it with a bounding box in addition to the weight
+    function is so desired. This is for consistency with the other distance functions.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -77,12 +67,19 @@ def wdtw_distance(
     Returns
     -------
     float
-        wdtw distance between x and y.
+        WDTW distance between x and y.
 
     Raises
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+
+    References
+    ----------
+    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
+    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
+    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
 
     Examples
     --------
@@ -90,13 +87,8 @@ def wdtw_distance(
     >>> from aeon.distances import wdtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = wdtw_distance(x, y)
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+    >>> round(wdtw_distance(x, y),1)
+    356.5
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -121,14 +113,16 @@ def wdtw_cost_matrix(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wdtw cost matrix between two time series.
+    """Compute the WDTW cost matrix between two time series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -142,7 +136,7 @@ def wdtw_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wdtw cost matrix between x and y.
+        WDTW cost matrix between x and y.
 
     Raises
     ------
@@ -245,7 +239,7 @@ def wdtw_pairwise_distance(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wdtw pairwise distance between a set of time series.
+    """Compute the WDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -268,7 +262,7 @@ def wdtw_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        wdtw pairwise matrix between the instances of X.
+        WDTW pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -363,7 +357,7 @@ def wdtw_alignment_path(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wdtw alignment path between two time series.
+    """Compute the WDTW alignment path between two time series.
 
     Parameters
     ----------
@@ -377,6 +371,9 @@ def wdtw_alignment_path(
     g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope : float, default = None
+        Maximum slope as a % of the number of time points used to create Itakura
+        parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -385,7 +382,7 @@ def wdtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The wdtw distance betweeen the two time series.
+        The WDTW distance betweeen the two time series.
 
     Raises
     ------

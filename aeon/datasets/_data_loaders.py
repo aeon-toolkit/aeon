@@ -431,7 +431,7 @@ def _load_tsc_dataset(
     # Allow user to have non standard extract path
     if extract_path is not None:
         local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"
@@ -448,10 +448,7 @@ def _load_tsc_dataset(
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = (
-                "https://timeseriesclassification.com/ClassificationDownloads/%s.zip"
-                % name
-            )
+            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
@@ -1086,7 +1083,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_forecasting
-    >>> X, meta=load_forecasting("m1_yearly_dataset") #DOCTEST +skip
+    >>> X, meta=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
     # Allow user to have non standard extract path
     from aeon.datasets.tsf_data_lists import tsf_all
@@ -1174,7 +1171,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_regression
-    >>> X, y, meta=load_regression("FloodModeling1") #DOCTEST +Skip
+    >>> X, y, meta=load_regression("FloodModeling1") # doctest: +SKIP
     """
     from aeon.datasets.tser_data_lists import tser_all
 
@@ -1277,7 +1274,7 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
     Examples
     --------
     >>> from aeon.datasets import load_classification
-    >>> X, y, meta = load_classification(name="ArrowHead") #DOCTEST +Skip
+    >>> X, y, meta = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
     return _load_tsc_dataset(
         name,

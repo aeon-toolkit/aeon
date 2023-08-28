@@ -6,11 +6,11 @@ The glossary below defines common terms and API elements used throughout ``aeon`
 :sorted:
 
 Time series machine learning
-    todo
+    A general term for using machine learning algorithms to learn predictive models
+    from time series.
 
 Forecasting
-    A learning task focused on prediction future values of a time series. For more
-    details, see the {ref}`user_guide_introduction`.
+    A learning task focused on prediction future values of a time series.
 
 Time series regression
     todo

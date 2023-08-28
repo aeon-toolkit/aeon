@@ -36,6 +36,7 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -82,17 +83,16 @@ def distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     metric : str or Callable
         The distance metric to use.
-        If a string is given, the value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
-        If a callable is given, the value must be a function that accepts two
-        numpy arrays and **kwargs returns a float.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -121,6 +121,8 @@ def distance(
         return squared_distance(x, y)
     elif metric == "euclidean":
         return euclidean_distance(x, y)
+    elif metric == "manhattan":
+        return manhattan_distance(x, y)
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
@@ -204,19 +206,16 @@ def pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+         or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+       A single series or a collection of time series of shape ``(m_timepoints,)`` or
+       ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
     metric : str or Callable
         The distance metric to use.
-        If a string is given, the value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
-        If a callable is given, the value must be a function that accepts two
-        numpy arrays and **kwargs returns a float.
+        A list of valid pairwise distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_pairwise_distance_function`.
     kwargs : Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
@@ -263,6 +262,8 @@ def pairwise_distance(
         return squared_pairwise_distance(x, y)
     elif metric == "euclidean":
         return euclidean_pairwise_distance(x, y)
+    elif metric == "manhattan":
+        return manhattan_pairwise_distance(x, y)
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -398,9 +399,9 @@ def alignment_path(
     y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     metric : str
-        The distance metric to use. The value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        The distance metric to use.
+        A list of valid alignment path metrics can be found in the documentation for
+        :func:`aeon.distances.get_alignment_path_function`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -515,12 +516,12 @@ def cost_matrix(
     y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
     metric : str or Callable
-        The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
+        The distance metric to use.
+        A list of valid alignment path metrics can be found in the documentation for
+        :func:`aeon.distances.get_cost_matrix_function`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
-
 
     Returns
     -------
@@ -625,13 +626,27 @@ def cost_matrix(
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
     """Get the distance function for a given metric string or callable.
 
+    =============== ========================================
+    metric          Distance Function
+    =============== ========================================
+    'dtw'           distance.dtw_distance
+    'ddtw'          distance.ddtw_distance
+    'wdtw'          distance.wdtw_distance
+    'wddtw'         distance.wddtw_distance
+    'erp'           distance.erp_distance
+    'edr'           distance.edr_distance
+    'msm'           distance.msm_distance
+    'twe'           distance.twe_distance
+    'lcss'          distance.lcss_distance
+    'euclidean'     distance.euclidean_distance
+    'squared'       distance.squared_distance
+    =============== ========================================
+
     Parameters
     ----------
     metric : str or Callable
         The distance metric to use.
-        If a string is given, the value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm', 'mpdist'
+        If string given then it will be resolved to a alignment path function.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
 
@@ -663,13 +678,27 @@ def get_pairwise_distance_function(
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given metric string or callable.
 
+    =============== ========================================
+    metric          Distance Function
+    =============== ========================================
+    'dtw'           distance.dtw_pairwise_distance
+    'ddtw'          distance.ddtw_pairwise_distance
+    'wdtw'          distance.wdtw_pairwise_distance
+    'wddtw'         distance.wddtw_pairwise_distance
+    'erp'           distance.erp_pairwise_distance
+    'edr'           distance.edr_pairwise_distance
+    'msm'           distance.msm_pairiwse_distance
+    'twe'           distance.twe_pairwise_distance
+    'lcss'          distance.lcss_pairwise_distance
+    'euclidean'     distance.euclidean_pairwise_distance
+    'squared'       distance.squared_pairwise_distance
+    =============== ========================================
+
     Parameters
     ----------
     metric : str or Callable
-        The distance metric to use.
-        If a string is given, the value must be one of the following strings:
-        'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp',
-        'msm'
+        The metric string to resolve to a alignment path function.
+        If string given then it will be resolved to a alignment path function.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a np.ndarray that is the pairwise distance
         between each time series.
@@ -702,11 +731,24 @@ def get_pairwise_distance_function(
 def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     """Get the alignment path function for a given metric string or callable.
 
+    =============== ========================================
+    metric          Distance Function
+    =============== ========================================
+    'dtw'           distance.dtw_alignment_path
+    'ddtw'          distance.ddtw_alignment_path
+    'wdtw'          distance.wdtw_alignment_path
+    'wddtw'         distance.wddtw_alignment_path
+    'erp'           distance.erp_alignment_path
+    'edr'           distance.edr_alignment_path
+    'msm'           distance.msm_alignment_path
+    'twe'           distance.twe_alignment_path
+    'lcss'          distance.lcss_alignment_path
+    =============== ========================================
+
     Parameters
     ----------
     metric : str or Callable
-        The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
+        The metric string to resolve to a alignment path function.
 
     Returns
     -------
@@ -735,12 +777,24 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
 def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     """Get the cost matrix function for a given metric string or callable.
 
+    =============== ========================================
+    metric          Distance Function
+    =============== ========================================
+    'dtw'           distance.dtw_cost_matrix
+    'ddtw'          distance.ddtw_cost_matrix
+    'wdtw'          distance.wdtw_cost_matrix
+    'wddtw'         distance.wddtw_cost_matrix
+    'erp'           distance.erp_cost_matrix
+    'edr'           distance.edr_cost_matrix
+    'msm'           distance.msm_cost_matrix
+    'twe'           distance.twe_cost_matrix
+    'lcss'          distance.lcss_cost_matrix
+    =============== ========================================
+
     Parameters
     ----------
     metric : str or Callable
-        The distance metric to use. The value must be one of the following strings:
-        'dtw', 'ddtw', 'wdtw', 'wddtw', 'lcss', 'edr', 'erp', 'msm'
-        two time series.
+        The metric string to resolve to a cost matrix function.
 
     Returns
     -------

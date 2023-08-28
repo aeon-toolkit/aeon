@@ -8,7 +8,7 @@ from aeon.datasets import load_basic_motions, load_gunpoint
 
 
 def test_clara_uni():
-    """Test implementation of Kmedoids."""
+    """Test implementation of CLARA."""
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
@@ -51,7 +51,7 @@ def test_clara_uni():
 
 
 def test_clara_multi():
-    """Test implementation of Kmedoids."""
+    """Test implementation of CLARA."""
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20

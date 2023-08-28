@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Unit tests for regressors deep learning base class functionality."""
-
+import gc
 import os
 import time
 
@@ -46,6 +46,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
             epochs=2,
         )
 
+        gc.collect()
         return self
 
 

@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Edit distance for real sequences (EDR) between two time series.
-
-ERP was adapted in [1] specifically for distances between trajectories. Like LCSS,
-EDR uses a distance threshold to define when two elements of a series match.
-However, rather than simply count matches and look for the longest sequence,
-ERP applies a (constant) penalty for non-matching elements
-where gaps are inserted to create an optimal alignment.
-
-References
-----------
-.. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
-object trajectories. In: Proceedings of the ACM SIGMOD International Conference
-on Management of Data, 2005
-"""
+"""Edit distance for real sequences (EDR) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -37,7 +24,24 @@ def edr_distance(
     epsilon: float = None,
     itakura_max_slope: float = None,
 ) -> float:
-    """Compute the edr distance between two time series.
+    r"""Compute the EDR distance between two time series.
+
+    Edit Distance on Real Sequences (EDR) was proposed as an adaptation of standard
+    edit distance on discrete sequences in [1]_, specifically for distances between
+    trajectories. Like LCSS, EDR uses a distance threshold to define when two
+    elements of a series match. However, rather than simply count matches and look
+    for the longest sequence, EDR applies a (constant) penalty for non-matching elements
+    where gaps are inserted to create an optimal alignment.
+
+    .. math::
+        if \;\; |ai − bj | < ϵ\\
+            c &= 0\\
+        else\\
+            c &= 1\\
+        match  &=  D_{i-1,j-1}+ c)\\
+        delete &=   D_{i-1,j}+ d({x_{i},g})\\
+        insert &=  D_{i-1,j-1}+ d({g,y_{j}})\\
+        D_{i,j} &= min(match,insert, delete)
 
     EDR computes the minimum number of elements (as a percentage) that must be removed
     from x and y so that the sum of the distance between the remaining signal elements
@@ -49,10 +53,12 @@ def edr_distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -67,12 +73,19 @@ def edr_distance(
     Returns
     -------
     float
-        edr distance between x and y.
+        EDR distance between x and y.
 
     Raises
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+
+    References
+    ----------
+    .. [1] Chen L, Ozsu MT, Oria V: Robust and fast similarity search for moving
+    object trajectories. In: Proceedings of the ACM SIGMOD International Conference
+    on Management of Data, 2005
 
     Examples
     --------
@@ -80,15 +93,8 @@ def edr_distance(
     >>> from aeon.distances import edr_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = edr_distance(x, y)
-
-    References
-    ----------
-    .. [1] Lei Chen, M. Tamer Özsu, and Vincent Oria. 2005. Robust and fast similarity
-    search for moving object trajectories. In Proceedings of the 2005 ACM SIGMOD
-    international conference on Management of data (SIGMOD '05). Association for
-    Computing Machinery, New York, NY, USA, 491–502.
-    DOI:https://doi.org/10.1145/1066157.1066213
+    >>> edr_distance(x, y)
+    1.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -113,17 +119,16 @@ def edr_cost_matrix(
     epsilon: float = None,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the edr cost matrix between two time series.
+    """Compute the EDR cost matrix between two time series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
-    window : float, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     epsilon : float, default=None
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. If not specified as per the original paper
@@ -135,7 +140,7 @@ def edr_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints, m_timepoints)
-        edr cost matrix between x and y.
+        EDR cost matrix between x and y.
 
     Raises
     ------
@@ -219,7 +224,7 @@ def edr_pairwise_distance(
     epsilon: float = None,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the pairwise edr distance between a set of time series.
+    """Compute the pairwise EDR distance between a set of time series.
 
     Parameters
     ----------
@@ -243,7 +248,7 @@ def edr_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        edr pairwise matrix between the instances of X.
+        EDR pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -338,7 +343,7 @@ def edr_alignment_path(
     epsilon: float = None,
     itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the edr alignment path between two time series.
+    """Compute the EDR alignment path between two time series.
 
     Parameters
     ----------
@@ -364,7 +369,7 @@ def edr_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The edr distance between the two time series.
+        The EDR distance between the two time series.
 
     Raises
     ------

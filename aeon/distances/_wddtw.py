@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Weighted derivative dynamic time warping (wddtw) distance between two series.
-
-Takes the first order derivative, then applies _weighted_cost_matrix to find WDTW
-distance.
-"""
+"""Weighted derivative dynamic time warping (wddtw) distance between two series."""
 __author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
@@ -26,28 +22,30 @@ def wddtw_distance(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> float:
-    r"""Compute the wddtw distance between two time series.
+    r"""Compute the WDDTW distance between two time series.
 
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
+    Weighted derivative dynamic time warping (WDDTW) Takes the first order derivative,
+    then applies `_weighted_cost_matrix` to find WDTW distance. WDDTW was first
+    proposed in [1]_ as an extension of DDTW. By adding a weight to the derivative it
+    means the alignment isn't only considering the shape of the time series, but also
+    the phase.
 
     Formally the derivative is calculated as:
 
     .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
 
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
+    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -61,7 +59,7 @@ def wddtw_distance(
     Returns
     -------
     float
-        wddtw distance between x and y.
+        WDDTW distance between x and y.
 
     Raises
     ------
@@ -69,19 +67,20 @@ def wddtw_distance(
         If x and y are not 1D or 2D arrays.
         If n_timepoints or m_timepoints are less than 2.
 
+    References
+    ----------
+    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
+    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
+    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import wddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> dist = wddtw_distance(x, y)
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+    >>> round(wddtw_distance(x, y))
+    981
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
@@ -108,7 +107,7 @@ def wddtw_cost_matrix(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wddtw cost matrix between two time series.
+    """Compute the WDDTW cost matrix between two time series.
 
     Parameters
     ----------
@@ -129,7 +128,7 @@ def wddtw_cost_matrix(
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wddtw cost matrix between x and y.
+        WDDTW cost matrix between x and y.
 
     Raises
     ------
@@ -178,7 +177,7 @@ def wddtw_pairwise_distance(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wddtw pairwise distance between a set of time series.
+    """Compute the WDDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -309,7 +308,7 @@ def wddtw_alignment_path(
     g: float = 0.05,
     itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wddtw alignment path between two time series.
+    """Compute the WDDTW alignment path between two time series.
 
     Parameters
     ----------

@@ -1,18 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Edit real penalty (erp) distance between two time series.
-
-ERP, first proposed in [1]_, attempts to align time series
-by better considering how indexes are carried forward through the cost matrix.
-Usually in the dtw cost matrix, if an alignment can't be found the previous value
-is carried forward. Erp instead proposes the idea of gaps or sequences of points
-that have no matches. These gaps are then punished based on their distance from 'g'.
-
-References
-----------
-.. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
-In Proceedings of the Thirtieth international conference on Very large data bases
- - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
-"""
+r"""Edit real penalty (erp) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple, Union
@@ -38,32 +25,48 @@ def erp_distance(
     g_arr: np.ndarray = None,
     itakura_max_slope: float = None,
 ) -> float:
-    """Compute the ERP distance between two time series.
+    r"""Compute the ERP distance between two time series.
 
-    ERP, first proposed in [1]_, attempts to align time series
-    by better considering how indexes are carried forward through the cost matrix.
-    Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. Erp instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from 'g'.
+    Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
+    time series by better considering how indexes are carried forward through the
+    cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
+    previous value is carried forward in  the move off the diagonal. ERP instead
+    proposes the idea of gaps or sequences of points that have no matches. These
+    gaps are then penalised based on their distance from the parameter :math:`g`.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
+    .. math::
+        match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})\\
+        delete &=   D_{i-1,j}+ d({x_{i},g})\\
+        insert &=  D_{i,j-1}+ d({g,y_{j}})\\
+        D_{i,j} &= min(match,insert, delete)
+
+    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
+    distances to $g$ for each series.
+
+    The value of :math:`g` is by default 0 in ``aeon``, but in [1]_ it is data dependent
+    , selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
+    average standard deviation of the training time series. When a
+    series is multivariate (more than one channel), :math:`g` is an array where the
+    :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g : float, default=0.0.
-        The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
-        Numpy array that must be the length of the number of channels in x and y.
+    g : float, default=0.0
+        The reference constant used to penalise moves off the diagonal. The default
+        is 0.
+    g_arr : np.ndarray, default=None
+        Array of shape ``(n_channels)``,
+        Numpy array with a separate ``g`` value for each channel. Must be the
+        length of the number of channels in x and y.
     itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
         parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -78,19 +81,20 @@ def erp_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import erp_distance
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> dist = erp_distance(x, y)
-
     References
     ----------
     .. [1] Lei Chen and Raymond Ng. 2004. On the marriage of Lp-norms and edit distance.
     In Proceedings of the Thirtieth international conference on Very large data bases
      - Volume 30 (VLDB '04). VLDB Endowment, 792–803.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import erp_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[2, 2, 2, 2, 5, 6, 7, 8, 9, 10]])
+    >>> erp_distance(x, y)
+    4.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -118,23 +122,20 @@ def erp_cost_matrix(
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
-
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
-    window : float, default=None
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g : float, default=0.0.
+    g :  float, defualt=None
         The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
@@ -257,7 +258,7 @@ def erp_pairwise_distance(
     g_arr: np.ndarray = None,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the erp pairwise distance between a set of time series.
+    """Compute the ERP pairwise distance between a set of time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
@@ -277,7 +278,7 @@ def erp_pairwise_distance(
         is used.
     g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura
@@ -286,7 +287,7 @@ def erp_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        erp pairwise matrix between the instances of X.
+        ERP pairwise matrix between the instances of X.
 
 
     Raises
@@ -388,7 +389,7 @@ def erp_alignment_path(
     g_arr: np.ndarray = None,
     itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the erp alignment path between two time series.
+    """Compute the ERP alignment path between two time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
@@ -406,7 +407,7 @@ def erp_alignment_path(
         is used.
     g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
+    g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default = None
         Maximum slope as a % of the number of time points used to create Itakura

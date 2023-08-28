@@ -1,37 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""Longest common subsequence (LCSS) between two time series.
-
-The LCSS distance for time series is based on the solution to the
-longest common subsequence problem in pattern matching [1]. The typical problem
-is to find the longest subsequence that is common to two discrete series based on
-the edit distance. This approach can be extended to consider real-valued time series
-by using a distance threshold epsilon, which defines the maximum difference
-between a pair of values that is allowed for them to be considered a match.
-LCSS finds the optimal alignment between two series by find the greatest number
-of matching pairs. The LCSS distance uses a matrix :math:'L' that records the
-sequence of matches over valid warpings. For two series :math:'a = a_1,... a_m
-and b = b_1,... b_m, L' is found by iterating over all valid windows (i.e.
-where bounding_matrix is not infinity, which by default is the constant band
-:math:'|i-j|<w*m', where :math:'w' is the window parameter value and m is series
-length), then calculating
-
-::math
-if(|a_i - b_j| < espilon) \\
-        &L_{i,j} \leftarrow L_{i-1,j-1}+1 \\
-else\\
-        &L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})\\
-
-The distance is an inverse function of the final LCSS.
-::math
-d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.\]
-
-Note that series a and b need not be equal length.
-
-References
-----------
-.. [1] D. Hirschberg, Algorithms for the longest common subsequence problem, Journal
-of the ACM 24(4), 664--675, 1977
-"""
+r"""Longest common subsequence (LCSS) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -53,7 +21,35 @@ def lcss_distance(
     epsilon: float = 1.0,
     itakura_max_slope: float = None,
 ) -> float:
-    r"""Return the lcss distance between x and y.
+    r"""Return the LCSS distance between x and y.
+
+    The LCSS distance for time series is based on the solution to the
+    longest common subsequence problem in pattern matching [1]_. The typical problem
+    is to find the longest subsequence that is common to two discrete series based on
+    the edit distance. This approach can be extended to consider real-valued time series
+    by using a distance threshold epsilon, which defines the maximum difference
+    between a pair of values that is allowed for them to be considered a match.
+    LCSS finds the optimal alignment between two series by find the greatest number
+    of matching pairs. The LCSS distance uses a matrix :math:`L` that records the
+    sequence of matches over valid warpings. For two series :math:`a = a_1,... a_n`
+    and :math:`b = b_1,... b_m, L'` is found by iterating over all valid windows (i.e.
+    where bounding_matrix is not infinity, which by default is the constant band
+    :math:`|i-j|<w*m`, where :math:`w` is the window parameter value and :math:`m` is
+    series length), then calculating
+
+    :: math..
+        if(|a_i - b_j| < \espilon) \\
+            & L_{i,j} = L_{i-1,j-1}+1 \\
+        else\\
+            &L_{i,j} = \max(L_{i,j-1}, L_{i-1,j})\\
+
+    The distance is an inverse function of the longest common subsequence
+    length, :math:`L_{n,m}`.
+
+    :: math..
+        d_{LCSS}({\bfx,by}) = 1- \frac{L_{n,m}.
+
+    Note that series a and b need not be equal length.
 
     LCSS attempts to find the longest common sequence between two time series and
     returns a value that is the percentage that longest common sequence assumes.
@@ -65,10 +61,12 @@ def lcss_distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -82,12 +80,18 @@ def lcss_distance(
     Returns
     -------
     float
-        The lcss distance between x and y.
+        The LCSS distance between x and y.
 
     Raises
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+    References
+    ----------
+    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
+        Similar Multidimensional Trajectories", In Proceedings of the
+        18th International Conference on Data Engineering (ICDE '02).
 
     Examples
     --------
@@ -96,13 +100,6 @@ def lcss_distance(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> dist = lcss_distance(x, y)
-
-    References
-    ----------
-    .. [1] M. Vlachos, D. Gunopoulos, and G. Kollios. 2002. "Discovering
-        Similar Multidimensional Trajectories", In Proceedings of the
-        18th International Conference on Data Engineering (ICDE '02).
-        IEEE Computer Society, USA, 673.
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -127,14 +124,16 @@ def lcss_cost_matrix(
     epsilon: float = 1.0,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    r"""Return the lcss cost matrix between x and y.
+    r"""Return the LCSS cost matrix between x and y.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -148,7 +147,7 @@ def lcss_cost_matrix(
     Returns
     -------
     np.ndarray
-        The lcss cost matrix between x and y.
+        The LCSS cost matrix between x and y.
 
     Raises
     ------
@@ -226,7 +225,7 @@ def lcss_pairwise_distance(
     epsilon: float = 1.0,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the lcss pairwise distance between a set of time series.
+    """Compute the LCSS pairwise distance between a set of time series.
 
     Parameters
     ----------
@@ -249,7 +248,7 @@ def lcss_pairwise_distance(
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        lcss pairwise matrix between the instances of X.
+        LCSS pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -344,7 +343,7 @@ def lcss_alignment_path(
     epsilon: float = 1.0,
     itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the lcss alignment path between two time series.
+    """Compute the LCSS alignment path between two time series.
 
     Parameters
     ----------
@@ -369,7 +368,7 @@ def lcss_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The lcss distance between the two time series.
+        The LCSS distance between the two time series.
 
     Raises
     ------

@@ -12,14 +12,15 @@ def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the squared distance between two time series.
 
     The squared distance between two time series is defined as:
+
     .. math::
         sd(x, y) = \sum_{i=1}^{n} (x_i - y_i)^2
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
 
     Returns

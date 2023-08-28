@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -13,8 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.networks.resnet import ResNetNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class ResNetRegressor(BaseDeepRegressor):
@@ -307,6 +306,7 @@ class ResNetRegressor(BaseDeepRegressor):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -334,6 +334,8 @@ class ResNetRegressor(BaseDeepRegressor):
         param = {
             "n_epochs": 10,
             "batch_size": 4,
+            "n_residual_blocks": 1,
+            "n_conv_per_residual_block": 1,
         }
 
         return [param]

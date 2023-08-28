@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -15,8 +16,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.inception import InceptionNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class InceptionTimeClassifier(BaseClassifier):
@@ -141,11 +140,22 @@ class InceptionTimeClassifier(BaseClassifier):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> inctime = InceptionTimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X_train, y_train)  # doctest: +SKIP
+    InceptionTimeClassifier(...)
     """
 
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
+        "non-deterministic": True,
+        "cant-pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -273,6 +283,7 @@ class InceptionTimeClassifier(BaseClassifier):
             )
             cls.fit(X, y)
             self.classifers_.append(cls)
+            gc.collect()
 
         return self
 
@@ -349,7 +360,8 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
-            "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -457,6 +469,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X_train, y_train)  # doctest: +SKIP
+    IndividualInceptionClassifier(...)
     """
 
     def __init__(
@@ -667,6 +689,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -697,6 +720,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
