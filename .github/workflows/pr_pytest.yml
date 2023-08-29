@@ -83,4 +83,4 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --matrixdesign True
+        run: python -m pytest --prtesting True

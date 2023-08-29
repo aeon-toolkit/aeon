@@ -7,7 +7,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_japanese_vowels
-from aeon.transformations.collection.rocket import MiniRocketMultivariateVariable
+from aeon.transformations.collection.convolution_based import (
+    MiniRocketMultivariateVariable,
+)
 
 
 def test_minirocket_multivariate_variable_on_japanese_vowels():

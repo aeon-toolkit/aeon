@@ -21,18 +21,21 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     in [1]_. DDTW takes a version of the first derivatives of the series
     prior to performing standard DTW. The derivative function, defined in [
     1]_, is:
-    .. math:: d_{i}(q) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
 
-    Where q is the original time series and d_q is the derived time series.
+    .. math::
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
+
+    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape `(n_timepoints,)` or `(n_channels, n_timepoints)`
-        First time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
-    y : np.ndarray, of shape `(m_timepoints,)` or `(m_channels, m_timepoints)`
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -60,8 +63,8 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
     >>> from aeon.distances import ddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> ddtw_distance(x, y)
-    2179.9375
+    >>> round(ddtw_distance(x, y))
+    2180
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
@@ -78,19 +81,19 @@ def ddtw_distance(x: np.ndarray, y: np.ndarray, window: float = None) -> float:
 
 @njit(cache=True, fastmath=True)
 def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.ndarray:
-    r"""Compute the ddtw cost matrix between two time series.
+    r"""Compute the DDTW cost matrix between two time series.
 
     This involves taking the difference of the series then using the same cost
     function as DTW.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_timepoints,) or (n_channels, n_timepoints)
-        First time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
-    y : np.ndarray, of shape (m_timepoints,) or (m_channels, m_timepoints)
-        Second time series either univariate length `n_timepoints` or multivariate with
-        `n_channels` channels and length `n_timepoints`.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -139,16 +142,16 @@ def ddtw_cost_matrix(x: np.ndarray, y: np.ndarray, window: float = None) -> np.n
 def ddtw_pairwise_distance(
     X: np.ndarray, y: np.ndarray = None, window: float = None
 ) -> np.ndarray:
-    """Compute the ddtw pairwise distance between a set of time series.
+    """Compute the DDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -255,10 +258,12 @@ def ddtw_alignment_path(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
