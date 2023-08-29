@@ -28,11 +28,14 @@ __all__ = [
 
 from abc import ABCMeta, abstractmethod
 
+from aeon.base import BaseCollectionEstimator
 from aeon.datatypes import check_is_scitype, convert_to, mtype_to_scitype, update_data
 from aeon.transformations.base import BaseTransformer, _coerce_to_list
 
 
-class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
+class BaseCollectionTransformer(
+    BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
+):
     """Transformer base class."""
 
     # default tag values - these typically make the "safest" assumption
@@ -55,7 +58,7 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     ]
 
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__(_output_convert=False)
+        super(BaseCollectionTransformer, self).__init__()
 
     def fit(self, X, y=None):
         """Fit transformer to X, optionally to y.
@@ -85,13 +88,15 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         self : a fitted instance of the estimator
         """
         # input checks and datatype conversion
-        X_inner, y_inner = self._fit_checks(X, y)
+        #        X_inner, y_inner = self._fit_checks(X, y)
 
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
 
+        X_inner = self.preprocess_collection(X)
+        y_inner = y
         self._fit(X=X_inner, y=y_inner)
 
         # this should happen last: fitted state is set to True
@@ -154,7 +159,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+        X_inner = self.preprocess_collection(X)
+        y_inner = y
 
         Xt = self._transform(X=X_inner, y=y_inner)
 
@@ -217,7 +223,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
                 `X`.
         """
         # input checks and datatype conversion
-        X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
+        X_inner = self.preprocess_collection(X)
+        y_inner = y
 
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
@@ -267,7 +274,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+        X_inner = self.preprocess_collection(X)
+        y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
 
@@ -314,7 +322,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner, y_inner = self._check_X_y(X=X, y=y)
+        X_inner = self.preprocess_collection(X)
+        y_inner = y
 
         # update memory of X, if remember_data tag is set to True
         if self.get_tag("remember_data", False):
