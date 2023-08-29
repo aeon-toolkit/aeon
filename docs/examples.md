@@ -39,7 +39,7 @@ Hierarchical, global, and panel forecasting
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/forecasting-to-regression-reduction.png
+:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
 :class-img-top: aeon-card-image-m
 :link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
@@ -50,7 +50,7 @@ Forecasting with aeon and scikit learn
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/splitter.png
+:img-top: examples/forecasting/img/splitter.png
 :class-img-top: aeon-card-image-m
 :link: /examples/forecasting/window_splitters.ipynb
 :link-type: ref
