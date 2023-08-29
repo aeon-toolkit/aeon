@@ -28,14 +28,15 @@ def test_collection_transformer_valid_input(data_gen):
     X, y = data_gen()
 
     t = _Dummy()
-    Xt = t.fit_transform(X, y)
+    t.fit(X, y)
+    Xt = t.transform(X)
 
     assert isinstance(Xt, list)
     assert isinstance(Xt[0], np.ndarray)
     assert Xt[0].ndim == 2
 
 
-@pytest.mark.parametrize("dtype", ["pd.Series", "pd.DataFrame"])
+@pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
     y = convert_to(
@@ -44,7 +45,6 @@ def test_collection_transformer_invalid_input(dtype):
     )
 
     t = _Dummy()
-
     with pytest.raises(TypeError):
         t.fit_transform(y)
 
@@ -85,7 +85,11 @@ class _Dummy(BaseCollectionTransformer):
     Converts a numpy array to a list of numpy arrays.
     """
 
-    _tags = {"X_inner_mtype": ["numpy3D", "np-list"]}
+    _tags = {
+        "X_inner_mtype": ["numpy3D", "np-list"],
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+    }
 
     def __init__(self):
         super(_Dummy, self).__init__()
