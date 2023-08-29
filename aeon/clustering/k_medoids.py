@@ -118,11 +118,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     --------
     >>> from aeon.clustering import TimeSeriesKMedoids
     >>> from aeon.datasets import load_basic_motions
-    >>> from aeon.clustering.k_means import TimeSeriesKMeans
-    >>> from aeon.distances import valid_distances
-    >>> dists = valid_distances() # Get a list of valid distance string identifiers
-    >>> dists[0]
-    'euclidean'
     >>> # Load data
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
