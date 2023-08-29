@@ -12,7 +12,6 @@ from aeon.classification.tests._expected_outputs import (
     unit_test_proba,
 )
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.datatypes import check_is_scitype
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.scenarios_classification import ClassifierFitPredict
@@ -172,12 +171,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
 
             X_new = scenario.args["predict"]["X"]
             y_train = scenario.args["fit"]["y"]
-            # we use check_is_scitype to get the number instances in X_new
-            #   this is more robust against different scitypes in X_new
-            _, _, X_new_metadata = check_is_scitype(
-                X_new, "Panel", return_metadata=True
-            )
-            X_new_instances = X_new_metadata["n_instances"]
+            X_new_instances = get_n_cases(X_new)
 
             # run fit and predict
             y_pred = scenario.run(
@@ -213,10 +207,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             n_classes = scenario.get_tag("n_classes")
             X_train = scenario.args["fit"]["X"]
             y_train = scenario.args["fit"]["y"]
-            _, _, X_train_metadata = check_is_scitype(
-                X_train, "Panel", return_metadata=True
-            )
-            X_train_len = X_train_metadata["n_instances"]
+            X_train_len = get_n_cases(X_train)
 
             # check the probabilities are valid
             train_proba = estimator_instance._get_train_probs(X_train, y_train)
