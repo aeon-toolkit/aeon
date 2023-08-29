@@ -75,11 +75,12 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> X2.shape
         (10, 1, 20)
         """
-        # All of this can move up to BaseCollection if we enhance fit here with super
         meta = self._check_X(X)
         if len(self.metadata_) == 0:
             self.metadata_ = meta
+
         X = self._convert_X(X)
+        # This usage of n_jobs is legacy, see issue #102
         multithread = self.get_tag("capability:multithreading")
         if multithread:
             if hasattr(self, "n_jobs"):
