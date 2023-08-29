@@ -10,6 +10,7 @@
   "imageSize": 80,
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
+  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
   "contributors": [
     {
@@ -2166,8 +2167,8 @@
        "profile": "https://github.com/sylvaincom",
        "contributions": [
         "code",
-        "bug",
+        "bug"
        ]
-    },
+    }
   ]
 }
