@@ -29,12 +29,12 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import BaseCollectionEstimator, BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -49,6 +49,11 @@ from aeon.transformations.collection import BaseCollectionTransformer
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
+    (
+        "collection-estimator",
+        BaseCollectionEstimator,
+        "estimator for collections of time series",
+    ),
     ("classifier", BaseClassifier, "time series classifier"),
     ("clusterer", BaseClusterer, "time series clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
