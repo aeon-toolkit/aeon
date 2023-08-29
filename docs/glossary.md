@@ -181,5 +181,5 @@ random_state
 
 n_jobs
     A parameter for controlling the number of threads used in estimators.
-    Follows the conventions of [scikit-learn](https://scikit-learn.org/stable/glossary.html#term-n_jobs)
+    Follows the conventions of [scikit-learn](https://scikit-learn.org/stable/glossary.html#term-n_jobs).
 ```
