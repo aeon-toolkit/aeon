@@ -45,7 +45,7 @@ Hierarchical, global, and panel forecasting
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon and scikit learn
+Forecasting with aeon and scikit-learn
 
 :::
 
