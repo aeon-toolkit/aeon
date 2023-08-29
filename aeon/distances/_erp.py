@@ -68,8 +68,8 @@ def erp_distance(
         Numpy array with a separate ``g`` value for each channel. Must be the
         length of the number of channels in x and y.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -138,8 +138,8 @@ def erp_cost_matrix(
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -281,8 +281,8 @@ def erp_pairwise_distance(
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -410,8 +410,8 @@ def erp_alignment_path(
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------

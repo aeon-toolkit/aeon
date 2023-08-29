@@ -73,8 +73,8 @@ def dtw_distance(
         10% of the series length is the max warping allowed.
         is used.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -146,8 +146,8 @@ def dtw_cost_matrix(
         10% of the series length is the max warping allowed.
         is used.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -257,8 +257,8 @@ def dtw_pairwise_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -361,8 +361,8 @@ def dtw_alignment_path(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     itakura_max_slope : float, default=None
-        Maximum slope as a % of the number of time points used to create Itakura
-        parallelogram on the bounding matrix. Must be between 0. and 1.
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
