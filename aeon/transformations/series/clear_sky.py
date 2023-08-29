@@ -11,9 +11,6 @@ from scipy.stats import vonmises
 
 from aeon.transformations.base import BaseTransformer
 
-# todo: update function?
-# todo: clock changes, time-zone aware index, miliseconds?
-
 
 class ClearSky(BaseTransformer):
     """Clear sky transformer for solar data.
