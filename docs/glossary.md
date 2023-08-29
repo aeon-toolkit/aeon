@@ -8,14 +8,14 @@ The glossary below defines common terms and API elements used throughout `aeon`.
 Time series data
 Time series
 Series
-    Data with multiple individual {term}`variable` measurements with acoompanying
+    Data with multiple individual {term}`variable` measurements with accompanying
     {term}`timepoints` which are ordered over time or have an index indicating the
     position of an observation in the sequence of values.
 
 Timepoint
 Timepoints
     The point in time that an observation is made for a {term}`time series`. A time
-    point may represent an exact point in time (a timestamp), a timeperiod (e.g.
+    point may represent an exact point in time (a timestamp), a time period (e.g.
     minutes, hours or days), or simply an index indicating the position of an
     observation in the sequence of values.
 
@@ -25,16 +25,16 @@ Variables
     (e.g. time-invariant measurements like a patient's place of birth) or a sequence
     of multiple values as a {term}`time series`.
 
-    For time series data, multiple variables may be refered to as {term}`channels`.
+    For time series data, multiple variables may be referred to as {term}`channels`.
 
 Target variable
 Target variables
-    The {term}`variable`(s) that are being predicted in a learning task using
-    {term}`Independant variables`, past {term}`timepoints` of the variable itself, or
-    both. Also referred toas the dependent or endogenous variable(s).
+    The {term}`variable`(s) to be predicted in a learning task using
+    {term}`Independent variables`, past {term}`timepoints` of the variable itself, or
+    both. Also referred to as the dependent or endogenous variable(s).
 
-Independant variable
-Independant variables
+Independent variable
+Independent variables
     The {term}`variable`(s) that are used to predict the {term}`target variable`(s)
     in a learning task. Also referred to as exogenous variables Commonly also known as
     features and attributes in traditional machine learning settings.
@@ -79,13 +79,13 @@ Time series clustering
     similar {term}`time series`.
 
 Time series annotation
-    A learning task focused on labeling the {term}`variables` of a {term}`time series`.
+    A learning task focused on labelling the {term}`variables` of a {term}`time series`.
     This includes the related tasks of outlier detection, anomaly detection,
     change point detection and segmentation.
 
 Time series transformation
 Time series transformers
-    Transformers usually referes to classes in the `transformation` module of `aeon`.
+    Transformers usually refers to classes in the `transformation` module of `aeon`.
     These classes are used to transform {term}`time series` data into a different
     format. This may be to reduce the dimensionality of the data, to extract features
     from the data, or to transform the data into a different format.
@@ -95,12 +95,12 @@ Time series transformers
 
 Collection transformers
     {term}`Time series transformers` that take a {term}`time series collection` as
-    input. While these transformers only accept collectons, a wrapper is provided to
+    input. While these transformers only accept collections, a wrapper is provided to
     allow them to be used with singular time series datatypes.
 
 Series-to-series transformation
     {term}`Time series transformers` that take a {term}`time series` as input and
-    output a (different) time series. An example of this is the Siscrete
+    output a (different) time series. An example of this is the Discrete
     Fourier Transform (DFT).
 
 Series-to-features transformation
@@ -119,7 +119,7 @@ Instance
     depending on the discipline and context.
 
 Panel
-Panel time series
+Time series panel
     Common alternative name for {term}`time series collection`.
 
 Time series collection
@@ -129,8 +129,7 @@ Time series collections
     series contained within may be of different lengths, sampled at different
     frequencies, contain differing {term}`timepoints` etc.
 
-    Commonly referred to as a {term}`panel time series` depending on context and
-    discipline.
+    Also referred to as a {term}`panel time series` depending on context and discipline.
 
 Univariate
 Univariate time series
@@ -152,8 +151,8 @@ Reduction
     to allow one learning task to be adapted as a solution for an alternative task.
 
 Trend
-    When data shows a long-term increase or decrease, this is referred to as a trend.
-    Trends can also be non-linear.
+    When time series show a long-term increase or decrease, this is referred to as a
+    trend. Trends can also be non-linear.
 
 Seasonality
     When a {term}`time series` is affected by seasonal characteristics such as the time
