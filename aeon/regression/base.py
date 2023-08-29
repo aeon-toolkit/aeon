@@ -57,8 +57,6 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
     }
 
     def __init__(self):
-        self.fit_time_ = 0
-        self._n_jobs = 1
         self._estimator_type = "regressor"
 
         super(BaseRegressor, self).__init__()

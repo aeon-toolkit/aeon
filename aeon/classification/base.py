@@ -67,10 +67,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         # reserved attributes written to in fit
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = 0  # number of unique classes in y
-        self.fit_time_ = 0  # time elapsed in last fit call
-        self.metadata_ = {}  # metadata/properties of data seen in fit
         self._class_dictionary = {}
-        self._n_jobs = 1
 
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
