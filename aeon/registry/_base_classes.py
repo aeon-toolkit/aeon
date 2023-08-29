@@ -49,11 +49,6 @@ from aeon.transformations.collection import BaseCollectionTransformer
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    (
-        "collection-estimator",
-        BaseCollectionEstimator,
-        "estimator for collections of time series",
-    ),
     ("classifier", BaseClassifier, "time series classifier"),
     ("clusterer", BaseClusterer, "time series clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
@@ -68,6 +63,11 @@ BASE_CLASS_REGISTER = [
         "collection-transformer",
         BaseCollectionTransformer,
         "time series collection transformer",
+    ),
+    (
+        "collection-estimator",
+        BaseCollectionEstimator,
+        "estimator for collections of time series",
     ),
 ]
 
