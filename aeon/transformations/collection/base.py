@@ -360,6 +360,8 @@ class BaseCollectionTransformer(
         return self
 
     def _check_y(self, y, n_cases):
+        if y is None:
+            return None
         # Check y valid input for collection transformations
         if not isinstance(y, (pd.Series, np.ndarray)):
             raise TypeError(
