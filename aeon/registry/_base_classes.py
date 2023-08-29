@@ -34,7 +34,7 @@ __author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
-from aeon.base import BaseCollectionEstimator, BaseEstimator, BaseObject
+from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -63,11 +63,6 @@ BASE_CLASS_REGISTER = [
         "collection-transformer",
         BaseCollectionTransformer,
         "time series collection transformer",
-    ),
-    (
-        "collection-estimator",
-        BaseCollectionEstimator,
-        "estimator for collections of time series",
     ),
 ]
 
