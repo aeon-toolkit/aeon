@@ -125,22 +125,3 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
-
-SUPPORTED_DISTANCE_FUNCTIONS = [
-    "euclidean",
-    "squared",
-    "dtw",
-    "ddtw",
-    "wdtw",
-    "wddtw",
-    "lcss",
-    "edr",
-    "erp",
-    "msm",
-    "twe",
-    "manhattan",
-]
-
-
-def valid_distances():
-    return SUPPORTED_DISTANCE_FUNCTIONS
