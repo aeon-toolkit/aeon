@@ -63,8 +63,7 @@ class Rocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):

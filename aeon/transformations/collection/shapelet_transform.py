@@ -126,11 +126,6 @@ class ShapeletTransform(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
-        "fit_is_empty": False,
-        "univariate-only": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "numpy1D",
         "requires_y": True,
     }
 
@@ -967,12 +962,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
-        "fit_is_empty": False,
-        "univariate-only": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "numpy1D",
-        "requires_y": True,
+        "capability:multivariate": True,
     }
 
     def __init__(

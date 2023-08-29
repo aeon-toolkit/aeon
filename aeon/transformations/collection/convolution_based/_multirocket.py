@@ -73,9 +73,7 @@ class MultiRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
         "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
     }
 
     def __init__(

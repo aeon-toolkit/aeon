@@ -44,6 +44,7 @@ class BaseCollectionTransformer(
     # default tag values
     _tags = {
         "y_inner_mtype": "None",
+        "fit_is_empty": False,
     }
 
     def __init__(self):
