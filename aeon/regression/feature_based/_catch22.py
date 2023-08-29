@@ -156,7 +156,7 @@ class Catch22Regressor(BaseRegressor):
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
             use_pycatch22=self.use_pycatch22,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
@@ -169,7 +169,7 @@ class Catch22Regressor(BaseRegressor):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)

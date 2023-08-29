@@ -269,7 +269,6 @@ def _check_dict_of_dict(obj, name="obj"):
         and np.all([isinstance(x, str) for x in obj.keys()])
     ):
         raise TypeError(
-            f"Argument {name} with must be a dict of dict, with str keys, "
-            f"found {type(obj)}"
+            f"{obj} must be a dict of dict, with str keys, " f"found {type(obj)}"
         )
     return obj
