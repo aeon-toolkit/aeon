@@ -137,6 +137,7 @@ class Catch22(BaseCollectionTransformer):
         "X_inner_mtype": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
         "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(
