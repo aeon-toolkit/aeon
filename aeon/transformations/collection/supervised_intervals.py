@@ -136,10 +136,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
-        "y_inner_mtype": "numpy1D",
+        "capability:multivariate": True,
         "requires_y": True,
-        "fit_is_empty": False,
     }
 
     def __init__(
