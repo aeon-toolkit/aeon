@@ -76,6 +76,7 @@ class BaseCollectionTransformer(
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
+        self.reset()
 
         # input checks and datatype conversion
         X_inner = self.preprocess_collection(X)
@@ -147,6 +148,7 @@ class BaseCollectionTransformer(
         transformed version of X
         """
         # input checks and datatype conversion
+        self.reset()
         X_inner = self.preprocess_collection(X)
         y_inner = y
 
