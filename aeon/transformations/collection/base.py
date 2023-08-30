@@ -41,9 +41,10 @@ class BaseCollectionTransformer(
 ):
     """Transformer base class."""
 
-    # default tag values
+    # Relevant tag values inherited from BaseTransformer
     _tags = {
-        "y_inner_mtype": "None",
+        "capability:inverse_transform": False,
+        "requires_y": False,
         "fit_is_empty": False,
     }
 
