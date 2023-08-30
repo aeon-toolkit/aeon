@@ -141,7 +141,7 @@ class _LeadLag(BaseCollectionTransformer):
     """
 
     _tags = {
-        "capability:multivariate": False,
+        "capability:multivariate": True,
         "fit_is_empty": True,
     }
 
