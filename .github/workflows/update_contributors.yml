@@ -18,7 +18,7 @@ jobs:
           node-version: 18
 
       - name: Setup all-contributors-cli
-        run: npm install -g all-contributors-cli@6.24.0
+        run: npm install -g all-contributors-cli
 
       - name: Generate CONTRIBUTORS.md
         id: generate

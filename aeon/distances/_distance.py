@@ -124,21 +124,52 @@ def distance(
     elif metric == "manhattan":
         return manhattan_distance(x, y)
     elif metric == "dtw":
-        return dtw_distance(x, y, kwargs.get("window"))
+        return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
-        return ddtw_distance(x, y, kwargs.get("window"))
+        return ddtw_distance(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "wdtw":
-        return wdtw_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wdtw_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "wddtw":
-        return wddtw_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wddtw_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "lcss":
-        return lcss_distance(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
+        return lcss_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon", 1.0),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "erp":
         return erp_distance(
-            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
-        return edr_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
+        return edr_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon"),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "twe":
         return twe_distance(
             x,
@@ -146,6 +177,7 @@ def distance(
             kwargs.get("window"),
             kwargs.get("nu", 0.001),
             kwargs.get("lmbda", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "msm":
         return msm_distance(
@@ -154,6 +186,7 @@ def distance(
             kwargs.get("window"),
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "mpdist":
         return mpdist(x, y, **kwargs)
@@ -232,25 +265,54 @@ def pairwise_distance(
     elif metric == "manhattan":
         return manhattan_pairwise_distance(x, y)
     elif metric == "dtw":
-        return dtw_pairwise_distance(x, y, kwargs.get("window"))
+        return dtw_pairwise_distance(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "ddtw":
-        return ddtw_pairwise_distance(x, y, kwargs.get("window"))
+        return ddtw_pairwise_distance(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "wdtw":
-        return wdtw_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wdtw_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "wddtw":
         return wddtw_pairwise_distance(
-            x, y, kwargs.get("window"), kwargs.get("g", 0.05)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "lcss":
         return lcss_pairwise_distance(
-            x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "erp":
         return erp_pairwise_distance(
-            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
-        return edr_pairwise_distance(x, y, kwargs.get("window"), kwargs.get("epsilon"))
+        return edr_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon"),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "twe":
         return twe_pairwise_distance(
             x,
@@ -258,6 +320,7 @@ def pairwise_distance(
             kwargs.get("window"),
             kwargs.get("nu", 0.001),
             kwargs.get("lmbda", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "msm":
         return msm_pairwise_distance(
@@ -266,6 +329,7 @@ def pairwise_distance(
             kwargs.get("window"),
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "mpdist":
         return _custom_func_pairwise(x, y, mpdist, **kwargs)
@@ -367,23 +431,54 @@ def alignment_path(
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     if metric == "dtw":
-        return dtw_alignment_path(x, y, kwargs.get("window"))
+        return dtw_alignment_path(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "ddtw":
-        return ddtw_alignment_path(x, y, kwargs.get("window"))
+        return ddtw_alignment_path(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "wdtw":
-        return wdtw_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wdtw_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "wddtw":
-        return wddtw_alignment_path(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wddtw_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "lcss":
         return lcss_alignment_path(
-            x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "erp":
         return erp_alignment_path(
-            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
-        return edr_alignment_path(x, y, kwargs.get("window"), kwargs.get("epsilon"))
+        return edr_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon"),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "twe":
         return twe_alignment_path(
             x,
@@ -391,6 +486,7 @@ def alignment_path(
             kwargs.get("window"),
             kwargs.get("nu", 0.001),
             kwargs.get("lmbda", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "msm":
         return msm_alignment_path(
@@ -399,6 +495,7 @@ def alignment_path(
             kwargs.get("window"),
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
@@ -456,21 +553,54 @@ def cost_matrix(
            [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
     """
     if metric == "dtw":
-        return dtw_cost_matrix(x, y, kwargs.get("window"))
+        return dtw_cost_matrix(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "ddtw":
-        return ddtw_cost_matrix(x, y, kwargs.get("window"))
+        return ddtw_cost_matrix(
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
     elif metric == "wdtw":
-        return wdtw_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wdtw_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "wddtw":
-        return wddtw_cost_matrix(x, y, kwargs.get("window"), kwargs.get("g", 0.05))
+        return wddtw_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.05),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "lcss":
-        return lcss_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon", 1.0))
+        return lcss_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon", 1.0),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "erp":
         return erp_cost_matrix(
-            x, y, kwargs.get("window"), kwargs.get("g", 0.0), kwargs.get("g_arr", None)
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("g", 0.0),
+            kwargs.get("g_arr", None),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "edr":
-        return edr_cost_matrix(x, y, kwargs.get("window"), kwargs.get("epsilon"))
+        return edr_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("epsilon"),
+            kwargs.get("itakura_max_slope"),
+        )
     elif metric == "twe":
         return twe_cost_matrix(
             x,
@@ -478,6 +608,7 @@ def cost_matrix(
             kwargs.get("window"),
             kwargs.get("nu", 0.001),
             kwargs.get("lmbda", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     elif metric == "msm":
         return msm_cost_matrix(
@@ -486,6 +617,7 @@ def cost_matrix(
             kwargs.get("window"),
             kwargs.get("independent", True),
             kwargs.get("c", 1.0),
+            kwargs.get("itakura_max_slope"),
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
