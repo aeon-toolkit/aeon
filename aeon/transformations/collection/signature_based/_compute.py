@@ -26,7 +26,6 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
 
     # default tag values for "Series-to-Primitives"
     _tags = {
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
         "capability:multivariate": True,
         "python_dependencies": "esig",
