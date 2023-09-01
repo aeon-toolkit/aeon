@@ -49,7 +49,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         """
         self.reset()
         _start_time = int(round(time.time() * 1000))
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         self._fit(X)
         self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         self._is_fitted = True
@@ -71,7 +71,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             Index of the cluster each time series in X belongs to.
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict(X)
 
     def fit_predict(self, X, y=None) -> np.ndarray:
@@ -117,7 +117,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict_proba(X)
 
     def score(self, X, y=None) -> float:
@@ -137,7 +137,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             Score of the clusterer.
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._score(X, y)
 
     def _predict_proba(self, X) -> np.ndarray:

@@ -118,7 +118,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
 
         # All of this can move up to BaseCollection
         start = int(round(time.time() * 1000))
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         y = BaseClassifier._check_y(self, y, self.metadata_["n_cases"])
         self._fit(X, y)
         self.fit_time_ = int(round(time.time() * 1000)) - start
@@ -157,7 +157,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             i-th entry is the classifier decision that i-th instance safe to use
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict(X)
 
     def update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
@@ -195,7 +195,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
 
         if self.state_info is None:
             return self._predict(X)
@@ -233,7 +233,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             i-th entry is the classifier decision that i-th instance safe to use
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
 
         return self._predict_proba(X)
 
@@ -272,7 +272,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             i-th entry is the classifier decision that i-th instance safe to use
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         if self.state_info is None:
             return self._predict_proba(X)
         else:
@@ -297,7 +297,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         Tuple of floats, harmonic mean, accuracy and earliness scores of predict(X) vs y
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
 
         return self._score(X, y)
 

@@ -42,7 +42,7 @@ class BaseCollectionEstimator(BaseEstimator):
         super(BaseCollectionEstimator, self).__init__()
         _check_estimator_deps(self)
 
-    def preprocess_collection(self, X):
+    def _preprocess_collection(self, X):
         """Preprocess input X prior to call to fit.
 
         1. Checks the characteristics of X, store metadata, checks self can handle
@@ -71,7 +71,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> import numpy as np
         >>> bce = BaseCollectionEstimator()
         >>> X = np.random.random(size=(10,20))
-        >>> X2 = bce.preprocess_collection(X)
+        >>> X2 = bce._preprocess_collection(X)
         >>> X2.shape
         (10, 1, 20)
         """
