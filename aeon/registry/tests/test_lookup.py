@@ -10,6 +10,7 @@ from aeon.base import BaseObject
 from aeon.registry import all_estimators, all_tags, scitype
 from aeon.registry._base_classes import BASE_CLASS_LOOKUP, BASE_CLASS_SCITYPE_LIST
 from aeon.registry._lookup import _check_estimator_types
+from aeon.tests.test_all_estimators import PR_TESTING
 from aeon.transformations.base import BaseTransformer
 
 VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
@@ -157,6 +158,10 @@ EXCLUDE_ESTIMATORS = [
 ]
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="skip test if PR Testing because it is very slow",
+)
 @pytest.mark.parametrize("exclude_estimators", ["NaiveForecaster", EXCLUDE_ESTIMATORS])
 def test_all_estimators_exclude_estimators(exclude_estimators):
     """Test exclued_estimators argument in all_estimators."""
@@ -189,6 +194,10 @@ def _get_tag_fixture():
 
 
 # test that all_estimators returns as expected if given correct return_tags:
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="skip test if PR Testing because it is very slow",
+)
 @pytest.mark.parametrize("return_tags", _get_tag_fixture())
 @pytest.mark.parametrize("return_names", [True, False])
 def test_all_estimators_return_tags(return_tags, return_names):
@@ -229,6 +238,10 @@ def _get_bad_return_tags():
 
 
 # test that all_estimators breaks as expected if given bad return_tags:
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="skip test if PR Testing because it is very slow",
+)
 @pytest.mark.parametrize("return_tags", _get_bad_return_tags())
 def test_all_estimators_return_tags_bad_arg(return_tags):
     """Test ability to catch bad arguments of return_tags."""
@@ -236,6 +249,10 @@ def test_all_estimators_return_tags_bad_arg(return_tags):
         _ = all_estimators(return_tags=return_tags)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="skip test if PR Testing because it is very slow",
+)
 @pytest.mark.parametrize("estimator_scitype", BASE_CLASS_SCITYPE_LIST)
 def test_scitype_inference(estimator_scitype):
     """Check that scitype inverts _check_estimator_types."""
