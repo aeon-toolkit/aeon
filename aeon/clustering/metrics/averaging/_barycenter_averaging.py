@@ -39,7 +39,10 @@ def elastic_barycenter_average(
             (n_instances, n_timepoints)
         A collection of time series instances to take the average from.
     metric: str or Callable, default='dtw'
-        String that is the distance metric to use for averaging.
+        String defining the distance metric to use for averaging. Distance metric to
+        compute similarity between time series. A list of valid strings for metrics
+        can be found in the documentation form
+        :func:`aeon.distances.get_distance_function`.
         If Callable provided must be of the form (x, y) -> (float, np.ndarray)
         where the first element is the distance and the second is the alignment path.
     max_iters: int, default=30
