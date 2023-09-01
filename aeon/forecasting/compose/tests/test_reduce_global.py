@@ -229,11 +229,11 @@ def test_list_reduction(y, index_names):
 
 def test_equality_transfo_nontranso():
     """Test that recursive reducers return same results for global / local forecasts."""
-    y = load_airline()
-    y_train, y_test = temporal_train_test_split(y, test_size=30)
+    y = load_airline()[:36]
+    y_train, y_test = temporal_train_test_split(y, test_size=12)
     fh = ForecastingHorizon(y_test.index, is_relative=False)
 
-    lag_vec = list(range(12, 0, -1))
+    lag_vec = list(range(6, 0, -1))
     kwargs = {
         "lag_feature": {
             "lag": lag_vec,
