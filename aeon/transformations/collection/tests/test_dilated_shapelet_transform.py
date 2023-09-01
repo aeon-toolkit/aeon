@@ -11,8 +11,6 @@ from numpy.testing import (
     assert_array_equal,
 )
 
-# from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.datasets import load_basic_motions
 from aeon.distances import manhattan_distance
 from aeon.transformations.collection.dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
@@ -21,6 +19,7 @@ from aeon.transformations.collection.dilated_shapelet_transform import (
     get_all_subsequences,
     normalize_subsequences,
 )
+from aeon.utils._testing.collection import make_3d_test_data
 from aeon.utils.numba.stats import is_prime
 
 DATATYPES = ["int64", "float64"]
@@ -81,11 +80,10 @@ def test_rdst_on_basic_motions():
 
 
 def test_shapelet_prime_dilation():
-    X_train, y_train = load_basic_motions(split="train")
-    indices = np.random.RandomState(4).choice(len(y_train), 3, replace=False)
+    X_train, y_train = make_3d_test_data(n_cases=5, n_channels=2, n_timepoints=12)
     rdst = RandomDilatedShapeletTransform(
         max_shapelets=10, use_prime_dilations=True
-    ).fit(X_train[indices], y_train[indices])
+    ).fit(X_train, y_train)
     dilations = rdst.shapelets_[2]
     assert np.all([d == 1 or is_prime(d) for d in dilations])
 

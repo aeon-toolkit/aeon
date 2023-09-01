@@ -334,7 +334,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
-            params = {"max_shapelets": 10}
+            params = {"max_shapelets": 10, "shapelet_lengths": [3, 4, 5]}
         else:
             raise NotImplementedError(
                 "The parameter set {} is not yet implemented".format(parameter_set)
