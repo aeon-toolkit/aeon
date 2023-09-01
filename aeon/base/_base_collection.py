@@ -208,6 +208,7 @@ class BaseCollectionEstimator(BaseEstimator):
         return X
 
 
+@staticmethod
 def _get_metadata(X):
     # Get and store X meta data.
     metadata = {}
