@@ -10,7 +10,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKShapes(BaseClusterer):
-    """Kshape algorithm wrapper tslearns implementation.
+    """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
     Parameters
     ----------
@@ -18,9 +18,9 @@ class TimeSeriesKShapes(BaseClusterer):
         The number of clusters to form as well as the number of
         centroids to generate.
     init_algorithm: str or np.ndarray, default='random'
-        Method for initializing cluster centers. Any of the following are valid:
-        ['random']. Or a np.ndarray of shape (n_clusters, ts_size, d) and gives the
-        initial centers.
+        Method for initializing cluster centres. Any of the following are valid:
+        ['random']. Or a np.ndarray of shape (n_clusters, n_channels, n_timepoints)
+        and gives the initial cluster centres.
     n_init: int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -30,7 +30,7 @@ class TimeSeriesKShapes(BaseClusterer):
         run.
     tol: float, default=1e-4
         Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
+        in the cluster centres of two consecutive iterations to declare
         convergence.
     verbose: bool, default=False
         Verbosity mode.
@@ -39,10 +39,10 @@ class TimeSeriesKShapes(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_: np.ndarray (1d array of shape (n_instances,))
         Labels that is the index each time series belongs to.
     inertia_: float
-        Sum of squared distances of samples to their closest cluster center, weighted by
+        Sum of squared distances of samples to their closest cluster centre, weighted by
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
