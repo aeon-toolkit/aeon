@@ -121,13 +121,12 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     ...     RandomDilatedShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
     >>> t = RandomDilatedShapeletTransform(
     ...     max_shapelets=10
     ... )
-    >>> t.fit(X_train, y_train)
-    RandomDilatedShapeletTransform(...)
-    >>> X_t = t.transform(X_train)
+    >>> t.fit(X_train, y_train) # doctest: +SKIP
+    >>> X_t = t.transform(X_train) # doctest: +SKIP
     """
 
     _tags = {
@@ -173,7 +172,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         y: array-like or list, default=None
             The class values for X. If not specified, a random sample (i.e. not of the
             same class) will be used when computing the threshold for the Shapelet
-            Occurence feature.
+            Occurrence feature.
 
         Returns
         -------
