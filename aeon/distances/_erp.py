@@ -23,34 +23,53 @@ def erp_distance(
     window: float = None,
     g: float = 0.0,
     g_arr: np.ndarray = None,
+    itakura_max_slope: float = None,
 ) -> float:
     r"""Compute the ERP distance between two time series.
 
-    ERP, first proposed in [1]_, attempts to align time series
-    by better considering how indexes are carried forward through the cost matrix.
-    Usually in the dtw cost matrix, if an alignment can't be found the previous value
-    is carried forward. ERP instead proposes the idea of gaps or sequences of points
-    that have no matches. These gaps are then punished based on their distance from
-    :math:`g`.
+    Edit Distance with Real Penalty, ERP, first proposed in [1]_, attempts to align
+    time series by better considering how indexes are carried forward through the
+    cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
+    previous value is carried forward in  the move off the diagonal. ERP instead
+    proposes the idea of gaps or sequences of points that have no matches. These
+    gaps are then penalised based on their distance from the parameter :math:`g`.
 
-    The optimal value of :math:`g` is selected from the range :math:`[\sigma/5, \sigma]`
-    , where :math:`\sigma` is the standard deviation of the training data. When a
+    .. math::
+        match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})\\
+        delete &=   D_{i-1,j}+ d({x_{i},g})\\
+        insert &=  D_{i,j-1}+ d({g,y_{j}})\\
+        D_{i,j} &= min(match,insert, delete)
+
+    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
+    distances to $g$ for each series.
+
+    The value of :math:`g` is by default 0 in ``aeon``, but in [1]_ it is data dependent
+    , selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
+    average standard deviation of the training time series. When a
     series is multivariate (more than one channel), :math:`g` is an array where the
     :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g : float.
-        The reference value to penalise gaps. The default is 0.
-    g_arr : np.ndarray of shape (n_channels), default=None
-        Numpy array that must be the length of the number of channels in x and y.
+    g : float, default=0.0
+        The reference constant used to penalise moves off the diagonal. The default
+        is 0.
+    g_arr : np.ndarray, default=None
+        Array of shape ``(n_channels)``,
+        Numpy array with a separate ``g`` value for each channel. Must be the
+        length of the number of channels in x and y.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -73,16 +92,21 @@ def erp_distance(
     >>> import numpy as np
     >>> from aeon.distances import erp_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> dist = erp_distance(x, y)
+    >>> y = np.array([[2, 2, 2, 2, 5, 6, 7, 8, 9, 10]])
+    >>> erp_distance(x, y)
+    4.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _erp_distance(_x, _y, bounding_matrix, g, g_arr)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _erp_distance(x, y, bounding_matrix, g, g_arr)
     raise ValueError("x and y must be 1D or 2D")
 
@@ -94,27 +118,28 @@ def erp_cost_matrix(
     window: float = None,
     g: Union[float, np.ndarray] = 0.0,
     g_arr: np.ndarray = None,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
-    The optimal value of g is selected from the range [σ/5, σ], where σ is the
-    standard deviation of the training data. When there is > 1 channel, g should
-    be a np.ndarray where the nth value is the standard deviation of the nth
-    channel.
-
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y :  np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g :  float.
+    g :  float, defualt=0.0
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -147,10 +172,14 @@ def erp_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _erp_cost_matrix(_x, _y, bounding_matrix, g, g_arr)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _erp_cost_matrix(x, y, bounding_matrix, g, g_arr)
     raise ValueError("x and y must be 1D or 2D")
 
@@ -227,8 +256,9 @@ def erp_pairwise_distance(
     window: float = None,
     g: float = 0.0,
     g_arr: np.ndarray = None,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the erp pairwise distance between a set of time series.
+    """Compute the ERP pairwise distance between a set of time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
@@ -246,15 +276,18 @@ def erp_pairwise_distance(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        erp pairwise matrix between the instances of X.
+        ERP pairwise matrix between the instances of X.
 
 
     Raises
@@ -292,13 +325,15 @@ def erp_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _erp_pairwise_distance(X, window, g, g_arr)
+            return _erp_pairwise_distance(X, window, g, g_arr, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _erp_pairwise_distance(_X, window, g, g_arr)
+            return _erp_pairwise_distance(_X, window, g, g_arr, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _erp_from_multiple_to_multiple_distance(_x, _y, window, g, g_arr)
+    return _erp_from_multiple_to_multiple_distance(
+        _x, _y, window, g, g_arr, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -307,10 +342,13 @@ def _erp_pairwise_distance(
     window: float,
     g: float,
     g_arr: np.ndarray,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2], X.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
@@ -327,11 +365,14 @@ def _erp_from_multiple_to_multiple_distance(
     window: float,
     g: float,
     g_arr: np.ndarray,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(m_instances):
@@ -346,8 +387,9 @@ def erp_alignment_path(
     window: float = None,
     g: float = 0.0,
     g_arr: np.ndarray = None,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the erp alignment path between two time series.
+    """Compute the ERP alignment path between two time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
@@ -363,10 +405,13 @@ def erp_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float.
+    g : float, default=0.0.
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -391,7 +436,9 @@ def erp_alignment_path(
     >>> erp_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    bounding_matrix = create_bounding_matrix(x.shape[-1], y.shape[-1], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[-1], y.shape[-1], window, itakura_max_slope
+    )
     cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(
         erp_cost_matrix(x, y, window, g, g_arr), bounding_matrix
     )

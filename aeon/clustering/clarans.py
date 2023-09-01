@@ -39,11 +39,10 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe']
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     max_neighbours : int, default=None,
         The maximum number of neighbouring solutions that the algorithm will explore
         for each set of medoids. A neighbouring solution is obtained by replacing

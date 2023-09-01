@@ -61,7 +61,7 @@ def list_available_tsf_datasets(name=None):
 
 
 def list_available_tsc_datasets(name=None):
-    """List available tsf data.
+    """List available local TSC data.
 
     Parameters
     ----------
