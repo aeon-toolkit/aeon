@@ -42,7 +42,6 @@ import pandas as pd
 import pytest
 
 from aeon.base import BaseEstimator, BaseObject
-from aeon.base._base import TagAliaserMixin
 
 
 # Fixture class for testing tag system
@@ -385,8 +384,3 @@ def test_internal_convert():
     X, y = base._internal_convert(X, y)
     assert X.ndim == 3
     assert isinstance(y, np.ndarray)
-
-
-def test_tag_aliaser():
-    tag = TagAliaserMixin()
-    tag.get_tags()
