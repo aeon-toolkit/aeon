@@ -126,7 +126,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> hc = HIVECOTEV2()
         >>> m = hc._check_X(X)    # HC2 can handle this
         """
-        metadata = _get_metadata(X)
+        metadata = self._get_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
@@ -192,7 +192,7 @@ class BaseCollectionEstimator(BaseEstimator):
         'numpy3D'
         """
         if len(self.metadata_) == 0:
-            metadata = _get_metadata(X)
+            metadata = self._get_metadata(X)
         else:
             metadata = self.metadata_
         # Convert X to X_inner_mtype if possible
@@ -207,14 +207,13 @@ class BaseCollectionEstimator(BaseEstimator):
         X = convert_collection(X, inner_type)
         return X
 
+    @staticmethod
+    def _get_metadata(X):
+        # Get and store X meta data.
+        metadata = {}
+        metadata["multivariate"] = not is_univariate(X)
+        metadata["missing_values"] = has_missing(X)
+        metadata["unequal_length"] = not is_equal_length(X)
+        metadata["n_cases"] = get_n_cases(X)
 
-@staticmethod
-def _get_metadata(X):
-    # Get and store X meta data.
-    metadata = {}
-    metadata["multivariate"] = not is_univariate(X)
-    metadata["missing_values"] = has_missing(X)
-    metadata["unequal_length"] = not is_equal_length(X)
-    metadata["n_cases"] = get_n_cases(X)
-
-    return metadata
+        return metadata

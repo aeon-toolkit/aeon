@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.base._base_collection import _get_metadata
 from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
@@ -16,7 +15,7 @@ from aeon.utils.validation.tests.test_collection import (
 def test__get_metadata(data):
     """Test get meta data."""
     X = EQUAL_LENGTH_UNIVARIATE[data]
-    meta = _get_metadata(X)
+    meta = BaseCollectionEstimator._get_metadata(X)
     assert not meta["multivariate"]
     assert not meta["missing_values"]
     assert not meta["unequal_length"]
