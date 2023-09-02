@@ -146,7 +146,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         # All of this can move up to BaseCollection
         start = int(round(time.time() * 1000))
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
         # escape early and do not fit if only one class label has been seen
         #   in this case, we later predict the single class label seen
@@ -187,7 +187,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_instances)
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict(X)
 
     @final
@@ -220,7 +220,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat([[1]], n_instances, axis=0)
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict_proba(X)
 
     def score(self, X, y) -> float:

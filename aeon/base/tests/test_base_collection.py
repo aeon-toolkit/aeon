@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.base._base_collection import _get_metadata
 from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
@@ -16,7 +15,7 @@ from aeon.utils.validation.tests.test_collection import (
 def test__get_metadata(data):
     """Test get meta data."""
     X = EQUAL_LENGTH_UNIVARIATE[data]
-    meta = _get_metadata(X)
+    meta = BaseCollectionEstimator._get_metadata(X)
     assert not meta["multivariate"]
     assert not meta["missing_values"]
     assert not meta["unequal_length"]
@@ -103,7 +102,7 @@ def test_preprocess_fit(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()
-    X = cls.preprocess_collection(data)
+    X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1
     assert len(cls.metadata_) == 4
     assert get_type(X) == "numpy3D"
@@ -111,11 +110,11 @@ def test_preprocess_fit(data):
     cls = BaseCollectionEstimator()
     cls.set_tags(**tags)
     with pytest.raises(AttributeError, match="self.n_jobs must be set"):
-        cls.preprocess_collection(data)
+        cls._preprocess_collection(data)
     # Test two calls do not overwrite metadata (predict should not reset fit meta)
     cls = BaseCollectionEstimator()
-    cls.preprocess_collection(data)
+    cls._preprocess_collection(data)
     meta = cls.metadata_
     d2 = np.random.random(size=(11, 1, 30))
-    cls.preprocess_collection(d2)
+    cls._preprocess_collection(d2)
     assert meta == cls.metadata_

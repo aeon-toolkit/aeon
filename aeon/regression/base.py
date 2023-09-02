@@ -126,7 +126,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         """
         self.reset()
         _start_time = int(round(time.time() * 1000))
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
         self._fit(X, y)
         self.fit_time_ = int(round(time.time() * 1000)) - _start_time
@@ -154,7 +154,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
-        X = self.preprocess_collection(X)
+        X = self._preprocess_collection(X)
         return self._predict(X)
 
     def score(self, X, y) -> float:
