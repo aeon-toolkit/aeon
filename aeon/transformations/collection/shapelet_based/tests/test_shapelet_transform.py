@@ -4,7 +4,7 @@ import numpy as np
 from numpy import testing
 
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 
 
 def test_st_on_unit_test():
