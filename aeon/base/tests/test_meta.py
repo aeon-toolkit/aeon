@@ -18,7 +18,7 @@ def test_hetero_meta():
     names = ["FOO", "estimators"]
     with pytest.raises(ValueError, match="Estimator names conflict with constructor"):
         bce._check_names(names)
-    names = ["estimators"]
+    names = ["DummyClassifier"]
     bce._check_names(names)
     assert not h._is_name_and_est("Single")
     assert not h._is_name_and_est(("Single", "Tuple"))
