@@ -16,10 +16,10 @@ def test_save_and_load():
     loc = "testy"
     dummy.save(loc)
     assert os.path.isfile(loc + ".zip")
-    os.remove(loc + ".zip")
     with pytest.raises(
         TypeError, match="expected to either be a string or a Path " "object"
     ):
         dummy.save(dummy)
     loaded = load(loc)
     assert loaded.is_fitted
+    os.remove(loc + ".zip")
