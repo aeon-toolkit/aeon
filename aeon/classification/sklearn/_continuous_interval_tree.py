@@ -19,7 +19,6 @@ from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
 
 from aeon.exceptions import NotFittedError
-from aeon.utils.numba.stats import iqr, mean, numba_max, numba_min, slope, std
 
 
 class ContinuousIntervalTree(BaseEstimator):
@@ -92,6 +91,7 @@ class ContinuousIntervalTree(BaseEstimator):
         self.max_depth = max_depth
         self.thresholds = thresholds
         self.random_state = random_state
+        self._is_fitted = False
 
         super(ContinuousIntervalTree, self).__init__()
 
@@ -418,107 +418,6 @@ class _TreeNode:
         else:
             return self.leaf_distribution
 
-    def predict_proba_cif(self, X, c22, intervals, dims, atts, n_classes):
-        if self.best_split > -1:
-            interval = int(self.best_split / len(atts))
-            att = self.best_split % len(atts)
-            value = _drcif_feature(
-                X, intervals[interval], dims[interval], atts[att], c22
-            )
-            value = value.round(8)
-            value = np.nan_to_num(value, False, posinf=np.nan, neginf=np.nan)
-
-            if value <= self.best_threshold:
-                return self.children[0].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            elif value > self.best_threshold:
-                return self.children[1].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            else:
-                return self.children[2].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-        else:
-            return self.leaf_distribution
-
-    def predict_proba_drcif(
-        self,
-        X,
-        c22,
-        n_intervals,
-        intervals,
-        dims,
-        atts,
-        n_classes,
-    ):
-        if self.best_split > -1:
-            rep = -1
-            rep_sum = 0
-            for i in range(len(X)):
-                rep_sum += n_intervals[i] * len(atts)
-                if self.best_split < rep_sum:
-                    rep = i
-                    break
-
-            interval = int(self.best_split / len(atts))
-            att = self.best_split % len(atts)
-
-            value = _drcif_feature(
-                X[rep], intervals[interval], dims[interval], atts[att], c22
-            )
-            value = value.round(8)
-            value = np.nan_to_num(value, False, posinf=np.nan, neginf=np.nan)
-
-            if value <= self.best_threshold:
-                return self.children[0].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            elif value > self.best_threshold:
-                return self.children[1].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            else:
-                return self.children[2].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-        else:
-            return self.leaf_distribution
-
     @staticmethod
     @njit(fastmath=True, cache=True)
     def information_gain(X, y, attribute, threshold, parent_entropy, n_classes):
@@ -610,33 +509,3 @@ def _entropy(x, s):
         p = i / s if s > 0 else 0
         e += -(p * math.log(p) / 0.6931471805599453) if p > 0 else 0
     return e
-
-
-def _drcif_feature(X, interval, dim, att, c22, case_id=None):
-    if att > 21:
-        return _summary_stat(X[:, dim, interval[0] : interval[1]], att)
-    else:
-        return c22._transform_single_feature(
-            X[:, dim, interval[0] : interval[1]], att, case_id=case_id
-        )
-
-
-def _summary_stat(X, att):
-    if att == 22:
-        function = mean
-    elif att == 23:
-        function = std
-    elif att == 24:
-        function = slope
-    elif att == 25:
-        function = np.median
-    elif att == 26:
-        function = iqr
-    elif att == 27:
-        function = numba_min
-    elif att == 28:
-        function = numba_max
-    else:
-        raise ValueError("Invalid summary stat ID.")
-
-    return np.array([function(i) for i in X])
