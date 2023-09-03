@@ -230,56 +230,6 @@ class ContinuousIntervalTree(BaseEstimator):
             dists[i] = self._root.predict_proba(X[i], self.n_classes_)
         return dists
 
-    def _predict_proba_cif(self, X, c22, intervals, dims, atts):
-        """Embedded predict proba for the CIF classifier."""
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-        n_instances, n_dims, series_length = X.shape
-
-        dists = np.zeros((n_instances, self.n_classes_))
-        for i in range(n_instances):
-            dists[i] = self._root.predict_proba_cif(
-                X[i].reshape((1, n_dims, series_length)),
-                c22,
-                intervals,
-                dims,
-                atts,
-                self.n_classes_,
-            )
-        return dists
-
-    def _predict_proba_drcif(
-        self, X, X_p, X_d, c22, n_intervals, intervals, dims, atts
-    ):
-        """Embedded predict proba for the DrCIF classifier."""
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-        n_instances, n_dims, series_length = X.shape
-
-        dists = np.zeros((n_instances, self.n_classes_))
-        for i in range(n_instances):
-            r = [
-                X[i].reshape((1, n_dims, series_length)),
-                X_p[i].reshape((1, n_dims, X_p.shape[2])),
-                X_d[i].reshape((1, n_dims, X_d.shape[2])),
-            ]
-            dists[i] = self._root.predict_proba_drcif(
-                r,
-                c22,
-                n_intervals,
-                intervals,
-                dims,
-                atts,
-                self.n_classes_,
-            )
-        return dists
-
     def tree_node_splits_and_gain(self):
         """Recursively find the split and information gain for each tree node."""
         splits = []
