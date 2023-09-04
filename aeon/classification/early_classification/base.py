@@ -32,13 +32,25 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
+from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseEstimator
 from aeon.classification import BaseClassifier
+from aeon.utils.validation.collection import (
+    convert_collection,
+    get_n_cases,
+    has_missing,
+    is_equal_length,
+    is_univariate,
+    resolve_equal_length_inner_type,
+    resolve_unequal_length_inner_type,
+)
 
 
 class BaseEarlyClassifier(BaseEstimator, ABC):
-    """Abstract base class for early time series classifiers.
+    """
+    Abstract base class for early time series classifiers.
 
     The base classifier specifies the methods and method signatures that all
     early classifiers have to implement. Attributes with an underscore suffix are set in
@@ -46,12 +58,18 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
 
     Parameters
     ----------
-    classes_            : ndarray of class labels, possibly strings
-    n_classes_          : integer, number of classes (length of classes_)
-    fit_time_           : integer, time (in milliseconds) for fit to run.
-    _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _n_jobs     : number of threads to use in fit as determined by n_jobs.
-    state_info          : An array containing the state info for each decision in X.
+    classes_ : np.ndarray
+        Class labels, possibly strings.
+    n_classes_ : int
+        Number of classes (length of classes_).
+    fit_time_ : int
+        Time (in milliseconds) for fit to run.
+    _class_dictionary : dict
+        dictionary mapping classes_ onto integers 0...n_classes_-1.
+    _n_jobs : int, default=1
+        Number of threads to use in fit as determined by n_jobs.
+    state_info : array-like, default=None
+        An array containing the state info for each decision in X.
     """
 
     _tags = {
@@ -141,7 +159,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._predict(X)
 
@@ -180,7 +199,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         if self.state_info is None:
             return self._predict(X)
@@ -220,7 +240,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._predict_proba(X)
 
@@ -261,7 +282,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         if self.state_info is None:
             return self._predict_proba(X)
@@ -289,7 +311,8 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         self.check_is_fitted()
 
         # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
+        self._check_X(X)
+        X = self._convert_X(X)
 
         return self._score(X, y)
 
@@ -560,23 +583,6 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         _check_capabilities = BaseClassifier._check_capabilities
         return _check_capabilities(self, missing, multivariate, unequal)
 
-    def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
-
-        Parameters
-        ----------
-        self : this classifier
-        X : pd.DataFrame or np.ndarray. Input attribute data
-
-        Returns
-        -------
-        X : input X converted to type in "X_inner_mtype" tag
-                usually a 3D np.ndarray
-            Checked and possibly converted input data
-        """
-        _convert_X = BaseClassifier._convert_X
-        return _convert_X(self, X)
-
     def _check_classifier_input(self, X, y=None, enforce_min_cases=1):
         """Check whether input X and y are valid formats with minimum data.
 
@@ -619,3 +625,87 @@ class BaseEarlyClassifier(BaseEstimator, ABC):
         """
         _internal_convert = BaseClassifier._internal_convert
         return _internal_convert(self, X, y)
+
+    def _check_X(self, X):
+        """To follow."""
+        metadata = _get_metadata(X)
+        # Check classifier capabilities for X
+        allow_multivariate = self.get_tag("capability:multivariate")
+        allow_missing = self.get_tag("capability:missing_values")
+        allow_unequal = self.get_tag("capability:unequal_length")
+
+        # Check capabilities vs input
+        problems = []
+        if metadata["missing_values"] and not allow_missing:
+            problems += ["missing values"]
+        if metadata["multivariate"] and not allow_multivariate:
+            problems += ["multivariate series"]
+        if metadata["unequal_length"] and not allow_unequal:
+            problems += ["unequal length series"]
+
+        if problems:
+            # construct error message
+            problems_and = " and ".join(problems)
+            problems_or = " or ".join(problems)
+            msg = (
+                f"Data seen by instance of {type(self).__name__} has {problems_and}, "
+                f"but {type(self).__name__} cannot handle {problems_or}. "
+            )
+            raise ValueError(msg)
+        return metadata
+
+    def _convert_X(self, X):
+        """Docstring to follow."""
+        # Convert X to X_inner_mtype if possible
+        inner_type = self.get_tag("X_inner_mtype")
+        if type(inner_type) == list:
+            # If self can handle more than one internal type, resolve correct conversion
+            # If unequal, choose data structure that can hold unequal
+            if self.metadata_["unequal_length"]:
+                inner_type = resolve_unequal_length_inner_type(inner_type)
+            else:
+                inner_type = resolve_equal_length_inner_type(inner_type)
+        X = convert_collection(X, inner_type)
+        return X
+
+    def _check_y(self, y, n_cases):
+        # Check y valid input
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise ValueError(
+                f"y must be a np.ndarray or a pd.Series, but found type: {type(y)}"
+            )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise ValueError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        # Check matching number of labels
+        n_labels = y.shape[0]
+        if n_cases != n_labels:
+            raise ValueError(
+                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
+                f"{n_labels}"
+            )
+        y_type = type_of_target(y)
+        if y_type != "binary" and y_type != "multiclass":
+            raise ValueError(
+                f"y type is {y_type} which is not valid for classification. "
+                f"Should be binary or multiclass occording to type_of_target"
+            )
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
+        # remember class labels
+        self.classes_ = np.unique(y)
+        self.n_classes_ = self.classes_.shape[0]
+        self._class_dictionary = {}
+        for index, class_val in enumerate(self.classes_):
+            self._class_dictionary[class_val] = index
+        return y
+
+
+def _get_metadata(X):
+    # Get and store X meta data.
+    metadata = {}
+    metadata["multivariate"] = not is_univariate(X)
+    metadata["missing_values"] = has_missing(X)
+    metadata["unequal_length"] = not is_equal_length(X)
+    metadata["n_cases"] = get_n_cases(X)
+
+    return metadata

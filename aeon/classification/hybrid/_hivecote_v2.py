@@ -18,12 +18,13 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
-from aeon.classification.interval_based._drcif import DrCIF
+from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV2(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
     An ensemble of the STC, DrCIF, Arsenal and TDE classifiers from different feature
     representations using the CAWPE structure as described in [1].
@@ -85,6 +86,7 @@ class HIVECOTEV2(BaseClassifier):
     See Also
     --------
     HIVECOTEV1, ShapeletTransformClassifier, DrCIF, Arsenal, TemporalDictionaryEnsemble
+        Components of HIVECOTE.
 
     Notes
     -----
@@ -211,7 +213,7 @@ class HIVECOTEV2(BaseClassifier):
             print("STC weight = " + str(self.stc_weight_))  # noqa
 
         # Build DrCIF
-        self._drcif = DrCIF(
+        self._drcif = DrCIFClassifier(
             **self._drcif_params,
             save_transformed_data=True,
             random_state=self.random_state,

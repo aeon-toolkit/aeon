@@ -3,7 +3,7 @@
 
 from sklearn.pipeline import Pipeline
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.signature_based._augmentations import (
     _make_augmentation_pipeline,
 )
@@ -12,7 +12,7 @@ from aeon.transformations.collection.signature_based._compute import (
 )
 
 
-class SignatureTransformer(BaseTransformer):
+class SignatureTransformer(BaseCollectionTransformer):
     """Transformation class from the signature method.
 
     Follows the methodology laid out in the paper:

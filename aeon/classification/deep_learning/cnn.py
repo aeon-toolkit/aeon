@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -14,76 +15,68 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.cnn import CNNNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class CNNClassifier(BaseDeepClassifier):
-    """Time Convolutional Neural Network (CNN), as described in [1]_.
+    """
+    Time Convolutional Neural Network (CNN), as described in [1]_.
 
     Parameters
     ----------
-    n_layers        : int, default = 2,
-        the number of convolution layers in the network
-    kernel_size    : int or list of int, default = 7,
-        kernel size of convolution layers, if not a list, the same kernel size
-        is used for all layer, len(list) should be n_layers
-    n_filters       : int or list of int, default = [6, 12],
-        number of filters for each convolution layer, if not a list, the same n_filters
+    n_layers : int, default = 2
+        The number of convolution layers in the network.
+    kernel_size : int or list of int, default = 7
+        Kernel size of convolution layers, if not a list, the same kernel size
+        is used for all layer, len(list) should be n_layers.
+    n_filters : int or list of int, default = [6, 12]
+        Number of filters for each convolution layer, if not a list, the same n_filters
         is used in all layers.
-    avg_pool_size   : int or list of int, default = 3,
-        the size of the average pooling layer, if not a list, the same
-        max pooling size is used
-        for all convolution layer
-    activation      : str or list of str, default = "sigmoid",
-        keras activation function used in the model for each layer,
-        if not a list, the same
-        activation is used for all layers
-    padding         : str or list of str, default = 'valid',
-        the method of padding in convolution layers, if not a list,
-        the same padding used
-        for all convolution layers
-    strides         : int or list of int, default = 1,
-        the strides of kernels in the convolution and max pooling layers,
-        if not a list, the same strides are used for all layers
-    dilation_rate   : int or list of int, default = 1,
-        the dilation rate of the convolution layers, if not a list,
-        the same dilation rate is used all over the network
-    use_bias        : bool or list of bool, default = True,
-        condition on wether or not to use bias values for convolution layers,
-        if not a list, the same condition is used for all layers
-    random_state    : int, default = 0
-        seed to any needed random actions
-    n_epochs       : int, default = 2000
-        the number of epochs to train the model
-    batch_size      : int, default = 16
-        the number of samples per gradient update.
-    verbose         : boolean, default = False
-        whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : list of strings, default=["accuracy"],
-    callbacks       : keras.callbacks, default=model_checkpoint to save best
-                      model on training loss
-    file_path       : file_path for the best model (if checkpoint is used as callback)
-    save_best_model     : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model     : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
-    best_file_name      : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name      : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
+    avg_pool_size : int or list of int, default = 3
+        The size of the average pooling layer, if not a list, the same
+        max pooling size is used for all convolution layer.
+    activation : str or list of str, default = "sigmoid"
+        Keras activation function used in the model for each layer, if not a list,
+        the same activation is used for all layers.
+    padding : str or list of str, default = 'valid'
+        The method of padding in convolution layers, if not a list, the same padding
+        used for all convolution layers.
+    strides : int or list of int, default = 1
+        The strides of kernels in the convolution and max pooling layers, if not a
+        list, the same strides are used for all layers.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate of the convolution layers, if not a list, the same dilation
+        rate is used all over the network.
+    use_bias : bool or list of bool, default = True
+        Condition on whether to use bias values for convolution layers,
+        if not a list, the same condition is used for all layers.
+    random_state : int, default = 0
+        Seed to any needed random actions.
+    n_epochs : int, default = 2000
+        The number of epochs to train the model.
+    batch_size : int, default = 16
+        The number of samples per gradient update.
+    verbose : boolean, default = False
+        Whether to output extra information.
+    loss : string, default="mean_squared_error"
+        Fit parameter for the keras model.
+    optimizer : keras.optimizer, default=keras.optimizers.Adam()
+    metrics : list of strings, default=["accuracy"]
+    callbacks : keras.callbacks, default=model_checkpoint
+        To save best model on training loss.
+    file_path : file_path for the best model
+        Only used if checkpoint is used as callback.
+    save_best_model : bool, default = False
+        Whether to save the best model, if the modelcheckpoint callback is used by
+        default, this condition, if True, will prevent the automatic deletion of the
+        best saved model from file and the user can choose the file name.
+    save_last_model : bool, default = False
+        Whether to save the last model, last epoch trained, using the base class method
+        save_last_model_to_file.
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if save_best_model is set to False,
+        this parameter is discarded.
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if save_last_model is set to False,
+        this parameter is discarded.
 
     Notes
     -----
@@ -288,6 +281,7 @@ class CNNClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod

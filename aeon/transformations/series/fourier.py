@@ -3,7 +3,6 @@
 """Fourier features for time series with long/complex seasonality."""
 
 __author__ = ["ltsaprounis"]
-
 import warnings
 from distutils.log import warn
 from typing import List, Optional, Union
@@ -14,8 +13,6 @@ import pandas as pd
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: Change the default value of `keep_original_columns` from True to False
-# and remove the warning in v0.17.0
 class FourierFeatures(BaseTransformer):
     r"""Fourier Features for time series seasonality.
 
@@ -40,9 +37,9 @@ class FourierFeatures(BaseTransformer):
     Parameters
     ----------
     sp_list : List[Union[int, float]]
-        list of seasonal periods
+        List of seasonal periods.
     fourier_terms_list : List[int]
-        list of number of fourier terms (K) for each seasonal period.
+        List of number of fourier terms (K) for each seasonal period.
         Each K matches to the sp (seasonal period) of the sp_list.
         For example, if sp_list = [7, 365] and fourier_terms_list = [3, 9], the seasonal
         frequency of 7 will have 3 fourier terms and the seasonal frequency of 365
@@ -52,8 +49,8 @@ class FourierFeatures(BaseTransformer):
         Specifies the frequency of the index of your data. The string should
         match a pandas offset alias:
         https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
-    keep_original_columns :  boolean, optional, default=True
-        Keep original columns in X passed to `.transform()`
+    keep_original_columns :  boolean, default=False
+        Keep original columns in X passed to `.transform()`.
 
     References
     ----------
@@ -119,15 +116,6 @@ class FourierFeatures(BaseTransformer):
         self.fourier_terms_list = fourier_terms_list
         self.freq = freq
         self.keep_original_columns = keep_original_columns
-
-        warnings.warn(
-            "Currently the default value of `keep_original_columns\n"
-            " is `True`. In future releases this will be changed \n"
-            " to `False`. To keep the current behaviour explicitly \n"
-            " set `keep_original_columns=True`.",
-            FutureWarning,
-        )
-
         if len(self.sp_list) != len(self.fourier_terms_list):
             raise ValueError(
                 "In FourierFeatures the length of the sp_list needs to be equal "
@@ -150,14 +138,14 @@ class FourierFeatures(BaseTransformer):
         Parameters
         ----------
         X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
-            Data to fit transform to
+            If X_inner_mtype is list, _fit must support all types in it
+            Data to fit transform to.
         y : Series or Panel of mtype y_inner_mtype, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
         freq : str, optional, default = None
             Only used when X has a pd.DatetimeIndex without a specified frequency.
             Specifies the frequency of the index of your data. The string should
-            match a pandas offset alias:
+            match a pandas offset alias.
             https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
 
         Returns
@@ -178,7 +166,8 @@ class FourierFeatures(BaseTransformer):
                     warnings.warn(
                         f"The terms sin_{sp}_{k} and cos_{sp}_{k} from FourierFeatures "
                         "will be skipped because the resulting coefficient already "
-                        "exists from other seasonal period, fourier term pairs."
+                        "exists from other seasonal period, fourier term pairs.",
+                        stacklevel=2,
                     )
 
         time_index = X.index
@@ -209,14 +198,14 @@ class FourierFeatures(BaseTransformer):
         Parameters
         ----------
         X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
-            Data to be transformed
+            If X_inner_mtype is list, _transform must support all types in it
+            Data to be transformed.
         y : Series or Panel of mtype y_inner_mtype, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
-        transformed version of X
+        transformed version of X.
         """
         X_transformed = pd.DataFrame(index=X.index)
         time_index = X.index
@@ -256,7 +245,7 @@ class FourierFeatures(BaseTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         params = [
             {"sp_list": [12], "fourier_terms_list": [4]},

@@ -64,7 +64,7 @@ class RandomIntervalRegressor(BaseRegressor):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -138,7 +138,7 @@ class RandomIntervalRegressor(BaseRegressor):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,

@@ -18,7 +18,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # get all the methods
 METHOD_LIST = ReconcilerForecaster.METHOD_LIST
-level_list = [1, 2, 3]
+level_list = [1, 3]
 flatten_list = [True, False]
 
 

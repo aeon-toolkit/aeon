@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -15,8 +16,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.inception import InceptionNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class InceptionTimeClassifier(BaseClassifier):
@@ -47,7 +46,7 @@ class InceptionTimeClassifier(BaseClassifier):
             module, if not a list,
             the same is used in all inception modules
         use_max_pooling     : bool or list of bool, default = True,
-            conditioning wether or not to use max pooling layer
+            conditioning whether or not to use max pooling layer
             in inception modules,if not a list,
             the same is used in all inception modules
         max_pool_size       : int or list of int, default = 3,
@@ -70,34 +69,34 @@ class InceptionTimeClassifier(BaseClassifier):
             module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
-            conditioning wether or not convolutions should
+            conditioning whether or not convolutions should
             use bias values in each inception
             module, if not a list,
             the same is used in all inception modules
-        use_residual        : bool, default = True,
-            condition wether or not to use residual
+        use_residual : bool, default = True,
+            condition whether or not to use residual
             connections all over Inception
-        use_bottleneck      : bool, default = True,
-            confition wether or not to use bottlesnecks
+        use_bottleneck : bool, default = True,
+            condition whether or not to use bottlenecks
             all over Inception
-        bottleneck_size     : int, default = 32,
+        bottleneck_size : int, default = 32,
             the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = True,
-            condition on wether or not to use custom
+        use_custom_filters : bool, default = True,
+            condition on whether or not to use custom
             filters in the first inception module
-        batch_size          : int, default = 64
+        batch_size : int, default = 64
             the number of samples per gradient update.
         use_mini_batch_size : bool, default = False
             condition on using the mini batch size
             formula Wang et al.
-        n_epochs           : int, default = 1500
+        n_epochs : int, default = 1500
             the number of epochs to train the model.
-        callbacks           : callable or None, default
+        callbacks : callable or None, default
         ReduceOnPlateau and ModelCheckpoint
             list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = "./"
+        file_path : str, default = "./"
             file_path when saving model_Checkpoint callback
-        save_best_model     : bool, default = False
+        save_best_model : bool, default = False
             Whether or not to save the best model, if the
             modelcheckpoint callback is used by default,
             this condition, if True, will prevent the
@@ -141,11 +140,22 @@ class InceptionTimeClassifier(BaseClassifier):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> inctime = InceptionTimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X_train, y_train)  # doctest: +SKIP
+    InceptionTimeClassifier(...)
     """
 
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
+        "non-deterministic": True,
+        "cant-pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -273,6 +283,7 @@ class InceptionTimeClassifier(BaseClassifier):
             )
             cls.fit(X, y)
             self.classifers_.append(cls)
+            gc.collect()
 
         return self
 
@@ -349,7 +360,8 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
-            "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -372,7 +384,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the head kernel size used for each inception module, if not a list,
             the same is used in all inception modules
         use_max_pooling     : bool or list of bool, default = True,
-            conditioning wether or not to use max pooling layer
+            conditioning whether or not to use max pooling layer
             in inception modules,if not a list,
             the same is used in all inception modules
         max_pool_size       : int or list of int, default = 3,
@@ -393,18 +405,18 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             the activation function used in each inception module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
-            conditioning wether or not convolutions should
+            conditioning whether or not convolutions should
             use bias values in each inception
             module, if not a list,
             the same is used in all inception modules
         use_residual        : bool, default = True,
-            condition wether or not to use residual connections all over Inception
+            condition whether or not to use residual connections all over Inception
         use_bottleneck      : bool, default = True,
-            confition wether or not to use bottlesnecks all over Inception
+            confition whether or not to use bottlenecks all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
         use_custom_filters  : bool, default = True,
-            condition on wether or not to use custom filters
+            condition on whether or not to use custom filters
             in the first inception module
         batch_size          : int, default = 64
             the number of samples per gradient update.
@@ -457,6 +469,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X_train, y_train)  # doctest: +SKIP
+    IndividualInceptionClassifier(...)
     """
 
     def __init__(
@@ -667,6 +689,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -697,6 +720,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]

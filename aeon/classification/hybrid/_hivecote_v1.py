@@ -19,14 +19,15 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
 from aeon.classification.interval_based import (
-    RandomIntervalSpectralEnsemble,
+    RandomIntervalSpectralEnsembleClassifier,
     TimeSeriesForestClassifier,
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV1(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
     An ensemble of the STC, TSF, RISE and cBOSS classifiers from different feature
     representations using the CAWPE structure as described in [1]_. The default
@@ -66,7 +67,6 @@ class HIVECOTEV1(BaseClassifier):
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
-
     Attributes
     ----------
     n_classes_ : int
@@ -84,8 +84,11 @@ class HIVECOTEV1(BaseClassifier):
 
     See Also
     --------
-    HIVECOTEV2, ShapeletTransformClassifier, TimeSeriesForestClassifier,
+    ShapeletTransformClassifier, TimeSeriesForestClassifier,
     RandomIntervalSpectralForest, ContractableBOSS
+        All components of HIVECOTE.
+    HIVECOTEV2
+        Successor to HIVECOTEV1.
 
     Notes
     -----
@@ -232,7 +235,7 @@ class HIVECOTEV1(BaseClassifier):
             print("TSF weight = " + str(self.tsf_weight_))  # noqa
 
         # Build RISE
-        self._rise = RandomIntervalSpectralEnsemble(
+        self._rise = RandomIntervalSpectralEnsembleClassifier(
             **self._rise_params,
             random_state=self.random_state,
             n_jobs=self._n_jobs,
@@ -244,7 +247,7 @@ class HIVECOTEV1(BaseClassifier):
 
         # Find RISE weight using train set estimate found through CV
         train_preds = cross_val_predict(
-            RandomIntervalSpectralEnsemble(
+            RandomIntervalSpectralEnsembleClassifier(
                 **self._rise_params,
                 random_state=self.random_state,
             ),

@@ -4,6 +4,7 @@
 __author__ = ["AurumnPegasus", "achieveordie", "hadifawaz1999"]
 __all__ = ["CNNRegressor"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -13,8 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.networks.cnn import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class CNNRegressor(BaseDeepRegressor):
@@ -51,7 +50,7 @@ class CNNRegressor(BaseDeepRegressor):
         the dilation rate of the convolution layers, if not a list,
         the same dilation rate is used all over the network
     use_bias        : bool or list of bool, default = True,
-        condition on wether or not to use bias values for convolution layers,
+        condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
     random_state    : int, default = 0
         seed to any needed random actions
@@ -281,6 +280,7 @@ class CNNRegressor(BaseDeepRegressor):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
