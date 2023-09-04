@@ -91,7 +91,6 @@ class ContinuousIntervalTree(BaseEstimator):
         self.max_depth = max_depth
         self.thresholds = thresholds
         self.random_state = random_state
-        self._is_fitted = False
 
         super(ContinuousIntervalTree, self).__init__()
 
@@ -205,7 +204,7 @@ class ContinuousIntervalTree(BaseEstimator):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
