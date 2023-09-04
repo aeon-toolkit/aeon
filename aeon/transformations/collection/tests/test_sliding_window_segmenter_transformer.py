@@ -7,7 +7,7 @@ __authors__ = ["mloning"]
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.segment import SlidingWindowSegmenter
+from aeon.transformations.series.segment import SlidingWindowSegmenter
 
 
 # Check that exception is raised for bad window length.

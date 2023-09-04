@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """Slope transformer."""
+
+__all__ = ["SlopeTransformer"]
+__author__ = ["mloning"]
+
 import math
 import statistics
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
-
-__all__ = ["SlopeTransformer"]
-__author__ = ["mloning"]
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class SlopeTransformer(BaseTransformer):
+class SlopeTransformer(BaseCollectionTransformer):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series. Numpy
@@ -43,7 +44,7 @@ class SlopeTransformer(BaseTransformer):
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super(SlopeTransformer, self).__init__(_output_convert=False)
+        super(SlopeTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

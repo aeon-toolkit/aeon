@@ -762,7 +762,7 @@ class PlateauFinder(BaseTransformer):
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
-        super(PlateauFinder, self).__init__(_output_convert=False)
+        super(PlateauFinder, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X.
