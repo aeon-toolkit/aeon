@@ -24,7 +24,6 @@ __all__ = [
     "SlidingWindowSegmenter",
     "RandomShapeletTransform",
     "RandomDilatedShapeletTransform",
-    "ShapeletTransform",
     "SlopeTransformer",
     "SevenNumberSummaryTransformer",
     "SupervisedIntervals",
@@ -45,9 +44,6 @@ from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
 )
-from aeon.transformations.collection.dilated_shapelet_transform import (
-    RandomDilatedShapeletTransform,
-)
 from aeon.transformations.collection.dwt import DWTTransformer
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.interpolate import TSInterpolator
@@ -59,8 +55,8 @@ from aeon.transformations.collection.reduce import Tabularizer, TimeBinner
 from aeon.transformations.collection.scaler import TimeSeriesScaler
 from aeon.transformations.collection.segment import SlidingWindowSegmenter
 from aeon.transformations.collection.shapelet_transform import (
+    RandomDilatedShapeletTransform,
     RandomShapeletTransform,
-    ShapeletTransform,
 )
 from aeon.transformations.collection.slope import SlopeTransformer
 from aeon.transformations.collection.summary import SevenNumberSummaryTransformer
