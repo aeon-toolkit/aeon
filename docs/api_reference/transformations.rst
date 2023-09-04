@@ -58,20 +58,13 @@ Pipeline building
     TransformerPipeline
     FeatureUnion
     ColumnwiseTransformer
+    ColumnTransformer
     FitInTransform
     MultiplexTransformer
     OptionalPassthrough
     InvertTransform
     Id
     YtoX
-
-.. currentmodule:: aeon.transformations.collection.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnTransformer
 
 .. currentmodule:: aeon.transformations.series.func_transform
 
@@ -123,17 +116,9 @@ These transformers extract simple summary features.
 
     SummaryTransformer
     WindowSummarizer
-
-.. currentmodule:: aeon.transformations.collection.summarize
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DerivativeSlopeTransformer
     PlateauFinder
-    RandomIntervalFeatureExtractor
     FittedParamExtractor
+
 
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,7 +140,7 @@ Shapelets, wavelets, and convolution
 
     RandomDilatedShapeletTransform
 
-.. currentmodule:: aeon.transformations.collection.rocket
+.. currentmodule:: aeon.transformations.collection.convolution_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -471,7 +456,7 @@ Multivariate-to-univariate
 
 These transformers convert multivariate series to univariate.
 
-.. currentmodule:: aeon.transformations.collection.compose
+.. currentmodule:: aeon.transformations.compose
 
 .. autosummary::
     :toctree: auto_generated/

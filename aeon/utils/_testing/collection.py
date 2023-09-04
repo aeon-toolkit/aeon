@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_random_state
 
-from aeon.datatypes import convert
+from aeon.utils.validation.collection import convert_collection
 
 
 def make_3d_test_data(
@@ -263,7 +263,7 @@ def _make_collection(
     if all_positive:
         X = X**2
 
-    X = convert(X, from_type="numpy3D", to_type=return_type)
+    X = convert_collection(X, return_type)
     return X
 
 

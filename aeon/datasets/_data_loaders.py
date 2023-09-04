@@ -430,7 +430,7 @@ def _load_tsc_dataset(
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -721,6 +721,7 @@ def load_from_arff_file(
     is_multi_variate = False
     is_first_case = True
     n_cases = 0
+    n_channels = 1
     with open(full_file_path_and_name, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
@@ -736,7 +737,6 @@ def load_from_arff_file(
                     continue
                 # if the 'data tag has been found, the header information
                 # has been cleared and now data can be loaded
-                n_channels = 1
                 if data_started:
                     line = line.replace("?", replace_missing_vals_with)
 
@@ -752,8 +752,8 @@ def load_from_arff_file(
                         elif len(channels) != n_channels:
                             raise ValueError(
                                 f" Number of channels not equal in "
-                                f"dataset, first case had {n_channels} "
-                                f"but {n_cases+1} case hase "
+                                f"dataset, first case had {n_channels} channel "
+                                f"but case number {n_cases+1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -1089,7 +1089,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     from aeon.datasets.tsf_data_lists import tsf_all
 
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -1176,7 +1176,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     from aeon.datasets.tser_data_lists import tser_all
 
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -1294,7 +1294,7 @@ def download_all_regression(extract_path=None):
         where to download the fip file. If none, it goes in
     """
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE

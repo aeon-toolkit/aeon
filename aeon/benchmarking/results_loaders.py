@@ -47,6 +47,14 @@ NAME_ALIASES = {
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
     "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
+    "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed"},
+    "kmeans-dtw": {"dtw-kmeans", "k-means-dtw"},
+    "kmeans-msm": {"msm-kmeans", "k-means-msm"},
+    "kmeans-twe": {"msm-kmeans", "k-means-msm"},
+    "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed"},
+    "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw"},
+    "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm"},
+    "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe"},
 }
 
 
@@ -72,7 +80,7 @@ def estimator_alias(name: str) -> str:
     for name_key in NAME_ALIASES.keys():
         if name in NAME_ALIASES[name_key]:
             return name_key
-    raise ValueError(f"Unknown classifier name {name}")
+    raise ValueError(f"Unknown estimator name {name}")
 
 
 def get_available_estimators(task="classification") -> pd.DataFrame:

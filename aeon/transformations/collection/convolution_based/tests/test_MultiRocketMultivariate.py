@@ -7,7 +7,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_basic_motions
-from aeon.transformations.collection.rocket import MultiRocketMultivariate
+from aeon.transformations.collection.convolution_based import MultiRocketMultivariate
 
 
 def test_multirocket_multivariate_on_basic_motions():

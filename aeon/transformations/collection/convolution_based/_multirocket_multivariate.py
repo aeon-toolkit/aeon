@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class MultiRocketMultivariate(BaseTransformer):
+class MultiRocketMultivariate(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
     MultiRocket [1]_ is uses the same set of kernels as MiniRocket on both the raw
@@ -58,7 +58,9 @@ class MultiRocketMultivariate(BaseTransformer):
 
     Examples
     --------
-     >>> from aeon.transformations.collection.rocket import MultiRocketMultivariate
+    >>> from aeon.transformations.collection.convolution_based import (
+    ...     MultiRocketMultivariate
+    ... )
      >>> from aeon.datasets import load_basic_motions
      >>> X_train, y_train = load_basic_motions(split="train")
      >>> X_test, y_test = load_basic_motions(split="test")
@@ -70,15 +72,8 @@ class MultiRocketMultivariate(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": False,
         "fit_is_empty": False,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
     }
 
     def __init__(
