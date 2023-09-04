@@ -355,7 +355,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         # minimum interval length
         if isinstance(self.min_interval_length, int):
             self._min_interval_length = [self.min_interval_length] * len(Xt)
-        # min_interval_length must be at less than one if it is a float (proportion of
+        # min_interval_length must be less than one if it is a float (proportion of
         # of the series length)
         elif (
             isinstance(self.min_interval_length, float)
