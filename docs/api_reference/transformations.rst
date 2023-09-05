@@ -123,21 +123,13 @@ These transformers extract simple summary features.
 Shapelets, wavelets, and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.shapelet_transform
+.. currentmodule:: aeon.transformations.collection.shapelet_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    ShapeletTransform
     RandomShapeletTransform
-
-.. currentmodule:: aeon.transformations.collection.dilated_shapelet_transform
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
     RandomDilatedShapeletTransform
 
 .. currentmodule:: aeon.transformations.collection.convolution_based
