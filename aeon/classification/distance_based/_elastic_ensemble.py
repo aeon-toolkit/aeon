@@ -244,13 +244,13 @@ class ElasticEnsemble(BaseClassifier):
                     or self._distance_measures[dm] == "wddtw"
                 ):
                     print(  # noqa: T201
-                        f"Currently evaluating{self._distance_measures[dm].__name__} "
-                        f"implemented as {this_measure.__name__} with pre-transformed "
+                        f"Currently evaluating{self._distance_measures[dm]} "
+                        f"implemented as {this_measure} with pre-transformed "
                         f"derivative data)"
                     )
                 else:
                     print(  # noqa: T201
-                        "Currently evaluating {self._distance_measures[dm].__name__}"
+                        "Currently evaluating {self._distance_measures[dm]}"
                     )
 
             # If 100 parameter options are being considered per measure,
@@ -311,7 +311,7 @@ class ElasticEnsemble(BaseClassifier):
 
             if self.verbose > 0:
                 print(  # noqa: T201
-                    f"Training acc for {self._distance_measures[dm].__name__}: {acc}"
+                    f"Training acc for {self._distance_measures[dm]}: {acc}"
                 )
 
             # Finally, reset the classifier for this measure and parameter
@@ -375,7 +375,7 @@ class ElasticEnsemble(BaseClassifier):
         output_probas = np.divide(output_probas, train_sum)
         return output_probas
 
-    def _predict(self, X, return_preds_and_probas=False) -> np.ndarray:
+    def _predict(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
 
         Parameters
@@ -392,17 +392,12 @@ class ElasticEnsemble(BaseClassifier):
         probas = self._predict_proba(X)
         idx = np.argmax(probas, axis=1)
         preds = np.asarray([self.classes_[x] for x in idx])
-        if return_preds_and_probas is False:
-            return preds
-        else:
-            return preds, probas
+        return preds
 
     def get_metric_params(self):
         """Return the parameters for the distance metrics used."""
         return {
-            self._distance_measures[dm].__name__: str(
-                self.estimators_[dm].metric_params
-            )
+            self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
             for dm in range(len(self.estimators_))
         }
 
@@ -451,6 +446,9 @@ class ElasticEnsemble(BaseClassifier):
                     {"c": x} for x in np.concatenate([a, b[1:], c[1:], d[1:]])
                 ]
             }
+        if distance_measure == "euclidean":
+            return None
+
         # elif distance_measure == twe_distance
         else:
             raise NotImplementedError(

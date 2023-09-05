@@ -67,9 +67,26 @@ def test__get_hog_transformer():
     params = {"scaling_factor_hog1d": 0.5}
     hog = s._get_hog_transformer(params)
     assert hog.scaling_factor == 0.5
-    params = {"num_bins": 5}
+    params = {"num_bins_hog1d": 5}
     hog = s._get_hog_transformer(params)
     assert hog.n_bins == 5
-    params = {"num_intervals": 4}
+    params = {"num_intervals_hog1d": 4}
     hog = s._get_hog_transformer(params)
-    assert hog.num_intervals == 4
+    assert hog.n_intervals == 4
+    # Two set
+    params = {"scaling_factor_hog1d": 0.25, "num_bins_hog1d": 3}
+    hog = s._get_hog_transformer(params)
+    assert hog.scaling_factor == 0.25 and hog.n_bins == 3
+    params = {"scaling_factor_hog1d": 0.35, "num_intervals_hog1d": 3}
+    hog = s._get_hog_transformer(params)
+    assert hog.scaling_factor == 0.35 and hog.n_intervals == 3
+    params = {"num_bins_hog1d": 4, "num_intervals_hog1d": 3}
+    hog = s._get_hog_transformer(params)
+    assert hog.n_bins == 4 and hog.n_intervals == 3
+    params = {
+        "scaling_factor_hog1d": 0.6,
+        "num_bins_hog1d": 4,
+        "num_intervals_hog1d": 3,
+    }
+    hog = s._get_hog_transformer(params)
+    assert hog.n_bins == 4 and hog.n_intervals == 3 and hog.scaling_factor == 0.6
