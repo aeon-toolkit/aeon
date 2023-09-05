@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 from numpy.random import RandomState
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
+from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -79,7 +79,7 @@ class TimeSeriesKShapes(BaseClusterer):
 
         super(TimeSeriesKShapes, self).__init__(n_clusters=n_clusters)
 
-    def _fit(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
@@ -115,7 +115,7 @@ class TimeSeriesKShapes(BaseClusterer):
         self.inertia_ = self._tslearn_k_shapes.inertia_
         self.n_iter_ = self._tslearn_k_shapes.n_iter_
 
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
