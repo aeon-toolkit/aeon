@@ -33,11 +33,15 @@ and engage with topics or code they are knowledgeable about.
 
 New core developers are nominated by existing core developers and are subject to a
 two-thirds majority vote of existing core developers. Core developers are expected to
-maintain a reasonable amount of engagement with the project. Core developers who no
-longer want or are able to engage with the project are expected to resign, but may lose
-their role after a long period of inactivity and lack of engagement with fellow
-developers if they neglect to do so. Developing code, interacting with contributions and
-engaging with the broader community are all valid contributions for core developers.
+maintain a reasonable amount of engagement with the project. Developing code,
+interacting with contributions and engaging with the broader community are all valid
+contributions for core developers.
+
+Core developers who no longer want or are able to engage with the project are expected
+to resign. Core developers may lose their role after a year of inactivity with no
+contributions (see above) and engagement with fellow developers. If this lack of
+engagement has been demonstrated, another core developer can suggest removal and create
+a pull request. The removal will complete if this is successfully merged.
 
 ### Workgroups
 
@@ -58,7 +62,7 @@ The infrastructure workgroup maintains the infrastructure of `aeon` to ensure th
 smooth running of the project. This includes ensuring the website remains online, that
 CI remains functional and other related tasks.
 
-The infrastructure workgroup maintains ownership of the `aeon` GitHub organization and
+The infrastructure workgroup maintains ownership of the `aeon` GitHub organisation and
 ReadTheDocs account.
 
 #### Release Management Workgroup
@@ -113,13 +117,15 @@ Contributors try to find a resolution that has no open objections among core dev
 If a reasonable amount of time (at least 7-days for non-trivial changes) has passed
 since the last change to a proposed contribution, the proposal has at least one approval
 (+1) and no rejections (-1) from core developers, it can be approved by lazy consensus.
-If a change is rejected, it is expected that some form of explanation and description
-of conditions (if any) to withdraw the rejection is provided.
+If a change is rejected, it is expected that an explanation and description of
+conditions (if any) to withdraw the rejection is provided.
 
 At any point during the discussion, any core developer in favour of a change can call
-for a vote, which will conclude two weeks from the call for the vote. Any vote must be
-backed by an AEP (see following section). In the event a vote is called, the proposal
-must receive a two-thirds majority of core developers to be approved.
+for a vote, which will conclude two weeks from the call for the vote. Any vote to
+bypass a rejection from a core developer must be backed by an AEP (see the following
+section). For major contributions (such as a new module or major framework redesigns)
+an AEP may be requested without a rejection or vote. In the event a vote is called,
+the proposal must receive a two-thirds majority of core developers to be approved.
 
 All changes to the `aeon` code or documentation should be done via Pull Request.
 By default, push rights to the `main` GitHub branch are restricted for all core developers.
@@ -129,11 +135,18 @@ emergencies where harm will come to the project unless timely action is taken.
 
 ### Enhancement Proposals
 
-For all non-appointment decision-making votes, a proposal must have been made public
-and discussed before the vote. Such proposal must be a consolidated document, in the
-form of a “aeon Enhancement Proposal” (AEP). Having a rejection on a pull request does
-not necessitate the creation of an AEP and further discussion to find consensus can be
-held, but one must be created prior to any vote.
+For contentious decision-making votes (not including appointment votes), a proposal
+must have been made public and discussed before the vote. It is recommended that this
+proposal is made as a consolidated document, in the form of an “aeon Enhancement
+Proposal” (AEP). The AEP template is available
+[here](https://github.com/aeon-toolkit/aeon-admin/blob/main/aep/aep_template.md), but
+the use of said template is not a requirement. A detailed issue or pull request can
+substitute an AEP if all parties believe it is sufficient, but a more formal proposal
+can be requested by any core developer.
+
+Having a rejection on a pull request does not necessitate the creation of an AEP and
+further discussion to find consensus can be held, but one must be created prior to any
+vote to bypass a rejection.
 
 A vote does not have to be called for an AEP to be submitted. If a contributor wants to
 make a more formal proposal or believes a change will be controversial, an AEP can be
