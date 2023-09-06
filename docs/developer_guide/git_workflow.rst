@@ -93,7 +93,7 @@ GitHub, clone, and develop on a new branch.
 10. To add more changes, simply repeat steps 7 - 8. Pull requests are
     updated automatically if you push new changes to the same branch.
 
-.. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
+.. _Slack: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA
 
 .. note::
 
