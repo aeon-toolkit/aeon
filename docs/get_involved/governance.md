@@ -28,7 +28,7 @@ process.
 Core developers are community members that have made significant contributions and are
 trusted to continue the development of the project and engage with its community.
 Core developers are granted write access to the `aeon` repository and voting rights
-on most project decisions. They are expected to review code contributions
+on all project decisions. They are expected to review code contributions
 and engage with topics or code they are knowledgeable about.
 
 New core developers are nominated by existing core developers and are subject to a
@@ -39,32 +39,65 @@ their role after a long period of inactivity and lack of engagement with fellow
 developers if they neglect to do so. Developing code, interacting with contributions and
 engaging with the broader community are all valid contributions for core developers.
 
-### Community Council
+### Workgroups
 
-The Community Council (CC) consists of core developers who have additional
-responsibilities to ensure the smooth running of the project. This includes strategic
-planning, project infrastructure management, and release management. In the event core
-developers fail to reach consensus, the CC is responsible for resolving the issue.
+Extra responsibilities are delegated to workgroups, which are groups of contributors
+with a core developer lead. Workgroups are responsible for specific areas of the project
+and are expected to manage and make decisions in their area of responsibility.
+Workgroups are expected to be transparent about their activities and decisions, and to
+engage with the community where possible.
 
-CC membership is subject to a two-thirds majority vote of core developers, and terms
-last for two years, after which a new vote must be held. The CC is accountable to the
-community and must make its activities and decisions public where possible.
+Membership of workgroups and the leadership position of a workgroup is subject to a
+two-thirds majority vote of core developers. Workgroup members unable to fulfill their
+responsibilities are expected to resign from the workgroup. It is the responsibility of
+the workgroup lead to safeguard access to relevant project resources and accounts.
 
-### Code of Conduct Committee
+#### Infrastructure Workgroup
 
-The Code of Conduct Committee (CoCC) consists of contributors tasked with maintaining
-the `aeon` Code of Conduct (CoC) and managing reports of breaking the CoC. CoCC members
-are expected to review reports of CoC violations, contact and discuss with involved
-individuals and make recommendations on actions to take.
+The infrastructure workgroup maintains the infrastructure of `aeon` to ensure the
+smooth running of the project. This includes ensuring the website remains online, that
+CI remains functional and other related tasks.
 
-Any CoCC members involved in a CoC report or CoCC members which have a conflict of
-interest regarding the report are expected to recuse themselves from the process.
-If no CoCC members are available to review a report in a timely manner, the
-responsibility will fall to the CC.
+The infrastructure workgroup maintains ownership of the `aeon` GitHub organization and
+ReadTheDocs account.
 
-CoCC membership is subject to a two-thirds majority vote of core developers, and terms
-last for two years, after which a new vote must be held. CC members cannot
-simultaneously be CoCC members.
+#### Release Management Workgroup
+
+The release management workgroup manages `aeon` releases. This includes deciding on
+release schedules, managing release candidates and publishing releases.
+
+The release management workgroup maintains ownership of the `aeon` PyPi project and
+conda feedstock.
+
+#### Finance Workgroup
+
+The finance workgroup is responsible for managing the project finances. This includes
+approving any project expenses and managing any finance related accounts.
+
+#### Communications Workgroup
+
+The role of the communications workgroups is to interact with the broader community
+through the `aeon` social network accounts and discussion forums. It is the
+responsibility of the communications workgroup to manage and maintain the `aeon`
+Twitter, LinkedIn, Slack and other relevant communications accounts.
+
+The communications team maintains access to social networking accounts and is
+responsible for managing access to the `aeon` email address. To help manage
+GitHub discussions, the communication workgroup is given triage access to the `aeon`
+GitHub repository.
+
+#### Code of Conduct Workgroup
+
+The Code of Conduct Workgroup (CoCW) consists of contributors tasked with making sure
+`aeon` remains a welcoming and inclusive community. CoCW responsibilities include
+maintaining the `aeon` Code of Conduct (CoC) and managing reports of breaking the CoC.
+CoCW members are expected to review reports of CoC violations, contact and discuss with
+involved individuals and make recommendations on actions to take.
+
+Any CoCW members involved in a CoC report or CoCW members which have a conflict of
+interest regarding the report are expected to recuse themselves from the process. The
+CoCW is given triage access to the `aeon` GitHub repository to moderate discussions if
+necessary.
 
 ## Decision-Making Process
 
@@ -85,16 +118,14 @@ of conditions (if any) to withdraw the rejection is provided.
 
 At any point during the discussion, any core developer in favour of a change can call
 for a vote, which will conclude two weeks from the call for the vote. Any vote must be
-backed by an AEP (see following section). If no option can gather two-thirds of the
-votes cast, the decision is escalated to the CC, which in turn will use
-consensus seeking with the fallback option of a simple majority vote if no consensus
-can be found.
+backed by an AEP (see following section). In the event a vote is called, the proposal
+must receive a two-thirds majority of core developers to be approved.
 
 All changes to the `aeon` code or documentation should be done via Pull Request.
-By default, push rights to the `main` GitHub branch are restricted for all developers.
-In emergencies, the CC may temporarily revoke the branch protection for
-council members and make direct commits, but this should happen only in emergencies
-where harm will come to the project unless timely action is taken.
+By default, push rights to the `main` GitHub branch are restricted for all core developers.
+In emergencies, the infrastructure workgroup may temporarily revoke the branch
+protection for group members and make direct commits, but this should happen only in
+emergencies where harm will come to the project unless timely action is taken.
 
 ### Enhancement Proposals
 
@@ -117,3 +148,4 @@ projects governance documents:
 - [SciPy](https://docs.scipy.org/doc/scipy/dev/governance.html)
 - [NumPy](https://numpy.org/doc/stable/dev/governance/governance.html#governance)
 - [Jupyter](https://jupyter.org/governance/overview.html)
+- [Pandas](https://pandas.pydata.org/about/governance.html)
