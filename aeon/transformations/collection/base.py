@@ -79,7 +79,7 @@ class BaseCollectionTransformer(
         self.reset()
 
         # input checks and datatype conversion
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
         self._fit(X=X_inner, y=y_inner)
 
@@ -113,7 +113,7 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
 
         Xt = self._transform(X=X_inner, y=y_inner)
@@ -149,7 +149,7 @@ class BaseCollectionTransformer(
         """
         # input checks and datatype conversion
         self.reset()
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
 
         Xt = self._fit_transform(X=X_inner, y=y_inner)
