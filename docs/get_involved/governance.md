@@ -41,7 +41,8 @@ Core developers who no longer want or are able to engage with the project are ex
 to resign. Core developers may lose their role after a year of inactivity with no
 contributions (see above) and engagement with fellow developers. If this lack of
 engagement has been demonstrated, another core developer can suggest removal and create
-a pull request. The removal will complete if this is successfully merged.
+a pull request on the `aeon` repository. The removal will complete if this pull request
+is successfully merged.
 
 ### Workgroups
 
@@ -136,7 +137,7 @@ emergencies where harm will come to the project unless timely action is taken.
 ### Enhancement Proposals
 
 For contentious decision-making votes (not including appointment votes), a proposal
-must have been made public and discussed before the vote. It is recommended that this
+must have been made public for discussion before the vote. It is recommended that this
 proposal is made as a consolidated document, in the form of an “aeon Enhancement
 Proposal” (AEP). The AEP template is available
 [here](https://github.com/aeon-toolkit/aeon-admin/blob/main/aep/aep_template.md), but
