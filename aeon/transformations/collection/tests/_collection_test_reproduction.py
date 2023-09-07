@@ -7,7 +7,7 @@ import numpy as np
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.collection.catch22 import Catch22
 from aeon.transformations.collection.random_intervals import RandomIntervals
-from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
 
 

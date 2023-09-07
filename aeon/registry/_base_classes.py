@@ -29,7 +29,7 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 

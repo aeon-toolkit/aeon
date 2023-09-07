@@ -14,11 +14,14 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
     load_from_long_to_dataframe,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
+    load_regression,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -26,8 +29,66 @@ from aeon.datasets._data_generators import (
     _convert_tsf_to_hierarchical,
     make_example_long_table,
 )
-from aeon.datasets._data_loaders import DIRNAME, MODULE, _load_saved_dataset
+from aeon.datasets._data_loaders import (
+    DIRNAME,
+    MODULE,
+    _alias_datatype_check,
+    _load_data,
+    _load_header_info,
+    _load_saved_dataset,
+)
 from aeon.datatypes import check_is_mtype
+
+
+def test__alias_datatype_check():
+    """Test the alias check"""
+    assert _alias_datatype_check("FOO") == "FOO"
+    assert _alias_datatype_check("np2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("numpy3d") == "numpy3D"
+    assert _alias_datatype_check("np3d") == "numpy3D"
+    assert _alias_datatype_check("np3D") == "numpy3D"
+
+
+def test__load_header_info():
+    """Test loading a header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        # Read in headers
+        meta_data = _load_header_info(file)
+        assert meta_data["problemname"] == "unittest"
+        assert not meta_data["timestamps"]
+        assert not meta_data["missing"]
+        assert meta_data["univariate"]
+        assert meta_data["equallength"]
+        assert meta_data["classlabel"]
+        assert meta_data["class_values"][0] == "1"
+        assert meta_data["class_values"][1] == "2"
+
+
+def test__load_data():
+    """Test loading after header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        X, y, _ = _load_data(file, meta_data)
+        assert X.shape == (20, 1, 24)
+        assert len(y) == 20
+    path = os.path.join(MODULE, DIRNAME, "BasicMotions", "BasicMotions_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["univariate"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
+    path = os.path.join(MODULE, DIRNAME, "JapaneseVowels", "JapaneseVowels_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["equallength"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
 
 
 @pytest.mark.parametrize("return_X_y", [True, False])
@@ -69,11 +130,11 @@ def test_load_from_tsfile():
     assert X.ndim == 3
     assert X.shape == (20, 1, 24) and y.shape == (20,)
     assert X[0][0][0] == 573.0
-    X2, y = load_from_tsfile(data_path, return_meta_data=False)
-    assert isinstance(X2, np.ndarray)
-    assert X2.ndim == 3
-    assert X2.shape == (20, 1, 24)
-    assert X2[0][0][0] == 573.0
+    X, y = load_from_tsfile(data_path, return_meta_data=False, return_type="numpy2D")
+    assert isinstance(X, np.ndarray)
+    assert X.ndim == 2
+    assert X.shape == (20, 24)
+    assert X[0][0] == 573.0
 
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
@@ -369,7 +430,6 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         os.path.dirname(aeon.__file__),
         input_path,
     )
-
     expected_metadata = {
         "frequency": "yearly",
         "forecast_horizon": 4,
@@ -377,15 +437,100 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         "contain_equal_length": False,
     }
 
-    if return_type == "default_tsf":
-        df, metadata = load_from_tsf_file(data_path)
-    else:
-        df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
+    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
 
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
     if return_type != "default_tsf":
         assert check_is_mtype(obj=df, mtype=return_type)
+
+
+def test_load_from_tsf_file():
+    """Test the tsf loader that has no conversions."""
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 4,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, metadata = load_from_tsf_file(data_path)
+    assert metadata == expected_metadata
+    assert df.shape == (3, 3)
+
+
+def test_load_forecasting():
+    """Test load forecasting for baked in data."""
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 6,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, meta = load_forecasting("m1_yearly_dataset")
+    assert meta == expected_metadata
+    assert df.shape == (181, 3)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+
+
+def test_load_regression():
+    """Test the load regression function."""
+    expected_metadata = {
+        "problemname": "covid3month",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": True,
+        "classlabel": False,
+        "class_values": [],
+    }
+    X, y, meta = load_regression("Covid3Month")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (201, 1, 84)
+    assert y.shape == (201,)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+
+
+def test_load_classification():
+    """Test load classification."""
+    expected_metadata = {
+        "problemname": "unittest",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": False,
+        "classlabel": True,
+        "class_values": ["1", "2"],
+    }
+    X, y, meta = load_classification("UnitTest")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (42, 1, 24)
+    assert y.shape == (42,)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
@@ -486,3 +631,7 @@ def test_load_from_arff():
     X2, y2 = load_from_arff_file(data_path)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
+    X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
+    data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
+    X2, y2 = load_from_arff_file(data_path)
+    np.testing.assert_array_almost_equal(X, X2, decimal=4)

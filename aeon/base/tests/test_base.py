@@ -37,8 +37,6 @@ __all__ = [
 
 from copy import deepcopy
 
-import numpy as np
-import pandas as pd
 import pytest
 
 from aeon.base import BaseEstimator, BaseObject
@@ -370,17 +368,3 @@ def test_eq_dunder():
     assert composite == composite_2
     assert composite != composite_3
     assert composite_2 != composite_3
-
-
-def test_internal_convert():
-    """Tests the convenience conversion for input.
-
-    Tests:
-        2D numpy X converted to 3D, pd.Series y converted to numpy.
-    """
-    X = np.zeros(shape=(10, 20))
-    base = BaseEstimator()
-    y = pd.Series(np.zeros(10))
-    X, y = base._internal_convert(X, y)
-    assert X.ndim == 3
-    assert isinstance(y, np.ndarray)

@@ -21,6 +21,7 @@ SCITYPES_WITHOUT_TAGS = [
     "splitter",
     "network",
     "collection-transformer",
+    "collection-estimator",
 ]
 
 # shorthands for easy reading

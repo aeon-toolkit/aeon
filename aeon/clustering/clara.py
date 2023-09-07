@@ -38,11 +38,10 @@ class TimeSeriesCLARA(BaseClusterer):
         one another. First is the fastest method and simply chooses the first k
         time series as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe'].
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_instances, 40 + 2 * n_clusters) is used.
