@@ -22,8 +22,6 @@ __all__ = [
     "Tabularizer",
     "TimeBinner",
     "SlidingWindowSegmenter",
-    "RandomShapeletTransform",
-    "RandomDilatedShapeletTransform",
     "SlopeTransformer",
     "SevenNumberSummaryTransformer",
     "SupervisedIntervals",
@@ -54,10 +52,6 @@ from aeon.transformations.collection.random_intervals import RandomIntervals
 from aeon.transformations.collection.reduce import Tabularizer, TimeBinner
 from aeon.transformations.collection.scaler import TimeSeriesScaler
 from aeon.transformations.collection.segment import SlidingWindowSegmenter
-from aeon.transformations.collection.shapelet_transform import (
-    RandomDilatedShapeletTransform,
-    RandomShapeletTransform,
-)
 from aeon.transformations.collection.slope import SlopeTransformer
 from aeon.transformations.collection.summary import SevenNumberSummaryTransformer
 from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
