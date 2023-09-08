@@ -49,6 +49,10 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
       -0.19569665  0.28835692 -0.42359509  0.21378191]]
     """
 
+    _tags = {
+        "capability:multivariate": True,
+    }
+
     def __init__(
         self,
         n_lags=100,
