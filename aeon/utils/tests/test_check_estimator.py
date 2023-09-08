@@ -5,12 +5,12 @@ __author__ = ["fkiraly"]
 
 import pytest
 
-from aeon.classification.feature_based import Catch22Classifier
+from aeon.classification import DummyClassifier
 from aeon.transformations.series.exponent import ExponentTransformer
 from aeon.utils.estimator_checks import check_estimator
 from aeon.utils.estimators import MockForecaster
 
-EXAMPLE_CLASSES = [Catch22Classifier, MockForecaster, ExponentTransformer]
+EXAMPLE_CLASSES = [DummyClassifier, MockForecaster, ExponentTransformer]
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
