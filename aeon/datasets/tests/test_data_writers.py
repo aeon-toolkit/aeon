@@ -95,11 +95,10 @@ def test__write_header():
     file.close()
     contents = contents.lower()
     assert "@data" in contents
-    assert "@classLabel true" in contents
-    assert "@problemName testy" in contents
+    assert "@problemname testy" in contents
     assert "@timestamps false" in contents
     assert "@univariate true" in contents
-    assert "@equalLength true" in contents
+    assert "@equallength true" in contents
     f2 = _write_header(
         path=path,
         problem_name="testy",

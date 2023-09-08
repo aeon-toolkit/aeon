@@ -42,7 +42,7 @@ from aeon.tests._config import PR_TESTING
 
 
 @pytest.mark.skipif(
-    not PR_TESTING,
+    PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_forecasting_from_repo():
@@ -59,11 +59,12 @@ def test_load_forecasting_from_repo():
     assert meta["forecast_horizon"] == 8
     assert not meta["contain_missing_values"]
     assert not meta["contain_equal_length"]
-    shutil.rmtree("../local_data")
+
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
 
 
 @pytest.mark.skipif(
-    not PR_TESTING,
+    PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_classification_from_repo():
@@ -71,7 +72,7 @@ def test_load_classification_from_repo():
 
 
 @pytest.mark.skipif(
-    not PR_TESTING,
+    PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_regression_from_repo():
@@ -94,7 +95,7 @@ def test_load_regression_from_repo():
     assert not meta["classlabel"]
     assert meta["targetlabel"]
     assert meta["class_values"] == []
-    shutil.rmtree("../local_data")
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
 
 
 def test__alias_datatype_check():
