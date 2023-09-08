@@ -52,7 +52,7 @@ def test_output_format_dim(n_timepoints, n_instances, n_intervals):
 def test_bad_input_args(bad_interval):
     """Check that exception is raised for bad input args."""
     X = _make_nested_from_array(np.ones(10), n_instances=10, n_columns=2)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         RandomIntervalSegmenter(n_intervals=bad_interval).fit(X)
 
 
