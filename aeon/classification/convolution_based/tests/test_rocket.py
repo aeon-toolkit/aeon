@@ -14,6 +14,7 @@ from aeon.utils._testing.collection import make_2d_test_data, make_3d_test_data
 
 
 def test_rocket():
+    """Test correct rocket variant is selected."""
     X_train, y_train = make_2d_test_data(n_cases=20, n_timepoints=50)
     rocket = RocketClassifier(num_kernels=20)
     rocket.fit(X_train, y_train)
