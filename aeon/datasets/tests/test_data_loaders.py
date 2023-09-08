@@ -68,7 +68,26 @@ def test_load_forecasting_from_repo():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_classification_from_repo():
-    pass
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"dataset name ={name} is not available on extract path"
+    ):
+        load_classification(name)
+    name = "SonyAIBORobotSurface1"
+    X, y, meta = load_classification(name)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(meta, dict)
+    assert len(X) == len(y)
+    assert X.shape == (621, 1, 70)
+    assert meta["problemname"] == "sonyaiborobotsurface1"
+    assert not meta["timestamps"]
+    assert meta["univariate"]
+    assert meta["equallength"]
+    assert meta["classlabel"]
+    assert not meta["targetlabel"]
+    assert meta["class_values"] == ["1", "2"]
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
 
 
 @pytest.mark.skipif(
