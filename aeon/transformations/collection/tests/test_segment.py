@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.transformations.series.segment import (
+from aeon.transformations.collection.segment import (
     IntervalSegmenter,
     RandomIntervalSegmenter,
     _rand_intervals_fixed_n,

@@ -116,7 +116,6 @@ These transformers extract simple summary features.
 
     SummaryTransformer
     WindowSummarizer
-    PlateauFinder
     FittedParamExtractor
 
 
