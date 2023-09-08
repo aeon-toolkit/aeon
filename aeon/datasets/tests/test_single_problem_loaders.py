@@ -8,6 +8,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_acsf1,
     load_arrow_head,
     load_basic_motions,
+    load_covid_3month,
     load_italy_power_demand,
     load_japanese_vowels,
     load_osuleaf,
@@ -84,3 +85,17 @@ def test_load_solar():
     solar = load_solar(api_version="WRONG")
     assert type(solar) == pd.Series
     assert solar.shape == (289,)
+    solar = load_solar(api_version=None, return_full_df=True)
+    assert solar.name == "solar_gen"
+    solar = load_solar(api_version=None, normalise=False)
+    assert solar.name == "solar_gen"
+
+
+def test_load_covid_3month():
+    """Test load covid 3 month."""
+    X, y = load_covid_3month()
+    assert isinstance(X, np.ndarray)
+    assert len(X) == len(y)
+    assert X.shape == (201, 1, 84)
+    X = load_covid_3month(return_X_y=False)
+    assert isinstance(X, pd.DataFrame)
