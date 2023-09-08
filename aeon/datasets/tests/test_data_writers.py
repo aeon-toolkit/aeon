@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import io
+import os
 import shutil
 
 import numpy as np
@@ -7,7 +9,12 @@ import pytest
 
 """Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_writers import _write_dataframe_to_tsfile
+from aeon.datasets._data_writers import (
+    _write_data_to_tsfile,
+    _write_dataframe_to_tsfile,
+    _write_header,
+    write_results_to_uea_format,
+)
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.utils._testing.collection import (
     make_3d_test_data,
@@ -38,6 +45,89 @@ def test_write_to_tsfile_equal_length(regression, problem_name):
         np.testing.assert_array_equal(y, newy)
     else:
         np.testing.assert_array_almost_equal(y, newy)
+    shutil.rmtree("./Temp")
+
+
+def test_fails():
+    """Test simple failes return sensible errors and messages."""
+    with pytest.raises(TypeError, match="Wrong input data type"):
+        write_to_tsfile("FOOBAR", "dummy")
+    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
+        _write_data_to_tsfile(X="FOOBAR", path="dummy", problem_name="test")
+    X = np.random.random(size=(10, 1, 10))
+    y = np.array([1, 1, 1, 2, 2, 2])
+    with pytest.raises(
+        IndexError, match="The number of cases is not the same as the number of labels"
+    ):
+        _write_data_to_tsfile(X=X, path="dummy", problem_name="test", y=y)
+    y_pred = np.array([1, 1, 2, 2])
+    with pytest.raises(
+        IndexError, match="The number of predicted values is not the same"
+    ):
+        write_results_to_uea_format(
+            "FOO", "BAR", y_pred=y_pred, output_path="dummy", y_true=y
+        )
+    with pytest.raises(ValueError, match="Cannot have class_labels and targetlabel"):
+        _write_header("FOO", "BAR", class_labels=[0, 1], regression=True)
+    with pytest.raises(ValueError, match="Data provided must be a DataFrame"):
+        _write_dataframe_to_tsfile("FOO", "BAR")
+
+
+def test__write_header():
+    """Test writing an equal length classification and regegression dataset."""
+    path = "./Temp/"
+    suffix = "_TRAIN"
+    extension = ".ts"
+    f = _write_header(
+        path=path,
+        problem_name="testy",
+        suffix=suffix,
+        extension=extension,
+        series_length=10,
+        equal_length=True,
+        comment="comment",
+        class_labels=[0, 1],
+    )
+    assert isinstance(f, io.TextIOWrapper)
+    f.close()
+    file = open(path + "testy" + suffix + extension, "r")
+    contents = file.read()
+    file.close()
+    assert "@data" in contents
+    assert "@classLabel true" in contents
+    assert "@problemName testy" in contents
+    assert "@timestamps false" in contents
+    assert "@univariate True" in contents
+    assert "@equalLength True" in contents
+    f2 = _write_header(
+        path=path,
+        problem_name="testy",
+        suffix=suffix,
+        extension="",
+        series_length=10,
+        equal_length=True,
+        comment="comment",
+        regression=True,
+    )
+    assert isinstance(f2, io.TextIOWrapper)
+    f2.close()
+
+    #    X, y = make_3d_test_data(regression_target=regression)
+    #    load_path = "./Temp/" + problem_name
+    #    newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
+    shutil.rmtree("./Temp")
+
+
+def test__write_dataframe_to_tsfile():
+    """Test write dataframe to file.
+
+    Note does not write the header correctly. See
+    https://github.com/aeon-toolkit/aeon/issues/732
+    """
+    X, y = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=10)
+    _write_dataframe_to_tsfile(X, "./Temp", problem_name="testy.ts", y=y)
+    assert os.path.exists("./Temp/testy.ts")
+    X, y = load_from_tsfile("./Temp/testy.ts")
     shutil.rmtree("./Temp")
 
 
