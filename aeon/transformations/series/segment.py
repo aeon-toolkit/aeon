@@ -40,7 +40,7 @@ class IntervalSegmenter(BaseTransformer):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super(IntervalSegmenter, self).__init__()
+        super(IntervalSegmenter, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """
