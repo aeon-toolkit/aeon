@@ -353,9 +353,9 @@ def _write_dataframe_to_tsfile(
         comment=comment,
         class_labels=class_labels,
     )
-    n_cases, n_cases = X.shape
+    n_cases, n_channels = X.shape
     for i in range(0, n_cases):
-        for j in range(0, n_cases):
+        for j in range(0, n_channels):
             series = X.iloc[i, j]
             for k in range(0, series.size - 1):
                 file.write(f"{series[k]},")
