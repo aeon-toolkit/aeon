@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Arsenal test code."""
+"""Rocket test code."""
 import pytest
 
 from aeon.classification.convolution_based import RocketClassifier

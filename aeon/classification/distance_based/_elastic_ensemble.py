@@ -448,8 +448,6 @@ class ElasticEnsemble(BaseClassifier):
             }
         if distance_measure == "euclidean":
             return None
-
-        # elif distance_measure == twe_distance
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)
