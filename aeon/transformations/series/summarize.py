@@ -753,6 +753,7 @@ class PlateauFinder(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": True,
+        "scitype:transform-input": "Series",
         "scitype:transform-output": "Series",
         "scitype:instancewise": False,
         "X_inner_mtype": "numpy3D",
@@ -762,7 +763,7 @@ class PlateauFinder(BaseTransformer):
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
-        super(PlateauFinder, self).__init__()
+        super(PlateauFinder, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X.
