@@ -16,7 +16,9 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection import RandomDilatedShapeletTransform
+from aeon.transformations.collection.shapelet_based import (
+    RandomDilatedShapeletTransform,
+)
 
 
 class RDSTClassifier(BaseClassifier):
