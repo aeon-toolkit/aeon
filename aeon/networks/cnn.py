@@ -95,8 +95,8 @@ class CNNNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple
             The shape of the data fed into the input layer
 
