@@ -10,7 +10,7 @@
 # )
 
 
-def test__check_friedman():
+def test_check_friedman():
     pass
 
 
