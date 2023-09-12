@@ -333,7 +333,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         # Compute the change in cost for each swap.
         for h in range(not_medoid_shape):
             # id of the potential new medoid.
-            id_j = not_medoid_idxs[h]
+            id_h = not_medoid_idxs[h]
             for i in range(self.n_clusters):
                 # id of the medoid we want to replace.
                 id_i = medoids_idxs[i]
@@ -348,17 +348,17 @@ class TimeSeriesKMedoids(BaseClusterer):
                         distance_matrix[id_i, id_j] != distance_closest_medoid[id_j]
                     )
                     second_best_medoid = (
-                        distance_matrix[id_j, id_j]
+                        distance_matrix[id_h, id_j]
                         < distance_second_closest_medoid[id_j]
                     )
                     not_second_best_medoid = (
-                        distance_matrix[id_j, id_j]
+                        distance_matrix[id_h, id_j]
                         >= distance_second_closest_medoid[id_j]
                     )
 
                     if cluster_i_bool and second_best_medoid:
                         cost_change += (
-                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
+                            distance_matrix[id_j, id_h] - distance_closest_medoid[id_j]
                         )
                     elif cluster_i_bool and not_second_best_medoid:
                         cost_change += (
@@ -366,23 +366,23 @@ class TimeSeriesKMedoids(BaseClusterer):
                             - distance_closest_medoid[id_j]
                         )
                     elif not_cluster_i_bool and (
-                        distance_matrix[id_j, id_j] < distance_closest_medoid[id_j]
+                        distance_matrix[id_j, id_h] < distance_closest_medoid[id_j]
                     ):
                         cost_change += (
-                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
+                            distance_matrix[id_j, id_h] - distance_closest_medoid[id_j]
                         )
 
                 # same for i
                 second_best_medoid = (
-                    distance_matrix[id_j, id_i] < distance_second_closest_medoid[id_i]
+                    distance_matrix[id_h, id_i] < distance_second_closest_medoid[id_i]
                 )
                 if second_best_medoid:
-                    cost_change += distance_matrix[id_i, id_j]
+                    cost_change += distance_matrix[id_i, id_h]
                 else:
                     cost_change += distance_second_closest_medoid[id_i]
 
                 if cost_change < best_cost_change[2]:
-                    best_cost_change = (id_i, id_j, cost_change)
+                    best_cost_change = (id_i, id_h, cost_change)
         if best_cost_change[2] < 0:
             return best_cost_change
         else:
