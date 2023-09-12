@@ -14,7 +14,7 @@ from numpy.testing import (
 # from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.datasets import load_basic_motions
 from aeon.distances import manhattan_distance
-from aeon.transformations.collection.dilated_shapelet_transform import (
+from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
     compute_shapelet_dist_vector,
     compute_shapelet_features,
