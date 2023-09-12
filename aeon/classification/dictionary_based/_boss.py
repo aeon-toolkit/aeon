@@ -688,6 +688,8 @@ class IndividualBOSS(BaseClassifier):
         return new_boss
 
     def _clean(self):
+        if self._transformer is None:
+            return
         self._transformer.words = None
         self._transformer.save_words = False
 

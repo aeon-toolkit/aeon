@@ -3,8 +3,9 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-from aeon.classification.dictionary_based import BOSSEnsemble
+from aeon.classification.dictionary_based import BOSSEnsemble, ContractableBOSS
 from aeon.datasets import load_unit_test
+from aeon.utils._testing.collection import make_2d_test_data
 
 
 def test_boss_train_estimate():
@@ -23,3 +24,9 @@ def test_boss_train_estimate():
     assert train_probas.shape == (20, 2)
     train_preds = boss.classes_[np.argmax(train_probas, axis=1)]
     assert accuracy_score(y_train, train_preds) >= 0.6
+
+
+def test_boss_empty_fit():
+    X, y = make_2d_test_data(n_cases=4, n_timepoints=100, n_labels=2)
+    cboss = ContractableBOSS()
+    cboss.fit(X, y)
