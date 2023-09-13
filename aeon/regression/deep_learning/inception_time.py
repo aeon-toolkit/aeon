@@ -237,9 +237,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
 
-        Arguments:
+        Parameters
         ----------
-
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples.
         y : np.ndarray of shape n
@@ -293,9 +292,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _predict(self, X) -> np.ndarray:
         """Predict the values of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The testing input samples.
 
