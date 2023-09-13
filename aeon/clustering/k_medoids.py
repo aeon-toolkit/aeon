@@ -330,59 +330,38 @@ class TimeSeriesKMedoids(BaseClusterer):
         sample_size = len(distance_matrix)
         not_medoid_shape = sample_size - self.n_clusters
 
-        # Compute the change in cost for each swap.
-        for h in range(not_medoid_shape):
-            # id of the potential new medoid.
-            id_h = not_medoid_idxs[h]
-            for i in range(self.n_clusters):
-                # id of the medoid we want to replace.
-                id_i = medoids_idxs[i]
+        for i in range(not_medoid_shape):
+            id_i = not_medoid_idxs[i]
+            for j in range(self.n_clusters):
+                id_j = medoids_idxs[j]
                 cost_change = 0.0
-                # compute for all not-selected points the change in cost
-                for j in range(not_medoid_shape):
-                    id_j = not_medoid_idxs[j]
-                    cluster_i_bool = (
-                        distance_matrix[id_i, id_j] == distance_closest_medoid[id_j]
-                    )
-                    not_cluster_i_bool = (
-                        distance_matrix[id_i, id_j] != distance_closest_medoid[id_j]
-                    )
-                    second_best_medoid = (
-                        distance_matrix[id_h, id_j]
-                        < distance_second_closest_medoid[id_j]
-                    )
-                    not_second_best_medoid = (
-                        distance_matrix[id_h, id_j]
-                        >= distance_second_closest_medoid[id_j]
-                    )
+                for k in range(not_medoid_shape):
+                    id_k = not_medoid_idxs[k]
+                    cluster_i_bool = distance_matrix[id_j, id_k] == distance_closest_medoid[id_k]
 
-                    if cluster_i_bool and second_best_medoid:
+                    if cluster_i_bool and distance_matrix[id_i, id_k] < distance_second_closest_medoid[id_k]:
                         cost_change += (
-                            distance_matrix[id_j, id_h] - distance_closest_medoid[id_j]
+                            distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
                         )
-                    elif cluster_i_bool and not_second_best_medoid:
+                    elif cluster_i_bool and distance_matrix[id_i, id_k] >= distance_second_closest_medoid[id_k]:
                         cost_change += (
-                            distance_second_closest_medoid[id_j]
-                            - distance_closest_medoid[id_j]
+                            distance_second_closest_medoid[id_k]
+                            - distance_closest_medoid[id_k]
                         )
-                    elif not_cluster_i_bool and (
-                        distance_matrix[id_j, id_h] < distance_closest_medoid[id_j]
+                    elif distance_matrix[id_j, id_k] != distance_closest_medoid[id_k] and (
+                        distance_matrix[id_k, id_i] < distance_closest_medoid[id_k]
                     ):
                         cost_change += (
-                            distance_matrix[id_j, id_h] - distance_closest_medoid[id_j]
+                            distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
                         )
 
-                # same for i
-                second_best_medoid = (
-                    distance_matrix[id_h, id_i] < distance_second_closest_medoid[id_i]
-                )
-                if second_best_medoid:
-                    cost_change += distance_matrix[id_i, id_h]
+                if distance_matrix[id_i, id_j] < distance_second_closest_medoid[id_j]:
+                    cost_change += distance_matrix[id_j, id_i]
                 else:
-                    cost_change += distance_second_closest_medoid[id_i]
+                    cost_change += distance_second_closest_medoid[id_j]
 
                 if cost_change < best_cost_change[2]:
-                    best_cost_change = (id_i, id_h, cost_change)
+                    best_cost_change = (id_j, id_i, cost_change)
         if best_cost_change[2] < 0:
             return best_cost_change
         else:
@@ -592,3 +571,4 @@ class TimeSeriesKMedoids(BaseClusterer):
             "random_state": 1,
             "method": "alternate",
         }
+
