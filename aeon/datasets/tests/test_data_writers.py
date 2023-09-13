@@ -80,14 +80,15 @@ def test_write_to_tsfile_unequal_length(problem_name):
         assert np.array_equal(y, newy)
 
 
-def test_write_dataframe_to_ts():
+@pytest.mark.parametrize("tsfile_writer", [_write_dataframe_to_tsfile, write_to_tsfile])
+def test_write_dataframe_to_ts(tsfile_writer):
     """Tests whether a dataset can be written by the .ts writer then read in."""
     # load an example dataset
     problem_name = "Testy.ts"
     X, y = make_nested_dataframe_data()
     with tempfile.TemporaryDirectory() as tmp:
         # output the dataframe in a ts file
-        _write_dataframe_to_tsfile(
+        tsfile_writer(
             X=X,
             path=tmp,
             y=y,
