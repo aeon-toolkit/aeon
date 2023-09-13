@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import shutil
 
 import numpy as np
@@ -85,14 +86,16 @@ def test_write_dataframe_to_ts():
     problem_name = "Testy.ts"
     X, y = make_nested_dataframe_data()
     # output the dataframe in a ts file
+    temp_path = os.path.join(os.path.dirname(__file__), "Temp/")
     _write_dataframe_to_tsfile(
         X=X,
-        path="./Temp/",
+        path=temp_path,
         y=y,
         problem_name=problem_name,
     )
     # load data back from the ts file into dataframe
-    newX, newy = load_from_tsfile_to_dataframe("./Temp/" + problem_name)
+    tsfile_path = os.path.join(temp_path, problem_name)
+    newX, newy = load_from_tsfile_to_dataframe(tsfile_path)
     # check if the dataframes are the same
     pd.testing.assert_frame_equal(newX, X)
     y2 = pd.Series(y)
@@ -100,23 +103,25 @@ def test_write_dataframe_to_ts():
     shutil.rmtree("./Temp/")
 
 
-def test_write_dataframe_to_ts_and_load():
+def test_write_to_tsfile_with_dataframe():
     """
-    Tests whether a dataframe written to a .ts file can be read with
-    load_from_tsfile
+    Tests whether a dataframe can be written to a .ts file with
+    write_to_tsfile()
     """
     # load an example dataset
     problem_name = "Testy.ts"
     X, y = make_nested_dataframe_data()
     # output the dataframe in a ts file
-    _write_dataframe_to_tsfile(
+    temp_path = os.path.join(os.path.dirname(__file__), "Temp/")
+    write_to_tsfile(
         X=X,
-        path="./Temp/",
+        path=temp_path,
         y=y,
         problem_name=problem_name,
     )
     # load data back from the ts file into dataframe
-    newX, newy = load_from_tsfile("./Temp/" + problem_name)
+    tsfile_path = os.path.join(temp_path, problem_name)
+    newX, newy = load_from_tsfile_to_dataframe(tsfile_path)
     # check if the dataframes are the same
     pd.testing.assert_frame_equal(newX, X)
     y2 = pd.Series(y)

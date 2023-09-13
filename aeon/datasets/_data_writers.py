@@ -57,8 +57,6 @@ def write_to_tsfile(
             path,
             problem_name=problem_name,
             y=y,
-            # ? Why is this hard-coded to False here?
-            equal_length=False,
             comment=header,
             regression=regression,
         )
