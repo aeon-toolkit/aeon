@@ -75,7 +75,8 @@ def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
     )
     cliques[cliques < 0] = np.inf
     cliques = cliques < cd
-    cliques = build_cliques(cliques, n_estimators)
+
+    cliques = build_cliques(cliques)
 
     return cliques
 
@@ -113,8 +114,6 @@ def wilcoxon_holm_cliques(results, labels, avranks, alpha):
     # correct alpha with holm
     new_alpha = float(alpha / (n_estimators - 1))
 
-    # print(f"{new_alpha=}")
-
     ordered_labels = [i for _, i in sorted(zip(avranks, labels))]
 
     same = np.eye(len(ordered_labels), dtype=bool)
@@ -130,36 +129,38 @@ def wilcoxon_holm_cliques(results, labels, avranks, alpha):
             same[idx_0][idx_1] = True
             same[idx_1][idx_0] = True
 
-    # print(p_values)
-    # print(ordered_labels)
-    # print(same)
-
-    cliques = build_cliques(same, n_estimators)
+    cliques = build_cliques(same)
 
     return cliques
 
 
-def build_cliques(same, n_estimators):
+def build_cliques(same):
     """Build cliques."""
-    for i in range(n_estimators):
-        for j in range(n_estimators):
-            if i < j:
-                same[i, j] = 0
+    n_estimators = same.shape[1]
 
     for i in range(n_estimators):
-        if np.sum(same[i, :]) >= 1:
+        if np.sum(same[i, :]) > 1:
             true_values_i = np.where(same[i, :] == 1)[0]
             first_true_i = true_values_i[0]
             last_true_i = true_values_i[-1]
-            for j in range(n_estimators):
-                if i != j and np.sum(same[j, :]) >= 1:
+            for j in range(i + 1, n_estimators):
+                if np.sum(same[j, :]) >= 1:
                     true_values_j = np.where(same[j, :] == 1)[0]
                     first_true_j = true_values_j[0]
                     last_true_j = true_values_j[-1]
+                    # if j is contained in i
                     if first_true_i <= first_true_j and last_true_i >= last_true_j:
-                        same[j, :] = 0
+                        if len(true_values_i) >= len(true_values_j):
+                            same[j, :] = 0
+                        else:
+                            same[i, :] = 0
+                    # if i is contained in j
+                    elif first_true_i >= first_true_j and last_true_i <= last_true_j:
+                        if len(true_values_i) >= len(true_values_j):
+                            same[j, :] = 0
+                        else:
+                            same[i, :] = 0
 
-    # print(same)
     n = np.sum(same, 1)
     cliques = same[n > 1, :]
 
