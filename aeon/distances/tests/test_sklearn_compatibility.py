@@ -62,10 +62,3 @@ def test_clusterer(dist):
     db = DBSCAN(metric="precomputed", eps=2.5)
     preds = db.fit_predict(dist["pairwise_distance"](X))
     assert len(preds) == len(X)
-
-
-
-
-
-
-

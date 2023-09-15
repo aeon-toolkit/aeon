@@ -74,10 +74,10 @@ PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 
 
 def distance(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: Union[str, DistanceFunction],
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: Union[str, DistanceFunction],
+    **kwargs: Any,
 ) -> float:
     """Compute the distance between two time series.
 
@@ -197,10 +197,10 @@ def distance(
 
 
 def pairwise_distance(
-        x: np.ndarray,
-        y: np.ndarray = None,
-        metric: Union[str, DistanceFunction] = None,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray = None,
+    metric: Union[str, DistanceFunction] = None,
+    **kwargs: Any,
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -340,10 +340,10 @@ def pairwise_distance(
 
 
 def _custom_func_pairwise(
-        X: np.ndarray,
-        y: np.ndarray = None,
-        dist_func: DistanceFunction = None,
-        **kwargs: Any,
+    X: np.ndarray,
+    y: np.ndarray = None,
+    dist_func: DistanceFunction = None,
+    **kwargs: Any,
 ) -> np.ndarray:
     if y is None:
         # To self
@@ -358,7 +358,7 @@ def _custom_func_pairwise(
 
 
 def _custom_pairwise_distance(
-        X: np.ndarray, dist_func: DistanceFunction, **kwargs
+    X: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -372,7 +372,7 @@ def _custom_pairwise_distance(
 
 
 def _custom_from_multiple_to_multiple_distance(
-        x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
+    x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -385,10 +385,10 @@ def _custom_from_multiple_to_multiple_distance(
 
 
 def alignment_path(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: str,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: str,
+    **kwargs: Any,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
@@ -502,10 +502,10 @@ def alignment_path(
 
 
 def cost_matrix(
-        x: np.ndarray,
-        y: np.ndarray,
-        metric: str,
-        **kwargs: Any,
+    x: np.ndarray,
+    y: np.ndarray,
+    metric: str,
+    **kwargs: Any,
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
 
@@ -674,7 +674,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
 
 
 def get_pairwise_distance_function(
-        metric: Union[str, PairwiseFunction]
+    metric: Union[str, PairwiseFunction]
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given metric string or callable.
 
