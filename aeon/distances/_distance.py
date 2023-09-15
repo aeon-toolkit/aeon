@@ -917,8 +917,8 @@ import numpy as np
 import time
 import pandas as pd
 
-# N_VALUES = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
-N_VALUES = [1000]
+N_VALUES = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+# N_VALUES = [1000]
 
 
 # N_VALUES = [100, 200, 300]
@@ -933,10 +933,6 @@ def time_distance(dist_func, dist_name, num_distances=200, store_dict=None,
     for n in N_VALUES:
         curr_x = np.random.rand(10)
         curr_y = np.random.rand(10)
-
-        if tslearn_format:
-            curr_x = curr_x.reshape((n, 1))
-            curr_y = curr_y.reshape((n, 1))
 
         # run to make sure it's cached
         for _ in range(2):
@@ -1002,15 +998,15 @@ def run_sktime_distances():
 
     dists = [
         (sktime_dtw_distance, "dtw_distance"),
-        (sktime_ddtw_distance, "ddtw_distance"),
-        (sktime_erp_distance, "erp_distance"),
-        (sktime_edr_distance, "edr_distance"),
-        (sktime_twe_distance, "twe_distance"),
-        (sktime_msm_distance, "msm_distance"),
-        (sktime_wdtw_distance, "wdtw_distance"),
-        (sktime_wddtw_distance, "wddtw_distance"),
-        (sktime_lcss_distance, "lcss_distance"),
-        (sktime_euclidean_distance, "euclidean_distance")
+        # (sktime_ddtw_distance, "ddtw_distance"),
+        # (sktime_erp_distance, "erp_distance"),
+        # (sktime_edr_distance, "edr_distance"),
+        # (sktime_twe_distance, "twe_distance"),
+        # (sktime_msm_distance, "msm_distance"),
+        # (sktime_wdtw_distance, "wdtw_distance"),
+        # (sktime_wddtw_distance, "wddtw_distance"),
+        # (sktime_lcss_distance, "lcss_distance"),
+        # (sktime_euclidean_distance, "euclidean_distance")
     ]
     run_distance_experiment(dists, "sktime-distances")
 
@@ -1020,7 +1016,7 @@ def run_tslearn_distances():
     from tslearn.metrics import lcss as tslearn_lcss_distance
     dists = [
         (tslearn_dtw_distance, "dtw_distance"),
-        (tslearn_lcss_distance, "lcss_distance"),
+        # (tslearn_lcss_distance, "lcss_distance"),
     ]
     run_distance_experiment(dists, "tslearn-distances", tslearn_format=True)
 
