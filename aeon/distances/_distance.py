@@ -74,10 +74,10 @@ PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 
 
 def distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    metric: Union[str, DistanceFunction],
-    **kwargs: Any,
+        x: np.ndarray,
+        y: np.ndarray,
+        metric: Union[str, DistanceFunction],
+        **kwargs: Any,
 ) -> float:
     """Compute the distance between two time series.
 
@@ -197,10 +197,10 @@ def distance(
 
 
 def pairwise_distance(
-    x: np.ndarray,
-    y: np.ndarray = None,
-    metric: Union[str, DistanceFunction] = None,
-    **kwargs: Any,
+        x: np.ndarray,
+        y: np.ndarray = None,
+        metric: Union[str, DistanceFunction] = None,
+        **kwargs: Any,
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -340,10 +340,10 @@ def pairwise_distance(
 
 
 def _custom_func_pairwise(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    dist_func: DistanceFunction = None,
-    **kwargs: Any,
+        X: np.ndarray,
+        y: np.ndarray = None,
+        dist_func: DistanceFunction = None,
+        **kwargs: Any,
 ) -> np.ndarray:
     if y is None:
         # To self
@@ -358,7 +358,7 @@ def _custom_func_pairwise(
 
 
 def _custom_pairwise_distance(
-    X: np.ndarray, dist_func: DistanceFunction, **kwargs
+        X: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
@@ -372,7 +372,7 @@ def _custom_pairwise_distance(
 
 
 def _custom_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
+        x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -385,10 +385,10 @@ def _custom_from_multiple_to_multiple_distance(
 
 
 def alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    metric: str,
-    **kwargs: Any,
+        x: np.ndarray,
+        y: np.ndarray,
+        metric: str,
+        **kwargs: Any,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
@@ -502,10 +502,10 @@ def alignment_path(
 
 
 def cost_matrix(
-    x: np.ndarray,
-    y: np.ndarray,
-    metric: str,
-    **kwargs: Any,
+        x: np.ndarray,
+        y: np.ndarray,
+        metric: str,
+        **kwargs: Any,
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
 
@@ -674,7 +674,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
 
 
 def get_pairwise_distance_function(
-    metric: Union[str, PairwiseFunction]
+        metric: Union[str, PairwiseFunction]
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given metric string or callable.
 
@@ -913,3 +913,119 @@ DISTANCES = [
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
+import numpy as np
+import time
+import pandas as pd
+
+# N_VALUES = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+N_VALUES = [1000]
+
+
+# N_VALUES = [100, 200, 300]
+def time_distance(dist_func, dist_name, num_distances=200, store_dict=None,
+                  tslearn_format=False):
+    """Time a distance function."""
+    if dist_name not in store_dict.keys():
+        if store_dict is None:
+            store_dict = {}
+        store_dict[dist_name] = []
+
+    for n in N_VALUES:
+        curr_x = np.random.rand(10)
+        curr_y = np.random.rand(10)
+
+        if tslearn_format:
+            curr_x = curr_x.reshape((n, 1))
+            curr_y = curr_y.reshape((n, 1))
+
+        # run to make sure it's cached
+        for _ in range(2):
+            dist_func(curr_x, curr_y)
+
+        print(f"Timing {dist_name} with n={n}")
+        curr_timing = 0
+        for i in range(num_distances):
+            # Set numpy seed
+            np.random.seed(i)
+            curr_x = np.random.rand(n)
+            curr_y = np.random.rand(n)
+            start = time.time()
+            dist_func(curr_x, curr_y)
+            end = time.time()
+            curr_timing += (end - start)
+        store_dict[dist_name].append(curr_timing)
+    return store_dict
+
+
+def run_distance_experiment(dist_arr, file_name, tslearn_format=False):
+    store_dict = {}
+    for dist in dist_arr:
+        print("Timing", dist[1])
+        store_dict = time_distance(dist[0], dist[1], store_dict=store_dict,
+                                   tslearn_format=tslearn_format)
+        curr_df = pd.DataFrame(store_dict)
+        curr_df.index = N_VALUES
+        curr_df.to_csv(f"temp-{file_name}.csv")
+
+    df = pd.DataFrame(store_dict)
+    df.index = N_VALUES
+    df.to_csv(f"{file_name}.csv")
+
+
+def run_aeon_distances():
+    dists = [
+        (dtw_distance, "dtw_distance"),
+        # (ddtw_distance, "ddtw_distance"),
+        # (erp_distance, "erp_distance"),
+        # (edr_distance, "edr_distance"),
+        # (twe_distance, "twe_distance"),
+        # (msm_distance, "msm_distance"),
+        # (wdtw_distance, "wdtw_distance"),
+        # (wddtw_distance, "wddtw_distance"),
+        # (lcss_distance, "lcss_distance"),
+        # (euclidean_distance, "euclidean_distance")
+    ]
+    run_distance_experiment(dists, "aeon-distances")
+
+
+def run_sktime_distances():
+    from sktime.distances import dtw_distance as sktime_dtw_distance
+    from sktime.distances import ddtw_distance as sktime_ddtw_distance
+    from sktime.distances import erp_distance as sktime_erp_distance
+    from sktime.distances import edr_distance as sktime_edr_distance
+    from sktime.distances import twe_distance as sktime_twe_distance
+    from sktime.distances import msm_distance as sktime_msm_distance
+    from sktime.distances import wdtw_distance as sktime_wdtw_distance
+    from sktime.distances import wddtw_distance as sktime_wddtw_distance
+    from sktime.distances import lcss_distance as sktime_lcss_distance
+    from sktime.distances import euclidean_distance as sktime_euclidean_distance
+
+    dists = [
+        (sktime_dtw_distance, "dtw_distance"),
+        (sktime_ddtw_distance, "ddtw_distance"),
+        (sktime_erp_distance, "erp_distance"),
+        (sktime_edr_distance, "edr_distance"),
+        (sktime_twe_distance, "twe_distance"),
+        (sktime_msm_distance, "msm_distance"),
+        (sktime_wdtw_distance, "wdtw_distance"),
+        (sktime_wddtw_distance, "wddtw_distance"),
+        (sktime_lcss_distance, "lcss_distance"),
+        (sktime_euclidean_distance, "euclidean_distance")
+    ]
+    run_distance_experiment(dists, "sktime-distances")
+
+
+def run_tslearn_distances():
+    from tslearn.metrics import dtw as tslearn_dtw_distance
+    from tslearn.metrics import lcss as tslearn_lcss_distance
+    dists = [
+        (tslearn_dtw_distance, "dtw_distance"),
+        (tslearn_lcss_distance, "lcss_distance"),
+    ]
+    run_distance_experiment(dists, "tslearn-distances", tslearn_format=True)
+
+
+if __name__ == '__main__':
+    run_aeon_distances()
+    # run_tslearn_distances()
+    # run_sktime_distances()
