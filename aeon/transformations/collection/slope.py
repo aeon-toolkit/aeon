@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Slope transformer."""
 import math
-import statistics
 
 import numpy as np
 
@@ -117,28 +116,24 @@ class SlopeTransformer(BaseTransformer):
         -------
         m : an int corresponding to the gradient of the best fit line.
         """
-        # Create a list that contains 1,2,3,4,...,len(Y) for the x coordinates.
-        X = [(i + 1) for i in range(len(Y))]
+        # Create an array that contains 1,2,3,...,len(Y) for the x coordinates.
+        X = np.arange(1, len(Y) + 1)
 
-        # Calculate the mean of both lists
-        meanX = statistics.mean(X)
-        meanY = statistics.mean(Y)
+        # Calculate the mean of both arrays
+        meanX = np.mean(X)
+        meanY = np.mean(Y)
 
-        # Calculate the list (yi-mean(y))^2
-        yminYbar = [(y - meanY) ** 2 for y in Y]
-        # Calculate the list (xi-mean(x))^2
-        xminXbar = [(x - meanX) ** 2 for x in X]
+        # Calculate (yi-mean(y))^2
+        yminYbar = (Y - meanY) ** 2
+
+        # Calculate (xi-mean(x))^2
+        xminXbar = (X - meanX) ** 2
 
         # Sum them to produce w.
-        w = sum(yminYbar) - sum(xminXbar)
+        w = np.sum(yminYbar) - np.sum(xminXbar)
 
-        # Calculate the list (xi-mean(x))*(yi-mean(y))
-        temp = []
-        for x in range(len(X)):
-            temp.append((X[x] - meanX) * (Y[x] - meanY))
-
-        # Sum it and multiply by 2 to calculate r
-        r = 2 * sum(temp)
+        # Sum (xi-mean(x))*(yi-mean(y)) and multiply by 2 to calculate r
+        r = 2 * np.sum((X - meanX) * (Y - meanY))
 
         if r == 0:
             # remove nans
