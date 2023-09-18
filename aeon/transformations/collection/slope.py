@@ -5,12 +5,13 @@ import math
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
+from aeon.transformations._split import SplitsTimeSeries
 
 __all__ = ["SlopeTransformer"]
 __author__ = ["mloning"]
 
 
-class SlopeTransformer(BaseTransformer):
+class SlopeTransformer(BaseTransformer, SplitsTimeSeries):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series.
@@ -70,36 +71,11 @@ class SlopeTransformer(BaseTransformer):
             case_data = []
             for j in range(n_channels):
                 # Calculate gradients
-                res = self._get_gradients_of_lines(X[i][j])
+                res = [self._get_gradient(x) for x in self._split(X[i][j])]
                 case_data.append(res)
             full_data.append(np.asarray(case_data))
 
         return np.array(full_data)
-
-    def _get_gradients_of_lines(self, X):
-        """Get gradients of lines.
-
-        Function to get the gradients of the line of best fits
-        given a time series.
-
-        Parameters
-        ----------
-        X : a numpy array of shape = [time_series_length]
-
-        Returns
-        -------
-        gradients : a numpy array of shape = [self.n_intervals].
-                    It contains the gradients of the line of best fit
-                    for each interval in a time series.
-        """
-        # Firstly, split the time series into approx equal length intervals
-        splitTimeSeries = self._split_time_series(X)
-        gradients = []
-
-        for x in range(len(splitTimeSeries)):
-            gradients.append(self._get_gradient(splitTimeSeries[x]))
-
-        return gradients
 
     def _get_gradient(self, Y):
         """Get gradient of lines.
@@ -145,31 +121,6 @@ class SlopeTransformer(BaseTransformer):
             m = (w + math.sqrt(w**2 + r**2)) / r
 
         return m
-
-    def _split_time_series(self, X):
-        """Split a time series into approximately equal intervals.
-
-        Adopted from = https://stackoverflow.com/questions/2130016/
-                       splitting-a-list-into-n-parts-of-approximately
-                       -equal-length
-
-        Parameters
-        ----------
-        X : a numpy array of shape = [time_series_length]
-
-        Returns
-        -------
-        output : a numpy array of shape = [self.n_intervals,interval_size]
-        """
-        avg = len(X) / float(self.n_intervals)
-        output = []
-        beginning = 0.0
-
-        while beginning < len(X):
-            output.append(X[int(beginning) : int(beginning + avg)])
-            beginning += avg
-
-        return output
 
     def _check_parameters(self, n_timepoints):
         """Check values of parameters for Slope transformer.
