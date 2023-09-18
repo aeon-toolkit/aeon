@@ -3,6 +3,7 @@
 
 
 class SplitsTimeSeries:
+    """Split time series mixin."""
     def _split(self, X):
         """Split a time series into approximately equal intervals.
 
