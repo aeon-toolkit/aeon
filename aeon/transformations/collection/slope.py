@@ -4,8 +4,8 @@ import math
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
 from aeon.transformations._split import SplitsTimeSeries
+from aeon.transformations.base import BaseTransformer
 
 __all__ = ["SlopeTransformer"]
 __author__ = ["mloning"]

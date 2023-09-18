@@ -5,8 +5,8 @@ import numbers
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
 from aeon.transformations._split import SplitsTimeSeries
+from aeon.transformations.base import BaseTransformer
 
 
 class HOG1DTransformer(BaseTransformer, SplitsTimeSeries):
