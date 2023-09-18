@@ -13,10 +13,12 @@ __author__ = ["mloning"]
 class SlopeTransformer(BaseTransformer):
     """Piecewise slope transformation.
 
-    Class to perform a slope transformation on a collection of time series. Numpy
-    array of shape numpy array of shape (n_instances, n_channels, series_length) is
-    transformed to numpy array of shape (n_instances, n_channels, n_intervals). The
-    new feature is the slope over that interval found using a least squares regression.
+    Class to perform a slope transformation on a collection of time series.
+    Numpy array of shape (n_instances, n_channels, series_length) is
+    transformed to numpy array of shape (n_instances, n_channels, n_intervals).
+    The new feature is the slope over that interval found using a
+    total least squares regression (note that total least squares is different
+    from ordinary least squares regression.)
 
     Parameters
     ----------
@@ -57,8 +59,8 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        3D np.ndarray of shape = [n_instances, n_channels, series_length] collection
-        of time series to transform
+        3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        collection of time series to transform
         """
         # Get information about the dataframe
         n_cases, n_channels, series_length = X.shape
