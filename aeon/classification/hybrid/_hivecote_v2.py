@@ -149,13 +149,13 @@ class HIVECOTEV2(BaseClassifier):
 
         super(HIVECOTEV2, self).__init__()
 
-    DEFAULT_N_TREES = 500
-    DEFAULT_N_SHAPELETS = 10000
-    DEFAULT_N_KERNELS = 2000
-    DEFAULT_N_ESTIMATORS = 25
-    DEFAULT_N_PARA_SAMPLES = 250
-    DEFAULT_MAX_ENSEMBLE_SIZE = 50
-    DEFAULT_RAND_PARAMS = 50
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_KERNELS = 2000
+    _DEFAULT_N_ESTIMATORS = 25
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+    _DEFAULT_RAND_PARAMS = 50
 
     def _fit(self, X, y):
         """Fit HIVE-COTE 2.0 to training data.
@@ -179,19 +179,19 @@ class HIVECOTEV2(BaseClassifier):
         """
         # Default values from HC2 paper
         if self.stc_params is None:
-            self._stc_params = {"n_shapelet_samples": HIVECOTEV2.DEFAULT_N_SHAPELETS}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
         if self.drcif_params is None:
-            self._drcif_params = {"n_estimators": HIVECOTEV2.DEFAULT_N_TREES}
+            self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
         if self.arsenal_params is None:
             self._arsenal_params = {
-                "num_kernels": HIVECOTEV2.DEFAULT_N_KERNELS,
-                "n_estimators": HIVECOTEV2.DEFAULT_N_ESTIMATORS,
+                "num_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
+                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
             }
         if self.tde_params is None:
             self._tde_params = {
-                "n_parameter_samples": HIVECOTEV2.DEFAULT_N_PARA_SAMPLES,
-                "max_ensemble_size": HIVECOTEV2.DEFAULT_MAX_ENSEMBLE_SIZE,
-                "randomly_selected_params": HIVECOTEV2.DEFAULT_RAND_PARAMS,
+                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
             }
 
         # If we are contracting split the contract time between each algorithm
