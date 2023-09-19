@@ -168,7 +168,6 @@ class HIVECOTEV1(BaseClassifier):
         self :
             Reference to self.
         """
-        # Default values from HC1 paper
         if self.stc_params is None:
             self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
         if self.tsf_params is None:
