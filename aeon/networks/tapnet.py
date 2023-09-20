@@ -153,8 +153,8 @@ class TapNetNetwork(BaseDeepNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         input_shape: tuple
             The shape of the data fed into the input layer
 
