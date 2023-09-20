@@ -182,12 +182,6 @@ def test_bit_size():
 def test_typed_dict():
     """Test typed dictionaries."""
 
-    # the test currently fails when numba is disabled. See issue #622
-    import os
-
-    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-        return None
-
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
@@ -217,3 +211,25 @@ def test_typed_dict():
     word_list2 = p2.bag_to_string(p2.transform(X, y)[0][0])
 
     assert word_list == word_list2
+
+
+def test_typed_dict_disabled_numba():
+    """Test typed dictionaries when numba is disabled."""
+
+    # check if the test fails, when numba is disabled
+    # typed dict is not supported without numba enabled
+    import os
+
+    os.environ["NUMBA_DISABLE_JIT"] = "1"
+
+    # load training data
+    X = np.random.rand(10, 1, 150)
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+
+    p = SFA(
+        word_length=6,
+        alphabet_size=4,
+        levels=2,
+        typed_dict=True,
+    )
+    p.fit(X, y)
