@@ -82,6 +82,9 @@ def shapedtw_distance(
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
+    The ShapeDTW distance measure was proposed in [1] and used for time series
+    averaging in [2] as well.
+
     Parameters
     ----------
     x : np.ndarray
@@ -109,6 +112,16 @@ def shapedtw_distance(
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+    References
+    ----------
+    [1] Zhao, Jiaping, and Laurent Itti. "shapedtw: Shape dynamic time warping."
+        Pattern Recognition 74 (2018): 171-184.
+    [2] Ali Ismail-Fawaz, Hassan Ismail Fawaz, François Petitjean, Maxime Devanne,
+        Jonathan Weber, Stefano Berretti, Geoffrey I. Webb and Germain Forestier.
+        "ShapeDBA: Generating Effective Time Series Prototypes using ShapeDTW
+        Barycenter Averaging" ECML/PKDD Workshop on Advanced Analytics and
+        Learning on Temporal Data, Turin, Italy, 2023.
     """
     if x.ndim == 1 and y.ndim == 1:
         x_pad = np.pad(x, [reach, reach], mode="edge")
