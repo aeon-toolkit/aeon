@@ -30,11 +30,6 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     last_file_name      : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
-
-    Arguments
-    ---------
-    self.model = None
-
     """
 
     _tags = {
