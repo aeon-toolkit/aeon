@@ -316,8 +316,8 @@ class BaseFixtureGenerator:
     def _excluded_scenario(test_name, scenario):
         """Skip list generator for scenarios to skip in test_name.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         test_name : str, name of test
         scenario : instance of TestScenario, to be used in test
 

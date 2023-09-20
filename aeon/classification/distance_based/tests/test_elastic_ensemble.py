@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.classification.distance_based import ElasticEnsemble
+from aeon.utils._testing.collection import make_2d_test_data
 
 DISTANCE = [
     "lcss",
@@ -45,3 +46,24 @@ def test_get_100_param_options(dist, data):
         for p in para_values:
             for ep in expected_paras:
                 assert ep in p
+
+
+def test_proportion_train_in_param_finding():
+    """Test proportion in train for parameter finding."""
+    X, y = make_2d_test_data(n_cases=10, n_timepoints=10, n_labels=2)
+    ee = ElasticEnsemble(
+        distance_measures=["dtw"], proportion_train_in_param_finding=0.1
+    )
+    with pytest.raises(
+        ValueError, match="should be greater or equal to the number of classes"
+    ):
+        ee.fit(X, y)
+    ee = ElasticEnsemble(
+        distance_measures=["ddtw", "wddtw"],
+        proportion_train_in_param_finding=0.2,
+        verbose=True,
+    )
+    ee.fit(X, y)
+    ee.get_metric_params()
+    with pytest.raises(NotImplementedError, match="EE does not currently support:"):
+        ElasticEnsemble._get_100_param_options("FOO")
