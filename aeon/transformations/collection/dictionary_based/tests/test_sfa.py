@@ -220,6 +220,7 @@ def test_typed_dict_disabled_numba():
     # typed dict is not supported without numba enabled
     import os
 
+    numba_disabled = os.environ.get("NUMBA_DISABLE_JIT")
     os.environ["NUMBA_DISABLE_JIT"] = "1"
 
     # load training data
@@ -233,3 +234,9 @@ def test_typed_dict_disabled_numba():
         typed_dict=True,
     )
     p.fit(X, y)
+
+    # undo the changes to the global environment variable
+    if numba_disabled is None:
+        del os.environ["NUMBA_DISABLE_JIT"]
+    else:
+        os.environ["NUMBA_DISABLE_JIT"] = numba_disabled
