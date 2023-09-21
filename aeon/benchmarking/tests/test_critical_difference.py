@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Tests for the Critical Difference maker."""
+"""Tests for the critical difference diagram maker."""
 import os
 
 import numpy as np
