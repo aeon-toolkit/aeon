@@ -13,7 +13,6 @@ from aeon.benchmarking._critical_difference import (
     _check_friedman,
     build_cliques,
     nemenyi_cliques,
-    plot_critical_difference,
     wilcoxon_holm_cliques,
 )
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
@@ -222,14 +221,9 @@ def test_wilcoxon_holm_cliques():
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
 
     cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.01)
-    print(cliques)
+    assert np.all(cliques == [True, True, True, True])
 
 
 def test_plot_critical_difference():
     pass
 
-
-if __name__ == "__main__":
-    # test__check_friedman()
-    # test_build_cliques()
-    test_nemenyi_cliques()
