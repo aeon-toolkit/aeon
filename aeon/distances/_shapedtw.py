@@ -22,6 +22,50 @@ def _identity_descriptor(x: np.ndarray) -> np.ndarray:
     return np.copy(x)
 
 
+# @njit(fastmath=True)
+# def _transform_set_subsequences(
+#     X: np.ndarray, descriptor: str = "identity", reach: int = 30
+# ) -> np.ndarray:
+#     """Decompose all the series into sub-sequences.
+
+#     It applies a transformation over each sub-sequence for each series.
+
+#     Parameters
+#     ----------
+#     X : np.ndarray
+#         A set of multivariate time series of shape =
+#         (n_instances, n_channels, n_timepoints)
+#     descriptor : str, default=None (if None then identity is used).
+#         This defines which transformation is applied on the sub-sequences.
+#     reach : int, default=30.
+#         This is the length of the sub-sequences.
+
+#     Returns
+#     -------
+#     out_mts : np.ndarray, shape = (n_instances, new_n_channels, n_timepoints).
+#         The output multivariate time series set.
+#     """
+
+#     descriptor_map = {"identity": _identity_descriptor}
+#     descriptor_function = descriptor_map[descriptor]
+
+#     sliding_window = 2 * reach + 1
+
+#     n_timepoints = X.shape[-1] - 2 * reach
+#     n_channels = X.shape[0]
+
+#     dim_desc = descriptor_function(X[0, 0, 0 : 0 + sliding_window]).shape[0]
+
+#     out_mtss = np.zeros(X.shape[0], n_channels * dim_desc, n_timepoints)
+
+#     for i in range(X.shape[0]):
+#         out_mtss[i] = _transform_subsequences(
+#             x=X[i], descriptor=descriptor, reach=reach
+#         )
+
+#     return out_mtss
+
+
 @njit(fastmath=True)
 def _transform_subsequences(
     x: np.ndarray, descriptor: str = "identity", reach: int = 30
@@ -73,7 +117,7 @@ def _transform_subsequences(
     return out_mts
 
 
-def shapedtw_distance(
+def shape_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -129,14 +173,14 @@ def shapedtw_distance(
         _x = x_pad.reshape((1, x_pad.shape[0]))
         _y = y_pad.reshape((1, y_pad.shape[0]))
 
-        return _shapedtw_distance(
+        return _shape_dtw_distance(
             x=_x, y=_y, window=window, descriptor=descriptor, reach=reach
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = np.pad(x, [[0, 0], [reach, reach]], mode="edge")
         y_pad = np.pad(y, [[0, 0], [reach, reach]], mode="edge")
 
-        return _shapedtw_distance(
+        return _shape_dtw_distance(
             x=x_pad, y=y_pad, window=window, descriptor=descriptor, reach=reach
         )
 
@@ -144,7 +188,7 @@ def shapedtw_distance(
 
 
 @njit(fastmath=True)
-def _shapedtw_distance(
+def _shape_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -216,7 +260,7 @@ def _shapedtw_distance(
     return np.sqrt(shapedtw_dist)
 
 
-def shapedtw_cost_matrix(
+def shape_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -259,21 +303,21 @@ def shapedtw_cost_matrix(
         _x = x_pad.reshape((1, x_pad.shape[0]))
         _y = y_pad.reshape((1, y_pad.shape[0]))
 
-        return _shapedtw_cost_matrix(
+        return _shape_dtw_cost_matrix(
             x=_x, y=_y, window=window, descriptor=descriptor, reach=reach
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = np.pad(x, [[0, 0], [reach, reach]], mode="edge")
         y_pad = np.pad(y, [[0, 0], [reach, reach]], mode="edge")
 
-        return _shapedtw_cost_matrix(
+        return _shape_dtw_cost_matrix(
             x=x_pad, y=y_pad, window=window, descriptor=descriptor, reach=reach
         )
 
     raise ValueError("x and y must be 1D or 2D")
 
 
-def _shapedtw_cost_matrix(
+def _shape_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -318,7 +362,7 @@ def _shapedtw_cost_matrix(
     return shapedtw_cost_mat
 
 
-def shapedtw_alignment_path(
+def shape_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -363,21 +407,21 @@ def shapedtw_alignment_path(
         _x = x_pad.reshape((1, x_pad.shape[0]))
         _y = y_pad.reshape((1, y_pad.shape[0]))
 
-        return _shapedtw_alignment_path(
+        return _shape_dtw_alignment_path(
             x=_x, y=_y, window=window, descriptor=descriptor, reach=reach
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = np.pad(x, [[0, 0], [reach, reach]], mode="edge")
         y_pad = np.pad(y, [[0, 0], [reach, reach]], mode="edge")
 
-        return _shapedtw_alignment_path(
+        return _shape_dtw_alignment_path(
             x=x_pad, y=y_pad, window=window, descriptor=descriptor, reach=reach
         )
 
     raise ValueError("x and y must be 1D or 2D")
 
 
-def _shapedtw_alignment_path(
+def _shape_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     window: float = None,
@@ -416,8 +460,147 @@ def _shapedtw_alignment_path(
     ValueError
         If x and y are not 1D or 2D arrays.
     """
-    shapedtw_cost_mat = _shapedtw_cost_matrix(
+    shapedtw_cost_mat = _shape_dtw_cost_matrix(
         x=x, y=y, window=window, descriptor=descriptor, reach=reach
     )
 
     return compute_min_return_path(shapedtw_cost_mat)
+
+
+def shape_dtw_pairwise_distance(
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    descriptor: str = "identity",
+    reach: int = 30,
+) -> np.ndarray:
+    """Compute the ShapeDTW pairwise distance among a set of series.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        A set of time series, either univariate, shape ``(n_instances, n_timepoints,)``,
+        or multivariate, shape ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+    window : float or None, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used. window is a percentage deviation, so if ``window = 0.1`` then
+        10% of the series length is the max warping allowed.
+        is used.
+    descriptor : str, default=None (if None then identity is used).
+        This defines which transformation is applied on the sub-sequences.
+    reach : int, default=30.
+        This is the length of the sub-sequences.
+
+    Returns
+    -------
+    np.ndarray
+        ShapeDTW pairwise matrix between the instances of X of shape
+        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
+        n_instances)``.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D or 2D arrays.
+    """
+    if y is None:
+        if X.ndim == 3:
+            X = np.pad(X, [[0, 0], [0, 0], [reach, reach]])
+            return _shape_dtw_pairwise_distance(
+                X,
+                window,
+            )
+        if X.ndim == 2:
+            X = np.pad(X, [[0, 0], [reach, reach]])
+            _X = X.reshape((X.shape[0], 1, X.shape[1]))
+            return _shape_dtw_pairwise_distance(
+                _X,
+                window,
+            )
+        raise ValueError("X must be 2D or 3D arrays")
+    else:
+        if X.ndim == 3 and y.ndim == 2:
+            X = np.pad(X, [[0, 0], [0, 0], [reach, reach]])
+            y = np.pad(y, [[0, 0], [reach, reach]])
+            y = np.reshape(y, (y.shape[0], 1, y.shape[1]))
+            return _shape_dtw_pairwise_distance(
+                X=X, y=y, window=window, descriptor=descriptor, reach=reach
+            )
+        elif X.ndim == 3 and y.ndim == 3:
+            X = np.pad(X, [[0, 0], [0, 0], [reach, reach]])
+            y = np.pad(y, [[0, 0], [0, 0], [reach, reach]])
+            return _shape_dtw_pairwise_distance(
+                X=X, y=y, window=window, descriptor=descriptor, reach=reach
+            )
+        elif X.ndim == 2 and y.ndim == 2:
+            X = np.pad(X, [[0, 0], [reach, reach]])
+            X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
+            y = np.pad(y, [[0, 0], [reach, reach]])
+            y = np.reshape(y, (y.shape[0], 1, y.shape[1]))
+            return _shape_dtw_pairwise_distance(
+                X=X, y=y, window=window, descriptor=descriptor, reach=reach
+            )
+        elif X.ndim == 2 and y.ndim == 3:
+            X = np.pad(X, [[0, 0], [reach, reach]])
+            X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
+            y = np.pad(y, [[0, 0], [0, 0], [reach, reach]])
+            return _shape_dtw_pairwise_distance(
+                X=X, y=y, window=window, descriptor=descriptor, reach=reach
+            )
+
+
+@njit(fastmath=True)
+def _shape_dtw_pairwise_distance(
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    descriptor: str = "identity",
+    reach: int = 30,
+) -> np.ndarray:
+    """Compute the ShapeDTW pairwise distance among a set of series.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        A set of time series, either univariate, shape ``(n_instances, n_timepoints,)``,
+        or multivariate, shape ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+    window : float or None, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used. window is a percentage deviation, so if ``window = 0.1`` then
+        10% of the series length is the max warping allowed.
+        is used.
+    descriptor : str, default=None (if None then identity is used).
+        This defines which transformation is applied on the sub-sequences.
+    reach : int, default=30.
+        This is the length of the sub-sequences.
+
+    Returns
+    -------
+    np.ndarray
+        ShapeDTW pairwise matrix between the instances of X of shape
+        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
+        n_instances)``.
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D or 2D arrays.
+    """
+    if y is None:
+        y = np.copy(X)
+
+    distances = np.zeros(shape=(len(X), len(y)))
+
+    for i in range(len(X)):
+        for j in range(len(y)):
+            distances[i, j] = shape_dtw_distance(
+                x=X[i], y=y[i], descriptor=descriptor, window=window, reach=reach
+            )
+
+    return distances
