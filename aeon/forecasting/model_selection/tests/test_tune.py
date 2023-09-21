@@ -26,10 +26,36 @@ from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanSquaredError,
 )
+from aeon.tests.test_all_estimators import PR_TESTING
 from aeon.transformations.series.detrend import Detrender
 from aeon.utils._testing.hierarchical import _make_hierarchical
 
-TEST_METRICS = [MeanAbsolutePercentageError(symmetric=True), MeanSquaredError()]
+NAIVE = NaiveForecaster(strategy="mean")
+NAIVE_GRID = {"window_length": TEST_WINDOW_LENGTHS_INT}
+PIPE = TransformedTargetForecaster(
+    [
+        ("transformer", Detrender(PolynomialTrendForecaster())),
+        ("forecaster", NaiveForecaster()),
+    ]
+)
+PIPE_GRID = {
+    "transformer__forecaster__degree": [1, 2],
+    "forecaster__strategy": ["last", "mean"],
+}
+
+if PR_TESTING:
+    TEST_METRICS = [MeanAbsolutePercentageError(symmetric=True)]
+    ERROR_SCORES = [1000]
+    GRID = [(NAIVE, NAIVE_GRID)]
+else:
+    TEST_METRICS = [MeanAbsolutePercentageError(symmetric=True), MeanSquaredError()]
+    ERROR_SCORES = [np.nan, "raise", 1000]
+    GRID = [(NAIVE, NAIVE_GRID), (PIPE, PIPE_GRID)]
+
+CVs = [
+    *[SingleWindowSplitter(fh=fh) for fh in TEST_OOS_FHS],
+    SlidingWindowSplitter(fh=1, initial_window=15),
+]
 
 
 def _get_expected_scores(forecaster, cv, param_grid, y, X, scoring):
@@ -54,25 +80,6 @@ def _check_cv(forecaster, tuner, cv, param_grid, y, X, scoring):
 
     fitted_params = tuner.get_fitted_params()
     assert param_grid[best_idx].items() <= fitted_params.items()
-
-
-NAIVE = NaiveForecaster(strategy="mean")
-NAIVE_GRID = {"window_length": TEST_WINDOW_LENGTHS_INT}
-PIPE = TransformedTargetForecaster(
-    [
-        ("transformer", Detrender(PolynomialTrendForecaster())),
-        ("forecaster", NaiveForecaster()),
-    ]
-)
-PIPE_GRID = {
-    "transformer__forecaster__degree": [1, 2],
-    "forecaster__strategy": ["last", "mean"],
-}
-CVs = [
-    *[SingleWindowSplitter(fh=fh) for fh in TEST_OOS_FHS],
-    SlidingWindowSplitter(fh=1, initial_window=15),
-]
-ERROR_SCORES = [np.nan, "raise", 1000]
 
 
 @pytest.mark.parametrize(
@@ -130,9 +137,7 @@ def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter):
     _check_cv(forecaster, rscv, cv, param_distributions, y, X, scoring)
 
 
-@pytest.mark.parametrize(
-    "forecaster, param_grid", [(NAIVE, NAIVE_GRID), (PIPE, PIPE_GRID)]
-)
+@pytest.mark.parametrize("forecaster, param_grid", GRID)
 @pytest.mark.parametrize("scoring", TEST_METRICS)
 @pytest.mark.parametrize("cv", CVs)
 @pytest.mark.parametrize("error_score", ERROR_SCORES)

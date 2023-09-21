@@ -1288,8 +1288,8 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
 def download_all_regression(extract_path=None):
     """Download and unpack all of the Monash TSER datasets.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     extract_path: str or None, default = None
         where to download the fip file. If none, it goes in
     """

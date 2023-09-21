@@ -19,8 +19,8 @@ def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
 
     Larger parts of code copied from scipy.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     n_estimators : int
       number of strategies to evaluate
     n_datasets : int
@@ -197,8 +197,8 @@ def plot_critical_difference(
     Parts of the code are copied and adapted from here:
     https://github.com/hfawaz/cd-diagram
 
-    Arguments
-    ---------
+    Parameters
+    ----------
         scores : np.array
             scores (either accuracies or errors) of dataset x strategy
         labels : list of estimators
@@ -208,14 +208,14 @@ def plot_critical_difference(
             be the same as scores
         errors : bool, default = False
             indicates whether scores are passed as errors (default) or accuracies
-        alpha : float default = 0.05
-             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
         cliques : lists of bit vectors, default = None
             e.g. [[0,1,1,1,0,0], [0,0,0,0,1,1]]
             statistically similiar cliques of estimators
             If none, cliques will be computed depending on clique_method
         clique_method : string, default = "nemenyi"
             clique forming method, to include "nemenyi" and "holm"
+        alpha : float default = 0.05
+             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
         width : int, default = 6
            width in inches
         textspace : int

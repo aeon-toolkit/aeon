@@ -22,7 +22,7 @@ Recommended steps for first time contributors, or to get started with regular co
    suggestion: pick something small with simple content to learn the “process”
 4. Feel free to attend the regular community meetings (see schedule on `Slack`_)
 
-.. _Slack: https://join.slack.com/t/scikit-timeworkspace/shared_invite/zt-1pkhua342-W_W24XuAZt2JZU1GniK2YA
+.. _Slack: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA
 
 .. note::
 
