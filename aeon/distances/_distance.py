@@ -149,8 +149,8 @@ def distance(
             y,
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
-            descriptor=kwargs.get("descriptor"),
-            reach=kwargs.get("reach"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "wddtw":
         return wddtw_distance(
@@ -289,8 +289,8 @@ def pairwise_distance(
             y=y,
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
-            descriptor=kwargs.get("descriptor"),
-            reach=kwargs.get("reach"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "ddtw":
         return ddtw_pairwise_distance(
@@ -464,8 +464,8 @@ def alignment_path(
             y,
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
-            descriptor=kwargs.get("descriptor"),
-            reach=kwargs.get("reach"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "ddtw":
         return ddtw_alignment_path(
@@ -595,8 +595,8 @@ def cost_matrix(
             y,
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
-            descriptor=kwargs.get("descriptor"),
-            reach=kwargs.get("reach"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "ddtw":
         return ddtw_cost_matrix(
