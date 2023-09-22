@@ -21,14 +21,14 @@ should be deprecated to give the user a chance to prepare.
 Deprecation warnings should be included for at least one minor version cycle before
 change or removal.
 
-Note that the deprecation policy does not necessarily apply to modules we class as 
-still experimental. Currently experimental modules are
+Note that the deprecation policy does not necessarily apply to modules we class as
+still experimental. Currently experimental modules are:
 
 - annotation
 
-When we introduce a new module, we may classify it as experimental until the API is 
-stable. We will try not make drastic changes to experimental modules, but we need to 
-retain the freedom to be more agile with the design in these cases.  
+When we introduce a new module, we may classify it as experimental until the API is
+stable. We will try not make drastic changes to experimental modules, but we need to
+retain the freedom to be more agile with the design in these cases.
 
 Deprecation process
 ===================
