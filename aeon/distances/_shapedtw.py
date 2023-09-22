@@ -560,7 +560,7 @@ def shape_dtw_pairwise_distance(
         raise ValueError("X must be 2D or 3D arrays")
     else:
         _X, _y = reshape_pairwise_to_multiple(x=X, y=y)
-        X_pad = _pad_ts_edges(x=X, reach=reach)
+        X_pad = _pad_ts_edges(x=_X, reach=reach)
         y_pad = _pad_ts_edges(x=_y, reach=reach)
 
         return _shape_dtw_pairwise_distance(
