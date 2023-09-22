@@ -78,8 +78,8 @@ def _transform_subsequences(
     out_mts : np.ndarray, shape = (new_n_channels, n_timepoints+reach*2).
         The output multivariate time series.
     """
-    descriptor_map = {"identity": _identity_descriptor}
-    descriptor_function = descriptor_map[descriptor]
+    if descriptor == "identity":
+        descriptor_function = _identity_descriptor
 
     # pad the time serie x
     # x = np.pad(x, [[0,0],[reach, reach]], mode="edge")
