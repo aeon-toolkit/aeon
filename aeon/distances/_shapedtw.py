@@ -561,7 +561,7 @@ def shape_dtw_pairwise_distance(
     else:
         _X, _y = reshape_pairwise_to_multiple(x=X, y=y)
         X_pad = _pad_ts_edges(x=X, reach=reach)
-        y_pad = _pad_ts_edges(x=X, reach=reach)
+        y_pad = _pad_ts_edges(x=_y, reach=reach)
 
         return _shape_dtw_pairwise_distance(
             X=X_pad,
