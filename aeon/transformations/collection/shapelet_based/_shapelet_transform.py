@@ -395,12 +395,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     def _extract_random_shapelet(self, X, y, i, shapelets, max_shapelets_per_class):
         rs = 255 if self.random_state == 0 else self.random_state
-        local_max = 214748363
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (i + 1)) % local_max
-        )
+        local_max= 214748363
+        rs = None if self.random_state is None else (rs * 37 * (i + 1)) % local_max
         rng = check_random_state(rs)
 
         inst_idx = i % self.n_instances
