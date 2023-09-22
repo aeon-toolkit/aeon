@@ -21,7 +21,7 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
 
         n_channels = int(n_channels)
         n_timepoints = int(n_timepoints)
-        x_padded = np.zeros((n_channels, n_timepoints + 2 * reach))
+        x_padded = np.zeros((n_channels, n_timepoints + 2 * reach), dtype=float)
 
         x_padded[:, reach : reach + n_timepoints] = x
         x_padded[:, :reach] = np.expand_dims(x[:, 0], axis=-1)
@@ -34,7 +34,7 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
         new_n_timepoints = int(n_timepoints + 2 * reach)
 
         x_padded = np.zeros(
-            shape=(n_instances, n_channels, new_n_timepoints), dtype=np.float64
+            shape=(n_instances, n_channels, new_n_timepoints), dtype=float
         )
 
         x_padded[:, :, reach : reach + n_timepoints] = x
@@ -95,7 +95,9 @@ def _transform_subsequences(
     n_timepoints = x.shape[1] - 2 * reach
 
     # define the output MTS which has the same
-    out_mts = np.zeros((n_channels * dim_desc, n_timepoints), dtype=np.float64)
+    out_mts = np.zeros(
+        (n_channels * dim_desc, n_timepoints),
+    )
 
     # loop through each data point
     for i in range(n_timepoints):
@@ -626,7 +628,7 @@ def _shape_dtw_pairwise_distance(
 
     distances = np.zeros(shape=(len(X), len(y)))
     bounding_matrix = create_bounding_matrix(
-        X.shape[2] - 2 * reach, X.shape[2] - 2 * reach, window, itakura_max_slope
+        X.shape[2] - 2 * reach, y.shape[2] - 2 * reach, window, itakura_max_slope
     )
 
     for i in range(len(X)):

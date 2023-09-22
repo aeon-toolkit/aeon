@@ -285,8 +285,8 @@ def pairwise_distance(
         )
     elif metric == "shape_dtw":
         return shape_dtw_pairwise_distance(
-            X=x,
-            y=y,
+            x,
+            y,
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
