@@ -81,9 +81,6 @@ def _transform_subsequences(
     if descriptor == "identity":
         descriptor_function = _identity_descriptor
 
-    # pad the time serie x
-    # x = np.pad(x, [[0,0],[reach, reach]], mode="edge")
-
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
 
@@ -456,53 +453,6 @@ def shape_dtw_alignment_path(
     )
 
     return (compute_min_return_path(cost_matrix), shapedtw_dist)
-
-
-# @njit(cache=True, fastmath=True)
-# def _shape_dtw_alignment_path(
-#     x: np.ndarray,
-#     y: np.ndarray,
-#     window: float = None,
-#     descriptor: str = "identity",
-#     reach: int = 30,
-# ) -> List[Tuple[int, int]]:
-#     """Compute the ShapeDTW alignment path between two series x and y.
-
-#     Parameters
-#     ----------
-#     x : np.ndarray
-#         First time series, either univariate, shape ``(n_timepoints,)``, or
-#         multivariate, shape ``(n_channels, n_timepoints)``.
-#     y : np.ndarray
-#         Second time series, either univariate, shape ``(n_timepoints,)``, or
-#         multivariate, shape ``(n_channels, n_timepoints)``.
-#     window : float or None, default=None
-#         The window to use for the bounding matrix. If None, no bounding matrix
-#         is used. window is a percentage deviation, so if ``window = 0.1`` then
-#         10% of the series length is the max warping allowed.
-#         is used.
-#     descriptor : str, default=None (if None then identity is used).
-#         This defines which transformation is applied on the sub-sequences.
-#     reach : int, default=30.
-#         This is the length of the sub-sequences.
-
-#     Returns
-#     -------
-#     List[Tuple[int, int]]
-#         The alignment path between the two time series where each element is a tuple
-#         of the index in x and the index in y that have the best alignment according
-#         to the cost matrix.
-
-#     Raises
-#     ------
-#     ValueError
-#         If x and y are not 1D or 2D arrays.
-#     """
-#     shapedtw_cost_mat = _shape_dtw_cost_matrix(
-#         x=x, y=y, window=window, descriptor=descriptor, reach=reach
-#     )
-
-#     return compute_min_return_path(shapedtw_cost_mat)
 
 
 @njit(cache=True, fastmath=True)
