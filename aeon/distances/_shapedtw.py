@@ -10,6 +10,7 @@ from numba import njit
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._dtw import _dtw_cost_matrix
+from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
 @njit(cache=True, fastmath=True)
@@ -558,54 +559,18 @@ def shape_dtw_pairwise_distance(
             )
         raise ValueError("X must be 2D or 3D arrays")
     else:
-        if X.ndim == 3 and y.ndim == 2:
-            X_pad = _pad_ts_edges(x=X, reach=reach)
-            _y = np.reshape(y, (y.shape[0], 1, y.shape[1]))
-            y_pad = _pad_ts_edges(x=_y, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                y=y_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
-        elif X.ndim == 3 and y.ndim == 3:
-            X_pad = _pad_ts_edges(x=X, reach=reach)
-            y_pad = _pad_ts_edges(x=y, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                y=y_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
-        elif X.ndim == 2 and y.ndim == 2:
-            _X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
-            X_pad = _pad_ts_edges(x=_X, reach=reach)
-            _y = np.reshape(y, (y.shape[0], 1, y.shape[1]))
-            y_pad = _pad_ts_edges(x=_y, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                y=y_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
-        elif X.ndim == 2 and y.ndim == 3:
-            _X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
-            X_pad = _pad_ts_edges(x=_X, reach=reach)
-            y_pad = _pad_ts_edges(x=y, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                y=y_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
+        _X, _y = reshape_pairwise_to_multiple(x=X, y=y)
+        X_pad = _pad_ts_edges(x=X, reach=reach)
+        y_pad = _pad_ts_edges(x=X, reach=reach)
+
+        return _shape_dtw_pairwise_distance(
+            X=X_pad,
+            y=y_pad,
+            window=window,
+            descriptor=descriptor,
+            reach=reach,
+            itakura_max_slope=itakura_max_slope,
+        )
 
 
 @njit(cache=True, fastmath=True)
