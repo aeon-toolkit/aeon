@@ -16,7 +16,7 @@ from joblib import Parallel, delayed
 from numba import njit
 from numba.typed.typedlist import List
 from sklearn import preprocessing
-from sklearn.utils import check_random_state
+from sklearn.utils._random import check_random_state
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
@@ -241,6 +241,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         )
         n_shapelets_extracted = 0
 
+        rng = check_random_state(self.random_state)
+
         if time_limit > 0:
             while (
                 fit_time < time_limit
@@ -255,6 +257,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         n_shapelets_extracted + i,
                         shapelets,
                         max_shapelets_per_class,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(self._batch_size)
                 )
@@ -292,6 +295,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         n_shapelets_extracted + i,
                         shapelets,
                         max_shapelets_per_class,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(n_shapelets_to_extract)
                 )
@@ -393,15 +397,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         """
         return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
 
-    def _extract_random_shapelet(self, X, y, i, shapelets, max_shapelets_per_class):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (i + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _extract_random_shapelet(
+        self, X, y, i, shapelets, max_shapelets_per_class, rng
+    ):
         inst_idx = i % self.n_instances
         cls_idx = int(y[inst_idx])
         worst_quality = (

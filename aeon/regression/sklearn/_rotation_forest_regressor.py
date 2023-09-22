@@ -186,6 +186,8 @@ class RotationForestRegressor(BaseEstimator):
         self._ptp = X.max(axis=0) - self._min
         X = (X - self._min) / self._ptp
 
+        rng = check_random_state(self.random_state)
+
         if time_limit > 0:
             self._n_estimators = 0
             self.estimators_ = []
@@ -202,6 +204,7 @@ class RotationForestRegressor(BaseEstimator):
                         X,
                         y,
                         i,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(self._n_jobs)
                 )
@@ -223,6 +226,7 @@ class RotationForestRegressor(BaseEstimator):
                     X,
                     y,
                     i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
                 )
                 for i in range(self._n_estimators)
             )
@@ -314,10 +318,13 @@ class RotationForestRegressor(BaseEstimator):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
+        rng = check_random_state(self.random_state)
+
         p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_preds_for_estimator)(
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(self._n_estimators)
         )
@@ -336,15 +343,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return results
 
-    def _fit_estimator(self, X, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, rng):
         groups = self._generate_groups(rng)
         pcas = []
 
@@ -366,7 +365,7 @@ class RotationForestRegressor(BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rs).fit(X_t)
+                    pca = PCA(random_state=rng).fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break
@@ -386,7 +385,7 @@ class RotationForestRegressor(BaseEstimator):
             X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
         )
 
-        tree = _clone_estimator(self._base_estimator, random_state=rs)
+        tree = _clone_estimator(self._base_estimator, random_state=rng)
         tree.fit(X_t, y)
 
         return tree, pcas, groups, X_t if self.save_transformed_data else None
@@ -402,15 +401,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return clf.predict(X_t)
 
-    def _train_preds_for_estimator(self, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _train_preds_for_estimator(self, y, idx, rng):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]
@@ -419,7 +410,7 @@ class RotationForestRegressor(BaseEstimator):
         if len(oob) == 0:
             return [results, oob]
 
-        clf = _clone_estimator(self._base_estimator, rs)
+        clf = _clone_estimator(self._base_estimator, rng)
         clf.fit(self.transformed_data_[idx][subsample], y[subsample])
         preds = clf.predict(self.transformed_data_[idx][oob])
 
