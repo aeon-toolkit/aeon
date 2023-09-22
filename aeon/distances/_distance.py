@@ -43,6 +43,12 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._shapedtw import (
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
@@ -136,6 +142,15 @@ def distance(
             kwargs.get("window"),
             kwargs.get("g", 0.05),
             kwargs.get("itakura_max_slope"),
+        )
+    elif metric == "shape_dtw":
+        return shape_dtw_distance(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor"),
+            reach=kwargs.get("reach"),
         )
     elif metric == "wddtw":
         return wddtw_distance(
@@ -267,6 +282,15 @@ def pairwise_distance(
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
+    elif metric == "shape_dtw":
+        return shape_dtw_pairwise_distance(
+            X=x,
+            y=y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor"),
+            reach=kwargs.get("reach"),
         )
     elif metric == "ddtw":
         return ddtw_pairwise_distance(
@@ -434,6 +458,15 @@ def alignment_path(
         return dtw_alignment_path(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
+    elif metric == "shape_dtw":
+        return shape_dtw_alignment_path(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor"),
+            reach=kwargs.get("reach"),
+        )
     elif metric == "ddtw":
         return ddtw_alignment_path(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -555,6 +588,15 @@ def cost_matrix(
     if metric == "dtw":
         return dtw_cost_matrix(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
+    elif metric == "shape_dtw":
+        return shape_dtw_cost_matrix(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor"),
+            reach=kwargs.get("reach"),
         )
     elif metric == "ddtw":
         return ddtw_cost_matrix(
@@ -909,6 +951,13 @@ DISTANCES = [
         "pairwise_distance": msm_pairwise_distance,
         "cost_matrix": msm_cost_matrix,
         "alignment_path": msm_alignment_path,
+    },
+    {
+        "name": "shape_dtw",
+        "distance": shape_dtw_distance,
+        "pairwise_distance": shape_dtw_pairwise_distance,
+        "cost_matrix": shape_dtw_cost_matrix,
+        "alignment_path": shape_dtw_alignment_path,
     },
 ]
 
