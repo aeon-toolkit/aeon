@@ -134,7 +134,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         if Q.shape[-1] >= self._X.shape[-1]:
             raise TypeError("Error, Q must be shorter than X.")
 
-        if self._normalized:
+        if self.normalize:
             self._Q_mean = np.mean(Q, axis=-1)
             self._Q_std = np.std(Q, axis=-1)
             self._store_mean_std_from_inputs(Q.shape[-1])
