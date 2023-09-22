@@ -210,15 +210,22 @@ def test_wilcoxon_holm_cliques():
         if os.getcwd().split("\\")[-1] != "tests"
         else "../example_results/"
     )
-    data = data_full[:50]
 
     res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
     ranked_data = rankdata(-1 * res, axis=1)
     avranks = ranked_data.mean(axis=0)
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
+
+    cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.1)
+
+    assert np.all(cliques == [False, False, True, True])
+
+    cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.05)
+
+    assert np.all(cliques == [False, True, True, True])
 
     cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.01)
     assert np.all(cliques == [True, True, True, True])
@@ -226,4 +233,3 @@ def test_wilcoxon_holm_cliques():
 
 def test_plot_critical_difference():
     pass
-
