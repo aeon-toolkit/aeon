@@ -94,9 +94,6 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
-        self._normalized = self.distance_profile_function.__name__.startswith(
-            "normalized"
-        )
 
         self._X = X
         self._fit(X, y)

@@ -25,7 +25,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         return self
 
     def _predict(self, Q):
-        if self._normalized:
+        if self.normalize:
             distance_profile = self.distance_profile_function(
                 self._X, Q, self._X_means, self._X_stds, self._Q_means, self._Q_stds
             )
