@@ -110,7 +110,7 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
-from aeon.distances._shapedtw import (
+from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,
     shape_dtw_distance,
