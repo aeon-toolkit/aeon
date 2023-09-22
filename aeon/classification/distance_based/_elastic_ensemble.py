@@ -244,13 +244,13 @@ class ElasticEnsemble(BaseClassifier):
                     or self._distance_measures[dm] == "wddtw"
                 ):
                     print(  # noqa: T201
-                        f"Currently evaluating{self._distance_measures[dm]} "
+                        f"Currently evaluating {self._distance_measures[dm]} "
                         f"implemented as {this_measure} with pre-transformed "
                         f"derivative data)"
                     )
                 else:
                     print(  # noqa: T201
-                        "Currently evaluating {self._distance_measures[dm]}"
+                        f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
             # If 100 parameter options are being considered per measure,
