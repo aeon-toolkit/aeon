@@ -266,7 +266,7 @@ def _shape_dtw_distance(
                 # c is the minimum
                 i -= 1
 
-    return np.sqrt(shapedtw_dist)
+    return shapedtw_dist
 
 
 @njit(cache=True, fastmath=True)
