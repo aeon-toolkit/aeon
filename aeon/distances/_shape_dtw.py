@@ -402,7 +402,7 @@ def shape_dtw_alignment_path(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: float = None,
-) -> List[Tuple[int, int]]:
+) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
     Parameters
@@ -443,10 +443,17 @@ def shape_dtw_alignment_path(
         reach=reach,
         itakura_max_slope=itakura_max_slope,
     )
-    return (
-        compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+
+    shapedtw_dist = shape_dtw_distance(
+        x=x,
+        y=y,
+        window=window,
+        itakura_max_slope=itakura_max_slope,
+        reach=reach,
+        descriptor=descriptor,
     )
+
+    return (compute_min_return_path(cost_matrix), shapedtw_dist)
 
 
 # @njit(cache=True, fastmath=True)
