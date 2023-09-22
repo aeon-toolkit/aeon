@@ -24,8 +24,8 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
         x_padded = np.zeros((n_channels, n_timepoints + 2 * reach))
 
         x_padded[:, reach : reach + n_timepoints] = x
-        x_padded[:, :reach] = x[:, 0]
-        x_padded[:, reach + n_timepoints :] = x[:, -1]
+        x_padded[:, :reach] = np.expand_dims(x[:, 0], axis=-1)
+        x_padded[:, reach + n_timepoints :] = np.expand_dims(x[:, -1], axis=-1)
 
     elif x.ndim == 3:
         n_timepoints = x.shape[2]
