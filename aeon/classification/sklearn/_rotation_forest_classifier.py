@@ -223,10 +223,9 @@ class RotationForestClassifier(BaseEstimator):
                         X,
                         X_cls_split,
                         y,
-                        i,
                         check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
-                    for i in range(self._n_jobs)
+                    for _ in range(self._n_jobs)
                 )
 
                 estimators, pcas, groups, transformed_data = zip(*fit)
@@ -246,10 +245,9 @@ class RotationForestClassifier(BaseEstimator):
                     X,
                     X_cls_split,
                     y,
-                    i,
                     check_random_state(rng.randint(np.iinfo(np.int32).max)),
                 )
-                for i in range(self._n_estimators)
+                for _ in range(self._n_estimators)
             )
 
             self.estimators_, self._pcas, self._groups, self.transformed_data_ = zip(
