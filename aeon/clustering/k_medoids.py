@@ -175,9 +175,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._fit_method = None
 
         self._distance_params = distance_params
-        if distance_params is None:
-            self._distance_params = {}
-
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
