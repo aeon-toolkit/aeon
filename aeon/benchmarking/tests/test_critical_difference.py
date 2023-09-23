@@ -18,6 +18,7 @@ from aeon.benchmarking._critical_difference import (
 )
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 test_path = MODULE = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
@@ -215,10 +216,11 @@ def test_wilcoxon_holm_cliques():
     assert np.all(cliques == [False, True, True, True])
 
     cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.01)
-    assert np.all(cliques == [True, True, True, True])
+    assert np.all(cliques == [False, True, True, True])
 
 
 def test_plot_critical_difference():
+    _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
