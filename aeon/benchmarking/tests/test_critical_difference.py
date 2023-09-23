@@ -13,13 +13,15 @@ from aeon.benchmarking._critical_difference import (
     _check_friedman,
     build_cliques,
     nemenyi_cliques,
+    plot_critical_difference,
     wilcoxon_holm_cliques,
 )
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
 
 test_path = MODULE = os.path.dirname(__file__)
-data_path = os.path.join(test_path,"../example_results/")
+data_path = os.path.join(test_path, "../example_results/")
+
 
 def test__check_friedman():
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
@@ -217,4 +219,26 @@ def test_wilcoxon_holm_cliques():
 
 
 def test_plot_critical_difference():
-    pass
+    from matplotlib.figure import Figure
+
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data_full = list(univariate_equal_length)
+    data_full.sort()
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+
+    plot = plot_critical_difference(
+        res,
+        cls,
+        highlight=None,
+        errors=False,
+        cliques=None,
+        clique_method="nemenyi",
+        alpha=0.05,
+        width=6,
+        textspace=1.5,
+        reverse=True,
+    )
+    assert isinstance(plot, Figure)
