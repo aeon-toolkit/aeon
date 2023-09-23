@@ -4,9 +4,7 @@
 import os
 
 import numpy as np
-
-# import pytest
-# from pytest import raises
+import pytest
 from scipy.stats import rankdata
 
 from aeon.benchmarking._critical_difference import (
@@ -219,6 +217,10 @@ def test_wilcoxon_holm_cliques():
     assert np.all(cliques == [False, True, True, True])
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_critical_difference():
     _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
