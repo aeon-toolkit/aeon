@@ -5,6 +5,12 @@ from typing import Any, Callable, List, Tuple, Union
 
 import numpy as np
 
+from aeon.distances._adtw import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+)
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
     ddtw_cost_matrix,
@@ -16,12 +22,6 @@ from aeon.distances._dtw import (
     dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
-)
-from aeon.distances._adtw import (
-    adtw_alignment_path,
-    adtw_cost_matrix,
-    adtw_distance,
-    adtw_pairwise_distance,
 )
 from aeon.distances._edr import (
     edr_alignment_path,
@@ -202,7 +202,7 @@ def distance(
             y,
             kwargs.get("window"),
             kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty")
+            kwargs.get("warp_penalty", 1.0),
         )
     else:
         if isinstance(metric, Callable):
@@ -353,7 +353,7 @@ def pairwise_distance(
             y,
             kwargs.get("window"),
             kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty")
+            kwargs.get("warp_penalty", 1.0),
         )
     else:
         if isinstance(metric, Callable):
@@ -525,7 +525,7 @@ def alignment_path(
             y,
             kwargs.get("window"),
             kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty")
+            kwargs.get("warp_penalty", 1.0),
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
@@ -655,7 +655,7 @@ def cost_matrix(
             y,
             kwargs.get("window"),
             kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty")
+            kwargs.get("warp_penalty", 1.0),
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
@@ -958,7 +958,7 @@ DISTANCES = [
         "pairwise_distance": adtw_pairwise_distance,
         "cost_matrix": adtw_cost_matrix,
         "alignment_path": adtw_alignment_path,
-    }
+    },
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}

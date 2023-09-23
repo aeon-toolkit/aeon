@@ -61,6 +61,12 @@ __all__ = [
 ]
 
 
+from aeon.distances._adtw import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+)
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
@@ -129,10 +135,3 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
-from aeon.distances._adtw import (
-    adtw_alignment_path,
-    adtw_cost_matrix,
-    adtw_distance,
-    adtw_pairwise_distance
-)
-

@@ -15,11 +15,11 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def adtw_distance(
-    x: np.ndarray, 
-    y: np.ndarray, 
-    window: float = None, 
-    itakura_max_slope: float = None, 
-    warp_penalty: float = 1.0
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    itakura_max_slope: float = None,
+    warp_penalty: float = 1.0,
 ) -> float:
     r"""Compute the ADTW distance between two time series.
 
@@ -61,12 +61,12 @@ def adtw_distance(
     >>> from aeon.distances import adtw_distance
     >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
-    >>> dtw_distance(x, y) # 1D series
-    768.0
+    >>> adtw_distance(x, y) # 1D series
+    783.0
     >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
     >>> y = np.array([[11, 12, 13, 14],[7, 8, 9, 20],[1, 3, 4, 5]] )
-    >>> dtw_distance(x, y) # 2D series with 3 channels, unequal length
-    564.0
+    >>> adtw_distance(x, y) # 2D series with 3 channels, unequal length
+    565.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -85,14 +85,13 @@ def adtw_distance(
 
 @njit(cache=True, fastmath=True)
 def adtw_cost_matrix(
-    x: np.ndarray, 
-    y: np.ndarray, 
-    window: float = None, 
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
     itakura_max_slope: float = None,
-    warp_penalty: float = 1.0
+    warp_penalty: float = 1.0,
 ) -> np.ndarray:
     r"""Compute the ADTW cost matrix between two time series.
-
 
     Parameters
     ----------
@@ -129,20 +128,21 @@ def adtw_cost_matrix(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import dtw_cost_matrix
+    >>> from aeon.distances import adtw_cost_matrix
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> dtw_cost_matrix(x, y)
-    array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
-           [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
-           [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
-           [ 14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91.],
-           [ 30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.],
-           [ 55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.],
-           [ 91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.],
-           [140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.],
-           [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
-           [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
+    >>> adtw_cost_matrix(x, y)
+    array([[  0.,   2.,   7.,  17.,  34.,  60.,  97., 147., 212., 294.],
+           [  2.,   0.,   2.,   7.,  17.,  34.,  60.,  97., 147., 212.],
+           [  7.,   2.,   0.,   2.,   7.,  17.,  34.,  60.,  97., 147.],
+           [ 17.,   7.,   2.,   0.,   2.,   7.,  17.,  34.,  60.,  97.],
+           [ 34.,  17.,   7.,   2.,   0.,   2.,   7.,  17.,  34.,  60.],
+           [ 60.,  34.,  17.,   7.,   2.,   0.,   2.,   7.,  17.,  34.],
+           [ 97.,  60.,  34.,  17.,   7.,   2.,   0.,   2.,   7.,  17.],
+           [147.,  97.,  60.,  34.,  17.,   7.,   2.,   0.,   2.,   7.],
+           [212., 147.,  97.,  60.,  34.,  17.,   7.,   2.,   0.,   2.],
+           [294., 212., 147.,  97.,  60.,  34.,  17.,   7.,   2.,   0.]])
+
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -160,8 +160,12 @@ def adtw_cost_matrix(
 
 
 @njit(cache=True, fastmath=True)
-def _adtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, warp_penalty: float) -> float:
-    return _adtw_cost_matrix(x, y, bounding_matrix, warp_penalty)[x.shape[1] - 1, y.shape[1] - 1]
+def _adtw_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, warp_penalty: float
+) -> float:
+    return _adtw_cost_matrix(x, y, bounding_matrix, warp_penalty)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
 
 
 @njit(cache=True, fastmath=True)
@@ -193,10 +197,9 @@ def adtw_pairwise_distance(
     y: np.ndarray = None,
     window: float = None,
     itakura_max_slope: float = None,
-    warp_penalty: float = 1.0
+    warp_penalty: float = 1.0,
 ) -> np.ndarray:
     r"""Compute the ADTW pairwise distance between a set of time series.
-
 
     Parameters
     ----------
@@ -232,25 +235,25 @@ def adtw_pairwise_distance(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import dtw_pairwise_distance
+    >>> from aeon.distances import adtw_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> dtw_pairwise_distance(X)
-    array([[  0.,  26., 108.],
-           [ 26.,   0.,  26.],
-           [108.,  26.,   0.]])
+    >>> adtw_pairwise_distance(X)
+    array([[  0.,  27., 108.],
+           [ 27.,   0.,  27.],
+           [108.,  27.,   0.]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
-    >>> dtw_pairwise_distance(X, y)
+    >>> adtw_pairwise_distance(X, y)
     array([[300., 507., 768.],
            [147., 300., 507.],
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
-    >>> dtw_pairwise_distance(X, y_univariate)
+    >>> adtw_pairwise_distance(X, y_univariate)
     array([[300.],
            [147.],
            [ 48.]])
@@ -264,7 +267,9 @@ def adtw_pairwise_distance(
             return _adtw_pairwise_distance(_X, window, itakura_max_slope, warp_penalty)
         raise ValueError("x and y must be 2D or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _adtw_from_multiple_to_multiple_distance(_x, _y, window, itakura_max_slope, warp_penalty)
+    return _adtw_from_multiple_to_multiple_distance(
+        _x, _y, window, itakura_max_slope, warp_penalty
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -287,7 +292,11 @@ def _adtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _adtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, itakura_max_slope: float, warp_penalty: float
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float,
+    itakura_max_slope: float,
+    warp_penalty: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
@@ -304,11 +313,11 @@ def _adtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def adtw_alignment_path(
-    x: np.ndarray, 
-    y: np.ndarray, 
-    window: float = None, 
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
     itakura_max_slope: float = None,
-    warp_penalty: float = 1.0
+    warp_penalty: float = 1.0,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ADTW alignment path between two time series.
 
@@ -346,10 +355,10 @@ def adtw_alignment_path(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import dtw_alignment_path
+    >>> from aeon.distances import adtw_alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> dtw_alignment_path(x, y)
+    >>> adtw_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     cost_matrix = adtw_cost_matrix(x, y, window, itakura_max_slope, warp_penalty)
