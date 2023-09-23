@@ -4,6 +4,7 @@
 __author__ = ["mloning", "TonyBagnall", "fkiraly", "MatthewMiddlehurst"]
 
 import numpy as np
+from sklearn.utils._testing import set_random_state
 
 from aeon.classification.tests._expected_outputs import (
     basic_motions_proba,
@@ -73,72 +74,39 @@ class TestAllEarlyClassifiers(EarlyClassifierFixtureGenerator, QuickTester):
         assert decisions.shape == (X_new.shape[0],)
         assert decisions.dtype == bool
 
-    def test_early_classifier_on_unit_test_data(self, estimator_class):
-        """Test early classifier on unit test data."""
+    def test_classifier_against_expected_results(self, estimator_class):
+        """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in unit_test_proba.keys():
-            expected_probas = unit_test_proba[classname]
-        else:
-            # skip test if no expected probas are registered
-            return None
+        for data_dict, data_loader, data_seed in [
+            [unit_test_proba, load_unit_test, 4],
+            [basic_motions_proba, load_basic_motions, 0],
+        ]:
+            # retrieve expected predict_proba output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_probas = data_dict[classname]
+            else:
+                # skip test if no expected probas are registered
+                continue
 
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
 
-        # load unit test data
-        X_train, y_train, X_test, y_test, indices = load_unit_data()
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            X_test, _ = data_loader(split="test")
+            indices = np.random.RandomState(data_seed).choice(
+                len(y_train), 10, replace=False
+            )
 
-        # train classifier and predict probas
-        estimator_instance.fit(X_train, y_train)
-        y_proba, _ = estimator_instance.predict_proba(X_test[indices])
+            # train classifier and predict probas
+            estimator_instance.fit(X_train, y_train)
+            y_proba = estimator_instance.predict_proba(X_test[indices])
 
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
-
-    def test_early_classifier_on_basic_motions(self, estimator_class):
-        """Test early classifier on basic motions data."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in basic_motions_proba.keys():
-            expected_probas = basic_motions_proba[classname]
-        else:
-            # skip test if no expected probas are registered
-            return None
-
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
-
-        # load unit test data
-        X_train, y_train = load_basic_motions(split="train")
-        X_test, _ = load_basic_motions(split="test")
-        indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
-
-        # train classifier and predict probas
-        estimator_instance.fit(X_train[indices], y_train[indices])
-        y_proba, _ = estimator_instance.predict_proba(X_test[indices])
-
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
-
-
-def load_unit_data():
-    """Load unit test data."""
-    X_train, y_train = load_unit_test(split="train")
-    X_test, y_test = load_unit_test(split="test")
-    indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
-    return X_train, y_train, X_test, y_test, indices
+            # assert probabilities are the same
+            _assert_array_almost_equal(y_proba, expected_probas, decimal=2)

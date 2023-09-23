@@ -395,7 +395,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
+        if parameter_set == "results_comparison":
+            return {"max_shapelets": 10, "n_shapelet_samples": 500}
+        else:
+            return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
 
     def _extract_random_shapelet(
         self, X, y, i, shapelets, max_shapelets_per_class, rng

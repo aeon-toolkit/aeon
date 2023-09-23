@@ -2,12 +2,19 @@
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests common to all transformers."""
 
-__author__ = ["mloning", "fkiraly"]
+__author__ = ["mloning", "fkiraly", "MatthewMiddlehurst"]
 __all__ = []
 
+import numpy as np
 import pandas as pd
+from sklearn.utils._testing import set_random_state
 
+from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.transformations.tests._expected_outputs import (
+    basic_motions_result,
+    unit_test_result,
+)
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
 
@@ -72,3 +79,40 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
             _assert_array_almost_equal(X, Xit)
         elif isinstance(X, pd.DataFrame):
             _assert_array_almost_equal(X.loc[Xit.index], Xit)
+
+    def test_transformer_against_expected_results(self, estimator_class):
+        """Test transformer against stored results."""
+        # we only use the first estimator instance for testing
+        classname = estimator_class.__name__
+
+        for data_dict, data_loader, data_seed in [
+            [unit_test_result, load_unit_test, 4],
+            [basic_motions_result, load_basic_motions, 0],
+        ]:
+            # retrieve expected predict_proba output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_probas = data_dict[classname]
+            else:
+                # skip test if no expected probas are registered
+                continue
+
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
+
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            X_test, _ = data_loader(split="test")
+            indices = np.random.RandomState(data_seed).choice(
+                len(y_train), 5, replace=False
+            )
+
+            # train classifier and predict probas
+            estimator_instance.fit(X_train, y_train)
+            y_proba = estimator_instance.predict_proba(X_test[indices])
+
+            # assert probabilities are the same
+            _assert_array_almost_equal(y_proba, expected_probas, decimal=2)

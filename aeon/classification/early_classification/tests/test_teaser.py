@@ -6,10 +6,8 @@ from numpy import testing
 from sklearn.ensemble import IsolationForest
 
 from aeon.classification.early_classification._teaser import TEASER
-from aeon.classification.early_classification.tests.test_all_early_classifiers import (  # noqa: E501
-    load_unit_data,
-)
 from aeon.classification.interval_based import TimeSeriesForestClassifier
+from aeon.datasets import load_unit_test
 
 
 def test_teaser_with_different_decision_maker():
@@ -99,6 +97,14 @@ def test_teaser_default():
 
     testing.assert_allclose(teaser._train_accuracy, 0.9, rtol=0.01)
     testing.assert_allclose(teaser._train_earliness, 0.733, rtol=0.01)
+
+
+def load_unit_data():
+    """Load unit test data."""
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
+    indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
+    return X_train, y_train, X_test, y_test, indices
 
 
 teaser_if_unit_test_probas = np.array(
