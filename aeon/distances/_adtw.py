@@ -23,6 +23,13 @@ def adtw_distance(
 ) -> float:
     r"""Compute the ADTW distance between two time series.
 
+    Amercing Dynamic Time Warping (ADTW) [1]_ is a variant of DTW that uses a
+    explicit warping penalty to encourage or discourage warping. The warping
+    penalty is a constant value that is added to the cost of warping. If the
+    value is high will encourage algorithm to warp less and if value is low
+    then will encourage algorithm to warp more. ADTW is a generalization of
+    DTW and DTW is a special case of ADTW when the warping penalty is 0.
+
     Parameters
     ----------
     x : np.ndarray
@@ -54,6 +61,11 @@ def adtw_distance(
     ValueError
         If x and y are not 1D or 2D arrays.
 
+    References
+    ----------
+    .. [1] Matthieu Herrmann, Geoffrey I. Webb: Amercing: An intuitive and
+    effective constraint for dynamic time warping, Pattern Recognition,
+    Volume 137, 2023.
 
     Examples
     --------
