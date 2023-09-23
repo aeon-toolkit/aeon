@@ -12,11 +12,7 @@ import pytest
 from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.forecasting.tests._config import (
-    TEST_OOS_FHS,
-    TEST_SPS,
-    TEST_WINDOW_LENGTHS_INT,
-)
+from aeon.forecasting.tests import TEST_OOS_FHS, TEST_SPS, TEST_WINDOW_LENGTHS_INT
 from aeon.utils._testing.forecasting import _assert_correct_pred_time_index
 from aeon.utils.validation.forecasting import check_fh
 
@@ -247,7 +243,7 @@ def test_strategy_mean_and_last_seasonal_additional_combinations(
     forecast_data = model.predict(fh)
 
     # Make sure that the model (object) reports that it handles missing data
-    assert model.get_tag("handles-missing-data")
+    assert model.get_tag("capability:missing_values")
 
     if sp < window_length:
         # We expect a perfect forecast given our perfectly cyclic data

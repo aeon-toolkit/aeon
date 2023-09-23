@@ -17,7 +17,8 @@ def _identity(X):
 
 
 class FunctionTransformer(BaseTransformer):
-    r"""Constructs a transformer from an arbitrary callable.
+    r"""
+    Constructs a transformer from an arbitrary callable.
 
     A FunctionTransformer forwards its y (and optionally X) arguments to a
     user-defined function or function object and returns the result of this
@@ -47,7 +48,7 @@ class FunctionTransformer(BaseTransformer):
     inv_kw_args : dict, default=None
         Dictionary of additional keyword arguments to pass to inverse_func.
     X_type : str, one of "pd.DataFrame, pd.Series, np.ndarray", or list thereof
-        default = ["pd.DataFrame", "pd.Series", "np.ndarray"]
+        Default = ["pd.DataFrame", "pd.Series", "np.ndarray"]
         list of types that func is assumed to allow for X (see signature above)
         if X passed to transform/inverse_transform is not on the list,
             it will be converted to the first list element before passed to funcs
@@ -85,7 +86,7 @@ class FunctionTransformer(BaseTransformer):
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "capability:inverse_transform": True,
     }
 

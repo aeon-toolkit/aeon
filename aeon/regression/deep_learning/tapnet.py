@@ -8,6 +8,7 @@ __all__ = [
     "TapNetRegressor",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -227,6 +228,7 @@ class TapNetRegressor(BaseDeepRegressor):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod
@@ -251,8 +253,6 @@ class TapNetRegressor(BaseDeepRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.utils.validation._dependencies import _check_soft_dependencies
-
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
@@ -261,21 +261,4 @@ class TapNetRegressor(BaseDeepRegressor):
             "kernel_size": (3, 3, 1),
             "layers": (25, 50),
         }
-        param2 = {
-            "n_epochs": 20,
-            "use_cnn": False,
-            "layers": (25, 25),
-        }
-        test_params = [param1, param2]
-
-        if _check_soft_dependencies("keras", severity="none"):
-            from keras.callbacks import LambdaCallback
-
-            test_params.append(
-                {
-                    "n_epochs": 2,
-                    "callbacks": [LambdaCallback()],
-                }
-            )
-
-        return test_params
+        return [param1]

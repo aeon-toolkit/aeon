@@ -1,0 +1,30 @@
+name: 🤖 Sweep AI
+description: Write a prompt for the Sweep AI bot to create a pull request from.
+title: 'Sweep: '
+labels: ["sweep"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### See the [Sweep AI docs](https://docs.sweep.dev/) for more information.
+- type: textarea
+  attributes:
+    label: Details
+    description: >
+      Tell Sweep where and what to edit and provide enough context for a new developer
+      to the codebase.
+    placeholder: |
+        Bugs: The bug might be in ... file. Here are the logs: ...
+        Features: the new endpoint should use the ... class from ... file because it contains ... logic.
+        Refactors: We are migrating this function to ... version because ...
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Files to change
+    description: Optional but can improve Sweep
+    placeholder: |
+      src/main.py
+      tests/test.py
+    render: Shell

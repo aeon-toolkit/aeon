@@ -4,6 +4,7 @@
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -13,8 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.fcn import FCNNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
-
-_check_dl_dependencies(severity="warning")
 
 
 class FCNClassifier(BaseDeepClassifier):
@@ -284,6 +283,7 @@ class FCNClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -312,6 +312,9 @@ class FCNClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
         test_params = [param1]

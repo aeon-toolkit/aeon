@@ -6,7 +6,6 @@ __author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achiev
 __all__ = []
 
 import os
-import tempfile
 
 import numpy as np
 import pandas as pd
@@ -15,10 +14,14 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
-    load_from_arff_to_dataframe,
+    load_classification,
+    load_forecasting,
+    load_from_arff_file,
     load_from_long_to_dataframe,
-    load_from_tsfile_to_dataframe,
-    load_from_ucr_tsv_to_dataframe,
+    load_from_tsf_file,
+    load_from_tsfile,
+    load_from_tsv_file,
+    load_regression,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -29,28 +32,83 @@ from aeon.datasets._data_generators import (
 from aeon.datasets._data_loaders import (
     DIRNAME,
     MODULE,
-    _load_provided_dataset,
-    load_from_tsfile,
+    _alias_datatype_check,
+    _load_data,
+    _load_header_info,
+    _load_saved_dataset,
 )
 from aeon.datatypes import check_is_mtype
 
 
+def test__alias_datatype_check():
+    """Test the alias check"""
+    assert _alias_datatype_check("FOO") == "FOO"
+    assert _alias_datatype_check("np2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("numpy3d") == "numpy3D"
+    assert _alias_datatype_check("np3d") == "numpy3D"
+    assert _alias_datatype_check("np3D") == "numpy3D"
+
+
+def test__load_header_info():
+    """Test loading a header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        # Read in headers
+        meta_data = _load_header_info(file)
+        assert meta_data["problemname"] == "unittest"
+        assert not meta_data["timestamps"]
+        assert not meta_data["missing"]
+        assert meta_data["univariate"]
+        assert meta_data["equallength"]
+        assert meta_data["classlabel"]
+        assert meta_data["class_values"][0] == "1"
+        assert meta_data["class_values"][1] == "2"
+
+
+def test__load_data():
+    """Test loading after header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        X, y, _ = _load_data(file, meta_data)
+        assert X.shape == (20, 1, 24)
+        assert len(y) == 20
+    path = os.path.join(MODULE, DIRNAME, "BasicMotions", "BasicMotions_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["univariate"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
+    path = os.path.join(MODULE, DIRNAME, "JapaneseVowels", "JapaneseVowels_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["equallength"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
+
+
 @pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D"])
+@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D", "numpy2D"])
 def test_load_provided_dataset(return_X_y, return_type):
     """Test function to check for proper loading.
 
     Check all possibilities of return_X_y and return_type.
     """
     if return_X_y:
-        X, y = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+        X, y = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
         assert isinstance(y, np.ndarray)
     else:
-        X = _load_provided_dataset("UnitTest", "TRAIN", return_X_y, return_type)
+        X = _load_saved_dataset("UnitTest", "TRAIN", return_X_y, return_type)
     if not return_X_y or return_type == "nested_univ":
         assert isinstance(X, pd.DataFrame)
     elif return_type == "numpy3D":
-        assert isinstance(X, np.ndarray)
+        assert isinstance(X, np.ndarray) and X.ndim == 3
+    elif return_type == "numpy2D":
+        assert isinstance(X, np.ndarray) and X.ndim == 2
 
     # Check whether object is same mtype or not, via bool
 
@@ -61,7 +119,7 @@ def test_load_from_tsfile():
     Test
     1. Univariate equal length (UnitTest) returns 3D numpy X, 1D numpy y
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
-    3. Univariate and multivariate unequal length (PLAID) return X as DataFrame
+    3. Univariate and multivariate unequal length (PLAID) return X as list of numpy
     """
     data_path = MODULE + "/" + DIRNAME + "/UnitTest/UnitTest_TRAIN.ts"
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
@@ -72,11 +130,11 @@ def test_load_from_tsfile():
     assert X.ndim == 3
     assert X.shape == (20, 1, 24) and y.shape == (20,)
     assert X[0][0][0] == 573.0
-    X2, y = load_from_tsfile(data_path, return_meta_data=False)
-    assert isinstance(X2, np.ndarray)
-    assert X2.ndim == 3
-    assert X2.shape == (20, 1, 24)
-    assert X2[0][0][0] == 573.0
+    X, y = load_from_tsfile(data_path, return_meta_data=False, return_type="numpy2D")
+    assert isinstance(X, np.ndarray)
+    assert X.ndim == 2
+    assert X.shape == (20, 24)
+    assert X[0][0] == 573.0
 
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
@@ -157,880 +215,6 @@ def test_forecasting_data_loaders(dataset):
             assert X[col].dtype == dt
 
         assert len(X) == checks["len_X"]
-
-
-def test_load_from_tsfile_to_dataframe():
-    """Test the load_from_tsfile_to_dataframe() function."""
-    # Test that an empty file is classed an invalid
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = ""
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file and assert that it is invalid
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-    finally:
-        os.remove(path)
-    # Test that a file with an incomplete set of metadata is invalid
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps " "true\n@univariate true\n"
-            )
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file and assert that it is invalid
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-    finally:
-        os.remove(path)
-    # Test that a file with a complete set of metadata but no data is invalid
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel false\n@data"
-            )
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file and assert that it is invalid
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-    finally:
-        os.remove(path)
-    # Test that a file with a complete set of metadata and no data but
-    # invalid metadata values is invalid
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName\n@timeStamps\n@univariate "
-                "true\n@classLabel false\n@data"
-            )
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file and assert that it is invalid
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-    finally:
-        os.remove(path)
-    # Test that a file with a complete set of metadata and a single
-    # case/dimension parses correctly
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2)"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file
-            df = load_from_tsfile_to_dataframe(path)
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-            np.testing.assert_equal(len(df), 1)
-            np.testing.assert_equal(len(df.columns), 1)
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 1)
-            series = df["dim_0"][0]
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-    finally:
-        os.remove(path)
-    # Test that a file with a complete set of metadata and 2 cases with 3
-    # dimensions parses correctly
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5), (1, 6)\n"
-            file_contents += "(0, 11), (1, 12):(0, 13), (1,14):(0, 15), (1, 16)     \n"
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file
-            df = load_from_tsfile_to_dataframe(path)
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-            np.testing.assert_equal(len(df), 2)
-            np.testing.assert_equal(len(df.columns), 3)
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 3.0)
-            np.testing.assert_equal(series[1], 4.0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 15.0)
-            np.testing.assert_equal(series[1], 16.0)
-    finally:
-        os.remove(path)
-    # Test that a file with a complete set of metadata and time-series of
-    # different length parses correctly
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3):(0, 5), (1, 6)\n"
-            file_contents += "(0, 11), (1, 12):(0, 13), (1,14):(0, 15)\n"
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-            # Parse the file
-            df = load_from_tsfile_to_dataframe(path)
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-
-            np.testing.assert_equal(len(df), 2)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 1)
-            np.testing.assert_equal(series[0], 3.0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 1)
-            np.testing.assert_equal(series[0], 15.0)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data but an
-    # inconsistent number of dimensions across cases is classed as invalid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5), (1, 6)\n"
-            file_contents += "(0, 11), (1, 12):(0, 13), (1,14)    \n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file and assert that it is invalid
-
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data but missing
-    # values after a tuple is classed as invalid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5),\n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file and assert that it is invalid
-
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data and some
-    # empty dimensions is classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):     :(0, 5), (1, 6)\n"
-            file_contents += "(0, 11), (1, 12):(0, 13), (1,14)    :       \n"
-            file_contents += (
-                "(0, 21), (1, 22):(0, 23), (1,24)    :   (0,25), (1, 26)    \n"
-            )
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-
-            np.testing.assert_equal(len(df), 3)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_0"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 21.0)
-            np.testing.assert_equal(series[1], 22.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_1"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 23.0)
-            np.testing.assert_equal(series[1], 24.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_2"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 25.0)
-            np.testing.assert_equal(series[1], 26.0)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data that
-    # contains datetimes as timestamps and has some empty dimensions is
-    # classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += (
-                "(01/01/2019 00:00:00, 1),  (01/02/2019 "
-                "00:00:00, 2)  :                               "
-                "                      : (01/05/2019 00:00:00, "
-                "5), (01/06/2019 00:00:00, 6)\n"
-            )
-            file_contents += (
-                "(01/01/2020 00:00:00, 11), (01/02/2020 "
-                "00:00:00, 12) : (01/03/2020 00:00:00, 13), "
-                "(01/04/2020 00:00:00, 14) :  \n"
-            )
-            file_contents += (
-                "(01/01/2021 00:00:00, 21), (01/02/2021 "
-                "00:00:00, 22) : (01/03/2021 00:00:00, 23), "
-                "(01/04/2021 00:00:00, 24) :  \n"
-            )
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-
-            np.testing.assert_equal(len(df), 3)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/01/2019"], 1.0)
-            np.testing.assert_equal(series["01/02/2019"], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/01/2020"], 11.0)
-            np.testing.assert_equal(series["01/02/2020"], 12.0)
-
-            series = df["dim_0"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/01/2021"], 21.0)
-            np.testing.assert_equal(series["01/02/2021"], 22.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/03/2020"], 13.0)
-            np.testing.assert_equal(series["01/04/2020"], 14.0)
-
-            series = df["dim_1"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/03/2021"], 23.0)
-            np.testing.assert_equal(series["01/04/2021"], 24.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series["01/05/2019"], 5.0)
-            np.testing.assert_equal(series["01/06/2019"], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_2"][2]
-            np.testing.assert_equal(len(series), 0)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file that mixes timestamp conventions is invalid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += (
-                "(01/01/2019 00:00:00, 1),  (01/02/2019 "
-                "00:00:00, 2)  :                               "
-                "                      : (01/05/2019 00:00:00, "
-                "5), (01/06/2019 00:00:00, 6)\n"
-            )
-            file_contents += (
-                "(00, 11), (1, 12) : (01/03/2020 00:00:00, 13), "
-                "(01/04/2020 00:00:00, 14) :  \n"
-            )
-            file_contents += (
-                "(01/01/2021 00:00:00, 21), (01/02/2021 "
-                "00:00:00, 22) : (01/03/2021 00:00:00, 23), "
-                "(01/04/2021 00:00:00, 24) :  \n"
-            )
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file and assert that it is invalid
-
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data but missing
-    # classes is classed as invalid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel true 0 1 "
-                "2\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5), (1, 6)\n"
-            file_contents += "(0, 11), (1, 12):(0, 13), (1,14):(0, 15), (1, 16)     \n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file and assert that it is invalid
-
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data but invalid
-    # classes is classed as invalid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel true 0 1 "
-                "2\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5), (1, 6) : 0 \n"
-            file_contents += (
-                "(0, 11), (1, 12):(0, 13), (1,14):(0, 15), (1, 16)   : 3  \n"
-            )
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file and assert that it is invalid
-
-            np.testing.assert_raises(IOError, load_from_tsfile_to_dataframe, path)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data with classes
-    # is classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "true\n@univariate true\n@classLabel true 0 1 "
-                "2\n@data\n"
-            )
-            file_contents += "(0, 1), (1, 2):(0, 3), (1, 4):(0, 5), (1, 6): 0\n"
-            file_contents += (
-                "(0, 11), (1, 12):(0, 13), (1,14):(0, 15), (1, 16): 2     \n"
-            )
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df, y = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame of X values returned accurately reflects
-            # the data in the file
-
-            np.testing.assert_equal(len(df), 2)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 3.0)
-            np.testing.assert_equal(series[1], 4.0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 2)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 15.0)
-            np.testing.assert_equal(series[1], 16.0)
-
-            # Test that the class values are as expected
-
-            np.testing.assert_equal(len(y), 2)
-            np.testing.assert_equal(y[0], "0")
-            np.testing.assert_equal(y[1], "2")
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data, with no
-    # timestamps, is classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "false\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "1,2:3,4:5,6\n"
-            file_contents += "11,12:13,14:15,16\n"
-            file_contents += "21,22:23,24:25,26\n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-
-            np.testing.assert_equal(len(df), 3)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_0"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 21.0)
-            np.testing.assert_equal(series[1], 22.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 3.0)
-            np.testing.assert_equal(series[1], 4.0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_1"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 23.0)
-            np.testing.assert_equal(series[1], 24.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 15.0)
-            np.testing.assert_equal(series[1], 16.0)
-
-            series = df["dim_2"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 25.0)
-            np.testing.assert_equal(series[1], 26.0)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data, with no
-    # timestamps and some empty dimensions, is classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "false\n@univariate true\n@classLabel "
-                "false\n@data\n"
-            )
-            file_contents += "1,2::5,6\n"
-            file_contents += "11,12:13,14:15,16\n"
-            file_contents += "21,22:23,24:\n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame returned accurately reflects the data in
-            # the file
-
-            np.testing.assert_equal(len(df), 3)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_0"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 21.0)
-            np.testing.assert_equal(series[1], 22.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_1"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 23.0)
-            np.testing.assert_equal(series[1], 24.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 15.0)
-            np.testing.assert_equal(series[1], 16.0)
-
-            series = df["dim_2"][2]
-            np.testing.assert_equal(len(series), 0)
-
-    finally:
-        os.remove(path)
-
-    # Test that a file with a complete set of metadata and data, with no
-    # timestamps and some empty dimensions and classes, is classed as valid
-
-    fd, path = tempfile.mkstemp()
-    try:
-        with os.fdopen(fd, "w") as tmp_file:
-            # Write the contents of the file
-
-            file_contents = (
-                "@problemName Test Problem\n@timeStamps "
-                "false\n@univariate true\n@classLabel true cat "
-                "bear dog\n@data\n"
-            )
-            file_contents += "1,2::5,6:cat  \n"
-            file_contents += "11,12:13,14:15,16:  dog\n"
-            file_contents += "21,22:23,24::   bear   \n"
-
-            tmp_file.write(file_contents)
-            tmp_file.flush()
-
-            # Parse the file
-
-            df, y = load_from_tsfile_to_dataframe(path)
-
-            # Test the DataFrame of X values returned accurately reflects
-            # the data in the file
-
-            np.testing.assert_equal(len(df), 3)
-            np.testing.assert_equal(len(df.columns), 3)
-
-            series = df["dim_0"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_0"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 1.0)
-            np.testing.assert_equal(series[1], 2.0)
-
-            series = df["dim_0"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 11.0)
-            np.testing.assert_equal(series[1], 12.0)
-
-            series = df["dim_0"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 21.0)
-            np.testing.assert_equal(series[1], 22.0)
-
-            series = df["dim_1"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_1"][0]
-            np.testing.assert_equal(len(series), 0)
-
-            series = df["dim_1"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 13.0)
-            np.testing.assert_equal(series[1], 14.0)
-
-            series = df["dim_1"][2]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 23.0)
-            np.testing.assert_equal(series[1], 24.0)
-
-            series = df["dim_2"]
-            np.testing.assert_equal(len(series), 3)
-
-            series = df["dim_2"][0]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 5.0)
-            np.testing.assert_equal(series[1], 6.0)
-
-            series = df["dim_2"][1]
-            np.testing.assert_equal(len(series), 2)
-            np.testing.assert_equal(series[0], 15.0)
-            np.testing.assert_equal(series[1], 16.0)
-
-            series = df["dim_2"][2]
-            np.testing.assert_equal(len(series), 0)
-
-            # Test that the class values are as expected
-
-            np.testing.assert_equal(len(y), 3)
-            np.testing.assert_equal(y[0], "cat")
-            np.testing.assert_equal(y[1], "dog")
-            np.testing.assert_equal(y[2], "bear")
-
-    finally:
-        os.remove(path)
 
 
 def test_load_from_long_to_dataframe(tmpdir):
@@ -1246,7 +430,6 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         os.path.dirname(aeon.__file__),
         input_path,
     )
-
     expected_metadata = {
         "frequency": "yearly",
         "forecast_horizon": 4,
@@ -1260,6 +443,94 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
     assert metadata == expected_metadata
     if return_type != "default_tsf":
         assert check_is_mtype(obj=df, mtype=return_type)
+
+
+def test_load_from_tsf_file():
+    """Test the tsf loader that has no conversions."""
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 4,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, metadata = load_from_tsf_file(data_path)
+    assert metadata == expected_metadata
+    assert df.shape == (3, 3)
+
+
+def test_load_forecasting():
+    """Test load forecasting for baked in data."""
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 6,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, meta = load_forecasting("m1_yearly_dataset")
+    assert meta == expected_metadata
+    assert df.shape == (181, 3)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+
+
+def test_load_regression():
+    """Test the load regression function."""
+    expected_metadata = {
+        "problemname": "covid3month",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": True,
+        "classlabel": False,
+        "class_values": [],
+    }
+    X, y, meta = load_regression("Covid3Month")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (201, 1, 84)
+    assert y.shape == (201,)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+
+
+def test_load_classification():
+    """Test load classification."""
+    expected_metadata = {
+        "problemname": "unittest",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": False,
+        "classlabel": True,
+        "class_values": ["1", "2"],
+    }
+    X, y, meta = load_classification("UnitTest")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (42, 1, 24)
+    assert y.shape == (42,)
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
@@ -1343,18 +614,24 @@ def test_convert_tsf_to_multiindex(freq):
     )
 
 
-def test_load_from_ucr_tsv_to_dataframe():
+def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
-    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
-    X2, y2 = load_from_ucr_tsv_to_dataframe(data_path)
+    X2, y2 = load_from_tsv_file(data_path)
     y = y.astype(float)
+    np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
 
 
-def test_load_from_arff_to_dataframe():
+def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
-    X, y = _load_provided_dataset("GunPoint", split="TRAIN", return_type="nested_univ")
+    X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
-    X2, y2 = load_from_arff_to_dataframe(data_path)
+    X2, y2 = load_from_arff_file(data_path)
+    np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
+    X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
+    data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
+    X2, y2 = load_from_arff_file(data_path)
+    np.testing.assert_array_almost_equal(X, X2, decimal=4)

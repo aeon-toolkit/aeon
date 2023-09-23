@@ -14,7 +14,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class _DelegatedClassifier(BaseClassifier):
-    """Delegator mixin that delegates all methods to wrapped classifier.
+    """
+    Delegator mixin that delegates all methods to wrapped classifier.
 
     Delegates inner classifier methods to a wrapped estimator.
         Wrapped estimator is value of attribute with name self._delegate_name.
@@ -52,7 +53,6 @@ class _DelegatedClassifier(BaseClassifier):
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -81,7 +81,6 @@ class _DelegatedClassifier(BaseClassifier):
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------
@@ -108,7 +107,6 @@ class _DelegatedClassifier(BaseClassifier):
             if self.get_tag("X_inner_mtype") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             for list of other mtypes, see datatypes.SCITYPE_REGISTER
-            for specifications, see examples/AA_datatypes_and_datasets.ipynb
 
         Returns
         -------

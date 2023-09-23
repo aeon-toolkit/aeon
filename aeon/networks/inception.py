@@ -5,8 +5,6 @@ __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class InceptionNetwork(BaseDeepNetwork):
     """InceptionTime Network.
@@ -23,7 +21,7 @@ class InceptionNetwork(BaseDeepNetwork):
             the head kernel size used for each inception module, if not a list,
             the same is used in all inception modules
         use_max_pooling     : bool or list of bool, default = True,
-            conditioning wether or not to use max pooling
+            conditioning whether or not to use max pooling
             layer in inception modules,if not a list,
             the same is used in all inception modules
         max_pool_size       : int or list of int, default = 3,
@@ -46,21 +44,21 @@ class InceptionNetwork(BaseDeepNetwork):
             module, if not a list,
             the same is used in all inception modules
         use_bias            : bool or list of bool, default = False,
-            conditioning wether or not convolutions should
+            conditioning whether or not convolutions should
             use bias values in each inception
             module, if not a list,
             the same is used in all inception modules
         use_residual        : bool, default = True,
-            condition wether or not to use residual connections
+            condition whether or not to use residual connections
             all over Inception
         use_bottleneck      : bool, default = True,
-            confition wether or not to use bottlesnecks
+            condition whether or not to use bottlenecks
             all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
         use_custom_filters  : bool, default = True,
-            condition on wether or not to use custom filters
-            in the first inception module
+            condition on whether or not to use custom filters
+            in the first inception module.
         random_state        : int, default = 0,
 
     Adapted from the implementation from Fawaz et. al
@@ -147,9 +145,8 @@ class InceptionNetwork(BaseDeepNetwork):
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         input_tensor : tensorflow tensor, usually the input layer of the model.
         input_channels : int, the number of input channels in case of multivariate.
         kernel_sizes : list of int, default = [2,4,8,16,32,64],

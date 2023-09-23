@@ -8,9 +8,6 @@ import warnings
 import pandas as pd
 
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("pandas<2.0.0", severity="warning")
 
 
 class VARMAX(_StatsModelsAdapter):
@@ -212,7 +209,7 @@ class VARMAX(_StatsModelsAdapter):
     _tags = {
         "scitype:y": "multivariate",
         "ignores-exogeneous-X": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "y_inner_mtype": "pd.DataFrame",
         "X_inner_mtype": "pd.DataFrame",
         "requires-fh-in-fit": False,

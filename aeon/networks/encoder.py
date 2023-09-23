@@ -6,8 +6,6 @@ __author__ = ["hadifawaz1999"]
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class EncoderNetwork(BaseDeepNetwork):
     """Establish the network structure for an Encoder.
@@ -83,8 +81,8 @@ class EncoderNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple
             The shape of the data fed into the input layer
 

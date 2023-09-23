@@ -62,7 +62,7 @@ class HampelFilter(BaseTransformer):
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "skip-inverse-transform": True,
         "univariate-only": False,
     }
@@ -120,7 +120,8 @@ class HampelFilter(BaseTransformer):
         if Z.isnull().values.any():
             warnings.warn(
                 """Series contains nan values, more nan might be
-                added if there are outliers"""
+                added if there are outliers""",
+                stacklevel=2,
             )
 
         cv = SlidingWindowSplitter(

@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_random_state
 
-from aeon.datatypes import convert
+from aeon.utils.validation.collection import convert_collection
 
 
 def make_3d_test_data(
@@ -30,7 +30,8 @@ def make_3d_test_data(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Randomly generate 3D X and y data for testing.
 
-    Will ensure there is at least one sample per label if a regression problems.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
@@ -43,7 +44,7 @@ def make_3d_test_data(
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
-        If True, the target will be a float, otherwise an int.
+        If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
 
@@ -90,7 +91,8 @@ def make_2d_test_data(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Randomly generate 2D data for testing.
 
-    Will ensure there is at least one sample per label.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
@@ -101,7 +103,7 @@ def make_2d_test_data(
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
-        If True, the target will be a float, otherwise an int.
+        If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
 
@@ -149,7 +151,8 @@ def make_unequal_length_test_data(
 ) -> Tuple[List[np.ndarray], np.ndarray]:
     """Randomly generate unequal length X and y for testing.
 
-    Will ensure there is at least one sample per label if a classification problem.
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
@@ -164,7 +167,7 @@ def make_unequal_length_test_data(
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
-        If True, the target will be a float, otherwise an int.
+        If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
 
@@ -260,7 +263,7 @@ def _make_collection(
     if all_positive:
         X = X**2
 
-    X = convert(X, from_type="numpy3D", to_type=return_type)
+    X = convert_collection(X, return_type)
     return X
 
 

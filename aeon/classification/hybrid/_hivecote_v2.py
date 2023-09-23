@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
 Upgraded hybrid ensemble of classifiers from 4 separate time series classification
@@ -17,12 +18,13 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
-from aeon.classification.interval_based._drcif import DrCIF
+from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV2(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
     An ensemble of the STC, DrCIF, Arsenal and TDE classifiers from different feature
     representations using the CAWPE structure as described in [1].
@@ -49,11 +51,19 @@ class HIVECOTEV2(BaseClassifier):
         probability predictions in component_probas.
     verbose : int, default=0
         Level of output printed to the console (for information only).
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib for Catch22,
+        if None a 'prefer' value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
@@ -76,6 +86,7 @@ class HIVECOTEV2(BaseClassifier):
     See Also
     --------
     HIVECOTEV1, ShapeletTransformClassifier, DrCIF, Arsenal, TemporalDictionaryEnsemble
+        Components of HIVECOTE.
 
     Notes
     -----
@@ -106,20 +117,20 @@ class HIVECOTEV2(BaseClassifier):
         time_limit_in_minutes=0,
         save_component_probas=False,
         verbose=0,
-        n_jobs=1,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
         self.stc_params = stc_params
         self.drcif_params = drcif_params
         self.arsenal_params = arsenal_params
         self.tde_params = tde_params
-
         self.time_limit_in_minutes = time_limit_in_minutes
-
         self.save_component_probas = save_component_probas
         self.verbose = verbose
-        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self.stc_weight_ = 0
         self.drcif_weight_ = 0
@@ -137,6 +148,14 @@ class HIVECOTEV2(BaseClassifier):
         self._tde = None
 
         super(HIVECOTEV2, self).__init__()
+
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_KERNELS = 2000
+    _DEFAULT_N_ESTIMATORS = 25
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+    _DEFAULT_RAND_PARAMS = 50
 
     def _fit(self, X, y):
         """Fit HIVE-COTE 2.0 to training data.
@@ -158,15 +177,21 @@ class HIVECOTEV2(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        # Default values from HC2 paper
         if self.stc_params is None:
-            self._stc_params = {"transform_limit_in_minutes": 120}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
         if self.drcif_params is None:
-            self._drcif_params = {"n_estimators": 500}
+            self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
         if self.arsenal_params is None:
-            self._arsenal_params = {}
+            self._arsenal_params = {
+                "num_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
+                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
+            }
         if self.tde_params is None:
-            self._tde_params = {}
+            self._tde_params = {
+                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
+            }
 
         # If we are contracting split the contract time between each algorithm
         if self.time_limit_in_minutes > 0:
@@ -202,7 +227,7 @@ class HIVECOTEV2(BaseClassifier):
             print("STC weight = " + str(self.stc_weight_))  # noqa
 
         # Build DrCIF
-        self._drcif = DrCIF(
+        self._drcif = DrCIFClassifier(
             **self._drcif_params,
             save_transformed_data=True,
             random_state=self.random_state,

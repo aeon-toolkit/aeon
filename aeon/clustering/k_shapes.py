@@ -5,46 +5,44 @@ from typing import Union
 import numpy as np
 from numpy.random import RandomState
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
+from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tslearn", severity="warning")
 
 
 class TimeSeriesKShapes(BaseClusterer):
-    """Kshape algorithm wrapper tslearns implementation.
+    """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
     Parameters
     ----------
-    n_clusters: int, defaults = 8
+    n_clusters: int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm: str or np.ndarray, defaults = 'random'
-        Method for initializing cluster centers. Any of the following are valid:
-        ['random']. Or a np.ndarray of shape (n_clusters, ts_size, d) and gives the
-        initial centers.
-    n_init: int, defaults = 10
+    init_algorithm: str or np.ndarray, default='random'
+        Method for initializing cluster centres. Any of the following are valid:
+        ['random']. Or a np.ndarray of shape (n_clusters, n_channels, n_timepoints)
+        and gives the initial cluster centres.
+    n_init: int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter: int, defaults = 30
+    max_iter: int, default=30
         Maximum number of iterations of the k-means algorithm for a single
         run.
-    tol: float, defaults = 1e-4
+    tol: float, default=1e-4
         Relative tolerance with regards to Frobenius norm of the difference
-        in the cluster centers of two consecutive iterations to declare
+        in the cluster centres of two consecutive iterations to declare
         convergence.
-    verbose: bool, defaults = False
+    verbose: bool, default=False
         Verbosity mode.
-    random_state: int or np.random.RandomState instance or None, defaults = None
+    random_state: int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_: np.ndarray (1d array of shape (n_instances,))
         Labels that is the index each time series belongs to.
     inertia_: float
-        Sum of squared distances of samples to their closest cluster center, weighted by
+        Sum of squared distances of samples to their closest cluster centre, weighted by
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
@@ -81,7 +79,7 @@ class TimeSeriesKShapes(BaseClusterer):
 
         super(TimeSeriesKShapes, self).__init__(n_clusters=n_clusters)
 
-    def _fit(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
@@ -96,6 +94,7 @@ class TimeSeriesKShapes(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KShape
 
         self._tslearn_k_shapes = KShape(
@@ -116,7 +115,7 @@ class TimeSeriesKShapes(BaseClusterer):
         self.inertia_ = self._tslearn_k_shapes.inertia_
         self.n_iter_ = self._tslearn_k_shapes.n_iter_
 
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -147,7 +146,7 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

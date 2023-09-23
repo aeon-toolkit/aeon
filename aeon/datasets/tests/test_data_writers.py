@@ -1,72 +1,103 @@
 # -*- coding: utf-8 -*-
-import shutil
+import os
+import tempfile
 
 import numpy as np
+import pandas as pd
 import pytest
 
 """Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_loaders import (
-    _load_provided_dataset,
-    load_from_tsfile_to_dataframe,
-)
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
+from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
+from aeon.utils._testing.collection import (
+    make_3d_test_data,
+    make_nested_dataframe_data,
+    make_unequal_length_test_data,
+)
 
 
-@pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-def test_write_to_tsfile_equal_length(dataset_name):
+@pytest.mark.parametrize("regression", [True, False])
+@pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
+def test_write_to_tsfile_equal_length(regression, problem_name):
+    """Test function to write an equal length classification and regegression dataset.
+
+    creates an equal length problem, writes locally, reloads, then compares data. It
+    then deletes the files.
+    """
+    X, y = make_3d_test_data(regression_target=regression)
+    with tempfile.TemporaryDirectory() as tmp:
+        write_to_tsfile(
+            X=X, path=tmp, y=y, problem_name=problem_name, regression=regression
+        )
+        load_path = os.path.join(tmp, problem_name)
+        newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
+        assert isinstance(newX, np.ndarray)
+        assert X.shape == newX.shape
+        assert X[0][0][0] == newX[0][0][0]
+        if not regression:
+            y = y.astype(str)
+            np.testing.assert_array_equal(y, newy)
+        else:
+            np.testing.assert_array_almost_equal(y, newy)
+
+
+@pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
+def test_write_regression_to_tsfile_equal_length(problem_name):
+    """Test function to write a regression dataset.
+
+    Loads equal and unequal length problems into both data frames and numpy arrays,
+    writes locally, reloads, then compares all class labels. It then delete the files.
+    """
+    X, y = make_3d_test_data(regression_target=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        write_to_tsfile(X=X, path=tmp, y=y, problem_name=problem_name)
+        load_path = os.path.join(tmp, problem_name)
+        newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
+        assert isinstance(newX, np.ndarray)
+        assert X.shape == newX.shape
+        assert X[0][0][0] == newX[0][0][0]
+        y = y.astype(str)
+        assert np.array_equal(y, newy)
+
+
+@pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
+def test_write_to_tsfile_unequal_length(problem_name):
     """Test function to write a dataset.
 
     Loads equal and unequal length problems into both data frames and numpy arrays,
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
-    X, y = _load_provided_dataset(dataset_name, split="TRAIN")
-    write_to_tsfile(X=X, path="./Temp", y=y, problem_name=dataset_name)
-    load_path = f"./Temp/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
-    assert X.shape == newX.shape
-    assert X[0][0][0] == newX[0][0][0]
-    assert np.array_equal(y, newy)
-    shutil.rmtree("./Temp")
+    X, y = make_unequal_length_test_data()
+    with tempfile.TemporaryDirectory() as tmp:
+        write_to_tsfile(X=X, path=tmp, y=y, problem_name=problem_name)
+        load_path = os.path.join(tmp, problem_name)
+        newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
+        assert isinstance(newX, list)
+        assert len(X) == len(newX)
+        assert X[0][0][0] == newX[0][0][0]
+        y = y.astype(str)
+        assert np.array_equal(y, newy)
 
 
-@pytest.mark.parametrize("dataset_name", ["PLAID", "JapaneseVowels"])
-def test_write_to_tsfile_unequal_length(dataset_name):
-    """Test function to write a dataset.
-
-    Loads equal and unequal length problems into both data frames and numpy arrays,
-    writes locally, reloads, then compares all class labels. It then delete the files.
-    """
-    X, y = _load_provided_dataset(dataset_name, split="TRAIN")
-    write_to_tsfile(X=X, path=f"./Temp/{dataset_name}/", y=y, problem_name=dataset_name)
-    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}.ts"
-    newX, newy = load_from_tsfile(full_file_path_and_name=load_path)
-    assert len(X) == len(newX)
-    assert X[0][0][0] == newX[0][0][0]
-    assert np.array_equal(y, newy)
-    shutil.rmtree("./Temp")
-
-
-@pytest.mark.parametrize("dataset_name", ["UnitTest", "BasicMotions"])
-def test_write_dataframe_to_ts(dataset_name):
+@pytest.mark.parametrize("tsfile_writer", [_write_dataframe_to_tsfile, write_to_tsfile])
+def test_write_dataframe_to_ts(tsfile_writer):
     """Tests whether a dataset can be written by the .ts writer then read in."""
     # load an example dataset
-    X, y = _load_provided_dataset(
-        dataset_name, split="TRAIN", return_type="nested_univ"
-    )
-    # output the dataframe in a ts file
-    _write_dataframe_to_tsfile(
-        X=X,
-        path=f"./Temp/{dataset_name}/",
-        y=y,
-        problem_name=dataset_name,
-        equal_length=True,
-        suffix="_TRAIN",
-    )
-    # load data back from the ts file into dataframe
-    load_path = f"./Temp/{dataset_name}/{dataset_name}/{dataset_name}_TRAIN.ts"
-    newX, newy = load_from_tsfile_to_dataframe(load_path)
-    # check if the dataframes are the same
-    #    assert_frame_equal(newX, X)
-    assert np.array_equal(y, newy)
-    shutil.rmtree("./Temp/")
+    problem_name = "Testy.ts"
+    X, y = make_nested_dataframe_data()
+    with tempfile.TemporaryDirectory() as tmp:
+        # output the dataframe in a ts file
+        tsfile_writer(
+            X=X,
+            path=tmp,
+            y=y,
+            problem_name=problem_name,
+        )
+        # load data back from the ts file into dataframe
+        load_path = os.path.join(tmp, problem_name)
+        newX, newy = load_from_tsfile_to_dataframe(load_path)
+        # check if the dataframes are the same
+        pd.testing.assert_frame_equal(newX, X)
+        y2 = pd.Series(y)
+        pd.testing.assert_series_equal(y, y2)

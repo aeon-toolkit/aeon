@@ -18,9 +18,6 @@ from warnings import warn
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("filterpy", severity="warning")
 
 
 def _get_t_matrix(time_t, matrices, shape, time_steps):
@@ -455,11 +452,11 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "capability:unequal_length": False,
         # can the transformer handle unequal length time series (if passed Panel)?
-        "handles-missing-data": True,  # can estimator handle missing data?
+        "capability:missing_values": True,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
         "scitype:instancewise": True,  # is this an instance-wise transform?
-        "python_dependencies": "filterpy",
+        "python_dependencies": ["filterpy", "numpy<1.24.0"],
     }
 
     def __init__(
@@ -601,7 +598,8 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
                     "Class parameter `control_transition` was initiated with user data "
                     "but received no data through `transform` argument, `y`. "
                     "Therefore, omitting `control_transition` "
-                    "when calculating the result. "
+                    "when calculating the result. ",
+                    stacklevel=2,
                 )
             y = np.zeros(y_dim)
 

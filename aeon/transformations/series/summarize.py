@@ -6,6 +6,7 @@
 __author__ = ["mloning", "RNKuhns", "danbartl", "grzegorzrut"]
 __all__ = ["SummaryTransformer", "WindowSummarizer"]
 
+import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
@@ -14,7 +15,8 @@ from aeon.utils.multiindex import flatten_multiindex
 
 
 class WindowSummarizer(BaseTransformer):
-    """Transformer for extracting time series features.
+    """
+    Transformer for extracting time series features.
 
     The WindowSummarizer transforms input series to features based
     on a provided dictionary of window summarizer, window shifts
@@ -25,10 +27,10 @@ class WindowSummarizer(BaseTransformer):
     n_jobs : int, optional (default=-1)
         The number of jobs to run in parallel for applying the window functions.
         ``-1`` means using all processors.
-    target_cols: list of str, optional (default = None)
+    target_cols : list of str, optional (default = None)
         Specifies which columns in X to target for applying the window functions.
         ``None`` will target the first column
-    lag_feature: dict of str and list, optional (default = dict containing first lag)
+    lag_feature : dict of str and list, optional (default = dict containing first lag)
         Dictionary specifying as key the type of function to be used and as value
         the argument `window`.
         For the function `lag`, the argument `window` is an integer or a list of
@@ -64,7 +66,6 @@ class WindowSummarizer(BaseTransformer):
         | * * * * * * * * x x z * * |
         |---------------------------|
 
-
         Special case ´lag´: Since lags are frequently used and window length is
         redundant, you only need to provide a list of `lag` values.
         So `window = [1]` will result in the first lag:
@@ -98,7 +99,7 @@ class WindowSummarizer(BaseTransformer):
             lag parameter and the window_length (if not a lag).
         second value (window): list of integers
             List containg lag and window_length parameters.
-        truncate: str, optional (default = None)
+        truncate : str, optional default = None
             Defines how to deal with NAs that were created as a result of applying the
             functions in the lag_feature dict across windows that are longer than
             the remaining history of data.
@@ -112,7 +113,6 @@ class WindowSummarizer(BaseTransformer):
             None will keep the NAs generated, and would leave it for the user to choose
             an estimator that can correctly deal with observations with missing values,
             "bfill" will fill the NAs by carrying the first observation backwards.
-
 
     Attributes
     ----------
@@ -192,7 +192,7 @@ class WindowSummarizer(BaseTransformer):
         ],  # which mtypes do _fit/_predict support for X?
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "handles-missing-data": True,  # can estimator handle missing data?
+        "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
@@ -731,3 +731,216 @@ class SummaryTransformer(BaseTransformer):
         params3 = {"summary_function": None, "quantiles": (0.1, 0.2, 0.25)}
 
         return [params1, params2, params3]
+
+
+class PlateauFinder(BaseTransformer):
+    """
+    Plateau finder transformer.
+
+    Transformer that finds segments of the same given value, plateau in
+    the time series, and returns the starting indices and lengths.
+
+    Parameters
+    ----------
+    value : {int, float, np.nan, np.inf}
+        Value for which to find segments
+    min_length : int
+        Minimum lengths of segments with same value to include.
+        If min_length is set to 1, the transformer can be used as a value
+        finder.
+    """
+
+    _tags = {
+        "fit_is_empty": True,
+        "univariate-only": True,
+        "scitype:transform-output": "Series",
+        "scitype:instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_mtype": "None",
+    }
+
+    def __init__(self, value=np.nan, min_length=2):
+        self.value = value
+        self.min_length = min_length
+        super(PlateauFinder, self).__init__(_output_convert=False)
+
+    def _transform(self, X, y=None):
+        """Transform X.
+
+        Parameters
+        ----------
+        X : numpy3D array shape (n_cases, 1, series_length)
+
+        Returns
+        -------
+        X : pandas data frame
+        """
+        _starts = []
+        _lengths = []
+
+        # find plateaus (segments of the same value)
+        for x in X[:, 0]:
+            # find indices of transition
+            if np.isnan(self.value):
+                i = np.where(np.isnan(x), 1, 0)
+
+            elif np.isinf(self.value):
+                i = np.where(np.isinf(x), 1, 0)
+
+            else:
+                i = np.where(x == self.value, 1, 0)
+
+            # pad and find where segments transition
+            transitions = np.diff(np.hstack([0, i, 0]))
+
+            # compute starts, ends and lengths of the segments
+            starts = np.where(transitions == 1)[0]
+            ends = np.where(transitions == -1)[0]
+            lengths = ends - starts
+
+            # filter out single points
+            starts = starts[lengths >= self.min_length]
+            lengths = lengths[lengths >= self.min_length]
+
+            _starts.append(starts)
+            _lengths.append(lengths)
+
+        # put into dataframe
+        Xt = pd.DataFrame()
+        column_prefix = "%s_%s" % (
+            "channel_",
+            "nan" if np.isnan(self.value) else str(self.value),
+        )
+        Xt["%s_starts" % column_prefix] = pd.Series(_starts)
+        Xt["%s_lengths" % column_prefix] = pd.Series(_lengths)
+
+        Xt = Xt.applymap(lambda x: pd.Series(x))
+        return Xt
+
+
+class FittedParamExtractor(BaseTransformer):
+    """Fitted parameter extractor.
+
+    Extract parameters of a fitted forecaster as features for a subsequent
+    tabular learning task.
+    This class first fits a forecaster to the given time series and then
+    returns the fitted parameters.
+    The fitted parameters can be used as features for a tabular estimator
+    (e.g. classification).
+
+    Parameters
+    ----------
+    forecaster : estimator object
+        An aeon estimator to extract features from.
+    param_names : str
+        Name of parameters to extract from the forecaster.
+    n_jobs : int, optional (default=None)
+        Number of jobs to run in parallel.
+        None means 1 unless in a joblib.parallel_backend context.
+        -1 means using all processors.
+    """
+
+    _tags = {
+        "fit_is_empty": True,
+        "univariate-only": True,
+        "scitype:transform-input": "Series",
+        # what is the scitype of X: Series, or Panel
+        "scitype:transform-output": "Primitives",
+        # what is the scitype of y: None (not needed), Primitives, Series, Panel
+        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
+        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+    }
+
+    def __init__(self, forecaster, param_names, n_jobs=None):
+        self.forecaster = forecaster
+        self.param_names = param_names
+        self.n_jobs = n_jobs
+        super(FittedParamExtractor, self).__init__(_output_convert=True)
+
+    def _transform(self, X, y=None):
+        """Transform X.
+
+        Parameters
+        ----------
+        X: np.ndarray shape (n_time_series, 1, series_length)
+            The training input samples.
+        y : ignored argument for interface compatibility
+            Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        Xt : pd.DataFrame
+            Extracted parameters; columns are parameter values
+        """
+        param_names = self._check_param_names(self.param_names)
+        n_instances = X.shape[0]
+
+        def _fit_extract(forecaster, x, param_names):
+            forecaster.fit(x)
+            params = forecaster.get_fitted_params()
+            return np.hstack([params[name] for name in param_names])
+
+        def _get_instance(X, key):
+            # assuming univariate data
+            if isinstance(X, pd.DataFrame):
+                return X.iloc[key, 0]
+            else:
+                return pd.Series(X[key, 0])
+
+        # iterate over rows
+        extracted_params = Parallel(n_jobs=self.n_jobs)(
+            delayed(_fit_extract)(
+                self.forecaster.clone(), _get_instance(X, i), param_names
+            )
+            for i in range(n_instances)
+        )
+
+        return pd.DataFrame(extracted_params, columns=param_names)
+
+    @staticmethod
+    def _check_param_names(param_names):
+        if isinstance(param_names, str):
+            param_names = [param_names]
+        elif isinstance(param_names, (list, tuple)):
+            for param in param_names:
+                if not isinstance(param, str):
+                    raise ValueError(
+                        f"All elements of `param_names` must be strings, "
+                        f"but found: {type(param)}"
+                    )
+        else:
+            raise ValueError(
+                f"`param_names` must be str, or a list or tuple of strings, "
+                f"but found: {type(param_names)}"
+            )
+        return param_names
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        from aeon.forecasting.trend import TrendForecaster
+
+        # accessing a nested parameter
+        params = [
+            {
+                "forecaster": TrendForecaster(),
+                "param_names": ["regressor__intercept"],
+            }
+        ]
+        return params

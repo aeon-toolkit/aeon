@@ -30,16 +30,14 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     last_file_name      : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
-
-    Arguments
-    ---------
-    self.model = None
-
     """
 
     _tags = {
         "X_inner_mtype": "numpy3D",
         "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+        "non-deterministic": True,
+        "cant-pickle": True,
         "python_dependencies": "tensorflow",
     }
 

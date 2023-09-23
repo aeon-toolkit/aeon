@@ -416,8 +416,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_pred_int_tag(self, estimator_instance):
         """Checks whether the capability:pred_int tag is correctly set.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
 
         Raises
@@ -581,8 +581,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_hierarchical_with_exogeneous(self, estimator_instance, n_columns):
         """Check that hierarchical forecasting works, also see bug #3961.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
         n_columns : number of columns, of the endogeneous data y_train
 

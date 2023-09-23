@@ -5,10 +5,11 @@ import numbers
 
 import numpy as np
 
+from aeon.transformations._split import SplitsTimeSeries
 from aeon.transformations.base import BaseTransformer
 
 
-class HOG1DTransformer(BaseTransformer):
+class HOG1DTransformer(BaseTransformer, SplitsTimeSeries):
     """HOG1D transform.
 
     This transformer calculates the HOG1D transform [1] of a collection of time seriess.
@@ -17,10 +18,12 @@ class HOG1DTransformer(BaseTransformer):
 
     Parameters
     ----------
-        n_intervals   : int, length of interval.
-        n_bins        : int, num bins in the histogram.
-        scaling_factor  : float, a constant that is multiplied
-                          to modify the distribution.
+    n_intervals : int
+        Length of interval.
+    n_bins : int
+        Number of bins in the histogram.
+    scaling_factor : float
+        A constant that is multiplied to modify the distribution.
 
     Notes
     -----
@@ -91,7 +94,7 @@ class HOG1DTransformer(BaseTransformer):
         """
         # Firstly, split the time series into approx equal
         # length intervals
-        splitTimeSeries = self._split_time_series(X)
+        splitTimeSeries = self._split(X)
         HOG1Ds = []
 
         for x in range(len(splitTimeSeries)):
@@ -135,28 +138,6 @@ class HOG1DTransformer(BaseTransformer):
                     break
 
         return histogram
-
-    def _split_time_series(self, X):
-        """Split a time series into approximately equal intervals.
-
-        Adopted from = https://stackoverflow.com/questions/2130016/splitting
-                       -a-list-into-n-parts-of-approximately-equal-length
-
-        Parameters
-        ----------
-        X : a numpy array corresponding to the time series being split
-            into approx equal length intervals of shape
-            [num_intervals,interval_length].
-        """
-        avg = len(X) / float(self.n_intervals)
-        output = []
-        beginning = 0.0
-
-        while beginning < len(X):
-            output.append(X[int(beginning) : int(beginning + avg)])
-            beginning += avg
-
-        return output
 
     def _check_parameters(self, series_length):
         """Check the values of parameters inserted into HOG1D.

@@ -7,9 +7,6 @@ __author__ = ["mloning", "hyang1996", "fkiraly", "ilkersigirci"]
 __all__ = ["AutoARIMA", "ARIMA"]
 
 from aeon.forecasting.base.adapters._pmdarima import _PmdArimaAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("pmdarima", severity="warning")
 
 
 class AutoARIMA(_PmdArimaAdapter):
@@ -268,7 +265,7 @@ class AutoARIMA(_PmdArimaAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """  # noqa: E501
 
-    _tags = {"handles-missing-data": True}
+    _tags = {"capability:missing_values": True}
 
     SARIMAX_KWARGS_KEYS = [
         "time_varying_regression",
@@ -665,7 +662,7 @@ class ARIMA(_PmdArimaAdapter):
     >>> y_pred = forecaster.predict(fh=[1,2,3])  # doctest: +SKIP
     """  # noqa: E501
 
-    _tags = {"handles-missing-data": True}
+    _tags = {"capability:missing_values": True}
 
     SARIMAX_KWARGS_KEYS = [
         "time_varying_regression",

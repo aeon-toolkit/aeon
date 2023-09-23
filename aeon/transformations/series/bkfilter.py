@@ -15,9 +15,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("statsmodels", severity="warning")
 
 
 class BKFilter(BaseTransformer):
@@ -88,7 +85,7 @@ class BKFilter(BaseTransformer):
         # does transform return have the same time index as input X
         "capability:unequal_length": True,
         # can the transformer handle unequal length time series (if passed Panel)?
-        "handles-missing-data": False,  # can estimator handle missing data?
+        "capability:missing_values": False,  # can estimator handle missing data?
         "remember_data": False,  # whether all data seen is remembered as self._X
         "python_dependencies": "statsmodels",
     }

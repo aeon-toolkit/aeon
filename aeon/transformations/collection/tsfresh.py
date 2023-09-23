@@ -8,9 +8,6 @@ __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tsfresh", severity="warning")
 
 
 class _TSFreshFeatureExtractor(BaseCollectionTransformer):
@@ -548,8 +545,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 

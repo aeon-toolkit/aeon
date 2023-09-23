@@ -8,12 +8,11 @@ Get Involved
    :hidden:
 
    get_involved/contributing
-   get_involved/mentoring
    get_involved/code_of_conduct
    get_involved/governance
 
-aeon is a community-driven project and your help is extremely welcome.
-If you get stuck, please don't hesitate to chat with us or raise an issue.
+aeon is a community-driven project and your help is most welcome.
+If you get stuck, please don't hesitate to talk with us or raise an issue.
 
 .. grid:: 1 2 2 2
     :gutter: 3
@@ -35,24 +34,6 @@ If you get stuck, please don't hesitate to chat with us or raise an issue.
             :expand:
 
             Contributing guide
-
-    .. grid-item-card::
-        :text-align: center
-
-        Mentoring
-
-        ^^^
-
-        New to open source? Apply to our mentoring program!
-
-        +++
-
-        .. button-ref:: mentoring
-            :color: primary
-            :click-parent:
-            :expand:
-
-            Mentoring
 
     .. grid-item-card::
         :text-align: center

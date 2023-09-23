@@ -11,16 +11,16 @@ Type and behaviour of transformer is determined by the following tags:
         this determines expected type of input of transform
         if "Primitives", expected inputs X are pd.DataFrame
         if "Series", expected inputs X are Series or Panel
-        Note: placeholder tag for upwards compatibility
-            currently only "Series" is supported
+        Note: placeholder tag for upwards compatibility currently only "Series" is
+        supported
     "scitype:transform-output" tag with values "Primitives", or "Series"
         this determines type of output of transform
         if "Primitives", output is pd.DataFrame with as many rows as X has instances
-            i-th instance of X is transformed into i-th row of output
-        if "Series", output is a Series or Panel, with as many instances as X
-            i-th instance of X is transformed into i-th instance of output
+        i-th instance of X is transformed into i-th row of output
+        if "Series", output is a Series or Panel, with as many instances as X i-th
+        instance of X is transformed into i-th instance of output
         Series are treated as one-instance-Panels
-            if Series is input, output is a 1-row pd.DataFrame or a Series
+        if Series is input, output is a 1-row pd.DataFrame or a Series
     "scitype:instancewise" tag which is boolean
         if True, fit/transform is statistically independent by instance
 
@@ -120,8 +120,7 @@ class BaseTransformer(BaseEstimator):
         # can the transformer handle unequal length time series (if passed Panel)?
         "capability:unequal_length:removes": False,
         # is transform result always guaranteed to be equal length (and series)?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        # todo: rename to capability:missing_values
+        "capability:missing_values": False,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
         "python_version": None,  # PEP 440 python version specifier to limit versions
@@ -356,8 +355,8 @@ class BaseTransformer(BaseEstimator):
         Writes to self:
         _is_fitted : flag is set to True.
         _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
+        possibly coerced to inner type or update_data compatible type
+        by reference, when possible
         model attributes (ending in "_") : dependent on estimator
 
         Parameters
@@ -366,11 +365,9 @@ class BaseTransformer(BaseEstimator):
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
+                nested pd.DataFrame, or pd.DataFrame in long/wide format.
         y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -418,8 +415,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -429,7 +424,7 @@ class BaseTransformer(BaseEstimator):
         type depends on type of X and scitype:transform-output tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -467,19 +462,16 @@ class BaseTransformer(BaseEstimator):
 
         # convert to output mtype
         if not hasattr(self, "_output_convert") or self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata)
-        else:
-            X_out = Xt
+            Xt = self._convert_output(Xt, metadata=metadata)
 
-        return X_out
+        return Xt
 
     def fit_transform(self, X, y=None):
         """Fit to data, then transform it.
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        State change:
-            Changes state to "fitted".
+        State change: changes state to "fitted".
 
         Writes to self:
         _is_fitted : flag is set to True.
@@ -495,8 +487,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -505,7 +495,7 @@ class BaseTransformer(BaseEstimator):
         transformed version of X
         type depends on type of X and scitype:transform-output tag:
             |   `X`    | `tf-output`  |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -573,8 +563,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -604,12 +592,10 @@ class BaseTransformer(BaseEstimator):
             Xt = self._vectorize("inverse_transform", X=X_inner, y=y_inner)
 
         # convert to output mtype
-        if self._output_convert == "auto":
-            X_out = self._convert_output(Xt, metadata=metadata, inverse=True)
-        else:
-            X_out = Xt
+        if not hasattr(self, "_output_convert") or self._output_convert == "auto":
+            Xt = self._convert_output(Xt, metadata=metadata, inverse=True)
 
-        return X_out
+        return Xt
 
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
@@ -634,8 +620,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True
@@ -844,8 +828,7 @@ class BaseTransformer(BaseEstimator):
             f"for instance a pandas.DataFrame with aeon compatible time indices, "
             f"or with MultiIndex and last(-1) level an aeon compatible time index. "
             f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
-            # f"See the transformers tutorial examples/05_transformers.ipynb, or"
-            f" See the data format tutorial examples/AA_datatypes_and_datasets.ipynb. "
+            # f"See the transformers tutorial examples/05_transformers.ipynb."
             f"If you think the data is already in an aeon supported input format, "
             f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
             f"where mtype is the string of the type specification you want. "
@@ -1191,7 +1174,7 @@ class BaseTransformer(BaseEstimator):
         type depends on type of X and scitype:transform-output tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |

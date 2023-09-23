@@ -4,13 +4,8 @@
 Deprecation
 ===========
 
-Before we can make changes to aeon's user interface, we need to make sure that users have time to make the necessary adjustments in their code.
-For this reason, we first need to deprecate functionality and change it only in a next release.
-
-.. note::
-
-    For upcoming changes and next releases, see our `Milestones <https://github.com/aeon-toolkit/aeon/milestones?direction=asc&sort=due_date&state=open>`_.
-    For our long-term plan, see our :ref:`roadmap`.
+Please note this policy is not currently in force. We aim to restore deprecation for
+V0.5 but the policy may be revised, but it will be based on the below.
 
 Deprecation policy
 ==================
@@ -18,33 +13,22 @@ Deprecation policy
 aeon `releases <https://github.com/aeon-toolkit/aeon/releases>`_ follow `semantic versioning <https://semver.org>`_.
 A release number denotes <major>.<minor>.<patch> versions.
 
-Our current deprecation policy is as follows:
+Our previous deprecation policy is as follows:
 
-* all interface breaking (not downwards compatible) changes to public interfaces must be accompanied by deprecation.
-  Examples: changes to defaults of existing parameters, removal of parameters.
-  Non-examples: new parameters with a default value that leads to prior behaviour.
+* all interface breaking (not downwards compatible) changes to public interfaces must
+be accompanied by deprecation.
 * such changes or removals happen only at MINOR or MAJOR versions, not at PATCH versions.
-* deprecation warnings must be included for at least one full MINOR version cycle before change or removal.
-  Therefore, typically, the change or removal happens at the *second* next MINOR release.
+* deprecation warnings should be included for at least one MINOR version cycle
+before change or removal.
 
-Example process:
-1. developer A resolves, at current state v0.9.3, to remove functionality X at some point in the near future.
-2. therefore, by the above, we should introduce a deprecation message, visible from next release (e.g., v0.9.4),
-  which says that functionality will be removed at v0.11.0
-3. developer A makes a pull request to remove functionality X which includes that deprecation warning.
-  The pull request is reviewed by core developers, with the suggestion by developer A accepted or rejected.
-4. If accepted and merged before v0.10.0 release, the PR goes in the next release, with a deprecation note in the release notes.
-  If PR acceptance takes until after v0.10.0 but before v0.11.0, the planned removal moves to v0.12.0 and the warning needs to be updated.
-5. an additional PR to remove deprecation warning and functionality X is prepared by developer A, for v0.12.0 but not merged
-6. a release manager merges the PR in part 5 as part of the release v0.12.0, effecting the removal.
-  Release notes of v0.12.0 includes a removal note.
 
 Deprecation process
 ===================
 
 The deprecation process is as follows:
 
-* **Raise a warning.** For all deprecated functionality, we raise a :code:`FutureWarning`. The warning message should give the version number when the functionality will be changed and describe the new usage.
+* **Raise a warning.** For all deprecated functionality, we raise a
+:code:`FutureWarning`. The warning message should give the version number when the functionality will be changed and describe the new usage.
 * **Add a TODO comment in the code.** Add the following TODO comment to all pieces of code that can be removed: :code:`TODO: remove in <version-number>`. For example, :code:`TODO: remove in v0.11.0`. The TODO comment should describe which steps need to be taken for deprecation (e.g. removal of arguments, removal of functions or blocks of code). If changes need to be applied across multiple places, place multiple TODO comments.
 * **Remove deprecated functionality.** As part of the release process, all deprecated functionality that is due to be removed will be removed by searching for the TODO comments.
 
@@ -66,8 +50,9 @@ Functions
 
     from deprecated.sphinx import deprecated
 
-    # TODO: remove in v0.11.0
-    @deprecated(version="0.9.0", reason="my_old_function will be removed in v0.11.0", category=FutureWarning)
+    # TODO: remove in v0.7.0
+    @deprecated(version="0.6.0", reason="my_old_function will be removed in v0.7.0",
+category=FutureWarning)
     def my_old_function(x, y):
         return x + y
 
@@ -80,8 +65,9 @@ Methods
 
     class MyClass:
 
-        # TODO: remove in v0.11.0
-        @deprecated(version="0.9.0", reason="my_old_method will be removed in v0.11.0", category=FutureWarning)
+        # TODO: remove in v0.7.0
+        @deprecated(version="0..0", reason="my_old_method will be removed in v0.7.0",
+category=FutureWarning)
         def my_old_method(self, x, y):
             return x + y
 
@@ -92,8 +78,9 @@ Classes
 
     from deprecated.sphinx import deprecated
 
-    # TODO: remove in v0.11.0
-    @deprecated(version="0.9.0", reason="MyOldClass will be removed in v0.11.0", category=FutureWarning)
+    # TODO: remove in v0.7.0
+    @deprecated(version="0.6.0", reason="MyOldClass will be removed in v0.7.0",
+category=FutureWarning)
     class MyOldClass:
         pass
 

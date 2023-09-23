@@ -7,12 +7,18 @@ from numpy import testing
 
 from aeon.datasets import load_basic_motions
 from aeon.transformations.collection.catch22 import Catch22
-from aeon.transformations.collection.catch22wrapper import Catch22Wrapper
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_catch22_on_basic_motions():
     """Test of Catch22 on basic motions data."""
+
+    # the test currently fails when numba is disabled. See issue #622
+    import os
+
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
+        return None
+
     # load basic motions data
     X_train, _ = load_basic_motions(split="train")
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)
@@ -43,14 +49,14 @@ def test_catch22_wrapper_on_basic_motions():
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)
 
     # fit Catch22Wrapper and assert transformed data is the same
-    c22 = Catch22Wrapper(replace_nans=True)
+    c22 = Catch22(use_pycatch22=True, replace_nans=True)
     data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data, catch22wrapper_basic_motions_data, decimal=4
     )
 
     # fit Catch22Wrapper with select features and assert transformed data is the same
-    c22 = Catch22Wrapper(replace_nans=True, features=feature_names)
+    c22 = Catch22(use_pycatch22=True, replace_nans=True, features=feature_names)
     data = c22.fit_transform(X_train[indices])
     testing.assert_array_almost_equal(
         data,

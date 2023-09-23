@@ -173,7 +173,7 @@ class AutoETS(_StatsModelsAdapter):
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
     }
 
     def __init__(
@@ -252,7 +252,8 @@ class AutoETS(_StatsModelsAdapter):
                 else:
                     warnings.warn(
                         "Warning: time series is not strictly positive, "
-                        "multiplicative components are ommitted"
+                        "multiplicative components are ommitted",
+                        stacklevel=2,
                     )
                     error_range = ["add"]
 

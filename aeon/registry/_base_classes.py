@@ -29,7 +29,7 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 
@@ -44,6 +44,7 @@ from aeon.networks.base import BaseDeepNetwork
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
@@ -58,6 +59,11 @@ BASE_CLASS_REGISTER = [
     ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
     ("splitter", BaseSplitter, "time series splitter"),
     ("transformer", BaseTransformer, "time series transformer"),
+    (
+        "collection-transformer",
+        BaseCollectionTransformer,
+        "time series collection transformer",
+    ),
 ]
 
 

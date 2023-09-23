@@ -71,11 +71,11 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
     ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
     ... )
@@ -88,7 +88,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -117,7 +117,9 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         # can handle missing values iff: both regressor and all transformers can,
         #   *or* transformer chain removes missing data
         missing = regressor.get_tag("capability:missing_values", False)
-        missing = missing and self.transformers_.get_tag("handles-missing-data", False)
+        missing = missing and self.transformers_.get_tag(
+            "capability:missing_values", False
+        )
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )
@@ -360,12 +362,12 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsRegressor
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import SklearnRegressorPipeline
     >>> from aeon.transformations.series.exponent import ExponentTransformer
     >>> from aeon.transformations.series.summarize import SummaryTransformer
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> t1 = ExponentTransformer()
     >>> t2 = SummaryTransformer()
     >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1, t2])
@@ -406,7 +408,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         # can handle missing values iff transformer chain removes missing data
         # sklearn regressors might be able to handle missing data (but no tag there)
         # so better set the tag liberally
-        missing = self.transformers_.get_tag("handles-missing-data", False)
+        missing = self.transformers_.get_tag("capability:missing_values", False)
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )

@@ -1,231 +1,16 @@
 # -*- coding: utf-8 -*-
-import itertools
 import os
 import textwrap
 
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation.panel import check_X, check_X_y
+__all__ = ["write_to_tsfile", "write_results_to_uea_format"]
 
 
-def _write_dataframe_to_tsfile(
-    X,
-    path,
-    problem_name="sample_data",
-    class_label=None,
-    y=None,
-    equal_length=False,
-    series_length=-1,
-    missing_values="NaN",
-    comment=None,
-    suffix="",
+def write_to_tsfile(
+    X, path, y=None, problem_name="sample_data.ts", header=None, regression=False
 ):
-    """
-    Output a dataset in dataframe format to .ts file.
-
-    Parameters
-    ----------
-    X: pandas dataframe
-        The dataset in a dataframe to be written as a ts file
-        which must be of the structure specified in the documentation
-        examples/loading_data.ipynb.
-        index |   dim_0   |   dim_1   |    ...    |  dim_c-1
-           0  | pd.Series | pd.Series | pd.Series | pd.Series
-           1  | pd.Series | pd.Series | pd.Series | pd.Series
-          ... |    ...    |    ...    |    ...    |    ...
-           n  | pd.Series | pd.Series | pd.Series | pd.Series
-    path: str
-        The full path to output the ts file to.
-    problem_name: str, default="sample_data"
-        The problemName to print in the header of the ts file and also the name of
-        the file.
-    class_label: list of str or None, default=None
-        The problems class labels to show the possible class values for in the file
-        header, optional.
-    y: list, ndarray or None, default=None
-        The class values for each case, optional.
-    equal_length: bool, default=False
-        Indicates whether each series is of equal length.
-    series_length: int, default=-1
-        Indicates the series length if they are of equal length.
-    missing_values: str, default="NaN"
-        Representation for missing values.
-    comment: str or None, default=None
-        Comment text to be inserted before the header in a block.
-    suffix: str or None, default=None
-        Addon at the end of the filename, i.e. _TRAIN or _TEST.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This version currently does not support writing timestamp data.
-    """
-    # ensure data provided is a dataframe
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
-    data_valid, _, metadata = check_is_scitype(X, scitype="Panel", return_metadata=True)
-    if not data_valid:
-        raise ValueError("DataFrame provided is not a valid type")
-    if equal_length != metadata["is_equal_length"]:
-        raise ValueError(
-            f"Argument passed for equal length = {equal_length} is not "
-            f"true for the data passed"
-        )
-    if equal_length:
-        # Convert to [cases][dimensions][length] numpy.
-        X = convert_to(
-            X,
-            to_type="numpy3D",
-            as_scitype="Panel",
-            store_behaviour="freeze",
-        )
-        _write_ndarray_to_tsfile(
-            X,
-            path,
-            problem_name=problem_name,
-            class_label=class_label,
-            class_value_list=y,
-            equal_length=equal_length,
-            series_length=X.shape[2],
-            missing_values=missing_values,
-            comment=comment,
-            fold=suffix,
-        )
-    else:  # Write by iterating over dataframe
-        if y is not None and class_label is None:
-            class_label = np.unique(y)
-        file = _write_header(
-            path,
-            problem_name,
-            metadata["is_univariate"],
-            metadata["is_equal_length"],
-            series_length,
-            class_label,
-            suffix,
-            comment,
-        )
-        n_cases, n_dimensions = X.shape
-        for i in range(0, n_cases):
-            for j in range(0, n_dimensions):
-                series = X.iloc[i, j]
-                for k in range(0, series.size - 1):
-                    file.write(f"{series[k]},")
-                file.write(f"{series[series.size-1]}:")
-            file.write(f"{y[i]}\n")
-
-
-def _write_ndarray_to_tsfile(
-    data,
-    path,
-    problem_name="sample_data",
-    class_label=None,
-    class_value_list=None,
-    equal_length=False,
-    series_length=-1,
-    missing_values="NaN",
-    comment=None,
-    fold="",
-):
-    """
-    Output a dataset in ndarray format to .ts file.
-
-    Parameters
-    ----------
-    data: pandas dataframe
-        The dataset in a 3d ndarray to be written as a ts file
-        which must be of the structure specified in the documentation
-        examples/loading_data.ipynb.
-        (n_instances, n_channels, n_timepoints)
-    path: str
-        The full path to output the ts file to.
-    problem_name: str, default="sample_data"
-        The problemName to print in the header of the ts file and also the name of
-        the file.
-    class_label: list of str or None, default=None
-        The problems class labels to show the possible class values for in the file
-        header.
-    class_value_list: list, ndarray or None, default=None
-        The class values for each case, optional.
-    equal_length: bool, default=False
-        Indicates whether each series is of equal length.
-    series_length: int, default=-1
-        Indicates the series length if they are of equal length.
-    missing_values: str, default="NaN"
-        Representation for missing values.
-    comment: str or None, default=None
-        Comment text to be inserted before the header in a block.
-    fold: str or None, default=None
-        Addon at the end of the filename, i.e. _TRAIN or _TEST.
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This version currently does not support writing timestamp data.
-    """
-    # ensure data provided is a ndarray
-    if not isinstance(data, np.ndarray):
-        raise ValueError("Data provided must be a ndarray")
-    if class_value_list is not None:
-        data, class_value_list = check_X_y(data, class_value_list)
-    else:
-        data = check_X(data)
-    univariate = data.shape[1] == 1
-    if class_value_list is not None and class_label is None:
-        class_label = np.unique(class_value_list)
-    elif class_value_list is None:
-        class_value_list = []
-    # ensure number of cases is same as the class value list
-    if len(data) != len(class_value_list) and len(class_value_list) > 0:
-        raise IndexError(
-            "The number of cases is not the same as the number of given class values"
-        )
-    if equal_length and series_length == -1:
-        raise ValueError(
-            "Please specify the series length for equal length time series data."
-        )
-    if fold is None:
-        fold = ""
-    file = _write_header(
-        path,
-        problem_name,
-        univariate,
-        equal_length,
-        series_length,
-        class_label,
-        fold,
-        comment,
-    )
-    # begin writing the core data for each case
-    # which are the series and the class value list if there is any
-    for case, value in itertools.zip_longest(data, class_value_list):
-        for dimension in case:
-            # turn series into comma-separated row
-            series = ",".join(
-                [str(num) if not np.isnan(num) else missing_values for num in dimension]
-            )
-            file.write(str(series))
-            # continue with another dimension for multivariate case
-            if not univariate:
-                file.write(":")
-        a = ":" if univariate else ""
-        if value is not None:
-            file.write(f"{a}{value}")  # write the case value if any
-        elif class_label is not None:
-            file.write(f"{a}{missing_values}")
-        file.write("\n")  # open a new line
-    file.close()
-
-
-def write_to_tsfile(X, path, y=None, problem_name="sample_data", header=None):
     """Write an aeon collection of time series to text file in .ts format.
 
     Write metadata and data stored in aeon compatible data set to file.
@@ -247,21 +32,33 @@ def write_to_tsfile(X, path, y=None, problem_name="sample_data", header=None):
         The file is written to <path>/<problem_name>/<problem_name>.ts
     header: string, default = None
         Optional text at the top of the file that is ignored when loading.
+    regression: boolean, default = False
+        Indicate if this is a regression problem, so it is correcty specified in
+        the header since there is no definite way of inferring this from y
     """
     if not (
-        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(pd.DataFrame)
+        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(X, pd.DataFrame)
     ):
-        raise TypeError(" Wrong input data type ", type(X))
+        raise TypeError(
+            f" Wrong input data type {type(X)} convert to np.ndarray ("
+            f"n_cases, n_channels,n_timepoints) if equal length or list "
+            f"of [n_cases] np.ndarray shape (n_channels, n_timepoints) if unequal"
+        )
+    # See if passed file name contains .ts extension or not
+    split = problem_name.split(".")
+    if split[-1] != "ts":
+        problem_name = problem_name + ".ts"
+
     if isinstance(X, np.ndarray) or isinstance(X, list):
-        _write_data_to_tsfile(X, path, problem_name, y=y)
+        _write_data_to_tsfile(X, path, problem_name, y=y, regression=regression)
     else:
         _write_dataframe_to_tsfile(
             X,
             path,
             problem_name=problem_name,
             y=y,
-            equal_length=False,
             comment=header,
+            regression=regression,
         )
 
 
@@ -272,9 +69,12 @@ def _write_data_to_tsfile(
     y=None,
     missing_values="NaN",
     comment=None,
-    suffix="",
+    suffix=None,
+    regression=False,
 ):
-    """Output a dataset in ndarray format to .ts file.
+    """Output a dataset to .ts texfile format.
+
+    Automatically adds the .ts suffix if not the suffix to problem_name.
 
     Parameters
     ----------
@@ -294,7 +94,8 @@ def _write_data_to_tsfile(
     comment: str or None, default=None
         Comment text to be inserted before the header in a block.
     suffix: str or None, default=None
-        Addon at the end of the filename, i.e. _TRAIN or _TEST.
+        Addon at the end of the filename before the file extension, i.e. _TRAIN or
+        _TEST
 
     Returns
     -------
@@ -307,13 +108,14 @@ def _write_data_to_tsfile(
     # ensure data provided is a ndarray
     if not isinstance(X, np.ndarray) and not isinstance(X, list):
         raise ValueError("Data provided must be a ndarray or a list")
-    if y is not None:
-        class_label = np.unique(y)
+    class_labels = None
+    if y is not None and not regression:
         # ensure number of cases is same as the class value list
         if len(X) != len(y):
             raise IndexError(
                 "The number of cases is not the same as the number of  class values"
             )
+        class_labels = np.unique(y)
     n_cases = len(X)
     n_channels = len(X[0])
     univariate = n_channels == 1
@@ -330,12 +132,14 @@ def _write_data_to_tsfile(
     file = _write_header(
         path,
         problem_name,
-        univariate,
-        equal_length,
-        series_length,
-        class_label,
-        suffix,
-        comment,
+        univariate=univariate,
+        equal_length=equal_length,
+        series_length=series_length,
+        class_labels=class_labels,
+        comment=comment,
+        regression=regression,
+        suffix=suffix,
+        extension=None,
     )
     for i in range(n_cases):
         for j in range(n_channels):
@@ -470,121 +274,37 @@ def write_results_to_uea_format(
     file.close()
 
 
-def write_tabular_transformation_to_arff(
-    data,
-    transformation,
-    path,
-    problem_name="sample_data",
-    class_label=None,
-    class_value_list=None,
-    comment=None,
-    fold="",
-    fit_transform=True,
-):
-    """Transform a dataset using a tabular trans. and write the result to a arff file.
-
-    Parameters
-    ----------
-    data: pandas dataframe or 3d numpy array
-        The dataset to build the transformation with which must be of the structure
-        specified in the documentation examples/loading_data.ipynb.
-    transformation: BaseTransformer
-        Transformation use and to save to arff.
-    path: str
-        The full path to output the arff file to.
-    problem_name: str, default="sample_data"
-        The problemName to print in the header of the arff file and also the name of
-        the file.
-    class_label: list of str or None, default=None
-        The problems class labels to show the possible class values for in the file
-        header, optional.
-    class_value_list: list, ndarray or None, default=None
-        The class values for each case, optional.
-    comment: str or None, default=None
-        Comment text to be inserted before the header in a block.
-    fold: str or None, default=None
-        Addon at the end of the filename, i.e. _TRAIN or _TEST.
-    fit_transform: bool, default=True
-        Whether to fit the transformer prior to calling transform.
-
-    Returns
-    -------
-    None
-    """
-    # ensure transformation provided is a transformer
-    if not isinstance(transformation, BaseTransformer):
-        raise ValueError("Transformation must be a BaseTransformer")
-    if fit_transform:
-        data = transformation.fit_transform(data, class_value_list)
-    else:
-        data = transformation.transform(data, class_value_list)
-    if isinstance(data, pd.DataFrame):
-        data = data.to_numpy()
-    if class_value_list is not None and class_label is None:
-        class_label = np.unique(class_value_list)
-    elif class_value_list is None:
-        class_value_list = []
-    # ensure number of cases is same as the class value list
-    if len(data) != len(class_value_list) and len(class_value_list) > 0:
-        raise IndexError(
-            "The number of cases is not the same as the number of given class values"
-        )
-    if fold is None:
-        fold = ""
-    # create path if not exist
-    dirt = f"{str(path)}/{str(problem_name)}-{type(transformation).__name__}/"
-    try:
-        os.makedirs(dirt)
-    except os.error:
-        pass  # raises os.error if path already exists
-    # create arff file in the path
-    file = open(
-        f"{dirt}{str(problem_name)}-{type(transformation).__name__}{fold}.arff", "w"
-    )
-    # write comment if any as a block at start of file
-    if comment is not None:
-        file.write("\n% ".join(textwrap.wrap("% " + comment)))
-        file.write("\n")
-    # begin writing header information
-    file.write(f"@Relation {problem_name}\n")
-    # write each attribute
-    for i in range(data.shape[1]):
-        file.write(f"@attribute att{str(i)} numeric\n")
-    # write class attribute if it exists
-    if class_label is not None:
-        comma_separated_class_label = ",".join(str(label) for label in class_label)
-        file.write(f"@attribute target {{{comma_separated_class_label}}}\n")
-    file.write("@data\n")
-    for case, value in itertools.zip_longest(data, class_value_list):
-        # turn attributes into comma-separated row
-        atts = ",".join([str(num) if not np.isnan(num) else "?" for num in case])
-        file.write(str(atts))
-        if value is not None:
-            file.write(f",{value}")  # write the case value if any
-        elif class_label is not None:
-            file.write(",?")
-        file.write("\n")  # open a new line
-    file.close()
-
-
 def _write_header(
     path,
     problem_name,
-    univariate,
-    equal_length,
-    series_length,
-    class_label,
-    fold,
-    comment,
+    univariate=True,
+    equal_length=False,
+    series_length=-1,
+    comment=None,
+    regression=False,
+    class_labels=None,
+    suffix=None,
+    extension=None,
 ):
+    if class_labels is not None and regression:
+        raise ValueError(
+            "Cannot have class_labels and targetlabel. If the problem "
+            "is classification, add class_labels. If regression, "
+            "set targetlabel to true."
+        )
     # create path if it does not exist
-    dirt = f"{str(path)}/{str(problem_name)}/"
+    dir = f"{str(path)}/"
     try:
-        os.makedirs(dirt, exist_ok=True)
+        os.makedirs(dir, exist_ok=True)
     except os.error:
-        pass  # raises os.error if the directory cannot be accessed or created
+        raise ValueError(f"Error trying to access {dir} in _write_header")
     # create ts file in the path
-    file = open(f"{dirt}{str(problem_name)}{fold}.ts", "w")
+    load_path = f"{dir}{str(problem_name)}"
+    if suffix is not None:
+        load_path = load_path + suffix
+    if extension is not None:
+        load_path = load_path + suffix + extension
+    file = open(load_path, "w")
     # write comment if any as a block at start of file
     if comment is not None:
         file.write("\n# ".join(textwrap.wrap("# " + comment)))
@@ -597,11 +317,54 @@ def _write_header(
     file.write(f"@equalLength {str(equal_length).lower()}\n")
     if series_length > 0 and equal_length:
         file.write(f"@seriesLength {series_length}\n")
-    # write class label line
-    if class_label is not None:
-        space_separated_class_label = " ".join(str(label) for label in class_label)
+    # write class labels line
+    if class_labels is not None:
+        space_separated_class_label = " ".join(str(label) for label in class_labels)
         file.write(f"@classLabel true {space_separated_class_label}\n")
     else:
         file.write("@classLabel false\n")
+        if regression:
+            file.write("@targetlabel true\n")
+
+    # or if a regresssion problem, write target label
     file.write("@data\n")
     return file
+
+
+def _write_dataframe_to_tsfile(
+    X, path, problem_name="sample_data", y=None, comment=None, regression=False
+):
+    # ensure data provided is a dataframe
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
+    # See if passed file name contains .ts extension or not
+    split = problem_name.split(".")
+    if split[-1] != "ts":
+        problem_name = problem_name + ".ts"
+    class_labels = None
+    if y is not None:
+        class_labels = np.unique(y)
+    univariate = X.shape[1] == 1
+    # dataframes are always equal length
+    equal_length = True
+    series_length = X.shape[0]
+    file = _write_header(
+        path,
+        problem_name,
+        univariate=univariate,
+        equal_length=equal_length,
+        series_length=series_length,
+        class_labels=class_labels,
+        comment=comment,
+        regression=regression,
+        extension=None,
+    )
+    n_cases, n_dimensions = X.shape
+    for i in range(0, n_cases):
+        for j in range(0, n_dimensions):
+            series = X.iloc[i, j]
+            for k in range(0, series.size - 1):
+                file.write(f"{series[k]},")
+            file.write(f"{series[series.size-1]}:")
+        file.write(f"{y[i]}\n")
+    file.close()

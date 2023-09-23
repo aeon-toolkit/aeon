@@ -3,7 +3,7 @@
 
 from sklearn.pipeline import Pipeline
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.signature_based._augmentations import (
     _make_augmentation_pipeline,
 )
@@ -12,7 +12,7 @@ from aeon.transformations.collection.signature_based._compute import (
 )
 
 
-class SignatureTransformer(BaseTransformer):
+class SignatureTransformer(BaseCollectionTransformer):
     """Transformation class from the signature method.
 
     Follows the methodology laid out in the paper:
@@ -50,7 +50,7 @@ class SignatureTransformer(BaseTransformer):
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?#
         "fit_is_empty": False,
         "python_dependencies": "esig",
-        "python_version": "<3.10",
+        "python_version": "<3.11",
     }
 
     def __init__(

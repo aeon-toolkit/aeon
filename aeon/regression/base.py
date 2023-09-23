@@ -22,22 +22,18 @@ State:
 __all__ = [
     "BaseRegressor",
 ]
-__author__ = ["mloning", "fkiraly"]
-
+__author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
 import time
 from abc import ABC, abstractmethod
-from warnings import warn
 
 import numpy as np
 import pandas as pd
 
-from aeon.base import BaseEstimator
-from aeon.datatypes import check_is_scitype, convert_to
+from aeon.base import BaseCollectionEstimator
 from aeon.utils.sklearn import is_sklearn_transformer
-from aeon.utils.validation import check_n_jobs
 
 
-class BaseRegressor(BaseEstimator, ABC):
+class BaseRegressor(BaseCollectionEstimator, ABC):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all
@@ -46,29 +42,21 @@ class BaseRegressor(BaseEstimator, ABC):
 
     Parameters
     ----------
-    fit_time_           : integer, time (in milliseconds) for fit to run.
-    _class_dictionary   : dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _n_jobs     : number of threads to use in fit as determined by n_jobs.
+    fit_time_ : int
+        Time (in milliseconds) for fit to run.
+    _class_dictionary : dict
+        Dictionary mapping classes_ onto integers 0...n_classes_-1.
+    _n_jobs : int, default =1
+        Number of threads to use in fit as determined by n_jobs.
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
         "capability:multithreading": False,
     }
 
     def __init__(self):
-        self.fit_time_ = 0
-        self._class_dictionary = {}
-        self._threads_to_use = 1
-        self._X_metadata = {}
-
-        # required for compatability with some sklearn interfaces
-        # i.e. CalibratedRegressorCV
         self._estimator_type = "regressor"
 
         super(BaseRegressor, self).__init__()
@@ -95,7 +83,6 @@ class BaseRegressor(BaseEstimator, ABC):
 
         # behaviour is implemented only if other inherits from BaseTransformer
         #  in that case, distinctions arise from whether self or other is a pipeline
-        #  todo: this can probably be simplified further with "zero length" pipelines
         if isinstance(other, BaseTransformer):
             # RegressorPipeline already has the dunder method defined
             if isinstance(self, RegressorPipeline):
@@ -111,53 +98,38 @@ class BaseRegressor(BaseEstimator, ABC):
         else:
             return NotImplemented
 
-    def fit(self, X, y):
+    def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or of any other supported input type
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-        y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
-            indices correspond to instance indices in X
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
+            other types are allowed and converted into one of the above.
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets or
+            fitting indices correspond to instance indices in X.
 
         Returns
         -------
-        self : Reference to self.
+        BaseCollectionEstimator
+            Reference to self.
 
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
-        # convenience conversions to allow user flexibility:
-        # if X is 2D array, convert to 3D, if y is Series, convert to numpy
-        X, y = _internal_convert(X, y)
-        X_metadata = _check_regressor_input(X, y)
-        self._X_metadata = X_metadata
-        missing = X_metadata["has_nans"]
-        multivariate = not X_metadata["is_univariate"]
-        unequal = not X_metadata["is_equal_length"]
-        # Check this regressor can handle characteristics
-        self._check_capabilities(missing, multivariate, unequal)
-        # Convert data as dictated by the regressor tags
-        X = self._convert_X(X)
-        multithread = self.get_tag("capability:multithreading")
-        if multithread:
-            try:
-                self._threads_to_use = check_n_jobs(self.n_jobs)
-            except NameError:
-                raise AttributeError(
-                    "self.n_jobs must be set if capability:multithreading is True"
-                )
-
+        self.reset()
+        _start_time = int(round(time.time() * 1000))
+        X = self._preprocess_collection(X)
+        y = self._check_y(y, self.metadata_["n_cases"])
         self._fit(X, y)
-        self.fit_time_ = int(round(time.time() * 1000)) - start
+        self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         # this should happen last
         self._is_fitted = True
         return self
@@ -167,23 +139,22 @@ class BaseRegressor(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or of any other supported input type
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
+            other types are allowed and converted into one of the above.
 
         Returns
         -------
-        y : 1D np.array of float, of shape [n_instances] - predicted regression labels
+        np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
-
-        # boilerplate input checks for predict-like methods
-        X = self._check_convert_X_for_predict(X)
-
+        X = self._preprocess_collection(X)
         return self._predict(X)
 
     def score(self, X, y) -> float:
@@ -191,14 +162,16 @@ class BaseRegressor(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape [n_instances, n_channels, series_length]
-            or 2D np.array (univariate, equal length series)
-                of shape [n_instances, series_length]
-            or of any other supported type
-                for list of mtypes, see datatypes.SCITYPE_REGISTER
-        y : 1D np.array of float, of shape [n_instances] - regression labels (gnr truth)
-            indices correspond to instance indices in X
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
+            other types are allowed and converted into one of the above.
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets or
+            fitting indices correspond to instance indices in X.
 
         Returns
         -------
@@ -207,8 +180,10 @@ class BaseRegressor(BaseEstimator, ABC):
         from sklearn.metrics import r2_score
 
         self.check_is_fitted()
-
-        return r2_score(y, self.predict(X), normalize=True)
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
+        y = y.astype("float")
+        return r2_score(y, self.predict(X))
 
     @abstractmethod
     def _fit(self, X, y):
@@ -220,10 +195,9 @@ class BaseRegressor(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-        y : 1D np.array of float, of shape [n_instances] - regression labels for fitting
-            indices correspond to instance indices in X
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        y : 1D np.array of float, of shape (n_instances) - regression labels for
+        fitting indices correspond to instance indices in X
 
         Returns
         -------
@@ -245,204 +219,35 @@ class BaseRegressor(BaseEstimator, ABC):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
             if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
 
         Returns
         -------
-        y : 1D np.array of float, of shape [n_instances] - predicted regression labels
+        y : 1D np.array of float, of shape (n_instances) - predicted regression labels
             indices correspond to instance indices in X
         """
         ...
 
-    def _check_convert_X_for_predict(self, X):
-        """Input checks, capability checks, repeated in all predict/score methods.
-
-        Parameters
-        ----------
-        X : any object (to check/convert)
-            should be of a supported input type including 2D numpy.ndarray
-
-        Returns
-        -------
-        X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
-
-        Raises
-        ------
-        ValueError if X is of invalid input data type, or there is not enough data
-        ValueError if the capabilities in self._tags do not handle the data.
-        """
-        X = _internal_convert(X)
-        X_metadata = _check_regressor_input(X)
-        missing = X_metadata["has_nans"]
-        multivariate = not X_metadata["is_univariate"]
-        unequal = not X_metadata["is_equal_length"]
-        # Check this regressor can handle characteristics
-        self._check_capabilities(missing, multivariate, unequal)
-        # Convert data as dictated by the regressor tags
-        X = self._convert_X(X)
-
-        return X
-
-    def _check_capabilities(self, missing, multivariate, unequal):
-        """Check whether this regressor can handle the data characteristics.
-
-        Parameters
-        ----------
-        missing : boolean, does the data passed to fit contain missing values?
-        multivariate : boolean, does the data passed to fit contain missing values?
-        unequal : boolea, do the time series passed to fit have variable lengths?
-
-        Raises
-        ------
-        ValueError if the capabilities in self._tags do not handle the data.
-        """
-        allow_multivariate = self.get_tag("capability:multivariate")
-        allow_missing = self.get_tag("capability:missing_values")
-        allow_unequal = self.get_tag("capability:unequal_length")
-
-        self_name = type(self).__name__
-
-        # identify problems, mismatch of capability and inputs
-        problems = []
-        if missing and not allow_missing:
-            problems += ["missing values"]
-        if multivariate and not allow_multivariate:
-            problems += ["multivariate series"]
-        if unequal and not allow_unequal:
-            problems += ["unequal length series"]
-
-        # construct error message
-        problems_and = " and ".join(problems)
-        problems_or = " or ".join(problems)
-        msg = (
-            f"Data seen by {self_name} instance has {problems_and}, "
-            f"but this {self_name} instance cannot handle {problems_or}. "
-            f"Calls with {problems_or} may result in error or unreliable results."
-        )
-
-        # raise exception or warning with message
-        # if self is composite, raise a warning, since passing could be fine
-        #   see discussion in PR 2366 why
-        if len(problems) > 0:
-            if self.is_composite():
-                warn(msg)
-            else:
-                raise ValueError(msg)
-
-    def _convert_X(self, X):
-        """Convert equal length series from DataFrame to numpy array or vice versa.
-
-        Parameters
-        ----------
-        self : this regressor
-        X : pd.DataFrame or np.ndarray. Input attribute data
-
-        Returns
-        -------
-        X : input X converted to type in "X_inner_mtype" tag, default 3D np.ndarray
-            Checked and possibly converted input data
-        """
-        inner_type = self.get_tag("X_inner_mtype")
-        # convert pd.DataFrame
-        X = convert_to(
-            X,
-            to_type=inner_type,
-            as_scitype="Panel",
-        )
-        return X
-
-
-def _check_regressor_input(
-    X,
-    y=None,
-    enforce_min_instances=1,
-):
-    """Check whether input X and y are valid formats with minimum data.
-
-    Raises a ValueError if the input is not valid.
-
-    Parameters
-    ----------
-    X : check whether X is a valid input type
-    y : check whether a pd.Series or np.array
-    enforce_min_instances : int, optional (default=1)
-        check there are a minimum number of instances.
-
-    Returns
-    -------
-    metadata : dict with metadata for X returned by datatypes.check_is_scitype
-
-    Raises
-    ------
-    ValueError
-        If y or X is invalid input data type, or there is not enough data
-    """
-    # Check X is valid input type and recover the data characteristics
-    X_valid, _, X_metadata = check_is_scitype(X, scitype="Panel", return_metadata=True)
-    if not X_valid:
-        raise TypeError(
-            f"X is not of a supported input data type."
-            f"X must be in a supported type format for Regression, found {type(X)}"
-            f"Use datatypes.check_is_mtype to check conformance with specifications."
-        )
-    n_cases = X_metadata["n_instances"]
-    if n_cases < enforce_min_instances:
-        raise ValueError(
-            f"Minimum number of cases required is {enforce_min_instances} but X "
-            f"has : {n_cases}"
-        )
-
-    # Check y if passed
-    if y is not None:
-        # Check y valid input
+    def _check_y(self, y, n_cases):
+        # Check y valid input for regression
         if not isinstance(y, (pd.Series, np.ndarray)):
-            raise ValueError(
+            raise TypeError(
                 f"y must be a np.array or a pd.Series, but found type: {type(y)}"
             )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
         # Check matching number of labels
-        n_labels = y.shape[0]
+        n_labels = len(y)
         if n_cases != n_labels:
             raise ValueError(
                 f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
                 f"{n_labels}"
             )
-        if isinstance(y, np.ndarray):
-            if y.ndim > 1:
-                raise ValueError(
-                    f"np.ndarray y must be 1-dimensional, "
-                    f"but found {y.ndim} channels"
-                )
-    return X_metadata
-
-
-def _internal_convert(X, y=None):
-    """Convert X and y if necessary as a user convenience.
-
-    Convert X to a 3D numpy array if already a 2D and convert y into an 1D numpy
-    array if passed as a Series.
-
-    Parameters
-    ----------
-    X : an object of a supported input type including 2D numpy.ndarray
-    y : np.ndarray or pd.Series
-
-    Returns
-    -------
-    X: an object of a supported input type, numpy3D if X was a 2D numpy.ndarray
-    y: np.ndarray
-    """
-    if isinstance(X, np.ndarray):
-        # Temporary fix to insist on 3D numpy. For univariate problems,
-        # most regressors simply convert back to 2D. This squeezing should be
-        # done here, but touches a lot of files, so will get this to work first.
-        if X.ndim == 2:
-            X = X.reshape(X.shape[0], 1, X.shape[1])
-    if y is not None and isinstance(y, pd.Series):
-        # y should be a numpy array, although we allow Series for user convenience
-        y = pd.Series.to_numpy(y)
-    if y is not None and isinstance(y, np.ndarray):
-        y = y.astype("float")
-    if y is None:
-        return X
-    return X, y
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
+        if isinstance(y[0], str):
+            raise ValueError(
+                "y contains strings, cannot fit a regressor. If suitable, convert "
+                "to string."
+            )
+        return y
