@@ -9,6 +9,7 @@ from numpy.random import RandomState
 
 from aeon.clustering.metrics.averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
+from aeon.distances import get_distance_function, pairwise_distance
 
 
 class TimeSeriesKMeans(BaseClusterer):
@@ -169,12 +170,10 @@ class TimeSeriesKMeans(BaseClusterer):
         if isinstance(self.init_algorithm, str):
             if self.init_algorithm == "random":
                 self._init_algorithm = self._random_center_initializer
-            elif self.init_algorithm == "kmedoids++":
+            elif self.init_algorithm == "kmeans++":
                 self._init_algorithm = self._kmedoids_plus_plus_center_initializer
             elif self.init_algorithm == "first":
                 self._init_algorithm = self._first_center_initializer
-            elif self.init_algorithm == "build":
-                self._init_algorithm = self._pam_build_center_initializer
         else:
             self._init_algorithm = self.init_algorithm
 
@@ -189,6 +188,10 @@ class TimeSeriesKMeans(BaseClusterer):
             self._distance_params = {}
         else:
             self._distance_params = self.distance_params
+        if self.average_params is None:
+            self._average_params = {}
+        else:
+            self._average_params = self.average_params
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
@@ -197,24 +200,6 @@ class TimeSeriesKMeans(BaseClusterer):
             )
         self._distance_callable = get_distance_function(metric=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
-
-        if self.method == "alternate":
-            self._fit_method = self._alternate_fit
-        elif self.method == "pam":
-            self._fit_method = self._pam_fit
-        else:
-            raise ValueError(f"method {self.method} is not supported")
-
-        if self.init_algorithm == "build":
-            if self.n_init != 10 and self.n_init > 1:
-                warnings.warn(
-                    "When using build n_init does not need to be greater than 1. "
-                    "As such n_init will be set to 1.",
-                    stacklevel=1,
-                )
-
-
-
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
