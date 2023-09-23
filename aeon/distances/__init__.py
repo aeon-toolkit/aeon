@@ -10,6 +10,10 @@ __all__ = [
     "euclidean_pairwise_distance",
     "manhattan_distance",
     "manhattan_pairwise_distance",
+    "adtw_distance",
+    "adtw_pairwise_distance",
+    "adtw_cost_matrix",
+    "adtw_alignment_path",
     "dtw_distance",
     "dtw_pairwise_distance",
     "dtw_cost_matrix",
@@ -125,3 +129,10 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances._adtw import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance
+)
+
