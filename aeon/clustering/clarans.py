@@ -29,15 +29,17 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, default='random'
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
-        ['kmedoids++', 'random', 'first', 'build'].
+        ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -123,7 +125,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def _fit_one_init(self, X: np.ndarray, max_neighbours: int):
         j = 0
         X_indexes = np.arange(X.shape[0], dtype=int)
-        best_medoids = self._init_algorithm(X)
+        best_medoids = self._init_algorithm
+        if isinstance(self._init_algorithm, Callable):
+            best_medoids = self._init_algorithm(X)
         best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
         best_cost = (
             self._compute_pairwise(X, best_non_medoids, best_medoids).min(axis=1).sum()

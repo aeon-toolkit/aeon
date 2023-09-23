@@ -177,3 +177,17 @@ def test_medoids_init():
     check_value_in_every_cluster(num_clusters, kmedoids_plus_plus_medoids_result)
     kmedoids_build_result = kmedoids._pam_build_center_initializer(X_train)
     check_value_in_every_cluster(num_clusters, kmedoids_build_result)
+
+    # Test setting manual init centres
+    num_clusters = 8
+    custom_init_centres = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init_algorithm=custom_init_centres,
+        distance="euclidean",
+        n_clusters=num_clusters,
+    )
+    kmedoids.fit(X_train)
+    assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])

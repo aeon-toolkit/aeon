@@ -43,7 +43,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     ----------
     n_clusters : int, default=8
         The number of clusters to form as well as the number of centroids to generate.
-    init_algorithm : str, default='random'
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
@@ -52,6 +52,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
@@ -143,7 +145,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         method: str = "pam",
         n_init: int = 10,
@@ -174,7 +176,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._distance_callable = None
         self._fit_method = None
 
-        self._distance_params = distance_params
+        self._distance_params = {}
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
@@ -259,7 +261,10 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _pam_fit(self, X: np.ndarray):
         old_inertia = np.inf
         n_instances = X.shape[0]
-        medoids_idxs = self._init_algorithm(X)
+
+        medoids_idxs = self._init_algorithm
+        if isinstance(self._init_algorithm, Callable):
+            medoids_idxs = self._init_algorithm(X)
         not_medoid_idxs = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
@@ -377,7 +382,9 @@ class TimeSeriesKMedoids(BaseClusterer):
             return None
 
     def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
-        cluster_center_indexes = self._init_algorithm(X)
+        cluster_center_indexes = self._init_algorithm
+        if isinstance(self._init_algorithm, Callable):
+            cluster_center_indexes = self._init_algorithm(X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):
@@ -425,18 +432,20 @@ class TimeSeriesKMedoids(BaseClusterer):
             elif self.init_algorithm == "build":
                 self._init_algorithm = self._pam_build_center_initializer
         else:
-            self._init_algorithm = self.init_algorithm
+            if (
+                isinstance(self.init_algorithm, np.ndarray)
+                and len(self.init_algorithm) == self.n_clusters
+            ):
+                self._init_algorithm = self.init_algorithm
+            else:
+                raise ValueError(
+                    f"The value provided for init_algorithm: {self.init_algorithm} is "
+                    f"invalid. The following are a list of valid init algorithms "
+                    f"strings: random, kmedoids++, first. You can also pass a"
+                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+                )
 
-        if not isinstance(self._init_algorithm, Callable):
-            raise ValueError(
-                f"The value provided for init_algorithm: {self.init_algorithm} is "
-                f"invalid. The following are a list of valid init algorithms "
-                f"strings: random, kmedoids++, first"
-            )
-
-        if self.distance_params is None:
-            self._distance_params = {}
-        else:
+        if self.distance_params is not None:
             self._distance_params = self.distance_params
 
         if self.n_clusters > X.shape[0]:
@@ -454,7 +463,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             raise ValueError(f"method {self.method} is not supported")
 
-        if self.init_algorithm == "build":
+        if isinstance(self.init_algorithm, str) and self.init_algorithm == "build":
             if self.n_init != 10 and self.n_init > 1:
                 warnings.warn(
                     "When using build n_init does not need to be greater than 1. "
