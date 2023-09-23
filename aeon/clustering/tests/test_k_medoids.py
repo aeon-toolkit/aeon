@@ -152,7 +152,7 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
 
 def test_medoids_init():
     """Test implementation of Kmedoids."""
-    X_train, y_train = load_gunpoint(split="train")
+    X_train, _ = load_gunpoint(split="train")
     X_train = X_train[:10]
 
     num_clusters = 8
@@ -191,3 +191,5 @@ def test_medoids_init():
     )
     kmedoids.fit(X_train)
     assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])
+
+
