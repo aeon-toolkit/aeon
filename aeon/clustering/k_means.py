@@ -8,10 +8,10 @@ import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.metrics.averaging import _resolve_average_callable
-from aeon.clustering.partitioning import TimeSeriesLloyds
+from aeon.clustering.base import BaseClusterer
 
 
-class TimeSeriesKMeans(TimeSeriesLloyds):
+class TimeSeriesKMeans(BaseClusterer):
     """
     Time series K-means clustering algorithm.
 
@@ -22,7 +22,7 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
     init_algorithm : str, default='forgy'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmeans++', 'random', 'forgy'].
-    metric : str or Callable, default='dtw'
+    distance : str or Callable, default='dtw'
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
@@ -76,21 +76,45 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
     TimeSeriesKMeans(metric='euclidean', n_clusters=2)
     >>> preds = clst.predict(X)
     """
+    _tags = {
+        "capability:multivariate": True,
+    }
 
     def __init__(
         self,
         n_clusters: int = 8,
         init_algorithm: Union[str, Callable] = "random",
-        metric: Union[str, Callable] = "dtw",
+        distance: Union[str, Callable] = "msm",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
         random_state: Union[int, RandomState] = None,
-        averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "mean",
+        averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
         distance_params: dict = None,
         average_params: dict = None,
     ):
+        self.init_algorithm = init_algorithm
+        self.distance = distance
+        self.n_init = n_init
+        self.max_iter = max_iter
+        self.tol = tol
+        self.verbose = verbose
+        self.random_state = random_state
+        self.distance_params = distance_params
+
+        self.cluster_centers_ = None
+        self.labels_ = None
+        self.inertia_ = None
+        self.n_iter_ = 0
+
+        self._random_state = None
+        self._init_algorithm = None
+        self._distance_cache = None
+        self._distance_callable = None
+        self._fit_method = None
+
+        self._distance_params = distance_params
         self.averaging_method = averaging_method
         self._averaging_method = _resolve_average_callable(averaging_method)
 
@@ -99,43 +123,98 @@ class TimeSeriesKMeans(TimeSeriesLloyds):
         if self.average_params is None:
             self._average_params = {}
 
-        super(TimeSeriesKMeans, self).__init__(
-            n_clusters,
-            init_algorithm,
-            metric,
-            n_init,
-            max_iter,
-            tol,
-            verbose,
-            random_state,
-            distance_params,
-        )
+        super(TimeSeriesKMeans, self).__init__(n_clusters)
 
-    def _compute_new_cluster_centers(
-        self, X: np.ndarray, assignment_indexes: np.ndarray
-    ) -> np.ndarray:
-        """Compute new centers.
+    def _fit(self, X: np.ndarray, y=None):
+        self._check_params(X)
 
-        Parameters
-        ----------
-        X : np.ndarray (3d array of shape (n_instances, n_dimensions, series_length))
-            Time series instances to predict their cluster indexes.
-        assignment_indexes: np.ndarray
-            Indexes that each time series in X belongs to.
+        best_centers = None
+        best_inertia = np.inf
+        best_labels = None
+        best_iters = self.max_iter
 
-        Returns
-        -------
-        np.ndarray (3d of shape (n_clusters, n_dimensions, series_length)
-            New cluster center values.
-        """
-        new_centers = np.zeros((self.n_clusters, X.shape[1], X.shape[2]))
-        for i in range(self.n_clusters):
-            curr_indexes = np.where(assignment_indexes == i)[0]
+        for _ in range(self.n_init):
+            labels, centers, inertia, n_iters = self._fit_method(X)
+            if inertia < best_inertia:
+                best_centers = centers
+                best_labels = labels
+                best_inertia = inertia
+                best_iters = n_iters
 
-            result = self._averaging_method(X[curr_indexes], **self._average_params)
-            if result.shape[0] > 0:
-                new_centers[i, :] = result
-        return new_centers
+        self.labels_ = best_labels
+        self.inertia_ = best_inertia
+        self.cluster_centers_ = best_centers
+        self.n_iter_ = best_iters
+
+    def _score(self, X, y=None):
+        return -self.inertia_
+
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
+        if isinstance(self.distance, str):
+            pairwise_matrix = pairwise_distance(
+                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+            )
+        else:
+            pairwise_matrix = pairwise_distance(
+                X,
+                self.cluster_centers_,
+                self._distance_callable,
+                **self._distance_params,
+            )
+        return pairwise_matrix.argmin(axis=1)
+
+    def _check_params(self, X: np.ndarray) -> None:
+        self._random_state = check_random_state(self.random_state)
+
+        if isinstance(self.init_algorithm, str):
+            if self.init_algorithm == "random":
+                self._init_algorithm = self._random_center_initializer
+            elif self.init_algorithm == "kmedoids++":
+                self._init_algorithm = self._kmedoids_plus_plus_center_initializer
+            elif self.init_algorithm == "first":
+                self._init_algorithm = self._first_center_initializer
+            elif self.init_algorithm == "build":
+                self._init_algorithm = self._pam_build_center_initializer
+        else:
+            self._init_algorithm = self.init_algorithm
+
+        if not isinstance(self._init_algorithm, Callable):
+            raise ValueError(
+                f"The value provided for init_algorithm: {self.init_algorithm} is "
+                f"invalid. The following are a list of valid init algorithms "
+                f"strings: random, kmedoids++, first"
+            )
+
+        if self.distance_params is None:
+            self._distance_params = {}
+        else:
+            self._distance_params = self.distance_params
+
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_instances ({X.shape[0]})"
+            )
+        self._distance_callable = get_distance_function(metric=self.distance)
+        self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
+
+        if self.method == "alternate":
+            self._fit_method = self._alternate_fit
+        elif self.method == "pam":
+            self._fit_method = self._pam_fit
+        else:
+            raise ValueError(f"method {self.method} is not supported")
+
+        if self.init_algorithm == "build":
+            if self.n_init != 10 and self.n_init > 1:
+                warnings.warn(
+                    "When using build n_init does not need to be greater than 1. "
+                    "As such n_init will be set to 1.",
+                    stacklevel=1,
+                )
+
+
+
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
