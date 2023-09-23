@@ -9,7 +9,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.cluster import KMeans
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
@@ -24,6 +23,10 @@ class AEFCNClusterer(BaseDeepClusterer):
     ----------
     n_clusters: int, default=None
         Number of clusters for the deep learnign model.
+    clustering_algorithm: str, default="kmeans"
+        The clustering algorithm used in the latent space.
+    clustering_params: dict, default=None
+        Dictionary containing the parameters of the clustering algorithm chosen.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     n_layers : int, default = 3
@@ -111,6 +114,8 @@ class AEFCNClusterer(BaseDeepClusterer):
     def __init__(
         self,
         n_clusters,
+        clustering_algorithm="kmeans",
+        clustering_params=None,
         latent_space_dim=128,
         n_layers=3,
         n_filters=None,
@@ -135,8 +140,16 @@ class AEFCNClusterer(BaseDeepClusterer):
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
-        super(AEFCNClusterer, self).__init__(n_clusters, batch_size, last_file_name)
+        super(AEFCNClusterer, self).__init__(
+            n_clusters,
+            clustering_algorithm,
+            clustering_params,
+            batch_size,
+            last_file_name,
+        )
         self.n_clusters = n_clusters
+        self.clustering_algorithm = clustering_algorithm
+        self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
         self.latent_space_dim = latent_space_dim
@@ -282,32 +295,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         gc.collect()
 
-        self.kmeans_ = KMeans(n_clusters=self.n_clusters)
-        latent_space = self.model_.layers[1].predict(X)
-        self.kmeans_.fit(latent_space)
-
         return self
-
-    def _predict(self, X, y=None):
-        """Predict the latent space of the input and predict clusters using kmeans.
-
-        Parameters
-        ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
-            The training input samples.
-
-        Returns
-        -------
-        clusters : np.ndarray of shape = (n_instances, n_clusters))
-            The predicted clusters for each sample.
-
-        """
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        clusters = self.kmeans_.predict(X=latent_space)
-
-        return clusters
 
     def _score(self, X, y=None):
         return True

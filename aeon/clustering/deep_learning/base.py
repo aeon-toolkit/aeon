@@ -5,6 +5,7 @@ __author__ = ["hadifawaz1999"]
 from abc import ABC, abstractmethod
 
 from aeon.clustering.base import BaseClusterer
+from aeon.clustering.k_means import TimeSeriesKMeans
 
 
 class BaseDeepClusterer(BaseClusterer, ABC):
@@ -14,15 +15,15 @@ class BaseDeepClusterer(BaseClusterer, ABC):
     ----------
     n_clusters: int, default=None
         Number of clusters for the deep learnign model.
+    clustering_algorithm: str, default="kmeans"
+        The clustering algorithm used in the latent space.
+    clustering_params: dict, default=None
+        Dictionary containing the parameters of the clustering algorithm chosen.
     batch_size : int, default = 40
         training batch size for the model
     last_file_name      : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
-
-    Arguments
-    ---------
-    self.model_ = None
 
     """
 
@@ -35,12 +36,29 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "python_dependencies": "tensorflow",
     }
 
-    def __init__(self, n_clusters, batch_size=32, last_file_name="last_file"):
+    def __init__(
+        self,
+        n_clusters,
+        clustering_algorithm="kmeans",
+        clustering_params=None,
+        batch_size=32,
+        last_file_name="last_file",
+    ):
         super(BaseDeepClusterer, self).__init__(n_clusters)
 
+        self.clustering_algorithm = clustering_algorithm
+        self.clustering_params = (
+            clustering_params if clustering_params is not None else {}
+        )
+        # self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
         self.model_ = None
+
+        if self.clustering_algorithm == "kmeans":
+            self.clusterer = TimeSeriesKMeans(
+                n_clusters=self.n_clusters, **self.clustering_params
+            )
 
     @abstractmethod
     def build_model(self, input_shape):
@@ -68,3 +86,52 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
         """
         return self.history.history if self.history is not None else None
+
+    def save_last_model_to_file(self, file_path="./"):
+        """Save the last epoch of the trained deep learning model.
+
+        Parameters
+        ----------
+        file_path : str, default = "./"
+            The directory where the model will be saved
+
+        Returns
+        -------
+        None
+        """
+        self.model_.save(file_path + self.last_file_name + ".hdf5")
+
+    def fit_clustering(self, X):
+        """Train the clustering algorithm in the latent space.
+
+        Parameters
+        ----------
+        X: np.ndarray, shape=(n_instances, latent_space_dim)
+            The latent representation of the input time series.
+        """
+        if X.ndim == 1:
+            X = X.reshape((1, 1, X.shape[0]))
+        elif X.ndim == 2:
+            X = X.reshape((X.shape[0], 1, X.shape[1]))
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        self.clusterer.fit(X=latent_space)
+
+        return self
+
+    def _predict(self, X):
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        clusters = self.clusterer.predict(latent_space)
+
+        return clusters
+
+    def _predict_proba(self, X):
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        clusters_proba = self.clusterer.predict_proba(latent_space)
+
+        return clusters_proba
