@@ -31,7 +31,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         centroids to generate.
     init_algorithm : str, default='random'
         Method for initializing cluster centers. Any of the following are valid:
-        ['kmedoids++', 'random', 'first'].
+        ['kmedoids++', 'random', 'first', 'build'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more

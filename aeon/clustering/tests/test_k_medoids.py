@@ -52,13 +52,13 @@ def _pam_uni_medoids(X_train, y_train, X_test, y_test):
     test_medoids_result = kmedoids.predict(X_test)
     test_score = metrics.rand_score(y_test, test_medoids_result)
     proba = kmedoids.predict_proba(X_test)
-    assert np.array_equal(test_medoids_result, [1, 3, 7, 1, 3, 5, 1, 6, 2, 5])
-    assert np.array_equal(train_medoids_result, [0, 2, 2, 3, 4, 5, 6, 7, 1, 1])
+    assert np.array_equal(test_medoids_result, [3, 5, 7, 3, 5, 5, 3, 1, 2, 5])
+    assert np.array_equal(train_medoids_result, [0, 2, 2, 5, 4, 5, 6, 7, 1, 3])
     assert test_score == 0.5777777777777777
     assert train_score == 0.4222222222222222
-    assert np.isclose(kmedoids.inertia_, 10.61819833154311)
-    assert kmedoids.n_iter_ == 2
-    assert np.array_equal(kmedoids.labels_, [0, 2, 2, 3, 4, 5, 6, 7, 1, 1])
+    assert np.isclose(kmedoids.inertia_, 5.0087431726326646)
+    assert kmedoids.n_iter_ == 3
+    assert np.array_equal(kmedoids.labels_, [0, 2, 2, 5, 4, 5, 6, 7, 1, 3])
     assert isinstance(kmedoids.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
@@ -104,13 +104,13 @@ def _pam_multi_medoids(X_train, y_train, X_test, y_test):
     test_medoids_result = kmedoids.predict(X_test)
     test_score = metrics.rand_score(y_test, test_medoids_result)
     proba = kmedoids.predict_proba(X_test)
-    assert np.array_equal(test_medoids_result, [1, 5, 1, 0, 5, 3, 5, 5, 3, 4])
-    assert np.array_equal(train_medoids_result, [0, 1, 2, 3, 5, 5, 6, 7, 5, 4])
-    assert test_score == 0.17777777777777778
+    assert np.array_equal(test_medoids_result, [1, 4, 1, 0, 4, 3, 4, 3, 3, 4])
+    assert np.array_equal(train_medoids_result, [0, 1, 2, 3, 4, 4, 6, 7, 4, 5])
+    assert test_score == 0.2222222222222222
     assert train_score == 0.06666666666666667
-    assert np.isclose(kmedoids.inertia_, 15.512444347419628)
+    assert np.isclose(kmedoids.inertia_, 14.729547948813156)
     assert kmedoids.n_iter_ == 2
-    assert np.array_equal(kmedoids.labels_, [0, 1, 2, 3, 5, 5, 6, 7, 5, 4])
+    assert np.array_equal(kmedoids.labels_, [0, 1, 2, 3, 4, 4, 6, 7, 4, 5])
     assert isinstance(kmedoids.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1

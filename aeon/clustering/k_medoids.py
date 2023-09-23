@@ -62,6 +62,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         ['alternate', 'pam'].
         Alternate applies lloyds method to k-medoids and is faster but less accurate
         than PAM.
+        PAM is implemented using the fastpam1 algorithm which gives the same output
+        as PAM but is faster.
     n_init : int, default=10
         Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -337,20 +339,30 @@ class TimeSeriesKMedoids(BaseClusterer):
                 cost_change = 0.0
                 for k in range(not_medoid_shape):
                     id_k = not_medoid_idxs[k]
-                    cluster_i_bool = distance_matrix[id_j, id_k] == distance_closest_medoid[id_k]
+                    cluster_i_bool = (
+                        distance_matrix[id_j, id_k] == distance_closest_medoid[id_k]
+                    )
 
-                    if cluster_i_bool and distance_matrix[id_i, id_k] < distance_second_closest_medoid[id_k]:
+                    if (
+                        cluster_i_bool
+                        and distance_matrix[id_i, id_k]
+                        < distance_second_closest_medoid[id_k]
+                    ):
                         cost_change += (
                             distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
                         )
-                    elif cluster_i_bool and distance_matrix[id_i, id_k] >= distance_second_closest_medoid[id_k]:
+                    elif (
+                        cluster_i_bool
+                        and distance_matrix[id_i, id_k]
+                        >= distance_second_closest_medoid[id_k]
+                    ):
                         cost_change += (
                             distance_second_closest_medoid[id_k]
                             - distance_closest_medoid[id_k]
                         )
-                    elif distance_matrix[id_j, id_k] != distance_closest_medoid[id_k] and (
-                        distance_matrix[id_k, id_i] < distance_closest_medoid[id_k]
-                    ):
+                    elif distance_matrix[id_j, id_k] != distance_closest_medoid[
+                        id_k
+                    ] and (distance_matrix[id_k, id_i] < distance_closest_medoid[id_k]):
                         cost_change += (
                             distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
                         )
@@ -571,4 +583,3 @@ class TimeSeriesKMedoids(BaseClusterer):
             "random_state": 1,
             "method": "alternate",
         }
-
