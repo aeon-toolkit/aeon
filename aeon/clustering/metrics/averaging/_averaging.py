@@ -31,7 +31,6 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 
 _AVERAGE_DICT = {
     "mean": mean_average,
-    "dba": elastic_barycenter_average,  # Kept for backwards compatibility
     "ba": elastic_barycenter_average,
 }
 

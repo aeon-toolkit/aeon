@@ -9,101 +9,19 @@ from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 expected_results = {
-    "mean": [
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        1,
-        3,
-        2,
-        2,
-        2,
-        2,
-        0,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-    ],
-    "dba": [1, 0, 1, 2, 2],
+    "mean": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "dba": [1, 0, 1, 0, 0],
 }
 
-expected_train_result = {"mean": 0.4846153846153846, "dba": 0.1}
+expected_train_result = {"mean": 0.35384615384615387, "dba": 0.6}
 
-expected_score = {"mean": 0.3153846153846154, "dba": 0.2}
+expected_score = {"mean": 0.25769230769230766, "dba": 0.4}
 
-expected_iters = {"mean": 4, "dba": 2}
+expected_iters = {"mean": 3, "dba": 3}
 
 expected_labels = {
-    "mean": [
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        0,
-        0,
-        1,
-        1,
-        3,
-        1,
-        0,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        2,
-        0,
-        2,
-        2,
-        2,
-        0,
-        2,
-        2,
-    ],
-    "dba": [2, 1, 3, 0, 0],
+    "mean": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "dba": [0, 1, 0, 0, 0],
 }
 
 
@@ -120,9 +38,9 @@ def test_kmeans():
         averaging_method="mean",
         random_state=1,
         n_init=2,
-        n_clusters=4,
+        n_clusters=2,
         init_algorithm="kmeans++",
-        metric="euclidean",
+        distance="euclidean",
     )
     train_predict = kmeans.fit_predict(X_train)
     train_mean_score = metrics.rand_score(y_train, train_predict)
@@ -137,7 +55,7 @@ def test_kmeans():
     assert kmeans.n_iter_ == expected_iters["mean"]
     assert np.array_equal(kmeans.labels_, expected_labels["mean"])
     assert isinstance(kmeans.cluster_centers_, np.ndarray)
-    assert proba.shape == (40, 4)
+    assert proba.shape == (40, 2)
 
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
@@ -155,12 +73,12 @@ def test_kmeans_dba():
     num_test_values = 5
 
     kmeans = TimeSeriesKMeans(
-        averaging_method="dba",
+        averaging_method="ba",
         random_state=1,
         n_init=2,
-        n_clusters=4,
+        n_clusters=2,
         init_algorithm="kmeans++",
-        metric="dtw",
+        distance="dtw",
     )
     train_predict = kmeans.fit_predict(X_train[0:num_test_values])
     train_mean_score = metrics.rand_score(y_train[0:num_test_values], train_predict)
@@ -175,7 +93,7 @@ def test_kmeans_dba():
     assert kmeans.n_iter_ == expected_iters["dba"]
     assert np.array_equal(kmeans.labels_, expected_labels["dba"])
     assert isinstance(kmeans.cluster_centers_, np.ndarray)
-    assert proba.shape == (5, 4)
+    assert proba.shape == (5, 2)
 
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
