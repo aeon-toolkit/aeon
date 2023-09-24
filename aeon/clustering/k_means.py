@@ -369,7 +369,7 @@ class TimeSeriesKMeans(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "metric": "euclidean",
+            "distance": "euclidean",
             "n_init": 1,
             "max_iter": 10,
             "random_state": 0,
