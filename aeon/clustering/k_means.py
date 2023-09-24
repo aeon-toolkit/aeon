@@ -10,7 +10,7 @@ from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
-from aeon.clustering.metrics.averaging import _resolve_average_callable
+from aeon.clustering.averaging import _resolve_average_callable
 from aeon.distances import pairwise_distance
 
 

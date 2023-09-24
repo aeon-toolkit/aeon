@@ -6,7 +6,7 @@ from typing import Callable, Dict
 
 import numpy as np
 
-from aeon.clustering.metrics.averaging._barycenter_averaging import (
+from aeon.clustering.averaging._barycenter_averaging import (
     elastic_barycenter_average,
 )
 

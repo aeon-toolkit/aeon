@@ -6,7 +6,6 @@ from typing import Tuple
 import numpy as np
 from numba import njit
 
-from aeon.clustering.metrics.medoids import medoids
 from aeon.distances import (
     ddtw_alignment_path,
     dtw_alignment_path,
@@ -17,12 +16,34 @@ from aeon.distances import (
     twe_alignment_path,
     wddtw_alignment_path,
     wdtw_alignment_path,
+    pairwise_distance
 )
+
+def _medoids(
+    X: np.ndarray,
+    precomputed_pairwise_distance: np.ndarray = None,
+    distance_metric: str = "dtw",
+    **kwargs,
+):
+    if X.shape[0] < 1:
+        return X
+
+    if precomputed_pairwise_distance is None:
+        precomputed_pairwise_distance = pairwise_distance(
+            X, metric=distance_metric, **kwargs
+        )
+
+    x_size = X.shape[0]
+    distance_matrix = np.zeros((x_size, x_size))
+    for j in range(x_size):
+        for k in range(x_size):
+            distance_matrix[j, k] = precomputed_pairwise_distance[j, k]
+    return X[np.argmin(sum(distance_matrix))]
 
 
 def elastic_barycenter_average(
     X: np.ndarray,
-    metric: str = "dtw",
+    distance: str = "dtw",
     max_iters: int = 30,
     tol=1e-5,
     precomputed_medoids_pairwise_distance: np.ndarray = None,
@@ -38,8 +59,8 @@ def elastic_barycenter_average(
     X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances to take the average from.
-    metric: str or Callable, default='dtw'
-        String defining the distance metric to use for averaging. Distance metric to
+    distance: str or Callable, default='dtw'
+        String defining the distance to use for averaging. Distance to
         compute similarity between time series. A list of valid strings for metrics
         can be found in the documentation form
         :func:`aeon.distances.get_distance_function`.
@@ -73,19 +94,19 @@ def elastic_barycenter_average(
         return X
 
     # center = X.mean(axis=0)
-    center = medoids(
+    center = _medoids(
         X,
-        distance_metric=metric,
+        distance_metric=distance,
         precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
         **kwargs,
     )
 
     cost_prev = np.inf
-    if metric == "wdtw" or metric == "wddtw":
+    if distance == "wdtw" or distance == "wddtw":
         if "g" not in kwargs:
             kwargs["g"] = 0.05
     for i in range(max_iters):
-        center, cost = _ba_update(center, X, metric, **kwargs)
+        center, cost = _ba_update(center, X, distance, **kwargs)
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
@@ -102,7 +123,7 @@ def elastic_barycenter_average(
 def _ba_update(
     center: np.ndarray,
     X: np.ndarray,
-    metric: str = "dtw",
+    distance: str = "dtw",
     window: float = None,
     g: float = 0.0,
     epsilon: float = None,
@@ -117,21 +138,21 @@ def _ba_update(
     cost = 0.0
     for i in range(X_size):
         curr_ts = X[i]
-        if metric == "dtw":
+        if distance == "dtw":
             curr_alignment, _ = dtw_alignment_path(curr_ts, center, window)
-        elif metric == "ddtw":
+        elif distance == "ddtw":
             curr_alignment, _ = ddtw_alignment_path(curr_ts, center, window)
-        elif metric == "wdtw":
+        elif distance == "wdtw":
             curr_alignment, _ = wdtw_alignment_path(curr_ts, center, window, g)
-        elif metric == "wddtw":
+        elif distance == "wddtw":
             curr_alignment, _ = wddtw_alignment_path(curr_ts, center, window, g)
-        elif metric == "erp":
+        elif distance == "erp":
             curr_alignment, _ = erp_alignment_path(curr_ts, center, window, g)
-        elif metric == "edr":
+        elif distance == "edr":
             curr_alignment, _ = edr_alignment_path(curr_ts, center, window, epsilon)
-        elif metric == "twe":
+        elif distance == "twe":
             curr_alignment, _ = twe_alignment_path(curr_ts, center, window, nu, lmbda)
-        elif metric == "msm":
+        elif distance == "msm":
             curr_alignment, _ = msm_alignment_path(
                 curr_ts, center, window, independent, c
             )
