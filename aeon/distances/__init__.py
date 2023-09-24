@@ -58,6 +58,10 @@ __all__ = [
     "get_distance_function",
     "get_pairwise_distance_function",
     "get_alignment_path_function",
+    "shape_dtw_distance",
+    "shape_dtw_cost_matrix",
+    "shape_dtw_alignment_path",
+    "shape_dtw_pairwise_distance",
 ]
 
 
@@ -115,6 +119,12 @@ from aeon.distances._msm import (
     msm_cost_matrix,
     msm_distance,
     msm_pairwise_distance,
+)
+from aeon.distances._shape_dtw import (
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
