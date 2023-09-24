@@ -9,8 +9,8 @@ from numpy.random import RandomState
 from sklearn.utils import check_random_state
 from sklearn.utils.extmath import stable_cumsum
 
-from aeon.clustering.base import BaseClusterer
 from aeon.clustering.averaging import _resolve_average_callable
+from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
 
 

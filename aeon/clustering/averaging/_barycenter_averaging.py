@@ -12,12 +12,13 @@ from aeon.distances import (
     edr_alignment_path,
     erp_alignment_path,
     msm_alignment_path,
+    pairwise_distance,
     squared_distance,
     twe_alignment_path,
     wddtw_alignment_path,
     wdtw_alignment_path,
-    pairwise_distance
 )
+
 
 def _medoids(
     X: np.ndarray,
