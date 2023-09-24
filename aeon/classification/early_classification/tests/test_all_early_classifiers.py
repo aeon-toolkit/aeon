@@ -74,7 +74,7 @@ class TestAllEarlyClassifiers(EarlyClassifierFixtureGenerator, QuickTester):
         assert decisions.shape == (X_new.shape[0],)
         assert decisions.dtype == bool
 
-    def test_classifier_against_expected_results(self, estimator_class):
+    def test_early_classifier_against_expected_results(self, estimator_class):
         """Test early classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__

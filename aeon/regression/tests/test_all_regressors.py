@@ -40,26 +40,20 @@ class RegressorFixtureGenerator(BaseFixtureGenerator):
 class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
     """Module level tests for all aeon regressors."""
 
-    def test_classifier_against_expected_results(self, estimator_class):
+    def test_regressor_against_expected_results(self, estimator_class):
         """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
 
         for data_name, data_dict, data_loader, data_seed in [
             ["Covid3Month", covid_3month_preds, load_covid_3month, 0],
             ["CardanoSentiment", cardano_sentiment_preds, load_cardano_sentiment, 0],
         ]:
-            # retrieve expected predict_proba output, and skip test if not available
+            # retrieve expected predict output, and skip test if not available
             if classname in data_dict.keys():
                 expected_preds = data_dict[classname]
             else:
-                # skip test if no expected probas are registered
+                # skip test if no expected preds are registered
                 continue
 
             # we only use the first estimator instance for testing
@@ -79,11 +73,11 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
                 len(y_test), 10, replace=False
             )
 
-            # train classifier and predict probas
+            # train regressor and predict
             estimator_instance.fit(X_train[indices_train], y_train[indices_train])
             y_pred = estimator_instance.predict(X_test[indices_test])
 
-            # assert probabilities are the same
+            # assert predictions are the same
             _assert_array_almost_equal(
                 y_pred,
                 expected_preds,

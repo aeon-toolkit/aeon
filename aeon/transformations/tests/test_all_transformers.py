@@ -89,11 +89,11 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
             ["UnitTest", unit_test_result, load_unit_test, 0],
             ["BasicMotions", basic_motions_result, load_basic_motions, 4],
         ]:
-            # retrieve expected predict_proba output, and skip test if not available
+            # retrieve expected transform output, and skip test if not available
             if classname in data_dict.keys():
                 expected_results = data_dict[classname]
             else:
-                # skip test if no expected probas are registered
+                # skip test if no expected results are registered
                 continue
 
             # we only use the first estimator instance for testing
@@ -109,7 +109,7 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
                 len(y_train), 5, replace=False
             )
 
-            # train classifier and predict probas
+            # fir transformer and transform
             results = np.nan_to_num(
                 estimator_instance.fit_transform(X_train[indices], y_train[indices]),
                 False,
@@ -118,7 +118,7 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
                 0,
             )
 
-            # assert probabilities are the same
+            # assert results are the same
             _assert_array_almost_equal(
                 results,
                 expected_results,
