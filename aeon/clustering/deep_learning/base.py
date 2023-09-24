@@ -55,11 +55,6 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         self.last_file_name = last_file_name
         self.model_ = None
 
-        if self.clustering_algorithm == "kmeans":
-            self.clusterer = TimeSeriesKMeans(
-                n_clusters=self.n_clusters, **self.clustering_params
-            )
-
     @abstractmethod
     def build_model(self, input_shape):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -109,6 +104,10 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         X: np.ndarray, shape=(n_instances, latent_space_dim)
             The latent representation of the input time series.
         """
+        if self.clustering_algorithm == "kmeans":
+            self.clusterer = TimeSeriesKMeans(
+                n_clusters=self.n_clusters, **self.clustering_params
+            )
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 
