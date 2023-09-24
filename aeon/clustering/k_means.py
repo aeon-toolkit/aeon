@@ -51,7 +51,7 @@ class TimeSeriesKMeans(BaseClusterer):
         If a np.ndarray provided it must be of shape (n_clusters, n_channels,
         n_timepoints)
         and contains the time series to use as centroids.
-    distance : str or Callable, default='dtw'
+    distance : str or Callable, default='msm'
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
@@ -60,7 +60,7 @@ class TimeSeriesKMeans(BaseClusterer):
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter : int, default=30
+    max_iter : int, default=300
         Maximum number of iterations of the k-means algorithm for a single
         run.
     tol : float, default=1e-6
@@ -78,19 +78,18 @@ class TimeSeriesKMeans(BaseClusterer):
     average_params : dict, default=None
         Dictionary containing kwargs for averaging_method.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance being used.
 
     Attributes
     ----------
     cluster_centers_ : 3d np.ndarray
         Array of shape (n_clusters, n_channels, n_timepoints))
-        Time series that represent each of the cluster centers. If the algorithm stops
-        before fully converging these will not be consistent with labels_.
+        Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
         1d array of shape (n_instance,)
         Labels that is the index each time series belongs to.
     inertia_ : float
-        Sum of squared distances of samples to their closest cluster center, weighted by
+        Sum of distances of samples to their closest cluster center, weighted by
         the sample weights if provided.
     n_iter_ : int
         Number of iterations run.
