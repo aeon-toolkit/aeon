@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+from numpy.testing import assert_almost_equal
 from sklearn.cluster import DBSCAN
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
@@ -22,9 +23,9 @@ def test_function_transformer(dist):
     assert X2.shape[1] == X.shape[0]  # pairwise
     assert X2[0][0] == 0  # identify should always be zero
     d1 = distance(X[0], X[1])
-    assert X2[0][1] == d1
+    assert_almost_equal(X2[0][1], d1)
     d2 = distance(X[-1], X[-2])
-    assert X2[-1][-2] == d2
+    assert_almost_equal(X2[-1][-2], d2)
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
