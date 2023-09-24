@@ -191,5 +191,3 @@ def test_medoids_init():
     )
     kmedoids.fit(X_train)
     assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])
-
-
