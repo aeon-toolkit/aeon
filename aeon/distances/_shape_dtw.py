@@ -10,6 +10,7 @@ from numba import njit
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._dtw import _dtw_cost_matrix
+from aeon.distances._squared import _univariate_squared_distance
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
@@ -72,8 +73,9 @@ def _transform_subsequences(
         Defines which transformation is applied on the sub-sequences.
         Valid descriptors are: ['identity']
 
-        Identity is ....<insert description of identity>
-        For now no other descriptors are implemented
+        Identity is simply a copying mechanism of the sub-sequence,
+        no transformations are done.
+        For now no other descriptors are implemented.
 
         If not specified then identity is used.
     reach : int, default=30.
@@ -142,8 +144,9 @@ def shape_dtw_distance(
         Defines which transformation is applied on the sub-sequences.
         Valid descriptors are: ['identity']
 
-        Identity is ....<insert description of identity>
-        For now no other descriptors are implemented
+        Identity is simply a copying mechanism of the sub-sequence,
+        no transformations are done.
+        For now no other descriptors are implemented.
 
         If not specified then identity is used.
     reach : int, default=30.
@@ -155,7 +158,7 @@ def shape_dtw_distance(
     Returns
     -------
     float
-        Shape-DTW distance between x and y, minimum value 0.
+        ShapeDTW distance between x and y, minimum value 0.
 
     Raises
     ------
@@ -239,7 +242,7 @@ def _get_shape_dtw_distance_from_cost_mat(
     shapedtw_dist = 0
 
     while i >= 0 and j >= 0:
-        shapedtw_dist += np.square(np.linalg.norm(x[:, reach + i] - y[:, reach + j]))
+        shapedtw_dist += _univariate_squared_distance(x[:, reach + i], y[:, reach + j])
 
         a = shape_dtw_cost_mat[i - 1, j - 1]
         b = shape_dtw_cost_mat[i, j - 1]
@@ -283,8 +286,9 @@ def shape_dtw_cost_matrix(
         Defines which transformation is applied on the sub-sequences.
         Valid descriptors are: ['identity']
 
-        Identity is ....<insert description of identity>
-        For now no other descriptors are implemented
+        Identity is simply a copying mechanism of the sub-sequence,
+        no transformations are done.
+        For now no other descriptors are implemented.
 
         If not specified then identity is used.
     reach : int, default=30.
@@ -386,8 +390,9 @@ def shape_dtw_alignment_path(
         Defines which transformation is applied on the sub-sequences.
         Valid descriptors are: ['identity']
 
-        Identity is ....<insert description of identity>
-        For now no other descriptors are implemented
+        Identity is simply a copying mechanism of the sub-sequence,
+        no transformations are done.
+        For now no other descriptors are implemented.
 
         If not specified then identity is used.
     reach : int, default=30.
@@ -463,8 +468,9 @@ def shape_dtw_pairwise_distance(
         Defines which transformation is applied on the sub-sequences.
         Valid descriptors are: ['identity']
 
-        Identity is ....<insert description of identity>
-        For now no other descriptors are implemented
+        Identity is simply a copying mechanism of the sub-sequence,
+        no transformations are done.
+        For now no other descriptors are implemented.
 
         If not specified then identity is used.
     reach : int, default=30.
