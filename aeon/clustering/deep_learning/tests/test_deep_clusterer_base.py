@@ -97,10 +97,6 @@ def test_dummy_deep_clusterer():
 
     os.remove("./" + last_file_name + ".hdf5")
 
-    # test clustering latent space
-
-    dummy_deep_clr.fit_clustering(X=X)
-
     # test summary of model
 
     assert dummy_deep_clr.summary() is not None

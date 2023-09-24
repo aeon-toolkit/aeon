@@ -293,6 +293,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
+        self._fit_clustering
+
         gc.collect()
 
         return self

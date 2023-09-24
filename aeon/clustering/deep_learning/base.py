@@ -101,7 +101,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         """
         self.model_.save(file_path + self.last_file_name + ".hdf5")
 
-    def fit_clustering(self, X):
+    def _fit_clustering(self, X):
         """Train the clustering algorithm in the latent space.
 
         Parameters
@@ -109,12 +109,6 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         X: np.ndarray, shape=(n_instances, latent_space_dim)
             The latent representation of the input time series.
         """
-        if X.ndim == 1:
-            X = X.reshape((1, 1, X.shape[0]))
-        elif X.ndim == 2:
-            X = X.reshape((X.shape[0], 1, X.shape[1]))
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 
