@@ -6,15 +6,14 @@ from typing import Tuple
 import numpy as np
 from numba import njit
 
-from aeon.clustering.metrics.medoids import medoids
 from aeon.distances import (
     ddtw_alignment_path,
     dtw_alignment_path,
     edr_alignment_path,
     erp_alignment_path,
     msm_alignment_path,
-    shape_dtw_alignment_path,
     pairwise_distance,
+    shape_dtw_alignment_path,
     squared_distance,
     twe_alignment_path,
     wddtw_alignment_path,
