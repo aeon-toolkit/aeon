@@ -6,15 +6,17 @@ from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState
-from sklearn.utils.extmath import stable_cumsum
 from sklearn.utils import check_random_state
+from sklearn.utils.extmath import stable_cumsum
 
-from aeon.clustering.metrics.averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
-from aeon.distances import pairwise_distance 
+from aeon.clustering.metrics.averaging import _resolve_average_callable
+from aeon.distances import pairwise_distance
+
 
 class EmptyClusterError(Exception):
     """Error raised when an empty cluster is encountered."""
+
     pass
 
 
@@ -23,29 +25,31 @@ class TimeSeriesKMeans(BaseClusterer):
 
     K-means [5]_ is a popular clustering algorithm that aims to partition n time series
     into k clusters in which each observation belongs to the cluster with the nearest
-    centre. The centre is represented using an average which is generated during the 
+    centre. The centre is represented using an average which is generated during the
     training phase.
 
-    K-means using euclidean distance for time series generally performs poorly. However, 
-    when combined with an elastic distance it performs significantly better (in particular 
-    MSM/TWE [1]_). K-means for time series can further be improved by using an elastic 
-    averaging method. The most common one is dynamic barycenter averaging [3]_ however, in 
-    recent years alternates using other elastic distances such as ShapeDBA [4]_ (Shape DTW DBA) 
-    and MBA (Msm DBA) [5]_ have shown signicant performance benefits.
+    K-means using euclidean distance for time series generally performs poorly. However,
+    when combined with an elastic distance it performs significantly better (in
+    particular MSM/TWE [1]_). K-means for time series can further be improved by using
+    an elastic averaging method. The most common one is dynamic barycenter averaging
+    [3]_ however, in recent years alternates using other elastic distances such as
+    ShapeDBA [4]_ (Shape DTW DBA) and MBA (Msm DBA) [5]_ have shown signicant
+    performance benefits.
 
     Parameters
     ----------
     n_clusters : int, default=8
         The number of clusters to form as well as the number of centroids to generate.
     init_algorithm : str or np.ndarray, default='random'
-        Random is the default and simply chooses k time series at random as 
+        Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
         Kmeans++ [2] and is slower but often more
         accurate than random. It works by choosing centroids that are distant
-        from one another. 
-        First is the fastest method and simply chooses the first k time series as 
-        centroids. 
-        If a np.ndarray provided it must be of shape (n_clusters, n_channels, n_timepoints) 
+        from one another.
+        First is the fastest method and simply chooses the first k time series as
+        centroids.
+        If a np.ndarray provided it must be of shape (n_clusters, n_channels,
+        n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='dtw'
         Distance metric to compute similarity between time series. A list of valid
@@ -105,15 +109,15 @@ class TimeSeriesKMeans(BaseClusterer):
     Clustering time series with k-medoids based algorithms.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
-    
-    .. [4] Ali Ismail-Fawaz & Hassan Ismail Fawaz & Francois Petitjean & 
-    Maxime Devanne & Jonathan Weber & Stefano Berretti & Geoffrey I. Webb & 
+
+    .. [4] Ali Ismail-Fawaz & Hassan Ismail Fawaz & Francois Petitjean &
+    Maxime Devanne & Jonathan Weber & Stefano Berretti & Geoffrey I. Webb &
     Germain Forestier ShapeDBA: Generating Effective Time Series
     Prototypes using ShapeDTW Barycenter Averaging.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
 
-    ..[5] Lloyd, S. P. (1982). Least squares quantization in pcm. IEEE Trans. Inf. 
+    ..[5] Lloyd, S. P. (1982). Least squares quantization in pcm. IEEE Trans. Inf.
     Theory, 28:129–136.
 
     Examples
@@ -121,11 +125,12 @@ class TimeSeriesKMeans(BaseClusterer):
     >>> import numpy as np
     >>> from aeon.clustering.k_means import TimeSeriesKMeans
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= TimeSeriesKMeans(metric="euclidean",n_clusters=2)
+    >>> clst= TimeSeriesKMeans(distance="euclidean",n_clusters=2)
     >>> clst.fit(X)
-    TimeSeriesKMeans(metric='euclidean', n_clusters=2)
+    TimeSeriesKMeans(distance='euclidean', n_clusters=2)
     >>> preds = clst.predict(X)
     """
+
     _tags = {
         "capability:multivariate": True,
     }
@@ -163,8 +168,8 @@ class TimeSeriesKMeans(BaseClusterer):
         self._random_state = None
         self._init_algorithm = None
         self._fit_method = None
-        self._averaging_method = None 
-        self._average_params = None 
+        self._averaging_method = None
+        self._average_params = None
 
         super(TimeSeriesKMeans, self).__init__(n_clusters)
 
@@ -177,7 +182,7 @@ class TimeSeriesKMeans(BaseClusterer):
         best_iters = self.max_iter
 
         for _ in range(self.n_init):
-            try: 
+            try:
                 labels, centers, inertia, n_iters = self._fit_one_init(X)
                 if inertia < best_inertia:
                     best_centers = centers
@@ -186,14 +191,16 @@ class TimeSeriesKMeans(BaseClusterer):
                     best_iters = n_iters
             except EmptyClusterError:
                 if self.verbose:
-                    print("Resumed because of empty cluster")
+                    print("Resumed because of empty cluster")  # noqa: T001, T201
 
         if best_labels is None:
             self._is_fitted = False
-            raise ValueError("Unable to find a valid cluster configuration "
-                             "with parameters specified (empty clusters kept "
-                             "forming). Try lowering your n_clusters or raising "
-                             "n_init.")
+            raise ValueError(
+                "Unable to find a valid cluster configuration "
+                "with parameters specified (empty clusters kept "
+                "forming). Try lowering your n_clusters or raising "
+                "n_init."
+            )
 
         self.labels_ = best_labels
         self.inertia_ = best_inertia
@@ -215,7 +222,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 raise EmptyClusterError
 
             if self.verbose:
-                print("%.3f" % curr_inertia, end=" --> ")
+                print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
 
             change_in_centres = np.abs(prev_inertia - curr_inertia)
             prev_inertia = curr_inertia
@@ -223,7 +230,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
             if change_in_centres < self.tol:
                 break
-            
+
             # Compute new cluster centres
             for j in range(self.n_clusters):
                 cluster_centres[j] = self._averaging_method(
@@ -295,7 +302,7 @@ class TimeSeriesKMeans(BaseClusterer):
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
 
-    def _first_center_initializer(self, _) -> np.ndarray:
+    def _first_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return X[list(range(self.n_clusters))]
 
     def _kmeans_plus_plus_center_initializer(
@@ -303,17 +310,20 @@ class TimeSeriesKMeans(BaseClusterer):
         X: np.ndarray,
         n_local_trials: int = None,
     ):
-        # Adapted from github.com/scikit-learn/scikit-learn/blob/7e1e6d09b/sklearn/cluster/_kmeans.py
+        # Adapted from
+        # github.com/scikit-learn/scikit-learn/blob/7e1e6d09b/sklearn/cluster/_kmeans.py
         if n_local_trials is None:
             n_local_trials = 2 + int(np.log(self.n_clusters))
 
         n_samples, n_timestamps, n_features = X.shape
         centers = np.empty((self.n_clusters, n_timestamps, n_features), dtype=X.dtype)
         center_id = self._random_state.randint(n_samples)
-        print("center_id", center_id)
         centers[0] = X[center_id]
         closest_dist_sq = (
-            pairwise_distance(X, centers[0, np.newaxis], metric=self.distance, **self._distance_params) ** 2
+            pairwise_distance(
+                X, centers[0, np.newaxis], metric=self.distance, **self._distance_params
+            )
+            ** 2
         )
         current_pot = closest_dist_sq.sum(axis=0)
 
@@ -322,9 +332,14 @@ class TimeSeriesKMeans(BaseClusterer):
             candidate_ids = np.searchsorted(stable_cumsum(closest_dist_sq), rand_vals)
             np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
             distance_to_candidates = (
-                pairwise_distance(X, X[candidate_ids], metric=self.distance, **self._distance_params) ** 2
+                pairwise_distance(
+                    X, X[candidate_ids], metric=self.distance, **self._distance_params
+                )
+                ** 2
             )
-            np.minimum(closest_dist_sq, distance_to_candidates, out=distance_to_candidates)
+            np.minimum(
+                closest_dist_sq, distance_to_candidates, out=distance_to_candidates
+            )
             candidates_pot = distance_to_candidates.sum(axis=0)
             best_candidate = np.argmin(candidates_pot)
             current_pot = candidates_pot[best_candidate]
