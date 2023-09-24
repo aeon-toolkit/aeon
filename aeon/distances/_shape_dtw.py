@@ -69,9 +69,15 @@ def _transform_subsequences(
         First time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
+        Defines which transformation is applied on the sub-sequences.
+        Valid descriptors are: ['identity']
+
+        Identity is ....<insert description of identity>
+        For now no other descriptors are implemented
+
+        If not specified then identity is used.
     reach : int, default=30.
-        This is the length of the sub-sequences.
+        Length of the sub-sequences.
 
     Returns
     -------
@@ -133,14 +139,23 @@ def shape_dtw_distance(
         10% of the series length is the max warping allowed.
         is used.
     descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
+        Defines which transformation is applied on the sub-sequences.
+        Valid descriptors are: ['identity']
+
+        Identity is ....<insert description of identity>
+        For now no other descriptors are implemented
+
+        If not specified then identity is used.
     reach : int, default=30.
-        This is the length of the sub-sequences.
+        Length of the sub-sequences to consider.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     float
-        DTW distance between x and y, minimum value 0.
+        Shape-DTW distance between x and y, minimum value 0.
 
     Raises
     ------
@@ -202,54 +217,33 @@ def _shape_dtw_distance(
     descriptor: str = "identity",
     reach: int = 30,
 ) -> float:
-    """Compute the ShapeDTW distance function between two series x and y.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        First time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    y : np.ndarray
-        Second time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    window : float or None, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1`` then
-        10% of the series length is the max warping allowed.
-        is used.
-    descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
-    reach : int, default=30.
-        This is the length of the sub-sequences.
-
-    Returns
-    -------
-    float
-        DTW distance between x and y, minimum value 0.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 1D or 2D arrays.
-    """
     new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
     new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
 
-    shapedtw_cost_mat = _dtw_cost_matrix(
+    shape_dtw_cost_mat = _dtw_cost_matrix(
         x=new_x, y=new_y, bounding_matrix=bounding_matrix
     )
 
-    i = shapedtw_cost_mat.shape[0] - 1
-    j = shapedtw_cost_mat.shape[1] - 1
+    return _get_shape_dtw_distance_from_cost_mat(
+        x=x, y=y, reach=reach, shape_dtw_cost_mat=shape_dtw_cost_mat
+    )
+
+
+@njit(cache=True, fastmath=True)
+def _get_shape_dtw_distance_from_cost_mat(
+    x: np.ndarray, y: np.ndarray, reach: int, shape_dtw_cost_mat: np.ndarray
+) -> float:
+    i = shape_dtw_cost_mat.shape[0] - 1
+    j = shape_dtw_cost_mat.shape[1] - 1
 
     shapedtw_dist = 0
 
     while i >= 0 and j >= 0:
         shapedtw_dist += np.square(np.linalg.norm(x[:, reach + i] - y[:, reach + j]))
 
-        a = shapedtw_cost_mat[i - 1, j - 1]
-        b = shapedtw_cost_mat[i, j - 1]
-        c = shapedtw_cost_mat[i - 1, j]
+        a = shape_dtw_cost_mat[i - 1, j - 1]
+        b = shape_dtw_cost_mat[i, j - 1]
+        c = shape_dtw_cost_mat[i - 1, j]
         if a < b:
             if a < c:
                 # a is the minimum
@@ -294,9 +288,18 @@ def shape_dtw_cost_matrix(
         10% of the series length is the max warping allowed.
         is used.
     descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
+        Defines which transformation is applied on the sub-sequences.
+        Valid descriptors are: ['identity']
+
+        Identity is ....<insert description of identity>
+        For now no other descriptors are implemented
+
+        If not specified then identity is used.
     reach : int, default=30.
-        This is the length of the sub-sequences.
+        Length of the sub-sequences.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -353,36 +356,6 @@ def _shape_dtw_cost_matrix(
     descriptor: str = "identity",
     reach: int = 30,
 ) -> float:
-    """Compute the ShapeDTW cost matrix between two series x and y.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        First time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    y : np.ndarray
-        Second time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    window : float or None, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1`` then
-        10% of the series length is the max warping allowed.
-        is used.
-    descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
-    reach : int, default=30.
-        This is the length of the sub-sequences.
-
-    Returns
-    -------
-    np.ndarray (n_timepoints, m_timepoints)
-        shapedtw cost matrix between x and y.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 1D or 2D arrays.
-    """
     new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
     new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
 
@@ -418,9 +391,18 @@ def shape_dtw_alignment_path(
         10% of the series length is the max warping allowed.
         is used.
     descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
+        Defines which transformation is applied on the sub-sequences.
+        Valid descriptors are: ['identity']
+
+        Identity is ....<insert description of identity>
+        For now no other descriptors are implemented
+
+        If not specified then identity is used.
     reach : int, default=30.
-        This is the length of the sub-sequences.
+        Length of the sub-sequences.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -443,13 +425,19 @@ def shape_dtw_alignment_path(
         itakura_max_slope=itakura_max_slope,
     )
 
-    shapedtw_dist = shape_dtw_distance(
-        x=x,
-        y=y,
-        window=window,
-        itakura_max_slope=itakura_max_slope,
-        reach=reach,
-        descriptor=descriptor,
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+
+        x_pad = _pad_ts_edges(x=_x, reach=reach)
+        y_pad = _pad_ts_edges(x=_y, reach=reach)
+
+    if x.ndim == 2 and y.ndim == 2:
+        x_pad = _pad_ts_edges(x=x, reach=reach)
+        y_pad = _pad_ts_edges(x=y, reach=reach)
+
+    shapedtw_dist = _get_shape_dtw_distance_from_cost_mat(
+        x=x_pad, y=y_pad, reach=reach, shape_dtw_cost_mat=cost_matrix
     )
 
     return (compute_min_return_path(cost_matrix), shapedtw_dist)
@@ -480,9 +468,18 @@ def shape_dtw_pairwise_distance(
         10% of the series length is the max warping allowed.
         is used.
     descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
+        Defines which transformation is applied on the sub-sequences.
+        Valid descriptors are: ['identity']
+
+        Identity is ....<insert description of identity>
+        For now no other descriptors are implemented
+
+        If not specified then identity is used.
     reach : int, default=30.
-        This is the length of the sub-sequences.
+        Length of the sub-sequences.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -541,38 +538,6 @@ def _shape_dtw_pairwise_distance(
     reach: int = 30,
     itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the ShapeDTW pairwise distance among a set of series.
-
-    Parameters
-    ----------
-    X : np.ndarray
-        A set of time series, either univariate, shape ``(n_instances, n_timepoints,)``,
-        or multivariate, shape ``(n_instances, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
-        A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
-    window : float or None, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1`` then
-        10% of the series length is the max warping allowed.
-        is used.
-    descriptor : str, default=None (if None then identity is used).
-        This defines which transformation is applied on the sub-sequences.
-    reach : int, default=30.
-        This is the length of the sub-sequences.
-
-    Returns
-    -------
-    np.ndarray
-        ShapeDTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
-        n_instances)``.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 1D or 2D arrays.
-    """
     if y is None:
         y = np.copy(X)
 
