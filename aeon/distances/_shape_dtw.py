@@ -244,21 +244,13 @@ def _get_shape_dtw_distance_from_cost_mat(
         a = shape_dtw_cost_mat[i - 1, j - 1]
         b = shape_dtw_cost_mat[i, j - 1]
         c = shape_dtw_cost_mat[i - 1, j]
-        if a < b:
-            if a < c:
-                # a is the minimum
-                i -= 1
-                j -= 1
-            else:
-                # c is the minimum
-                i -= 1
+        if a < b and a < c:
+            i -= 1
+            j -= 1
+        elif b < c:
+            j -= 1
         else:
-            if b < c:
-                # b is the minimum
-                j -= 1
-            else:
-                # c is the minimum
-                i -= 1
+            i -= 1
 
     return shapedtw_dist
 
