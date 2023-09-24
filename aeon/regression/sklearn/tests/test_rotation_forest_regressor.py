@@ -33,4 +33,4 @@ def test_contracted_rotf():
 
     mse = mean_squared_error(y_test, y_pred)
 
-    np.testing.assert_almost_equal(mse, 0.0039, decimal=4)
+    np.testing.assert_almost_equal(mse, 0.002, decimal=4)

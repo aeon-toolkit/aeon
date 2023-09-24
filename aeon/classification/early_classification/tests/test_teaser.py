@@ -20,10 +20,10 @@ def test_teaser_with_different_decision_maker():
         random_state=0,
         classification_points=[6, 10, 16, 24],
         estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
-        one_class_classifier=IsolationForest(n_estimators=5),
+        one_class_classifier=IsolationForest(n_estimators=5, random_state=0),
         one_class_param_grid={"bootstrap": [True, False]},
     )
-    teaser.fit(X_train, y_train)
+    teaser.fit(X_train[indices], y_train[indices])
 
     full_probas, _ = teaser.predict_proba(X_test)
     testing.assert_array_almost_equal(
@@ -109,15 +109,15 @@ def load_unit_data():
 
 teaser_if_unit_test_probas = np.array(
     [
-        [0.2, 0.8],
-        [0.8, 0.2],
         [0.0, 1.0],
         [0.9, 0.1],
+        [0.0, 1.0],
         [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.1, 0.9],
         [0.9, 0.1],
-        [0.6, 0.4],
-        [0.5, 0.5],
-        [0.8, 0.2],
-        [0.9, 0.1],
+        [1.0, 0.0],
     ]
 )

@@ -85,13 +85,13 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        for data_dict, data_loader, data_seed in [
-            [unit_test_result, load_unit_test, 4],
-            [basic_motions_result, load_basic_motions, 0],
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_result, load_unit_test, 0],
+            ["BasicMotions", basic_motions_result, load_basic_motions, 4],
         ]:
             # retrieve expected predict_proba output, and skip test if not available
             if classname in data_dict.keys():
-                expected_probas = data_dict[classname]
+                expected_results = data_dict[classname]
             else:
                 # skip test if no expected probas are registered
                 continue
@@ -105,14 +105,23 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
 
             # load test data
             X_train, y_train = data_loader(split="train")
-            X_test, _ = data_loader(split="test")
             indices = np.random.RandomState(data_seed).choice(
                 len(y_train), 5, replace=False
             )
 
             # train classifier and predict probas
-            estimator_instance.fit(X_train, y_train)
-            y_proba = estimator_instance.predict_proba(X_test[indices])
+            results = np.nan_to_num(
+                estimator_instance.fit_transform(X_train[indices], y_train[indices]),
+                False,
+                0,
+                0,
+                0,
+            )
 
             # assert probabilities are the same
-            _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
+            _assert_array_almost_equal(
+                results,
+                expected_results,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )

@@ -79,9 +79,9 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
             return None
 
-        for data_dict, data_loader, data_seed in [
-            [unit_test_proba, load_unit_test, 4],
-            [basic_motions_proba, load_basic_motions, 0],
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_proba, load_unit_test, 0],
+            ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
         ]:
             # retrieve expected predict_proba output, and skip test if not available
             if classname in data_dict.keys():
@@ -105,11 +105,16 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             )
 
             # train classifier and predict probas
-            estimator_instance.fit(X_train, y_train)
+            estimator_instance.fit(X_train[indices], y_train[indices])
             y_proba = estimator_instance.predict_proba(X_test[indices])
 
             # assert probabilities are the same
-            _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
+            _assert_array_almost_equal(
+                y_proba,
+                expected_probas,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""

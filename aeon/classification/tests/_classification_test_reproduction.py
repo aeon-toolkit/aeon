@@ -45,16 +45,16 @@ from aeon.transformations.series.summarize import SummaryTransformer
 
 def _reproduce_classification_unit_test(estimator):
     X_train, y_train = load_unit_test(split="train")
-    X_test, y_test = load_unit_test(split="test")
+    X_test, _ = load_unit_test(split="test")
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
-    estimator.fit(X_train, y_train)
+    estimator.fit(X_train[indices], y_train[indices])
     return estimator.predict_proba(X_test[indices])
 
 
 def _reproduce_classification_basic_motions(estimator):
     X_train, y_train = load_basic_motions(split="train")
-    X_test, y_test = load_basic_motions(split="test")
+    X_test, _ = load_basic_motions(split="test")
     indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train[indices], y_train[indices])
@@ -63,16 +63,16 @@ def _reproduce_classification_basic_motions(estimator):
 
 def _reproduce_early_classification_unit_test(estimator):
     X_train, y_train = load_unit_test(split="train")
-    X_test, y_test = load_unit_test(split="test")
+    X_test, _ = load_unit_test(split="test")
     indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
 
-    estimator.fit(X_train, y_train)
+    estimator.fit(X_train[indices], y_train[indices])
     return estimator.predict_proba(X_test[indices])[0]
 
 
 def _reproduce_early_classification_basic_motions(estimator):
     X_train, y_train = load_basic_motions(split="train")
-    X_test, y_test = load_basic_motions(split="test")
+    X_test, _ = load_basic_motions(split="test")
     indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
 
     estimator.fit(X_train[indices], y_train[indices])
@@ -93,129 +93,132 @@ def _print_array(test_name, array):
     print("]")
 
 
-def _print_results_for_transformer(classifier_name, dataset_name):
+def _print_results_for_classifier(classifier_name, dataset_name):
     if classifier_name == "ChannelEnsembleClassifier":
-        transformer = ChannelEnsembleClassifier.create_test_instance(
+        classifier = ChannelEnsembleClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "BOSSEnsemble":
-        transformer = BOSSEnsemble.create_test_instance(
+        classifier = BOSSEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ContractableBOSS":
-        transformer = ContractableBOSS.create_test_instance(
+        classifier = ContractableBOSS.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "MUSE":
-        transformer = MUSE.create_test_instance(parameter_set="results_comparison")
+        classifier = MUSE.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "TemporalDictionaryEnsemble":
-        transformer = TemporalDictionaryEnsemble.create_test_instance(
+        classifier = TemporalDictionaryEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "WEASEL":
-        transformer = WEASEL.create_test_instance(parameter_set="results_comparison")
+        classifier = WEASEL.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "WEASEL_V2":
-        transformer = WEASEL_V2.create_test_instance(parameter_set="results_comparison")
+        classifier = WEASEL_V2.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ElasticEnsemble":
-        transformer = ElasticEnsemble.create_test_instance(
+        classifier = ElasticEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ShapeDTW":
-        transformer = ShapeDTW.create_test_instance(parameter_set="results_comparison")
+        classifier = ShapeDTW.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "Catch22Classifier":
-        transformer = Catch22Classifier.create_test_instance(
+        classifier = Catch22Classifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "FreshPRINCEClassifier":
-        transformer = FreshPRINCEClassifier.create_test_instance(
+        classifier = FreshPRINCEClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "MatrixProfileClassifier":
-        transformer = MatrixProfileClassifier.create_test_instance(
+        classifier = MatrixProfileClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RandomIntervalClassifier":
-        transformer = RandomIntervalClassifier.create_test_instance(
+        classifier = RandomIntervalClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SignatureClassifier":
-        transformer = SignatureClassifier.create_test_instance(
+        classifier = SignatureClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SummaryClassifier":
-        transformer = SummaryClassifier.create_test_instance(
+        classifier = SummaryClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "HIVECOTEV1":
-        transformer = HIVECOTEV1.create_test_instance(
-            parameter_set="results_comparison"
-        )
+        classifier = HIVECOTEV1.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "HIVECOTEV2":
-        transformer = HIVECOTEV2.create_test_instance(
-            parameter_set="results_comparison"
-        )
+        classifier = HIVECOTEV2.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "CanonicalIntervalForestClassifier":
-        transformer = CanonicalIntervalForestClassifier.create_test_instance(
+        classifier = CanonicalIntervalForestClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "DrCIFClassifier":
-        transformer = DrCIFClassifier.create_test_instance(
+        classifier = DrCIFClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RandomIntervalSpectralEnsembleClassifier":
-        transformer = RandomIntervalSpectralEnsembleClassifier.create_test_instance(
+        classifier = RandomIntervalSpectralEnsembleClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SupervisedTimeSeriesForest":
-        transformer = SupervisedTimeSeriesForest.create_test_instance(
+        classifier = SupervisedTimeSeriesForest.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TimeSeriesForestClassifier":
-        transformer = TimeSeriesForestClassifier.create_test_instance(
+        classifier = TimeSeriesForestClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "Arsenal":
-        transformer = Arsenal.create_test_instance(parameter_set="results_comparison")
+        classifier = Arsenal.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "RocketClassifier":
-        transformer = RocketClassifier.create_test_instance(
+        classifier = RocketClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ShapeletTransformClassifier":
-        transformer = ShapeletTransformClassifier.create_test_instance(
+        classifier = ShapeletTransformClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ProbabilityThresholdEarlyClassifier":
-        transformer = ProbabilityThresholdEarlyClassifier.create_test_instance(
+        classifier = ProbabilityThresholdEarlyClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TEASER":
-        transformer = TEASER.create_test_instance(parameter_set="results_comparison")
+        classifier = TEASER.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "TEASER-IF":
+        classifier = TEASER(
+            classification_points=[6, 10, 16, 24],
+            estimator=TimeSeriesForestClassifier(n_estimators=10, random_state=0),
+            one_class_classifier=IsolationForest(n_estimators=5, random_state=0),
+            one_class_param_grid={"bootstrap": [True, False]},
+        )
     else:
-        raise ValueError(f"Unknown transformer: {classifier_name}")
+        raise ValueError(f"Unknown classifier: {classifier_name}")
 
     if dataset_name == "UnitTest":
         data_function = (
             _reproduce_classification_unit_test
-            if isinstance(transformer, BaseClassifier)
+            if isinstance(classifier, BaseClassifier)
             else _reproduce_early_classification_unit_test
         )
     elif dataset_name == "BasicMotions":
         data_function = (
             _reproduce_classification_basic_motions
-            if isinstance(transformer, BaseClassifier)
+            if isinstance(classifier, BaseClassifier)
             else _reproduce_early_classification_basic_motions
         )
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
-    set_random_state(transformer, 0)
+    set_random_state(classifier, 0)
 
     _print_array(
         f"{classifier_name} - {dataset_name}",
-        data_function(transformer),
+        data_function(classifier),
     )
 
 
 if __name__ == "__main__":
-    # change as required when adding new transformers, datasets or updating results
-    _print_results_for_transformer("TEASER", "UnitTest")
+    # change as required when adding new classifiers, datasets or updating results
+    _print_results_for_classifier("TEASER-IF", "UnitTest")
