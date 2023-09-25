@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Tests for SplitsTimeSeries."""
+
 import numpy as np
 import pytest
 
