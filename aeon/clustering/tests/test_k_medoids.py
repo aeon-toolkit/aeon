@@ -147,7 +147,16 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
     """Check that every cluster has at least one value."""
     original_length = len(initial_medoids)
     assert original_length == num_clusters
-    assert original_length == len(set(initial_medoids))
+    if isinstance(initial_medoids, np.ndarray):
+        for i in range(len(initial_medoids)):
+            curr = initial_medoids[i]
+            for j in range(len(initial_medoids)):
+                if i == j:
+                    continue
+                other = initial_medoids[j]
+                assert not np.array_equal(curr, other)
+    else:
+        assert original_length == len(set(initial_medoids))
 
 
 def test_medoids_init():
@@ -191,3 +200,32 @@ def test_medoids_init():
     )
     kmedoids.fit(X_train)
     assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])
+
+
+def _get_model_centres(data, distance, method="pam", distance_params=None):
+    """Get the centres of a model."""
+    model = TimeSeriesKMedoids(
+        random_state=1,
+        method=method,
+        n_init=2,
+        n_clusters=2,
+        init_algorithm="random",
+        distance=distance,
+        distance_params=distance_params,
+    )
+    model.fit(data)
+    return model.cluster_centers_
+
+
+def test_custom_distance_params():
+    X_train, y_train = load_basic_motions(split="train")
+
+    num_test_values = 10
+    data = X_train[0:num_test_values]
+
+    # Test passing distance param
+    default_dist = _get_model_centres(data, distance="msm")
+    custom_params_dist = _get_model_centres(
+        data, distance="msm", distance_params={"window": 0.2}
+    )
+    assert not np.array_equal(default_dist, custom_params_dist)

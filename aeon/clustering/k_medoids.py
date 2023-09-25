@@ -9,7 +9,6 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
@@ -477,48 +476,21 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _first_center_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
-    def _kmedoids_plus_plus_center_initializer(
-        self,
-        X: np.ndarray,
-        n_local_trials: int = None,
-    ):
-        centers_indexes = np.empty(self.n_clusters, dtype=int)
-        n_samples, n_timestamps, n_features = X.shape
+    def _kmedoids_plus_plus_center_initializer(self, X: np.ndarray):
+        initial_center_idx = self._random_state.randint(X.shape[0])
+        indexes = [initial_center_idx]
 
-        if n_local_trials is None:
-            n_local_trials = 2 + int(np.log(self.n_clusters))
-
-        center_id = self._random_state.randint(n_samples)
-        all_x_indexes = np.arange(n_samples, dtype=int)
-        centers_indexes[0] = center_id
-
-        closest_dist_sq = (
-            self._compute_pairwise(X, np.array([center_id]), all_x_indexes) ** 2
-        )
-        current_pot = closest_dist_sq.sum()
-
-        for c in range(1, self.n_clusters):
-            rand_vals = self._random_state.random_sample(n_local_trials) * current_pot
-            candidate_ids = np.searchsorted(stable_cumsum(closest_dist_sq), rand_vals)
-            np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
-
-            distance_to_candidates = (
-                self._compute_pairwise(X, candidate_ids, all_x_indexes) ** 2
+        for _ in range(1, self.n_clusters):
+            pw_dist = pairwise_distance(
+                X, X[indexes], metric=self.distance, **self._distance_params
             )
+            min_distances = pw_dist.min(axis=1)
+            probabilities = min_distances / min_distances.sum()
+            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
+            indexes.append(next_center_idx)
 
-            np.minimum(
-                closest_dist_sq, distance_to_candidates, out=distance_to_candidates
-            )
-            candidates_pot = distance_to_candidates.sum(axis=1)
-
-            best_candidate = np.argmin(candidates_pot)
-            current_pot = candidates_pot[best_candidate]
-            closest_dist_sq = distance_to_candidates[best_candidate]
-            best_candidate = candidate_ids[best_candidate]
-
-            centers_indexes[c] = best_candidate
-
-        return centers_indexes
+        centers = X[indexes]
+        return centers
 
     def _pam_build_center_initializer(
         self,
