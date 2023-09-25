@@ -10,7 +10,7 @@ testdata = [
 ]
 
 
-@pytest.mark.parametrize('X,n_intervals,expected', testdata)
+@pytest.mark.parametrize("X,n_intervals,expected", testdata)
 def test_split_(X, n_intervals, expected):
     splitter = SplitsTimeSeries()
     splitter.n_intervals = n_intervals
