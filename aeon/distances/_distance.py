@@ -43,6 +43,12 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._shape_dtw import (
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
@@ -136,6 +142,15 @@ def distance(
             kwargs.get("window"),
             kwargs.get("g", 0.05),
             kwargs.get("itakura_max_slope"),
+        )
+    elif metric == "shape_dtw":
+        return shape_dtw_distance(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "wddtw":
         return wddtw_distance(
@@ -267,6 +282,15 @@ def pairwise_distance(
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
+        )
+    elif metric == "shape_dtw":
+        return shape_dtw_pairwise_distance(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
         )
     elif metric == "ddtw":
         return ddtw_pairwise_distance(
@@ -434,6 +458,15 @@ def alignment_path(
         return dtw_alignment_path(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
+    elif metric == "shape_dtw":
+        return shape_dtw_alignment_path(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
+        )
     elif metric == "ddtw":
         return ddtw_alignment_path(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -556,6 +589,15 @@ def cost_matrix(
         return dtw_cost_matrix(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
+    elif metric == "shape_dtw":
+        return shape_dtw_cost_matrix(
+            x,
+            y,
+            window=kwargs.get("window"),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            descriptor=kwargs.get("descriptor", "identity"),
+            reach=kwargs.get("reach", 30),
+        )
     elif metric == "ddtw":
         return ddtw_cost_matrix(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -630,6 +672,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     metric          Distance Function
     =============== ========================================
     'dtw'           distance.dtw_distance
+    'shape_dtw'     distance.shape_dtw_distance
     'ddtw'          distance.ddtw_distance
     'wdtw'          distance.wdtw_distance
     'wddtw'         distance.wddtw_distance
@@ -682,6 +725,7 @@ def get_pairwise_distance_function(
     metric          Distance Function
     =============== ========================================
     'dtw'           distance.dtw_pairwise_distance
+    'shape_dtw'     distance.shape_dtw_pairwise_distance
     'ddtw'          distance.ddtw_pairwise_distance
     'wdtw'          distance.wdtw_pairwise_distance
     'wddtw'         distance.wddtw_pairwise_distance
@@ -735,6 +779,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     metric          Distance Function
     =============== ========================================
     'dtw'           distance.dtw_alignment_path
+    'shape_dtw'     distance.shape_dtw_alignment_path
     'ddtw'          distance.ddtw_alignment_path
     'wdtw'          distance.wdtw_alignment_path
     'wddtw'         distance.wddtw_alignment_path
@@ -781,6 +826,7 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     metric          Distance Function
     =============== ========================================
     'dtw'           distance.dtw_cost_matrix
+    'shape_dtw'     distance.shape_dtw_cost_matrix
     'ddtw'          distance.ddtw_cost_matrix
     'wdtw'          distance.wdtw_cost_matrix
     'wddtw'         distance.wddtw_cost_matrix
@@ -909,6 +955,13 @@ DISTANCES = [
         "pairwise_distance": msm_pairwise_distance,
         "cost_matrix": msm_cost_matrix,
         "alignment_path": msm_alignment_path,
+    },
+    {
+        "name": "shape_dtw",
+        "distance": shape_dtw_distance,
+        "pairwise_distance": shape_dtw_pairwise_distance,
+        "cost_matrix": shape_dtw_cost_matrix,
+        "alignment_path": shape_dtw_alignment_path,
     },
 ]
 
