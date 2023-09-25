@@ -329,7 +329,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             for s in class_shapelets
             if s[0] > 0
         ]
-        self.shapelets.sort(reverse=True, key=lambda s: (s[0], s[1], s[2], s[3], s[4]))
+        self.shapelets.sort(reverse=True, key=lambda s: (s[0], -s[1], s[2], s[3], s[4]))
 
         to_keep = self._remove_identical_shapelets(List(self.shapelets))
         self.shapelets = [n for (n, b) in zip(self.shapelets, to_keep) if b]
@@ -438,7 +438,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             worst_quality,
         )
 
-        return quality, length, position, dim, inst_idx, cls_idx
+        return np.round(quality, 8), length, position, dim, inst_idx, cls_idx
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -524,9 +524,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
             for n in range(i + 1, len(shapelet_heap)):
                 if to_keep[n] and _is_self_similar(shapelet_heap[i], shapelet_heap[n]):
-                    if (shapelet_heap[i][0], shapelet_heap[i][1]) >= (
+                    if (shapelet_heap[i][0], -shapelet_heap[i][1]) >= (
                         shapelet_heap[n][0],
-                        shapelet_heap[n][1],
+                        -shapelet_heap[n][1],
                     ):
                         to_keep[n] = False
                     else:
@@ -541,6 +541,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         to_keep = [True] * len(shapelets)
 
         for i in range(len(shapelets)):
+            if to_keep[i] is False:
+                continue
+
             for n in range(i + 1, len(shapelets)):
                 if (
                     to_keep[n]
