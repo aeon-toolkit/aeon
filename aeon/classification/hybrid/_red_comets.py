@@ -187,8 +187,8 @@ class REDCOMETS(BaseClassifier):
 
         for sfa in self.sfa_transforms:
             sfa.fit_transform(X_smote, y_smote)
-            def get_word(word): sfa.word_list(int(word[0]))
-            X_sfa = np.array(list(map(get_word, sfa.words)))
+            X_sfa = np.array(list(map(lambda word: sfa.word_list(int(word[0])),
+                                      sfa.words)))
 
             rf = RandomForestClassifier(n_estimators=self.n_trees,
                                         random_state=self.rng,
@@ -272,8 +272,8 @@ class REDCOMETS(BaseClassifier):
         for sfa, (rf, weight) in zip(self.sfa_transforms, self.sfa_clfs):
 
             sfa.fit_transform(X, placeholder_y)
-            def get_word(word): sfa.word_list(int(word[0]))
-            X_sfa = np.array(list(map(get_word, sfa.words)))
+            X_sfa = np.array(list(map(lambda word: sfa.word_list(int(word[0])),
+                                      sfa.words)))
 
             pred_mat += rf.predict_proba(X_sfa) * weight
 
