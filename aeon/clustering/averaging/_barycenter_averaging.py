@@ -24,16 +24,14 @@ from aeon.distances import (
 def _medoids(
     X: np.ndarray,
     precomputed_pairwise_distance: np.ndarray = None,
-    distance_metric: str = "dtw",
+    distance: str = "dtw",
     **kwargs,
 ):
     if X.shape[0] < 1:
         return X
 
     if precomputed_pairwise_distance is None:
-        precomputed_pairwise_distance = pairwise_distance(
-            X, metric=distance_metric, **kwargs
-        )
+        precomputed_pairwise_distance = pairwise_distance(X, metric=distance, **kwargs)
 
     x_size = X.shape[0]
     distance_matrix = np.zeros((x_size, x_size))
@@ -98,7 +96,7 @@ def elastic_barycenter_average(
     # center = X.mean(axis=0)
     center = _medoids(
         X,
-        distance_metric=distance,
+        distance=distance,
         precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
         **kwargs,
     )
@@ -119,6 +117,19 @@ def elastic_barycenter_average(
         if verbose:
             print(f"[DBA aeon] epoch {i}, cost {cost}")  # noqa: T001, T201
     return center
+
+
+VALID_BA_METRICS = [
+    "dtw",
+    "ddtw",
+    "wdtw",
+    "wddtw",
+    "erp",
+    "edr",
+    "twe",
+    "msm",
+    "shape_dtw",
+]
 
 
 @njit(cache=True, fastmath=True)

@@ -7,9 +7,9 @@ from typing import Callable, Union
 import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.averaging import _resolve_average_callable
+from aeon.clustering.averaging._barycenter_averaging import VALID_BA_METRICS
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
 
@@ -75,10 +75,22 @@ class TimeSeriesKMeans(BaseClusterer):
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
+        If you specify 'ba' then by default the distance measure used will be the same
+        as the distance measure used for clustering. If you wish to use a different
+        distance measure you can specify it by passing {"distance": "dtw"} as
+        averaging_params.
     average_params : dict, default=None
-        Dictionary containing kwargs for averaging_method.
+        Dictionary containing kwargs for averaging_method. See documentation of
+        aeon.clustering.averaging and aeon.distances for more details. NOTE: if you
+        want to use custom distance params during averaging here you must specify them
+        in this dict in addition to custom averaging params. For example to specify a
+        window as a distance param and verbosity for the averaging you would pass
+        average_params={"window": 0.2, "verbose": True}.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance being used.
+        Dictionary containing kwargs for the distance being used. For example if you
+        wanted to specify a window for DTW you would pass
+        distance_params={"window": 0.2}. See documentation of aeon.distances for more
+        details.
 
     Attributes
     ----------
@@ -207,7 +219,10 @@ class TimeSeriesKMeans(BaseClusterer):
         self.n_iter_ = best_iters
 
     def _fit_one_init(self, X: np.ndarray) -> tuple:
-        cluster_centres = self._init_algorithm(X)
+        if isinstance(self._init_algorithm, Callable):
+            cluster_centres = self._init_algorithm(X)
+        else:
+            cluster_centres = self._init_algorithm
         prev_inertia = np.inf
         prev_labels = None
         for i in range(self.max_iter):
@@ -290,6 +305,16 @@ class TimeSeriesKMeans(BaseClusterer):
             self._average_params = {}
         else:
             self._average_params = self.average_params
+
+        # Add the distance to average params
+        if "distance" not in self._average_params:
+            # Must be a str and a valid distance for ba averaging
+            if isinstance(self.distance, str) and self.distance in VALID_BA_METRICS:
+                self._average_params["distance"] = self.distance
+            else:
+                # Invalid distance passed for ba so default to dba
+                self._average_params["distance"] = "dtw"
+
         self._averaging_method = _resolve_average_callable(self.averaging_method)
 
         if self.n_clusters > X.shape[0]:
@@ -304,48 +329,20 @@ class TimeSeriesKMeans(BaseClusterer):
     def _first_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return X[list(range(self.n_clusters))]
 
-    def _kmeans_plus_plus_center_initializer(
-        self,
-        X: np.ndarray,
-        n_local_trials: int = None,
-    ):
-        # Adapted from
-        # github.com/scikit-learn/scikit-learn/blob/7e1e6d09b/sklearn/cluster/_kmeans.py
-        if n_local_trials is None:
-            n_local_trials = 2 + int(np.log(self.n_clusters))
+    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
+        initial_center_idx = self._random_state.randint(X.shape[0])
+        indexes = [initial_center_idx]
 
-        n_samples, n_timestamps, n_features = X.shape
-        centers = np.empty((self.n_clusters, n_timestamps, n_features), dtype=X.dtype)
-        center_id = self._random_state.randint(n_samples)
-        centers[0] = X[center_id]
-        closest_dist_sq = (
-            pairwise_distance(
-                X, centers[0, np.newaxis], metric=self.distance, **self._distance_params
+        for _ in range(1, self.n_clusters):
+            pw_dist = pairwise_distance(
+                X, X[indexes], metric=self.distance, **self._distance_params
             )
-            ** 2
-        )
-        current_pot = closest_dist_sq.sum(axis=0)
+            min_distances = pw_dist.min(axis=1)
+            probabilities = min_distances / min_distances.sum()
+            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
+            indexes.append(next_center_idx)
 
-        for c in range(1, self.n_clusters):
-            rand_vals = self._random_state.random_sample(n_local_trials) * current_pot
-            candidate_ids = np.searchsorted(stable_cumsum(closest_dist_sq), rand_vals)
-            np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
-            distance_to_candidates = (
-                pairwise_distance(
-                    X, X[candidate_ids], metric=self.distance, **self._distance_params
-                )
-                ** 2
-            )
-            np.minimum(
-                closest_dist_sq, distance_to_candidates, out=distance_to_candidates
-            )
-            candidates_pot = distance_to_candidates.sum(axis=0)
-            best_candidate = np.argmin(candidates_pot)
-            current_pot = candidates_pot[best_candidate]
-            closest_dist_sq = distance_to_candidates[best_candidate]
-            best_candidate = candidate_ids[best_candidate]
-            centers[c] = X[best_candidate]
-
+        centers = X[indexes]
         return centers
 
     @classmethod
