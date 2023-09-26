@@ -11,7 +11,7 @@ from aeon.distances.tests._utils import create_test_distance_numpy
 def _validate_cost_matrix_result(
     x: np.ndarray,
     y: np.ndarray,
-    name,  # This will be used in a later pr
+    name,
     distance,
     cost_matrix,
 ):
