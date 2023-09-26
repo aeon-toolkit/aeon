@@ -10,7 +10,7 @@ from aeon.distances.tests._utils import _make_3d_series, create_test_distance_nu
 
 def _validate_pairwise_result(
     x: np.ndarray,
-    name,  # This will be used in a later pr
+    name,
     distance,
     pairwise_distance,
 ):
@@ -21,10 +21,9 @@ def _validate_pairwise_result(
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
     assert np.array_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
-    if name != "lcss" and name != "edr":
-        assert np.array_equal(
-            pairwise_result, compute_pairwise_distance(x, metric=distance)
-        )
+    assert np.array_equal(
+        pairwise_result, compute_pairwise_distance(x, metric=distance)
+    )
 
     x = _make_3d_series(x)
 
@@ -42,7 +41,7 @@ def _validate_pairwise_result(
 def _validate_multiple_to_multiple_result(
     x,
     y,
-    name,  # This will be used in a later pr
+    name,
     distance,
     multiple_to_multiple_distance,
 ):
@@ -59,11 +58,10 @@ def _validate_multiple_to_multiple_result(
     assert np.array_equal(
         multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
-    if name != "lcss" and name != "edr":
-        assert np.array_equal(
-            multiple_to_multiple_result,
-            compute_pairwise_distance(x, y, metric=distance),
-        )
+    assert np.array_equal(
+        multiple_to_multiple_result,
+        compute_pairwise_distance(x, y, metric=distance),
+    )
 
     x = _make_3d_series(x)
     y = _make_3d_series(y)
@@ -82,7 +80,7 @@ def _validate_multiple_to_multiple_result(
 def _validate_single_to_multiple_result(
     x,
     y,
-    name,  # This will be used in a later pr
+    name,
     distance,
     single_to_multiple_distance,
 ):
@@ -97,10 +95,9 @@ def _validate_single_to_multiple_result(
     assert np.array_equal(
         single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
-    if name != "lcss" and name != "edr":
-        assert np.array_equal(
-            single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
-        )
+    assert np.array_equal(
+        single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+    )
 
     for i in range(single_to_multiple_result.shape[-1]):
         curr_y = y[i]
