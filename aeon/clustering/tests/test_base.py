@@ -16,7 +16,7 @@ class _TestClusterer(BaseClusterer):
 
     def _predict(self, X):
         """Predict dummy."""
-        return np.zeros(shape=(len(X),), dtype=np.int)
+        return np.zeros(shape=(len(X),), dtype=int)
 
     def _score(self, X, y=None):
         return 1.0
