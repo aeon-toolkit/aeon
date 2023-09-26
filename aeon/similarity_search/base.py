@@ -40,6 +40,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self.distance = distance
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
+        super(BaseSimiliaritySearch, self).__init__()
 
     def _get_distance_profile_function(self):
         dist_profile = DISTANCE_PROFILE_DICT.get(self.distance)
