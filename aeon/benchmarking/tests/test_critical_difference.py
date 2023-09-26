@@ -17,7 +17,7 @@ from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-test_path = MODULE = os.path.dirname(__file__)
+test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
 
 
