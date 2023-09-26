@@ -102,7 +102,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         max_neighbours: int = None,
         n_init: int = 10,

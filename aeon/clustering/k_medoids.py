@@ -261,9 +261,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         old_inertia = np.inf
         n_instances = X.shape[0]
 
-        medoids_idxs = self._init_algorithm
         if isinstance(self._init_algorithm, Callable):
             medoids_idxs = self._init_algorithm(X)
+        else:
+            medoids_idxs = self._init_algorithm
         not_medoid_idxs = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
