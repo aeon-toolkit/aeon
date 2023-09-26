@@ -40,10 +40,11 @@ def plot_boxplot_median(
     labels: list of estimators
         List with names of the estimators
     plot_type: str, default = "violin"
-        This function can create two sort of distribution plots: "violin", "swarm",
-        "boxplot". "violin" plot features a kernel density estimation of the underlying
-        distribution. "swarm" draws a categorical scatterplot with points adjusted to be
-        non-overlapping.
+        This function can create four sort of distribution plots: "violin", "swarm",
+        "boxplot" or "strip". "violin" plot features a kernel density estimation of the
+        underlying distribution. "swarm" draws a categorical scatterplot with points
+        adjusted to be non-overlapping. "strip" draws a categorical scatterplot using
+        jitter to reduce overplotting.
     outliers: bool, default = True
         Only applies when plot_type is "boxplot".
     title: str, default = None
@@ -85,14 +86,18 @@ def plot_boxplot_median(
     elif plot_type == "swarm":
         plot = sns.swarmplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
         )
     elif plot_type == "strip":
         plot = sns.stripplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
+        )
+    else:
+        raise ValueError(
+            "plot_type must be one of 'violin', 'boxplot', 'swarm' or 'strip'."
         )
 
     # Modifying limits for y-axis.
