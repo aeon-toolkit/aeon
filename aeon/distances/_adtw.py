@@ -25,10 +25,9 @@ def adtw_distance(
 
     Amercing Dynamic Time Warping (ADTW) [1]_ is a variant of DTW that uses a
     explicit warping penalty to encourage or discourage warping. The warping
-    penalty is a constant value that is added to the cost of warping. If the
-    value is high will encourage algorithm to warp less and if value is low
-    then will encourage algorithm to warp more. ADTW is a generalization of
-    DTW and DTW is a special case of ADTW when the warping penalty is 0.
+    penalty is a constant value that is added to the cost of warping. A high
+    value will encourage the algorithm to warp less and if the value is low warping
+    is more likely.
 
     Parameters
     ----------
@@ -47,9 +46,7 @@ def adtw_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
     warp_penalty: float, default=1.0
-        Penalty for warping. If the value is high will encourage algorithm to
-        warp less and if value is low then will encourage algorithm to warp
-        more.
+        Penalty for warping. A high value will mean less warping.
 
     Returns
     -------
@@ -122,10 +119,7 @@ def adtw_cost_matrix(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
     warp_penalty: float, default=1.0
-        Penalty for warping. If the value is high will encourage algorithm to
-        warp less and if value is low then will encourage algorithm to warp
-        more.
-
+        Penalty for warping. A high value will mean less warping.
 
     Returns
     -------
@@ -228,7 +222,7 @@ def adtw_pairwise_distance(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
     warp_penalty: float, default=1.0
-        Penalty for warping. If the value is high will encourage algorithm to
+        Penalty for warping. A high value will mean less warping.
         warp less and if value is low then will encourage algorithm to warp
         more.
 
@@ -346,9 +340,7 @@ def adtw_alignment_path(
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
     warp_penalty: float, default=1.0
-        Penalty for warping. If the value is high will encourage algorithm to
-        warp less and if value is low then will encourage algorithm to warp
-        more.
+        Penalty for warping. A high value will mean less warping.
 
     Returns
     -------
