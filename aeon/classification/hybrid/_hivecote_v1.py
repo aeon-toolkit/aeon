@@ -148,6 +148,11 @@ class HIVECOTEV1(BaseClassifier):
 
         super(HIVECOTEV1, self).__init__()
 
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+
     def _fit(self, X, y):
         """Fit HIVE-COTE 1.0 to training data.
 
@@ -163,15 +168,17 @@ class HIVECOTEV1(BaseClassifier):
         self :
             Reference to self.
         """
-        # Default values from HC1 paper
         if self.stc_params is None:
-            self._stc_params = {"transform_limit_in_minutes": 120}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
         if self.tsf_params is None:
-            self._tsf_params = {"n_estimators": 500}
+            self._tsf_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.rise_params is None:
-            self._rise_params = {"n_estimators": 500}
+            self._rise_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.cboss_params is None:
-            self._cboss_params = {}
+            self._cboss_params = {
+                "n_parameter_samples": HIVECOTEV1._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE,
+            }
 
         # Cross-validation size for TSF and RISE
         cv_size = 10

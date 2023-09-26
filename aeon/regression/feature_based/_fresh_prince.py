@@ -52,6 +52,16 @@ class FreshPRINCERegressor(BaseRegressor):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+
+    Examples
+    --------
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+    >>> fp = FreshPRINCERegressor(n_estimators=10) # doctest: +SKIP
+    >>> fp.fit(X_train, y_train) # doctest: +SKIP
+    >>> y_pred = fp.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -59,7 +69,6 @@ class FreshPRINCERegressor(BaseRegressor):
         "capability:multithreading": True,
         "capability:train_estimate": True,
         "algorithm_type": "feature",
-        "python_version": "<3.10",
         "python_dependencies": "tsfresh",
     }
 
@@ -117,12 +126,12 @@ class FreshPRINCERegressor(BaseRegressor):
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._tsfresh = TSFreshFeatureExtractor(
             default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             chunksize=self.chunksize,
             show_warnings=self.verbose > 1,
             disable_progressbar=self.verbose < 1,

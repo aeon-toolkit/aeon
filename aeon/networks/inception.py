@@ -145,9 +145,8 @@ class InceptionNetwork(BaseDeepNetwork):
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         input_tensor : tensorflow tensor, usually the input layer of the model.
         input_channels : int, the number of input channels in case of multivariate.
         kernel_sizes : list of int, default = [2,4,8,16,32,64],
