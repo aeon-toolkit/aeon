@@ -184,11 +184,14 @@ class TEASER(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         fit = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -243,11 +246,14 @@ class TEASER(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -317,11 +323,14 @@ class TEASER(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -363,11 +372,7 @@ class TEASER(BaseEarlyClassifier):
                 next_idx = idx
         return next_idx
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -415,7 +420,7 @@ class TEASER(BaseEarlyClassifier):
             one_class_classifier = (
                 OneClassSVM(tol=self._svm_tol, nu=self._svm_nu)
                 if self.one_class_classifier is None
-                else _clone_estimator(self.one_class_classifier, random_state=rs)
+                else _clone_estimator(self.one_class_classifier, random_state=rng)
             )
             param_grid = (
                 {"gamma": self._svm_gammas}
@@ -436,11 +441,7 @@ class TEASER(BaseEarlyClassifier):
 
         return estimator, one_class_classifier, train_probas, train_preds
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )

@@ -57,8 +57,8 @@ def write_to_tsfile(
             path,
             problem_name=problem_name,
             y=y,
-            equal_length=False,
             comment=header,
+            regression=regression,
         )
 
 
@@ -331,11 +331,7 @@ def _write_header(
 
 
 def _write_dataframe_to_tsfile(
-    X,
-    path,
-    problem_name="sample_data",
-    y=None,
-    comment=None,
+    X, path, problem_name="sample_data", y=None, comment=None, regression=False
 ):
     # ensure data provided is a dataframe
     if not isinstance(X, pd.DataFrame):
@@ -347,11 +343,20 @@ def _write_dataframe_to_tsfile(
     class_labels = None
     if y is not None:
         class_labels = np.unique(y)
+    univariate = X.shape[1] == 1
+    # dataframes are always equal length
+    equal_length = True
+    series_length = X.shape[0]
     file = _write_header(
         path,
         problem_name,
-        comment=comment,
+        univariate=univariate,
+        equal_length=equal_length,
+        series_length=series_length,
         class_labels=class_labels,
+        comment=comment,
+        regression=regression,
+        extension=None,
     )
     n_cases, n_channels = X.shape
     for i in range(0, n_cases):
