@@ -6,7 +6,7 @@ APIDOCTEMPLATEDIR = source/_templates/apidoc
 AUTOGENDIR    = source/api_reference/auto_generated
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SOURCEDIR     = source
+SOURCEDIR     = .
 BUILDDIR      = _build
 PROJECTDIR    = "../aeon/"
 
@@ -22,7 +22,6 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	./symlink_examples.sh
 	rm -rf $(AUTOGENDIR)
 	@$(PREPROCESS) -eMT --templatedir $(APIDOCTEMPLATEDIR) -o $(AUTOGENDIR) $(PROJECTDIR) "$(EXCLUDEPATHS)"
 	-rm -rf $(BUILDDIR)

@@ -15,7 +15,7 @@ Welcome to aeon's developer guide!
 New developers should:
 
 * sign up to the developer Slack (see link in README) and say hello in the ``#contributors`` channel
-* install a development version of ``aeon``, see :ref:`installation`
+* install a development version of ``aeon``, see :ref:`dev_installation`
 * set up CI tests locally and ensure they know how to check them remotely, see :ref:`continuous_integration`
 * get familiar with the git workflow (:ref:`git_workflow`) and coding standards (:ref:`coding_standards`)
 * feel free, at any point in time, to post questions on Slack, or ask core developers for help (see here for a `list of core developers <https://www.aeon-toolkit.org/en/stable/about/team.html>`_)

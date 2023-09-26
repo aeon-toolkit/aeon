@@ -318,6 +318,13 @@ class ShapeDTW(BaseClassifier):
     def _get_transformer(self, tName):
         """Extract the appropriate transformer.
 
+        Requires self._metric_params, so only call after fit or in fit after these
+        lines of code
+        if self.metric_params is None:
+            self._metric_params = {}
+        else:
+            self._metric_params = self.metric_params
+
         Parameters
         ----------
         self   : the ShapeDTW object.
