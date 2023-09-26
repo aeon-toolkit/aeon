@@ -124,34 +124,62 @@ class REDCOMETS(BaseClassifier):
             Reference to self.
         """
         if (n_channels := X.shape[1]) == 1:  # Univariate
-            self._fit_univariate(np.squeeze(X), y)
+            (
+                self.sfa_transforms,
+                self.sfa_clfs,
+                self.sax_transforms,
+                self.sax_clfs,
+            ) = self._build_univariate_ensemble(np.squeeze(X), y)
         else:  # Multivariate
-            if self.variant in [1, 2, 3]:  # Concatenate dimensions
-                self._n_channels = n_channels
+            self._n_channels = n_channels
+
+            if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
-                self._fit_univariate(X_concat, y)
+                (
+                    self.sfa_transforms,
+                    self.sfa_clfs,
+                    self.sax_transforms,
+                    self.sax_clfs,
+                ) = self._build_univariate_ensemble(X_concat, y)
 
-            elif self.variant in [4, 5, 6, 7, 8, 9]:  # Ensemble over dimensions
-                pass
+            elif self.variant in [4, 5, 6, 7, 8, 9]:  # Ensemble
+                (
+                    self.sfa_transforms,
+                    self.sfa_clfs,
+                    self.sax_transforms,
+                    self.sax_clfs,
+                ) = self._build_dimension_ensemble(X, y)
 
-    def _fit_univariate(self, X, y):
-        """Build a univariate REDCOMETS classifier from the training set (X, y).
+    def _build_univariate_ensemble(self, X, y):
+        """Build RED CoMETS ensemble from the univariate training set (X, y).
 
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_instances, n_timepoints).
         y : 1D np.ndarray
             The class labels shape = (n_instances).
 
         Returns
         -------
-        self :
-            Reference to self.
+        sfa_transforms :
+            List of SFA() instances with random word length and alpabet size
+        sfa_clfs :
+            List of (RandomForestClassifier(), weight) tuples fitted on SFA transformed
+            training data
+        sax_transforms :
+            List of SAX() instances with random word length and alpabet size
+        sax_clfs :
+            List of (RandomForestClassifier(), weight) tuples fitted on SAX transformed
+            training data
         """
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        perc_length = self.perc_length / self._n_channels
+        if self.variant in [1, 2, 3]:
+            perc_length = self.perc_length / self._n_channels
+        else:
+            perc_length = self.perc_length
+
         n_lenses = 2 * int(perc_length * X.shape[1] // 100)
 
         min_neighbours = min(Counter(y).items(), key=lambda k: k[1])[1]
@@ -182,7 +210,7 @@ class REDCOMETS(BaseClassifier):
 
         cv = np.min([5, len(y_smote) // len(list(set(y_smote)))])
 
-        self.sfa_transforms = [
+        sfa_transforms = [
             SFA(
                 word_length=w,
                 alphabet_size=a,
@@ -195,7 +223,8 @@ class REDCOMETS(BaseClassifier):
             for w, a in sfa_lenses
         ]
 
-        for sfa in self.sfa_transforms:
+        sfa_clfs = []
+        for sfa in sfa_transforms:
             sfa.fit_transform(X_smote, y_smote)
             X_sfa = np.array(
                 list(map(lambda word: sfa.word_list(int(word[0])), sfa.words))
@@ -207,17 +236,22 @@ class REDCOMETS(BaseClassifier):
                 n_jobs=self.n_jobs,
             )
             rf.fit(X_sfa, y_smote)
-            weight = cross_val_score(
-                rf, X_sfa, y_smote, cv=cv, n_jobs=self.n_jobs
-            ).mean()
 
-            self.sfa_clfs.append((rf, weight))
+            if self.variant == 1:
+                weight = 1
+            elif self.variant == 3:
+                weight = cross_val_score(
+                    rf, X_sfa, y_smote, cv=cv, n_jobs=self.n_jobs
+                ).mean()
+            else:
+                weight = None
 
-        self.sax_transforms = [
-            SAX(n_segments=w, alphabet_size=a) for w, a in sax_lenses
-        ]
+            sfa_clfs.append((rf, weight))
 
-        for sax in self.sax_transforms:
+        sax_transforms = [SAX(n_segments=w, alphabet_size=a) for w, a in sax_lenses]
+
+        sax_clfs = []
+        for sax in sax_transforms:
             X_sax = np.squeeze(sax.fit_transform(X_smote))
 
             rf = RandomForestClassifier(
@@ -226,11 +260,65 @@ class REDCOMETS(BaseClassifier):
                 n_jobs=self.n_jobs,
             )
             rf.fit(X_sax, y_smote)
-            weight = cross_val_score(
-                rf, X_sax, y_smote, cv=cv, n_jobs=self.n_jobs
-            ).mean()
 
-            self.sax_clfs.append((rf, weight))
+            if self.variant == 1:
+                weight = 1
+            elif self.variant == 3:
+                weight = cross_val_score(
+                    rf, X_sax, y_smote, cv=cv, n_jobs=self.n_jobs
+                ).mean()
+            else:
+                weight = None
+
+            sax_clfs.append((rf, weight))
+
+        return sfa_transforms, sfa_clfs, sax_transforms, sax_clfs
+
+    def _build_dimension_ensemble(self, X, y):
+        """Build an ensemble of univariate RED CoMETS ensembles over dimensions.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+            n_channels > 1.
+        y : 1D np.ndarray
+            The class labels shape = (n_instances).
+
+        Returns
+        -------
+        sfa_transforms :
+            List of lists of SFA() instances with random word length and alpabet size
+        sfa_clfs :
+            List of lists of (RandomForestClassifier(), weight) tuples fitted on SFA
+            transformed training data
+        sax_transforms :
+            List of lists of SAX() instances with random word length and alpabet size
+        sax_clfs :
+            List of lists (RandomForestClassifier(), weight) tuples fitted on SAX
+            transformed training data
+        """
+        sfa_transforms = []
+        sfa_clfs = []
+        sax_transforms = []
+        sax_clfs = []
+
+        for d in range(self._n_channels):
+            X_d = X[:, d, :]
+            (
+                sfa_trans_d,
+                sfa_clfs_d,
+                sax_trans_d,
+                sax_clfs_d,
+            ) = self._build_univariate_ensemble(X_d, y)
+
+            sfa_transforms.append(sfa_trans_d)
+            sfa_clfs.append(sfa_clfs_d)
+
+            sax_transforms.append(sax_trans_d)
+            sax_clfs.append(sax_clfs_d)
+
+        return sfa_transforms, sfa_clfs, sax_transforms, sax_clfs
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X.
@@ -265,9 +353,11 @@ class REDCOMETS(BaseClassifier):
         if X.shape[1] == 1:  # Univariate
             return self._predict_proba_unvivariate(np.squeeze(X))
         else:  # Multivariate
-            if self.variant in [1, 2, 3]:  # Concatenate dimensions
+            if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
                 return self._predict_proba_unvivariate(X_concat)
+            elif self.variant in [4, 5, 6, 7, 8, 9]:
+                return self._predict_proba_dimension_ensemble(X)  # Ensemble
 
     def _predict_proba_unvivariate(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in univariate X.
@@ -291,15 +381,125 @@ class REDCOMETS(BaseClassifier):
                 list(map(lambda word: sfa.word_list(int(word[0])), sfa.words))
             )
 
-            pred_mat += rf.predict_proba(X_sfa) * weight
+            rf_pred_mat = rf.predict_proba(X_sfa)
+
+            if self.variant == 2:
+                weight = np.mean(rf_pred_mat.max(axis=1))
+
+            pred_mat += rf_pred_mat * weight
 
         for sax, (rf, weight) in zip(self.sax_transforms, self.sax_clfs):
             X_sax = np.squeeze(sax.fit_transform(X))
 
-            pred_mat += rf.predict_proba(X_sax) * weight
+            rf_pred_mat = rf.predict_proba(X_sax)
+
+            if self.variant == 2:
+                weight = np.mean(rf_pred_mat.max(axis=1))
+
+            pred_mat += rf_pred_mat * weight
 
         pred_mat /= np.sum(pred_mat, axis=1).reshape(-1, 1)  # Rescales rows to sum to 1
+        return pred_mat
 
+    def _predict_proba_dimension_ensemble(self, X) -> np.ndarray:
+        """Predicts labels probabilities using ensemble over the dimensions.
+
+        Parameters
+        ----------
+        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+            The data to make predict probabilities for.
+            n_dimensions > 1
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        ensemble_pred_mats = None
+        placeholder_y = np.zeros(X.shape[0])
+
+        for d in range(self._n_channels):
+            sfa_transforms = self.sfa_transforms[d]
+            sfa_clfs = self.sfa_clfs[d]
+
+            sax_transforms = self.sax_transforms[d]
+            sax_clfs = self.sax_clfs[d]
+
+            X_d = X[:, d, :]
+
+            if self.variant in [6, 7, 8, 9]:
+                dimension_pred_mats = None
+            for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
+                sfa.fit_transform(X_d, placeholder_y)
+                X_sfa = np.array(
+                    list(map(lambda word: sfa.word_list(int(word[0])), sfa.words))
+                )
+
+                rf_pred_mat = rf.predict_proba(X_sfa)
+
+                if self.variant in [4, 5]:
+                    if ensemble_pred_mats is None:
+                        ensemble_pred_mats = [rf_pred_mat]
+                    else:
+                        ensemble_pred_mats = np.concatenate(
+                            (ensemble_pred_mats, [rf_pred_mat])
+                        )
+
+                elif self.variant in [6, 7, 8, 9]:
+                    if dimension_pred_mats is None:
+                        dimension_pred_mats = [rf_pred_mat]
+                    else:
+                        dimension_pred_mats = np.concatenate(
+                            (dimension_pred_mats, [rf_pred_mat])
+                        )
+
+            for sax, (rf, _) in zip(sax_transforms, sax_clfs):
+                X_sax = np.squeeze(sax.fit_transform(X_d))
+
+                rf_pred_mat = rf.predict_proba(X_sax)
+
+                if self.variant in [4, 5]:
+                    if ensemble_pred_mats is None:
+                        ensemble_pred_mats = [rf_pred_mat]
+                    else:
+                        ensemble_pred_mats = np.concatenate(
+                            (ensemble_pred_mats, [rf_pred_mat])
+                        )
+
+                elif self.variant in [6, 7, 8, 9]:
+                    if dimension_pred_mats is None:
+                        dimension_pred_mats = [rf_pred_mat]
+                    else:
+                        dimension_pred_mats = np.concatenate(
+                            (dimension_pred_mats, [rf_pred_mat])
+                        )
+
+            if self.variant in [6, 7, 8, 9]:
+                if self.variant in [6, 7]:
+                    fused_dimension_pred_mat = np.sum(dimension_pred_mats, axis=0)
+                elif self.variant in [8, 9]:
+                    weights = np.array(
+                        [np.mean(mat.max(axis=1)) for mat in dimension_pred_mats]
+                    ).reshape(-1, 1)
+                    fused_dimension_pred_mat = np.sum(
+                        dimension_pred_mats * weights[:, np.newaxis], axis=0
+                    )
+
+                if ensemble_pred_mats is None:
+                    ensemble_pred_mats = [fused_dimension_pred_mat]
+                else:
+                    ensemble_pred_mats = np.concatenate(
+                        (ensemble_pred_mats, [fused_dimension_pred_mat])
+                    )
+
+        if self.variant in [4, 6, 7]:
+            pred_mat = np.sum(np.array(ensemble_pred_mats), axis=0)
+        elif self.variant in [5, 8, 9]:
+            weights = np.array(
+                [np.mean(mat.max(axis=1)) for mat in ensemble_pred_mats]
+            ).reshape(-1, 1)
+            pred_mat = np.sum(ensemble_pred_mats * weights[:, np.newaxis], axis=0)
+        pred_mat /= np.sum(pred_mat, axis=1).reshape(-1, 1)  # Rescales rows to sum to 1
         return pred_mat
 
     def _get_random_lenses(self, X, n_lenses):
