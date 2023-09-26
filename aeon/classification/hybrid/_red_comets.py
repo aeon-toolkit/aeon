@@ -55,6 +55,10 @@ class REDCOMETS(BaseClassifier):
     classes_ : list
         The unique class labels.
 
+    See Also
+    --------
+    SAX, SFA
+
     Notes
     -----
     Adapted from the implementation at https://github.com/zy18811/RED-CoMETS
