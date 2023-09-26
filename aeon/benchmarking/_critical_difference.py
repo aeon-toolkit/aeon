@@ -514,6 +514,5 @@ def plot_critical_difference(
             linewidth=linewidth_sign,
         )
         start += height
-    plt.show()
 
     return fig
