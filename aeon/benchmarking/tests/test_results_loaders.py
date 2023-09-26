@@ -14,7 +14,7 @@ from aeon.benchmarking.results_loaders import (
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
-test_path = MODULE = os.path.dirname(__file__)
+test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
 
 
