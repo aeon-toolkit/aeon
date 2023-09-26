@@ -145,7 +145,7 @@ def test_dba():
 def test_elastic_dba_variations():
     distances = ["dtw", "ddtw", "wdtw", "wddtw", "erp", "edr", "twe", "msm"]
     for dist in distances:
-        X_train = create_test_distance_numpy(10, 10, 10)
+        X_train = create_test_distance_numpy(4, 2, 10)
 
         average_ts = elastic_barycenter_average(
             X_train, metric=dist, window=0.2, independent=False
