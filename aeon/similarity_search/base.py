@@ -20,12 +20,12 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
     Attributes
     ----------
-    distance : str, optional
-        Name of the distance function to use. The default is "euclidean".
-    normalize : bool, optional
-        Wheter the distance function should be z-normalized
-    store_distance_profile : bool, optional
-        Wheter to store the computed distance profile in the attribute
+    distance : str, default ="euclidean"
+        Name of the distance function to use.
+    normalize : bool, default = False
+        Whether the distance function should be z-normalized.
+    store_distance_profile : bool, default = =False.
+        Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
     """
 
