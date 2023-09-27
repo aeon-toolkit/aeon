@@ -1014,7 +1014,11 @@ class SFA(BaseCollectionTransformer):
         """Find list of integers to obtain input word."""
         letters = []
         word_bits = self.word_bits + self.level_bits
-        shift = int(word_bits - self.letter_bits)
+        shift = word_bits - self.letter_bits
+        
+        if word > np.iinfo(np.int64).max:
+            shift = int(shift)
+
 
         for _ in range(self.word_length, 0, -1):
             letters.append(word >> shift & self.letter_max)
