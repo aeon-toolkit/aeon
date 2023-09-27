@@ -48,7 +48,7 @@ pip install aeon[all_extras]
 ```
 ## ⏲️ Getting started
 
-The best place to started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/latest/getting_started.html).
+The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/latest/getting_started.html).
 
 Below we provide a quick example of how to use `aeon` for forecasting and
 classification.
