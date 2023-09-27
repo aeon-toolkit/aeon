@@ -11,6 +11,8 @@ docs:
   scipy: ["https://docs.scipy.org/doc/scipy/", "We use scipy for mathematical operations and algorithms."]
   pandas: ["https://pandas.pydata.org/docs/", "We use pandas as a data container and for data manipulation."]
   numba: ["https://numba.readthedocs.io/en/stable/", "We use numba to speed up functions where possible."]
+  sphinx: ["https://www.sphinx-doc.org/en/master/", "We use sphinx to generate our documentation."]
+  myst: ["https://myst-parser.readthedocs.io/en/stable/", "We use myst to write our documentation in markdown."]
 
 sandbox:
   install:
@@ -20,5 +22,4 @@ sandbox:
 
 rules:
   - "There should not be large chunks of code that are just commented out. Docstrings and explanations in code are okay though."
-  - "Update the relevant API page in docs/api_reference/ when new public functions and classes are added."
-  - "Make sure all error logs use traceback during exceptions."
+  - "Update the relevant API page in 'docs/api_reference/' when new public functions and classes are added and not included in the API documentation. Only add functions and classes which are not already in the relevant API documentation and avoid duplicate entries."
