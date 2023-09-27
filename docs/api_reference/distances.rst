@@ -173,56 +173,66 @@ Additional Distance Functions
     :template: function.rst
 
     create_bounding_matrix
+
+Squared Distance Functions
+--------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
     squared_distance
     squared_pairwise_distance
+
+Euclidean Distance Functions
+----------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
     euclidean_distance
     euclidean_pairwise_distance
+
+Manhattan Distance Functions
+----------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
     manhattan_distance
     manhattan_pairwise_distance
+
+ADTW Distance Functions
+-----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
     adtw_distance
     adtw_pairwise_distance
     adtw_cost_matrix
     adtw_alignment_path
-    dtw_distance
-    dtw_pairwise_distance
-    dtw_cost_matrix
-    dtw_alignment_path
-    ddtw_distance
-    ddtw_pairwise_distance
-    ddtw_alignment_path
-    ddtw_cost_matrix
-    wdtw_distance
-    wdtw_pairwise_distance
-    wdtw_cost_matrix
-    wdtw_alignment_path
-    wddtw_distance
-    wddtw_pairwise_distance
-    wddtw_alignment_path
-    wddtw_cost_matrix
-    lcss_distance
-    lcss_pairwise_distance
-    lcss_alignment_path
-    lcss_cost_matrix
-    erp_distance
-    erp_pairwise_distance
-    erp_alignment_path
-    erp_cost_matrix
-    edr_distance
-    edr_pairwise_distance
-    edr_alignment_path
-    edr_cost_matrix
-    twe_distance
-    twe_pairwise_distance
-    twe_alignment_path
-    twe_cost_matrix
-    msm_distance
-    msm_alignment_path
-    msm_cost_matrix
-    msm_pairwise_distance
-    distance
-    pairwise_distance
-    alignment_path
-    cost_matrix
+
+Shape DTW Distance Functions
+-----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
     shape_dtw_distance
     shape_dtw_cost_matrix
     shape_dtw_alignment_path
