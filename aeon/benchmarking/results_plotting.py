@@ -2,7 +2,6 @@
 """Plotting tools for estimator results."""
 
 __all__ = [
-    "plot_critical_difference",
     "plot_boxplot_median",
     "plot_scatter_predictions",
     "plot_scatter",
@@ -13,7 +12,6 @@ __author__ = ["dguijo"]
 
 import numpy as np
 
-from aeon.benchmarking._critical_difference import plot_critical_difference
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -58,6 +56,16 @@ def plot_boxplot_median(
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_boxplot_median
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_boxplot_median(results[0], methods)
+    >>> plot.show()
+    >>> plot.savefig("boxplot.pdf", bbox_inches="tight")
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -150,6 +158,21 @@ def plot_scatter_predictions(
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_scatter_predictions
+    >>> from aeon.datasets import load_covid_3month
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+    >>> fp = FreshPRINCERegressor(n_estimators=10)
+    >>> fp.fit(X_train, y_train)
+    >>> y_pred_fp = fp.predict(X_test)
+    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",
+    >>> dataset="Covid3Month")
+    >>> plot.show()
+    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -200,19 +223,24 @@ def plot_scatter(
         Method name of the first approach.
     method_B: str
         Method name of the second approach.
-    dataset: str
-        Dataset's name.
     title: str, default = None
         Title to be shown in the top of the plot.
-    y_min: float, default = None
-        Min value for the y_axis of the plot.
-    y_max: float, default = None
-        Max value for the y_axis of the plot.
 
     Returns
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_scatter
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_scatter(results[0], methods[0], methods[1])
+    >>> plot.show()
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")
+
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -303,23 +331,15 @@ def plot_multi_comparison_matrix():
 
     Parameters
     ----------
-    results: np.array
-        Scores (either accuracies or errors) of dataset x strategy
-    method: str
-        Method's name.
-    dataset: str
-        Dataset's name.
-    title: str, default = None
-        Title to be shown in the top of the plot.
-    y_min: float, default = None
-        Min value for the y_axis of the plot.
-    y_max: float, default = None
-        Max value for the y_axis of the plot.
+    TODO: Add parameters
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    TODO: Add returns
+
+    Example
+    -------
+    TODO: Add example
 
     References
     ----------
