@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Functions for generating stored unit test results for transformers."""
 
 import numpy as np
+from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.transformations.collection.catch22 import Catch22
 from aeon.transformations.collection.random_intervals import RandomIntervals
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
@@ -43,42 +42,37 @@ def _print_array(test_name, array):
     print("]")
 
 
+def _print_results_for_transformer(transformer_name, dataset_name):
+    if transformer_name == "RandomIntervals":
+        transformer = RandomIntervals.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif transformer_name == "SupervisedIntervals":
+        transformer = SupervisedIntervals.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif transformer_name == "RandomShapeletTransform":
+        transformer = RandomShapeletTransform.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    else:
+        raise ValueError(f"Unknown transformer: {transformer_name}")
+
+    if dataset_name == "UnitTest":
+        data_function = _reproduce_transform_unit_test
+    elif dataset_name == "BasicMotions":
+        data_function = _reproduce_transform_basic_motions
+    else:
+        raise ValueError(f"Unknown dataset: {dataset_name}")
+
+    set_random_state(transformer, 0)
+
+    _print_array(
+        f"{transformer_name} - {dataset_name}",
+        data_function(transformer),
+    )
+
+
 if __name__ == "__main__":
-    _print_array(
-        "Catch22 - UnitTest",
-        _reproduce_transform_unit_test(Catch22(outlier_norm=True)),
-    )
-    _print_array(
-        "Catch22 - BasicMotions",
-        _reproduce_transform_basic_motions(Catch22()),
-    )
-    _print_array(
-        "RandomIntervals - BasicMotions",
-        _reproduce_transform_basic_motions(
-            RandomIntervals(random_state=0, n_intervals=3)
-        ),
-    )
-    _print_array(
-        "SupervisedIntervals - BasicMotions",
-        _reproduce_transform_basic_motions(
-            SupervisedIntervals(
-                random_state=0, n_intervals=1, randomised_split_point=True
-            )
-        ),
-    )
-    _print_array(
-        "RandomShapeletTransform - UnitTest",
-        _reproduce_transform_unit_test(
-            RandomShapeletTransform(
-                max_shapelets=10, n_shapelet_samples=500, random_state=0
-            )
-        ),
-    )
-    _print_array(
-        "RandomShapeletTransform - BasicMotions",
-        _reproduce_transform_basic_motions(
-            RandomShapeletTransform(
-                max_shapelets=10, n_shapelet_samples=500, random_state=0
-            )
-        ),
-    )
+    # change as required when adding new transformers, datasets or updating results
+    _print_results_for_transformer("RandomShapeletTransform", "BasicMotions")
