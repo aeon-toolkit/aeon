@@ -144,9 +144,10 @@ General methods with distance argument
     :toctree: auto_generated/
     :template: function.rst
 
+    create_bounding_matrix
+    cost_matrix
     distance
     pairwise_distance
-    cost_matrix
     alignment_path
 
 General methods to recover distance functions
@@ -158,21 +159,11 @@ General methods to recover distance functions
     :toctree: auto_generated/
     :template: function.rst
 
+    get_alignment_path_function
+    get_cost_matrix_function
     get_distance_function
     get_pairwise_distance_function
-    get_cost_matrix_function
-    get_alignment_path_function
 
-Additional Distance Functions
------------------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    create_bounding_matrix
 
 Squared Distance Functions
 --------------------------
@@ -219,10 +210,10 @@ ADTW Distance Functions
     :toctree: auto_generated/
     :template: function.rst
 
+    adtw_alignment_path
+    adtw_cost_matrix
     adtw_distance
     adtw_pairwise_distance
-    adtw_cost_matrix
-    adtw_alignment_path
 
 Shape DTW Distance Functions
 -----------------------
@@ -233,7 +224,7 @@ Shape DTW Distance Functions
     :toctree: auto_generated/
     :template: function.rst
 
-    shape_dtw_distance
-    shape_dtw_cost_matrix
     shape_dtw_alignment_path
+    shape_dtw_cost_matrix
+    shape_dtw_distance
     shape_dtw_pairwise_distance
