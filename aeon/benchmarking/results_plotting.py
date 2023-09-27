@@ -163,12 +163,12 @@ def plot_scatter_predictions(
     -------
     >>> from aeon.benchmarking.results_plotting import plot_scatter_predictions
     >>> from aeon.datasets import load_covid_3month
-    >>> from aeon.regression.feature_based import FreshPRINCERegressor
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor  # doctest: +SKIP
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> fp = FreshPRINCERegressor(n_estimators=10)
-    >>> fp.fit(X_train, y_train)
-    >>> y_pred_fp = fp.predict(X_test)
+    >>> fp = FreshPRINCERegressor(n_estimators=10)  # doctest: +SKIP
+    >>> fp.fit(X_train, y_train)  # doctest: +SKIP
+    >>> y_pred_fp = fp.predict(X_test)  # doctest: +SKIP
     >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",\
         dataset="Covid3Month")  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
