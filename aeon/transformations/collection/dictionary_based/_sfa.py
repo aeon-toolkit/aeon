@@ -1015,6 +1015,7 @@ class SFA(BaseCollectionTransformer):
         letters = []
         word_bits = self.word_bits + self.level_bits
         shift = word_bits - self.letter_bits
+
         for _ in range(self.word_length, 0, -1):
             letters.append(word >> shift & self.letter_max)
             shift -= self.letter_bits
