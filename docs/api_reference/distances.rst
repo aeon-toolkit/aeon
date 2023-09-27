@@ -135,6 +135,70 @@ Edit distance for real sequences (EDR)
     edr_cost_matrix
     edr_alignment_path
 
+ADTW Distance Functions
+-----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    adtw_alignment_path
+    adtw_cost_matrix
+    adtw_distance
+    adtw_pairwise_distance
+
+Euclidean Distance Functions
+----------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    euclidean_distance
+    euclidean_pairwise_distance
+
+Manhattan Distance Functions
+----------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    manhattan_distance
+    manhattan_pairwise_distance
+
+Shape DTW Distance Functions
+-----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    shape_dtw_alignment_path
+    shape_dtw_cost_matrix
+    shape_dtw_distance
+    shape_dtw_pairwise_distance
+
+Squared Distance Functions
+--------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    squared_distance
+    squared_pairwise_distance
+
 General methods with distance argument
 --------------------------------------
 
@@ -144,11 +208,11 @@ General methods with distance argument
     :toctree: auto_generated/
     :template: function.rst
 
-    create_bounding_matrix
+    alignment_path
     cost_matrix
+    create_bounding_matrix
     distance
     pairwise_distance
-    alignment_path
 
 General methods to recover distance functions
 ---------------------------------------------
