@@ -63,9 +63,9 @@ def plot_boxplot_median(
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods)
-    >>> plot = plot_boxplot_median(results[0], methods)
-    >>> plot.show()
-    >>> plot.savefig("boxplot.pdf", bbox_inches="tight")
+    >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
+    >>> plot.show() # doctest: +SKIP
+    >>> plot.savefig("boxplot.pdf", bbox_inches="tight") # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -169,10 +169,11 @@ def plot_scatter_predictions(
     >>> fp = FreshPRINCERegressor(n_estimators=10)
     >>> fp.fit(X_train, y_train)
     >>> y_pred_fp = fp.predict(X_test)
-    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",
-    >>> dataset="Covid3Month")
-    >>> plot.show()
-    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")
+    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",\
+        dataset="Covid3Month")  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")\
+        # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -237,9 +238,9 @@ def plot_scatter(
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
     >>> results = get_estimator_results_as_array(estimators=methods)
-    >>> plot = plot_scatter(results[0], methods[0], methods[1])
-    >>> plot.show()
-    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")
+    >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
 
     """
     _check_soft_dependencies("matplotlib", "seaborn")

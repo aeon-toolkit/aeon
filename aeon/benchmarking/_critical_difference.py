@@ -234,9 +234,10 @@ def plot_critical_difference(
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods)
-    >>> plot = plot_critical_difference(results[0], methods, alpha=0.1)
-    >>> plot.show()
-    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")
+    >>> plot = plot_critical_difference(results[0], methods, alpha=0.1)\
+        # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
 
