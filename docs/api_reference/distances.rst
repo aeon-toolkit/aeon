@@ -8,6 +8,76 @@ that can be used in aeon and scikit learn estimators. It also contains tools for
 extracting the alignment paths for a distance calculation between two series, and
 tools for finding all pairwise distances
 
+ADTW Distance
+-------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    adtw_distance
+    adtw_pairwise_distance
+    adtw_cost_matrix
+    adtw_alignment_path
+
+Euclidean Distance
+------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    euclidean_distance
+    euclidean_pairwise_distance
+    euclidean_cost_matrix
+    euclidean_alignment_path
+
+Manhattan Distance
+------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    manhattan_distance
+    manhattan_pairwise_distance
+    manhattan_cost_matrix
+    manhattan_alignment_path
+
+Shape DTW Distance
+------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    shape_dtw_distance
+    shape_dtw_pairwise_distance
+    shape_dtw_cost_matrix
+    shape_dtw_alignment_path
+
+Squared Distance
+----------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    squared_distance
+    squared_pairwise_distance
+    squared_cost_matrix
+    squared_alignment_path
+
 
 Dynamic Time Warping (DTW)
 --------------------------
