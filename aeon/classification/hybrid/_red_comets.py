@@ -210,7 +210,9 @@ class REDCOMETS(BaseClassifier):
                     sampling_strategy="all", random_state=self.random_state
                 ).fit_resample(X, y)
 
-        sax_lenses, sfa_lenses = np.split(self._get_random_lenses(X_smote, n_lenses), 2)
+        lenses = self._get_random_lenses(X_smote, n_lenses)
+        sax_lenses = lenses[:n_lenses//2] 
+        sfa_lenses = lenses[n_lenses//2:]
 
         cv = np.min([5, len(y_smote) // len(list(set(y_smote)))])
 
@@ -526,9 +528,9 @@ class REDCOMETS(BaseClassifier):
         if X.shape[1] < maxCoof:
             maxCoof = X.shape[1] - 1
         if X.shape[1] < 100:
-            n_segments = list(range(5, maxCoof, 5))
+            n_segments = range(5, maxCoof, 5)
         else:
-            n_segments = list(range(10, maxCoof, 10))
+            n_segments = range(10, maxCoof, 10)
 
         maxBin = 26
         if X.shape[1] < maxBin:
@@ -539,14 +541,7 @@ class REDCOMETS(BaseClassifier):
         alphas = range(3, maxBin)
 
         rng = check_random_state(self.random_state)
-        lenses = np.array(
-            list(
-                zip(
-                    rng.choice(n_segments, size=n_lenses),
-                    rng.choice(alphas, size=n_lenses),
-                )
-            )
-        )
+        lenses = np.transpose([rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]).tolist()
         return lenses
 
     @classmethod
