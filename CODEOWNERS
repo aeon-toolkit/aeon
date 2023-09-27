@@ -12,6 +12,7 @@ aeon/classification/ @MatthewMiddlehurst @TonyBagnall
 aeon/classification/deep_learning/ @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
 aeon/classification/dictionary_based/ @patrickzib @MatthewMiddlehurst @TonyBagnall
 aeon/classification/ordinal_classification/ @RafaAyGar @dguijo @MatthewMiddlehurst @TonyBagnall
+aeon/classification/hybrid/_red_comets.py @zy18811
 
 aeon/clustering/ @chrisholder @TonyBagnall
 
