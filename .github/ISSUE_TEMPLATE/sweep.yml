@@ -9,9 +9,11 @@ body:
     value: |
       #### See the [Sweep AI docs](https://docs.sweep.dev/) for more information.
 
-      For a few line fixes, you can start your PR with "Sweep (fast): ". Sweep will use GPT-3.5 to quickly create a PR for very small changes
+      For a few line fixes, you can start your PR with `Sweep (fast): `. Sweep will use GPT-3.5 to quickly create a PR for very small changes
 
-      For larger bugs, features, refactors, and tests, you can start your PR with "Sweep (slow): ". Sweep will perform a deeper search and more self-reviews but will take longer.
+      For larger bugs, features, refactors, and tests, you can start your PR with `Sweep (slow): `. Sweep will perform a deeper search and more self-reviews but will take longer.
+
+      To see examples of sweep being used for tsml-eval, check out the [Sweep issues](https://github.com/aeon-toolkit/aeon/issues?q=is%3Aissue+label%3Asweep+).
 - type: textarea
   attributes:
     label: Details
