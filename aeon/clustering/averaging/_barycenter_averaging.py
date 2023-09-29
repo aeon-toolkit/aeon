@@ -7,6 +7,7 @@ import numpy as np
 from numba import njit
 
 from aeon.distances import (
+    adtw_alignment_path,
     ddtw_alignment_path,
     dtw_alignment_path,
     edr_alignment_path,
@@ -146,6 +147,7 @@ def _ba_update(
     c: float = 1.0,
     descriptor: str = "identity",
     reach: int = 30,
+    warp_penalty: float = 1.0,
 ) -> Tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
@@ -174,6 +176,10 @@ def _ba_update(
         elif distance == "shape_dtw":
             curr_alignment, _ = shape_dtw_alignment_path(
                 curr_ts, center, window=window, descriptor=descriptor, reach=reach
+            )
+        elif distance == "adtw":
+            curr_alignment, _ = adtw_alignment_path(
+                curr_ts, center, window=window, warp_penalty=warp_penalty
             )
         else:
             # When numba version > 0.57 add more informative error with what metric
