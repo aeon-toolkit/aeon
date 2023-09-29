@@ -18,7 +18,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 class CNNClassifier(BaseDeepClassifier):
     """
-    Time Convolutional Neural Network (CNN), as described in [1]_.
+    Time Convolutional Neural Network (CNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
