@@ -18,7 +18,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 class ResNetRegressor(BaseDeepRegressor):
     """
-    Residual Neural Network as described in [1].
+    Residual Neural Network.
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
