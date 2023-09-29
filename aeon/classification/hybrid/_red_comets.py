@@ -211,8 +211,8 @@ class REDCOMETS(BaseClassifier):
                 ).fit_resample(X, y)
 
         lenses = self._get_random_lenses(X_smote, n_lenses)
-        sax_lenses = lenses[:n_lenses//2] 
-        sfa_lenses = lenses[n_lenses//2:]
+        sax_lenses = lenses[: n_lenses // 2]
+        sfa_lenses = lenses[n_lenses // 2 :]
 
         cv = np.min([5, len(y_smote) // len(list(set(y_smote)))])
 
@@ -232,7 +232,9 @@ class REDCOMETS(BaseClassifier):
         sfa_clfs = []
         for sfa in sfa_transforms:
             sfa.fit_transform(X_smote, y_smote)
-            X_sfa = np.array([sfa.word_list(word) for word in np.array(sfa.words).ravel()])
+            X_sfa = np.array(
+                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
+            )
 
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
@@ -381,7 +383,9 @@ class REDCOMETS(BaseClassifier):
         placeholder_y = np.zeros(X.shape[0])
         for sfa, (rf, weight) in zip(self.sfa_transforms, self.sfa_clfs):
             sfa.fit_transform(X, placeholder_y)
-            X_sfa = np.array([sfa.word_list(word) for word in np.array(sfa.words).ravel()])
+            X_sfa = np.array(
+                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
+            )
 
             rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -433,7 +437,9 @@ class REDCOMETS(BaseClassifier):
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
                 sfa.fit_transform(X_d, placeholder_y)
-                X_sfa = np.array([sfa.word_list(word) for word in np.array(sfa.words).ravel()])
+                X_sfa = np.array(
+                    [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
+                )
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -535,7 +541,9 @@ class REDCOMETS(BaseClassifier):
         alphas = range(3, maxBin)
 
         rng = check_random_state(self.random_state)
-        lenses = np.transpose([rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]).tolist()
+        lenses = np.transpose(
+            [rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]
+        ).tolist()
         return lenses
 
     @classmethod
