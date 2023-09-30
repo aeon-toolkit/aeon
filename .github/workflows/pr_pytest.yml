@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FULL_TEST: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full_test') }}
+  PR_TEST: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full_test') }}
   CODECOV: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov') }}
 
 jobs:
