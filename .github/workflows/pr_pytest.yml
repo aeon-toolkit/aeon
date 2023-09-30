@@ -89,5 +89,9 @@ jobs:
       - name: echo env
         run: echo "$FULL_TEST"
 
-      - name: Run tests
+      - if: matrix.os == 'windows-2022'
+        name: Run tests
+        run: python -m pytest --prtesting $env:FULL_TEST
+      - if: matrix.os != 'windows-2022'
+        name: Run tests
         run: python -m pytest --prtesting $FULL_TEST
