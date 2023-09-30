@@ -16,12 +16,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
-env:
-  # run the full test suit if a PR has the 'full pytest actions' label
-  PR_TEST: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-  # run the code coverage job if a PR has the 'codecov actions' label
-  CODECOV: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
-
 jobs:
   test-nosoftdeps:
     runs-on: ubuntu-22.04
@@ -88,18 +82,14 @@ jobs:
       - name: Show dependencies
         run: python -m pip list
 
-      - name: echo env
-        run: echo "$PR_TEST $CODECOV"
-
-      - if: runner.os == 'Windows'
-        name: Run tests
-        run: python -m pytest --prtesting $env:PR_TEST
-      - if: runner.os != 'Windows'
-        name: Run tests
-        run: python -m pytest --prtesting $PR_TEST
+      - name: Run tests
+        # run the full test suit if a PR has the 'full pytest actions' label
+        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
-    if: $CODECOV == 'true'
+    # run the code coverage job if a PR has the 'codecov actions' label
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions')
+
     needs: test-nosoftdeps
     runs-on: ubuntu-22.04
 
