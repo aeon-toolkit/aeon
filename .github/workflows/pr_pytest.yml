@@ -64,7 +64,7 @@ jobs:
         run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
 
   pytest:
-    needs: test-nosoftdeps
+    #needs: test-nosoftdeps
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -85,6 +85,9 @@ jobs:
 
       - name: Show dependencies
         run: python -m pip list
+
+      - name: echo env
+        run: echo "$FULL_TEST"
 
       - name: Run tests
         run: python -m pytest --prtesting $FULL_TEST
