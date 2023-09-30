@@ -97,5 +97,6 @@ def test_load_covid_3month():
     assert isinstance(X, np.ndarray)
     assert len(X) == len(y)
     assert X.shape == (201, 1, 84)
+    assert isinstance(y, np.ndarray)
     X = load_covid_3month(return_X_y=False)
     assert isinstance(X, pd.DataFrame)

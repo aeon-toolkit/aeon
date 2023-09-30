@@ -113,7 +113,7 @@ def _write_data_to_tsfile(
         # ensure number of cases is same as the class value list
         if len(X) != len(y):
             raise IndexError(
-                "The number of cases is not the same as the number of labels"
+                "The number of cases in X does not match the number of values in y"
             )
     if not regression:
         class_labels = np.unique(y)
