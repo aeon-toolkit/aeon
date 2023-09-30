@@ -81,7 +81,7 @@ def plot_boxplot_median(
     if plot_type == "violin":
         plot = sns.violinplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
             bw=0.3,
         )

@@ -171,8 +171,7 @@ class SFA(BaseCollectionTransformer):
         self.typed_dict = typed_dict
 
         # we will disable typed_dict if numba is disabled
-        self.numba_disabled = os.environ.get("NUMBA_DISABLE_JIT") == "1"
-        self._typed_dict = typed_dict and not (self.numba_disabled)
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
         self.n_jobs = n_jobs
         self.random_state = random_state
