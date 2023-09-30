@@ -16,6 +16,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
+env:
+  FULL_TEST: github.event_name == "pull_request" && contains(github.event.pull_request.labels.*.name, "full_test")
+  CODECOV: github.event_name == "pull_request" && contains(github.event.pull_request.labels.*.name, "codecov")
+
 jobs:
   test-nosoftdeps:
     runs-on: ubuntu-22.04
@@ -83,4 +87,4 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --prtesting True
+        run: python -m pytest --prtesting $FULL_TEST
