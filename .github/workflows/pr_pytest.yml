@@ -87,11 +87,11 @@ jobs:
         run: python -m pip list
 
       - name: echo env
-        run: echo "$FULL_TEST"
+        run: echo "$PR_TEST $CODECOV"
 
-      - if: matrix.os == 'windows-2022'
+      - if: runner.os == 'Windows'
         name: Run tests
-        run: python -m pytest --prtesting $env:FULL_TEST
-      - if: matrix.os != 'windows-2022'
+        run: python -m pytest --prtesting $env:PR_TEST
+      - if: runner.os != 'Windows'
         name: Run tests
-        run: python -m pytest --prtesting $FULL_TEST
+        run: python -m pytest --prtesting $PR_TEST
