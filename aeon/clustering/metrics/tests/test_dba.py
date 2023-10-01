@@ -143,7 +143,18 @@ def test_dba():
 
 
 def test_elastic_dba_variations():
-    distances = ["dtw", "ddtw", "wdtw", "wddtw", "erp", "edr", "twe", "msm"]
+    distances = [
+        "dtw",
+        "ddtw",
+        "wdtw",
+        "wddtw",
+        "erp",
+        "edr",
+        "twe",
+        "msm",
+        "shape_dtw",
+        "adtw",
+    ]
     for dist in distances:
         X_train = create_test_distance_numpy(4, 2, 10)
 

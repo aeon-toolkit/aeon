@@ -5,6 +5,12 @@ from typing import Any, Callable, List, Tuple, Union
 
 import numpy as np
 
+from aeon.distances._adtw import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+)
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
     ddtw_cost_matrix,
@@ -205,6 +211,14 @@ def distance(
         )
     elif metric == "mpdist":
         return mpdist(x, y, **kwargs)
+    elif metric == "adtw":
+        return adtw_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("itakura_max_slope"),
+            kwargs.get("warp_penalty", 1.0),
+        )
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -357,6 +371,14 @@ def pairwise_distance(
         )
     elif metric == "mpdist":
         return _custom_func_pairwise(x, y, mpdist, **kwargs)
+    elif metric == "adtw":
+        return adtw_pairwise_distance(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("itakura_max_slope"),
+            kwargs.get("warp_penalty", 1.0),
+        )
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
@@ -530,6 +552,14 @@ def alignment_path(
             kwargs.get("c", 1.0),
             kwargs.get("itakura_max_slope"),
         )
+    elif metric == "adtw":
+        return adtw_alignment_path(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("itakura_max_slope"),
+            kwargs.get("warp_penalty", 1.0),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -661,6 +691,14 @@ def cost_matrix(
             kwargs.get("c", 1.0),
             kwargs.get("itakura_max_slope"),
         )
+    elif metric == "adtw":
+        return adtw_cost_matrix(
+            x,
+            y,
+            kwargs.get("window"),
+            kwargs.get("itakura_max_slope"),
+            kwargs.get("warp_penalty", 1.0),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -676,6 +714,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'ddtw'          distance.ddtw_distance
     'wdtw'          distance.wdtw_distance
     'wddtw'         distance.wddtw_distance
+    'adtw'          distance.adtw_distance
     'erp'           distance.erp_distance
     'edr'           distance.edr_distance
     'msm'           distance.msm_distance
@@ -729,6 +768,7 @@ def get_pairwise_distance_function(
     'ddtw'          distance.ddtw_pairwise_distance
     'wdtw'          distance.wdtw_pairwise_distance
     'wddtw'         distance.wddtw_pairwise_distance
+    'adtw'          distance.adtw_pairwise_distance
     'erp'           distance.erp_pairwise_distance
     'edr'           distance.edr_pairwise_distance
     'msm'           distance.msm_pairiwse_distance
@@ -783,6 +823,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     'ddtw'          distance.ddtw_alignment_path
     'wdtw'          distance.wdtw_alignment_path
     'wddtw'         distance.wddtw_alignment_path
+    'adtw'          distance.adtw_alignment_path
     'erp'           distance.erp_alignment_path
     'edr'           distance.edr_alignment_path
     'msm'           distance.msm_alignment_path
@@ -830,6 +871,7 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     'ddtw'          distance.ddtw_cost_matrix
     'wdtw'          distance.wdtw_cost_matrix
     'wddtw'         distance.wddtw_cost_matrix
+    'adtw'          distance.adtw_cost_matrix
     'erp'           distance.erp_cost_matrix
     'edr'           distance.edr_cost_matrix
     'msm'           distance.msm_cost_matrix
@@ -955,6 +997,13 @@ DISTANCES = [
         "pairwise_distance": msm_pairwise_distance,
         "cost_matrix": msm_cost_matrix,
         "alignment_path": msm_alignment_path,
+    },
+    {
+        "name": "adtw",
+        "distance": adtw_distance,
+        "pairwise_distance": adtw_pairwise_distance,
+        "cost_matrix": adtw_cost_matrix,
+        "alignment_path": adtw_alignment_path,
     },
     {
         "name": "shape_dtw",
