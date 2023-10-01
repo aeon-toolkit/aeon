@@ -64,17 +64,17 @@ jobs:
           name: dist
           path: dist
 
-      - if: matrix.os == 'windows-2022'
+      - if: runner.os == 'Windows'
         name: Windows wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $env:GITHUB_ENV
-      - if: matrix.os != 'windows-2022'
+      - if: runner.os != 'Windows'
         name: Unix wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
 
-      - if: matrix.os == 'windows-2022'
+      - if: runner.os == 'Windows'
         name: Windows install
         run: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
-      - if: matrix.os != 'windows-2022'
+      - if: runner.os != 'Windows'
         name: Unix install
         run: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
