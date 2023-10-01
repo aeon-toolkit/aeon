@@ -14,11 +14,8 @@ from aeon.benchmarking.results_loaders import (
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
-data_path = (
-    "./aeon/benchmarking/example_results/"
-    if os.getcwd().split("\\")[-1] != "tests"
-    else "../example_results/"
-)
+test_path = os.path.dirname(__file__)
+data_path = os.path.join(test_path, "../example_results/")
 
 
 def test_get_estimator_results():
