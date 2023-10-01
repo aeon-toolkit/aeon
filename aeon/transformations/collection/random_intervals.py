@@ -492,4 +492,7 @@ class RandomIntervals(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"n_intervals": 2}
+        if parameter_set == "results_comparison":
+            return {"n_intervals": 3}
+        else:
+            return {"n_intervals": 2}

@@ -562,7 +562,13 @@ class SupervisedIntervals(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {
-            "n_intervals": 1,
-            "randomised_split_point": False,
-        }
+        if parameter_set == "results_comparison":
+            return {
+                "n_intervals": 1,
+                "randomised_split_point": True,
+            }
+        else:
+            return {
+                "n_intervals": 1,
+                "randomised_split_point": False,
+            }

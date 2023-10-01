@@ -16,7 +16,7 @@ from joblib import Parallel, delayed
 from numba import njit
 from numba.typed.typedlist import List
 from sklearn import preprocessing
-from sklearn.utils import check_random_state
+from sklearn.utils._random import check_random_state
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
@@ -238,6 +238,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         )
         n_shapelets_extracted = 0
 
+        rng = check_random_state(self.random_state)
+
         if time_limit > 0:
             while (
                 fit_time < time_limit
@@ -252,6 +254,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         n_shapelets_extracted + i,
                         shapelets,
                         max_shapelets_per_class,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(self._batch_size)
                 )
@@ -289,6 +292,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         n_shapelets_extracted + i,
                         shapelets,
                         max_shapelets_per_class,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
                     for i in range(n_shapelets_to_extract)
                 )
@@ -322,7 +326,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             for s in class_shapelets
             if s[0] > 0
         ]
-        self.shapelets.sort(reverse=True, key=lambda s: (s[0], s[1], s[2], s[3], s[4]))
+        self.shapelets.sort(reverse=True, key=lambda s: (s[0], -s[1], s[2], s[3], s[4]))
 
         to_keep = self._remove_identical_shapelets(List(self.shapelets))
         self.shapelets = [n for (n, b) in zip(self.shapelets, to_keep) if b]
@@ -388,17 +392,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
+        if parameter_set == "results_comparison":
+            return {"max_shapelets": 10, "n_shapelet_samples": 500}
+        else:
+            return {"max_shapelets": 5, "n_shapelet_samples": 50, "batch_size": 20}
 
-    def _extract_random_shapelet(self, X, y, i, shapelets, max_shapelets_per_class):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (i + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _extract_random_shapelet(
+        self, X, y, i, shapelets, max_shapelets_per_class, rng
+    ):
         inst_idx = i % self.n_instances
         cls_idx = int(y[inst_idx])
         worst_quality = (
@@ -434,7 +435,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             worst_quality,
         )
 
-        return quality, length, position, dim, inst_idx, cls_idx
+        return np.round(quality, 8), length, position, dim, inst_idx, cls_idx
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -520,9 +521,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
             for n in range(i + 1, len(shapelet_heap)):
                 if to_keep[n] and _is_self_similar(shapelet_heap[i], shapelet_heap[n]):
-                    if (shapelet_heap[i][0], shapelet_heap[i][1]) >= (
+                    if (shapelet_heap[i][0], -shapelet_heap[i][1]) >= (
                         shapelet_heap[n][0],
-                        shapelet_heap[n][1],
+                        -shapelet_heap[n][1],
                     ):
                         to_keep[n] = False
                     else:
@@ -537,6 +538,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         to_keep = [True] * len(shapelets)
 
         for i in range(len(shapelets)):
+            if to_keep[i] is False:
+                continue
+
             for n in range(i + 1, len(shapelets)):
                 if (
                     to_keep[n]

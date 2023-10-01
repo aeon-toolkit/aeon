@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from aeon.classification.distance_based import ElasticEnsemble
-from aeon.utils._testing.collection import make_2d_test_data
 
 DISTANCE = [
     "lcss",
@@ -50,7 +49,8 @@ def test_get_100_param_options(dist, data):
 
 def test_proportion_train_in_param_finding():
     """Test proportion in train for parameter finding."""
-    X, y = make_2d_test_data(n_cases=10, n_timepoints=10, n_labels=2)
+    X = np.random.random(size=(10, 1, 10))
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     ee = ElasticEnsemble(
         distance_measures=["dtw"], proportion_train_in_param_finding=0.1
     )
