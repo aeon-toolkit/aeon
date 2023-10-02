@@ -25,6 +25,7 @@ __all__ = [
 __author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
 import time
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -98,6 +99,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         else:
             return NotImplemented
 
+    @final
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 
@@ -134,8 +136,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts target variable for time series in X.
 
         Parameters
         ----------

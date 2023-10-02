@@ -5,6 +5,7 @@ __all__ = ["BaseClusterer"]
 
 import time
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 
@@ -22,11 +23,12 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
     """
 
     def __init__(self, n_clusters: int = None):
-        self.fit_time_ = 0
         self.n_clusters = n_clusters
+        self._estimator_type = "clusterer"
         super(BaseClusterer, self).__init__()
         _check_estimator_deps(self)
 
+    @final
     def fit(self, X, y=None) -> BaseCollectionEstimator:
         """Fit time series clusterer to training data.
 
@@ -55,6 +57,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
@@ -95,6 +98,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self.fit(X)
         return self.predict(X)
 
+    @final
     def predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
