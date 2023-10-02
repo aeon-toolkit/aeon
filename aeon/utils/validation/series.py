@@ -60,7 +60,11 @@ def _check_is_univariate(y, var_name="input"):
 
 
 def _check_is_multivariate(Z, var_name="input"):
-    """Check if series is multivariate."""
+    """Check if series is multivariate.
+
+    Warning: this function assumes ndarrays are in (n_timepoints, n_channels) shape. Do
+    not use with collections of time series.
+    """
     if isinstance(Z, pd.Series):
         raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
     if isinstance(Z, pd.DataFrame):

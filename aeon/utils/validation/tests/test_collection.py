@@ -8,6 +8,20 @@ from aeon.datasets import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
 from aeon.utils.validation._convert_collection import (
     _equal_length,
+    _from_nested_univ_to_numpyflat,
+    _from_nested_univ_to_pd_multiindex,
+    _from_numpy3d_to_df_list,
+    _from_numpy3d_to_nested_univ,
+    _from_numpy3d_to_np_list,
+    _from_numpy3d_to_numpyflat,
+    _from_numpy3d_to_pd_multiindex,
+    _from_numpy3d_to_pd_wide,
+    _from_numpyflat_to_df_list,
+    _from_numpyflat_to_nested_univ,
+    _from_numpyflat_to_np_list,
+    _from_numpyflat_to_numpy3d,
+    _from_numpyflat_to_pd_multiindex,
+    _from_numpyflat_to_pd_wide,
     _is_nested_univ_dataframe,
     _is_pd_wide,
 )
@@ -189,7 +203,6 @@ def test_has_missing(data):
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
     X = np.random.random(size=(10, 2, 20))
     X[5][1][12] = np.NAN
-    # TODO: Test others with missing when converters complete
     assert has_missing(X)
 
 
@@ -214,3 +227,53 @@ def test__is_pd_wide(data):
         assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
     else:
         assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+
+
+NUMPY3D = [
+    _from_numpy3d_to_pd_wide,
+    _from_numpy3d_to_np_list,
+    _from_numpy3d_to_df_list,
+    _from_numpy3d_to_pd_wide,
+    _from_numpy3d_to_numpyflat,
+    _from_numpy3d_to_nested_univ,
+    _from_numpy3d_to_pd_multiindex,
+]
+
+
+@pytest.mark.parametrize("function", NUMPY3D)
+def test_numpy3D_error(function):
+    X = np.random.random(size=(10, 20))
+    with pytest.raises(TypeError, match="Input should be 3-dimensional NumPy array"):
+        function(X)
+
+
+NUMPY2D = [
+    _from_numpyflat_to_numpy3d,
+    _from_numpyflat_to_np_list,
+    _from_numpyflat_to_df_list,
+    _from_numpyflat_to_pd_wide,
+    _from_numpyflat_to_nested_univ,
+    _from_numpyflat_to_pd_multiindex,
+]
+
+
+@pytest.mark.parametrize("function", NUMPY2D)
+def test_numpy2D_error(function):
+    X = np.random.random(size=(10, 2, 20))
+    with pytest.raises(TypeError, match="Input should be 2-dimensional np.ndarray"):
+        function(X)
+
+
+def test_from_nested():
+    # Test with multiple nested columns and non-nested columns
+    data = {
+        "A": [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
+        "B": [pd.Series(["a", "b", "c"]), pd.Series(["x", "y", "z"])],
+        "C": [7, 8],
+    }
+    X = pd.DataFrame(data)
+    result = _from_nested_univ_to_pd_multiindex(X)
+    assert isinstance(result, pd.DataFrame)
+    # Test when input is a pandas Series
+    X = np.random.random(size=(10, 2, 20))
+    result = _from_nested_univ_to_numpyflat(data)

@@ -84,7 +84,7 @@ def _from_numpy3d_to_np_list(X):
     list : list [n_instances] np.ndarray
         A list of np.ndarray
     """
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
     np_list = []
     for arr in X:
@@ -111,7 +111,7 @@ def _from_numpy3d_to_df_list(X):
     -----
     TypeError if X not 3D numpy array
     """
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
     df_list = []
     for x in X:
@@ -138,7 +138,7 @@ def _from_numpy3d_to_pd_wide(X):
     -----
     TypeError if X not 3D numpy array
     """
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
     X_flat = _from_numpy3d_to_numpyflat(X)
     return pd.DataFrame(X_flat)
@@ -146,7 +146,7 @@ def _from_numpy3d_to_pd_wide(X):
 
 def _from_numpy3d_to_numpyflat(X):
     """Convert 3D np.darray to a 2D np.ndarray."""
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
     X_flat = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
     return X_flat
@@ -154,7 +154,7 @@ def _from_numpy3d_to_numpyflat(X):
 
 def _from_numpy3d_to_pd_multiindex(X):
     """Convert numpy3D collection to pandas multi-index collection."""
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
 
     n_instances, n_channels, n_timepoints = X.shape
@@ -171,7 +171,7 @@ def _from_numpy3d_to_pd_multiindex(X):
 
 def _from_numpy3d_to_nested_univ(X):
     """Convert numpy3D collection to nested_univ pd.DataFrame."""
-    if not isinstance(X, np.ndarray) and X.ndim != 3:
+    if X.ndim != 3:
         raise TypeError(numpy3D_error)
     n_instances, n_channels, n_timepoints = X.shape
     array_type = X.dtype
@@ -476,28 +476,7 @@ def _from_nested_univ_to_df_list(X):
 def _from_nested_univ_to_numpyflat(X):
     if not _nested_univ_is_equal(X):
         raise TypeError("Cannot convert unequal length series to numpyflat")
-    # convert nested data into tabular data
-    if isinstance(X, pd.Series):
-        Xt = np.array(X.tolist())
-
-    elif isinstance(X, pd.DataFrame):
-        try:
-            Xt = np.hstack([X.iloc[:, i].tolist() for i in range(X.shape[1])])
-
-        # except strange key error for specific case
-        except KeyError:
-            if (X.shape == (1, 1)) and (X.iloc[0, 0].shape == (1,)):
-                # in fact only breaks when an additional condition is met,
-                Xt = X.iloc[0, 0].values
-            else:
-                raise
-    #        if Xt.ndim != 2:
-    #            raise TypeError("Cannot convert nested_univ to numpyflat")
-    else:
-        raise TypeError(
-            f"Expected input is pandas Series or pandas DataFrame, "
-            f"but found: {type(X)}"
-        )
+    Xt = np.hstack([X.iloc[:, i].tolist() for i in range(X.shape[1])])
     return Xt
 
 
@@ -577,7 +556,7 @@ def _equal_length(X, input_type):
 
     Raises
     ------
-    ValueError if input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+    ValueError if input_type not in COLLECTIONS_DATA_TYPES.
 
     Example
     -------
@@ -606,8 +585,5 @@ def _equal_length(X, input_type):
     if input_type == "pd-multiindex":
         # TEMPORARY: WORK OUT HOW TO TEST THESE
         return True
-    #        raise ValueError(" Multi index not supported here ")
-    if input_type == "dask_panel":
-        raise ValueError(" DASK panel not supported here ")
     raise ValueError(f" unknown input type {input_type}")
     return False
