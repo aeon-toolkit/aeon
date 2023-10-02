@@ -9,6 +9,7 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["TemporalDictionaryEnsemble", "IndividualTDE", "histogram_intersection"]
 
 import math
+import os
 import time
 import warnings
 from collections import defaultdict
@@ -737,6 +738,9 @@ class IndividualTDE(BaseClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
 
+        # we will disable typed_dict if numba is disabled
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
+
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
@@ -752,7 +756,7 @@ class IndividualTDE(BaseClassifier):
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, ndict in enumerate(state["_transformed_data"]):
                 pdict = dict()
@@ -765,7 +769,7 @@ class IndividualTDE(BaseClassifier):
     def __setstate__(self, state):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, pdict in enumerate(self._transformed_data):
                 ndict = (
@@ -814,7 +818,7 @@ class IndividualTDE(BaseClassifier):
                     )
                     for _ in range(self.n_instances_)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(self.n_instances_)]
             )
 
@@ -824,7 +828,7 @@ class IndividualTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(self.n_instances_):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
@@ -884,7 +888,7 @@ class IndividualTDE(BaseClassifier):
                     )
                     for _ in range(num_cases)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(num_cases)]
             )
 
@@ -894,7 +898,7 @@ class IndividualTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(num_cases):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
