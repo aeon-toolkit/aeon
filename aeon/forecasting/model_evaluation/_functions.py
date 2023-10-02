@@ -8,6 +8,7 @@ __all__ = ["evaluate"]
 
 import time
 import warnings
+from copy import deepcopy
 from typing import List, Optional, Union
 
 import numpy as np
@@ -15,7 +16,8 @@ import pandas as pd
 
 from aeon.datatypes import check_is_scitype, convert_to
 from aeon.exceptions import FitFailedWarning
-from aeon.forecasting.base import ForecastingHorizon
+from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+from aeon.forecasting.base._base import _format_moving_cutoff_predictions
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -480,3 +482,83 @@ def evaluate(
     results = results.astype({"len_train_window": int}).reset_index(drop=True)
 
     return results
+
+
+def cv_fit_predict(
+    forecaster: BaseForecaster, cv, y, X=None, deep_copy_forecaster=True
+) -> pd.DataFrame:
+    """Placeholders docstring."""
+    # borrow from _predict_moving_cutoff
+    # use _format_moving_cutoff_predictions func
+    # use the backend stuff from evaluate for parallel preds
+    # maybe reformat _evaluate_window to be _predict_window
+    if deep_copy_forecaster:
+        forecaster = deepcopy(forecaster)
+    fh = cv.get_fh()
+    y_preds = []
+    cutoffs = []
+
+    # iterate over data
+    for new_window, _ in cv.split(y):
+        y_new = y.iloc[new_window]
+        # TODO: should we adjust the X index too here?
+        y_pred = forecaster.fit_predict(
+            y=y_new,
+            fh=fh,
+            X=X,
+        )
+
+        y_preds.append(y_pred)
+        cutoffs.append(forecaster.cutoff)
+
+    for i, y_pred in enumerate(y_preds):
+        y_preds[i] = convert_to(
+            y_pred,
+            forecaster._y_mtype_last_seen,
+            store=forecaster._converter_store_y,
+            store_behaviour="freeze",
+        )
+
+    return _format_moving_cutoff_predictions(y_preds, cutoffs)
+
+
+def cv_update_predict(
+    forecaster: BaseForecaster,
+    cv,
+    y,
+    X=None,
+    update_params=True,
+    fit_on_fist_split=False,
+    deep_copy_forecaster=True,
+):
+    """Placeholders docstring."""
+    fit = fit_on_fist_split
+    if deep_copy_forecaster:
+        forecaster = deepcopy(forecaster)
+    fh = cv.get_fh()
+    y_preds = []
+    cutoffs = []
+
+    # iterate over data
+    for new_window, _ in cv.split(y):
+        y_new = y.iloc[new_window]
+        # TODO: should we adjust the X index too here?
+        if fit:
+            y_pred = forecaster.fit_predict(y=y_new, fh=fh, X=X)
+            fit = False
+        else:
+            y_pred = forecaster.update_predict_single(
+                y=y_new, fh=fh, X=X, update_params=update_params
+            )
+        y_preds.append(y_pred)
+        cutoffs.append(forecaster.cutoff)
+
+    for i, y_pred in enumerate(y_preds):
+        y_preds[i] = convert_to(
+            y_pred,
+            forecaster._y_mtype_last_seen,
+            store=forecaster._converter_store_y,
+            store_behaviour="freeze",
+        )
+
+    return _format_moving_cutoff_predictions(y_preds, cutoffs)

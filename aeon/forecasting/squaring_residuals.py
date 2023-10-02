@@ -11,6 +11,7 @@ import pandas as pd
 
 from aeon.datatypes._convert import convert_to
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+from aeon.forecasting.model_evaluation._functions import cv_update_predict
 from aeon.forecasting.model_selection import ExpandingWindowSplitter
 from aeon.forecasting.naive import NaiveForecaster
 
@@ -159,7 +160,14 @@ class SquaringResiduals(BaseForecaster):
         y = convert_to(y, "pd.Series")
         cv = ExpandingWindowSplitter(initial_window=self.initial_window, fh=fh_rel)
         self._forecaster_.fit(y=y.iloc[: self.initial_window], X=X)
-        y_pred = self._forecaster_.update_predict(y=y, cv=cv, X=X, update_params=True)
+        y_pred = cv_update_predict(
+            forecaster=self._forecaster_,
+            y=y,
+            cv=cv,
+            X=X,
+            update_params=True,
+            deep_copy_forecaster=True,
+        )
 
         for step_ahead in fh_rel:
             if isinstance(y.index, pd.DatetimeIndex):
@@ -187,7 +195,7 @@ class SquaringResiduals(BaseForecaster):
                 residuals = residuals**2
             else:
                 residuals = residuals.abs()
-            # residuals.index = y_step_index
+
             if isinstance(residuals.index, pd.DatetimeIndex):
                 residuals = residuals.asfreq(y.index.freq)
 
