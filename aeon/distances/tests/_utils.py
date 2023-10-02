@@ -8,7 +8,7 @@ from sklearn.utils.validation import check_random_state
 
 def create_test_distance_numpy(
     n_instance: int,
-    n_columns: int = None,
+    n_channels: int = None,
     n_timepoints: int = None,
     random_state: int = 1,
 ):
@@ -18,10 +18,10 @@ def create_test_distance_numpy(
     ----------
     n_instance: int
         Number of instances to create.
-    n_columns: int
-        Number of columns to create.
+    n_channels: int
+        Number of channels to create.
     n_timepoints: int, default=None
-        Number of timepoints to create in each column.
+        Number of timepoints to create in each channel.
     random_state: int, default=1
         Random state to initialise with.
 
@@ -33,11 +33,11 @@ def create_test_distance_numpy(
     """
     rng = check_random_state(random_state)
     # Generate data as 3d numpy array
-    if n_timepoints is None and n_columns is None:
+    if n_timepoints is None and n_channels is None:
         return rng.normal(scale=0.5, size=(1, n_instance))
     if n_timepoints is None:
-        return rng.normal(scale=0.5, size=(n_instance, n_columns))
-    return rng.normal(scale=0.5, size=(n_instance, n_columns, n_timepoints))
+        return rng.normal(scale=0.5, size=(n_instance, n_channels))
+    return rng.normal(scale=0.5, size=(n_instance, n_channels, n_timepoints))
 
 
 def _time_distance(callable: Callable, average: int = 30, **kwargs):
