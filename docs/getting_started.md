@@ -8,7 +8,7 @@ We assume basic familiarity with the [scikit-learn](https://scikit-learn.org/sta
 package. If you want help with scikit-learn you may want to view
 [their getting started guides](https://scikit-learn.org/stable/getting_started.html).
 
-`aeon` is an open source toolkit for learning from time series. It provides access to
+`aeon` is an open-source toolkit for learning from time series. It provides access to
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
@@ -190,12 +190,12 @@ extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
 
-Classification generally use numpy arrays to store time series. We recommend storing
+Classification generally uses numpy arrays to store time series. We recommend storing
 time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
-n_timepoints)`even if each time series is univariate (i.e. `n_channels == 1`).
+n_timepoints)` even if each time series is univariate (i.e. `n_channels == 1`).
 Classifiers will work with 2D input of shape `(n_cases, n_timepoints)` as you would
 expect from `scikit-learn`, but other packages may treat 2D input as a single
-multivariate series. This is the case  for non-collection transformers, and you may
+multivariate series. This is the case for non-collection transformers, and you may
 find unexpected outputs if you input a 2D array treating it as multiple time series.
 
 Note we assume series length is always the same for all channels of a single series
@@ -265,7 +265,8 @@ KNeighborsTimeSeriesRegressor()
 
 Like classification and regression, time series clustering aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
-the TSC and TSER modules. This example fits a `TimeSeriesKMeans` clusterer on the
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
+clusterer on the
 [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
