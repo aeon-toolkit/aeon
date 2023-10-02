@@ -612,7 +612,7 @@ class IndividualTDE(BaseClassifier):
     Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
 
     Base classifier for the TDE classifier. Implementation of single TDE base model
-    from [1]_
+    from [1]_.
 
     Overview: input "n" series of length "m" and IndividualTDE performs a SFA
     transform to form a sparse dictionary of discretised words. The resulting
