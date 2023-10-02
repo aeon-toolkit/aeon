@@ -24,9 +24,9 @@ from aeon.exceptions import NotFittedError
 class ContinuousIntervalTree(BaseEstimator):
     """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
 
-    The `Time Series Tree` described in the Time Series Forest (TSF) paper Deng et al
-    (2013) [1]. A simple information gain based tree for continuous attributes using a
-    bespoke margin gain metric for tie breaking.
+    The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
+    information gain based tree for continuous attributes using a bespoke margin gain
+    metric for tie breaking.
 
     Implemented as a bade classifier for interval based time series classifiers such as
     `CanonicalIntervalForest` and `DrCIF`.

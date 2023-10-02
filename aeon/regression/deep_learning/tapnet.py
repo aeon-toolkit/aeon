@@ -19,12 +19,14 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class TapNetRegressor(BaseDeepRegressor):
-    """Time series attentional prototype network (TapNet), as described in [1].
+    """Time series attentional prototype network (TapNet).
 
-     TapNet was initially proposed for multivariate time series
-     classification. The is an adaptation for time series regression. TapNet comprises
-     these components: random dimension permutation, multivariate time series
-     encoding, and attentional prototype learning.
+    Adapted from the implementation used in [1]_.
+
+    TapNet was initially proposed for multivariate time series classification. The is an
+    adaptation for time series regression. TapNet comprises these components: random
+    dimension permutation, multivariate time series encoding, and attentional
+    prototype learning.
 
     Parameters
     ----------

@@ -31,8 +31,8 @@ class RocketClassifier(BaseClassifier):
     transformer, performs a Standard scaling and fits a sklearn classifier,
     using the transformed data (default classifier is RidgeClassifierCV).
 
-    The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The classifier can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------
