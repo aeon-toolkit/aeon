@@ -71,6 +71,17 @@ class REDCOMETS(BaseClassifier):
     .. [2] Zahraa S. Abdallah and Mohamed Medhat Gaber, "Co-eye: a multi-resolution
        ensemble classifier for symbolically approximated time series."
        Machine Learning (2020).
+
+    Examples
+    --------
+    >>> from aeon.classification.dictionary_based import REDCOMETS
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> clf = REDCOMETS()
+    >>> clf.fit(X_train, y_train)
+    REDCOMETS(...)
+    >>> y_pred = clf.predict(X_test)
     """
 
     _tags = {
