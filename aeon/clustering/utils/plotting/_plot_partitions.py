@@ -7,7 +7,7 @@ __all__ = ["plot_cluster_algorithm"]
 import numpy as np
 import pandas as pd
 
-from aeon.clustering.partitioning import TimeSeriesLloyds
+from aeon.clustering.base import BaseClusterer
 from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -57,7 +57,7 @@ def plot_series(X):
     plt.show()
 
 
-def plot_cluster_algorithm(model: TimeSeriesLloyds, X, k: int):
+def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     """Plot the results from a univariate partitioning algorithm.
 
     Parameters

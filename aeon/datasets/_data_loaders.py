@@ -1100,21 +1100,21 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     # Check if data already in extract path or, if extract_path None,
     # in datasets/data directory
     if name not in list_downloaded_tsf_datasets(extract_path):
-        if extract_path is None:
-            local_dirname = "local_data"
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in list_downloaded_tsc_tsr_datasets(
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download and install it.
+        if name in tsf_all.keys():
+            id = tsf_all[name]
+            if extract_path is None:
+                local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
+        else:
+            raise ValueError(
+                f"File name {name} is not in the list of valid files to download"
+            )
+        if name not in list_downloaded_tsf_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            # Dataset is not already present in the datasets directory provided.
-            # If it is not there, download and install it.
-            if name in tsf_all.keys():
-                id = tsf_all[name]
-            else:
-                raise ValueError(
-                    f"File name {name} is not in the list of valid files to download"
-                )
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
@@ -1185,10 +1185,16 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     if name not in list_downloaded_tsc_tsr_datasets(extract_path):
-        if extract_path is None:
-            local_dirname = "local_data"
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
+        if name in tser_all.keys():
+            id = tser_all[name]
+            if extract_path is None:
+                local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
+        else:
+            raise ValueError(
+                f"File name {name} is not in the list of valid files to download"
+            )
         if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
