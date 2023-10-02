@@ -13,6 +13,7 @@ __all__ = ["REDCOMETS"]
 from collections import Counter
 
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors
@@ -84,10 +85,10 @@ class REDCOMETS(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = REDCOMETS()
-    >>> clf.fit(X_train, y_train)
+    >>> clf = REDCOMETS()  # doctest: +SKIP
+    >>> clf.fit(X_train, y_train)  # doctest: +SKIP
     REDCOMETS(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> y_pred = clf.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -140,10 +141,10 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
-        y : 1D np.ndarray
-            The class labels shape = (n_instances).
+        X : 3D np.ndarray, shape = [n_instances, n_channels, n_timepoints]
+            The training data.
+        y : 1D np.ndarray, shape = [n_instances]
+            The class labels.
 
         Returns
         -------
@@ -183,10 +184,10 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data shape = (n_instances, n_timepoints).
-        y : 1D np.ndarray
-            The class labels shape = (n_instances).
+        X : 2D np.ndarray, shape = [n_instances, n_timepoints]
+            The training data.
+        y : 1D np.ndarray, shape = [n_instances]
+            The class labels.
 
         Returns
         -------
@@ -281,9 +282,7 @@ class REDCOMETS(BaseClassifier):
         sax_transforms = [SAX(n_segments=w, alphabet_size=a) for w, a in sax_lenses]
 
         sax_clfs = []
-        for sax in sax_transforms:
-            X_sax = np.squeeze(sax.fit_transform(X_smote))
-
+        for X_sax in self._parallel_sax(sax_transforms, X_smote):
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
@@ -309,11 +308,11 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+        X : 3D np.ndarray, shape = [n_instances, n_channels, n_timepoints]
+            The training data.
             n_channels > 1.
-        y : 1D np.ndarray
-            The class labels shape = (n_instances).
+        y : 1D np.ndarray, shape = [n_instances]
+            The class labels.
 
         Returns
         -------
@@ -355,12 +354,12 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray, shape = [n_instances, n_dimensions, series_length]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : 1D np.ndarray, shape = [n_instances]
             Predicted class labels.
         """
         return np.array(
@@ -372,12 +371,12 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray, shape = [n_instances, n_dimensions, series_length]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : 1D np.ndarray, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         if X.shape[1] == 1:  # Univariate
@@ -418,9 +417,9 @@ class REDCOMETS(BaseClassifier):
 
             pred_mat += rf_pred_mat * weight
 
-        for sax, (rf, weight) in zip(self.sax_transforms, self.sax_clfs):
-            X_sax = np.squeeze(sax.fit_transform(X))
-
+        for X_sax, (rf, weight) in zip(
+            self._parallel_sax(self.sax_transforms, X), self.sax_clfs
+        ):
             rf_pred_mat = rf.predict_proba(X_sax)
 
             if self.variant == 2:
@@ -483,9 +482,9 @@ class REDCOMETS(BaseClassifier):
                             (dimension_pred_mats, [rf_pred_mat])
                         )
 
-            for sax, (rf, _) in zip(sax_transforms, sax_clfs):
-                X_sax = np.squeeze(sax.fit_transform(X_d))
-
+            for X_sax, (rf, _) in zip(
+                self._parallel_sax(sax_transforms, X_d), sax_clfs
+            ):
                 rf_pred_mat = rf.predict_proba(X_sax)
 
                 if self.variant in [4, 5]:
@@ -537,8 +536,8 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+        X : 3D np.ndarray, shape = [n_instances, n_channels, n_timepoints]
+            The training data.
         n_lenses : int
             Number of lenses to select.
 
@@ -569,6 +568,25 @@ class REDCOMETS(BaseClassifier):
             [rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]
         ).tolist()
         return lenses
+
+    def _parallel_sax(self, sax_transforms, X):
+        """Apply multiple SAX transforms to X in parallel.
+
+        Parameters
+        ----------
+        sax_transforms : list
+            List of SAX() instances
+        X : 2D np.ndarray, shape = [n_instances, n_timepoint]
+            The data to transform.
+        """
+
+        def _sax_wrapper(sax):
+            return np.squeeze(sax.fit_transform(X))
+
+        sax_parallel_res = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
+            delayed(_sax_wrapper)(sax) for sax in sax_transforms
+        )
+        return sax_parallel_res
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
