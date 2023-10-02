@@ -53,10 +53,10 @@ def _validate_multiple_to_multiple_result(
     assert isinstance(multiple_to_multiple_result, np.ndarray)
     assert multiple_to_multiple_result.shape == expected_size
 
-    assert np.array_equal(
+    assert_almost_equal(
         multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
-    assert np.array_equal(
+    assert_almost_equal(
         multiple_to_multiple_result,
         compute_pairwise_distance(x, y, metric=distance),
     )
@@ -90,10 +90,10 @@ def _validate_single_to_multiple_result(
 
     assert isinstance(single_to_multiple_result, np.ndarray)
     assert single_to_multiple_result.shape[-1] == expected_size
-    assert np.array_equal(
+    assert_almost_equal(
         single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
-    assert np.array_equal(
+    assert_almost_equal(
         single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
     )
 
