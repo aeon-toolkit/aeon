@@ -171,8 +171,7 @@ class SFA(BaseCollectionTransformer):
         self.typed_dict = typed_dict
 
         # we will disable typed_dict if numba is disabled
-        self.numba_disabled = os.environ.get("NUMBA_DISABLE_JIT") == "1"
-        self._typed_dict = typed_dict and not (self.numba_disabled)
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -1020,7 +1019,7 @@ class SFA(BaseCollectionTransformer):
             letters.append(word >> shift & self.letter_max)
             shift -= self.letter_bits
 
-        if word.bit_length() > self.word_bits + self.level_bits:
+        if int(word).bit_length() > self.word_bits + self.level_bits:
             bigram_letters = []
             shift = self.word_bits + word_bits - self.letter_bits
             for _ in range(self.word_length, 0, -1):
@@ -1048,7 +1047,7 @@ class SFA(BaseCollectionTransformer):
             letters.append(word >> shift & self.letter_max)
             shift -= self.letter_bits
 
-        if word.bit_length() > self.word_bits:
+        if int(word).bit_length() > self.word_bits:
             bigram_letters = []
             shift = self.word_bits + self.word_bits - self.letter_bits
             for _ in range(self.word_length, 0, -1):

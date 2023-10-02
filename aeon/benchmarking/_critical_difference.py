@@ -173,7 +173,7 @@ def plot_critical_difference(
     highlight=None,
     errors=False,
     cliques=None,
-    clique_method="nemenyi",
+    clique_method="holm",
     alpha=0.05,
     width=6,
     textspace=1.5,
@@ -212,7 +212,7 @@ def plot_critical_difference(
             e.g. [[0,1,1,1,0,0], [0,0,0,0,1,1]]
             statistically similiar cliques of estimators
             If none, cliques will be computed depending on clique_method
-        clique_method : string, default = "nemenyi"
+        clique_method : string, default = "holm"
             clique forming method, to include "nemenyi" and "holm"
         alpha : float default = 0.05
              Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
@@ -222,6 +222,22 @@ def plot_critical_difference(
            space on figure sides (in inches) for the method names (default: 1.5)
         reverse : bool, default = True
            if set to 'True', the lowest rank is on the right
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_critical_difference(results[0], methods, alpha=0.1)\
+        # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
 

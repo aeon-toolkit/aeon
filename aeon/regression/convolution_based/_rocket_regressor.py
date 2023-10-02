@@ -29,8 +29,8 @@ class RocketRegressor(BaseRegressor):
     This regressor simply transforms the input data using the Rocket [1]_
     transformer and builds a RidgeCV estimator using the transformed data.
 
-    The regressor can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The regressor can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------

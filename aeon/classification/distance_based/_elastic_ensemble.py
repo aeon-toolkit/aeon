@@ -28,9 +28,9 @@ from aeon.utils.numba.general import slope_derivative_2d
 
 
 class ElasticEnsemble(BaseClassifier):
-    """The Elastic Ensemble (EE).
+    """The Elastic Ensemble (EE) of time series distance measures.
 
-    The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
+    The Elastic Ensemble [1]_ is an ensemble of 1-NN classifiers using elastic
     distances (as defined in aeon.distances). By default, each 1-NN classifier
     is tuned over 100 parameter values and the ensemble vote is weighted by
     an estimate of accuracy formed on the train set.
@@ -67,7 +67,7 @@ class ElasticEnsemble(BaseClassifier):
 
     Notes
     -----
-    ..[1] Jason Lines and Anthony Bagnall,
+    .. [1] Jason Lines and Anthony Bagnall,
           "Time Series Classification with Ensembles of Elastic Distance Measures",
               Data Mining and Knowledge Discovery, 29(3), 2015.
     https://link.springer.com/article/10.1007/s10618-014-0361-2

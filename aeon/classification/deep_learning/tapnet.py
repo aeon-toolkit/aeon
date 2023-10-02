@@ -21,7 +21,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class TapNetClassifier(BaseDeepClassifier):
-    """Time series attentional prototype network (TapNet), as described in [1]_.
+    """Time series attentional prototype network (TapNet).
+
+     Implemented as described in [1]_.
 
     Parameters
     ----------
@@ -72,9 +74,8 @@ class TapNetClassifier(BaseDeepClassifier):
     References
     ----------
     .. [1] Zhang et al. Tapnet: Multivariate time series classification with
-    attentional prototypical network,
-    Proceedings of the AAAI Conference on Artificial Intelligence
-    34(4), 6845-6852, 2020
+    attentional prototypical network, Proceedings of the AAAI Conference on
+    Artificial Intelligence 34(4), 6845-6852, 2020
 
     Examples
     --------

@@ -18,7 +18,7 @@ from aeon.classification.sklearn import ContinuousIntervalTree
 class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     """Time series forest (TSF) classifier.
 
-    A time series forest is an ensemble of decision trees built on random intervals.
+    Time series forest is an ensemble of decision trees built on random intervals [1]_.
     Overview: Input n series length m.
     For each tree
         - sample sqrt(m) intervals,
