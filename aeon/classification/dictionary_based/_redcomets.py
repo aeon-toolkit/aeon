@@ -606,4 +606,7 @@ class REDCOMETS(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {}
+        return {
+            "variant": 1,
+            "n_trees": 1,
+        }
