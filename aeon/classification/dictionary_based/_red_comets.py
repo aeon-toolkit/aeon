@@ -28,7 +28,7 @@ class REDCOMETS(BaseClassifier):
     Random EnhanceD Co-eye for Multivariate Time Series (RED CoMETS).
 
     Ensemble of symbolically represented time series using random forests as the base
-    classifier as described in [1]. Based on Co-eye [2].
+    classifier as described in [1]_. Based on Co-eye [2]_.
 
     Parameters
     ----------
@@ -77,7 +77,7 @@ class REDCOMETS(BaseClassifier):
         "python_dependencies": "imblearn",
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "algorithm_type": "hybrid",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(

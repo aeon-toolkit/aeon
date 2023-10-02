@@ -9,6 +9,7 @@ __all__ = [
     "WEASEL",
     "WEASEL_V2",
     "MUSE",
+    "REDCOMETS",
 ]
 
 from aeon.classification.dictionary_based._boss import BOSSEnsemble, IndividualBOSS
@@ -20,3 +21,4 @@ from aeon.classification.dictionary_based._tde import (
 )
 from aeon.classification.dictionary_based._weasel import WEASEL
 from aeon.classification.dictionary_based._weasel_v2 import WEASEL_V2
+from aeon.classification.distance_based._red_comets import REDCOMETS
