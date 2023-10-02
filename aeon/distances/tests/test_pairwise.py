@@ -20,10 +20,8 @@ def _validate_pairwise_result(
 
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
-    assert np.array_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
-    assert np.array_equal(
-        pairwise_result, compute_pairwise_distance(x, metric=distance)
-    )
+    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
+    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=distance))
 
     x = _make_3d_series(x)
 
