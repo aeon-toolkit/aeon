@@ -140,11 +140,22 @@ class InceptionTimeClassifier(BaseClassifier):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> inctime = InceptionTimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X_train, y_train)  # doctest: +SKIP
+    InceptionTimeClassifier(...)
     """
 
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
+        "non-deterministic": True,
+        "cant-pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -224,9 +235,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _fit(self, X, y):
         """Fit the ensemble of IndividualInceptionClassifier models.
 
-        Arguments:
+        Parameters
         ----------
-
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The training input samples.
         y : np.ndarray of shape n
@@ -279,9 +289,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _predict(self, X) -> np.ndarray:
         """Predict the labels of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
@@ -301,9 +310,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _predict_proba(self, X) -> np.ndarray:
         """Predict the proba of labels of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
@@ -349,6 +357,8 @@ class InceptionTimeClassifier(BaseClassifier):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -456,6 +466,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X_train, y_train)  # doctest: +SKIP
+    IndividualInceptionClassifier(...)
     """
 
     def __init__(
@@ -697,6 +717,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]

@@ -5,8 +5,6 @@ __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class InceptionNetwork(BaseDeepNetwork):
     """InceptionTime Network.
@@ -147,9 +145,8 @@ class InceptionNetwork(BaseDeepNetwork):
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         input_tensor : tensorflow tensor, usually the input layer of the model.
         input_channels : int, the number of input channels in case of multivariate.
         kernel_sizes : list of int, default = [2,4,8,16,32,64],

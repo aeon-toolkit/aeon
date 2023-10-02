@@ -114,8 +114,8 @@ class ResNetNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (series_length (m), n_dimensions (d))
             The shape of the data fed into the input layer.
 
@@ -177,7 +177,7 @@ class ResNetNetwork(BaseDeepNetwork):
                 conv = tf.keras.layers.Conv1D(
                     filters=self._n_filters[d],
                     kernel_size=self._kernel_size[c],
-                    strides=self._kernel_size[c],
+                    strides=self._strides[d],
                     padding=self._padding[c],
                     dilation_rate=self._dilation_rate[c],
                 )(x)

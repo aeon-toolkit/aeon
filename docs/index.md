@@ -2,9 +2,9 @@
 hide-toc: true
 ---
 
-# <h1 align="center">Welcome to aeon</h1>
+<h1 style="text-align: center;">Welcome to aeon</h1>
 
-aeon is a scikit learn compatible toolkit for time series tasks such as
+`aeon` is a scikit-learn compatible toolkit for time series tasks such as
 forecasting, classification and clustering.</p>
 
 - Provides a broad library of time series algorithms, including the latest advances.
@@ -218,7 +218,7 @@ Benchmarking
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
 
 **Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
@@ -257,6 +257,5 @@ about.md
 
 glossary.md
 changelog.md
-related_software
 papers_using_aeon.md
 ```

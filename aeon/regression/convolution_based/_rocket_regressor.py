@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base._base import _clone_estimator
 from aeon.pipeline import make_pipeline
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
@@ -78,12 +78,12 @@ class RocketRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.convolution_based import RocketRegressor
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> reg = RocketRegressor(num_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(...)
+    RocketRegressor(num_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 

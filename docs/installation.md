@@ -10,6 +10,8 @@ on macOS, Ubuntu and Windows servers by our development CI.
 When it comes to installing `aeon`, there are currently three primary options:
 - [Install the latest release from PyPi.](#Install-the-latest-release-from-PyPi)
 This is the recommended option for most users.
+- [Install the latest release from conda-forge.](#Install-the-latest-release-from-conda-forge)
+An alternative release installation using conda.
 - [Install the latest development version from GitHub via pip.](#Install-the-latest-development-version-using-pip)
 This will include the latest features and bug fixes, but can be more unstable than the
 latest release.
@@ -71,6 +73,27 @@ from `all_extras`), see the
 [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
 configuration file.
 
+## Install the latest release from conda-forge
+
+`aeon` releases are also available via [conda-forge](https://anaconda.org/conda-forge/aeon).
+Run the following to create a new environment for aeon and install the package:
+
+```{code-block} powershell
+conda create -n aeon-env -c conda-forge aeon
+conda activate aeon-env
+```
+
+Post-installation you can verify that `aeon` has been installed correctly by running
+the following:
+
+```{code-block} powershell
+conda list aeon  # see information about the installation i.e. version and file location
+conda list  # see all installed packages for the current environment
+```
+
+Currently for `conda` installations, optional dependencies must be installed
+separately.
+
 ## Install the latest development version using pip
 
 Like the above method, we recommend creating a [virtual environment](#Using-a-pip-venv)
@@ -106,7 +129,7 @@ section apply here as well.
 
 In order to avoid potential conflicts with other packages, we strongly recommended
 using a [virtual environment (venv)](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)
-for the above installation options.
+or a fresh `conda` environment for the above installation options.
 
 You can create a virtual environment using the following commands. The name virtual
 environment name `aeon-venv` can be replaced with a name of your choosing.

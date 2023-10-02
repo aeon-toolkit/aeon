@@ -8,10 +8,11 @@ __all__ = []
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-from aeon.datasets import load_airline
+from aeon.datasets import load_airline, load_basic_motions
 from aeon.datatypes import get_examples
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
+    ColumnConcatenator,
     FeatureUnion,
     InvertTransform,
     OptionalPassthrough,
@@ -260,3 +261,20 @@ def test_dunder_neg():
     assert isinstance(tp.get_params()["transformer"], ExponentTransformer)
 
     _assert_array_almost_equal(tp.fit_transform(X), X)
+
+
+def test_column_concatenator():
+    X, y = load_basic_motions(split="train")
+    n_cases, n_channels, series_length = X.shape
+    trans = ColumnConcatenator()
+    Xt = trans.fit_transform(X)
+
+    # check if transformed dataframe is univariate
+    assert Xt.shape[1] == 1
+
+    # check if number of time series observations are correct
+    assert Xt.shape[2] == X.shape[1] * X.shape[2]
+
+    # check specific observations
+    assert X[0][-1][-3] == Xt[0][0][-3]
+    assert X[0][0][3] == Xt[0, 0][3]

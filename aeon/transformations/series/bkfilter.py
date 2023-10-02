@@ -15,9 +15,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("statsmodels", severity="warning")
 
 
 class BKFilter(BaseTransformer):

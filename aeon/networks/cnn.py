@@ -6,8 +6,6 @@ __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class CNNNetwork(BaseDeepNetwork):
     """Establish the network structure for a CNN.
@@ -97,8 +95,8 @@ class CNNNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple
             The shape of the data fed into the input layer
 

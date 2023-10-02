@@ -15,13 +15,6 @@ from aeon.utils.validation._dependencies import (
     _check_soft_dependencies,
 )
 
-_check_soft_dependencies(
-    "keras-self-attention",
-    package_import_alias={"keras-self-attention": "keras_self_attention"},
-    severity="warning",
-)
-_check_dl_dependencies(severity="warning")
-
 
 class TapNetNetwork(BaseDeepNetwork):
     """Establish Network structure for TapNet.
@@ -160,8 +153,8 @@ class TapNetNetwork(BaseDeepNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        --------
+        Parameters
+        ----------
         input_shape: tuple
             The shape of the data fed into the input layer
 

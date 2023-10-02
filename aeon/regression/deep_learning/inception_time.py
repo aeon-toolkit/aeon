@@ -142,11 +142,23 @@ class InceptionTimeRegressor(BaseRegressor):
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
 
+    Examples
+    --------
+    >>> from aeon.regression.deep_learning import InceptionTimeRegressor
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> inctime = InceptionTimeRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime.fit(X, y)  # doctest: +SKIP
+    InceptionTimeRegressor(...)
     """
 
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
+        "non-deterministic": True,
+        "cant-pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -225,9 +237,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
 
-        Arguments:
+        Parameters
         ----------
-
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples.
         y : np.ndarray of shape n
@@ -281,9 +292,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _predict(self, X) -> np.ndarray:
         """Predict the values of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The testing input samples.
 
@@ -330,6 +340,8 @@ class InceptionTimeRegressor(BaseRegressor):
             "batch_size": 4,
             "kernel_size": 4,
             "use_residual": False,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]
@@ -438,6 +450,17 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    Examples
+    --------
+    >>> from aeon.regression.deep_learning import IndividualInceptionRegressor
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> inc = IndividualInceptionRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc.fit(X, y)  # doctest: +SKIP
+    IndividualInceptionRegressor(...)
     """
 
     def __init__(
@@ -674,6 +697,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             "kernel_size": 4,
             "use_residual": False,
             "use_bottleneck": True,
+            "depth": 1,
+            "use_custom_filters": False,
         }
 
         return [param1]

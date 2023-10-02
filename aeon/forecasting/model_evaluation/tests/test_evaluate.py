@@ -29,14 +29,28 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.forecasting.tests._config import TEST_FHS, TEST_STEP_LENGTHS_INT
+from aeon.forecasting.tests import TEST_FHS, TEST_STEP_LENGTHS_INT
 from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanAbsoluteScaledError,
 )
+from aeon.tests.test_all_estimators import PR_TESTING
 from aeon.utils._testing.forecasting import make_forecasting_problem
 from aeon.utils._testing.hierarchical import _make_hierarchical
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if PR_TESTING:
+    BACKENDS = [None]
+    CV = [SlidingWindowSplitter]
+    SCORING = [MeanAbsolutePercentageError(symmetric=True)]
+    LENGTHS = [7]
+    STRAT = ["update"]
+else:
+    BACKENDS = [None, "dask", "loky", "threading"]
+    CV = [SlidingWindowSplitter, ExpandingWindowSplitter]
+    SCORING = [MeanAbsolutePercentageError(symmetric=True), MeanAbsoluteScaledError()]
+    LENGTHS = [7, 10]
+    STRAT = ["refit", "update"]
 
 
 def _check_evaluate_output(out, cv, y, scoring):
@@ -84,19 +98,13 @@ def _check_evaluate_output(out, cv, y, scoring):
 
 # Test using MAPE and MASE scorers so that tests cover a metric that doesn't
 # use y_train (MAPE) and one that does use y_train (MASE).
-@pytest.mark.parametrize("CV", [SlidingWindowSplitter, ExpandingWindowSplitter])
+@pytest.mark.parametrize("CV", CV)
 @pytest.mark.parametrize("fh", TEST_FHS)
-@pytest.mark.parametrize("window_length", [7, 10])
+@pytest.mark.parametrize("window_length", LENGTHS)
 @pytest.mark.parametrize("step_length", TEST_STEP_LENGTHS_INT)
-@pytest.mark.parametrize("strategy", ["refit", "update"])
-@pytest.mark.parametrize(
-    "scoring",
-    [
-        MeanAbsolutePercentageError(symmetric=True),
-        MeanAbsoluteScaledError(),
-    ],
-)
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("strategy", STRAT)
+@pytest.mark.parametrize("scoring", SCORING)
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_common_configs(
     CV, fh, window_length, step_length, strategy, scoring, backend
 ):
@@ -204,7 +212,7 @@ def test_evaluate_no_exog_against_with_exog():
 @pytest.mark.parametrize("error_score", [np.nan, "raise", 1000])
 @pytest.mark.parametrize("return_data", [True, False])
 @pytest.mark.parametrize("strategy", ["refit", "update"])
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_error_score(error_score, return_data, strategy, backend):
     """Test evaluate to raise warnings and exceptions according to error_score value."""
     # skip test for dask backend if dask is not installed
@@ -244,7 +252,7 @@ def test_evaluate_error_score(error_score, return_data, strategy, backend):
             )
 
 
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_hierarchical(backend):
     """Check that adding exogenous data produces different results."""
     # skip test for dask backend if dask is not installed

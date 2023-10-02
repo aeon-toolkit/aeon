@@ -9,7 +9,6 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
-from sklearn.utils.extmath import stable_cumsum
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
@@ -18,31 +17,32 @@ from aeon.distances import get_distance_function, pairwise_distance
 class TimeSeriesKMedoids(BaseClusterer):
     r"""Time series K-medoids implementation.
 
-    K-medoids [1] is a clustering algorithm that aims to partition n observations into k
-    clusters in which each observation belongs to the cluster with the nearest
+    K-medoids [1]_ is a clustering algorithm that aims to partition n observations
+    into k clusters in which each observation belongs to the cluster with the nearest
     medoid/centroid. This results in a partitioning of the data space into Voronoi
     cells. The problem of finding k-medoids is known to be NP-hard and has a time
     complexity of :
-    .. math::  \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
+
+    .. math::
+        \mathbf{O}(\mathbf{n}\mathbf{k}(\mathbf{n} - \mathbf{k})^2).
 
     Where n is the number of time series and k is the number of clusters. There have
     been a number of algorithms published to solve the problem. The most common is the
-    PAM (Partition Around Medoids)[3] algorithm and is the default method used in this
+    PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
     implementation. However, an adaptation of lloyds method classically used for k-means
     is also available by specifying method='alternate'. Alternate is faster but less
     accurate than PAM. For a full review of varations of k-medoids for time series
-    see [5].
+    see [5]_.
 
     K-medoids for time series uses a dissimilarity measure to compute the distance
     between time series. The default is 'msm' (move split merge) as
-    it was found to significantly outperform the other measures in [2].
+    it was found to significantly outperform the other measures in [2]_.
 
     Parameters
     ----------
     n_clusters : int, default=8
-        The number of clusters to form as well as the number of
-        centroids to generate.
-    init_algorithm : str, default='random'
+        The number of clusters to form as well as the number of centroids to generate.
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
@@ -51,17 +51,20 @@ class TimeSeriesKMedoids(BaseClusterer):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. For a list of valid
-        distances see `aeons.distances
-        <https://www.aeon-toolkit.org/en/latest/api_reference/distances.html>`_.
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     method : str, default='pam'
         Method for computing k-medoids. Any of the following are valid:
         ['alternate', 'pam'].
         Alternate applies lloyds method to k-medoids and is faster but less accurate
         than PAM.
+        PAM is implemented using the fastpam1 algorithm which gives the same output
+        as PAM but is faster.
     n_init : int, default=10
         Number of times the k-medoids algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -92,28 +95,6 @@ class TimeSeriesKMedoids(BaseClusterer):
     n_iter_ : int
         Number of iterations run.
 
-    Examples
-    --------
-    >>> from aeon.clustering import TimeSeriesKMedoids
-    >>> from aeon.datasets import load_basic_motions
-    >>> # Load data
-    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
-    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
-    >>> # Example of PAM clustering
-    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
-    >>> km.fit(X_train)
-    TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
-    >>> pam_pred = km.predict(X_test)
-
-    # Example of alternate clustering
-    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
-    ...                         random_state=1)
-    >>> km.fit(X_train)
-    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
-                       random_state=1)
-    >>> alternate_pred = km.predict(X_test)
-
-
     References
     ----------
     .. [1] Kaufmann, Leonard & Rousseeuw, Peter. (1987). Clustering by Means of Medoids.
@@ -135,6 +116,25 @@ class TimeSeriesKMedoids(BaseClusterer):
     Clustering time series with k-medoids based algorithms.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKMedoids
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of PAM clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="euclidean", random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='euclidean', n_clusters=3, random_state=1)
+    >>> pam_pred = km.predict(X_test)    # Example of alternate clustering
+    >>> km = TimeSeriesKMedoids(n_clusters=3, distance="dtw", method="alternate",
+    ...                         random_state=1)
+    >>> km.fit(X_train)
+    TimeSeriesKMedoids(distance='dtw', method='alternate', n_clusters=3,
+                       random_state=1)
+    >>> alternate_pred = km.predict(X_test)
     """
 
     _tags = {
@@ -144,7 +144,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         method: str = "pam",
         n_init: int = 10,
@@ -175,10 +175,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._distance_callable = None
         self._fit_method = None
 
-        self._distance_params = distance_params
-        if distance_params is None:
-            self._distance_params = {}
-
+        self._distance_params = {}
         super(TimeSeriesKMedoids, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
@@ -263,7 +260,11 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _pam_fit(self, X: np.ndarray):
         old_inertia = np.inf
         n_instances = X.shape[0]
-        medoids_idxs = self._init_algorithm(X)
+
+        if isinstance(self._init_algorithm, Callable):
+            medoids_idxs = self._init_algorithm(X)
+        else:
+            medoids_idxs = self._init_algorithm
         not_medoid_idxs = np.arange(n_instances, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
@@ -333,66 +334,57 @@ class TimeSeriesKMedoids(BaseClusterer):
         sample_size = len(distance_matrix)
         not_medoid_shape = sample_size - self.n_clusters
 
-        # Compute the change in cost for each swap.
-        for h in range(not_medoid_shape):
-            # id of the potential new medoid.
-            id_j = not_medoid_idxs[h]
-            for i in range(self.n_clusters):
-                # id of the medoid we want to replace.
-                id_i = medoids_idxs[i]
+        for i in range(not_medoid_shape):
+            id_i = not_medoid_idxs[i]
+            for j in range(self.n_clusters):
+                id_j = medoids_idxs[j]
                 cost_change = 0.0
-                # compute for all not-selected points the change in cost
-                for j in range(not_medoid_shape):
-                    id_j = not_medoid_idxs[j]
+                for k in range(not_medoid_shape):
+                    id_k = not_medoid_idxs[k]
                     cluster_i_bool = (
-                        distance_matrix[id_i, id_j] == distance_closest_medoid[id_j]
-                    )
-                    not_cluster_i_bool = (
-                        distance_matrix[id_i, id_j] != distance_closest_medoid[id_j]
-                    )
-                    second_best_medoid = (
-                        distance_matrix[id_j, id_j]
-                        < distance_second_closest_medoid[id_j]
-                    )
-                    not_second_best_medoid = (
-                        distance_matrix[id_j, id_j]
-                        >= distance_second_closest_medoid[id_j]
+                        distance_matrix[id_j, id_k] == distance_closest_medoid[id_k]
                     )
 
-                    if cluster_i_bool and second_best_medoid:
-                        cost_change += (
-                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
-                        )
-                    elif cluster_i_bool and not_second_best_medoid:
-                        cost_change += (
-                            distance_second_closest_medoid[id_j]
-                            - distance_closest_medoid[id_j]
-                        )
-                    elif not_cluster_i_bool and (
-                        distance_matrix[id_j, id_j] < distance_closest_medoid[id_j]
+                    if (
+                        cluster_i_bool
+                        and distance_matrix[id_i, id_k]
+                        < distance_second_closest_medoid[id_k]
                     ):
                         cost_change += (
-                            distance_matrix[id_j, id_j] - distance_closest_medoid[id_j]
+                            distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
+                        )
+                    elif (
+                        cluster_i_bool
+                        and distance_matrix[id_i, id_k]
+                        >= distance_second_closest_medoid[id_k]
+                    ):
+                        cost_change += (
+                            distance_second_closest_medoid[id_k]
+                            - distance_closest_medoid[id_k]
+                        )
+                    elif distance_matrix[id_j, id_k] != distance_closest_medoid[
+                        id_k
+                    ] and (distance_matrix[id_k, id_i] < distance_closest_medoid[id_k]):
+                        cost_change += (
+                            distance_matrix[id_k, id_i] - distance_closest_medoid[id_k]
                         )
 
-                # same for i
-                second_best_medoid = (
-                    distance_matrix[id_j, id_i] < distance_second_closest_medoid[id_i]
-                )
-                if second_best_medoid:
-                    cost_change += distance_matrix[id_i, id_j]
+                if distance_matrix[id_i, id_j] < distance_second_closest_medoid[id_j]:
+                    cost_change += distance_matrix[id_j, id_i]
                 else:
-                    cost_change += distance_second_closest_medoid[id_i]
+                    cost_change += distance_second_closest_medoid[id_j]
 
                 if cost_change < best_cost_change[2]:
-                    best_cost_change = (id_i, id_j, cost_change)
+                    best_cost_change = (id_j, id_i, cost_change)
         if best_cost_change[2] < 0:
             return best_cost_change
         else:
             return None
 
     def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
-        cluster_center_indexes = self._init_algorithm(X)
+        cluster_center_indexes = self._init_algorithm
+        if isinstance(self._init_algorithm, Callable):
+            cluster_center_indexes = self._init_algorithm(X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):
@@ -440,18 +432,20 @@ class TimeSeriesKMedoids(BaseClusterer):
             elif self.init_algorithm == "build":
                 self._init_algorithm = self._pam_build_center_initializer
         else:
-            self._init_algorithm = self.init_algorithm
+            if (
+                isinstance(self.init_algorithm, np.ndarray)
+                and len(self.init_algorithm) == self.n_clusters
+            ):
+                self._init_algorithm = self.init_algorithm
+            else:
+                raise ValueError(
+                    f"The value provided for init_algorithm: {self.init_algorithm} is "
+                    f"invalid. The following are a list of valid init algorithms "
+                    f"strings: random, kmedoids++, first. You can also pass a"
+                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+                )
 
-        if not isinstance(self._init_algorithm, Callable):
-            raise ValueError(
-                f"The value provided for init_algorithm: {self.init_algorithm} is "
-                f"invalid. The following are a list of valid init algorithms "
-                f"strings: random, kmedoids++, first"
-            )
-
-        if self.distance_params is None:
-            self._distance_params = {}
-        else:
+        if self.distance_params is not None:
             self._distance_params = self.distance_params
 
         if self.n_clusters > X.shape[0]:
@@ -469,7 +463,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             raise ValueError(f"method {self.method} is not supported")
 
-        if self.init_algorithm == "build":
+        if isinstance(self.init_algorithm, str) and self.init_algorithm == "build":
             if self.n_init != 10 and self.n_init > 1:
                 warnings.warn(
                     "When using build n_init does not need to be greater than 1. "
@@ -483,48 +477,21 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _first_center_initializer(self, _) -> np.ndarray:
         return np.array(list(range(self.n_clusters)))
 
-    def _kmedoids_plus_plus_center_initializer(
-        self,
-        X: np.ndarray,
-        n_local_trials: int = None,
-    ):
-        centers_indexes = np.empty(self.n_clusters, dtype=int)
-        n_samples, n_timestamps, n_features = X.shape
+    def _kmedoids_plus_plus_center_initializer(self, X: np.ndarray):
+        initial_center_idx = self._random_state.randint(X.shape[0])
+        indexes = [initial_center_idx]
 
-        if n_local_trials is None:
-            n_local_trials = 2 + int(np.log(self.n_clusters))
-
-        center_id = self._random_state.randint(n_samples)
-        all_x_indexes = np.arange(n_samples, dtype=int)
-        centers_indexes[0] = center_id
-
-        closest_dist_sq = (
-            self._compute_pairwise(X, np.array([center_id]), all_x_indexes) ** 2
-        )
-        current_pot = closest_dist_sq.sum()
-
-        for c in range(1, self.n_clusters):
-            rand_vals = self._random_state.random_sample(n_local_trials) * current_pot
-            candidate_ids = np.searchsorted(stable_cumsum(closest_dist_sq), rand_vals)
-            np.clip(candidate_ids, None, closest_dist_sq.size - 1, out=candidate_ids)
-
-            distance_to_candidates = (
-                self._compute_pairwise(X, candidate_ids, all_x_indexes) ** 2
+        for _ in range(1, self.n_clusters):
+            pw_dist = pairwise_distance(
+                X, X[indexes], metric=self.distance, **self._distance_params
             )
+            min_distances = pw_dist.min(axis=1)
+            probabilities = min_distances / min_distances.sum()
+            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
+            indexes.append(next_center_idx)
 
-            np.minimum(
-                closest_dist_sq, distance_to_candidates, out=distance_to_candidates
-            )
-            candidates_pot = distance_to_candidates.sum(axis=1)
-
-            best_candidate = np.argmin(candidates_pot)
-            current_pot = candidates_pot[best_candidate]
-            closest_dist_sq = distance_to_candidates[best_candidate]
-            best_candidate = candidate_ids[best_candidate]
-
-            centers_indexes[c] = best_candidate
-
-        return centers_indexes
+        centers = X[indexes]
+        return centers
 
     def _pam_build_center_initializer(
         self,

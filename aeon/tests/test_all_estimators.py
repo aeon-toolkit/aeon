@@ -5,7 +5,7 @@
 adapted from scikit-learn's estimator_checks
 """
 
-__author__ = ["mloning", "fkiraly", "achieveordie"]
+__author__ = ["mloning", "fkiraly", "achieveordie", "MatthewMiddlehurst"]
 
 import numbers
 import types
@@ -29,9 +29,9 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.tests._config import (
     EXCLUDE_ESTIMATORS,
     EXCLUDED_TESTS,
-    MATRIXDESIGN,
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
+    PR_TESTING,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
@@ -61,12 +61,12 @@ def subsample_by_version_os(x):
     Ensures each estimator is tested at least once on every OS and python version,
     if combined with a matrix of OS/versions.
 
-    Currently assumes that matrix includes py3.8-3.10, and win/ubuntu/mac.
+    Currently assumes that matrix includes py3.8-3.11, and win/ubuntu/mac.
     """
     import platform
     import sys
 
-    ix = sys.version_info.minor % 3
+    ix = sys.version_info.minor % 4
     os_str = platform.system()
     if os_str == "Windows":
         ix = ix
@@ -191,10 +191,11 @@ class BaseFixtureGenerator:
             return_names=False,
             exclude_estimators=EXCLUDE_ESTIMATORS,
         )
+
         # subsample estimators by OS & python version
         # this ensures that only a 1/3 of estimators are tested for a given combination
         # but all are tested on every OS at least once, and on every python version once
-        if MATRIXDESIGN:
+        if PR_TESTING:
             est_list = subsample_by_version_os(est_list)
         return est_list
 
@@ -315,8 +316,8 @@ class BaseFixtureGenerator:
     def _excluded_scenario(test_name, scenario):
         """Skip list generator for scenarios to skip in test_name.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         test_name : str, name of test
         scenario : instance of TestScenario, to be used in test
 

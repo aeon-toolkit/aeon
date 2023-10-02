@@ -6,8 +6,6 @@ __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class FCNNetwork(BaseDeepNetwork):
     """
@@ -86,8 +84,8 @@ class FCNNetwork(BaseDeepNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (series_length (m), n_dimensions (d))
             The shape of the data fed into the input layer
 

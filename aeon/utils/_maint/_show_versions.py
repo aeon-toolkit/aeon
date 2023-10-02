@@ -47,7 +47,7 @@ def _get_deps_info():
     deps = [
         "pip",
         "setuptools",
-        "sklearn",
+        "scikit-learn",
         "aeon",
         "statsmodels",
         "numpy",
