@@ -15,7 +15,7 @@ __all__ = [
 from aeon.classification.dictionary_based._boss import BOSSEnsemble, IndividualBOSS
 from aeon.classification.dictionary_based._cboss import ContractableBOSS
 from aeon.classification.dictionary_based._muse import MUSE
-from aeon.classification.dictionary_based._red_comets import REDCOMETS
+from aeon.classification.dictionary_based._redcomets import REDCOMETS
 from aeon.classification.dictionary_based._tde import (
     IndividualTDE,
     TemporalDictionaryEnsemble,

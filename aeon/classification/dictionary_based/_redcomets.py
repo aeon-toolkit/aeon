@@ -32,9 +32,10 @@ class REDCOMETS(BaseClassifier):
 
     Parameters
     ----------
-    variant : int, default=3
-        RED CoMETS variant to use as per [1]. Defaults to RED CoMETS-3.
-    perc_length : int, default=5
+    variant : {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        RED CoMETS variant to use as per [1]_. Defaults to RED CoMETS-3.
+        Variants 4-9 only support multivariate problems.
+    perc_length : int or float, default=5
         Percentage of time series length used to determinne number of lenses during
         pair selection.
     n_trees : int, default=100
@@ -47,6 +48,11 @@ class REDCOMETS(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib for Catch22,
+        if None a 'prefer' value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
@@ -98,6 +104,7 @@ class REDCOMETS(BaseClassifier):
         n_trees=100,
         random_state=None,
         n_jobs=1,
+        parallel_backend=None,
     ):
         _check_soft_dependencies(
             "imbalanced-learn",
@@ -106,12 +113,17 @@ class REDCOMETS(BaseClassifier):
             obj=self,
         )
 
+        assert variant in [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.variant = variant
+
+        assert 0 < perc_length <= 100
         self.perc_length = perc_length
+
         self.n_trees = n_trees
 
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self._n_channels = 1
 
@@ -139,6 +151,7 @@ class REDCOMETS(BaseClassifier):
             Reference to self.
         """
         if (n_channels := X.shape[1]) == 1:  # Univariate
+            assert self.variant in [1, 2, 3]
             (
                 self.sfa_transforms,
                 self.sfa_clfs,
@@ -195,7 +208,7 @@ class REDCOMETS(BaseClassifier):
         else:
             perc_length = self.perc_length
 
-        n_lenses = 2 * int(perc_length * X.shape[1] // 100)
+        n_lenses = max(2 * int(perc_length * X.shape[1] // 100), 2)
 
         min_neighbours = min(Counter(y).items(), key=lambda k: k[1])[1]
         max_neighbours = max(Counter(y).items(), key=lambda k: k[1])[1]
@@ -304,14 +317,14 @@ class REDCOMETS(BaseClassifier):
 
         Returns
         -------
-        sfa_transforms :
+        sfa_transforms : list
             List of lists of SFA() instances with random word length and alpabet size
-        sfa_clfs :
+        sfa_clfs : list
             List of lists of (RandomForestClassifier(), weight) tuples fitted on SFA
             transformed training data
-        sax_transforms :
+        sax_transforms : list
             List of lists of SAX() instances with random word length and alpabet size
-        sax_clfs :
+        sax_clfs : list
             List of lists (RandomForestClassifier(), weight) tuples fitted on SAX
             transformed training data
         """
@@ -531,8 +544,8 @@ class REDCOMETS(BaseClassifier):
 
         Returns
         -------
-        lenses : array-like, shape = [n_lenses, 2]
-            Selected lenses.
+        lenses : list of list
+            Randomly selected lenses.
         """
         maxCoof = 130
 
@@ -575,7 +588,4 @@ class REDCOMETS(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {
-            "variant": 1,
-            "n_trees": 3,
-        }
+        return {}
