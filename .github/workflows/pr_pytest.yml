@@ -10,7 +10,6 @@ on:
     paths:
       - "aeon/**"
       - ".github/workflows/**"
-      - ".pre-commit-config.yaml"
       - "pyproject.toml"
 
 concurrency:
