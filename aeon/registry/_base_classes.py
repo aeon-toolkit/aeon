@@ -43,6 +43,7 @@ from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.networks.base import BaseDeepNetwork
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
+from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 
@@ -64,6 +65,7 @@ BASE_CLASS_REGISTER = [
         BaseCollectionTransformer,
         "time series collection transformer",
     ),
+    ("similarity_search", BaseSimiliaritySearch, "similarity search"),
 ]
 
 
