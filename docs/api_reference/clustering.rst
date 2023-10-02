@@ -71,11 +71,3 @@ Base
     :template: class.rst
 
     BaseClusterer
-
-.. currentmodule:: aeon.clustering.partitioning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSeriesLloyds
