@@ -1,7 +1,7 @@
 [project]
 name = "aeon"
 version = "0.4.0"
-description = "A cohesive library for conducting machine learning tasks with time series data"
+description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
