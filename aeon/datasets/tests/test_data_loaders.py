@@ -117,6 +117,23 @@ def test_load_regression_from_repo():
     shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_fails():
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+
+
 def test__alias_datatype_check():
     """Test the alias check"""
     assert _alias_datatype_check("FOO") == "FOO"
@@ -557,14 +574,8 @@ def test_load_forecasting():
     df, meta = load_forecasting("m1_yearly_dataset")
     assert meta == expected_metadata
     assert df.shape == (181, 3)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
     df = load_forecasting("m1_yearly_dataset", return_metadata=False)
     assert df.shape == (181, 3)
-    with pytest.raises(ValueError):
-        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test_load_regression():
@@ -585,12 +596,6 @@ def test_load_regression():
     assert isinstance(y, np.ndarray)
     assert X.shape == (201, 1, 84)
     assert y.shape == (201,)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
-    with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
 
 
 def test_load_classification():
@@ -611,12 +616,6 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
-    with pytest.raises(ValueError):
-        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
