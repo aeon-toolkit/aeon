@@ -306,7 +306,7 @@ class BaseForecaster(BaseEstimator):
                     y must have a single column/variable
                 if self.get_tag("scitype:y")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("scitype:y")=="both": no restrictions on columns apply.
             For further details:
                 on usage, see forecasting examples/forecasting
                 on specification of formats, examples/datasets
@@ -314,7 +314,7 @@ class BaseForecaster(BaseEstimator):
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
-            there are no restrictions on number of columns (unlike for y)
+            there are no restrictions on number of columns (unlike for y).
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
             if self.get_tag("requires-fh-in-fit"), must be passed, not optional.

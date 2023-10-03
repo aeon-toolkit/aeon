@@ -21,7 +21,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1].
+    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1]_.
 
     Parameters
     ----------
@@ -235,9 +235,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _fit(self, X, y):
         """Fit the ensemble of IndividualInceptionClassifier models.
 
-        Arguments:
+        Parameters
         ----------
-
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The training input samples.
         y : np.ndarray of shape n
@@ -290,9 +289,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _predict(self, X) -> np.ndarray:
         """Predict the labels of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
@@ -312,9 +310,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def _predict_proba(self, X) -> np.ndarray:
         """Predict the proba of labels of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 

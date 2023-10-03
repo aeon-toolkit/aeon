@@ -6,6 +6,7 @@ __author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achiev
 __all__ = []
 
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -14,11 +15,14 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
+    load_classification,
+    load_forecasting,
     load_from_arff_file,
     load_from_long_to_dataframe,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
+    load_regression,
     load_tsf_to_dataframe,
     load_uschange,
 )
@@ -26,8 +30,159 @@ from aeon.datasets._data_generators import (
     _convert_tsf_to_hierarchical,
     make_example_long_table,
 )
-from aeon.datasets._data_loaders import DIRNAME, MODULE, _load_saved_dataset
-from aeon.datatypes import check_is_mtype
+from aeon.datasets._data_loaders import (
+    DIRNAME,
+    MODULE,
+    _alias_datatype_check,
+    _load_data,
+    _load_header_info,
+    _load_saved_dataset,
+)
+from aeon.tests._config import PR_TESTING
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_forecasting_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+    ):
+        load_forecasting(name)
+    name = "m1_quarterly_dataset"
+    data, meta = load_forecasting(name)
+    assert isinstance(data, pd.DataFrame)
+    assert isinstance(meta, dict)
+    assert meta["frequency"] == "quarterly"
+    assert meta["forecast_horizon"] == 8
+    assert not meta["contain_missing_values"]
+    assert not meta["contain_equal_length"]
+
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_classification_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"dataset name ={name} is not available on extract path"
+    ):
+        load_classification(name)
+    name = "SonyAIBORobotSurface1"
+    X, y, meta = load_classification(name)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(meta, dict)
+    assert len(X) == len(y)
+    assert X.shape == (621, 1, 70)
+    assert meta["problemname"] == "sonyaiborobotsurface1"
+    assert not meta["timestamps"]
+    assert meta["univariate"]
+    assert meta["equallength"]
+    assert meta["classlabel"]
+    assert not meta["targetlabel"]
+    assert meta["class_values"] == ["1", "2"]
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_regression_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+    ):
+        load_regression(name)
+    name = "FloodModeling1"
+    X, y, meta = load_regression(name)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(meta, dict)
+    assert len(X) == len(y)
+    assert X.shape == (673, 1, 266)
+    assert meta["problemname"] == "floodmodeling1"
+    assert not meta["timestamps"]
+    assert meta["univariate"]
+    assert meta["equallength"]
+    assert not meta["classlabel"]
+    assert meta["targetlabel"]
+    assert meta["class_values"] == []
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_fails():
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+
+
+def test__alias_datatype_check():
+    """Test the alias check"""
+    assert _alias_datatype_check("FOO") == "FOO"
+    assert _alias_datatype_check("np2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2d") == "numpyflat"
+    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("numpy3d") == "numpy3D"
+    assert _alias_datatype_check("np3d") == "numpy3D"
+    assert _alias_datatype_check("np3D") == "numpy3D"
+
+
+def test__load_header_info():
+    """Test loading a header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        # Read in headers
+        meta_data = _load_header_info(file)
+        assert meta_data["problemname"] == "unittest"
+        assert not meta_data["timestamps"]
+        assert not meta_data["missing"]
+        assert meta_data["univariate"]
+        assert meta_data["equallength"]
+        assert meta_data["classlabel"]
+        assert meta_data["class_values"][0] == "1"
+        assert meta_data["class_values"][1] == "2"
+
+
+def test__load_data():
+    """Test loading after header."""
+    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        X, y, _ = _load_data(file, meta_data)
+        assert X.shape == (20, 1, 24)
+        assert len(y) == 20
+    path = os.path.join(MODULE, DIRNAME, "BasicMotions", "BasicMotions_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["univariate"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
+    path = os.path.join(MODULE, DIRNAME, "JapaneseVowels", "JapaneseVowels_TRAIN.ts")
+    with open(path, "r", encoding="utf-8") as file:
+        meta_data = _load_header_info(file)
+        # Check raise error for incorrect univariate test
+        meta_data["equallength"] = True
+        with pytest.raises(IOError):
+            X, y, _ = _load_data(file, meta_data)
 
 
 @pytest.mark.parametrize("return_X_y", [True, False])
@@ -69,11 +224,11 @@ def test_load_from_tsfile():
     assert X.ndim == 3
     assert X.shape == (20, 1, 24) and y.shape == (20,)
     assert X[0][0][0] == 573.0
-    X2, y = load_from_tsfile(data_path, return_meta_data=False)
-    assert isinstance(X2, np.ndarray)
-    assert X2.ndim == 3
-    assert X2.shape == (20, 1, 24)
-    assert X2[0][0][0] == 573.0
+    X, y = load_from_tsfile(data_path, return_meta_data=False, return_type="numpy2D")
+    assert isinstance(X, np.ndarray)
+    assert X.ndim == 2
+    assert X.shape == (20, 24)
+    assert X[0][0] == 573.0
 
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
@@ -369,7 +524,6 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         os.path.dirname(aeon.__file__),
         input_path,
     )
-
     expected_metadata = {
         "frequency": "yearly",
         "forecast_horizon": 4,
@@ -377,15 +531,91 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         "contain_equal_length": False,
     }
 
-    if return_type == "default_tsf":
-        df, metadata = load_from_tsf_file(data_path)
-    else:
-        df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
-
+    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(metadata, dict)
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
-    if return_type != "default_tsf":
-        assert check_is_mtype(obj=df, mtype=return_type)
+    # default_tsf"
+    #    assert check_is_mtype(obj=df, mtype=return_type)
+    if return_type == "default_tsf":
+        assert isinstance(df, pd.DataFrame)
+    elif return_type == "pd-multiindex":
+        assert isinstance(df.index, pd.MultiIndex)
+    elif return_type == "pd_multiindex_hier":
+        assert df.index.nlevels > 1
+
+
+def test_load_from_tsf_file():
+    """Test the tsf loader that has no conversions."""
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 4,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, metadata = load_from_tsf_file(data_path)
+    assert metadata == expected_metadata
+    assert df.shape == (3, 3)
+
+
+def test_load_forecasting():
+    """Test load forecasting for baked in data."""
+    expected_metadata = {
+        "frequency": "yearly",
+        "forecast_horizon": 6,
+        "contain_missing_values": False,
+        "contain_equal_length": False,
+    }
+    df, meta = load_forecasting("m1_yearly_dataset")
+    assert meta == expected_metadata
+    assert df.shape == (181, 3)
+    df = load_forecasting("m1_yearly_dataset", return_metadata=False)
+    assert df.shape == (181, 3)
+
+
+def test_load_regression():
+    """Test the load regression function."""
+    expected_metadata = {
+        "problemname": "covid3month",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": True,
+        "classlabel": False,
+        "class_values": [],
+    }
+    X, y, meta = load_regression("Covid3Month")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (201, 1, 84)
+    assert y.shape == (201,)
+
+
+def test_load_classification():
+    """Test load classification."""
+    expected_metadata = {
+        "problemname": "unittest",
+        "timestamps": False,
+        "missing": False,
+        "univariate": True,
+        "equallength": True,
+        "targetlabel": False,
+        "classlabel": True,
+        "class_values": ["1", "2"],
+    }
+    X, y, meta = load_classification("UnitTest")
+    assert meta == expected_metadata
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (42, 1, 24)
+    assert y.shape == (42,)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
@@ -484,5 +714,15 @@ def test_load_from_arff():
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
     X2, y2 = load_from_arff_file(data_path)
+    assert isinstance(X2, np.ndarray)
+    assert isinstance(y2, np.ndarray)
+    assert X.shape == X2.shape
+    assert len(X2) == len(y2)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
+    X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
+    data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
+    X2, y2 = load_from_arff_file(data_path)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y2, np.ndarray)
+    np.testing.assert_array_almost_equal(X, X2, decimal=4)

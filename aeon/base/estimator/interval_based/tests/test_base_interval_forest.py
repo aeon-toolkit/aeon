@@ -197,3 +197,62 @@ def test_interval_forest_series_transformer(series_transformer):
         len(series_transformer) * 6 if isinstance(series_transformer, list) else 6
     )
     assert data[0].shape[1] == expected
+
+
+def test_min_interval_length():
+    """Test exception raising."""
+    series_transformer = [FunctionTransformer(np.log1p)]
+
+    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    est = IntervalForestClassifier(min_interval_length=0.5)
+    est.fit(X, y)
+    assert est._min_interval_length[0] == 5
+    est = IntervalForestClassifier(min_interval_length=2.0)
+    with pytest.raises(ValueError, match=r"Invalid min_interval_length input"):
+        est.fit(X, y)
+    est = IntervalForestClassifier(
+        series_transformers=series_transformer, min_interval_length=[3]
+    )
+    est.fit(X, y)
+    assert est._min_interval_length == [3]
+    est = IntervalForestClassifier(
+        series_transformers=series_transformer, min_interval_length=[0.5]
+    )
+    est.fit(X, y)
+    assert est._min_interval_length == [5]
+
+
+def test_max_interval_length():
+    """Test exception raising."""
+    series_transformer = [FunctionTransformer(np.log1p)]
+
+    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    est = IntervalForestClassifier(max_interval_length=0.5)
+    est.fit(X, y)
+    assert est._max_interval_length[0] == 5
+    est = IntervalForestClassifier(max_interval_length=2.0)
+    with pytest.raises(ValueError, match=r"Invalid max_interval_length"):
+        est.fit(X, y)
+    est = IntervalForestClassifier(
+        series_transformers=series_transformer, max_interval_length=[8]
+    )
+    est.fit(X, y)
+    assert est._max_interval_length == [8]
+    est = IntervalForestClassifier(
+        series_transformers=series_transformer, max_interval_length=[0.5]
+    )
+    est.fit(X, y)
+    assert est._max_interval_length == [5]
+
+
+def test_interval_features():
+    f1 = [
+        row_mean,
+        Catch22(features=["DN_HistogramMode_5", "DN_HistogramMode_10"]),
+        row_numba_min,
+    ]
+    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    est = IntervalForestClassifier(interval_features=f1)
+    est.fit(X, y)
+    assert est._interval_function == [True]
+    assert est._interval_transformer == [True]

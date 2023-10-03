@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-"""This file is only called test_new_distances while the module transitions.
-Once the transition is complete, this file will be renamed to test_distances.py."""
 
 import numpy as np
 import pytest
@@ -12,9 +10,7 @@ from aeon.distances.tests._expected_results import _expected_distance_results
 from aeon.distances.tests._utils import create_test_distance_numpy
 
 
-def _validate_distance_result(
-    x, y, name, distance, expected_result=10  # This will be used in a later pr
-):
+def _validate_distance_result(x, y, name, distance, expected_result=10):
     if expected_result is None:
         return
 
@@ -22,9 +18,8 @@ def _validate_distance_result(
 
     assert isinstance(dist_result, float)
     assert_almost_equal(dist_result, expected_result)
-    assert dist_result == compute_distance(x, y, metric=name)
-    if name != "lcss" and name != "edr":
-        assert dist_result == compute_distance(x, y, metric=distance)
+    assert_almost_equal(dist_result, compute_distance(x, y, metric=name))
+    assert_almost_equal(dist_result, compute_distance(x, y, metric=distance))
 
     dist_result_to_self = distance(x, x)
     assert isinstance(dist_result_to_self, float)
