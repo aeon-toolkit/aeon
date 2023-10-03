@@ -279,7 +279,9 @@ class REDCOMETS(BaseClassifier):
 
             sfa_clfs.append((rf, weight))
 
-        sax_transforms = [SAX(n_segments=w, alphabet_size=a) for w, a in sax_lenses]
+        sax_transforms = [
+            SAX(n_segments=w, alphabet_size=a, znormalized=False) for w, a in sax_lenses
+        ]
 
         sax_clfs = []
         for X_sax in self._parallel_sax(sax_transforms, X_smote):
@@ -334,6 +336,7 @@ class REDCOMETS(BaseClassifier):
 
         for d in range(self._n_channels):
             X_d = X[:, d, :]
+
             (
                 sfa_trans_d,
                 sfa_clfs_d,
