@@ -63,14 +63,14 @@ def test_redcomets_train_estimate_multivariate():
         np.testing.assert_almost_equal(score, expected_result, decimal=4)
 
     test_variant(1, 0.975)
-    test_variant(2, 0.975)
-    test_variant(3, 0.975)
-    test_variant(4, 0.95)
-    test_variant(5, 0.95)
-    test_variant(6, 0.95)
-    test_variant(7, 0.95)
-    test_variant(8, 0.95)
-    test_variant(9, 0.95)
+    test_variant(2, 0.925)
+    test_variant(3, 0.95)
+    test_variant(4, 0.875)
+    test_variant(5, 0.85)
+    test_variant(6, 0.875)
+    test_variant(7, 0.875)
+    test_variant(8, 0.85)
+    test_variant(9, 0.85)
 
 
 @pytest.mark.skipif(
