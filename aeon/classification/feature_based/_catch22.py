@@ -20,7 +20,7 @@ class Catch22Classifier(BaseClassifier):
     """
     Canonical Time-series Characteristics (catch22) classifier.
 
-    This classifier simply transforms the input data using the Catch22 [1]
+    This classifier simply transforms the input data using the Catch22 [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
