@@ -210,8 +210,10 @@ if __name__ == "__main__":
         ["Benchmarking", ["benchmarking"]],
         ["Classification", ["classification"]],
         ["Clustering", ["clustering"]],
+        ["Datasets", ["datasets"]],
         ["Distances", ["distances"]],
         ["Forecasting", ["forecasting"]],
+        ["Networks", ["networks"]],
         ["Regression", ["regression"]],
         ["Transformations", ["transformations"]],
     ]
