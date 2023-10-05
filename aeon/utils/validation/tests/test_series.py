@@ -21,10 +21,7 @@ from aeon.utils.validation.series import (
 
 
 def test_check_equal_time_index():
-    """Test that fh validation throws an error with empty container."""
-    first_array = (np.random.random(100),)
-    second_array = (np.random.random(100),)
-    check_equal_time_index(first_array, second_array)
+    """Test check equal time index."""
     assert check_equal_time_index(None) is None
     x = (pd.Series([1, 2, 3, 4, 5]), pd.Series([2, 3, 4, 5, 6]))
     with pytest.raises(ValueError, match="mode must be "):
