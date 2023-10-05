@@ -15,6 +15,10 @@
     <p><a href='https://github.com/hadifawaz1999'>Ali El Hadi ISMAIL FAWAZ</a></p>
     </div>
     <div>
+    <a href='https://github.com/baraline'><img src='https://avatars.githubusercontent.com/u/10759117?v=4' class='avatar' /></a> <br />
+    <p><a href='https://github.com/baraline'>Antoine Guillaume</a></p>
+    </div>
+    <div>
     <a href='https://github.com/GuzalBulatova'><img src='https://avatars.githubusercontent.com/u/73598322?v=4' class='avatar' /></a> <br />
     <p><a href='https://github.com/GuzalBulatova'>Guzal</a></p>
     </div>
