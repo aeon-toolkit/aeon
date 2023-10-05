@@ -15,7 +15,11 @@ HEADERS = {
 OWNER = "aeon-toolkit"
 REPO = "aeon"
 GITHUB_REPOS = "https://api.github.com/repos"
-EXCLUDED_USERS = ["github-actions[bot]"]
+EXCLUDED_USERS = [
+    "github-actions[bot]",
+    "allcontributors[bot]",
+    "sweep-ai[bot]",
+]
 
 
 def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:
@@ -206,8 +210,10 @@ if __name__ == "__main__":
         ["Benchmarking", ["benchmarking"]],
         ["Classification", ["classification"]],
         ["Clustering", ["clustering"]],
+        ["Datasets", ["datasets"]],
         ["Distances", ["distances"]],
         ["Forecasting", ["forecasting"]],
+        ["Networks", ["networks"]],
         ["Regression", ["regression"]],
         ["Transformations", ["transformations"]],
     ]
