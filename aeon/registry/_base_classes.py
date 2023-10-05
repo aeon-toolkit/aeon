@@ -65,7 +65,7 @@ BASE_CLASS_REGISTER = [
         BaseCollectionTransformer,
         "time series collection transformer",
     ),
-    ("similarity_search", BaseSimiliaritySearch, "similarity search"),
+    ("similarity-search", BaseSimiliaritySearch, "similarity search"),
 ]
 
 

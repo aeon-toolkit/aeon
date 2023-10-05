@@ -22,6 +22,7 @@ SCITYPES_WITHOUT_TAGS = [
     "network",
     "collection-transformer",
     "collection-estimator",
+    "similarity-search",
 ]
 
 # shorthands for easy reading
