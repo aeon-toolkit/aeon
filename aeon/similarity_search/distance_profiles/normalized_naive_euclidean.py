@@ -7,7 +7,11 @@ import numpy as np
 from numba import njit
 
 from aeon.distances import euclidean_distance
-from aeon.similarity_search.distance_profiles._commons import INF, _get_input_sizes
+from aeon.similarity_search.distance_profiles._commons import (
+    AEON_SIMSEARCH_STD_THRESHOLD,
+    _get_input_sizes,
+    _z_normalize_2D_series_with_mean_std,
+)
 
 
 def normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds):
@@ -37,25 +41,30 @@ def normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds):
         The distance profile between Q and the input time series X.
 
     """
-    _Q = (Q - Q_means) / Q_stds
-    return _normalized_naive_euclidean_profile(X, _Q, X_means, X_stds)
+    # Make STDS inferior to the threshold to 1 to avoid division per 0 error.
+    Q_stds[Q_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
+    X_stds[X_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
+
+    return _normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds)
 
 
 @njit(cache=True, fastmath=True)
-def _normalized_naive_euclidean_profile(X, Q, X_means, X_stds):
+def _normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds):
     n_samples, n_channels, X_length, Q_length, search_space_size = _get_input_sizes(
         X, Q
     )
-    distance_profile = np.full((n_samples, search_space_size), INF)
+    # With Q_stds = 1, _Q will be an array of 0
+    Q = _z_normalize_2D_series_with_mean_std(Q, Q_means, Q_stds)
+    distance_profile = np.full((n_samples, search_space_size), 1e12)
 
     # Compute euclidean distance for all candidate in a "brute force" way
     for i_sample in range(n_samples):
         for i_candidate in range(search_space_size):
             # Extract and normalize the candidate
             _C = X[i_sample, :, i_candidate : i_candidate + Q_length]
-            _C = (_C - X_means[i_sample, :, i_candidate]) / (
-                X_stds[i_sample, :, i_candidate]
+
+            _C = _z_normalize_2D_series_with_mean_std(
+                _C, X_means[i_sample, :, i_candidate], X_stds[i_sample, :, i_candidate]
             )
             distance_profile[i_sample, i_candidate] = euclidean_distance(Q, _C)
-
     return distance_profile
