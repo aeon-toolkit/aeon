@@ -24,6 +24,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
     def __init__(self, n_clusters: int = None):
         self.n_clusters = n_clusters
+        # required for compatibility with some sklearn interfaces e.g.
+        # CalibratedClassifierCV
         self._estimator_type = "clusterer"
         super(BaseClusterer, self).__init__()
         _check_estimator_deps(self)
