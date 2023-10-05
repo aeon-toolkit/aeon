@@ -8,7 +8,6 @@ from aeon.datasets import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
 from aeon.utils.validation._convert_collection import (
     _equal_length,
-    _from_nested_univ_to_numpyflat,
     _from_nested_univ_to_pd_multiindex,
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_nested_univ,
@@ -274,6 +273,3 @@ def test_from_nested():
     X = pd.DataFrame(data)
     result = _from_nested_univ_to_pd_multiindex(X)
     assert isinstance(result, pd.DataFrame)
-    # Test when input is a pandas Series
-    X = np.random.random(size=(10, 2, 20))
-    result = _from_nested_univ_to_numpyflat(data)
