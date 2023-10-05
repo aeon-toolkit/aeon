@@ -46,7 +46,8 @@ class WEASEL_V2(BaseClassifier):
     (2) Maximal window length: Typically chosen from
         24, 44 or 84 depending on the time series length.
     (3) Ensemble size: Typically chosen from 50, 100, 150, to derive
-        a feature vector of roughly 20𝑘 up to 70𝑘 features (distinct words).
+        a feature vector of roughly 20k up to 70k features
+        (distinct words).
 
     From the other parameters passed, WEASEL chosen random values for each set
     of configurations. E.g. for each of 150 configurations, a random value is chosen
@@ -275,7 +276,7 @@ class WEASELTransformerV2:
     (2) Maximal window length: Typically chosen from
         24, 44 or 84 depending on the time series length.
     (3) Ensemble size: Typically chosen from 50, 100, 150, to derive
-        a feature vector of roughly 20𝑘 up to 70𝑘 features (distinct words).
+        a feature vector of roughly 20k up to 70k features (distinct words).
 
     From the other parameters passed, WEASEL chosen random values for each set
     of configurations. E.g. for each of 150 configurations, a random value is chosen
