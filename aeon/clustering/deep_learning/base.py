@@ -47,10 +47,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         super(BaseDeepClusterer, self).__init__(n_clusters)
 
         self.clustering_algorithm = clustering_algorithm
-        self.clustering_params = (
-            clustering_params if clustering_params is not None else {}
-        )
-        # self.clustering_params = clustering_params
+        self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
         self.model_ = None
@@ -101,13 +98,17 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
         Parameters
         ----------
-        X: np.ndarray, shape=(n_instances, latent_space_dim)
-            The latent representation of the input time series.
+        X: np.ndarray, shape=(n_instances, n_timepoints, n_channels)
+            The input time series.
         """
+        if self.clustering_params is None:
+            clustering_params_ = dict(n_clusters=self.n_clusters)
+        else:
+            clustering_params_ = self.clustering_params
+            clustering_params_["n_clusters"] = self.n_clusters
+
         if self.clustering_algorithm == "kmeans":
-            self.clusterer = TimeSeriesKMeans(
-                n_clusters=self.n_clusters, **self.clustering_params
-            )
+            self.clusterer = TimeSeriesKMeans(**clustering_params_)
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 

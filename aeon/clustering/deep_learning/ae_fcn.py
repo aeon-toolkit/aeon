@@ -29,6 +29,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         Dictionary containing the parameters of the clustering algorithm chosen.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers : int, default = 3
         Number of convolution layers.
     n_filters : int or list of int, default = [128,256,128]
@@ -57,8 +59,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         Whether to output extra information.
     loss : string, default="mean_squared_error"
         Fit parameter for the keras model.
-    metrics : list of strings, default=["accuracy"],
-        List of keras metrics.
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -117,6 +117,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         clustering_algorithm="kmeans",
         clustering_params=None,
         latent_space_dim=128,
+        temporal_latent_space=False,
         n_layers=3,
         n_filters=None,
         kernel_size=None,
@@ -125,27 +126,27 @@ class AEFCNClusterer(BaseDeepClusterer):
         padding="same",
         activation="relu",
         use_bias=True,
-        optimizer="Adam",
-        loss="mse",
-        verbose=True,
-        use_mini_batch_size=False,
-        callbacks=None,
-        file_path="./",
         n_epochs=2000,
         batch_size=32,
+        use_mini_batch_size=False,
+        random_state=0,
+        verbose=True,
+        loss="mse",
+        optimizer="Adam",
+        file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_file",
-        random_state=0,
+        callbacks=None,
     ):
         _check_dl_dependencies(severity="error")
         super(AEFCNClusterer, self).__init__(
-            n_clusters,
-            clustering_algorithm,
-            clustering_params,
-            batch_size,
-            last_file_name,
+            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
+            batch_size=batch_size,
+            last_file_name=last_file_name,
         )
         self.n_clusters = n_clusters
         self.clustering_algorithm = clustering_algorithm
@@ -153,6 +154,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.batch_size = batch_size
         self.last_file_name = last_file_name
         self.latent_space_dim = latent_space_dim
+        self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -175,6 +177,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         self._network = AEFCNNetwork(
             latent_space_dim=self.latent_space_dim,
+            temporal_latent_space=self.temporal_latent_space,
             n_layers=self.n_layers,
             n_filters=self.n_filters,
             kernel_size=self.kernel_size,
@@ -293,14 +296,17 @@ class AEFCNClusterer(BaseDeepClusterer):
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
-        self._fit_clustering
+        self._fit_clustering(X=X)
 
         gc.collect()
 
         return self
 
     def _score(self, X, y=None):
-        return True
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        return self.clusterer.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
