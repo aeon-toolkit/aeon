@@ -337,7 +337,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             "use_bias": False,
             "n_layers": 2,
             "padding": "same",
-            "strides": 2,
+            "strides": 1,
         }
 
         test_params = [param1]
