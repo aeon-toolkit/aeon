@@ -19,16 +19,16 @@ def get_identifiers(obj, force_single_identifier=True, coerce_to_list=False):
         if True, only the *first* identifier found will be returned
         order is determined by the order in BASE_CLASS_REGISTER
     coerce_to_list : bool, optional, default = False
-        whether return should be coerced to list, even if only one scitype is identified
+        whether return should be coerced to list, even if only one identifier is
+        found.
 
     Returns
     -------
-    identifier(s) : str, or list of str of aeon scitype strings from BASE_CLASS_REGISTER
-        str, aeon scitype string, if exactly one scitype can be determined for obj
-            or force_single_identifier is True, and if coerce_to_list is False
-        list of str, of scitype strings, if more than one scitype are determined,
-            or if coerce_to_list is True
-        obj has identifier if it inherits from class in same row of BASE_CLASS_REGISTER
+    str, or list of str
+    Identifiers from BASE_CLASS_REGISTER. aeon identifier string, if exactly one
+    identifier can be determined for obj or force_single_identifier is True,
+    and if coerce_to_list is False. obj has identifier if it inherits from class in
+    same row of BASE_CLASS_REGISTER
 
     Raises
     ------

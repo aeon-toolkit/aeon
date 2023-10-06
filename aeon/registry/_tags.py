@@ -181,7 +181,7 @@ ESTIMATOR_TAG_REGISTER = [
         "scitype:transform-labels",
         "transformer",
         ("list", ["None", "Series", "Primitives", "Panel"]),
-        "What is the scitype of y: None (not needed), Primitives, Series, Panel?",
+        "What is the type of y: None (not needed), Primitives, Series, Panel?",
     ),
     (
         "requires_y",
@@ -308,7 +308,7 @@ ESTIMATOR_TAG_REGISTER = [
         "scitype:y_pred",
         "metric",
         "str",
-        "What is the scitype of y_pred: quantiles, proba, interval?",
+        "What is the type of y_pred: quantiles, proba, interval?",
     ),
     (
         "lower_is_better",
