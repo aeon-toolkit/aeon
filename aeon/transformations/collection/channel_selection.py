@@ -291,6 +291,8 @@ class ElbowClassSum(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "skip-inverse-transform": True,
+        "y_inner_mtype": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(
@@ -426,6 +428,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "capability:unequal_length": False,
         "capability:multivariate": True,
+        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
