@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Register of estimator base classes corresponding to aeon scitypes.
+"""Register of estimator base classes corresponding to aeon class.
 
 This module exports the following:
 
@@ -10,7 +10,7 @@ BASE_CLASS_REGISTER - list of tuples
 each tuple corresponds to a base class, elements as follows:
     0 : string - shorthand identifie for base class type
     1 : type - the base class itself
-    2 : string - plain English description of the scitype
+    2 : string - plain English description of the class
 
 ---
 
