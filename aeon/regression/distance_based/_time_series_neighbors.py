@@ -19,7 +19,7 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """
-    KNN Time Series Regressor.
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 

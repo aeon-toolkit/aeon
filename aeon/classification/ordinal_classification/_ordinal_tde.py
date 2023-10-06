@@ -627,8 +627,9 @@ class OrdinalTDE(BaseClassifier):
 
 
 class IndividualOrdinalTDE(BaseClassifier):
-    """Single O-TDE classifier, an ordinal version of the IndividualTDE from [2]_.
+    """Single O-TDE classifier.
 
+    An ordinal version of the IndividualTDE described in [2]_.
     Base classifier for the O-TDE classifier. Implementation of single O-TDE base model
     from [1]_.
 
@@ -699,11 +700,11 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
+    .. [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
         Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
         IWANN 2023. 17th International Work-Conference on Artificial Neural Networks.
-    ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.

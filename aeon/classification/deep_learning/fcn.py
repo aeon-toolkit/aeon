@@ -17,7 +17,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class FCNClassifier(BaseDeepClassifier):
-    """Fully Connected Neural Network (FCN), as described in [1]_.
+    """Fully Connected Neural Network (FCN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------

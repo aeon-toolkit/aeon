@@ -28,3 +28,4 @@ exclude CODEOWNERS
 exclude CONTRIBUTING.md
 exclude CONTRIBUTORS.md
 exclude GOVERNANCE.md
+exclude sweep.yaml

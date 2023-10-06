@@ -130,7 +130,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
     References
     ----------
-    ..  [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.
@@ -612,7 +612,7 @@ class IndividualTDE(BaseClassifier):
     Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
 
     Base classifier for the TDE classifier. Implementation of single TDE base model
-    from Middlehurst (2021). [1]_
+    from [1]_.
 
     Overview: input "n" series of length "m" and IndividualTDE performs a SFA
     transform to form a sparse dictionary of discretised words. The resulting
@@ -681,7 +681,7 @@ class IndividualTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.

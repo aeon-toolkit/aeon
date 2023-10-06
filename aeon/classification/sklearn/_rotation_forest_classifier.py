@@ -27,9 +27,8 @@ class RotationForestClassifier(BaseEstimator):
     """
     A rotation forest (RotF) vector classifier.
 
-    Implementation of the Rotation Forest classifier described in Rodriguez et al
-    (2013) [1]. Builds a forest of trees build on random portions of the data
-    transformed using PCA.
+    Implementation of the Rotation Forest classifier described [1]_. Builds a forest
+    of trees build on random portions of the data transformed using PCA.
 
     Intended as a benchmark for time series data and a base classifier for
     transformation based appraoches such as ShapeletTransformClassifier, this aeon
