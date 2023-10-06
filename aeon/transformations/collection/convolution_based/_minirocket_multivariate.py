@@ -60,6 +60,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
     """
 
     _tags = {
+        "scitype:transform-output": "Primitives",
         "capability:multivariate": True,
     }
 
