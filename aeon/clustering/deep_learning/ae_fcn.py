@@ -130,7 +130,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         batch_size=32,
         use_mini_batch_size=False,
         random_state=0,
-        verbose=True,
+        verbose=False,
         loss="mse",
         optimizer="Adam",
         file_path="./",
@@ -336,7 +336,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 2,
-            "padding": "valid",
+            "padding": "same",
             "strides": 2,
         }
 
