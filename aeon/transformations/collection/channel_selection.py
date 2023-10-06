@@ -291,6 +291,8 @@ class ElbowClassSum(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "skip-inverse-transform": True,
+        "y_inner_mtype": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(
