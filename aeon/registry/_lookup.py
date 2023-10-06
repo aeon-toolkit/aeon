@@ -67,8 +67,8 @@ def all_estimators(
     estimator_types: str, list of str, optional (default=None)
         Which kind of estimators should be returned.
         if None, no filter is applied and all estimators are returned.
-        if str or list of str, strings define scitypes specified in search
-                only estimators that are of (at least) one of the scitypes are returned
+        if str or list of str, string identifiers define types specified in search
+                only estimators that are of (at least) one of the types are returned
             possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
                 for instance 'classifier', 'regressor', 'transformer', 'forecaster'
     return_names: bool, optional (default=True)
@@ -452,7 +452,7 @@ def all_tags(
     tags: list of tuples (a, b, c, d),
         in alphabetical order by a
         a : string - name of the tag as used in the _tags dictionary
-        b : string - name of the scitype this tag applies to
+        b : string - name of the type this tag applies to
                     must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
         c : string - expected type of the tag value
             should be one of:
