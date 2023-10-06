@@ -59,7 +59,6 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
     }
 
