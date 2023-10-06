@@ -49,7 +49,7 @@ class BaseCollectionTransformer(
     }
 
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__()
+        super(BaseCollectionTransformer, self).__init__(_output_convert=False)
 
     def fit(self, X, y=None):
         """Fit transformer to X, optionally using y if supervised.
