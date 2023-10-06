@@ -2,10 +2,10 @@
 """Implements registry for aeon estimator base classes and tags."""
 
 from aeon.registry._base_classes import (
+    BASE_CLASS_IDENTIFIER_LIST,
     BASE_CLASS_LIST,
     BASE_CLASS_LOOKUP,
     BASE_CLASS_REGISTER,
-    BASE_CLASS_SCITYPE_LIST,
 )
 from aeon.registry._lookup import all_estimators, all_tags
 from aeon.registry._scitype import scitype
@@ -25,5 +25,5 @@ __all__ = [
     "BASE_CLASS_REGISTER",
     "BASE_CLASS_LIST",
     "BASE_CLASS_LOOKUP",
-    "BASE_CLASS_SCITYPE_LIST",
+    "BASE_CLASS_IDENTIFIER_LIST",
 ]

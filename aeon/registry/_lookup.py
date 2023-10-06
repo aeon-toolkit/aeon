@@ -5,10 +5,10 @@ Registry lookup methods.
 
 This module exports the following methods for registry lookup:
 
-all_estimators(estimator_types, filter_tags)
+all_estimators(estimator_identifiers, filter_tags)
     lookup and filtering of estimators
 
-all_tags(estimator_types)
+all_tags(estimator_identifiers)
     lookup and filtering of estimator tags
 """
 
@@ -453,7 +453,7 @@ def all_tags(
         in alphabetical order by a
         a : string - name of the tag as used in the _tags dictionary
         b : string - name of the scitype this tag applies to
-                    must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+                    must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
         c : string - expected type of the tag value
             should be one of:
                 "bool" - valid values are True/False
@@ -494,7 +494,7 @@ def all_tags(
     return all_tags
 
 
-def _check_estimator_types(estimator_types, var_name="estimator_types"):
+def _check_estimator_types(estimator_types, var_name="estimator_identifiers"):
     """Return list of classes corresponding to type strings."""
     estimator_types = deepcopy(estimator_types)
 

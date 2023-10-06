@@ -68,7 +68,7 @@ class MyForecaster(BaseForecaster):
     # tag values are "safe defaults" which can usually be left as-is
     _tags = {
         # to list all valid tags with description, use aeon.registry.all_tags
-        #   all_tags(estimator_types="forecaster", as_dataframe=True)
+        #   all_tags(estimator_identifiers="forecaster", as_dataframe=True)
         #
         # behavioural tags: internal type
         # -------------------------------

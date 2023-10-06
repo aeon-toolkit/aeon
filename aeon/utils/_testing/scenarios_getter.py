@@ -9,7 +9,7 @@ __all__ = ["retrieve_scenarios"]
 from inspect import isclass
 
 from aeon.base import BaseObject
-from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_SCITYPE_LIST, scitype
+from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST, scitype
 from aeon.utils._testing.scenarios_classification import (
     scenarios_classification,
     scenarios_early_classification,
@@ -53,10 +53,10 @@ def retrieve_scenarios(obj, filter_tags=None):
     """
     if not isinstance(obj, (str, BaseObject)) and not issubclass(obj, BaseObject):
         raise TypeError("obj must be a str or inherit from BaseObject")
-    if isinstance(obj, str) and obj not in BASE_CLASS_SCITYPE_LIST:
+    if isinstance(obj, str) and obj not in BASE_CLASS_IDENTIFIER_LIST:
         raise ValueError(
             "if obj is a str, then obj must be a valid scitype string, "
-            "see registry.BASE_CLASS_SCITYPE_LIST for valid scitype strings"
+            "see registry.BASE_CLASS_IDENTIFIER_LIST for valid scitype strings"
         )
 
     # if class, get scitypes from inference; otherwise, str or list of str
@@ -100,9 +100,9 @@ def _scitype_from_class(obj):
     if not isinstance(obj, tuple(BASE_CLASS_LIST)):
         raise TypeError("obj must be instance of an aeon base class, or a base class")
 
-    for i in range(len(BASE_CLASS_SCITYPE_LIST)):
+    for i in range(len(BASE_CLASS_IDENTIFIER_LIST)):
         if isinstance(obj, BASE_CLASS_LIST[i]):
-            return BASE_CLASS_SCITYPE_LIST[i]
+            return BASE_CLASS_IDENTIFIER_LIST[i]
 
 
 def _check_tag_cond(obj, filter_tags=None):
