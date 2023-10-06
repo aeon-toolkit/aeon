@@ -43,8 +43,8 @@ class BaseCollectionTransformer(
 
     # Relevant tag values inherited from BaseTransformer
     _tags = {
-        "capability:inverse_transform": False,
-        "requires_y": False,
+        "scitype:transform-input": "Panel",
+        "scitype:transform-output": "Panel",
         "fit_is_empty": False,
     }
 
