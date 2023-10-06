@@ -16,6 +16,10 @@ class AEFCNNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
+    latent_space_dim : int, default = 128
+        Dimension of the auto-encoder's latent space.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers : int, default = 3
         Number of convolution layers.
     n_filters : int or list of int, default = [128,256,128]
@@ -60,6 +64,7 @@ class AEFCNNetwork(BaseDeepNetwork):
     def __init__(
         self,
         latent_space_dim=128,
+        temporal_latent_space=False,
         n_layers=3,
         n_filters=None,
         kernel_size=None,
@@ -74,6 +79,7 @@ class AEFCNNetwork(BaseDeepNetwork):
         _check_dl_dependencies(severity="error")
 
         self.latent_space_dim = latent_space_dim
+        self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -156,26 +162,42 @@ class AEFCNNetwork(BaseDeepNetwork):
 
             x = conv
 
-        shape_before_flattent = x.shape[1:]
+        if not self.temporal_latent_space:
+            shape_before_flattent = x.shape[1:]
 
-        flatten_layer = tf.keras.layers.Flatten()(x)
-        latent_space = tf.keras.layers.Dense(units=self.latent_space_dim)(flatten_layer)
+            flatten_layer = tf.keras.layers.Flatten()(x)
+            latent_space = tf.keras.layers.Dense(units=self.latent_space_dim)(
+                flatten_layer
+            )
+        else:
+            latent_space = tf.keras.layers.Conv1D(
+                filters=self.latent_space_dim,
+                kernel_size=1,
+                strides=self._strides[-1],
+                padding=self._padding[-1],
+                dilation_rate=self._dilation_rate[-1],
+                use_bias=self._use_bias[-1],
+            )(x)
 
         encoder = tf.keras.models.Model(
             inputs=input_layer_encoder, outputs=latent_space, name="encoder"
         )
 
-        input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
+        if not self.temporal_latent_space:
+            input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
 
-        dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flattent))(
-            input_layer_decoder
-        )
+            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flattent))(
+                input_layer_decoder
+            )
 
-        reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flattent)(
-            dense_layer
-        )
+            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flattent)(
+                dense_layer
+            )
+            x = reshape_layer
+        else:
+            input_layer_decoder = tf.keras.layers.Input(latent_space.shape[1:])
 
-        x = reshape_layer
+            x = input_layer_decoder
 
         for i in range(self.n_layers)[::-1]:
             conv = tf.keras.layers.Conv1DTranspose(
@@ -193,11 +215,13 @@ class AEFCNNetwork(BaseDeepNetwork):
             x = conv
 
         last_projection_layer = tf.keras.layers.Conv1DTranspose(
-            filters=input_shape[-1], kernel_size=1, padding=self._padding[-1]
+            filters=input_shape[-1],
+            kernel_size=1,
+            padding=self._padding[0],
+            strides=self._strides[0],
+            dilation_rate=self._dilation_rate[0],
+            use_bias=self._use_bias[0],
         )(x)
-        # output_decoder = tf.keras.layers.Reshape(target_shape=input_shape)(
-        #     last_projection_layer
-        # )
 
         decoder = tf.keras.models.Model(
             inputs=input_layer_decoder, outputs=last_projection_layer, name="decoder"
