@@ -20,7 +20,7 @@ def check_estimator(
 
     Tests that are run on estimator:
         all tests in test_all_estimators
-        all interface compatibility tests from the module of estimator's scitype
+        all interface compatibility tests from the module of estimator's type
             for example, test_all_forecasters if estimator is a forecaster
 
     Parameters
@@ -94,7 +94,7 @@ def check_estimator(
     )
     from aeon.classification.tests.test_all_classifiers import TestAllClassifiers
     from aeon.forecasting.tests.test_all_forecasters import TestAllForecasters
-    from aeon.registry import scitype
+    from aeon.registry import get_identifiers
     from aeon.regression.tests.test_all_regressors import TestAllRegressors
     from aeon.tests.test_all_estimators import TestAllEstimators, TestAllObjects
     from aeon.transformations.tests.test_all_transformers import TestAllTransformers
@@ -134,7 +134,7 @@ def check_estimator(
         results.update(results_estimator)
 
     try:
-        scitype_of_estimator = scitype(estimator)
+        scitype_of_estimator = get_identifiers(estimator)
     except Exception:
         scitype_of_estimator = ""
 

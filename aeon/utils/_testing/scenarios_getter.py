@@ -9,7 +9,7 @@ __all__ = ["retrieve_scenarios"]
 from inspect import isclass
 
 from aeon.base import BaseObject
-from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST, scitype
+from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST, get_identifiers
 from aeon.utils._testing.scenarios_classification import (
     scenarios_classification,
     scenarios_early_classification,
@@ -61,7 +61,7 @@ def retrieve_scenarios(obj, filter_tags=None):
 
     # if class, get scitypes from inference; otherwise, str or list of str
     if not isinstance(obj, str):
-        estimator_type = scitype(obj)
+        estimator_type = get_identifiers(obj)
     else:
         estimator_type = obj
 

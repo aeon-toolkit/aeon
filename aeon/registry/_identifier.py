@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+"""Utility to determine type identifier of estimator, based on base class type."""
+
+__author__ = ["fkiraly"]
+
+from inspect import isclass
+
+from aeon.registry._base_classes import BASE_CLASS_REGISTER
+
+
+def get_identifiers(obj, force_single_identifier=True, coerce_to_list=False):
+    """Determine identifier string of obj.
+
+    Parameters
+    ----------
+    obj : class or object inheriting from aeon BaseObject
+    force_single_identifier : bool, optional, default = True
+        whether only a single identifier is returned
+        if True, only the *first* identifier found will be returned
+        order is determined by the order in BASE_CLASS_REGISTER
+    coerce_to_list : bool, optional, default = False
+        whether return should be coerced to list, even if only one scitype is identified
+
+    Returns
+    -------
+    identifier(s) : str, or list of str of aeon scitype strings from BASE_CLASS_REGISTER
+        str, aeon scitype string, if exactly one scitype can be determined for obj
+            or force_single_identifier is True, and if coerce_to_list is False
+        list of str, of scitype strings, if more than one scitype are determined,
+            or if coerce_to_list is True
+        obj has identifier if it inherits from class in same row of BASE_CLASS_REGISTER
+
+    Raises
+    ------
+    TypeError if no identifier can be determined for obj
+    """
+    if isclass(obj):
+        identifiers = [id[0] for id in BASE_CLASS_REGISTER if issubclass(obj, id[1])]
+    else:
+        identifiers = [id[0] for id in BASE_CLASS_REGISTER if isinstance(obj, id[1])]
+
+    if len(identifiers) == 0:
+        raise TypeError("Error, no identifiers could be determined for obj")
+
+    if len(identifiers) > 1 and "object" in identifiers:
+        identifiers = list(set(identifiers).difference(["object"]))
+
+    if len(identifiers) > 1 and "estimator" in identifiers:
+        identifiers = list(set(identifiers).difference(["estimator"]))
+
+    # remove transformer if collection-transformer is present
+    if len(identifiers) > 1 and "collection-transformer" in identifiers:
+        identifiers = list(set(identifiers).difference(["transformer"]))
+
+    if force_single_identifier:
+        identifiers = [identifiers[0]]
+
+    if len(identifiers) == 1 and not coerce_to_list:
+        return identifiers[0]
+
+    return identifiers

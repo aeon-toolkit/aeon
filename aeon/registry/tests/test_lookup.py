@@ -7,7 +7,7 @@ __author__ = ["fkiraly", "MatthewMiddlehurst"]
 import pytest
 
 from aeon.base import BaseObject
-from aeon.registry import all_estimators, all_tags, scitype
+from aeon.registry import all_estimators, all_tags, get_identifiers
 from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
 from aeon.registry._lookup import _check_estimator_types
 from aeon.transformations.base import BaseTransformer
@@ -236,7 +236,7 @@ def test_all_estimators_return_tags_bad_arg(return_tags):
 def test_type_inference(estimator_id):
     """Check that identifier inverts _check_estimator_types."""
     base_class = _check_estimator_types(estimator_id)[0]
-    inferred_type = scitype(base_class)
+    inferred_type = get_identifiers(base_class)
 
     assert (
         inferred_type == estimator_id
