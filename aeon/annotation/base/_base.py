@@ -4,7 +4,7 @@ Base class template for annotator base type for time series stream.
 
     class name: BaseSeriesAnnotator
 
-Scitype defining methods:
+Class defining methods:
     fitting              - fit(self, X, Y=None)
     annotating           - predict(self, X)
     updating (temporal)  - update(self, X, Y=None)
