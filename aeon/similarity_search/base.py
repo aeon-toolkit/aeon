@@ -1,4 +1,4 @@
-"""BaseSimilaritySearch."""
+"""Base class for similarity search."""
 
 __author__ = ["baraline"]
 
@@ -68,7 +68,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_channels, n_timestamps)
+        X : array, shape (n_cases, n_channels, n_timestamps)
             Input array to used as database for the similarity search
         y : TYPE, optional
             Not used.
@@ -150,11 +150,9 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ...
 
 
-"""
-Dictionary structure :
-    1st lvl key : distance function used
-        2nd lvl key : boolean indicating wheter distance is normalized
-"""
+# Dictionary structure :
+#     1st lvl key : distance function used
+#         2nd lvl key : boolean indicating wheter distance is normalized
 DISTANCE_PROFILE_DICT = {
     "euclidean": {
         True: normalized_naive_euclidean_profile,

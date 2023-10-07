@@ -21,10 +21,10 @@ def _get_input_sizes(X, Q):
 
     Returns
     -------
-    n_samples : int
+    n_cases : int
         Number of samples in X.
     n_channels : int
-        Number of channeks in X.
+        Number of channels in X.
     X_length : int
         Number of timestamps in X.
     q_length : int
@@ -33,10 +33,10 @@ def _get_input_sizes(X, Q):
         Size of the search space for similarity search for each sample in X
 
     """
-    n_samples, n_channels, X_length = X.shape
+    n_cases, n_channels, X_length = X.shape
     q_length = Q.shape[-1]
     search_space_size = X_length - q_length + 1
-    return (n_samples, n_channels, X_length, q_length, search_space_size)
+    return (n_cases, n_channels, X_length, q_length, search_space_size)
 
 
 @njit(fastmath=True, cache=True)

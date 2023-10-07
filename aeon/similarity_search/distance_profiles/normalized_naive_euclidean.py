@@ -21,10 +21,11 @@ def normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds):
     the euclidean distance. The search is made in a brute force way without any
     optimizations and can thus be slow.
 
-    A distance profile between a (univariate) time series X_i = {x_1, ..., x_m}
-    and a query Q = {q_1, ..., q_m} is defined as a vector of size $m-(l-1)$,
-    such as P(X_i, Q) = {d(C_1, Q), ..., d(C_m-(l-1), Q)} with d the euclidean distance,
-    and C_j = {x_j, ..., x_{j+(l-1)}} the j-th candidate subsequence of size l in X_i.
+    A distance profile between a (univariate) time series :math:`X_i = {x_1, ..., x_m}`
+    and a query :math:`Q = {q_1, ..., q_m}` is defined as a vector of size :math:`m-(
+    l-1)`, such as :math:`P(X_i, Q) = {d(C_1, Q), ..., d(C_m-(l-1), Q)}` with d the
+    Euclidean distance, and :math:`C_j = {x_j, ..., x_{j+(l-1)}}` the j-th candidate
+    subsequence of size :math:`l` in :math:`X_i`.
 
     Parameters
     ----------
