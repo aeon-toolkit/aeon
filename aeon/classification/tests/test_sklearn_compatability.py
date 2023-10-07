@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for aeon classifier compatability with sklearn interfaces."""
 
 __author__ = ["MatthewMiddlehurst"]

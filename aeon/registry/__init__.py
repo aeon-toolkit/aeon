@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implements registry for aeon estimator base classes and tags."""
 
 from aeon.registry._base_classes import (

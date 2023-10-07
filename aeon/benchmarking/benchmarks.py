@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Benchmarking interface for use with aeon objects.
 
 Wraps kotsu benchmarking package.

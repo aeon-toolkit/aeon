@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Collection data converters.
 
 This contains all functions to convert supported collection data types.

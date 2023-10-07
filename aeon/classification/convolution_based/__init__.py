@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Convolution based time series classifiers."""
 
 __all__ = ["RocketClassifier", "Arsenal"]

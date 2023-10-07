@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """DrCIF regressor.
 
 Interval-based DrCIF regressor extracting catch22 features from random intervals on

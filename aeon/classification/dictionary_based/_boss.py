@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BOSS classifiers.
 
 Dictionary based BOSS classifiers based on SFA transform.

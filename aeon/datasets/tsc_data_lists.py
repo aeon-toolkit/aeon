@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
 
 Lists of data available from timeseriesclassification.com. Data is available in .ts

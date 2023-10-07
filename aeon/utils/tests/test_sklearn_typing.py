@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for sklearn typing utilities in utils.aeon."""
 
 __author__ = ["fkiraly"]

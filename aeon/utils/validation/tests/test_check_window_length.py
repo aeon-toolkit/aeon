@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 import pytest
 
 from aeon.utils.validation import check_window_length

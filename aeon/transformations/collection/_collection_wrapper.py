@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """A wrapper to treat a BaseCollectionTransformer as a BaseTransformer."""
 
 __author__ = ["MatthewMiddlehurst"]

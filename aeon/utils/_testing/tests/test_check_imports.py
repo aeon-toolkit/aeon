@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """InceptionTime regressor."""
 
 __author__ = ["hadifawaz1999"]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
