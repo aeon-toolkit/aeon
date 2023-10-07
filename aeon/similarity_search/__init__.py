@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BaseSimilaritySearch."""
 
 __author__ = ["baraline"]

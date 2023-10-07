@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TopKSimilaritySearch."""
 
 __author__ = ["baraline"]

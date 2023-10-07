@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Naive Euclidean distance profile."""
 
 __author__ = ["baraline"]

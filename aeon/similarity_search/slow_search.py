@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """First similarity search."""
 import numpy as np
 
