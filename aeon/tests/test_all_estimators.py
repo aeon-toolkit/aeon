@@ -1238,7 +1238,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         _assert_array_almost_equal(
             results[1],
             results_2nd[1],
-            # err_msg=f"Idempotency check failed for method {method}",
+            err_msg=f"Running {method_nsc_arraylike} after fit twice with test "
+            f"parameters gives different results.",
         )
 
     def test_persistence_via_pickle(

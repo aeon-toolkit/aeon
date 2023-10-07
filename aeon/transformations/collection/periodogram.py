@@ -53,6 +53,10 @@ class PeriodogramTransformer(BaseCollectionTransformer):
        3.36395549  2.69146494  2.27041859  3.9023142 ]]
     """
 
+    _tags = {
+        "capability:multivariate": True,
+    }
+
     def __init__(
         self,
         pad_series=True,

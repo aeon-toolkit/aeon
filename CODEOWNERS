@@ -6,7 +6,7 @@
 aeon/annotation/ @lmmentel
 aeon/annotation/clasp.py @patrickzib @ermshaua
 
-aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
+aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999 @dguijo
 
 aeon/classification/ @MatthewMiddlehurst @TonyBagnall
 aeon/classification/deep_learning/ @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
