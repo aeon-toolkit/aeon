@@ -3,6 +3,7 @@
 __author__ = ["baraline"]
 
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 
@@ -62,6 +63,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._X_means = means
         self._X_stds = stds
 
+    @final
     def fit(self, X, y=None):
         """
         Fit method: store the input data and get the distance profile function.
@@ -99,6 +101,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._fit(X, y)
         return self
 
+    @final
     def predict(self, Q):
         """
         Predict method: Check the shape of Q and call _predict to perform the search.
