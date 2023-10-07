@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Naive Euclidean distance profile."""
 
 __author__ = ["baraline"]
@@ -11,7 +10,7 @@ from aeon.similarity_search.distance_profiles._commons import INF, _get_input_si
 
 
 def naive_euclidean_profile(X, Q):
-    """
+    r"""
     Compute a euclidean distance profile in a brute force way.
 
     It computes the distance profiles between the input time series and the query using

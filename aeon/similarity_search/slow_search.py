@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""First similarity search."""
+"""Example basic similarity search to demonstrate the use case."""
 import numpy as np
 
 from aeon.similarity_search.base import BaseSimiliaritySearch
