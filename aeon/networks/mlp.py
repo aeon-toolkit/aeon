@@ -10,12 +10,12 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class MLPNetwork(BaseDeepNetwork):
     """Establish the network structure for a MLP.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_
 
     Parameters
     ----------
-    random_state    : int, default = 0
-        seed to any needed random actions
+    random_state : int, default = 0
+        Deed to any needed random actions/
 
     Notes
     -----
@@ -24,12 +24,8 @@ class MLPNetwork(BaseDeepNetwork):
 
     References
     ----------
-    .. [1]  Network originally defined in:
-    @inproceedings{wang2017time, title={Time series classification from
-    scratch with deep neural networks: A strong baseline}, author={Wang,
-    Zhiguang and Yan, Weizhong and Oates, Tim}, booktitle={2017
-    International joint conference on neural networks (IJCNN)}, pages={
-    1578--1585}, year={2017}, organization={IEEE} }
+    .. [1]  Wang et al. Time series classification from scratch with deep neural
+    networks: A strong baseline, IJCNN, 2017.
     """
 
     _tags = {"python_dependencies": "tensorflow"}
