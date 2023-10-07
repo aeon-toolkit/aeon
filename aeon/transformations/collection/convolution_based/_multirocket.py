@@ -73,7 +73,7 @@ class MultiRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
+        "scitype:transform-output": "Primitives",
     }
 
     def __init__(

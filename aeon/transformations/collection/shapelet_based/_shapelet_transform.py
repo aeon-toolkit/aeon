@@ -139,7 +139,9 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     """
 
     _tags = {
+        "scitype:transform-output": "Primitives",
         "capability:multivariate": True,
+        "y_inner_mtype": "numpy1D",
         "fit_is_empty": False,
         "requires_y": True,
     }

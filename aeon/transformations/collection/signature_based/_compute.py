@@ -27,6 +27,7 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
     # default tag values for "Series-to-Primitives"
     _tags = {
         "fit_is_empty": True,
+        "scitype:transform-output": "Primitives",
         "capability:multivariate": True,
         "python_dependencies": "esig",
         "python_version": "<3.11",
