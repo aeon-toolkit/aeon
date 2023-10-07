@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests simple forecasts based on naive assumptions."""
 
 __author__ = ["mloning", "Piyush Gade", "Flix6x"]

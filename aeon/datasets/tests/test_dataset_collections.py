@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test functions for dataset collections."""
 import pytest
 

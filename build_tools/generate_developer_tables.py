@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Script to generate a html table of contributors, with names and avatars.
 
 The list is generated from aeon's teams on GitHub, plus a small number

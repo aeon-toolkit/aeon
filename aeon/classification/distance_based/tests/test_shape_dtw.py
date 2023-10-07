@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ShapeDTW test code."""
 
 import pytest

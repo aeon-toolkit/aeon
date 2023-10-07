@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Shapelet transform.
 
 A transformer from the time domain into the shapelet domain.

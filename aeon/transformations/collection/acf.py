@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Autocorrelation function transformer.
 
 Efficient implementation for collections using numba.

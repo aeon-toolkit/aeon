@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Datasets in the Monash tser data archives."""
 
 

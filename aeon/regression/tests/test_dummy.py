@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test function of DummyRegressor."""
 
 import numpy as np

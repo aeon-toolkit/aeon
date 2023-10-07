@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Sklearn related typing and inheritance checking utility."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 from inspect import isclass
 

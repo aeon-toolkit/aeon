@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Input conversions for the SignatureClassifier.
 
 _checks.py

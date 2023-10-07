@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests that soft dependencies are handled correctly.
 
 aeon supports a number of soft dependencies which are necessary for using
