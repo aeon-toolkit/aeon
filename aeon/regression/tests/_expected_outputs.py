@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dictionaries of expected outputs of regressor predict runs."""
 
 import numpy as np

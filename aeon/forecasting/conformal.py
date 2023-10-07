@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Implements simple conformal forecast intervals.
 
 Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __all__ = ["ConformalIntervals"]
 __author__ = ["fkiraly", "bethrice44"]

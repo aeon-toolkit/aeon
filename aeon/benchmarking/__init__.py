@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Benchmarking."""
 __all__ = [
     "plot_critical_difference",

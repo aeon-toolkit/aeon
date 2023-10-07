@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """Validation and checking functions for collections of time series."""
 
 __author__ = ["TonyBagnall"]

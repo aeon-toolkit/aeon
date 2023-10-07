@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Time binning for turning series equally spaced."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 

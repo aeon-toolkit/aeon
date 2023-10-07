@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dictionaries of expected outputs of transform runs."""
 
 import numpy as np

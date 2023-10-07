@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """Delegator mixin that delegates all methods to wrapped transformer.
 
 Useful for building estimators where all but one or a few methods are delegated.
 For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["miraep8"]
 __all__ = ["_DelegatedTransformer"]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time series interpolator/re-sampler."""
 import numpy as np
 

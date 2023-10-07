@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements compositors for performing forecasting by group."""
 
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES, mtype_to_scitype

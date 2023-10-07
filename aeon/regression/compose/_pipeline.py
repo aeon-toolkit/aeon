@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Pipeline with a regressor."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator

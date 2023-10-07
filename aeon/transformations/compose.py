@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Meta-transformers for building composite transformers."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 from warnings import warn
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Suite of tests for all estimators.
 
 adapted from scikit-learn's estimator_checks

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Clear sky transformer for solar time-series."""
 
 __author__ = ["ciaran-g"]

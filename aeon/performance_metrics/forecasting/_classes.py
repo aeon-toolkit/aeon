@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Metrics classes to assess performance on forecasting task.
 
 Classes named as ``*Score`` return a value to maximize: the higher the better.

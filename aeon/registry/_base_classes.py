@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Register of estimator base classes corresponding to aeon class.
 
 This module exports the following:

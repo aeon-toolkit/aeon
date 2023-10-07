@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """sklearn PCA applied as transformation."""
 __author__ = ["prockenschaub", "fkiraly", "aiwalter"]
 __all__ = ["PCATransformer"]

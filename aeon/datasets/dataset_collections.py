@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 List of datasets available for classification, regression and forecasting archives.
 
