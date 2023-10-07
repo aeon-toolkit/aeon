@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements framework for applying online ensembling algorithms to forecasters."""
 
 __author__ = ["magittan, mloning"]

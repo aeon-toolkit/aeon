@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements base classes for forecasting in aeon."""
 
 __all__ = [

@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements Theta-lines transformation for use with Theta forecasting."""
 
 __author__ = ["GuzalBulatova", "mloning"]

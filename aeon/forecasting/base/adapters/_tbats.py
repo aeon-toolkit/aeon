@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements adapter for using tbats forecasters in aeon framework."""
 
 __author__ = ["mloning", "aiwalter", "k1m190r"]

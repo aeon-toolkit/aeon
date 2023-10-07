@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements online algorithms for prediction weighted ensembles."""
 
 import numpy as np

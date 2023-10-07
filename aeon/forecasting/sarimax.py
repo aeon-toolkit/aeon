@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements SARIMAX."""
 
 __all__ = ["SARIMAX"]

@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements adapter for pmdarima forecasters to be used in aeon framework."""
 
 __author__ = ["mloning", "hyang1996", "kejsitake", "fkiraly"]

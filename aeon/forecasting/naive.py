@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements simple forecasts based on naive assumptions."""
 
 __all__ = ["NaiveForecaster", "NaiveVariance"]

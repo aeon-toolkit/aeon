@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements reconciled forecasters for hierarchical data."""
 
 __all__ = ["ReconcilerForecaster"]

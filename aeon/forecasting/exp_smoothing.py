@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements Holt-Winters exponential smoothing."""
 
 __all__ = ["ExponentialSmoothing"]

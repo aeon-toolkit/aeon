@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements adapter for statsmodels forecasters to be used in aeon framework."""
 
 __author__ = ["mloning"]

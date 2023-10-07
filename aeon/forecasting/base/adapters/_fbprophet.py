@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements adapter for Facebook prophet to be used in aeon framework."""
 
 __author__ = ["mloning", "aiwalter", "fkiraly"]

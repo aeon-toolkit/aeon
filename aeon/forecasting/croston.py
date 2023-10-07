@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Croston's Forecasting Method."""
 
 

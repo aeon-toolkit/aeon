@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements automatic and manually exponential time series smoothing models."""
 
 

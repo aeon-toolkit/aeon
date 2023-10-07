@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Wraps the UnobservedComponents (state space) model from statsmodels."""
 
 __all__ = ["UnobservedComponents"]

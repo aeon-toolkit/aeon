@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements functionality for specifying forecast horizons in aeon."""
 
 __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]

@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements trend based forecasters."""
 
 __author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]

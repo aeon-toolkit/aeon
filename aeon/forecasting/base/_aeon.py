@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """aeon window forecaster base class."""
 
 __author__ = ["@mloning", "@big-o", "fkiraly"]

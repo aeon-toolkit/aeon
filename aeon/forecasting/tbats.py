@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implements TBATS algorithm.
 
 TBATS refers to Exponential smoothing state space model with Trigonometric

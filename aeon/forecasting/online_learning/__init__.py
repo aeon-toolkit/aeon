@@ -1,4 +1,3 @@
-# !/usr/bin/env python3 -u
 """Implments algorithms for creating online ensembles of forecasters."""
 
 __author__ = ["William Zheng"]
