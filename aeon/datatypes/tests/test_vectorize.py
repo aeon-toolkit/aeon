@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes import MTYPE_REGISTER, SCITYPE_REGISTER
+from aeon.datatypes import DATATYPE_REGISTER, MTYPE_REGISTER
 from aeon.datatypes._check import AMBIGUOUS_MTYPES, check_is_mtype
 from aeon.datatypes._examples import get_examples
 from aeon.datatypes._vectorize import VectorizedDF, _enforce_index_freq
@@ -27,8 +27,8 @@ def _get_all_mtypes_for_scitype(scitype):
     -------
     mtypes : list of str - list of mtypes for scitype
     """
-    if scitype not in [s[0] for s in SCITYPE_REGISTER]:
-        raise RuntimeError(scitype + " is not in the SCITYPE_REGISTER")
+    if scitype not in [s[0] for s in DATATYPE_REGISTER]:
+        raise RuntimeError(scitype + " is not in the DATATYPE_REGISTER")
     mtypes = [key[0] for key in MTYPE_REGISTER if key[1] == scitype]
     mtypes = [mtype for mtype in mtypes if mtype not in AMBIGUOUS_MTYPES]
 

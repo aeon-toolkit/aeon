@@ -106,7 +106,7 @@ def convert(
         valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         default = inferred from from_type
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
     store : optional, reference of storage for lossy conversions, default=None (no ref)
         is updated by side effect if not None and store_behaviour="reset" or "update"
     store_behaviour : str, optional, one of None (default), "reset", "freeze", "update"
@@ -194,7 +194,7 @@ def convert_to(
         valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         pre-specifying the scitype reduces the number of checks done in type inference
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
         default = inferred from mtype of obj, which is in turn inferred internally
     store : reference of storage for lossy conversions, default=None (no store)
         is updated by side effect if not None and store_behaviour="reset" or "update"
@@ -284,7 +284,7 @@ def _conversions_defined(scitype: str):
     Parameters
     ----------
     scitype: str - name of scitype for which conversions are queried
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
 
     Returns
     -------
