@@ -155,7 +155,7 @@ def test_featureunion_transform_cols():
 def test_sklearn_after_primitives():
     """Test that sklearn transformer after primitives is correctly applied."""
     t = SummaryTransformer() * StandardScaler()
-    assert t.get_tag("scitype:transform-output") == "Primitives"
+    assert t.get_tag("output_data_type") == "Primitives"
 
     X = get_examples("pd-multiindex")[0]
     X_out = t.fit_transform(X)

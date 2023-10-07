@@ -131,7 +131,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
         "fit_is_empty": False,
         "univariate-only": False,
         "X_inner_mtype": "numpy3D",

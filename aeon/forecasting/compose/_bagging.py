@@ -169,12 +169,10 @@ class BaggingForecaster(BaseForecaster):
             self.forecaster_ = clone(self.forecaster)
 
         if (
-            self.bootstrap_transformer_.get_tag(
-                "scitype:transform-input", raise_error=False
-            )
+            self.bootstrap_transformer_.get_tag("input_data_type", raise_error=False)
             != "Series"
             and self.bootstrap_transformer_.get_tag(
-                "scitype:transform-output", raise_error=False
+                "output_data_type", raise_error=False
             )
             != "Panel"
             and not isinstance(self.bootstrap_transformer_, BaseTransformer)

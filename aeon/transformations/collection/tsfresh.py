@@ -14,7 +14,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
         "capability:multivariate": True,
         "fit_is_empty": True,
         "y_inner_mtype": "None",
@@ -438,7 +438,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "scitype:instancewise": False,
+        "instancewise": False,
         "requires_y": True,
         "X_inner_mtype": "nested_univ",
         "y_inner_mtype": "pd_Series_Table",

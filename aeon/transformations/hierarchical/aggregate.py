@@ -51,11 +51,11 @@ class Aggregator(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
         # todo instance wise?
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": [
             "pd.Series",
             "pd.DataFrame",

@@ -27,9 +27,9 @@ class IntervalSegmenter(BaseTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "instancewise": True,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
         "fit_is_empty": False,
@@ -391,10 +391,10 @@ class SlidingWindowSegmenter(BaseTransformer):
     _tags = {
         "univariate-only": True,
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
+        "output_data_type": "Series",
+        "instancewise": False,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
     }

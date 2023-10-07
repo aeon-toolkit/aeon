@@ -462,7 +462,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     def _convert_X_to_sklearn(self, X):
         """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        output_type = self.transformers_.get_tag("scitype:transform-output")
+        output_type = self.transformers_.get_tag("output_data_type")
         # if output_type is Primitives, output is Table, convert to 2D numpy array
         if output_type == "Primitives":
             Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
@@ -472,7 +472,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         else:
             raise TypeError(
                 f"unexpected X output type in {type(self.regressor).__name__}, "
-                f'in tag "scitype:transform-output", found "{output_type}", '
+                f'in tag "output_data_type", found "{output_type}", '
                 'expected one of "Primitives" or "Series"'
             )
 

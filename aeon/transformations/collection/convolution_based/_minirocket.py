@@ -59,7 +59,7 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
     }
 
     def __init__(

@@ -444,7 +444,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-labels": "Series",
+        "transform_labels": "Series",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
@@ -455,7 +455,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
         "capability:missing_values": True,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "python_dependencies": ["filterpy", "numpy<1.24.0"],
     }
 

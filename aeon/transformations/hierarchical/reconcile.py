@@ -75,10 +75,10 @@ class Reconciler(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": False,  # is this an instance-wise transform?
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": [
             "pd.DataFrame",
             "pd.Series",

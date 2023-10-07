@@ -71,13 +71,13 @@ class FourierFeatures(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-labels": "None",
+        "transform_labels": "None",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
