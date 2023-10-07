@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """The ``mlflow_aeon`` module provides an MLflow API for ``aeon`` forecasters.
 
 This module exports ``aeon`` models in the following formats:

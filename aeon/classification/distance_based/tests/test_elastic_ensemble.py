@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for ElasticEnsemble."""
 import numpy as np
 import pytest

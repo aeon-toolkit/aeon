@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests common to all transformers."""
 
 __author__ = ["mloning", "fkiraly", "MatthewMiddlehurst"]

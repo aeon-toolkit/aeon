@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """WEASEL test code."""
 import numpy as np
 

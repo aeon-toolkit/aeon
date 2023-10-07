@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for numba utils functions related to statistical operations."""
 
 __author__ = ["baraline"]
