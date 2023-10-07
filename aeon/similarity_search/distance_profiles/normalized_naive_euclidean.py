@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """normalized_naive_euclidean_profile."""
 
 __author__ = ["baraline"]

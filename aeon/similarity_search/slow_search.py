@@ -1,4 +1,4 @@
-"""Example basic similarity search to demonstrate the use case."""
+"""First similarity search."""
 import numpy as np
 
 from aeon.similarity_search.base import BaseSimiliaritySearch

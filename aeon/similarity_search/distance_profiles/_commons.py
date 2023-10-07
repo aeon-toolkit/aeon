@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Helper and common function for similarity search distance profiles."""
 
 
