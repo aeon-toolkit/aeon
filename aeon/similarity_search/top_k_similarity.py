@@ -9,10 +9,12 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     """
     Top-K similarity search method.
 
+    Finds the closest k series to the query series based on a distance function.
+
     Attributes
     ----------
-    k : int, optional
-        Number of nearest matches from Q to return. The default is 1.
+    k : int, default=1
+        The number of nearest matches from Q to return.
 
     """
 
