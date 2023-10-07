@@ -82,9 +82,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
-
+        self
         """
         # For now force (n_samples, n_channels, n_timestamps), we could convert 2D
         #  (n_channels, n_timestamps) to 3D with a warning
