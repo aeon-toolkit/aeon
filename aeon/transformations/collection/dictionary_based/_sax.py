@@ -62,6 +62,11 @@ class SAX(BaseCollectionTransformer):
     >>> X_test = sax.fit_transform(X_test)
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+    }
+
     def __init__(
         self,
         n_segments=8,

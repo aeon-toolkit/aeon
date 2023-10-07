@@ -39,6 +39,11 @@ class PAA(BaseCollectionTransformer):
     >>> X_test_paa = paa.transform(X_test)
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+    }
+
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 
