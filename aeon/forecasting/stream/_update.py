@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Compositors that control stream and refitting behaviour of update."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 

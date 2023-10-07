@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Test input for the BaseCollectionTransformer."""
 
 __author__ = ["MatthewMiddlehurst"]

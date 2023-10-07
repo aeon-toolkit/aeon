@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 # !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements framework for applying online ensembling algorithms to forecasters."""
 
 __author__ = ["magittan, mloning"]

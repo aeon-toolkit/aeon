@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Myst Markdown changelog generator."""
 
 import sys

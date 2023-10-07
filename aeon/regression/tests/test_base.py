@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for regression base class functionality."""
 import numpy as np
 import pandas as pd

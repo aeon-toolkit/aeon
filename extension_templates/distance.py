@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Extension template for time series distance function.
 
 This is a quick guide on how to implement a new aeon distance function. A wish list

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Encoder Classifier."""
 
 __author__ = ["hadifawaz1999"]

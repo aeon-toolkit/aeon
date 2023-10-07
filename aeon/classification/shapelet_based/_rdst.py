@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Random Dilated Shapelet Transform (RDST) Classifier.
 
 A Random Dilated Shapelet Transform classifier pipeline that simply performs a random

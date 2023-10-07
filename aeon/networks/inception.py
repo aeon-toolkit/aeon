@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Inception Time Classifier."""
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 

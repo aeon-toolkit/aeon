@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for time series k-medoids."""
 import numpy as np
 from sklearn import metrics

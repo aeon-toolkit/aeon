@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test the StandardScaler for time series."""
 
 import numpy as np
