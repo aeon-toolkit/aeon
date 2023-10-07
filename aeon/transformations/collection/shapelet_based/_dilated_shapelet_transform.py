@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dilated Shapelet transformers.
 
 A modification of the classic Shapelet Transform which add a dilation parameter to

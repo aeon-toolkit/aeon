@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for HC1."""
 import pytest
 

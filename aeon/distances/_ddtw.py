@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Derivative Dynamic Time Warping (DDTW) distance."""
 __author__ = ["chrisholder", "tonybagnall"]
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Information Gain-based Temporal Segmentation.
 

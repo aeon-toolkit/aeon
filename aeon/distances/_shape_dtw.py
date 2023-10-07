@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 __author__ = ["hadifawaz1999"]
 

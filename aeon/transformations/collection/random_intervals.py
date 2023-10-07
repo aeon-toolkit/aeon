@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Random interval features.
 
 A transformer for the extraction of features on randomly selected intervals.
@@ -111,6 +109,7 @@ class RandomIntervals(BaseCollectionTransformer):
 
     _tags = {
         "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 

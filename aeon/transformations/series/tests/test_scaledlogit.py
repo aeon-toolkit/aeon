@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """ScaledLogit transform unit tests."""
 
 __author__ = ["ltsaprounis"]

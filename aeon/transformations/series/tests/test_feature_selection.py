@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test FeatureSelection transformer."""
 
 __author__ = ["aiwalter"]

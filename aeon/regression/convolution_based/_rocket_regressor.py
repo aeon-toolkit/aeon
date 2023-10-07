@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket) regressor.
 
 Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
@@ -9,10 +8,10 @@ __all__ = ["RocketRegressor"]
 
 import numpy as np
 from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
-from aeon.pipeline import make_pipeline
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
