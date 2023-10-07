@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions for generating stored unit test results for transformers."""
 
 import numpy as np

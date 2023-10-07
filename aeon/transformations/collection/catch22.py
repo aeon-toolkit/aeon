@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Catch22 features.
 
 A transformer for the Catch22 features.
@@ -136,6 +134,8 @@ class Catch22(BaseCollectionTransformer):
         "scitype:transform-output": "Primitives",
         "X_inner_mtype": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
+        "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(

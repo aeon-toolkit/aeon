@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Supervised interval features.
 
 A transformer for the extraction of features on intervals extracted from a supervised
@@ -138,8 +136,8 @@ class SupervisedIntervals(BaseCollectionTransformer):
     _tags = {
         "scitype:transform-output": "Primitives",
         "y_inner_mtype": "numpy1D",
+        "capability:multivariate": True,
         "requires_y": True,
-        "fit_is_empty": False,
     }
 
     def __init__(

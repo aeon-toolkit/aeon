@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Warp Edit (TWE) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 

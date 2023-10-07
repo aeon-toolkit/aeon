@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Rotation Forest test code."""
 import numpy as np
 from sklearn.metrics import mean_squared_error

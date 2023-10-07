@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base class for clustering."""
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = ["BaseClusterer"]
@@ -65,15 +64,22 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_channels, series_length)).
-            Time series instances to predict their cluster indexes.
+        X : 3D np.array
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
-            Index of the cluster each time series in X belongs to.
+        np.array
+            shape ``(n_instances)`, index of the cluster each time series in X.
+            belongs to.
         """
         self.check_is_fitted()
         X = self._preprocess_collection(X)
@@ -171,7 +177,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         n_instances = len(preds)
         n_clusters = self.n_clusters
         if n_clusters is None:
-            n_clusters = max(preds) + 1
+            n_clusters = int(max(preds)) + 1
         dists = np.zeros((X.shape[0], n_clusters))
         for i in range(n_instances):
             dists[i, preds[i]] = 1

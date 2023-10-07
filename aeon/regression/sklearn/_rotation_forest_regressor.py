@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A Rotation Forest (RotF) vector regressor.
 
 A Rotation Forest aeon implementation for continuous values only. Fits sklearn
