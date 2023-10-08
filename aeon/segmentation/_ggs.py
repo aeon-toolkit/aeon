@@ -389,20 +389,20 @@ class GreedyGaussianSegmentation(BaseEstimator):
 
     Parameters
     ----------
-    k_max: int, default=10
+    k_max : int, default=10
         Maximum number of change points to find. The number of segments is thus k+1.
-    lamb: : float, default=1.0
+    lamb : float, default=1.0
         Regularization parameter lambda (>= 0), which controls the amount of
         (inverse) covariance regularization, see Eq (1) in [1]_. Regularization
         is introduced to reduce issues for high-dimensional problems. Setting
         ``lamb`` to zero will ignore regularization, whereas large values of
         lambda will favour simpler models.
-    max_shuffles: int, default=250
-        Maximum number of shuffles
-    verbose: bool, default=False
+    max_shuffles : int, default=250
+        Maximum number of shuffles.
+    verbose : bool, default=False
         If ``True`` verbose output is enabled.
-    random_state: int or np.random.RandomState, default=None
-        Either random seed or an instance of ``np.random.RandomState``
+    random_state : int or np.random.RandomState, default=None
+        Either random seed or an instance of ``np.random.RandomState``.
 
     Attributes
     ----------
