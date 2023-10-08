@@ -33,16 +33,16 @@ class REDCOMETS(BaseClassifier):
 
     Parameters
     ----------
-    variant : {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        RED CoMETS variant to use as per [1]_. Defaults to RED CoMETS-3.
-        Variants 4-9 only support multivariate problems.
+    variant : int, default=3
+        RED CoMETS variant to use from {1, 2, 3, 4, 5, 6, 7, 8, 9} to use as per [1]_.
+        Defaults to RED CoMETS-3. Variants 4-9 only support multivariate problems.
     perc_length : int or float, default=5
         Percentage of time series length used to determinne number of lenses during
         pair selection.
     n_trees : int, default=100
         Number of trees used by each random forest sub-classifier.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
