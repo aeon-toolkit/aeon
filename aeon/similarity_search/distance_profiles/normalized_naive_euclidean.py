@@ -53,9 +53,8 @@ def _normalized_naive_euclidean_profile(X, Q, X_means, X_stds, Q_means, Q_stds):
     n_samples, n_channels, X_length, Q_length, search_space_size = _get_input_sizes(
         X, Q
     )
-    # With Q_stds = 1, _Q will be an array of 0
     Q = _z_normalize_2D_series_with_mean_std(Q, Q_means, Q_stds)
-    distance_profile = np.full((n_samples, search_space_size), 1e12)
+    distance_profile = np.full((n_samples, search_space_size), np.inf)
 
     # Compute euclidean distance for all candidate in a "brute force" way
     for i_sample in range(n_samples):

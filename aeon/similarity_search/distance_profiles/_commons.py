@@ -5,7 +5,6 @@
 from numba import njit
 
 AEON_SIMSEARCH_STD_THRESHOLD = 1e-7
-INF = 1e12
 
 
 @njit(cache=True)
@@ -53,6 +52,9 @@ def _z_normalize_2D_series_with_mean_std(X, mean, std, copy=True):
         Mean of each channel.
     std : array, shape = (n_channels)
         Std of each channel.
+    copy : bool, optional
+        Wheter to copy the input X to avoid modifying the values of the array it refers
+        to (if it is a reference). The default is True.
 
     Returns
     -------

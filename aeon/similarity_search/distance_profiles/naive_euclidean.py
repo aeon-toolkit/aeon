@@ -7,7 +7,7 @@ import numpy as np
 from numba import njit
 
 from aeon.distances import euclidean_distance
-from aeon.similarity_search.distance_profiles._commons import INF, _get_input_sizes
+from aeon.similarity_search.distance_profiles._commons import _get_input_sizes
 
 
 def naive_euclidean_profile(X, Q):
@@ -45,7 +45,7 @@ def _naive_euclidean_profile(X, Q):
     n_samples, n_channels, X_length, Q_length, search_space_size = _get_input_sizes(
         X, Q
     )
-    distance_profile = np.full((n_samples, search_space_size), INF)
+    distance_profile = np.full((n_samples, search_space_size), np.inf)
 
     # Compute euclidean distance for all candidate in a "brute force" way
     for i_sample in range(n_samples):
