@@ -28,3 +28,4 @@ For an overview of the aeon modules see the :ref:`examples`.
     api_reference/utils
     api_reference/exceptions
     api_reference/performance_metrics
+    api_reference/segmentation

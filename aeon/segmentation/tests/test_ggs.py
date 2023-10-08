@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from aeon.annotation.ggs import GGS, GreedyGaussianSegmentation
+from aeon.segmentation import GGS, GreedyGaussianSegmentation
 
 
 @pytest.fixture

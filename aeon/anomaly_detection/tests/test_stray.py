@@ -6,7 +6,7 @@ __author__ = ["KatieBuc"]
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
-from aeon.annotation.stray import STRAY
+from aeon.anomaly_detection._stray import STRAY
 
 
 def test_default_1D():

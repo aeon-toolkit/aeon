@@ -53,7 +53,7 @@ class GGS:
     """
     Greedy Gaussian Segmentation.
 
-    The method approxmates solutions for the problem of breaking a
+    The method approximates solutions for the problem of breaking a
     multivariate time series into segments, where the data in each segment
     could be modeled as independent samples from a multivariate Gaussian
     distribution. It uses a dynamic programming search algorithm with
@@ -372,7 +372,7 @@ class GGS:
 class GreedyGaussianSegmentation(BaseEstimator):
     """Greedy Gaussian Segmentation Estimator.
 
-    The method approxmates solutions for the problem of breaking a
+    The method approximates solutions for the problem of breaking a
     multivariate time series into segments, where the data in each segment
     could be modeled as independent samples from a multivariate Gaussian
     distribution. It uses a dynamic programming search algorithm with
