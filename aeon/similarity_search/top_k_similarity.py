@@ -15,12 +15,24 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     ----------
     k : int, default=1
         The number of nearest matches from Q to return.
-
+    distance : str, default ="euclidean"
+        Name of the distance function to use.
+    normalize : bool, default = False
+        Whether the distance function should be z-normalized.
+    store_distance_profile : bool, default = =False.
+        Whether to store the computed distance profile in the attribute
+        "_distance_profile" after calling the predict method.
     """
 
-    def __init__(self, k=1):
+    def __init__(
+        self, k=1, distance="euclidean", normalize=False, store_distance_profile=False
+    ):
         self.k = k
-        super(TopKSimilaritySearch, self).__init__()
+        super(TopKSimilaritySearch, self).__init__(
+            distance=distance,
+            normalize=normalize,
+            store_distance_profile=store_distance_profile,
+        )
 
     def _fit(self, X, y):
         return self

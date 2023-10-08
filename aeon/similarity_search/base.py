@@ -133,7 +133,20 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
 
         if Q.shape[-1] >= self._X.shape[-1]:
-            raise TypeError("Error, Q must be shorter than X.")
+            raise ValueError(
+                "The length of the query q should be shorter than the length of the"
+                "data (X) provided during fit, but got {} for q and {} for X".format(
+                    Q.shape[-1], self._X.shape[-1]
+                )
+            )
+
+        if Q.shape[0] != self._X.shape[1]:
+            raise ValueError(
+                "The number of feature should be the same for the query q and the data"
+                "(X) provided during fit, but got {} for q and {} for X".format(
+                    Q.shape[0], self._X.shape[1]
+                )
+            )
 
         if self.normalize:
             self._Q_mean = np.mean(Q, axis=-1)
