@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Implemenents Box-Cox and Log Transformations."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["mloning", "aiwalter", "fkiraly"]
 __all__ = ["BoxCoxTransformer", "LogTransformer"]

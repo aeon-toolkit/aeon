@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FreshPRINCERegressor.
 
 Pipeline regressor using the full set of TSFresh features and a RotationForestRegressor

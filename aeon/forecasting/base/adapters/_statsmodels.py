@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements adapter for statsmodels forecasters to be used in aeon framework."""
 
 __author__ = ["mloning"]

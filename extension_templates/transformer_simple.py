@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for transformers, SIMPLE version.
 

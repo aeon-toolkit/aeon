@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Ordinal time series classifiers."""
 __all__ = [
     "OrdinalTDE",

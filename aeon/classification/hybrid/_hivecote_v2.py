@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
 Upgraded hybrid ensemble of classifiers from 4 separate time series classification

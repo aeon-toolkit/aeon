@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Time format related utilities."""
 
 __author__ = ["mloning", "xiaobenbenecho", "khrapovs"]

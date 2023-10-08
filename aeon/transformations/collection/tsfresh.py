@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """tsfresh interface class."""
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
@@ -15,10 +13,9 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
 
     _tags = {
         "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
         "fit_is_empty": True,
-        "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
-        "scitype:instancewise": True,
         "python_dependencies": "tsfresh",
     }
 

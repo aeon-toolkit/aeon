@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Base class template for annotator base type for time series stream.
 

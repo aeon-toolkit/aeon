@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Plotting tools for estimator results."""
 
 __all__ = [

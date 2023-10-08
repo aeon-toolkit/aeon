@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Utility function for estimator testing.
-
-copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""
+"""Utility function for estimator testing."""
 
 __author__ = ["mloning", "fkiraly"]
 
