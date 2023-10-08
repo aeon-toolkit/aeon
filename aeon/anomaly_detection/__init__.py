@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Series Anomaly Detection."""
 __all__ = [
     "STRAY",

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Series Segmentation."""
 __all__ = [
     "ClaSPSegmentation",
