@@ -6,13 +6,13 @@
 aeon/annotation/ @lmmentel
 aeon/annotation/clasp.py @patrickzib @ermshaua
 
-aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999
+aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999 @dguijo
 
 aeon/classification/ @MatthewMiddlehurst @TonyBagnall
 aeon/classification/deep_learning/ @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
 aeon/classification/dictionary_based/ @patrickzib @MatthewMiddlehurst @TonyBagnall
 aeon/classification/ordinal_classification/ @RafaAyGar @dguijo @MatthewMiddlehurst @TonyBagnall
-aeon/classification/hybrid/_red_comets.py @zy18811
+aeon/classification/dictionary_based/_redcomets.py @zy18811
 
 aeon/clustering/ @chrisholder @TonyBagnall
 

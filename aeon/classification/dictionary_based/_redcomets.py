@@ -581,6 +581,11 @@ class REDCOMETS(BaseClassifier):
             List of SAX() instances
         X : 2D np.ndarray, shape = [n_instances, n_timepoint]
             The data to transform.
+
+        Returns
+        -------
+        sax_parallel_res : list of np.ndarray
+            List of transformed X for each SAX() instance in sax_transforms.
         """
 
         def _sax_wrapper(sax):
