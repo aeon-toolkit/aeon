@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the critical difference diagram maker."""
 import os
 

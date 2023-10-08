@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
-"""First similarity search."""
+"""Basic similarity search to demonstrate the basic use case."""
 import numpy as np
 
 from aeon.similarity_search.base import BaseSimiliaritySearch
 
 
 class SlowSearch(BaseSimiliaritySearch):
-    """First similarity search."""
+    """Slow similarity search."""
 
     def __init__(self):
         super(SlowSearch, self).__init__()

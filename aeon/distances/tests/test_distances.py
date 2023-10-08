@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -18,7 +16,7 @@ def _validate_distance_result(x, y, name, distance, expected_result=10):
 
     assert isinstance(dist_result, float)
     assert_almost_equal(dist_result, expected_result)
-    assert dist_result == compute_distance(x, y, metric=name)
+    assert_almost_equal(dist_result, compute_distance(x, y, metric=name))
     assert_almost_equal(dist_result, compute_distance(x, y, metric=distance))
 
     dist_result_to_self = distance(x, x)

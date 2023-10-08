@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import multiprocessing
 
 import numpy as np
@@ -72,8 +71,8 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
     }
 
     def __init__(

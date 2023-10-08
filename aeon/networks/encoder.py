@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Encoder Classifier."""
 
 __author__ = ["hadifawaz1999"]
@@ -14,26 +13,26 @@ class EncoderNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    kernel_size    : array of int, default = [5, 11, 21]
-        specifying the length of the 1D convolution windows
-    n_filters       : array of int, default = [128, 256, 512]
-        specifying the number of 1D convolution filters used for each layer,
-        the shape of this array should be the same as kernel_size
-    max_pool_size   : int, default = 2
-        size of the max pooling windows
-    activation      : string, default = sigmoid
-        keras activation function
-    dropout_proba   : float, default = 0.2
-        specifying the dropout layer probability
-    padding         : string, default = same
-        specifying the type of padding used for the 1D convolution
-    strides         : int, default = 1
-        specifying the sliding rate of the 1D convolution filter
-    fc_units        : int, default = 256
-        specifying the number of units in the hiddent fully
-        connected layer used in the EncoderNetwork
-    random_state    : int, default = 0
-        seed to any needed random actions
+    kernel_size : array of int, default = [5, 11, 21]
+        Specifies the length of the 1D convolution windows.
+    n_filters : array of int, default = [128, 256, 512]
+        Specifying the number of 1D convolution filters used for each layer,
+        the shape of this array should be the same as kernel_size.
+    max_pool_size : int, default = 2
+        Size of the max pooling windows.
+    activation : string, default = sigmoid
+        Keras activation function.
+    dropout_proba : float, default = 0.2
+        specifying the dropout layer probability.
+    padding : string, default = "same"
+        Specifying the type of padding used for the 1D convolution.
+    strides : int, default = 1
+        Specifying the sliding rate of the 1D convolution filter.
+    fc_units : int, default = 256
+        Specifying the number of units in the hiddent fully connected layer used in
+        the EncoderNetwork.
+    random_state : int, default = 0
+        Seed to any needed random actions.
 
     Notes
     -----
@@ -84,7 +83,7 @@ class EncoderNetwork(BaseDeepNetwork):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer
+            The shape of the data fed into the input layer.
 
         Returns
         -------

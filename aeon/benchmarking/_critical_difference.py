@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Function to compute and plot critical difference diagrams."""
 
 __author__ = ["SveaMeyer13", "dguijo"]

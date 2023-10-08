@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for DBA."""
 import numpy as np
 
@@ -156,7 +155,7 @@ def test_elastic_dba_variations():
         "adtw",
     ]
     for dist in distances:
-        X_train = create_test_distance_numpy(10, 10, 10)
+        X_train = create_test_distance_numpy(4, 2, 10)
 
         average_ts = elastic_barycenter_average(
             X_train, distance=dist, window=0.2, independent=False

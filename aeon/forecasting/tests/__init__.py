@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Config for forecasting tags.
 
 Uses PR_TESTING flag to switch between full parameter combinations

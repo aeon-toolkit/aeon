@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implements wrappers for estimators from hmmlearn."""
 
 __all__ = ["BaseHMMLearn", "GaussianHMM", "GMMHMM", "PoissonHMM"]

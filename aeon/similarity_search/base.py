@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""BaseSimilaritySearch."""
+"""Base class for similarity search."""
 
 __author__ = ["baraline"]
 
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 
@@ -63,13 +63,14 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._X_means = means
         self._X_stds = stds
 
+    @final
     def fit(self, X, y=None):
         """
         Fit method: store the input data and get the distance profile function.
 
         Parameters
         ----------
-        X : array, shape (n_samples, n_channels, n_timestamps)
+        X : array, shape (n_cases, n_channels, n_timestamps)
             Input array to used as database for the similarity search
         y : TYPE, optional
             Not used.
@@ -81,9 +82,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
-
+        self
         """
         # For now force (n_samples, n_channels, n_timestamps), we could convert 2D
         #  (n_channels, n_timestamps) to 3D with a warning
@@ -100,6 +99,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._fit(X, y)
         return self
 
+    @final
     def predict(self, Q):
         """
         Predict method: Check the shape of Q and call _predict to perform the search.
@@ -151,11 +151,9 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ...
 
 
-"""
-Dictionary structure :
-    1st lvl key : distance function used
-        2nd lvl key : boolean indicating wheter distance is normalized
-"""
+# Dictionary structure :
+#     1st lvl key : distance function used
+#         2nd lvl key : boolean indicating wheter distance is normalized
 DISTANCE_PROFILE_DICT = {
     "euclidean": {
         True: normalized_naive_euclidean_profile,

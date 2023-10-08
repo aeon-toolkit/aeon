@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""Edit real penalty (erp) distance between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Distance profiles."""
 
 __author__ = ["baraline"]

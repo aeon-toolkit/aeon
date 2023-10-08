@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Periodogram transformer."""
 
 __author__ = ["MatthewMiddlehurst"]
@@ -52,6 +50,10 @@ class PeriodogramTransformer(BaseCollectionTransformer):
        4.33906385  0.36544821  2.28769936  3.67702091  1.45018642  1.26838712
        3.36395549  2.69146494  2.27041859  3.9023142 ]]
     """
+
+    _tags = {
+        "capability:multivariate": True,
+    }
 
     def __init__(
         self,

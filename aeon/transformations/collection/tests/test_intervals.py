@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Interval extraction test code."""
 
 from aeon.transformations.collection import Catch22, SevenNumberSummaryTransformer

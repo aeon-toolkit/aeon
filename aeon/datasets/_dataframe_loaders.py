@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Legacy functions that load collections of time series into nested dataframes."""
 
 __author__ = [
