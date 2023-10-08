@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 """Random EnhanceD Co-eye for Multivariate Time Series (RED CoMETS).
