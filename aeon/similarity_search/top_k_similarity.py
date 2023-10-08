@@ -37,13 +37,13 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     def _fit(self, X, y):
         return self
 
-    def _predict(self, Q):
+    def _predict(self, q):
         if self.normalize:
             distance_profile = self.distance_profile_function(
-                self._X, Q, self._X_means, self._X_stds, self._Q_means, self._Q_stds
+                self._X, q, self._X_means, self._X_stds, self._q_means, self._q_stds
             )
         else:
-            distance_profile = self.distance_profile_function(self._X, Q)
+            distance_profile = self.distance_profile_function(self._X, q)
         # Would creating base distance profile classes be relevant to force the same
         # interface for normalized / non normalized distance profiles ?
         if self.store_distance_profile:

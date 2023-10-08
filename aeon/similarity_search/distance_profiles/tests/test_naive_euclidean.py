@@ -21,15 +21,15 @@ def test_naive_euclidean(dtype):
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
-    Q = np.asarray([[3, 4, 5]], dtype=dtype)
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
 
-    dist_profile = naive_euclidean_profile(X, Q)
+    dist_profile = naive_euclidean_profile(X, q)
 
     expected = np.array(
         [
             [
-                euclidean_distance(Q, X[j, :, i : i + Q.shape[-1]])
-                for i in range(X.shape[-1] - Q.shape[-1] + 1)
+                euclidean_distance(q, X[j, :, i : i + q.shape[-1]])
+                for i in range(X.shape[-1] - q.shape[-1] + 1)
             ]
             for j in range(X.shape[0])
         ]
@@ -41,10 +41,10 @@ def test_naive_euclidean(dtype):
 def test_naive_euclidean_constant_case(dtype):
     # Test constant case
     X = np.ones((2, 1, 10), dtype=dtype)
-    Q = np.zeros((1, 3), dtype=dtype)
-    dist_profile = naive_euclidean_profile(X, Q)
-    # Should be full array for sqrt(3) as Q is zeros of length 3 and X is full ones
-    search_space_size = X.shape[-1] - Q.shape[-1] + 1
+    q = np.zeros((1, 3), dtype=dtype)
+    dist_profile = naive_euclidean_profile(X, q)
+    # Should be full array for sqrt(3) as q is zeros of length 3 and X is full ones
+    search_space_size = X.shape[-1] - q.shape[-1] + 1
     expected = np.array([[3**0.5] * search_space_size] * X.shape[0])
     assert_array_almost_equal(dist_profile, expected)
 
@@ -52,9 +52,9 @@ def test_naive_euclidean_constant_case(dtype):
 def test_non_alteration_of_inputs_naive_euclidean():
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
-    Q = np.asarray([[3, 4, 5]])
-    Q_copy = np.copy(Q)
+    q = np.asarray([[3, 4, 5]])
+    q_copy = np.copy(q)
 
-    _ = naive_euclidean_profile(X, Q)
-    assert_array_equal(Q, Q_copy)
+    _ = naive_euclidean_profile(X, q)
+    assert_array_equal(q, q_copy)
     assert_array_equal(X, X_copy)

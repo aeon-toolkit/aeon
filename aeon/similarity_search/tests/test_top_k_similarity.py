@@ -19,14 +19,14 @@ def test_TopKSimilaritySearch(dtype):
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
-    Q = np.asarray([[3, 4, 5]], dtype=dtype)
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
 
     search = TopKSimilaritySearch(k=1)
     search.fit(X)
-    idx = search.predict(Q)
+    idx = search.predict(q)
     assert_array_equal(idx, [(0, 2)])
 
     search = TopKSimilaritySearch(k=3)
     search.fit(X)
-    idx = search.predict(Q)
+    idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])

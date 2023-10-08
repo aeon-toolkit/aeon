@@ -100,67 +100,67 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return self
 
     @final
-    def predict(self, Q):
+    def predict(self, q):
         """
-        Predict method: Check the shape of Q and call _predict to perform the search.
+        Predict method: Check the shape of q and call _predict to perform the search.
 
         If the distance profile function is normalized, it stores the mean and stds
-        from Q and _X.
+        from q and _X.
 
         Parameters
         ----------
-        Q :  array, shape (n_channels, q_length)
+        q :  array, shape (n_channels, q_length)
             Input query used for similarity search.
 
         Raises
         ------
         TypeError
-            If the input Q array is not 2D raise an error.
+            If the input q array is not 2D raise an error.
 
         Returns
         -------
         array
-            An array containing the indexes of the matches between Q and _X.
+            An array containing the indexes of the matches between q and _X.
             The decision of wheter a candidate of size q_length from _X is matched with
             Q depends on the subclasses that implent the _predict method
             (e.g. top-k, threshold, ...).
 
         """
-        if not isinstance(Q, np.ndarray) or Q.ndim != 2:
+        if not isinstance(q, np.ndarray) or q.ndim != 2:
             raise TypeError(
-                "Error, only supports 2D numpy atm. If Q is univariate"
-                " do Q.reshape(1,-1)."
+                "Error, only supports 2D numpy atm. If q is univariate"
+                " do q.reshape(1,-1)."
             )
 
-        if Q.shape[-1] >= self._X.shape[-1]:
+        if q.shape[-1] >= self._X.shape[-1]:
             raise ValueError(
                 "The length of the query q should be shorter than the length of the"
                 "data (X) provided during fit, but got {} for q and {} for X".format(
-                    Q.shape[-1], self._X.shape[-1]
+                    q.shape[-1], self._X.shape[-1]
                 )
             )
 
-        if Q.shape[0] != self._X.shape[1]:
+        if q.shape[0] != self._X.shape[1]:
             raise ValueError(
                 "The number of feature should be the same for the query q and the data"
                 "(X) provided during fit, but got {} for q and {} for X".format(
-                    Q.shape[0], self._X.shape[1]
+                    q.shape[0], self._X.shape[1]
                 )
             )
 
         if self.normalize:
-            self._Q_mean = np.mean(Q, axis=-1)
-            self._Q_std = np.std(Q, axis=-1)
-            self._store_mean_std_from_inputs(Q.shape[-1])
+            self._q_mean = np.mean(q, axis=-1)
+            self._q_std = np.std(q, axis=-1)
+            self._store_mean_std_from_inputs(q.shape[-1])
 
-        return self._predict(Q)
+        return self._predict(q)
 
     @abstractmethod
     def _fit(self, X, y):
         ...
 
     @abstractmethod
-    def _predict(self, X):
+    def _predict(self, q):
         ...
 
 

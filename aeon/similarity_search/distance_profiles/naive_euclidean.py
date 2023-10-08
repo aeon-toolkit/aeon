@@ -9,7 +9,7 @@ from aeon.distances import euclidean_distance
 from aeon.similarity_search.distance_profiles._commons import _get_input_sizes
 
 
-def naive_euclidean_profile(X, Q):
+def naive_euclidean_profile(X, q):
     r"""
     Compute a euclidean distance profile in a brute force way.
 
@@ -28,22 +28,22 @@ def naive_euclidean_profile(X, Q):
     X: array shape (n_cases, n_channels, series_length)
         The input samples.
 
-    Q : np.ndarray shape (n_channels, query_length)
+    q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
 
     Returns
     -------
     distance_profile : np.ndarray shape (n_cases, series_length - query_length + 1)
-        The distance profile between Q and the input time series X.
+        The distance profile between q and the input time series X.
 
     """
-    return _naive_euclidean_profile(X, Q)
+    return _naive_euclidean_profile(X, q)
 
 
 @njit(cache=True, fastmath=True)
-def _naive_euclidean_profile(X, Q):
-    n_samples, n_channels, X_length, Q_length, search_space_size = _get_input_sizes(
-        X, Q
+def _naive_euclidean_profile(X, q):
+    n_samples, n_channels, X_length, q_length, search_space_size = _get_input_sizes(
+        X, q
     )
     distance_profile = np.full((n_samples, search_space_size), np.inf)
 
@@ -51,7 +51,7 @@ def _naive_euclidean_profile(X, Q):
     for i_sample in range(n_samples):
         for i_candidate in range(search_space_size):
             distance_profile[i_sample, i_candidate] = euclidean_distance(
-                Q, X[i_sample, :, i_candidate : i_candidate + Q_length]
+                q, X[i_sample, :, i_candidate : i_candidate + q_length]
             )
 
     return distance_profile
