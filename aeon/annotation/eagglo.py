@@ -110,7 +110,7 @@ class EAgglo(BaseTransformer):
         X : pd.DataFrame
             Data for anomaly detection (time series).
         y : pd.Series, optional
-            Not used for this unsupervsed method.
+            Not used for this unsupervised method.
 
         Returns
         -------
