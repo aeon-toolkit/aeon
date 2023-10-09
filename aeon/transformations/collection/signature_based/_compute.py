@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """Class for signature computation over windows."""
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.signature_based._rescaling import (
     _rescale_path,
     _rescale_signature,
@@ -11,7 +10,7 @@ from aeon.transformations.collection.signature_based._rescaling import (
 from aeon.transformations.collection.signature_based._window import _window_getter
 
 
-class _WindowSignatureTransform(BaseTransformer):
+class _WindowSignatureTransform(BaseCollectionTransformer):
     """Perform the signature transform over given windows.
 
     Given data of shape [N, L, C] and specification of a window method from the
@@ -26,14 +25,9 @@ class _WindowSignatureTransform(BaseTransformer):
 
     # default tag values for "Series-to-Primitives"
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Primitives",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
+        "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
         "python_dependencies": "esig",
         "python_version": "<3.11",
     }

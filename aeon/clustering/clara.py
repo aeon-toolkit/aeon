@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
@@ -10,14 +9,13 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
-from aeon.distances import pairwise_distance
 
 
 class TimeSeriesCLARA(BaseClusterer):
     """Time series CLARA implementation.
 
     Clustering LARge Applications (CLARA) [1] is a clustering algorithm that
-    samples the dataset, applies PAM [2] to the sample, and then uses the
+    samples the dataset, applies PAM to the sample, and then uses the
     medoids from the sample to seed PAM on the entire dataset.
 
     For a comparison of using CLARA for time series compared to other k-medoids
@@ -25,52 +23,53 @@ class TimeSeriesCLARA(BaseClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default = 8
+    n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, default = 'random'
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
-        Random is the default as it is very fast and it was found in [2] to be
+        Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
-        Kmedoids++ is a variant of kmeans++ [4] and is slower but more accurate than
-        random. It does this by choosing centroids that are distant from one another.
-        First is the fastest method and simply chooses the first k time series as
-        centroids.
-    distance : str or Callable, default = 'msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe'].
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
-    n_samples : int, default = None,
+        Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
+        accurate than random. It works by choosing centroids that are distant
+        from one another. First is the fastest method and simply chooses the
+        first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
+    distance : str or Callable, default='msm'
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
+    n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_instances, 40 + 2 * n_clusters) is used.
-    n_sampling_iters : int, default = 5,
-        Number of different subsets of samples to try. The best subset cluster centres
+    n_sampling_iters : int, default=5,
+        Number of different subsets of samples to try. The best subset cluster centers
         are used.
-    n_init : int, default = 5
+    n_init : int, default=5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
-    max_iter : int, default = 300
+    max_iter : int, default=300
         Maximum number of iterations of the PAM algorithm for a single
         run.
-    tol : float, default = 1e-6
+    tol : float, default=1e-6
         Relative tolerance with regards to Frobenius norm of the difference
         in the cluster centers of two consecutive iterations to declare
         convergence.
-    verbose : bool, default = False
+    verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default = None
+    random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    distance_params : dict, default = None
+    distance_params : dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
     cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
-        A collection of time series instances that represent the cluster centres.
+        A collection of time series instances that represent the cluster centers.
     labels_ : np.ndarray (1d array of shape (n_instance,))
         Labels that is the index each time series belongs to.
     inertia_ : float
@@ -87,9 +86,9 @@ class TimeSeriesCLARA(BaseClusterer):
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of PAM clustering
-    >>> km = TimeSeriesCLARA(n_clusters=3, distance="dtw", random_state=1)
+    >>> km = TimeSeriesCLARA(n_clusters=3, distance="euclidean", random_state=1)
     >>> km.fit(X_train)
-    TimeSeriesCLARA(distance='dtw', n_clusters=3, random_state=1)
+    TimeSeriesCLARA(distance='euclidean', n_clusters=3, random_state=1)
     >>> preds = km.predict(X_test)
 
     References
@@ -97,10 +96,7 @@ class TimeSeriesCLARA(BaseClusterer):
     .. [1] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
     10.1016/B978-0-444-87877-9.50039-X.
 
-    .. [2] Kaufman, Leonard & Rousseeuw, Peter. (1986). Clustering Large Data Sets.
-    10.1016/B978-0-444-87877-9.50039-X.
-
-    .. [3] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
+    .. [2] Holder, Christopher & Guijo-Rubio, David & Bagnall, Anthony. (2023).
     Clustering time series with k-medoids based algorithms.
     In proceedings of the 8th Workshop on Advanced Analytics and Learning on Temporal
     Data (AALTD 2023).
@@ -113,7 +109,7 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         n_samples: int = None,
         n_sampling_iters: int = 10,
@@ -141,30 +137,12 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_iter_ = 0
 
         self._random_state = None
-        self._init_algorithm = None
-        self._distance_cache = None
-        self._distance_callable = None
         self._kmedoids_instance = None
-
-        self._distance_params = distance_params
-        if distance_params is None:
-            self._distance_params = {}
 
         super(TimeSeriesCLARA, self).__init__(n_clusters)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
-        if isinstance(self.distance, str):
-            pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
-            )
-        else:
-            pairwise_matrix = pairwise_distance(
-                X,
-                self.cluster_centers_,
-                self._distance_callable,
-                **self._distance_params,
-            )
-        return pairwise_matrix.argmin(axis=1)
+        return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
         self._random_state = check_random_state(self.random_state)
@@ -195,7 +173,7 @@ class TimeSeriesCLARA(BaseClusterer):
                 tol=self.tol,
                 verbose=self.verbose,
                 random_state=self._random_state,
-                distance_params=self._distance_params,
+                distance_params=self.distance_params,
                 method="pam",
             )
             pam.fit(X[sample_idxs])
@@ -206,6 +184,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self.inertia_ = best_pam.inertia_
         self.cluster_centers_ = best_pam.cluster_centers_
         self.n_iter_ = best_pam.n_iter_
+        self._kmedoids_instance = best_pam
 
     def _score(self, X, y=None):
         return -self.inertia_
@@ -223,7 +202,7 @@ class TimeSeriesCLARA(BaseClusterer):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

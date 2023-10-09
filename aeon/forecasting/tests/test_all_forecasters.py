@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests for BaseForecaster API points.
 
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 
 __author__ = ["mloning", "kejsitake", "fkiraly"]
@@ -19,7 +17,7 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
     temporal_train_test_split,
 )
-from aeon.forecasting.tests._config import (
+from aeon.forecasting.tests import (
     TEST_ALPHAS,
     TEST_FHS,
     TEST_OOS_FHS,
@@ -422,8 +420,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_pred_int_tag(self, estimator_instance):
         """Checks whether the capability:pred_int tag is correctly set.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
 
         Raises
@@ -619,8 +617,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_hierarchical_with_exogeneous(self, estimator_instance, n_columns):
         """Check that hierarchical forecasting works, also see bug #3961.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
         n_columns : number of columns, of the endogeneous data y_train
 

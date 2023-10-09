@@ -1,7 +1,4 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Validation functions."""
+"""Validation and checking functions for time series."""
 
 __all__ = [
     "is_int",
@@ -11,8 +8,14 @@ __all__ = [
     "is_timedelta_or_date_offset",
     "check_n_jobs",
     "check_window_length",
+    "get_n_cases",
+    "get_type",
+    "equal_length",
+    "is_equal_length",
+    "has_missing",
+    "is_univariate",
 ]
-__author__ = ["mloning", "Taiwo Owoseni", "khrapovs"]
+__author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
 import os
 from datetime import timedelta
@@ -20,6 +23,14 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+
+from aeon.utils.validation.collection import (
+    get_n_cases,
+    get_type,
+    has_missing,
+    is_equal_length,
+    is_univariate,
+)
 
 ACCEPTED_DATETIME_TYPES = np.datetime64, pd.Timestamp
 ACCEPTED_TIMEDELTA_TYPES = pd.Timedelta, timedelta, np.timedelta64

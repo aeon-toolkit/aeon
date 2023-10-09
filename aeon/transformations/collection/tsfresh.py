@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """tsfresh interface class."""
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
@@ -8,9 +6,6 @@ __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 from aeon.datatypes._panel._convert import from_3d_numpy_to_long
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tsfresh", severity="warning")
 
 
 class _TSFreshFeatureExtractor(BaseCollectionTransformer):
@@ -18,10 +13,9 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
 
     _tags = {
         "scitype:transform-output": "Primitives",
+        "capability:multivariate": True,
         "fit_is_empty": True,
-        "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
-        "scitype:instancewise": True,
         "python_dependencies": "tsfresh",
     }
 

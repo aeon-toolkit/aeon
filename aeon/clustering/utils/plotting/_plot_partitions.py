@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cluster plotting tools."""
 
 __author__ = ["Christopher Holder", "Tony Bagnall"]
@@ -7,8 +6,7 @@ __all__ = ["plot_cluster_algorithm"]
 import numpy as np
 import pandas as pd
 
-from aeon.clustering.base import TimeSeriesInstances
-from aeon.clustering.partitioning import TimeSeriesLloyds
+from aeon.clustering.base import BaseClusterer
 from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -29,7 +27,7 @@ def _get_cluster_values(cluster_indexes: np.ndarray, X: np.ndarray, k: int):
     return ts_in_center
 
 
-def plot_series(X: TimeSeriesInstances):
+def plot_series(X):
     _check_soft_dependencies("matplotlib")
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
@@ -58,7 +56,7 @@ def plot_series(X: TimeSeriesInstances):
     plt.show()
 
 
-def plot_cluster_algorithm(model: TimeSeriesLloyds, X: TimeSeriesInstances, k: int):
+def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     """Plot the results from a univariate partitioning algorithm.
 
     Parameters

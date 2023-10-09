@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """KNN time series regression.
 
 This class is a KNN regressor which supports time series distance measures.
@@ -19,7 +18,7 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """
-    KNN Time Series Regressor.
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 
@@ -50,10 +49,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
     KNeighborsTimeSeriesRegressor(distance='euclidean')

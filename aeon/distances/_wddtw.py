@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Weighted derivative dynamic time warping (wddtw) distance between two series.
-
-Takes the first order derivative, then applies _weighted_cost_matrix to find WDTW
-distance.
-"""
+"""Weighted derivative dynamic time warping (wddtw) distance between two series."""
 __author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
@@ -20,41 +15,50 @@ from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 @njit(cache=True, fastmath=True)
 def wddtw_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> float:
-    r"""Compute the wddtw distance between two time series.
+    r"""Compute the WDDTW distance between two time series.
 
-    WDDTW was first proposed in [1]_ as an extension of DDTW. By adding a weight
-    to the derivative it means the alignment isn't only considering the shape of the
-    time series, but also the phase.
+    Weighted derivative dynamic time warping (WDDTW) Takes the first order derivative,
+    then applies `_weighted_cost_matrix` to find WDTW distance. WDDTW was first
+    proposed in [1]_ as an extension of DDTW. By adding a weight to the derivative it
+    means the alignment isn't only considering the shape of the time series, but also
+    the phase.
 
     Formally the derivative is calculated as:
 
     .. math::
-        D_{x}[q] = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
 
-    Therefore a weighted derivative can be calculated using D (the derivative) as:
-
-    .. math::
-        d_{w}(x_{i}, y_{j}) = ||w_{|i-j|}(D_{x_{i}} - D_{y_{j}})||
+    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    series.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
-    window: float, defaults=None
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     float
-        wddtw distance between x and y.
+        WDDTW distance between x and y.
 
     Raises
     ------
@@ -62,56 +66,68 @@ def wddtw_distance(
         If x and y are not 1D or 2D arrays.
         If n_timepoints or m_timepoints are less than 2.
 
+    References
+    ----------
+    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
+    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
+    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import wddtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[42, 23, 21, 55, 1, 19, 33, 34, 29, 19]])
-    >>> dist = wddtw_distance(x, y)
-
-    References
-    ----------
-    .. [1] Young-Seon Jeong, Myong K. Jeong, Olufemi A. Omitaomu, Weighted dynamic time
-    warping for time series classification, Pattern Recognition, Volume 44, Issue 9,
-    2011, Pages 2231-2240, ISSN 0031-3203, https://doi.org/10.1016/j.patcog.2010.09.022.
+    >>> round(wddtw_distance(x, y))
+    981
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
         _y = average_of_slope(y.reshape((1, y.shape[0])))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_distance(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
         _x = average_of_slope(x)
         _y = average_of_slope(y)
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_distance(_x, _y, bounding_matrix, g)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
 def wddtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wddtw cost matrix between two time series.
+    """Compute the WDDTW cost matrix between two time series.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, defaults=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     np.ndarray (n_timepoints_x, n_timepoints_y)
-        wddtw cost matrix between x and y.
+        WDDTW cost matrix between x and y.
 
     Raises
     ------
@@ -138,36 +154,47 @@ def wddtw_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = average_of_slope(x.reshape((1, x.shape[0])))
         _y = average_of_slope(y.reshape((1, y.shape[0])))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_cost_matrix(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
         _x = average_of_slope(x)
         _y = average_of_slope(y)
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _wdtw_cost_matrix(_x, _y, bounding_matrix, g)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
 def wddtw_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, window: float = None, g: float = 0.05
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the wddtw pairwise distance between a set of time series.
+    """Compute the WDDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
+    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
             (n_instances, n_timepoints)
         A collection of time series instances.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Raises
     ------
@@ -205,20 +232,26 @@ def wddtw_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _wddtw_pairwise_distance(X, window, g)
+            return _wddtw_pairwise_distance(X, window, g, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _wddtw_pairwise_distance(_X, window, g)
+            return _wddtw_pairwise_distance(_X, window, g, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _wddtw_from_multiple_to_multiple_distance(_x, _y, window, g)
+    return _wddtw_from_multiple_to_multiple_distance(
+        _x, _y, window, g, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
-def _wddtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarray:
+def _wddtw_pairwise_distance(
+    X: np.ndarray, window: float, g: float, itakura_max_slope: float
+) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2] - 2, X.shape[2] - 2, window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2] - 2, X.shape[2] - 2, window, itakura_max_slope
+    )
 
     X_average_of_slope = np.zeros((n_instances, X.shape[1], X.shape[2] - 2))
     for i in range(n_instances):
@@ -236,12 +269,18 @@ def _wddtw_pairwise_distance(X: np.ndarray, window: float, g: float) -> np.ndarr
 
 @njit(cache=True, fastmath=True)
 def _wddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, g: float
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float,
+    g: float,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     # Derive the arrays before so that we don't have to redo every iteration
     derive_x = np.zeros((x.shape[0], x.shape[1], x.shape[2] - 2))
@@ -262,22 +301,29 @@ def _wddtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def wddtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, g: float = 0.05
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    g: float = 0.05,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the wddtw alignment path between two time series.
+    """Compute the WDDTW alignment path between two time series.
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
+    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
         First time series.
-    y: np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
+    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    window: float, default=None
+    window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g: float, defaults=0.05
+    g : float, default=0.05
         Constant that controls the level of penalisation for the points with larger
         phase difference. Default is 0.05.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -304,7 +350,7 @@ def wddtw_alignment_path(
     >>> path
     [(0, 0), (1, 1)]
     """
-    cost_matrix = wddtw_cost_matrix(x, y, window, g)
+    cost_matrix = wddtw_cost_matrix(x, y, window, g, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],

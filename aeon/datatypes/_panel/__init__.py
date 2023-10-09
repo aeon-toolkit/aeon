@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module exports: Panel type checkers, converters and mtype inference."""
 
 from aeon.datatypes._panel._check import check_dict as check_dict_Panel

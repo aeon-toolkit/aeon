@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 __author__ = ["mloning"]
 __all__ = [
     "_get_expected_index_for_update_predict",
@@ -155,7 +151,7 @@ def _assert_correct_columns(y_pred, y_train):
 
 def _make_fh(cutoff, steps, fh_type, is_relative):
     """Construct forecasting horizons for testing."""
-    from aeon.forecasting.tests._config import INDEX_TYPE_LOOKUP
+    from aeon.forecasting.tests import INDEX_TYPE_LOOKUP
 
     fh_class = INDEX_TYPE_LOOKUP[fh_type]
 

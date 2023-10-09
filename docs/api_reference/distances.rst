@@ -8,6 +8,19 @@ that can be used in aeon and scikit learn estimators. It also contains tools for
 extracting the alignment paths for a distance calculation between two series, and
 tools for finding all pairwise distances
 
+Amerced Dynamic Time Warping (ADTW)
+-----------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    adtw_distance
+    adtw_pairwise_distance
+    adtw_cost_matrix
+    adtw_alignment_path
 
 Dynamic Time Warping (DTW)
 --------------------------
@@ -23,6 +36,112 @@ Dynamic Time Warping (DTW)
     dtw_cost_matrix
     dtw_alignment_path
 
+Edit Real Penalty (ERP)
+-----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    erp_distance
+    erp_pairwise_distance
+    erp_cost_matrix
+    erp_alignment_path
+
+Edit distance for real sequences (EDR)
+--------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    edr_distance
+    edr_pairwise_distance
+    edr_cost_matrix
+    edr_alignment_path
+
+Euclidean
+---------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    euclidean_distance
+    euclidean_pairwise_distance
+
+Longest Common Subsequence (LCSS)
+---------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    lcss_distance
+    lcss_pairwise_distance
+    lcss_cost_matrix
+    lcss_alignment_path
+
+Manhattan
+---------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    manhattan_distance
+    manhattan_pairwise_distance
+
+Move-Split-Merge (MSM)
+----------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    msm_distance
+    msm_pairwise_distance
+    msm_cost_matrix
+    msm_alignment_path
+
+Shape Dynamic Time Warping (Shape DTW)
+--------------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    shape_dtw_distance
+    shape_dtw_pairwise_distance
+    shape_dtw_cost_matrix
+    shape_dtw_alignment_path
+
+Squared
+-------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    squared_distance
+    squared_pairwise_distance
+
 Time Warp Edit (TWE)
 --------------------
 
@@ -34,24 +153,11 @@ Time Warp Edit (TWE)
 
     twe_distance
     twe_pairwise_distance
-    twe_alignment_path
     twe_cost_matrix
+    twe_alignment_path
 
-Move-Split-Merge (MSM)
-----------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-    msm_distance
-    msm_alignment_path
-    msm_cost_matrix
-    msm_pairwise_distance
-
-Derivative Dynamic Time Warping (DDTW)
---------------------------------------
+Weighted Derivative Dynamic Time Warping (WDDTW)
+------------------------------------------------
 
 .. currentmodule:: aeon.distances
 
@@ -59,10 +165,10 @@ Derivative Dynamic Time Warping (DDTW)
     :toctree: auto_generated/
     :template: function.rst
 
-    ddtw_distance
-    ddtw_pairwise_distance
-    ddtw_alignment_path
-    ddtw_cost_matrix
+    wddtw_distance
+    wddtw_pairwise_distance
+    wddtw_cost_matrix
+    wddtw_alignment_path
 
 Weighted Dynamic Time Warping (DTW)
 -----------------------------------
@@ -78,61 +184,6 @@ Weighted Dynamic Time Warping (DTW)
     wdtw_cost_matrix
     wdtw_alignment_path
 
-Weighted Derivative Dynamic Time Warping (WDDTW)
-------------------------------------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    wddtw_distance
-    wddtw_pairwise_distance
-    wddtw_alignment_path
-    wddtw_cost_matrix
-
-Longest Common Subsequence (LCSS)
----------------------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    lcss_distance
-    lcss_pairwise_distance
-    lcss_alignment_path
-    lcss_cost_matrix
-
-Edit Real Penalty (ERP)
------------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    erp_distance
-    erp_pairwise_distance
-    erp_alignment_path
-    erp_cost_matrix
-
-Edit distance for real sequences (EDR)
---------------------------------------
-
-.. currentmodule:: aeon.distances
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    edr_distance
-    edr_pairwise_distance
-    edr_alignment_path
-    edr_cost_matrix
 
 General methods with distance argument
 --------------------------------------
@@ -145,8 +196,9 @@ General methods with distance argument
 
     distance
     pairwise_distance
-    alignment_path
     cost_matrix
+    alignment_path
+    create_bounding_matrix
 
 General methods to recover distance functions
 ---------------------------------------------
@@ -157,7 +209,7 @@ General methods to recover distance functions
     :toctree: auto_generated/
     :template: function.rst
 
-    get_cost_matrix_function
     get_distance_function
     get_pairwise_distance_function
+    get_cost_matrix_function
     get_alignment_path_function

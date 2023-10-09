@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
 __author__ = [
@@ -10,6 +9,7 @@ __all__ = [
     "TapNetClassifier",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -18,11 +18,11 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.tapnet import TapNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class TapNetClassifier(BaseDeepClassifier):
-    """Time series attentional prototype network (TapNet), as described in [1]_.
+    """Time series attentional prototype network (TapNet).
+
+     Implemented as described in [1]_.
 
     Parameters
     ----------
@@ -73,9 +73,8 @@ class TapNetClassifier(BaseDeepClassifier):
     References
     ----------
     .. [1] Zhang et al. Tapnet: Multivariate time series classification with
-    attentional prototypical network,
-    Proceedings of the AAAI Conference on Artificial Intelligence
-    34(4), 6845-6852, 2020
+    attentional prototypical network, Proceedings of the AAAI Conference on
+    Artificial Intelligence 34(4), 6845-6852, 2020
 
     Examples
     --------
@@ -241,6 +240,7 @@ class TapNetClassifier(BaseDeepClassifier):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod

@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Composition functionality for reduction approaches to forecasting."""
 
 __author__ = [
@@ -300,17 +296,17 @@ class _Reducer(_BaseWindowForecaster):
         For`window_length = 7` and `fh = [3]` we get the following windows
 
         `shift = 0`
-        |--------------------------- |
+        |----------------------------|
         | x x x x * * * * * * * z x x|
         |----------------------------|
 
         `shift = 1`
-        |--------------------------- |
+        |----------------------------|
         | x x x x x * * * * * * * z x|
         |----------------------------|
 
         `shift = 2`
-        |--------------------------- |
+        |----------------------------|
         | x x x x x x * * * * * * * z|
         |----------------------------|
 

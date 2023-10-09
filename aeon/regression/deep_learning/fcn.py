@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Fully Connected Neural Network (CNN) for regression."""
 
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNRegressor"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -14,11 +14,11 @@ from aeon.networks.fcn import FCNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class FCNRegressor(BaseDeepRegressor):
-    """Fully Connected Neural Network (FCN), as described in [1]_.
+    """Fully Connected Neural Network (FCN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
@@ -286,6 +286,7 @@ class FCNRegressor(BaseDeepRegressor):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -314,6 +315,9 @@ class FCNRegressor(BaseDeepRegressor):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
         return [param]

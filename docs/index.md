@@ -2,29 +2,22 @@
 hide-toc: true
 ---
 
-```{image} images/logo/aeon-logo-blue-compact.png
-:align: center
-:alt: aeon logo
-:width: 80%
-```
-# Welcome to the documentation for **aeon**
+<h1 style="text-align: center;">Welcome to aeon</h1>
 
-<br>
+`aeon` is a scikit-learn compatible toolkit for time series tasks such as
+forecasting, classification and clustering.</p>
 
-- scikit learn compatible Framework for time series tasks such as forecasting and
-classification.
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
-
-<br>
 
 ::::{grid} 1 2 2 2
 :gutter: 3
 
 :::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -44,9 +37,8 @@ Forecasting
 
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
+:class-img-top: aeon-card-image
 :text-align: center
-
-
 
 
 Get started with time series classification.
@@ -65,6 +57,7 @@ Classification
 
 :::{grid-item-card}
 :img-top: examples/img/tser.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -84,6 +77,7 @@ Regression
 
 :::{grid-item-card}
 :img-top: examples/img/tscl.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -103,6 +97,7 @@ Clustering
 
 :::{grid-item-card}
 :img-top: examples/transformations/img/transformation.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -122,6 +117,7 @@ Transformations
 
 :::{grid-item-card}
 :img-top: examples/distances/img/dtw_vis.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 
@@ -140,65 +136,8 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/clasp.png
-:text-align: center
-
-
-Annotation
-
-+++
-
-```{button-ref} /examples/annotation/annotation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Annotation
-```
-
-:::
-
-
-:::{grid-item-card}
-:img-top: /examples/benchmarking/img/benchmarking.png
-:text-align: center
-
-How to benchmark algorithms.
-
-+++
-
-```{button-ref} /examples/benchmarking/benchmarking.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Benchmarking
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: /examples/datasets/img/data.png
-:text-align: center
-
-Loading, storing and saving data.
-
-+++
-
-```{button-ref} /examples/datasets/datasets.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Datasets
-```
-
-:::
-
-:::
-
-:::{grid-item-card}
-:img-top: /examples/networks/img/Inception.png
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
 :text-align: center
 
 Deep learning networks.
@@ -216,19 +155,59 @@ Networks
 :::
 
 :::{grid-item-card}
-:img-top: /examples/utils/img/Inception.png
+:img-top: examples/annotation/img/clasp.png
+:class-img-top: aeon-card-image
 :text-align: center
 
-General utility
+
+Annotation
 
 +++
 
-```{button-ref} /examples/networks/deep_learning.ipynb
+```{button-ref} /examples/annotation/annotation.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Networks
+Annotation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/datasets/img/data.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Data structures and containers used in aeon
+
++++
+
+```{button-ref} /examples/datasets/datasets.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Data
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/benchmarking/img/benchmarking.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+How to benchmark algorithms.
+
++++
+
+```{button-ref} /examples/benchmarking/benchmarking.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Benchmarking
 ```
 
 :::
@@ -239,7 +218,7 @@ Networks
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
 
 **Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
@@ -278,5 +257,5 @@ about.md
 
 glossary.md
 changelog.md
-related_software
+papers_using_aeon.md
 ```

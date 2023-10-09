@@ -1,15 +1,9 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements matrix profile transformation."""
 
 __author__ = ["mloning"]
 __all__ = ["MatrixProfileTransformer"]
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("stumpy", severity="warning")
 
 
 class MatrixProfileTransformer(BaseTransformer):

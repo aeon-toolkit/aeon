@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Shapelet based time series classifiers."""
 
 __all__ = ["MrSQMClassifier", "ShapeletTransformClassifier", "RDSTClassifier"]

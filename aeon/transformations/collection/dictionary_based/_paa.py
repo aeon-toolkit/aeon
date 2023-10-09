@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
 """Piecewise Aggregate Approximation Transformer (PAA)."""
-import numpy as np
 
-from aeon.transformations.base import BaseTransformer
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
+import numpy as np
 
-class PAA(BaseTransformer):
+from aeon.transformations.collection import BaseCollectionTransformer
+
+
+class PAA(BaseCollectionTransformer):
     """
     Piecewise Aggregate Approximation Transformer (PAA).
 
@@ -38,15 +39,13 @@ class PAA(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
         "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
+
         super(PAA, self).__init__()
 
     def _transform(self, X, y=None):

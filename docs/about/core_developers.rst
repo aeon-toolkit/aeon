@@ -15,6 +15,10 @@
     <p><a href='https://github.com/hadifawaz1999'>Ali El Hadi ISMAIL FAWAZ</a></p>
     </div>
     <div>
+    <a href='https://github.com/baraline'><img src='https://avatars.githubusercontent.com/u/10759117?v=4' class='avatar' /></a> <br />
+    <p><a href='https://github.com/baraline'>Antoine Guillaume</a></p>
+    </div>
+    <div>
     <a href='https://github.com/GuzalBulatova'><img src='https://avatars.githubusercontent.com/u/73598322?v=4' class='avatar' /></a> <br />
     <p><a href='https://github.com/GuzalBulatova'>Guzal</a></p>
     </div>
@@ -25,6 +29,10 @@
     <div>
     <a href='https://github.com/MatthewMiddlehurst'><img src='https://avatars.githubusercontent.com/u/25731235?v=4' class='avatar' /></a> <br />
     <p><a href='https://github.com/MatthewMiddlehurst'>Matthew Middlehurst</a></p>
+    </div>
+    <div>
+    <a href='https://github.com/dguijo'><img src='https://avatars.githubusercontent.com/u/47889499?v=4' class='avatar' /></a> <br />
+    <p><a href='https://github.com/dguijo'>David Guijo Rubio</a></p>
     </div>
     <div>
     <a href='https://github.com/patrickzib'><img src='https://avatars.githubusercontent.com/u/7783034?v=4' class='avatar' /></a> <br />

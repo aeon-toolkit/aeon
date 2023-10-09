@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Residual Network (ResNet) for classification."""
 
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -14,81 +14,73 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.resnet import ResNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class ResNetClassifier(BaseDeepClassifier):
     """
-    Residual Neural Network as described in [1].
+    Residual Neural Network (RNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-        n_residual_blocks           : int, default = 3,
-            the number of residual blocks of ResNet's model
-        n_conv_per_residual_block   : int, default = 3,
-            the number of convolution blocks in each residual block
-        n_filters                   : int or list of int, default = [128, 64, 64],
-            the number of convolution filters for all the convolution layers in the same
+        n_residual_blocks : int, default = 3
+            The number of residual blocks of ResNet's model.
+        n_conv_per_residual_block : int, default = 3
+            The number of convolution blocks in each residual block.
+        n_filters : int or list of int, default = [128, 64, 64]
+            The number of convolution filters for all the convolution layers in the same
             residual block, if not a list, the same number of filters is used in all
             convolutions of all residual blocks.
-        kernel_sizes                : int or list of int, default = [8, 5, 3],
-            the kernel size of all the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        strides                     : int or list of int, default = 1,
-            the strides of convolution kernels in each of the
-            convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        dilation_rate               : int or list of int, default = 1,
-            the dilation rate of the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        padding                     : str or list of str, default = 'padding',
-            the type of padding used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        activation                  : str or list of str, default = 'relu',
-            keras activation used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        use_bias                    : bool or list of bool, default = True,
-            condition on whether or not to use bias values in
-            the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-
-        n_epochs                   : int, default = 1500
-            the number of epochs to train the model
-        batch_size                  : int, default = 16
-            the number of samples per gradient update.
-        use_mini_batch_size         : bool, default = False
-            condition on using the mini batch size formula Wang et al.
-        callbacks                   : callable or None, default
-        ReduceOnPlateau and ModelCheckpoint
-            list of tf.keras.callbacks.Callback objects.
-        file_path                   : str, default = './'
-            file_path when saving model_Checkpoint callback
-        save_best_model     : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
-            automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model     : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        best_file_name      : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name      : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        verbose                     : boolean, default = False
+        kernel_sizes : int or list of int, default = [8, 5, 3]
+            The kernel size of all the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers.
+        strides : int or list of int, default = 1
+            The strides of convolution kernels in each of the convolution layers in
+            one residual block, if not a list, the same kernel size is used in all
+            convolution layers.
+        dilation_rate : int or list of int, default = 1
+            The dilation rate of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers.
+        padding : str or list of str, default = 'padding'
+            The type of padding used in the convolution layers in one residual block, if
+            not a list, the same kernel size is used in all convolution layers.
+        activation : str or list of str, default = 'relu'
+            keras activation used in the convolution layers in one residual block,
+            if not a list, the same kernel size is used in all convolution layers.
+        use_bia : bool or list of bool, default = True
+            Condition on whether or not to use bias values in the convolution layers
+            in one residual block, if not a list, the same kernel size is used in all
+            convolution layers.
+        n_epochs : int, default = 1500
+            The number of epochs to train the model.
+        batch_size : int, default = 16
+            The number of samples per gradient update.
+        use_mini_batch_size : bool, default = False
+            Condition on using the mini batch size formula Wang et al.
+        callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
+            List of tf.keras.callbacks.Callback objects.
+        file_path : str, default = './'
+            file_path when saving model_Checkpoint callback.
+        save_best_model : bool, default = False
+            Whether or not to save the best model, if the modelcheckpoint callback is
+            used by default, this condition, if True, will prevent the automatic
+            deletion of the best saved model from file and the user can choose the
+            file name.
+        save_last_model : bool, default = False
+            Whether or not to save the last model, last epoch trained, using the base
+            class method save_last_model_to_file.
+        best_file_name : str, default = "best_model"
+            The name of the file of the best model, if save_best_model is set to
+            False, this parameter is discarded.
+        last_file_name : str, default = "last_model"
+            The name of the file of the last model, if save_last_model is set to
+            False, this parameter is discarded.
+        verbose : boolean, default = False
             whether to output extra information
-        loss                        : string, default="mean_squared_error"
-            fit parameter for the keras model
-        optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
-        metrics                     : list of strings, default=["accuracy"],
+        loss : string, default="mean_squared_error"
+            fit parameter for the keras model.
+        optimizer : keras.optimizer, default=keras.optimizers.Adam()
+        metrics : list of strings, default=["accuracy"]
 
     Notes
     -----
@@ -304,6 +296,7 @@ class ResNetClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -331,6 +324,8 @@ class ResNetClassifier(BaseDeepClassifier):
         param = {
             "n_epochs": 10,
             "batch_size": 4,
+            "n_residual_blocks": 1,
+            "n_conv_per_residual_block": 1,
         }
 
         test_params = [param]

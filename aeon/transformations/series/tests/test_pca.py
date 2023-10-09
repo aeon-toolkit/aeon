@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for PCATransformer."""
 
 __author__ = ["aiwalter"]

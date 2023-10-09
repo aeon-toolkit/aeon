@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Multiple Representations Sequence Miner (MrSQM) Classifier."""
 
 __author__ = ["MatthewMiddlehurst"]

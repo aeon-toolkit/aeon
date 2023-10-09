@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket).
 
 Pipeline classifier using the ROCKET transformer and an sklearn classifier.
@@ -14,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.collection.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
@@ -31,8 +30,8 @@ class RocketClassifier(BaseClassifier):
     transformer, performs a Standard scaling and fits a sklearn classifier,
     using the transformed data (default classifier is RidgeClassifierCV).
 
-    The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The classifier can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------

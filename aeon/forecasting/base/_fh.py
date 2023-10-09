@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements functionality for specifying forecast horizons in aeon."""
 
 __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
@@ -59,7 +56,8 @@ DELEGATED_METHODS = (
 
 
 def _delegator(method):
-    """Automatically decorate ForecastingHorizon class with pandas.Index methods.
+    """
+    Automatically decorate ForecastingHorizon class with pandas.Index methods.
 
     Also delegates method calls to wrapped pandas.Index object.
     methods from pandas.Index and delegate method calls to wrapped pandas.Index
@@ -72,7 +70,8 @@ def _delegator(method):
 
 
 def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
-    """Validate forecasting horizon values.
+    """
+    Validate forecasting horizon values.
 
     Validation checks validity and also converts forecasting horizon values
     to supported pandas.Index types if possible.
@@ -142,7 +141,8 @@ def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
 
 
 def _check_freq(obj):
-    """Coerce obj to a pandas frequency offset for the ForecastingHorizon.
+    """
+    Coerce obj to a pandas frequency offset for the ForecastingHorizon.
 
     Parameters
     ----------

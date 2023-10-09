@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Pipeline with a regressor."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -71,11 +69,11 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
     ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
     ... )
@@ -88,7 +86,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -362,12 +360,12 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsRegressor
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import SklearnRegressorPipeline
     >>> from aeon.transformations.series.exponent import ExponentTransformer
     >>> from aeon.transformations.series.summarize import SummaryTransformer
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> t1 = ExponentTransformer()
     >>> t2 = SummaryTransformer()
     >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1, t2])

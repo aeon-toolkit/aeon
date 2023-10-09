@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Register of estimator base classes corresponding to aeon scitypes.
 
 This module exports the following:
@@ -29,7 +28,7 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 

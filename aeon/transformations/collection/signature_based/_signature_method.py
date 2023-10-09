@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """Signature transformer."""
 
 from sklearn.pipeline import Pipeline
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.signature_based._augmentations import (
     _make_augmentation_pipeline,
 )
@@ -12,7 +11,7 @@ from aeon.transformations.collection.signature_based._compute import (
 )
 
 
-class SignatureTransformer(BaseTransformer):
+class SignatureTransformer(BaseCollectionTransformer):
     """Transformation class from the signature method.
 
     Follows the methodology laid out in the paper:
@@ -41,13 +40,8 @@ class SignatureTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
         "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?#
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "python_dependencies": "esig",
         "python_version": "<3.11",

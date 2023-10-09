@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Frequency filters."""
 
 __author__ = ["sveameyer13"]
@@ -7,9 +6,6 @@ __all__ = ["Filter"]
 import numpy as np
 
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("mne", severity="warning")
 
 
 class Filter(BaseTransformer):

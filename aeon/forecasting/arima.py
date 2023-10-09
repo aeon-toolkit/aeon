@@ -1,15 +1,9 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements autoregressive integrated moving average (ARIMA) models."""
 
 __author__ = ["mloning", "hyang1996", "fkiraly", "ilkersigirci"]
 __all__ = ["AutoARIMA", "ARIMA"]
 
 from aeon.forecasting.base.adapters._pmdarima import _PmdArimaAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("pmdarima", severity="warning")
 
 
 class AutoARIMA(_PmdArimaAdapter):

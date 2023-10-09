@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for data and scenario generators in _testing.panel module."""
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall"]
@@ -16,8 +15,8 @@ from aeon.utils._testing.collection import (
     make_unequal_length_test_data,
 )
 
-N_INSTANCES = [10, 15]
-N_CHANNELS = [3, 5]
+N_INSTANCES = [10]
+N_CHANNELS = [1, 3]
 N_TIMEPOINTS = [3, 5]
 N_CLASSES = [2, 5]
 

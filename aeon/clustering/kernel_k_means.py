@@ -1,50 +1,47 @@
-# -*- coding: utf-8 -*-
 """Time series kernel kmeans."""
 from typing import Dict, Union
 
 import numpy as np
 from numpy.random import RandomState
 
-from aeon.clustering.base import BaseClusterer, TimeSeriesInstances
+from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tslearn", severity="warning")
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
-    """Kernel algorithm wrapper tslearns implementation.
+    """Kernel K Means [1]_: wrapper of the ``tslearn`` implementation.
 
     Parameters
     ----------
-    n_clusters: int, defaults = 8
+    n_clusters: int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
     kernel : string, or callable (default: "gak")
         The kernel should either be "gak", in which case the Global Alignment
-        Kernel from [2]_ is used or a value that is accepted as a metric
+        Kernel from [1]_ is used, or a value that is accepted as a metric
         by `scikit-learn's pairwise_kernels
         <https://scikit-learn.org/stable/modules/generated/\
         sklearn.metrics.pairwise.pairwise_kernels.html>`_
-    n_init: int, defaults = 10
+    n_init: int, default=10
         Number of times the k-means algorithm will be run with different
-        centroid seeds. The final result will be the best output of n_init
+        centroid seeds. The final result will be the best output of ``n_init``
         consecutive runs in terms of inertia.
     kernel_params : dict or None (default: None)
         Kernel parameters to be passed to the kernel function.
         None means no kernel parameter is set.
-        For Global Alignment Kernel, the only parameter of interest is `sigma`.
+        For Global Alignment Kernel, the only parameter of interest is ``sigma``.
         If set to 'auto', it is computed based on a sampling of the training
         set
         (cf :ref:`tslearn.metrics.sigma_gak <fun-tslearn.metrics.sigma_gak>`).
-        If no specific value is set for `sigma`, its defaults to 1.
-    max_iter: int, defaults = 300
+        If no specific value is set for ``sigma``, its default to 1.
+    max_iter: int, default=300
         Maximum number of iterations of the k-means algorithm for a single
         run.
-    tol: float, defaults = 1e-4
+    tol: float, default=1e-4
         Relative tolerance with regards to Frobenius norm of the difference
         in the cluster centers of two consecutive iterations to declare
         convergence.
-    verbose: bool, defaults = False
+    verbose: bool, default=False
         Verbosity mode.
     n_jobs : int or None, optional (default=None)
         The number of jobs to run in parallel for GAK cross-similarity matrix
@@ -53,7 +50,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         ``-1`` means using all processors. See scikit-learns'
         `Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>`_
         for more details.
-    random_state: int or np.random.RandomState instance or None, defaults = None
+    random_state: int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
 
     Attributes
@@ -65,6 +62,12 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Reference
+    ---------
+        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
     """
 
     _tags = {
@@ -102,7 +105,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         super(TimeSeriesKernelKMeans, self).__init__(n_clusters=n_clusters)
 
-    def _fit(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
@@ -117,6 +120,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
+        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
@@ -141,7 +145,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self.inertia_ = self._tslearn_kernel_k_means.inertia_
         self.n_iter_ = self._tslearn_kernel_k_means.n_iter_
 
-    def _predict(self, X: TimeSeriesInstances, y=None) -> np.ndarray:
+    def _predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -172,7 +176,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

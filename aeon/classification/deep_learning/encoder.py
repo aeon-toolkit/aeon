@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Encoder Classifier."""
 
 __author__ = ["hadifawaz1999"]
 __all__ = ["EncoderClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -14,14 +14,12 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.encoder import EncoderNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class EncoderClassifier(BaseDeepClassifier):
     """
     Establish the network structure for an Encoder.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
@@ -264,6 +262,7 @@ class EncoderClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod
@@ -289,8 +288,12 @@ class EncoderClassifier(BaseDeepClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 8,
             "batch_size": 4,
+            "use_bias": False,
+            "fc_units": 8,
+            "strides": 2,
+            "dropout_proba": 0,
         }
 
         test_params = [param1]

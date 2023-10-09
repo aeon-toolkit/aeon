@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for time series classifiers.
 
@@ -36,12 +35,6 @@ import numpy as np
 from aeon.classification.base import BaseClassifier
 
 # todo: add any necessary imports here
-
-# todo: if any imports are aeon soft dependencies:
-#  * make sure to fill in the "python_dependencies" tag with the package import name
-#  * add a _check_soft_dependencies warning here, example:
-# from sktime.utils.validation._dependencies import check_soft_dependencies
-# _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
 class MyTimeSeriesClassifier(BaseClassifier):
@@ -81,6 +74,9 @@ class MyTimeSeriesClassifier(BaseClassifier):
     --------
     todo: Add a simple use case example here
     """
+
+    # todo: if any imports are aeon soft dependencies:
+    #  * make sure to fill in the "python_dependencies" tag with the package import name
 
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.

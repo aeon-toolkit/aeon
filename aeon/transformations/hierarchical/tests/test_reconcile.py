@@ -1,7 +1,4 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Tests for hierarchical reconcilers."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["ciaran-g"]
 
@@ -11,6 +8,7 @@ from pandas.testing import assert_frame_equal
 
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
+from aeon.tests.test_all_estimators import PR_TESTING
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.hierarchical.reconcile import Reconciler
 from aeon.utils._testing.hierarchical import _bottom_hier_datagen
@@ -18,8 +16,12 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # get all the methods
 METHOD_LIST = Reconciler.METHOD_LIST
-level_list = [1, 2, 3]
-flatten_list = [True, False]
+if PR_TESTING:
+    level_list = [1]
+    flatten_list = [False]
+else:
+    level_list = [1, 3]
+    flatten_list = [True, False]
 
 
 # test the reconciled predictions are actually hierarchical

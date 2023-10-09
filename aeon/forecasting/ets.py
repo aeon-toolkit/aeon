@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements automatic and manually exponential time series smoothing models."""
 
 
@@ -252,7 +249,8 @@ class AutoETS(_StatsModelsAdapter):
                 else:
                     warnings.warn(
                         "Warning: time series is not strictly positive, "
-                        "multiplicative components are ommitted"
+                        "multiplicative components are ommitted",
+                        stacklevel=2,
                     )
                     error_range = ["add"]
 

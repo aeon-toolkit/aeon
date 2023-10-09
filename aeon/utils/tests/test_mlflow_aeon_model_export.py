@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for mlflow-aeon custom model flavor."""
 
 __author__ = ["benjaminbluhm"]

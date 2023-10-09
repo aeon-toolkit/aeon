@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A shapelet transform classifier (STC).
 
 Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
@@ -14,7 +13,7 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -23,7 +22,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     A shapelet transform classifier (STC).
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
-    of [1][2] but with random shapelet sampling. Transforms the data using the
+    of [1]_[2]_ but with random shapelet sampling. Transforms the data using the
     configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
     classifier.
 

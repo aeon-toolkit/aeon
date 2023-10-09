@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions to load and collate results from timeseriesclassification.com."""
 __all__ = [
     "get_estimator_results",
@@ -46,7 +45,15 @@ NAME_ALIASES = {
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
+    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL2"},
+    "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed"},
+    "kmeans-dtw": {"dtw-kmeans", "k-means-dtw"},
+    "kmeans-msm": {"msm-kmeans", "k-means-msm"},
+    "kmeans-twe": {"msm-kmeans", "k-means-msm"},
+    "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed"},
+    "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw"},
+    "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm"},
+    "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe"},
 }
 
 
@@ -72,7 +79,7 @@ def estimator_alias(name: str) -> str:
     for name_key in NAME_ALIASES.keys():
         if name in NAME_ALIASES[name_key]:
             return name_key
-    raise ValueError(f"Unknown classifier name {name}")
+    raise ValueError(f"Unknown estimator name {name}")
 
 
 def get_available_estimators(task="classification") -> pd.DataFrame:
@@ -238,6 +245,7 @@ def get_estimator_results_as_array(
         type=type,
         path=path,
     )
+
     all_res = []
     names = []
     for d in datasets:
@@ -252,7 +260,6 @@ def get_estimator_results_as_array(
                     r[i] = np.average(temp[d])
             elif not include_missing:  # Skip whole problem
                 include = False
-                continue
             else:
                 r[i] = False
         if include:

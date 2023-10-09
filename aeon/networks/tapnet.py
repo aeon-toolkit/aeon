@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) (minus the final output layer)."""
 
 __author__ = [
@@ -15,13 +14,6 @@ from aeon.utils.validation._dependencies import (
     _check_soft_dependencies,
 )
 
-_check_soft_dependencies(
-    "keras-self-attention",
-    package_import_alias={"keras-self-attention": "keras_self_attention"},
-    severity="warning",
-)
-_check_dl_dependencies(severity="warning")
-
 
 class TapNetNetwork(BaseDeepNetwork):
     """Establish Network structure for TapNet.
@@ -30,29 +22,29 @@ class TapNetNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    kernel_size     : array of int, default = (8, 5, 3)
-        specifying the length of the 1D convolution window
-    layers          : array of int, default = (500, 300)
-        size of dense layers
-    filter_sizes    : array of int, shape = (nb_conv_layers), default = (256, 256, 128)
-    random_state    : int, default = 1
-        seed to any needed random actions
-    rp_params       : array of int, default = (-1, 3)
-        parameters for random permutation
-    dropout         : float, default = 0.5
-        dropout rate, in the range [0, 1)
-    dilation        : int, default = 1
-        dilation value
-    padding         : str, default = 'same'
-        type of padding for convolution layers
-    use_rp          : bool, default = True
-        whether to use random projections
-    use_att         : bool, default = True
-        whether to use self attention
-    use_lstm        : bool, default = True
-        whether to use an LSTM layer
-    use_cnn         : bool, default = True
-        whether to use a CNN layer
+    kernel_size : array of int, default = (8, 5, 3)
+        Specifying the length of the 1D convolution window.
+    layers : array of int, default = (500, 300)
+        Size of dense layers.
+    filter_sizes : array of int, shape = (nb_conv_layers), default = (256, 256, 128)
+    random_state : int, default = 1
+        Seed to any needed random actions.
+    rp_params : array of int, default = (-1, 3)
+        Parameters for random permutation.
+    dropout : float, default = 0.5
+        Dropout rate, in the range [0, 1).
+    dilation : int, default = 1
+        Dilation value.
+    padding : str, default = 'same'
+        Type of padding for convolution layers.
+    use_rp : bool, default = True
+        Whether to use random projections.
+    use_att : bool, default = True
+        Whether to use self attention.
+    use_lstm : bool, default = True
+        Whether to use an LSTM layer.
+    use_cnn : bool, default = True
+        Whether to use a CNN layer.
 
     References
     ----------
@@ -111,18 +103,18 @@ class TapNetNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        in_size         : int
+        in_size : int
             Dimension of input image, either height or width
-        kernel_size     : int
+        kernel_size : int
             Size of the convolutional kernel that is applied
-        strides         : int
+        strides : int
             Stride step between convolution operations
-        padding         : int
+        padding : int
             Amount of padding done on input.
 
         Returns
         -------
-        output          : int
+        output : int
             Corresponding output dimension after convolution
         """
         # padding removed for now
@@ -136,8 +128,8 @@ class TapNetNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        x           : 2D array of shape (N x D)
-        y           : 2D array of shape (M x D)
+        x : 2D array of shape (N x D)
+        y : 2D array of shape (M x D)
 
         Returns
         -------
@@ -160,14 +152,14 @@ class TapNetNetwork(BaseDeepNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        --------
-        input_shape: tuple
+        Parameters
+        ----------
+        input_shape : tuple
             The shape of the data fed into the input layer
 
         Returns
         -------
-        input_layer  : a keras layer
+        input_layer : a keras layer
         output_layer : a keras layer
         """
         import tensorflow as tf

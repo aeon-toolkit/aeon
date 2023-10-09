@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Registry lookup methods.
 
@@ -221,6 +219,7 @@ def all_estimators(
         warnings.filterwarnings(
             "ignore", category=UserWarning, message=".*has been moved to.*"
         )
+        warnings.filterwarnings("ignore", category=Warning)
         for module_name in _walk(root=ROOT, exclude=MODULES_TO_IGNORE, prefix="aeon."):
             # Filter modules
             if _is_private_module(module_name):

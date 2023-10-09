@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Interval and window segmenter transformers."""
 import math
 
@@ -13,8 +12,6 @@ from aeon.utils.validation import check_window_length
 
 class IntervalSegmenter(BaseTransformer):
     """Interval segmentation transformer.
-
-    Segments an equal
 
     Parameters
     ----------
@@ -370,6 +367,8 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     the time series is now a multivariate one.
 
+    Proposed in the ShapeDTW algorithm.
+
     Parameters
     ----------
         window_length : int, optional, default=5.
@@ -378,8 +377,6 @@ class SlidingWindowSegmenter(BaseTransformer):
     Returns
     -------
         np.array [n_instances, n_timepoints, window_length]
-
-    Proposed in the ShapeDTW algorithm.
 
     Examples
     --------

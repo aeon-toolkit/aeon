@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
 __author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
+import gc
 import os
 import time
 from copy import deepcopy
@@ -14,12 +14,12 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks.cnn import CNNNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
-_check_dl_dependencies(severity="warning")
-
 
 class CNNClassifier(BaseDeepClassifier):
     """
-    Time Convolutional Neural Network (CNN), as described in [1]_.
+    Time Convolutional Neural Network (CNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
@@ -282,6 +282,7 @@ class CNNClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        gc.collect()
         return self
 
     @classmethod

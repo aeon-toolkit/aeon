@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
 __author__ = [
@@ -8,6 +7,7 @@ __all__ = [
     "TapNetRegressor",
 ]
 
+import gc
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -18,12 +18,14 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class TapNetRegressor(BaseDeepRegressor):
-    """Time series attentional prototype network (TapNet), as described in [1].
+    """Time series attentional prototype network (TapNet).
 
-     TapNet was initially proposed for multivariate time series
-     classification. The is an adaptation for time series regression. TapNet comprises
-     these components: random dimension permutation, multivariate time series
-     encoding, and attentional prototype learning.
+    Adapted from the implementation used in [1]_.
+
+    TapNet was initially proposed for multivariate time series classification. The is an
+    adaptation for time series regression. TapNet comprises these components: random
+    dimension permutation, multivariate time series encoding, and attentional
+    prototype learning.
 
     Parameters
     ----------
@@ -227,6 +229,7 @@ class TapNetRegressor(BaseDeepRegressor):
             callbacks=deepcopy(self.callbacks) if self.callbacks else [],
         )
 
+        gc.collect()
         return self
 
     @classmethod

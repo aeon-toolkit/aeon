@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Fourier Approximation (SFA) Transformer.
 
 Configurable SFA transform for discretising time series into words.
@@ -29,7 +28,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
@@ -46,7 +45,7 @@ simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
 
-class SFAFast(BaseTransformer):
+class SFAFast(BaseCollectionTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     Overview: for each series:
@@ -153,14 +152,10 @@ class SFAFast(BaseTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
-        "requires_y": True,  # does y need to be passed in fit?
+        "scitype:instancewise": False,
+        "fit_is_empty": False,
+        "requires_y": True,
+        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
@@ -239,7 +234,7 @@ class SFAFast(BaseTransformer):
         if not return_pandas_data_series:
             self._output_convert = "off"
 
-    def fit_transform(self, X, y=None):
+    def _fit_transform(self, X, y=None):
         """Fit to data, then transform it."""
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
@@ -314,7 +309,7 @@ class SFAFast(BaseTransformer):
         # fitting: learns the feature selection strategy, too
         return self.transform_to_bag(words, self.word_length_actual, y)
 
-    def fit(self, X, y=None):
+    def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
 
         Parameters
@@ -327,10 +322,10 @@ class SFAFast(BaseTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self.fit_transform(X, y)
+        self._fit_transform(X, y)
         return self
 
-    def transform(self, X, y=None):
+    def _transform(self, X, y=None):
         """Transform data into SFA words.
 
         Parameters
@@ -342,7 +337,6 @@ class SFAFast(BaseTransformer):
         -------
         List of dictionaries containing SFA words
         """
-        self.check_is_fitted()
         X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 

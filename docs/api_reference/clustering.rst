@@ -10,8 +10,8 @@ All clusterers in ``aeon``can be listed using the ``aeon.registry.all_estimators
 using ``estimator_types="clusterer"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
-Clustering models
------------------
+Clustering Algorithms
+---------------------
 
 .. currentmodule:: aeon.clustering.k_means
 
@@ -53,6 +53,14 @@ Clustering models
 
     TimeSeriesCLARA
 
+.. currentmodule:: aeon.clustering.clarans
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TimeSeriesCLARANS
+
 Base
 ----
 
@@ -63,11 +71,3 @@ Base
     :template: class.rst
 
     BaseClusterer
-
-.. currentmodule:: aeon.clustering.partitioning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSeriesLloyds

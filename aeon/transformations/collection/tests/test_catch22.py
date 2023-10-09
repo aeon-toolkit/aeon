@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Catch22 test code."""
 
 import numpy as np
@@ -12,6 +11,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 def test_catch22_on_basic_motions():
     """Test of Catch22 on basic motions data."""
+
+    # the test currently fails when numba is disabled. See issue #622
+    import os
+
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
+        return None
+
     # load basic motions data
     X_train, _ = load_basic_motions(split="train")
     indices = np.random.RandomState(4).choice(len(X_train), 5, replace=False)

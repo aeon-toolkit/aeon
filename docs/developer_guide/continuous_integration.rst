@@ -8,8 +8,8 @@ if new pull requests do not break anything and meet code quality
 standards such as a common `coding style <#Coding-style>`__.
 Before setting up Continuous Integration, be sure that you have set
 up your developer environment, and installed a
-`developement version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
- of aeon.
+`development version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
+of aeon.
 
 Code quality checks
 -------------------
@@ -22,7 +22,8 @@ We recommend that you also set this up locally as it will ensure that you never 
 These checks run automatically before you make a new commit.
 To setup, simply navigate to the aeon folder and install our pre-commit configuration:
 
-::
+.. code:: bash
+
    pre-commit install
 
 pre-commit should now automatically run anything you make a commit! Please let us know if you encounter any issues getting this setup.
@@ -56,12 +57,6 @@ development version of aeon and all extra dependencies.
 
    .. code:: bash
 
-      make test
-
-or if you don't have `make <https://www.gnu.org/software/make/>`_ installed:
-
-   .. code:: bash
-
       pytest ./aeon
 
 Test coverage
@@ -83,7 +78,7 @@ integration services we use.
 | Platform      | Operation             | Configuration                       |
 +===============+=======================+=====================================+
 | `GitHub       | Build/test/           | `.github/workflows/ <https://gi     |
-| Actions       | distribute            | thub.com/aeon/skti |
+| Actions       | distribute            | thub.com/aeon/skti                  |
 | <https:/      | on Linux, MacOS and   | me/blob/main/.github/workflows/>`__ |
 | /docs.github. | Windows,              |                                     |
 | com/en/free-p | run code quality      |                                     |
@@ -92,15 +87,15 @@ integration services we use.
 +---------------+-----------------------+-------------------------------------+
 | `Read the     | Build/deploy          | `.readthedocs.yml                   |
 | Docs <h       | documentation         | <https://github.com/alan-tu         |
-| ttps://readth |                       | ring-institute/aeon/blob/main/.gi |
+| ttps://readth |                       | ring-institute/aeon/blob/main/.gi   |
 | edocs.org>`__ |                       | thub/workflows/code-quality.yml>`__ |
 +---------------+-----------------------+-------------------------------------+
 | `Codecov      | Test coverage         | `.codecov.yml <https                |
-| <https://c    |                       | ://github.com/aeon |
-| odecov.io>`__ |                       | /aeon/blob/main/.codecov.yml>`__, |
+| <https://c    |                       | ://github.com/aeon                  |
+| odecov.io>`__ |                       | /aeon/blob/main/.codecov.yml>`__,   |
 |               |                       | `.coveragerc <htt                   |
 |               |                       | ps://github.com/alan-turing-institu |
-|               |                       | te/aeon/blob/main/.coveragerc>`__ |
+|               |                       | te/aeon/blob/main/.coveragerc>`__   |
 +---------------+-----------------------+-------------------------------------+
 
 Additional scripts used for building, unit testing and distribution can

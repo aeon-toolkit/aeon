@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Kalman Filter transformers unit tests."""
 
 __author__ = ["NoaBenAmi", "hadifawaz1999", "lmmentel"]
@@ -141,8 +139,11 @@ def init_kf_filterpy(measurements, adapter, n=10, y=None):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("filterpy", severity="none"),
-    reason="skip test if required soft dependency filterpy not available",
+    not _check_soft_dependencies(["filterpy", "numpy<1.24.0"], severity="none"),
+    reason=(
+        "skip test if required soft dependency filterpy not available "
+        "or numpy version is greater than 1.24.0"
+    ),
 )
 @pytest.mark.parametrize(
     "params, measurements, y",

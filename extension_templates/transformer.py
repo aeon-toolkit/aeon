@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for transformers.
 
@@ -44,13 +43,6 @@ from aeon.transformations.base import BaseTransformer
 
 # todo: add any necessary aeon internal imports here
 
-# todo: if any imports are aeon soft dependencies:
-#  * make sure to fill in the "python_dependencies" tag with the package import name
-#  * add a _check_soft_dependencies warning here, example:
-#
-# from aeon.utils.validation._dependencies import check_soft_dependencies
-# _check_soft_dependencies("soft_dependency_name", severity="warning")
-
 
 class MyTransformer(BaseTransformer):
     """Custom transformer. todo: write docstring.
@@ -74,6 +66,9 @@ class MyTransformer(BaseTransformer):
         descriptive explanation of est2
     and so on
     """
+
+    # todo: if any imports are aeon soft dependencies:
+    #  * make sure to fill in the "python_dependencies" tag with the package import name
 
     # todo: fill out estimator tags here
     #  tags are inherited from parent class if they are not set

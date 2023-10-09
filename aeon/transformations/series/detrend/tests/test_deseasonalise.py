@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Tests for Deseasonalizer."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning"]
 __all__ = []
@@ -9,7 +7,7 @@ import numpy as np
 import pytest
 
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.forecasting.tests._config import TEST_SPS
+from aeon.forecasting.tests import TEST_SPS
 from aeon.transformations.series.detrend import Deseasonalizer
 from aeon.utils._testing.forecasting import make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies

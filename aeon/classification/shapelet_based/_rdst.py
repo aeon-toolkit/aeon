@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Random Dilated Shapelet Transform (RDST) Classifier.
 
 A Random Dilated Shapelet Transform classifier pipeline that simply performs a random
@@ -24,7 +23,7 @@ class RDSTClassifier(BaseClassifier):
     A random dilated shapelet transform (RDST) classifier.
 
     Implementation of the random dilated shapelet transform classifier pipeline
-    along the lines of [1][2]. Transforms the data using the
+    along the lines of [1]_[2]_. Transforms the data using the
     `RandomDilatedShapeletTransform` and then builds a `RidgeClassifierCV` classifier
     with standard scalling.
 

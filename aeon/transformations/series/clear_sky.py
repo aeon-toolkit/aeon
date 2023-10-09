@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Clear sky transformer for solar time-series."""
 
 __author__ = ["ciaran-g"]
@@ -10,9 +8,6 @@ from joblib import Parallel, delayed
 from scipy.stats import vonmises
 
 from aeon.transformations.base import BaseTransformer
-
-# todo: update function?
-# todo: clock changes, time-zone aware index, miliseconds?
 
 
 class ClearSky(BaseTransformer):
