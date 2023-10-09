@@ -6,7 +6,7 @@ participate in the aeon project are expected to show respect and courtesy to oth
 community members at all times.
 
 Everyone participating in activities associated with the aeon project (whether
-in-person or remote) is required to conform to this Code of Conduct regardless
+in-person or remote) is required to conform to this Code of Conduct (CoC) regardless
 of platform.
 
 It is expected that community members will abide by the principles of the [Python
@@ -15,9 +15,10 @@ help maintain an open, considerate and respectful environment.
 
 Unacceptable behavior and code of conduct violations are determined and dealt with
 at the discretion of the aeon [Code of Conduct Workgroup (COCW)](./governance.md#code-of-conduct-workgroup).
-Possible actions taken include warnings, mediated meeting and apologies and expulsion
-from the project depending on the severity of the breach. The COCW can edit and remove
-comments and other contributions that are not aligned to this Code of Conduct.
+Possible actions taken include warnings, mediated meeting and/or apologies, and
+expulsion from the project depending on the severity of the breach. The COCW can edit
+and remove comments and other contributions that are not aligned to this Code of
+Conduct.
 
 Examples of unacceptable behaviour include (but are not limited to):
 - Personal attacks, insults and threats
@@ -32,7 +33,7 @@ addresses, without explicit permission
 Community members asked to stop any inappropriate behaviour are expected to comply
 immediately.
 
-If you believe someone is violating the code of conduct, we ask that you report it by
+If you believe someone is violating the CoC, we ask that you report it by
 contacting the COCW. All reports will be kept confidential. You can make a report by
 emailing the general aeon contact address [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org),
 or by messaging members of the COCW directly on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).

@@ -1,4 +1,4 @@
-# Governance and decision-making
+# Governance
 
 The purpose of this document is to formalize the governance process used by the `aeon`
 project, to clarify how decisions are made and how the various elements of our community
