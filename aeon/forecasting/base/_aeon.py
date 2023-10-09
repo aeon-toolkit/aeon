@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """aeon window forecaster base class."""
 
 __author__ = ["@mloning", "@big-o", "fkiraly"]

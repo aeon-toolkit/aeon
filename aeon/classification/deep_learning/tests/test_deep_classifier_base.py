@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for classifiers deep learning base class functionality."""
 import gc
 import os

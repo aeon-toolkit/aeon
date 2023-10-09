@@ -1,7 +1,4 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Tests for hierarchical reconcilers."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["ciaran-g"]
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility class for ploting functionality."""
 
 import numpy as np

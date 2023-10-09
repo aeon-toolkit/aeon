@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for clustering base class functionality."""
 
 import numpy as np

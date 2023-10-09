@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""Dynamic time warping (DTW) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 

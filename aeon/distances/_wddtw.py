@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Weighted derivative dynamic time warping (wddtw) distance between two series."""
 __author__ = ["chrisholder", "tonybagnall"]
 

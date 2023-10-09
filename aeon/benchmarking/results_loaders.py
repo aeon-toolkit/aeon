@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions to load and collate results from timeseriesclassification.com."""
 __all__ = [
     "get_estimator_results",
