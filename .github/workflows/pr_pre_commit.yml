@@ -29,7 +29,14 @@ jobs:
       - name: List changed files
         run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
 
-      - uses: pre-commit/action@v3.0.0
+      - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+        name: Full pre-commit
+        uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all_files
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+        name: Local pre-commit
+        uses: pre-commit/action@v3.0.0
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
