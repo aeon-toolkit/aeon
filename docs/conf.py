@@ -134,7 +134,7 @@ suppress_warnings = ["myst.mathjax"]
 # Recommended by sphinx_design when using the MyST Parser
 myst_enable_extensions = ["colon_fence", "html_image"]
 
-myst_heading_anchors = 2
+myst_heading_anchors = 4
 
 
 def linkcode_resolve(domain, info):

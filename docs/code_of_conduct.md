@@ -14,17 +14,17 @@ Software Foundation Code of Conduct](https://www.python.org/psf/codeofconduct/) 
 help maintain an open, considerate and respectful environment.
 
 Unacceptable behavior and code of conduct violations are determined and dealt with
-at the discretion of the aeon [Code of Conduct Workgroup (COCW)](todo).
+at the discretion of the aeon [Code of Conduct Workgroup (COCW)](./governance.md#code-of-conduct-workgroup).
 Possible actions taken include warnings, mediated meeting and apologies and expulsion
 from the project depending on the severity of the breach. The COCW can edit and remove
 comments and other contributions that are not aligned to this Code of Conduct.
 
 Examples of unacceptable behaviour include (but are not limited to):
 - Personal attacks, insults and threats
-- Harassment of individuals or groups both publically and privately
+- Harassment of individuals or groups both publicly and privately
 - Publishing private information of others, such as physical or electronic
 addresses, without explicit permission
-- The use of sexualized language or imagery in conversation or talks
+- The use of sexualised language or imagery in conversation or talks
 - Jokes or insults based on stereotypes, slurs or other exclusionary language
 - Continued one-on-one communication after requests to cease
 - General unethical and unprofessional conduct
