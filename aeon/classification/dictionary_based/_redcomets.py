@@ -43,15 +43,15 @@ class REDCOMETS(BaseClassifier):
         Number of trees used by each random forest sub-classifier.
     random_state : int, RandomState instance or None, default=None
         If ``int``, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib for Catch22,
-        if None a 'prefer' value of "threads" is used by default.
+        if ``None`` a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
@@ -192,15 +192,15 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms :
-            List of SFA() instances with random word length and alpabet size
+            List of ``SFA()`` instances with random word length and alpabet size
         sfa_clfs :
-            List of (RandomForestClassifier(), weight) tuples fitted on SFA transformed
-            training data
+            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFA`
+            transformed training data
         sax_transforms :
-            List of SAX() instances with random word length and alpabet size
+            List of ``SAX()`` instances with random word length and alpabet size
         sax_clfs :
-            List of (RandomForestClassifier(), weight) tuples fitted on SAX transformed
-            training data
+            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
+            transformed training data
         """
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
@@ -312,21 +312,23 @@ class REDCOMETS(BaseClassifier):
         ----------
         X : 3D np.ndarray, shape = [n_instances, n_channels, n_timepoints]
             The training data.
-            n_channels > 1.
+            ``n_channels > 1``
         y : 1D np.ndarray, shape = [n_instances]
             The class labels.
 
         Returns
         -------
         sfa_transforms : list
-            List of lists of SFA() instances with random word length and alpabet size
+            List of lists of ``SFA()`` instances with random word length and alpabet
+            size
         sfa_clfs : list
-            List of lists of (RandomForestClassifier(), weight) tuples fitted on SFA
-            transformed training data
+            List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
+            `SFA` transformed training data
         sax_transforms : list
-            List of lists of SAX() instances with random word length and alpabet size
+            List of lists of ``SAX()`` instances with random word length and alpabet
+            size
         sax_clfs : list
-            List of lists (RandomForestClassifier(), weight) tuples fitted on SAX
+            List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
         sfa_transforms = []
@@ -380,7 +382,7 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         y : 1D np.ndarray, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+            Predicted probabilities using the ordering in ``classes_``.
         """
         if X.shape[1] == 1:  # Univariate
             return self._predict_proba_unvivariate(np.squeeze(X))
@@ -402,7 +404,7 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+            Predicted probabilities using the ordering in ``classes_``.
         """
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -440,12 +442,12 @@ class REDCOMETS(BaseClassifier):
         ----------
         X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
             The data to make predict probabilities for.
-            n_dimensions > 1
+            ``n_dimensions > 1``
 
         Returns
         -------
         y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+            Predicted probabilities using the ordering in ``classes_``.
         """
         ensemble_pred_mats = None
         placeholder_y = np.zeros(X.shape[0])
@@ -578,14 +580,9 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         sax_transforms : list
-            List of SAX() instances
+            List of ``SAX()`` instances
         X : 2D np.ndarray, shape = [n_instances, n_timepoint]
             The data to transform.
-
-        Returns
-        -------
-        sax_parallel_res : list of np.ndarray
-            List of transformed X for each SAX() instance in sax_transforms.
         """
 
         def _sax_wrapper(sax):
@@ -611,8 +608,9 @@ class REDCOMETS(BaseClassifier):
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.``create_test_instance`` uses the first (or only) dictionary in
+            `params``.
         """
         return {
             "variant": 1,
