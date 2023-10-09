@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Truncation transformer - truncate unequal length panels to lower/upper bounds."""
 
 __all__ = ["TruncationTransformer"]

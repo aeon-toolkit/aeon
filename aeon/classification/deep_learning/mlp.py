@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Multi Layer Perceptron Network (MLP) for classification."""
 
 __author__ = ["James-Large", "AurumnPegasus"]
@@ -17,7 +16,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class MLPClassifier(BaseDeepClassifier):
-    """Multi Layer Perceptron Network (MLP), as described in [1]_.
+    """Multi Layer Perceptron Network (MLP).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------

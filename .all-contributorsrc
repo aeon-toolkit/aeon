@@ -2170,6 +2170,25 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "hedeershowk",
+      "name": "Hedeer El Showk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/144284759?v=4",
+      "profile": "https://github.com/hedeershowk",
+      "contributions": [
+        "bug",
+        "doc"
+      ]
+    },
+    {
+      "login": "steenrotsman",
+      "name": "Stijn Rotman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/78110080?s=400&v=4",
+      "profile": "https://github.com/steenrotsman",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Hidden Markov Model based annotation from hmmlearn.
 

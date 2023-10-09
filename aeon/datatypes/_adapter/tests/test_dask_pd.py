@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for converter utilities between dask and pandas, with multiindex convention."""
 
 from copy import deepcopy

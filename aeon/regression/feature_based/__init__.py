@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Feature based time series regressors.
 
 While a bit vague, the contents mostly consist of transformers that extract features

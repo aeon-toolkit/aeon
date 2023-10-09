@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for base class conversion and vectorization functionality.
 
 Each test covers a "decision path" in the base class boilerplate,

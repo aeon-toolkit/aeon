@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Padding transformer, pad unequal length time series to max length or fixed length."""
 
 __all__ = ["PaddingTransformer"]

@@ -5,10 +5,10 @@ If installation is required, please see our [installation guide](installation) f
 installing `aeon`.
 
 We assume basic familiarity with the [scikit-learn](https://scikit-learn.org/stable/index.html)
-package. If you are confused, you may want to view
+package. If you want help with scikit-learn you may want to view
 [their getting started guides](https://scikit-learn.org/stable/getting_started.html).
 
-`aeon` is an open source toolkit for learning from time series. It provides access to
+`aeon` is an open-source toolkit for learning from time series. It provides access to
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
@@ -27,8 +27,9 @@ Additionally, it provides numerous algorithms for {term}`time series transformat
 altering time series into different representations and domains or processing
 time series data into tabular data.
 
-The following provides introductory examples for each of these modules. In the examples
-used the datatypes most commonly used for the task, but a variety of input types for
+The following provides introductory examples for each of these modules. The examples
+use the datatypes most commonly used for the task in question, but a variety of input
+types for
 data are available. See [here](/examples/datasets/data_structures.ipynb) for
 more information on input data structures. For more information on the variety of
 estimators
@@ -189,12 +190,13 @@ extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
 
-Classification generally use numpy arrays to store time series. We recommend storing
-time series for classification in 3D numpy arrays even if each time series is
-univariate. Classifiers will work with 2D input as you would expect from `scikit-learn`,
-but other packages may treat 2D input as a single multivariate series. This is the case
-for non-collection transformers, and you may find unexpected outputs if you input a 2D
-array treating it as multiple time series.
+Classification generally uses numpy arrays to store time series. We recommend storing
+time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
+n_timepoints)` even if each time series is univariate (i.e. `n_channels == 1`).
+Classifiers will work with 2D input of shape `(n_cases, n_timepoints)` as you would
+expect from `scikit-learn`, but other packages may treat 2D input as a single
+multivariate series. This is the case for non-collection transformers, and you may
+find unexpected outputs if you input a 2D array treating it as multiple time series.
 
 Note we assume series length is always the same for all channels of a single series
 regardless of input type. The target variable should be a `numpy` array of type `float`,
@@ -233,9 +235,8 @@ algorithm types available in `aeon` in the [classification notebooks](examples.m
 
 Time series extrinsic regression assumes that the target variable is continuous rather
 than discrete, as for classification. The same input data considerations apply from the
-classification section, and the modules function similarly.
-
-The target variable should be a `numpy` array of type `float`.
+classification section, and the modules function similarly. The target variable
+should be a `numpy` array of type `float`.
 
 "Time series regression" is a term commonly used in forecasting. To avoid confusion,
 the term "time series extrinsic regression" is commonly used to refer to the traditional
@@ -263,9 +264,10 @@ KNeighborsTimeSeriesRegressor()
 ## Time Series Clustering (TSCL)
 
 Like classification and regression, time series clustering aims to follow the
-`scikit-learn` interface where possible. The same input data format is used as the
-modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
-clusterer on the [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
+`scikit-learn` interface where possible. The same input data format is used as in
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
+clusterer on the
+[ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
 ```{code-block} python
@@ -315,12 +317,13 @@ Freq: M, dtype: int32
 The transformations module in `aeon` contains a range of transformers for time series
 data. These transformers can be used standalone or as parts of pipelines.
 
-Transfromers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
+Transformers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
 class accept both series and collection input types. However, 2D input types can be
 ambiguous in what they are storing. As such, we give the following warning for
 `aeon` transformers: <span style="color:red">**2D input data types such as numpy arrays
 and dataframes will be treated as a single multivariate series rather than a collection
 of univariate series**</span>.
+
 
 The following example shows how to use the
 [Differencer](transformations.series.difference.Differencer) class to extract the first

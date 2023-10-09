@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Matrix Profile classifier.
 
 Pipeline classifier using the Matrix Profile transformer and an estimator.
@@ -19,7 +18,7 @@ class MatrixProfileClassifier(BaseClassifier):
     """
     Matrix Profile (MP) classifier.
 
-    This classifier simply transforms the input data using the MatrixProfile [1]
+    This classifier simply transforms the input data using the MatrixProfile [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters

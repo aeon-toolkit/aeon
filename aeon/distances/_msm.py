@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Move-split-merge (MSM) distance between two time series."""
 __author__ = ["chrisholder", "jlines", "TonyBagnall"]
 

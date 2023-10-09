@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Suite of tests for all estimators.
 
 adapted from scikit-learn's estimator_checks
@@ -316,8 +314,8 @@ class BaseFixtureGenerator:
     def _excluded_scenario(test_name, scenario):
         """Skip list generator for scenarios to skip in test_name.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         test_name : str, name of test
         scenario : instance of TestScenario, to be used in test
 
@@ -1238,7 +1236,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         _assert_array_almost_equal(
             results[1],
             results_2nd[1],
-            # err_msg=f"Idempotency check failed for method {method}",
+            err_msg=f"Running {method_nsc_arraylike} after fit twice with test "
+            f"parameters gives different results.",
         )
 
     def test_persistence_via_pickle(

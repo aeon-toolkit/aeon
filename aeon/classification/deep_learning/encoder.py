@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Encoder Classifier."""
 
 __author__ = ["hadifawaz1999"]
@@ -20,7 +19,7 @@ class EncoderClassifier(BaseDeepClassifier):
     """
     Establish the network structure for an Encoder.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------

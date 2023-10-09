@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Time Series Forest (TSF) Regressor.
 
 Interval-based TSF regressor, extracts basic summary features from random intervals.

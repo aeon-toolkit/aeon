@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Catch22 Classifier.
 
 Pipeline classifier using the Catch22 transformer and an estimator.
@@ -20,7 +18,7 @@ class Catch22Classifier(BaseClassifier):
     """
     Canonical Time-series Characteristics (catch22) classifier.
 
-    This classifier simply transforms the input data using the Catch22 [1]
+    This classifier simply transforms the input data using the Catch22 [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters

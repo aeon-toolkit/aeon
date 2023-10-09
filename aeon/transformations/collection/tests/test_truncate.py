@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test Truncator transformer."""
 
 import numpy as np

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """MiniRocket transformer."""
 
 __author__ = ["angus924"]
@@ -59,8 +58,6 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "fit_is_empty": False,
         "scitype:transform-output": "Primitives",
     }
 

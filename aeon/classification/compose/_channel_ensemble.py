@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ChannelEnsembleClassifier: For Multivariate Time Series Classification.
 
 Builds classifiers on each channel (dimension) independently.

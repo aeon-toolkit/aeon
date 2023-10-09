@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel Selection techniques for Multivariate Time Series Classification.
 
 A transformer that selects a subset of channels/dimensions for time series
@@ -289,15 +288,10 @@ class ElbowClassSum(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # which mtypes do _fit/_predict support for y?
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
+        "capability:multivariate": True,
+        "skip-inverse-transform": True,
+        "y_inner_mtype": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(
@@ -428,16 +422,12 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     """
 
     _tags = {
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # which mtypes do _fit/_predict support for y?
         "requires_y": True,  # does y need to be passed in fit?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
+        "capability:multivariate": True,
+        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fully Connected Neural Network (FCN) (minus the final output layer)."""
 
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
@@ -11,28 +10,28 @@ class FCNNetwork(BaseDeepNetwork):
     """
     Establish the network structure for a FCN.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_
 
     Parameters
     ----------
     n_layers : int, default = 3
-        number of convolution layers
+        Number of convolution layers.
     n_filters : int or list of int, default = [128,256,128]
-        number of filters used in convolution layers
+        Number of filters used in convolution layers.
     kernel_size : int or list of int, default = [8,5,3]
-        size of convolution kernel
+        Size of convolution kernel.
     dilation_rate : int or list of int, default = 1
-        the dilation rate for convolution
+        The dilation rate for convolution.
     strides : int or list of int, default = 1
-        the strides of the convolution filter
+        The strides of the convolution filter.
     padding : str or list of str, default = "same"
-        the type of padding used for convolution
+        The type of padding used for convolution.
     activation : str or list of str, default = "relu"
-        activation used after the convolution
+        Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        Whether or not ot use bias in convolution.
     random_state    : int, default = 0
-        seed to any needed random actions
+        seed to any needed random actions.
 
     Notes
     -----
@@ -41,17 +40,8 @@ class FCNNetwork(BaseDeepNetwork):
 
     References
     ----------
-    .. [1] Network originally defined in:
-    @inproceedings{wang2017time,
-      title={Time series classification from scratch with deep neural networks:
-       A strong baseline},
-      author={Wang, Zhiguang and Yan, Weizhong and Oates, Tim},
-      booktitle={2017 International joint conference on neural networks
-      (IJCNN)},
-      pages={1578--1585},
-      year={2017},
-      organization={IEEE}
-    }
+    .. [1] Wang et al. Time series classification from scratch with deep neural
+    networks: a strong baseline, IJCNN, 2017
     """
 
     _tags = {"python_dependencies": "tensorflow"}
@@ -84,10 +74,11 @@ class FCNNetwork(BaseDeepNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
-            The shape of the data fed into the input layer
+        Parameters
+        ----------
+        input_shape : tuple
+          shape = (series_length (m), n_dimensions (d)), the shape of the data fed
+          into the input layer.
 
         Returns
         -------

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Main configuration file for pytest.
 
 Contents:
@@ -30,5 +28,5 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Pytest configuration preamble."""
-    if config.getoption("--prtesting") in [True, "True"]:
+    if config.getoption("--prtesting") in [True, "True", "true"]:
         _config.PR_TESTING = True

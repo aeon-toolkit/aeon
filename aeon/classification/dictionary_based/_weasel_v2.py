@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """WEASEL 2.0 classifier.
 
 A Random Dilated Dictionary Transform for Fast, Accurate and Constrained Memory

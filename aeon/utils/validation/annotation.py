@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Series of checks for annotation classes."""
 
 __author__ = ["mloning"]

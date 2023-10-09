@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Residual Network (ResNet) for classification."""
 
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
@@ -18,7 +17,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 class ResNetClassifier(BaseDeepClassifier):
     """
-    Residual Neural Network as described in [1].
+    Residual Neural Network (RNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------

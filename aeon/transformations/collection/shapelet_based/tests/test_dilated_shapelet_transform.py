@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for dilated shapelet transform functions."""
 
 __author__ = ["baraline"]

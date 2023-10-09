@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Discrete wavelet transform."""
 
 __author__ = "Vincent Nicholson"

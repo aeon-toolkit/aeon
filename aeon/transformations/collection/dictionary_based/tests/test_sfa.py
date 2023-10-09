@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 
 import numpy as np
@@ -181,12 +180,6 @@ def test_bit_size():
 
 def test_typed_dict():
     """Test typed dictionaries."""
-
-    # the test currently fails when numba is disabled. See issue #622
-    import os
-
-    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-        return None
 
     # load training data
     X = np.random.rand(10, 1, 150)

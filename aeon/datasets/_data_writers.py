@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import textwrap
 
@@ -37,7 +36,7 @@ def write_to_tsfile(
         the header since there is no definite way of inferring this from y
     """
     if not (
-        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(pd.DataFrame)
+        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(X, pd.DataFrame)
     ):
         raise TypeError(
             f" Wrong input data type {type(X)} convert to np.ndarray ("
@@ -57,8 +56,8 @@ def write_to_tsfile(
             path,
             problem_name=problem_name,
             y=y,
-            equal_length=False,
             comment=header,
+            regression=regression,
         )
 
 
@@ -107,14 +106,15 @@ def _write_data_to_tsfile(
     """
     # ensure data provided is a ndarray
     if not isinstance(X, np.ndarray) and not isinstance(X, list):
-        raise ValueError("Data provided must be a ndarray or a list")
+        raise TypeError("Data provided must be a ndarray or a list")
     class_labels = None
-    if y is not None and not regression:
+    if y is not None:
         # ensure number of cases is same as the class value list
         if len(X) != len(y):
             raise IndexError(
-                "The number of cases is not the same as the number of  class values"
+                "The number of cases in X does not match the number of values in y"
             )
+    if not regression:
         class_labels = np.unique(y)
     n_cases = len(X)
     n_channels = len(X[0])
@@ -303,7 +303,7 @@ def _write_header(
     if suffix is not None:
         load_path = load_path + suffix
     if extension is not None:
-        load_path = load_path + suffix + extension
+        load_path = load_path + extension
     file = open(load_path, "w")
     # write comment if any as a block at start of file
     if comment is not None:
@@ -323,20 +323,14 @@ def _write_header(
         file.write(f"@classLabel true {space_separated_class_label}\n")
     else:
         file.write("@classLabel false\n")
-        if regression:
+        if regression:  # or if a regresssion problem, write target label
             file.write("@targetlabel true\n")
-
-    # or if a regresssion problem, write target label
     file.write("@data\n")
     return file
 
 
 def _write_dataframe_to_tsfile(
-    X,
-    path,
-    problem_name="sample_data",
-    y=None,
-    comment=None,
+    X, path, problem_name="sample_data", y=None, comment=None, regression=False
 ):
     # ensure data provided is a dataframe
     if not isinstance(X, pd.DataFrame):
@@ -348,15 +342,24 @@ def _write_dataframe_to_tsfile(
     class_labels = None
     if y is not None:
         class_labels = np.unique(y)
+    univariate = X.shape[1] == 1
+    # dataframes are always equal length
+    equal_length = True
+    series_length = X.shape[0]
     file = _write_header(
         path,
         problem_name,
-        comment=comment,
+        univariate=univariate,
+        equal_length=equal_length,
+        series_length=series_length,
         class_labels=class_labels,
+        comment=comment,
+        regression=regression,
+        extension=None,
     )
-    n_cases, n_dimensions = X.shape
+    n_cases, n_channels = X.shape
     for i in range(0, n_cases):
-        for j in range(0, n_dimensions):
+        for j in range(0, n_channels):
             series = X.iloc[i, j]
             for k in range(0, series.size - 1):
                 file.write(f"{series[k]},")

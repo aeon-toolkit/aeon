@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) (minus the final output layer)."""
 
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
@@ -10,45 +9,38 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class CNNNetwork(BaseDeepNetwork):
     """Establish the network structure for a CNN.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-        n_layers        : int, default = 2,
-            the number of convolution layers in the network
-        kernel_size    : int or list of int, default = 7,
-            kernel size of convolution layers, if not a list, the same kernel size
-            is used for all layer, len(list) should be n_layers
-        n_filters       : int or list of int, default = [6, 12],
-            number of filters for each convolution layer,
-            if not a list, the same n_filters
-            is used in all layers.
-        avg_pool_size   : int or list of int, default = 3,
-            the size of the average pooling layer, if not a
-            list, the same max pooling size is used
-            for all convolution layer
-        activation      : str or list of str, default = "sigmoid",
-            keras activation function used in the model for
-            each layer, if not a list, the same
-            activation is used for all layers
-        padding         : str or list of str, default = 'valid',
-            the method of padding in convolution layers, if
-            not a list, the same padding used
-            for all convolution layers
-        strides         : int or list of int, default = 1,
-            the strides of kernels in the convolution and
-            max pooling layers, if not a list,
-            the same strides are used for all layers
-        dilation_rate   : int or list of int, default = 1,
-            the dilation rate of the convolution layers,
-            if not a list, the same dilation rate
-            is used all over the network
-        use_bias        : bool or list of bool, default = True,
-            condition on whether or not to use bias values
-            for convolution layers, if not
-            a list, the same condition is used for all layers
-        random_state    : int, default = 0
-            seed to any needed random actions
+    n_layers : int, default = 2
+        The number of convolution layers in the network.
+    kernel_size : int or list of int, default = 7
+        Kernel size of convolution layers, if not a list, the same kernel size is
+        used for all layer, len(list) should be n_layers.
+    n_filters : int or list of int, default = [6, 12]
+        Number of filters for each convolution layer, if not a list, the same
+        `n_filters` is used in all layers.
+    avg_pool_size : int or list of int, default = 3
+        The size of the average pooling layer, if not a list, the same max pooling
+        size is used for all convolution layer.
+    activation : str or list of str, default = "sigmoid"
+        Keras activation function used in the model for each layer, if not a list,
+        the same activation is used for all layers.
+    padding : str or list of str, default = "valid"
+        The method of padding in convolution layers, if not a list, the same padding
+        used for all convolution layers.
+    strides : int or list of int, default = 1
+        The strides of kernels in the convolution and max pooling layers, if not a list,
+        the same strides are used for all layers.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate of the convolution layers, if not a list, the same dilation
+        rate is used all over the network.
+    use_bias : bool or list of bool, default = True
+        Condition on whether or not to use bias values for convolution layers, if not
+        a list, the same condition is used for all layers.
+    random_state : int, default = 0
+        Seed to any needed random actions.
 
     Notes
     -----
@@ -95,10 +87,10 @@ class CNNNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple
-            The shape of the data fed into the input layer
+            The shape of the data fed into the input layer.
 
         Returns
         -------
