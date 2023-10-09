@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Base classes for adapting other forecasters to aeon framework."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __all__ = [
     "_ProphetAdapter",

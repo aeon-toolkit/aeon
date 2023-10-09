@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Rocket test code."""
 import pytest
 

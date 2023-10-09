@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Registry of mtypes for Collections. See datatypes._registry for API."""
 
 import pandas as pd

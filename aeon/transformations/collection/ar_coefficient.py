@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """AR coefficient feature transformer."""
 
 __author__ = ["MatthewMiddlehurst"]
@@ -45,6 +43,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
+        "capability:multivariate": True,
         "python_dependencies": "statsmodels",
     }
 

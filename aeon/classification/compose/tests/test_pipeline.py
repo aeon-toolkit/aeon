@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for (dunder) composition functionality attached to the base class."""
 
 __author__ = ["fkiraly"]

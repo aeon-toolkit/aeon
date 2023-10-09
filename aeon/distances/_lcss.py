@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""Longest common subsequence (LCSS) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 

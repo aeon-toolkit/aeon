@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Matrix Profile Distances."""
 import numpy as np
 

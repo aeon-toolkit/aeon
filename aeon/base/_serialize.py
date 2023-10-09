@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Utilities for serializing and deserializing objects.
 
 IMPORTANT CAVEAT FOR DEVELOPERS:

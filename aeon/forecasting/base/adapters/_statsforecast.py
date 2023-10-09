@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements adapter for StatsForecast forecasters to be used in aeon framework."""
 
 __author__ = ["FedericoGarza"]
