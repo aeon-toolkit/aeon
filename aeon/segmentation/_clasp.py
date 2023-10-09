@@ -209,8 +209,8 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
 
     Examples
     --------
-    >>> from aeon.annotation.clasp import ClaSPSegmentation
-    >>> from aeon.annotation.clasp import find_dominant_window_sizes
+    >>> from aeon.segmentation.clasp import ClaSPSegmentation
+    >>> from aeon.segmentation.clasp import find_dominant_window_sizes
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> dominant_period_size = find_dominant_window_sizes(X)

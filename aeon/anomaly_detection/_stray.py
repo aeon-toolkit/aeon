@@ -63,7 +63,7 @@ class STRAY(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.annotation.stray import STRAY
+    >>> from aeon.anomaly_detection import STRAY
     >>> from aeon.datasets import load_airline
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
