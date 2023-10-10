@@ -106,13 +106,6 @@ class REDCOMETS(BaseClassifier):
         n_jobs=1,
         parallel_backend=None,
     ):
-        _check_soft_dependencies(
-            "imbalanced-learn",
-            package_import_alias={"imbalanced-learn": "imblearn"},
-            severity="error",
-            obj=self,
-        )
-
         assert variant in [1, 2, 3, 4, 5, 6, 7, 8, 9]
         self.variant = variant
 
@@ -201,6 +194,13 @@ class REDCOMETS(BaseClassifier):
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
+        _check_soft_dependencies(
+            "imbalanced-learn",
+            package_import_alias={"imbalanced-learn": "imblearn"},
+            severity="error",
+            obj=self,
+        )
+
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
         if self.variant in [1, 2, 3]:
