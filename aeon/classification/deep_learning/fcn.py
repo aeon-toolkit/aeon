@@ -23,56 +23,56 @@ class FCNClassifier(BaseDeepClassifier):
     Parameters
     ----------
     n_layers : int, default = 3
-        number of convolution layers
+        Number of convolution layers.
     n_filters : int or list of int, default = [128,256,128]
-        number of filters used in convolution layers
+        Number of filters used in convolution layers.
     kernel_size : int or list of int, default = [8,5,3]
-        size of convolution kernel
+        Size of convolution kernel.
     dilation_rate : int or list of int, default = 1
-        the dilation rate for convolution
+        The dilation rate for convolution.
     strides : int or list of int, default = 1
-        the strides of the convolution filter
+        The strides of the convolution filter.
     padding : str or list of str, default = "same"
-        the type of padding used for convolution
+        The type of padding used for convolution.
     activation : str or list of str, default = "relu"
-        activation used after the convolution
+        Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        Whether or not ot use bias in convolution.
     n_epochs : int, default = 2000
-        the number of epochs to train the model
+        The number of epochs to train the model.
     batch_size : int, default = 16
-        the number of samples per gradient update.
-    use_mini_batch_size : bool, default = True,
-        whether or not to use the mini batch size formula
+        The number of samples per gradient update.
+    use_mini_batch_size : bool, default = True
+        Whether or not to use the mini batch size formula.
     random_state : int or None, default = None
         Seed for random number generation.
     verbose : boolean, default = False
-        whether to output extra information
+        Whether to output extra information.
     loss : string, default = "mean_squared_error"
-        fit parameter for the keras model
-    metrics : list of strings, default = ["accuracy"],
+        Fit parameter for the keras model.
+    metrics : list of strings, default = ["accuracy"]
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
+        Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
-        file path to save best model
+        File path to save best model.
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
-        file and the user can choose the file name
+        file and the user can choose the file name.
     save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file
+        save_last_model_to_file.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
-        is discarded
+        is discarded.
     last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
-        is discarded
+        is discarded.
     callbacks : keras.callbacks, default = None
     Notes
     -----
@@ -176,9 +176,9 @@ class FCNClassifier(BaseDeepClassifier):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+            The shape of the data fed into the input layer, should be (m, d).
         n_classes : int
-            The number of classes, which becomes the size of the output layer
+            The number of classes, which becomes the size of the output layer.
 
         Returns
         -------
