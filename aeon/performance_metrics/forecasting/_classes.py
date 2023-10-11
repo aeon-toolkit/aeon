@@ -476,7 +476,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             type = metadata["scitype"]
             ignore_index = multilevel == "uniform_average_time"
             if type in ["Panel", "Hierarchical"] and not ignore_index:
-                y_inner = VectorizedDF(y_inner, is_type=type)
+                y_inner = VectorizedDF(y_inner, is_scitype=type)
             return y_inner
 
         y_true = _coerce_to_df(y_true, var_name="y_true")
