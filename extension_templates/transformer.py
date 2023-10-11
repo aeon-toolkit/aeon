@@ -108,19 +108,19 @@ class MyTransformer(BaseTransformer):
         # a transform that produces a tabular DataFrame (Table)
         #   when given Series or Panel should have transform-input "Series"
         #       and transform-output as "Primitives"
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # valid values: "Series", "Panel"
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # valid values: "Series", "Panel", "Primitives"
         #
-        # scitype:instancewise = is fit_transform an instance-wise operation?
+        # instancewise = is fit_transform an instance-wise operation?
         # instance-wise = only values of a given series instance are used to transform
         #   that instance. Example: Fourier transform; non-example: series PCA
-        "scitype:instancewise": True,
+        "instancewise": True,
         #
-        # scitype:transform-labels types the y used in transform
+        # transform-labels types the y used in transform
         #   if y is not used in transform, this should be "None"
-        "scitype:transform-labels": "None",
+        "transform-labels": "None",
         # valid values: "None" (not needed), "Primitives", "Series", "Panel"
         #
         #
