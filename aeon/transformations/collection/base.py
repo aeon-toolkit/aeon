@@ -195,7 +195,7 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)

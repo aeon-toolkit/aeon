@@ -113,7 +113,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return NotImplemented
 
     @final
-    def fit(self, X, y):
+    def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 
         Parameters
@@ -161,7 +161,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for time series in X.
+        """Predicts class labels for time series in X.
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts class label probabilities for time series in X.
 
         Parameters
         ----------
