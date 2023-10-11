@@ -90,8 +90,9 @@ class BaseFixtureGenerator:
         will have estimator and scenario fixtures parametrized out of the box.
 
     Descendants can override:
-        estimator_type_filter: str, class variable; None or scitype string
-            e.g., "forecaster", "transformer", "classifier", see BASE_CLASS_SCITYPE_LIST
+        estimator_type_filter: str, class variable; None or string of estimator type
+            e.g., "forecaster", "transformer", "classifier",
+            see BASE_CLASS_IDENTIFIER_LIST
             which estimators are being retrieved and tested
         fixture_sequence: list of str
             sequence of fixture variable names in conditional fixture generation
@@ -129,7 +130,7 @@ class BaseFixtureGenerator:
 
     # class variables which can be overridden by descendants
 
-    # which estimator types are generated; None=all, or scitype string like "forecaster"
+    # which estimator types are generated; None=all
     estimator_type_filter = None
 
     # which sequence the conditional fixtures are generated in
@@ -1063,9 +1064,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         1. do not change state of the estimator, i.e., any attributes
             (including hyper-parameters and fitted parameters)
         2. expected output type of the method matches actual output type
-            - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methods tested: get_fitted_params
-            scitype specific method outputs are tested in TestAll[estimatortype] class
+            - only for abstract BaseEstimator methods, common to all estimators.
+            List of BaseEstimator methods tested: get_fitted_params
+            Subclass specific method outputs are tested in TestAll[estimatortype] class
         3. the state of method arguments does not change
         """
         estimator = estimator_instance
