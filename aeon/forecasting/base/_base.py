@@ -86,7 +86,7 @@ class BaseForecaster(BaseEstimator):
     # default tag values - these typically make the "safest" assumption
     # for more extensive documentation, see extension_templates/forecasting.py
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:pred_int": False,  # can the estimator produce prediction intervals?
         "capability:missing_values": False,  # can estimator handle missing data?
@@ -299,12 +299,12 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply.
+                if self.get_tag("y_input_type")=="both": no restrictions apply.
             For further details:
                 on usage, see forecasting examples/forecasting
                 on specification of formats, examples/datasets
@@ -438,12 +438,12 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details:
                 on usage, see  examples/forecasting
                 on specification of formats, examples/datasets
@@ -818,17 +818,17 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details:
                 See  examples/forecasting, or examples/datasets,
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
-            Should be of same scitype (Series, Panel, or Hierarchical) as y
+            Should be of same type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
             there are no restrictions on number of columns (unlike for y)
         update_params : bool, optional (default=True)
@@ -898,12 +898,12 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details see  examples/forecasting, or examples/datasets.
         cv : temporal cross-validation generator inheriting from BaseSplitter, optional
             For example, SlidingWindowSplitter or ExpandingWindowSplitter
@@ -1002,12 +1002,12 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details see  examples/forecasting, or examples/datasets.
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
@@ -1160,11 +1160,11 @@ class BaseForecaster(BaseEstimator):
         ----------
         y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Time series to score
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 must have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 must have 2 or more columns.
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : pd.DataFrame, or 2D np.array, default=None
             Exogeneous time series to score.
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
@@ -1280,7 +1280,7 @@ class BaseForecaster(BaseEstimator):
         Raises
         ------
         TypeError if y or X is not one of the permissible Series mtypes
-        TypeError if y is not compatible with self.get_tag("scitype:y")
+        TypeError if y is not compatible with self.get_tag("y_input_type")
             if tag value is "univariate", y must be univariate
             if tag value is "multivariate", y must be bi- or higher-variate
             if tag value is "both", y can be either
@@ -1360,13 +1360,13 @@ class BaseForecaster(BaseEstimator):
 
             req_vec_because_rows = y_scitype not in y_inner_scitype
             req_vec_because_cols = (
-                self.get_tag("scitype:y") == "univariate"
+                self.get_tag("y_input_type") == "univariate"
                 and not y_metadata["is_univariate"]
             )
             requires_vectorization = req_vec_because_rows or req_vec_because_cols
 
             if (
-                self.get_tag("scitype:y") == "multivariate"
+                self.get_tag("y_input_type") == "multivariate"
                 and y_metadata["is_univariate"]
             ):
                 raise ValueError(
@@ -1788,11 +1788,11 @@ class BaseForecaster(BaseEstimator):
         ----------
         y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
@@ -1855,11 +1855,11 @@ class BaseForecaster(BaseEstimator):
         ----------
         y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
             guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
@@ -2244,12 +2244,12 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details see  examples/forecasting, or examples/datasets
         cv : temporal cross-validation generator, optional (default=None)
         X : time series in aeon compatible format, optional (default=None)
