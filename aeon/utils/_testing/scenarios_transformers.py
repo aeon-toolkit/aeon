@@ -162,7 +162,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             else:
                 raise RuntimeError(
                     "transformer with unexpected combination of tags: "
-                    f"X_out_scitype = {X_out_scitype}, scitype:instancewise = {X_panel}"
+                    f"X_out_scitype = {X_out_scitype}, instancewise = {X_panel}"
                 )
 
         else:

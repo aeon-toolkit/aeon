@@ -73,7 +73,7 @@ class _DelegatedTransformer(BaseTransformer):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |----------|--------------|------------------------|

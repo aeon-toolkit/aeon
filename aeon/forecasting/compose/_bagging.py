@@ -39,8 +39,8 @@ class BaggingForecaster(BaseForecaster):
     bootstrap_transformer : BaseTransformer
         (aeon.transformations.bootstrap.STLBootstrapTransformer)
         Bootstrapping Transformer that takes a series (with tag
-        scitype:transform-input=Series) as input and returns a panel (with tag
-        scitype:transform-input=Panel) of bootstrapped time series if not specified
+        input_data_type=Series) as input and returns a panel (with tag
+        input_data_type=Panel) of bootstrapped time series if not specified
         aeon.transformations.bootstrap.STLBootstrapTransformer is used.
     forecaster : BaseForecaster (aeon.forecating.ets.AutoETS)
         A valid aeon Forecaster. If not specified aeon.forecating.ets.AutoETS is

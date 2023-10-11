@@ -1119,7 +1119,7 @@ class InvertTransform(_DelegatedTransformer):
         if transformer.get_tag("output_data_type") != "Series":
             warn(
                 f"transformer output is not Series but {inner_output}, "
-                "according to scitype:transform-output tag. "
+                "according to output_data_type tag. "
                 "The InvertTransform wrapper supports only Series output, therefore"
                 " this transformer will likely crash on input."
             )

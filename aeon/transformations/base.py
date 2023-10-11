@@ -419,7 +419,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |__________|______________|________________________|
@@ -491,7 +491,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |   `X`    | `tf-output`  |     type of return     |
             |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
@@ -1169,7 +1169,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |__________|______________|________________________|

@@ -74,10 +74,10 @@ class MyTransformer(BaseTransformer):
     #  tags are inherited from parent class if they are not set
     #
     # todo: define the transformer scitype by setting the tags
-    #   scitype:transform-input - the expected input scitype of X
-    #   scitype:transform-output - the output scitype that transform produces
-    #   scitype:transform-labels - whether y is used and if yes which scitype
-    #   scitype:instancewise - whether transform uses all samples or acts by instance
+    #   input_data_type: - the expected input type of X
+    #   output_data_type - the output type that transform produces
+    #   transform_labels - whether y is used and if yes which type
+    #   instancewise - whether transform uses all samples or acts by instance
     #
     # todo: define internal types for X, y in _fit/_transform by setting the tags
     #   X_inner_mtype - the internal mtype used for X in _fit and _transform
@@ -85,9 +85,9 @@ class MyTransformer(BaseTransformer):
     #   setting this guarantees that X, y passed to _fit, _transform are of above types
     #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
     #
-    #  when scitype:transform-input is set to Panel:
+    #  when input_data_type is set to Panel:
     #   X_inner_mtype must be changed to one or a list of aeon Panel mtypes
-    #  when scitype:transform-labels is set to Series or Panel:
+    #  when transform_labels is set to Series or Panel:
     #   y_inner_mtype must be changed to one or a list of compatible aeon mtypes
     #  the other tags are "safe defaults" which can usually be left as-is
     _tags = {
@@ -98,11 +98,11 @@ class MyTransformer(BaseTransformer):
         # behavioural tags: transformer type
         # ----------------------------------
         #
-        # scitype:transform-input, scitype:transform-output, scitype:transform-labels
-        # control the input/output type of transform, in terms of scitype
+        # input_data_type, output_data_type, transform_labels
+        # control the input/output type of transform
         #
-        # scitype:transform-input, scitype:transform-output should be the
-        # simplest scitype that describes the mapping, taking into account vectorization
+        # input_data_type, output_data_type, should be the
+        # simplest type that describes the mapping, taking into account vectorization
         # a transform that produces Series when given Series, Panel when given Panel
         #   should have both transform-input and transform-output as "Series"
         # a transform that produces a tabular DataFrame (Table)
@@ -118,9 +118,9 @@ class MyTransformer(BaseTransformer):
         #   that instance. Example: Fourier transform; non-example: series PCA
         "instancewise": True,
         #
-        # transform-labels types the y used in transform
+        # transform_labels types the y used in transform
         #   if y is not used in transform, this should be "None"
-        "transform-labels": "None",
+        "transform_labels": "None",
         # valid values: "None" (not needed), "Primitives", "Series", "Panel"
         #
         #
@@ -208,7 +208,7 @@ class MyTransformer(BaseTransformer):
         #   is transform result always guaranteed to be equal length (and series)?
         "capability:unequal_length:removes": False,
         # valid values: boolean True (yes), False (no)
-        # applicable only if scitype:transform-output is not "Primitives"
+        # applicable only if output_data_type is not "Primitives"
         # used for search index and validity checking, does not raise direct exception
         #
         # capability:missing_values = can the transformer handle missing data
