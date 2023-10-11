@@ -22,7 +22,7 @@ Type and behaviour of transformer is determined by the following tags:
     "scitype:instancewise" tag which is boolean
         if True, fit/transform is statistically independent by instance
 
-Scitype defining methods:
+Class defining methods:
     fitting         - fit(self, X, y=None)
     transform       - transform(self, X, y=None)
     fit&transform   - fit_transform(self, X, y=None)

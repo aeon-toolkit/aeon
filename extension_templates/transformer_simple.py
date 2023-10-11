@@ -84,7 +84,7 @@ class MyTransformer(BaseTransformer):
     #  the other tags are "safe defaults" which can usually be left as-is
     _tags = {
         # to list all valid tags with description, use aeon.registry.all_tags
-        #   all_tags(estimator_types="transformer", as_dataframe=True)
+        #   all_tags(estimator_identifiers="transformer", as_dataframe=True)
         #
         #
         # behavioural tags: transformer type
