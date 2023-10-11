@@ -462,12 +462,12 @@ class BaseForecastingErrorMetric(BaseMetric):
         return y_true_orig, y_pred_orig, multioutput, multilevel
 
     def _check_ys(self, y_true, y_pred, multioutput, multilevel, **kwargs):
-        typeS = ["Series", "Panel", "Hierarchical"]
+        types = ["Series", "Panel", "Hierarchical"]
         INNER_MTYPES = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
 
         def _coerce_to_df(y, var_name="y"):
             valid, msg, metadata = check_is_scitype(
-                y, type=typeS, return_metadata=True, var_name=var_name
+                y, scitype=types, return_metadata=True, var_name=var_name
             )
             if not valid:
                 raise TypeError(msg)
