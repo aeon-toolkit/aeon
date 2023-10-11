@@ -288,7 +288,7 @@ class CNNClassifier(BaseDeepClassifier):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
-
+    
         Parameters
         ----------
         parameter_set : str, default = "default"
@@ -298,7 +298,7 @@ class CNNClassifier(BaseDeepClassifier):
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
-
+    
         Returns
         -------
         params : dict or list of dict, default = {}
