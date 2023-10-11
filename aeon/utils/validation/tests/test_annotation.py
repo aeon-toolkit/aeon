@@ -5,8 +5,8 @@ import pytest
 from aeon.utils.validation.annotation import check_fmt, check_labels
 
 
-def test_annotation():
-    """Check fmt."""
+def test_check_fmt():
+    """Check function to test annotation format."""
     with pytest.raises(ValueError):
         check_fmt("Stupid function")
     with pytest.raises(ValueError):
