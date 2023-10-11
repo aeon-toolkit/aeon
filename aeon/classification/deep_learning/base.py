@@ -74,7 +74,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer
-        n_classes: int
+        n_classes : int
             The number of classes, which shall become the size of the output
             layer
 
@@ -90,7 +90,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Returns
         -------
-        history: dict or None,
+        history : dict or None,
             Dictionary containing model's train/validation losses and metrics
 
         """
@@ -113,7 +113,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         ----------
         X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
             The training input samples. input_checks : boolean
-            whether to check the X parameter
+            Whether to check the X parameter
 
         Returns
         -------
