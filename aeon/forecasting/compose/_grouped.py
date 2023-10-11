@@ -54,7 +54,7 @@ class ForecastByLevel(_DelegatedForecaster):
     _tags = {
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
-        "scitype:y": "both",
+        "y_input_type": "both",
         "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "fit_is_empty": False,

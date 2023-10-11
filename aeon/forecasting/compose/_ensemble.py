@@ -105,7 +105,7 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
     }
 
     def __init__(
@@ -311,7 +311,7 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
         "capability:missing_values": False,
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "scitype:y": "both",
+        "y_input_type": "both",
     }
 
     def __init__(self, forecasters, n_jobs=None, aggfunc="mean", weights=None):

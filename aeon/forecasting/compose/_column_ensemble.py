@@ -77,7 +77,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
         "y_inner_mtype": PANDAS_MTYPES,
         "X_inner_mtype": PANDAS_MTYPES,

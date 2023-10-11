@@ -63,7 +63,7 @@ class MyForecaster(BaseForecaster):
     #  tags are inherited from parent class if they are not set
     # todo: define the forecaster scitype by setting the tags
     #  the "forecaster scitype" is determined by the tags
-    #   scitype:y - the expected input scitype of y - univariate or multivariate or both
+    #   y_input_type - the expected input type of y - univariate or multivariate or both
     # tag values are "safe defaults" which can usually be left as-is
     _tags = {
         # to list all valid tags with description, use aeon.registry.all_tags
@@ -84,9 +84,9 @@ class MyForecaster(BaseForecaster):
         #   in that case, X/y are passed through without conversion if on the list
         #   if not on the list, converted to the first entry of the same scitype
         #
-        # scitype:y controls whether internal y can be univariate/multivariate
+        # y_input_type controls whether internal y can be univariate/multivariate
         # if multivariate is not valid, applies vectorization over variables
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         # valid values: "univariate", "multivariate", "both"
         #   "univariate": inner _fit, _predict, etc, receive only univariate series
         #   "multivariate": inner methods receive only series with 2 or more variables
@@ -133,11 +133,11 @@ class MyForecaster(BaseForecaster):
         ----------
         y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True

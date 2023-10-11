@@ -18,7 +18,7 @@ from aeon.utils.validation.forecasting import check_scoring
 
 class BaseGridSearch(_DelegatedForecaster):
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "ignores-exogeneous-X": True,
@@ -56,7 +56,7 @@ class BaseGridSearch(_DelegatedForecaster):
         tags_to_clone = [
             "requires-fh-in-fit",
             "capability:pred_int",
-            "scitype:y",
+            "y_input_type",
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_mtype",
@@ -259,11 +259,11 @@ class BaseGridSearch(_DelegatedForecaster):
         ----------
         y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
             guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast

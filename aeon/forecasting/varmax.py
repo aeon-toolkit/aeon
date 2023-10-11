@@ -206,7 +206,7 @@ class VARMAX(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "multivariate",
+        "y_input_type": "multivariate",
         "ignores-exogeneous-X": False,
         "capability:missing_values": False,
         "y_inner_mtype": "pd.DataFrame",

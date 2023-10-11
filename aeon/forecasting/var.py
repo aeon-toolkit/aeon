@@ -73,7 +73,7 @@ class VAR(_StatsModelsAdapter):
     _fitted_param_names = ("aic", "fpe", "hqic", "bic")
 
     _tags = {
-        "scitype:y": "multivariate",
+        "y_input_type": "multivariate",
         "y_inner_mtype": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,

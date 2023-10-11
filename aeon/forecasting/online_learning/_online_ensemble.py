@@ -26,7 +26,7 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "y_inner_mtype": ["pd.Series"],
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
     }
 
     def __init__(self, forecasters, ensemble_algorithm=None, n_jobs=None):

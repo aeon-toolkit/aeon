@@ -108,7 +108,7 @@ class NaiveForecaster(_BaseWindowForecaster):
         "y_inner_mtype": "pd.Series",
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "capability:pred_var": True,
         "capability:pred_int": True,
     }
@@ -584,7 +584,7 @@ class NaiveVariance(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "ignores-exogeneous-X": False,

@@ -1708,7 +1708,7 @@ class YtoX(BaseTransformer):
         "univariate-only": False,
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "scitype:y": "both",
+        "y_input_type": "both",
         "fit_is_empty": True,
         "requires_y": True,
     }

@@ -87,7 +87,7 @@ class ConformalIntervals(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "ignores-exogeneous-X": False,

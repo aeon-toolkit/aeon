@@ -118,7 +118,7 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:y",
+        "y_input_type",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
         "which series type does the forecaster support? multivariate means >1 vars",
@@ -304,7 +304,7 @@ ESTIMATOR_TAG_REGISTER = [
         "Does the metric only work on univariate y data?",
     ),
     (
-        "scitype:y_pred",
+        "y_input_type_pred",
         "metric",
         "str",
         "What is the type of y_pred: quantiles, proba, interval?",

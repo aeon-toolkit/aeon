@@ -53,12 +53,12 @@ class ForecasterTestScenario(TestScenario, BaseObject):
         if not isinstance(obj, BaseForecaster) and not issubclass(obj, BaseForecaster):
             return False
 
-        # applicable only if number of variables in y complies with scitype:y
+        # applicable only if number of variables in y complies with y_input_type
         # only rule: multivariate forecasters cannot deal with univariate data
         # univariate forecasters can deal with multivariate data by vectorization
         is_univariate = self.get_tag("univariate_y")
 
-        if is_univariate and get_tag(obj, "scitype:y") == "multivariate":
+        if is_univariate and get_tag(obj, "y_input_type") == "multivariate":
             return False
 
         # applicable only if fh is not passed later than it needs to be
