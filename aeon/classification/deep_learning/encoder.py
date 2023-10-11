@@ -23,45 +23,45 @@ class EncoderClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    kernel_size    : array of int, default = [5, 11, 21]
+    kernel_size : array of int, default = [5, 11, 21]
         specifying the length of the 1D convolution windows
-    n_filters       : array of int, default = [128, 256, 512]
+    n_filters : array of int, default = [128, 256, 512]
         specifying the number of 1D convolution filters used for each layer,
         the shape of this array should be the same as kernel_size
-    max_pool_size   : int, default = 2
+    max_pool_size : int, default = 2
         size of the max pooling windows
-    activation      : string, default = sigmoid
+    activation : string, default = sigmoid
         keras activation function
-    dropout_proba   : float, default = 0.2
+    dropout_proba : float, default = 0.2
         specifying the dropout layer probability
-    padding         : string, default = same
+    padding : string, default = same
         specifying the type of padding used for the 1D convolution
-    strides         : int, default = 1
+    strides : int, default = 1
         specifying the sliding rate of the 1D convolution filter
-    fc_units        : int, default = 256
+    fc_units : int, default = 256
         specifying the number of units in the hiddent fully
         connected layer used in the EncoderNetwork
-    file_path           : str, default = "./"
-            file_path when saving model_Checkpoint callback
-    save_best_model     : bool, default = False
+    file_path : str, default = "./"
+        file_path when saving model_Checkpoint callback
+    save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
-    save_last_model     : bool, default = False
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
-    best_file_name      : str, default = "best_model"
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
         is discarded
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state    : int, default = 0
+    random_state : int, default = 0
         seed to any needed random actions
 
     Notes
