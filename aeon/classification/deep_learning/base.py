@@ -34,7 +34,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     ----------
     batch_size : int, default = 40
         training batch size for the model
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
@@ -112,7 +112,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         Parameters
         ----------
         X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
-            The training input samples.         input_checks: boolean
+            The training input samples. input_checks : boolean
             whether to check the X parameter
 
         Returns
