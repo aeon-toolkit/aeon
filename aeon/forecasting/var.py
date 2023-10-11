@@ -74,7 +74,7 @@ class VAR(_StatsModelsAdapter):
 
     _tags = {
         "y_input_type": "multivariate",
-        "y_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,
         "ignores-exogeneous-X": True,

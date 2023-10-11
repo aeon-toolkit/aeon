@@ -364,7 +364,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     _tags = {
         "univariate-only": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
     }

@@ -106,7 +106,7 @@ class BaseTransformer(BaseEstimator):
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -744,15 +744,15 @@ class BaseTransformer(BaseEstimator):
             Case 3: self.get_tag("X_inner_mtype") supports only *simpler* scitype than X
                 then VectorizedDF of X, iterated as the most complex supported scitype
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("y_inner_mtype") format
-            Case 1: self.get_tag("y_inner_mtype") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_mtype" tag
-            Case 2: self.get_tag("y_inner_mtype") supports *higher* scitype than y
+                compatible with self.get_tag("y_inner_type") format
+            Case 1: self.get_tag("y_inner_type") supports scitype of y, then
+                converted/coerced version of y, mtype determined by "y_inner_type" tag
+            Case 2: self.get_tag("y_inner_type") supports *higher* scitype than y
                 then X converted to "one-Series" or "one-Panel" sub-case of that scitype
                 always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("y_inner_mtype") supports only *simpler* scitype than y
+            Case 3: self.get_tag("y_inner_type") supports only *simpler* scitype than y
                 then VectorizedDF of X, iterated as the most complex supported scitype
-            Case 4: None if y was None, or self.get_tag("y_inner_mtype") is "None"
+            Case 4: None if y was None, or self.get_tag("y_inner_type") is "None"
 
             Complexity order above: Hierarchical > Panel > Series
 
@@ -805,7 +805,7 @@ class BaseTransformer(BaseEstimator):
 
         # retrieve supported mtypes
         X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_mtype"))
+        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
         y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
 
@@ -949,7 +949,7 @@ class BaseTransformer(BaseEstimator):
                 #     f"{type(self).__name__} does not support Panel X if y is not "
                 #     f"None, since {type(self).__name__} supports only Series. "
                 #     "Auto-vectorization to extend Series X to Panel X can only be "
-                #     'carried out if y is None, or "y_inner_mtype" tag is "None". '
+                #     'carried out if y is None, or "y_inner_type" tag is "None". '
                 #     "Consider extending _fit and _transform to handle the following "
                 #     "input types natively: Panel X and non-None y."
                 # )

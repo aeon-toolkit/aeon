@@ -105,7 +105,7 @@ class NaiveForecaster(_BaseWindowForecaster):
     """
 
     _tags = {
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
         "y_input_type": "univariate",
@@ -602,7 +602,7 @@ class NaiveVariance(BaseForecaster):
             "requires-fh-in-fit",
             "ignores-exogeneous-X",
             "capability:missing_values",
-            "y_inner_mtype",
+            "y_inner_type",
             "X_inner_mtype",
             "X-y-must-have-same-index",
             "enforce_index_type",

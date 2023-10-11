@@ -173,7 +173,7 @@ class STLBootstrapTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?
@@ -487,7 +487,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?

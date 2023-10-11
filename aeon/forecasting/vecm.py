@@ -76,7 +76,7 @@ class VECM(_StatsModelsAdapter):
 
     _tags = {
         "y_input_type": "multivariate",
-        "y_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
         "X_inner_mtype": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,

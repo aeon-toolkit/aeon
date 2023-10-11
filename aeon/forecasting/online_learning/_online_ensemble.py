@@ -25,7 +25,7 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "y_inner_mtype": ["pd.Series"],
+        "y_inner_type": ["pd.Series"],
         "y_input_type": "univariate",
     }
 

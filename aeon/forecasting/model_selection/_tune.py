@@ -59,13 +59,13 @@ class BaseGridSearch(_DelegatedForecaster):
             "y_input_type",
             "ignores-exogeneous-X",
             "capability:missing_values",
-            "y_inner_mtype",
+            "y_inner_type",
             "X_inner_mtype",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
         self.clone_tags(forecaster, tags_to_clone)
-        self._extend_to_all_scitypes("y_inner_mtype")
+        self._extend_to_all_scitypes("y_inner_type")
         self._extend_to_all_scitypes("X_inner_mtype")
 
     # attribute for _DelegatedForecaster, which then delegates
@@ -81,7 +81,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        tagname : str, name of the tag. Should be "y_inner_mtype" or "X_inner_mtype".
+        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_mtype".
 
         Returns
         -------
@@ -257,7 +257,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable

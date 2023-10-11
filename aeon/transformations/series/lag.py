@@ -116,7 +116,7 @@ class Lag(BaseTransformer):
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": False,
         # does transform return have the same time index as input X
@@ -416,7 +416,7 @@ class ReducerTransform(BaseTransformer):
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": False,
         # does transform return have the same time index as input X

@@ -124,7 +124,7 @@ ESTIMATOR_TAG_REGISTER = [
         "which series type does the forecaster support? multivariate means >1 vars",
     ),
     (
-        "y_inner_mtype",
+        "y_inner_type",
         ["forecaster", "transformer"],
         (
             "list",

@@ -90,7 +90,7 @@ class BaseForecaster(BaseEstimator):
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:pred_int": False,  # can the estimator produce prediction intervals?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit/_predict, support for y?
+        "y_inner_type": "pd.Series",  # which types do _fit/_predict, support for y?
         "X_inner_mtype": "pd.DataFrame",  # which types do _fit/_predict, support for X?
         "requires-fh-in-fit": True,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
@@ -1262,10 +1262,10 @@ class BaseForecaster(BaseEstimator):
         Returns
         -------
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("y_inner_mtype") format
-            Case 1: self.get_tag("y_inner_mtype") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_mtype" tag
-            Case 2: self.get_tag("y_inner_mtype") does not support scitype of y, then
+                compatible with self.get_tag("y_inner_type") format
+            Case 1: self.get_tag("y_inner_type") supports scitype of y, then
+                converted/coerced version of y, mtype determined by "y_inner_type" tag
+            Case 2: self.get_tag("y_inner_type") does not support scitype of y, then
                 VectorizedDF of y, iterated as the most complex supported scitype
                     (complexity order: Hierarchical > Panel > Series)
             Case 3: None if y was None
@@ -1323,7 +1323,7 @@ class BaseForecaster(BaseEstimator):
                     raise ValueError(msg)
 
         # retrieve supported mtypes
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_mtype"))
+        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
         y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
         X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
@@ -1786,7 +1786,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
@@ -1853,7 +1853,7 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable

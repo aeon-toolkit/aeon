@@ -31,7 +31,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
         "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
         "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
@@ -54,7 +54,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
@@ -123,7 +123,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
@@ -210,7 +210,7 @@ class MockForecaster(BaseForecaster):
         "y_input_type": "both",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for y?
+        "y_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for y?
         "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
@@ -232,7 +232,7 @@ class MockForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
@@ -301,7 +301,7 @@ class MockForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable

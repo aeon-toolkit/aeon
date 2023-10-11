@@ -71,7 +71,7 @@ class ForecasterTestScenario(TestScenario, BaseObject):
         y_type = self.get_tag("y_type", "Series", raise_error=False)
         scenario_is_hierarchical = y_type in ["Panel", "Hierarchical"]
 
-        obj_y_inner_types = get_tag(obj, "y_inner_mtype")
+        obj_y_inner_types = get_tag(obj, "y_inner_type")
         obj_types = mtype_to_scitype(obj_y_inner_types)
         obj_is_hierarchical = "Panel" in obj_types or "Hierarchical" in obj_types
 

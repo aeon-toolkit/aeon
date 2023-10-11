@@ -87,7 +87,7 @@ class MyForecaster(BaseForecaster):
         #
         # y_inner_mtype, X_inner_mtype control which format X/y appears in
         # in the inner functions _fit, _predict, etc
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
@@ -201,7 +201,7 @@ class MyForecaster(BaseForecaster):
         Parameters
         ----------
         y : aeon time series object
-            guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
@@ -260,7 +260,7 @@ class MyForecaster(BaseForecaster):
         Returns
         -------
         y_pred : aeon time series object
-            should be of the same type as seen in _fit, as in "y_inner_mtype" tag
+            should be of the same type as seen in _fit, as in "y_inner_type" tag
             Point predictions
         """
 
@@ -288,7 +288,7 @@ class MyForecaster(BaseForecaster):
         Parameters
         ----------
         y : aeon time series object
-            guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
             if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable

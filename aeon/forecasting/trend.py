@@ -423,7 +423,7 @@ class STLForecaster(BaseForecaster):
         "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
         "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "python_dependencies": "statsmodels",

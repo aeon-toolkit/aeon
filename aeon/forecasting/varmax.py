@@ -209,7 +209,7 @@ class VARMAX(_StatsModelsAdapter):
         "y_input_type": "multivariate",
         "ignores-exogeneous-X": False,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
         "X_inner_mtype": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "X-y-must-have-same-index": True,

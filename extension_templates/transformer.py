@@ -130,7 +130,7 @@ class MyTransformer(BaseTransformer):
         # X_inner_mtype, y_inner_mtype control which format X/y appears in
         # in the inner functions _fit, _transform, etc
         "X_inner_mtype": "pd.DataFrame",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)

@@ -54,7 +54,7 @@ def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     f = NaiveForecaster()
 
     if override_y_type:
-        f.set_tags(**{"y_inner_mtype": "pd.DataFrame"})
+        f.set_tags(**{"y_inner_type": "pd.DataFrame"})
 
     interval_forecaster = wrapper(f)
     interval_forecaster.fit(y, fh=[1, 2, 3])

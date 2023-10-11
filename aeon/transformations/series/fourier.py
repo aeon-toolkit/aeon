@@ -80,7 +80,7 @@ class FourierFeatures(BaseTransformer):
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.PeriodIndex,

@@ -83,7 +83,7 @@ class ReconcilerForecaster(BaseForecaster):
         "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": [
+        "y_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",

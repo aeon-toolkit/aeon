@@ -369,7 +369,7 @@ class ForecastingPipeline(_Pipeline):
 
     _tags = {
         "y_input_type": "both",
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_inner_type": SUPPORTED_MTYPES,
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
@@ -781,7 +781,7 @@ class TransformedTargetForecaster(_Pipeline):
 
     _tags = {
         "y_input_type": "both",
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_inner_type": SUPPORTED_MTYPES,
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
@@ -1201,7 +1201,7 @@ class ForecastX(BaseForecaster):
 
     _tags = {
         "X_inner_mtype": SUPPORTED_MTYPES,
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_inner_type": SUPPORTED_MTYPES,
         "X-y-must-have-same-index": False,
         "fit_is_empty": False,
         "ignores-exogeneous-X": False,
@@ -1599,7 +1599,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
 
     _tags = {
         "y_input_type": "both",
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,

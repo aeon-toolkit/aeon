@@ -95,7 +95,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     _tags = {
         "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "requires-fh-in-fit": False,
         "capability:missing_values": False,

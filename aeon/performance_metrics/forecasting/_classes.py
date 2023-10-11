@@ -112,7 +112,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         "requires-y-pred-benchmark": False,
         "univariate-only": False,
         "lower_is_better": True,
-        # "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
+        # "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
         "inner_implements_multilevel": False,
     }
 

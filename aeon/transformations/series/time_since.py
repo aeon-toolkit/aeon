@@ -77,7 +77,7 @@ class TimeSince(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "transform_labels": "None",
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "univariate-only": False,
         "requires_y": False,
         "remember_data": False,

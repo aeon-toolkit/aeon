@@ -197,7 +197,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         self._anytagis_then_set("output_data_type", "Primitives", last_out, ests)
 
         # set property tags based on tags of components
-        self._anytag_notnone_set("y_inner_mtype", ests)
+        self._anytag_notnone_set("y_inner_type", ests)
         self._anytag_notnone_set("transform_labels", ests)
 
         self._anytagis_then_set("instancewise", False, True, ests)
@@ -470,7 +470,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         "univariate-only": False,  # depends on components
         "capability:missing_values": False,  # depends on components
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "X-y-must-have-same-index": False,
         "enforce_index_type": None,
         "fit_is_empty": False,
@@ -517,7 +517,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         ests = self.transformer_list_
 
         # set property tags based on tags of components
-        self._anytag_notnone_set("y_inner_mtype", ests)
+        self._anytag_notnone_set("y_inner_type", ests)
         self._anytag_notnone_set("transform_labels", ests)
 
         self._anytagis_then_set("instancewise", False, True, ests)
@@ -1081,7 +1081,7 @@ class InvertTransform(_DelegatedTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
@@ -1101,7 +1101,7 @@ class InvertTransform(_DelegatedTransformer):
             "output_data_type",
             "instancewise",
             "X_inner_mtype",
-            "y_inner_mtype",
+            "y_inner_type",
             "capability:missing_values",
             "X-y-must-have-same-index",
             "transform-returns-same-time-index",
@@ -1210,7 +1210,7 @@ class Id(BaseTransformer):
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": CORE_MTYPES,  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
         # does transform return have the same time index as input X
@@ -1337,7 +1337,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": CORE_MTYPES,
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
@@ -1355,7 +1355,7 @@ class OptionalPassthrough(_DelegatedTransformer):
             "input_data_type",
             "output_data_type",
             "instancewise",
-            "y_inner_mtype",
+            "y_inner_type",
             "capability:inverse_transform",
             "capability:missing_values",
             "X-y-must-have-same-index",
@@ -1443,7 +1443,7 @@ class ColumnwiseTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": False,
     }
@@ -1454,7 +1454,7 @@ class ColumnwiseTransformer(BaseTransformer):
         super(ColumnwiseTransformer, self).__init__()
 
         tags_to_clone = [
-            "y_inner_mtype",
+            "y_inner_type",
             "capability:inverse_transform",
             "capability:missing_values",
             "X-y-must-have-same-index",
@@ -1651,7 +1651,7 @@ class ColumnConcatenator(BaseTransformer):
         "instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd-multiindex", "pd_multiindex_hier"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
@@ -1707,7 +1707,7 @@ class YtoX(BaseTransformer):
         "skip-inverse-transform": False,
         "univariate-only": False,
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
         "fit_is_empty": True,
         "requires_y": True,

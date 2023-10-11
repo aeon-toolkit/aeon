@@ -85,12 +85,12 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # we require vectorization from of a Series trafo to Panel data ...
         if X_scitype == "Panel" and "Panel" not in X_inner_scitypes:
             # ... but y is passed and y is not ignored internally ...
-            if self.get_tag("has_y") and get_tag(obj, "y_inner_mtype") != "None":
+            if self.get_tag("has_y") and get_tag(obj, "y_inner_type") != "None":
                 # ... this would raise an error since vectorization is not defined
                 return False
 
         # ensure scenario y matches type of inner y
-        y_inner_mtype = get_tag(obj, "y_inner_mtype")
+        y_inner_mtype = get_tag(obj, "y_inner_type")
         if y_inner_mtype not in [None, "None"]:
             y_inner_scitypes = mtype_to_scitype(
                 y_inner_mtype, return_unique=True, coerce_to_list=True
