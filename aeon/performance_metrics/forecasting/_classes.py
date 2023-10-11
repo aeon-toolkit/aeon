@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_array
 
-from aeon.datatypes import VectorizedDF, check_is_type, convert_to
+from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to
 from aeon.performance_metrics.base import BaseMetric
 from aeon.performance_metrics.forecasting._functions import (
     geometric_mean_absolute_error,
@@ -466,7 +466,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         INNER_MTYPES = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
 
         def _coerce_to_df(y, var_name="y"):
-            valid, msg, metadata = check_is_type(
+            valid, msg, metadata = check_is_scitype(
                 y, type=typeS, return_metadata=True, var_name=var_name
             )
             if not valid:
