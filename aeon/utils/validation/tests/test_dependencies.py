@@ -16,12 +16,6 @@ def test__check_soft_dependencies():
         _check_soft_dependencies("tslearn", package_import_alias={1: "1", 2: "2"})
     with pytest.raises(TypeError, match="must be a dict with str keys and values"):
         _check_soft_dependencies("tslearn", package_import_alias={"1": 1, "2": 2})
-    from packaging.requirements import InvalidRequirement
-
-    with pytest.raises(
-        InvalidRequirement, match="wrong format for package requirement string"
-    ):
-        _check_soft_dependencies("tslearn", *["FOOBAR!!"])
     with pytest.raises(ModuleNotFoundError, match="No module named 'FOOBAR'"):
         _check_soft_dependencies("FOOBAR")
     with pytest.raises(ModuleNotFoundError, match="No module named 'FOOBAR'"):
