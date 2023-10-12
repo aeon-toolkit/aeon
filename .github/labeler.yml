@@ -1,41 +1,41 @@
 anomaly detection:
-- "anomaly_detection/**"
+- "aeon/anomaly_detection/**"
 
 benchmarking:
-- "benchmarking/**"
+- "aeon/benchmarking/**"
 
 classification:
-- "classification/**"
+- "aeon/classification/**"
 
 clustering:
-- "clustering/**"
+- "aeon/clustering/**"
 
 datasets:
-- "datasets/**"
+- "aeon/datasets/**"
 
 datatypes:
-- "datatypes/**"
+- "aeon/datatypes/**"
 
 distances:
-- "distances/**"
+- "aeon/distances/**"
 
 examples:
 - "examples/**"
 
 forecasting:
-- "forecasting/**"
+- "aeon/forecasting/**"
 
 networks:
-- "networks/**"
+- "aeon/networks/**"
 
 regression:
-- "regression/**"
+- "aeon/regression/**"
 
 segmentation:
-- "segmentation/**"
+- "aeon/segmentation/**"
 
 similarity search:
-- "similarity_search/**"
+- "aeon/similarity_search/**"
 
 transformations:
-- "transformations/**"
+- "aeon/transformations/**"
