@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     outputs:
-      new-labels: ${{ steps.label-PR.outputs.new-labels }}
+      new-labels: ${{ steps.label-pr.outputs.new-labels }}
 
     steps:
       - uses: actions/checkout@v3
@@ -29,7 +29,7 @@ jobs:
         run: pip install -Uq PyGithub
 
       - name: Label pull request
-        id: label-PR
+        id: label-pr
         run: python build_tools/pr_title_labeler.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
@@ -39,19 +39,21 @@ jobs:
     runs-on: ubuntu-22.04
 
     outputs:
-        new-labels: ${{ steps.label-PR.outputs.new-labels }}
+        new-labels: ${{ steps.label-out.outputs.new-labels }}
 
     steps:
       # fork by a scikit-learn developer to allow max-labels
       - uses: thomasjpfan/labeler@v2.5.1
-        id: labeler
+        id: label-pr
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           max-labels: "3"
 
+      - run : echo "${{ steps.label-pr.outputs.all-labels }}"
+
       - name: Set output
-        id: label-PR
-        run : echo "new-labels=${{ steps.labeler.outputs.all-labels }}" >> $GITHUB_OUTPUT
+        id: label-out
+        run : echo "new-labels=${{ steps.label-pr.outputs.new-labels }}" >> $GITHUB_OUTPUT
 
   comment:
     needs: [title-labeler, contents-labeler]
