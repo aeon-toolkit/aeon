@@ -41,8 +41,8 @@ class BaseCollectionTransformer(
 
     # Relevant tag values inherited from BaseTransformer
     _tags = {
-        "input_data_type": "Panel",
-        "output_data_type": "Panel",
+        "input_data_type": "Collection",
+        "output_data_type": "Collection",
         "fit_is_empty": False,
     }
 

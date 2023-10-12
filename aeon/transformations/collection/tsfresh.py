@@ -12,7 +12,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
         "fit_is_empty": True,
         "y_inner_type": "None",

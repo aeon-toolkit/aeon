@@ -210,7 +210,7 @@ class MatrixProfile(BaseTransformer):
         "fit_is_empty": True,
         "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?

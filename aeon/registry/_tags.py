@@ -162,13 +162,17 @@ ESTIMATOR_TAG_REGISTER = [
         "input_data_type",
         "transformer",
         ("list", ["Series", "Panel", "Collection"]),
-        "The abstract data type of the transformer input X",
+        "The abstract data type of the transformer input X. Panel and Collection are "
+        "equivalent: collections of time series",
     ),
     (
         "output_data_type",
         "transformer",
-        ("list", ["Series", "Primitives", "Panel"]),
-        "The input abstract data type of the transformer output, the transformed X",
+        ("list", ["Tabular", "Primitives", "Series", "Panel", "Collection"]),
+        "The output abstract data type of the transformer output, the transformed X. "
+        "Panel and Collection are equivalent: collections of time series. Tabular and "
+        "Primitives are also equivalent: rows are cases and unordered attributes are "
+        "columns.",
     ),
     (
         "instancewise",

@@ -62,7 +62,7 @@ class Rocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
     }
 

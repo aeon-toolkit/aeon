@@ -29,7 +29,7 @@ class Tabularizer(BaseTransformer):
         "univariate-only": False,
         "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["nested_univ", "numpy3D"],
@@ -101,7 +101,7 @@ class TimeBinner(BaseTransformer):
         "univariate-only": False,
         "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["nested_univ"],
