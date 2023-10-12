@@ -49,11 +49,11 @@ jobs:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           max-labels: "3"
 
-      - run : echo "${{ steps.label-pr.outputs.all-labels }}"
+      - run : echo "${{ steps.label-pr.outputs.* }}"
 
       - name: Set output
         id: label-out
-        run : echo "new-labels=${{ steps.label-pr.outputs.new-labels }}" >> $GITHUB_OUTPUT
+        run : echo "new-labels=[${{ join(steps.label-pr.outputs.new-labels, ', ') }}]" >> $GITHUB_OUTPUT
 
   comment:
     needs: [title-labeler, contents-labeler]
