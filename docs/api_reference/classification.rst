@@ -55,6 +55,7 @@ Dictionary-based
     TemporalDictionaryEnsemble
     WEASEL
     WEASEL_V2
+    REDCOMETS
 
 Distance-based
 --------------

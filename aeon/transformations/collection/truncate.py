@@ -34,8 +34,8 @@ class TruncationTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
+        "output_data_type": "Series",
+        "instancewise": False,
         "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_mtype": "None",
         "fit_is_empty": False,

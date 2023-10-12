@@ -41,8 +41,8 @@ class BaseCollectionTransformer(
 
     # Relevant tag values inherited from BaseTransformer
     _tags = {
-        "scitype:transform-input": "Panel",
-        "scitype:transform-output": "Panel",
+        "input_data_type": "Panel",
+        "output_data_type": "Panel",
         "fit_is_empty": False,
     }
 
@@ -160,7 +160,7 @@ class BaseCollectionTransformer(
         """Inverse transform X and return an inverse transformed version.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
+            "input_data_type"="Series", "output_data_type"="Series",
         have an inverse_transform.
 
         State required:
