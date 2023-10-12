@@ -1,0 +1,41 @@
+anomaly detection:
+- "anomaly_detection/**"
+
+benchmarking:
+- "benchmarking/**"
+
+classification:
+- "classification/**"
+
+clustering:
+- "clustering/**"
+
+datasets:
+- "datasets/**"
+
+datatypes:
+- "datatypes/**"
+
+distances:
+- "distances/**"
+
+examples:
+- "examples/**"
+
+forecasting:
+- "forecasting/**"
+
+networks:
+- "networks/**"
+
+regression:
+- "regression/**"
+
+segmentation:
+- "segmentation/**"
+
+similarity search:
+- "similarity_search/**"
+
+transformations:
+- "transformations/**"

@@ -6,7 +6,7 @@ on:
       - published
 
 jobs:
-  check_manifest:
+  check-manifest:
     runs-on: ubuntu-22.04
 
     steps:
@@ -20,7 +20,7 @@ jobs:
         with:
           extra_args: check-manifest --hook-stage manual
 
-  build_project:
+  build-project:
     needs: check_manifest
     runs-on: ubuntu-22.04
 
@@ -42,7 +42,7 @@ jobs:
           name: dist
           path: dist/*
 
-  test_wheels:
+  test-wheels:
     needs: build_project
     runs-on: ${{ matrix.os }}
 
@@ -81,7 +81,7 @@ jobs:
       - name: Tests
         run: python -m pytest
 
-  upload_wheels:
+  upload-wheels:
     needs: test_wheels
     runs-on: ubuntu-22.04
 
