@@ -31,7 +31,7 @@ jobs:
           max-labels: "3"
 
       - name: Get new PR labels
-        id: pr-labels-old
+        id: pr-labels-new
         uses: joerick/pr-labels-action@v1.0.9
 
   # based on the scikit-learn 1.3.1 PR labelers
@@ -64,7 +64,7 @@ jobs:
           CONTEXT_GITHUB: ${{ toJson(github) }}
 
       - name: Get new PR labels
-        id: pr-labels-old
+        id: pr-labels-new
         uses: joerick/pr-labels-action@v1.0.9
 
   comment:
