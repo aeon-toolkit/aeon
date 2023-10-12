@@ -69,7 +69,7 @@ numpy3D_error = (
     "Error: Input should be 3-dimensional NumPy array with shape ("
     "n_instances, n_channels, n_timepoints)."
 )
-numpy2D_error = "Error: cannot convert multivariate series to numpy 2D arrays."
+numpy2D_error = "Error: Cannot convert multivariate series to numpy 2D arrays."
 
 
 def _from_numpy3d_to_np_list(X):
@@ -144,6 +144,8 @@ def _from_numpy3d_to_pd_wide(X):
     """
     if X.ndim != 3:
         raise TypeError(numpy3D_error)
+    if X.shape[1] != 1:
+        raise TypeError("Cannot convert multivariate series to pd-wide")
     X_flat = _from_numpy3d_to_numpyflat(X)
     return pd.DataFrame(X_flat)
 
@@ -205,9 +207,7 @@ def _from_np_list_to_numpy3d(X):
         raise TypeError(np_list_error)
     for i in range(1, len(X)):
         if len(X[i][0]) != len(X[0][0]):
-            raise TypeError(
-                "Error time series not equal length, cannot convert to numpy3D"
-            )
+            raise TypeError("Cannot convert unequal length to numpy3D")
     return np.array(X)
 
 
@@ -275,7 +275,7 @@ def _from_df_list_to_numpy3d(X):
 
     for i in range(len(X)):
         if not n == len(X[i]) or not set(X[i].columns) == cols:
-            raise TypeError("elements of obj must have same length and columns")
+            raise TypeError("Cannot convert unequal length series to numpy3D")
     nump3D = np.array([x.to_numpy().transpose() for x in X])
     return nump3D
 
@@ -283,8 +283,8 @@ def _from_df_list_to_numpy3d(X):
 def _from_df_list_to_numpyflat(X):
     if not _equal_length(X, "df-list"):
         raise TypeError(
-            f"{type(X)} does not store equal length series, "
-            f"cannot convert to  numpy flat"
+            f"{type(X)} does not store equal length series."
+            f"Cannot convert unequal length to numpy flat"
         )
     np_list = _from_df_list_to_np_list(X)
     return _from_np_list_to_numpyflat(np_list)
@@ -294,7 +294,7 @@ def _from_df_list_to_pd_wide(X):
     if not _equal_length(X, "df-list"):
         raise TypeError(
             f"{type(X)} does not store equal length series, "
-            f"cannot convert to  pd wide"
+            f"Cannot convert unequal length pd wide"
         )
     np_list = _from_df_list_to_np_list(X)
     return _from_np_list_to_pd_wide(np_list)
@@ -422,15 +422,8 @@ def _pd_wide_to_pd_multiindex(X):
 
 
 def _from_nested_univ_to_numpy3d(X):
-    """Convert nested Panel to 3D numpy Panel.
-
-    Needs to check equal length, but this is legacy only.
-    """
     if not _nested_univ_is_equal(X):
-        raise TypeError(
-            "Error, nested univ contains unequal length series, "
-            "cannot convert to numpy3D"
-        )
+        raise TypeError("Cannot convert unequal length series to numpy3D")
 
     def _convert_series_cell_to_numpy(cell):
         if isinstance(cell, pd.Series):
@@ -591,7 +584,7 @@ def _equal_length(X, input_type):
     if input_type == "nested_univ":  # Nested univariate or hierachical
         return _nested_univ_is_equal(X)
     if input_type == "pd-multiindex":
-        # TEMPORARY: WORK OUT HOW TO TEST THESE
+        # TEMPORARY: WORK OUT HOW TO TEST IF pd.MULTINDEX are equal length
         return True
     raise ValueError(f" unknown input type {input_type}")
     return False

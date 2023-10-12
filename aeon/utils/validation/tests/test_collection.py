@@ -114,11 +114,11 @@ def test_convert_collection(input_data, output_data):
     assert get_type(X) == output_data
     # Test with multivariate
     if input_data in EQUAL_LENGTH_MULTIVARIATE:
-        if output_data not in ["numpyflat", "pd-wide"]:
+        if output_data in EQUAL_LENGTH_MULTIVARIATE:
             X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
             assert get_type(X) == output_data
         else:
-            with pytest.raises(TypeError):
+            with pytest.raises(TypeError, match="Cannot convert multivariate"):
                 X = convert_collection(
                     EQUAL_LENGTH_MULTIVARIATE[input_data], output_data
                 )
@@ -128,7 +128,7 @@ def test_convert_collection(input_data, output_data):
             X = convert_collection(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
             assert get_type(X) == output_data
         else:
-            with pytest.raises(TypeError):
+            with pytest.raises(TypeError, match="Cannot convert unequal"):
                 X = convert_collection(
                     UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data
                 )
