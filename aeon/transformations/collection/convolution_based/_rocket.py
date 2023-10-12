@@ -81,7 +81,7 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
