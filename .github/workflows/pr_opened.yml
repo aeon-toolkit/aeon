@@ -43,11 +43,14 @@ jobs:
 
     steps:
       # fork by a scikit-learn developer to allow max-labels
-      - id: label-PR
-        uses: thomasjpfan/labeler@v2.5.1
+      - uses: thomasjpfan/labeler@v2.5.1
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           max-labels: "3"
+
+      - name: Set output
+        id: label-PR
+        run : echo "new-labels=${{ steps.labeler.outputs.all-labels }}" >> $GITHUB_OUTPUT
 
   comment:
     needs: [title-labeler, contents-labeler]
