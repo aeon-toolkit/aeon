@@ -138,9 +138,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
-        "capability:multivariate": True,
         "y_inner_mtype": "numpy1D",
+        "capability:unequal_length": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
+        "y_inner_type": "numpy1D",
         "fit_is_empty": False,
         "requires_y": True,
     }
@@ -217,7 +218,13 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
 
-        self.n_instances, self.n_channels, self.series_length = X.shape
+        self.n_instances = len(X)
+        self.n_channels = X[0].shape[0]
+        # Set series length to the minimum
+        self.series_length = X[0].shape[1]
+        for i in range(1, self.n_instances):
+            if X[i].shape[1] < self.series_length:
+                self.series_length = X[i].shape[1]
 
         if self.max_shapelets is None:
             self._max_shapelets = min(10 * self.n_instances, 1000)
@@ -321,7 +328,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 s[3],
                 s[4],
                 self.classes_[s[5]],
-                z_normalise_series(X[s[4], s[3], s[2] : s[2] + s[1]]),
+                z_normalise_series(X[s[4]][s[3]][s[2] : s[2] + s[1]]),
             )
             for class_shapelets in shapelets
             for s in class_shapelets
@@ -414,9 +421,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             + self.min_shapelet_length
         )
         position = rng.randint(0, self.series_length - length)
-        dim = rng.randint(0, self.n_channels)
+        channel = rng.randint(0, self.n_channels)
 
-        shapelet = z_normalise_series(X[inst_idx, dim, position : position + length])
+        shapelet = z_normalise_series(
+            X[inst_idx][channel][position : position + length]
+        )
         sabs = np.abs(shapelet)
         sorted_indicies = np.array(
             sorted(range(length), reverse=True, key=lambda j: sabs[j])
@@ -429,14 +438,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             sorted_indicies,
             position,
             length,
-            dim,
+            channel,
             inst_idx,
             self._class_counts[cls_idx],
             self.n_instances - self._class_counts[cls_idx],
             worst_quality,
         )
 
-        return np.round(quality, 8), length, position, dim, inst_idx, cls_idx
+        return np.round(quality, 8), length, position, channel, inst_idx, cls_idx
 
     @staticmethod
     @njit(fastmath=True, cache=True)
