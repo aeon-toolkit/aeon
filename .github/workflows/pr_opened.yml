@@ -12,11 +12,36 @@ permissions:
 
 jobs:
   # based on the scikit-learn 1.3.1 PR labelers
-  title-labeler:
+  contents-labeler:
     runs-on: ubuntu-22.04
 
     outputs:
-      new-labels: ${{ steps.label-pr.outputs.new-labels }}
+      old-labels: ${{ steps.pr-labels-old.outputs.labels }}
+      new-labels: ${{ steps.pr-labels-new.outputs.labels  }}
+
+    steps:
+      - name: Get old PR labels
+        id: pr-labels-old
+        uses: joerick/pr-labels-action@v1.0.9
+
+      # fork by a scikit-learn developer to allow max-labels
+      - uses: thomasjpfan/labeler@v2.5.1
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          max-labels: "3"
+
+      - name: Get new PR labels
+        id: pr-labels-old
+        uses: joerick/pr-labels-action@v1.0.9
+
+  # based on the scikit-learn 1.3.1 PR labelers
+  title-labeler:
+    needs: contents-labeler
+    runs-on: ubuntu-22.04
+
+    outputs:
+      old-labels: ${{ steps.pr-labels-old.outputs.labels }}
+      new-labels: ${{ steps.pr-labels-new.outputs.labels  }}
 
     steps:
       - uses: actions/checkout@v3
@@ -28,32 +53,19 @@ jobs:
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
+      - name: Get old PR labels
+        id: pr-labels-old
+        uses: joerick/pr-labels-action@v1.0.9
+
       - name: Label pull request
         id: label-pr
         run: python build_tools/pr_title_labeler.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
 
-  # based on the scikit-learn 1.3.1 PR labelers
-  contents-labeler:
-    runs-on: ubuntu-22.04
-
-    outputs:
-        new-labels: ${{ steps.label-out.outputs.new-labels }}
-
-    steps:
-      # fork by a scikit-learn developer to allow max-labels
-      - uses: thomasjpfan/labeler@v2.5.1
-        id: label-pr
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          max-labels: "3"
-
-      - run : echo "${{ steps.label-pr.outputs.* }}"
-
-      - name: Set output
-        id: label-out
-        run : echo "new-labels=[${{ join(steps.label-pr.outputs.new-labels, ', ') }}]" >> $GITHUB_OUTPUT
+      - name: Get new PR labels
+        id: pr-labels-old
+        uses: joerick/pr-labels-action@v1.0.9
 
   comment:
     needs: [title-labeler, contents-labeler]
@@ -66,6 +78,7 @@ jobs:
         with:
           python-version: "3.10"
 
+      - run: echo "${{needs.title-labeler.outputs.old-labels}} + ${{needs.contents-labeler.outputs.old-labels}}"
       - run: echo "${{needs.title-labeler.outputs.new-labels}} + ${{needs.contents-labeler.outputs.new-labels}}"
 
 #      - name: Install dependencies

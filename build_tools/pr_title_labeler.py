@@ -32,6 +32,3 @@ labels_to_add = [label for regex, label in regex_to_labels if re.search(regex, t
 
 if labels_to_add:
     issue.add_to_labels(*labels_to_add)
-
-with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-    print(f"new-labels={labels_to_add}", file=fh)  # noqa: T201
