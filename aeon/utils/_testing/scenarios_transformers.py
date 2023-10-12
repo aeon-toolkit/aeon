@@ -90,10 +90,10 @@ class TransformerTestScenario(TestScenario, BaseObject):
                 return False
 
         # ensure scenario y matches type of inner y
-        y_inner_mtype = get_tag(obj, "y_inner_type")
-        if y_inner_mtype not in [None, "None"]:
+        y_inner_type = get_tag(obj, "y_inner_type")
+        if y_inner_type not in [None, "None"]:
             y_inner_scitypes = mtype_to_scitype(
-                y_inner_mtype, return_unique=True, coerce_to_list=True
+                y_inner_type, return_unique=True, coerce_to_list=True
             )
             if y_scitype not in y_inner_scitypes:
                 return False

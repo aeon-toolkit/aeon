@@ -805,9 +805,9 @@ class BaseTransformer(BaseEstimator):
 
         # retrieve supported mtypes
         X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_type"))
+        y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
-        y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
+        y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
@@ -864,7 +864,7 @@ class BaseTransformer(BaseEstimator):
         requires_vectorization = req_vec_because_rows or req_vec_because_cols
         # end checking X
 
-        if y_inner_mtype != ["None"] and y is not None:
+        if y_inner_type != ["None"] and y is not None:
             if "Table" in y_inner_scitype:
                 y_possible_scitypes = "Table"
             elif X_scitype == "Series":
@@ -923,10 +923,10 @@ class BaseTransformer(BaseEstimator):
             )
 
             # converts y, returns None if y is None
-            if y_inner_mtype != ["None"] and y is not None:
+            if y_inner_type != ["None"] and y is not None:
                 y_inner = convert_to(
                     y,
-                    to_type=y_inner_mtype,
+                    to_type=y_inner_type,
                     as_scitype=y_scitype,
                 )
             else:
@@ -944,7 +944,7 @@ class BaseTransformer(BaseEstimator):
                 iterate_cols=req_vec_because_cols,
             )
             # we also assume that y must be vectorized in this case
-            if y_inner_mtype != ["None"] and y is not None:
+            if y_inner_type != ["None"] and y is not None:
                 # raise ValueError(
                 #     f"{type(self).__name__} does not support Panel X if y is not "
                 #     f"None, since {type(self).__name__} supports only Series. "
@@ -1141,7 +1141,7 @@ class BaseTransformer(BaseEstimator):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -1197,7 +1197,7 @@ class BaseTransformer(BaseEstimator):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit_transform must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -1243,7 +1243,7 @@ class BaseTransformer(BaseEstimator):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _update must support all types in it
             Data to update transformer with
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns

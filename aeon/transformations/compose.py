@@ -304,7 +304,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -329,7 +329,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -355,7 +355,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_mtype, optional (default=None)
+        y : Series or Panel of type y_inner_type, optional (default=None)
             Additional data, e.g., labels for transformation
 
         Returns
@@ -381,7 +381,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _update must support all types in it
             Data to update transformer with
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -593,7 +593,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         ----------
         X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -618,7 +618,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         ----------
         X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -740,7 +740,7 @@ class FitInTransform(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -759,7 +759,7 @@ class FitInTransform(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_mtype, optional (default=None)
+        y : Series or Panel of type y_inner_type, optional (default=None)
             Additional data, e.g., labels for transformation
 
         Returns
@@ -1749,7 +1749,7 @@ class YtoX(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_mtype, optional (default=None)
+        y : Series or Panel of type y_inner_type, optional (default=None)
             Additional data, e.g., labels for transformation
 
         Returns

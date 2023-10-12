@@ -1323,9 +1323,9 @@ class BaseForecaster(BaseEstimator):
                     raise ValueError(msg)
 
         # retrieve supported mtypes
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_type"))
+        y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
+        y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
         X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
@@ -1445,7 +1445,7 @@ class BaseForecaster(BaseEstimator):
             # converts y, skips conversion if already of right type
             y_inner = convert_to(
                 y,
-                to_type=y_inner_mtype,
+                to_type=y_inner_type,
                 as_scitype=y_scitype,  # we are dealing with series
                 store=self._converter_store_y,
                 store_behaviour="reset",
@@ -1947,7 +1947,7 @@ class BaseForecaster(BaseEstimator):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -2018,7 +2018,7 @@ class BaseForecaster(BaseEstimator):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """
@@ -2095,7 +2095,7 @@ class BaseForecaster(BaseEstimator):
                 Column names are exactly those of `y` passed in `fit`/`update`.
                     For nameless formats, column index will be a RangeIndex.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are variance forecasts, for var in col index.
                 A variance forecast for given variable and fh index is a predicted
                     variance for that variable and index, given observed data.
@@ -2103,7 +2103,7 @@ class BaseForecaster(BaseEstimator):
                 Column index is a multiindex: 1st level is variable names (as above)
                     2nd level is fh.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are (co-)variance forecasts, for var in col index, and
                     covariance between time index in row and col.
                 Note: no covariance forecasts are returned between different variables.
