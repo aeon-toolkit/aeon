@@ -3,22 +3,33 @@
 
 import pytest
 
-# _check_dl_dependencies,; _check_python_version,
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+# Currently just partial testing of soft dep checks.
 def test__check_soft_dependencies():
     with pytest.raises(TypeError, match="packages must be str or tuple of str"):
         _check_soft_dependencies((1, 2, 3))
+    with pytest.raises(TypeError, match="package_import_alias must be a dict"):
+        _check_soft_dependencies("tslearn", package_import_alias="alias")
+    with pytest.raises(TypeError, match="must be a dict with str keys"):
+        _check_soft_dependencies("tslearn", package_import_alias={1: "1", 2: "2"})
+    with pytest.raises(TypeError, match="must be a dict with str keys and values"):
+        _check_soft_dependencies("tslearn", package_import_alias={"1": 1, "2": 2})
+    from packaging.requirements import InvalidRequirement
 
-
-# def test__check_dl_dependencies():
-#    pass
-
-
-# def test__check_python_version():
-#    pass
-
-
-def test__check_estimator_deps():
-    pass
+    with pytest.raises(
+        InvalidRequirement, match="wrong format for package requirement string"
+    ):
+        _check_soft_dependencies("tslearn", *["FOOBAR!!"])
+    with pytest.raises(ModuleNotFoundError, match="No module named 'FOOBAR'"):
+        _check_soft_dependencies("FOOBAR")
+    with pytest.raises(ModuleNotFoundError, match="No module named 'FOOBAR'"):
+        _check_soft_dependencies("FOOBAR", suppress_import_stdout=True)
+    with pytest.raises(ModuleNotFoundError, match="str requires package 'FOOBAR'"):
+        _check_soft_dependencies("FOOBAR", obj="FOOBAR")
+    with pytest.raises(RuntimeError, match="severity argument must be "):
+        _check_soft_dependencies("FOOBAR", severity="FOOBAR")
+    assert not _check_soft_dependencies("FOOBAR", severity="none")
+    with pytest.warns(UserWarning, match="No module named 'FOOBAR'"):
+        _check_soft_dependencies("FOOBAR", severity="warning")
