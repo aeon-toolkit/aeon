@@ -1,12 +1,12 @@
 name: PR Opened
 on:
-  pull_request_target:
-    types: [opened]
+  pull_request_target
+    #types: opened
 
 permissions:
   contents: read
   pull-requests: write
-
+  issues: write
 
 jobs:
   # based on the scikit-learn 1.3.1 PR labelers
@@ -14,27 +14,70 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: Install PyGithub
-      run: pip install -Uq PyGithub
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
 
-    - name: Label pull request
-      run: python build_tools/pr_title_labeler.py
-      env:
-        CONTEXT_GITHUB: ${{ toJson(github) }}
+      - name: Label pull request
+        run: python build_tools/pr_title_labeler.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
 
   # based on the scikit-learn 1.3.1 PR labelers
   contents-labeler:
     runs-on: ubuntu-22.04
 
+    outputs:
+        new-labels: ${{ steps.label-the-PR.outputs.new-labels }}
+
     steps:
       # fork by a scikit-learn developer to allow max-labels
-      - uses: thomasjpfan/labeler@v2.5.1
+      - id: label-PR
+        uses: thomasjpfan/labeler@v2.5.1
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           max-labels: "3"
+
+      - name: Set output
+        run: echo "new-labels=${{ steps.label-PR.outputs.new-labels }}" >> $GITHUB_OUTPUT
+
+  comment:
+    needs: [title-labeler, contents-labeler]
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - run: echo ${{needs.title-labeler.outputs.new-labels}} ${{needs.contents-labeler.outputs.new-labels}}
+
+#      - name: Install dependencies
+#        run: python -m pip install requests
+#
+#      - name: Download artifact
+#        id: download-artifact
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: lint-log
+#
+#      - name: Print log
+#        run: cat linting_output.txt
+#
+#      - name: Process Comments
+#        id: process-comments
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          PR_NUMBER: ${{ github.event.pull_request.number }}
+#          BRANCH_SHA: ${{ github.event.pull_request.head.sha }}
+#          RUN_ID: ${{ github.run_id }}
+#          LOG_FILE: linting_output.txt
+#          VERSIONS_FILE: versions.txt
+#        run: python ./build_tools/get_comment.py
