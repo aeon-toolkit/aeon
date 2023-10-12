@@ -5,13 +5,13 @@ Base class template for transformers.
 
 Covers all types of transformers.
 Type and behaviour of transformer is determined by the following tags:
-    "scitype:transform-input" tag with values "Primitives" or "Series"
+    "input_data_type" tag with values "Primitives" or "Series"
         this determines expected type of input of transform
         if "Primitives", expected inputs X are pd.DataFrame
         if "Series", expected inputs X are Series or Panel
         Note: placeholder tag for upwards compatibility currently only "Series" is
         supported
-    "scitype:transform-output" tag with values "Primitives", or "Series"
+    "output_data_type" tag with values "Primitives", or "Series"
         this determines type of output of transform
         if "Primitives", output is pd.DataFrame with as many rows as X has instances
         i-th instance of X is transformed into i-th row of output
@@ -19,7 +19,7 @@ Type and behaviour of transformer is determined by the following tags:
         instance of X is transformed into i-th instance of output
         Series are treated as one-instance-Panels
         if Series is input, output is a 1-row pd.DataFrame or a Series
-    "scitype:instancewise" tag which is boolean
+    "instancewise" tag which is boolean
         if True, fit/transform is statistically independent by instance
 
 Class defining methods:
@@ -95,13 +95,13 @@ class BaseTransformer(BaseEstimator):
 
     # default tag values - these typically make the "safest" assumption
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-labels": "None",
+        "input_data_type": "Series",
+        # The type of X: Series, or Panel
+        "output_data_type": "Series",
+        # The type is returned: Primitives, Series, Panel
+        "transform_labels": "None",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
@@ -419,7 +419,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |__________|______________|________________________|
@@ -491,7 +491,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |   `X`    | `tf-output`  |     type of return     |
             |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
@@ -543,7 +543,7 @@ class BaseTransformer(BaseEstimator):
         """Inverse transform X and return an inverse transformed version.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
+            "input_data_type"="Series", "output_data_type"="Series",
         have an inverse_transform.
 
         State required:
@@ -989,9 +989,9 @@ class BaseTransformer(BaseEstimator):
 
         if inverse:
             # the output of inverse transform is equal to input of transform
-            output_scitype = self.get_tag("scitype:transform-input")
+            output_scitype = self.get_tag("input_data_type")
         else:
-            output_scitype = self.get_tag("scitype:transform-output")
+            output_scitype = self.get_tag("output_data_type")
 
         # if we converted Series to "one-instance-Panel/Hierarchical",
         #   or Panel to "one-instance-Hierarchical", then revert that
@@ -1169,7 +1169,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |__________|______________|________________________|

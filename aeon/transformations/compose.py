@@ -188,21 +188,19 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         last_trafo = ests[-1][1]
 
         # input mtype and input type are as of the first estimator
-        self.clone_tags(first_trafo, ["scitype:transform-input"])
+        self.clone_tags(first_trafo, ["input_data_type"])
         # output type is that of last estimator, if no "Primitives" occur in the middle
         # if "Primitives" occur in the middle, then output is set to that too
         # this is in a case where "Series-to-Series" is applied to primitive df
         #   e.g., in a case of pipelining with scikit-learn transformers
-        last_out = last_trafo.get_tag("scitype:transform-output")
-        self._anytagis_then_set(
-            "scitype:transform-output", "Primitives", last_out, ests
-        )
+        last_out = last_trafo.get_tag("output_data_type")
+        self._anytagis_then_set("output_data_type", "Primitives", last_out, ests)
 
         # set property tags based on tags of components
         self._anytag_notnone_set("y_inner_mtype", ests)
-        self._anytag_notnone_set("scitype:transform-labels", ests)
+        self._anytag_notnone_set("transform_labels", ests)
 
-        self._anytagis_then_set("scitype:instancewise", False, True, ests)
+        self._anytagis_then_set("instancewise", False, True, ests)
         self._anytagis_then_set("fit_is_empty", False, True, ests)
         self._anytagis_then_set("transform-returns-same-time-index", False, True, ests)
         self._anytagis_then_set("skip-inverse-transform", False, True, ests)
@@ -465,10 +463,10 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": False,  # depends on components
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": False,  # depends on components
         "univariate-only": False,  # depends on components
         "capability:missing_values": False,  # depends on components
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
@@ -520,9 +518,9 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         # set property tags based on tags of components
         self._anytag_notnone_set("y_inner_mtype", ests)
-        self._anytag_notnone_set("scitype:transform-labels", ests)
+        self._anytag_notnone_set("transform_labels", ests)
 
-        self._anytagis_then_set("scitype:instancewise", False, True, ests)
+        self._anytagis_then_set("instancewise", False, True, ests)
         self._anytagis_then_set("X-y-must-have-same-index", True, False, ests)
         self._anytagis_then_set("fit_is_empty", False, True, ests)
         self._anytagis_then_set("transform-returns-same-time-index", False, True, ests)
@@ -1076,11 +1074,11 @@ class InvertTransform(_DelegatedTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
@@ -1099,9 +1097,9 @@ class InvertTransform(_DelegatedTransformer):
         # should be all tags, but not fit_is_empty
         #   (_fit should not be skipped)
         tags_to_clone = [
-            "scitype:transform-input",
-            "scitype:transform-output",
-            "scitype:instancewise",
+            "input_data_type",
+            "output_data_type",
+            "instancewise",
             "X_inner_mtype",
             "y_inner_mtype",
             "capability:missing_values",
@@ -1117,11 +1115,11 @@ class InvertTransform(_DelegatedTransformer):
                 "according to capability:inverse_transform tag. "
                 "If the tag was correctly set, this transformer will likely crash"
             )
-        inner_output = transformer.get_tag("scitype:transform-output")
-        if transformer.get_tag("scitype:transform-output") != "Series":
+        inner_output = transformer.get_tag("output_data_type")
+        if transformer.get_tag("output_data_type") != "Series":
             warn(
                 f"transformer output is not Series but {inner_output}, "
-                "according to scitype:transform-output tag. "
+                "according to output_data_type tag. "
                 "The InvertTransform wrapper supports only Series output, therefore"
                 " this transformer will likely crash on input."
             )
@@ -1332,11 +1330,11 @@ class OptionalPassthrough(_DelegatedTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": CORE_MTYPES,
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
@@ -1354,9 +1352,9 @@ class OptionalPassthrough(_DelegatedTransformer):
         # should be all tags, but not fit_is_empty
         #   (_fit should not be skipped)
         tags_to_clone = [
-            "scitype:transform-input",
-            "scitype:transform-output",
-            "scitype:instancewise",
+            "input_data_type",
+            "output_data_type",
+            "instancewise",
             "y_inner_mtype",
             "capability:inverse_transform",
             "capability:missing_values",
@@ -1438,11 +1436,11 @@ class ColumnwiseTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
@@ -1646,11 +1644,11 @@ class ColumnConcatenator(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
+        "instancewise": False,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd-multiindex", "pd_multiindex_hier"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?

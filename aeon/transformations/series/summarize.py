@@ -177,11 +177,11 @@ class WindowSummarizer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "instancewise": True,
         "capability:inverse_transform": False,
-        "scitype:transform-labels": False,
+        "transform_labels": False,
         "X_inner_mtype": [
             "pd-multiindex",
             "pd.DataFrame",
@@ -631,11 +631,11 @@ class SummaryTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
@@ -750,8 +750,8 @@ class PlateauFinder(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": True,
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
+        "output_data_type": "Series",
+        "instancewise": False,
         "X_inner_mtype": "numpy3D",
         "y_inner_mtype": "None",
     }
@@ -840,11 +840,11 @@ class FittedParamExtractor(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": True,
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
     }

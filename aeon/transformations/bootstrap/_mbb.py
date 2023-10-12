@@ -165,12 +165,12 @@ class STLBootstrapTransformer(BaseTransformer):
 
     _tags = {
         # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
+        "output_data_type": "Panel",
         # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
@@ -479,12 +479,12 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
 
     _tags = {
         # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
+        "output_data_type": "Panel",
         # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
