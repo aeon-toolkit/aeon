@@ -142,7 +142,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "y_inner_mtype": "numpy1D",
         "capability:unequal_length": True,
         "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_type": "numpy1D",
+        "y_inner_mtype": "numpy1D",
         "fit_is_empty": False,
         "requires_y": True,
     }
