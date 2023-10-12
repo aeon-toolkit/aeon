@@ -22,7 +22,11 @@ import pandas as pd
 
 
 def _nested_univ_is_equal(X):
-    """Check whether series are unequal length."""
+    """Check whether series in a nested DataFrame are unequal length.
+
+    Note that the function _nested_univ_is_equal assumes series are equal length
+    over channels so only tests the first channel.
+    """
     length = X.iloc[0, 0].size
     for i in range(1, X.shape[0]):
         if X.iloc[i, 0].size != length:
@@ -65,6 +69,7 @@ numpy3D_error = (
     "Error: Input should be 3-dimensional NumPy array with shape ("
     "n_instances, n_channels, n_timepoints)."
 )
+numpy2D_error = "Error: cannot convert multivariate series to numpy 2D arrays."
 
 
 def _from_numpy3d_to_np_list(X):
@@ -144,10 +149,12 @@ def _from_numpy3d_to_pd_wide(X):
 
 
 def _from_numpy3d_to_numpyflat(X):
-    """Convert 3D np.darray to a 2D np.ndarray."""
+    """Convert 3D np.darray to a 2D np.ndarray if shape[1] == 1."""
     if X.ndim != 3:
         raise TypeError(numpy3D_error)
-    X_flat = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
+    if X.shape[1] > 1:
+        raise TypeError(numpy2D_error)
+    X_flat = X.reshape(X.shape[0], X.shape[2])
     return X_flat
 
 
@@ -233,6 +240,8 @@ def _from_np_list_to_numpyflat(X):
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray):
         raise TypeError(np_list_error)
     X_3d = _from_np_list_to_numpy3d(X)
+    if X_3d.shape[1] > 1:
+        raise TypeError(numpy2D_error)
     return _from_numpy3d_to_numpyflat(X_3d)
 
 
@@ -477,7 +486,7 @@ def _from_nested_univ_to_numpyflat(X):
         raise TypeError("Cannot convert unequal length series to numpyflat")
     if X.shape[1] > 1:
         raise TypeError("Cannot convert multivariate nested into numpyflat")
-    Xt = np.ndarray([X.iloc[:, 0].tolist()])
+    Xt = np.array([np.array(series) for series in X.iloc[:, 0]])
     return Xt
 
 
@@ -493,7 +502,6 @@ def _from_pd_multiindex_to_df_list(X):
 
 
 def _from_pd_multiindex_to_np_list(X):
-    """Convert from a nested pd.DataFrame to a list of 2D numpy."""
     df_list = _from_pd_multiindex_to_df_list(X)
     return _from_df_list_to_np_list(df_list)
 
@@ -514,7 +522,6 @@ def _from_pd_multiindex_to_pd_wide(X):
 
 
 def _from_pd_multiindex_to_nested_univ(X):
-    """Convert a pandas DataFrame witha multi-index to a nested DataFrame."""
     instance_index = 0
 
     # get number of distinct cases (note: a case may have 1 or many dimensions)

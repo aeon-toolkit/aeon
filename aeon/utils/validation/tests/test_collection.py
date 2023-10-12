@@ -7,6 +7,7 @@ from aeon.datasets import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
 from aeon.utils.validation._convert_collection import (
     _equal_length,
+    _from_nested_univ_to_numpyflat,
     _from_nested_univ_to_pd_multiindex,
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_nested_univ,
@@ -22,6 +23,7 @@ from aeon.utils.validation._convert_collection import (
     _from_numpyflat_to_pd_wide,
     _is_nested_univ_dataframe,
     _is_pd_wide,
+    _nested_univ_is_equal,
 )
 from aeon.utils.validation.collection import (
     COLLECTIONS_DATA_TYPES,
@@ -112,8 +114,14 @@ def test_convert_collection(input_data, output_data):
     assert get_type(X) == output_data
     # Test with multivariate
     if input_data in EQUAL_LENGTH_MULTIVARIATE:
-        X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
-        assert get_type(X) == output_data
+        if output_data not in ["numpyflat", "pd-wide"]:
+            X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
+            assert get_type(X) == output_data
+        else:
+            with pytest.raises(TypeError):
+                X = convert_collection(
+                    EQUAL_LENGTH_MULTIVARIATE[input_data], output_data
+                )
     # Test with unequal length
     if input_data in UNEQUAL_LENGTH_UNIVARIATE:
         if output_data in UNEQUAL_LENGTH_UNIVARIATE or output_data == "pd-multiindex":
@@ -257,13 +265,32 @@ NUMPY2D = [
 
 @pytest.mark.parametrize("function", NUMPY2D)
 def test_numpy2D_error(function):
+    """Test numpy flat converters only work with 2D numpy"""
     X = np.random.random(size=(10, 2, 20))
     with pytest.raises(TypeError, match="Input should be 2-dimensional np.ndarray"):
         function(X)
 
 
+def test__nested_univ_is_equal():
+    """Test _nested_univ_is_equal function for pd.DataFrame.
+
+    Note that the function _nested_univ_is_equal assumes series are equal length
+    over channels so only tests the first channel.
+    """
+
+    data = {
+        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+    }
+    X = pd.DataFrame(data)
+    assert not _nested_univ_is_equal(X)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    assert _nested_univ_is_equal(X)
+
+
 def test_from_nested():
-    # Test with multiple nested columns and non-nested columns
+    """Test with multiple nested columns and non-nested columns."""
     data = {
         "A": [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
         "B": [pd.Series(["a", "b", "c"]), pd.Series(["x", "y", "z"])],
@@ -272,3 +299,21 @@ def test_from_nested():
     X = pd.DataFrame(data)
     result = _from_nested_univ_to_pd_multiindex(X)
     assert isinstance(result, pd.DataFrame)
+    data = {
+        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+    }
+    X = pd.DataFrame(data)
+    with pytest.raises(
+        TypeError, match="Cannot convert unequal length series to " "numpyflat"
+    ):
+        _from_nested_univ_to_numpyflat(X)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    result = _from_nested_univ_to_numpyflat(X)
+    assert result.shape == (10, 20)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=2, n_timepoints=20)
+    with pytest.raises(
+        TypeError, match="Cannot convert multivariate nested into " "numpyflat"
+    ):
+        _from_nested_univ_to_numpyflat(X)
