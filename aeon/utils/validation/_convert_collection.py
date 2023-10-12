@@ -475,7 +475,9 @@ def _from_nested_univ_to_df_list(X):
 def _from_nested_univ_to_numpyflat(X):
     if not _nested_univ_is_equal(X):
         raise TypeError("Cannot convert unequal length series to numpyflat")
-    Xt = np.hstack([X.iloc[:, i].tolist() for i in range(X.shape[1])])
+    if X.shape[1] > 1:
+        raise TypeError("Cannot convert multivariate nested into numpyflat")
+    Xt = np.ndarray([X.iloc[:, 0].tolist()])
     return Xt
 
 
