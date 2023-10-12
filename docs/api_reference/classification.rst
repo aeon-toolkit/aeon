@@ -57,6 +57,30 @@ Dictionary-based
     WEASEL_V2
     REDCOMETS
 
+REDCOMETS
+---------
+
+The REDCOMETS class is a dictionary-based classifier for time series data. It uses a combination of ensemble learning and symbolic representation to classify time series data.
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    aeon.classification.dictionary_based.REDCOMETS
+
+.. code-block:: python
+
+    from aeon.classification.dictionary_based import REDCOMETS
+
+    # create an instance of the classifier
+    classifier = REDCOMETS()
+
+    # fit the classifier to the training data
+    classifier.fit(X_train, y_train)
+
+    # predict the class labels for the test data
+    y_pred = classifier.predict(X_test)
+
 Distance-based
 --------------
 
