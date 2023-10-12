@@ -17,10 +17,15 @@ repo = context_dict["repository"]
 g = Github(context_dict["token"])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
-issue = repo.get_issue(number=pr_number)
-title = issue.title
+pr = repo.get_pull(number=pr_number)
+labels = pr.get_labels()
 
-regex_to_labels = [
+print(labels)  # noqa: T201
+
+# title labels
+title = pr.title
+
+title_regex_to_labels = [
     (r"\bENH\b", "enhancement"),
     (r"\bMNT\b", "maintenance"),
     (r"\bBUG\b", "bug"),
@@ -28,7 +33,44 @@ regex_to_labels = [
     (r"\bGOV\b", "governance"),
 ]
 
-labels_to_add = [label for regex, label in regex_to_labels if re.search(regex, title)]
+title_labels_to_add = [
+    label for regex, label in title_regex_to_labels if re.search(regex, title)
+]
 
-if labels_to_add:
-    issue.add_to_labels(*labels_to_add)
+print(title_labels_to_add)  # noqa: T201
+
+# content labels
+paths = [file.filename for file in pr.get_files()]
+
+content_paths_to_labels = [
+    ("aeon/anomaly_detection/", "anomaly detection"),
+    ("aeon/benchmarking/", "benchmarking"),
+    ("aeon/classification*", "classification"),
+    ("aeon/clustering/", "clustering"),
+    ("aeon/datasets/", "datasets"),
+    ("aeon/datatypes/", "datatypes"),
+    ("aeon/distances/", "distances"),
+    ("examples/", "examples"),
+    ("aeon/forecasting/", "forecasting"),
+    ("aeon/networks/", "networks"),
+    ("aeon/regression/", "regression"),
+    ("aeon/segmentation/", "segmentation"),
+    ("aeon/similarity_search/", "similarity search"),
+    ("aeon/transformations/", "transformation"),
+]
+
+content_labels_to_add = [
+    label for path, label in content_paths_to_labels if path in paths
+]
+content_labels_to_add = list(set(content_labels_to_add))
+content_labels_to_add = [] if len(content_labels_to_add) > 3 else content_labels_to_add
+
+print(content_labels_to_add)  # noqa: T201
+
+# add to PR
+if title_labels_to_add or content_labels_to_add:
+    pr.add_to_labels(*title_labels_to_add + content_labels_to_add)
+
+with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+    print(f"title-labels-new={title_labels_to_add}", file=fh)  # noqa: T201
+    print(f"content-labels-new={content_labels_to_add}", file=fh)  # noqa: T201
