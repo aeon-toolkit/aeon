@@ -134,8 +134,8 @@ class TransformerTestScenario(TestScenario, BaseObject):
 
             X_scitype = self.get_tag("X_scitype")
 
-            X_out_scitype = get_tag(obj, "scitype:transform-output")
-            X_panel = get_tag(obj, "scitype:instancewise")
+            X_out_scitype = get_tag(obj, "output_data_type")
+            X_panel = get_tag(obj, "instancewise")
 
             X_out_series = X_out_scitype == "Series"
             X_out_prim = X_out_scitype == "Primitives"
@@ -162,7 +162,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             else:
                 raise RuntimeError(
                     "transformer with unexpected combination of tags: "
-                    f"X_out_scitype = {X_out_scitype}, scitype:instancewise = {X_panel}"
+                    f"X_out_scitype = {X_out_scitype}, instancewise = {X_panel}"
                 )
 
         else:
