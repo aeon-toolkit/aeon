@@ -107,9 +107,9 @@ Interval-based
     :toctree: auto_generated/
     :template: class.rst
 
-    CanonicalIntervalForest
-    DrCIF
-    RandomIntervalSpectralEnsemble
+    CanonicalIntervalForestClassifier
+    DrCIFClassifier
+    RandomIntervalSpectralEnsembleClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
     RandomIntervalClassifier
