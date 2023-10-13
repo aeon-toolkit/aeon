@@ -80,7 +80,7 @@ class FourierFeatures(BaseTransformer):
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.PeriodIndex,
@@ -138,7 +138,7 @@ class FourierFeatures(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             If X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to.
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation.
         freq : str, optional, default = None
             Only used when X has a pd.DatetimeIndex without a specified frequency.
@@ -198,7 +198,7 @@ class FourierFeatures(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             If X_inner_mtype is list, _transform must support all types in it
             Data to be transformed.
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation.
 
         Returns

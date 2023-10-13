@@ -30,7 +30,7 @@ class IntervalSegmenter(BaseTransformer):
         "output_data_type": "Series",
         "instancewise": True,
         "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "fit_is_empty": False,
         "capability:unequal_length:removes": True,
         "capability:multivariate": False,
@@ -184,7 +184,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
 
     _tags = {
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",
+        "y_inner_type": "pd_Series_Table",
         # which mtypes do _fit/_predict support for y?
     }
 
@@ -395,7 +395,7 @@ class SlidingWindowSegmenter(BaseTransformer):
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
     }
 
     def __init__(self, window_length=5):

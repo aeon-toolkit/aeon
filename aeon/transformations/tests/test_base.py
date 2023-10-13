@@ -368,7 +368,7 @@ class _DummyFour(BaseTransformer):
         "input_data_type": "Series",
         "output_data_type": "Primitives",
         "X_inner_mtype": ["pd.DataFrame"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "fit_is_empty": True,
     }
 

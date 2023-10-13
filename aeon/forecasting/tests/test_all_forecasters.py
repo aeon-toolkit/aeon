@@ -96,9 +96,9 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
             ranges over 1 and 2 for forecasters which are both uni/multivariate
         """
         if "estimator_class" in kwargs.keys():
-            scitype_tag = kwargs["estimator_class"].get_class_tag("scitype:y")
+            scitype_tag = kwargs["estimator_class"].get_class_tag("y_input_type")
         elif "estimator_instance" in kwargs.keys():
-            scitype_tag = kwargs["estimator_instance"].get_tag("scitype:y")
+            scitype_tag = kwargs["estimator_instance"].get_tag("y_input_type")
         else:
             return []
 
@@ -167,12 +167,12 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
 
     def test_y_multivariate_raises_error(self, estimator_instance):
         """Test that wrong y scitype raises error (uni/multivariate not supported)."""
-        if estimator_instance.get_tag("scitype:y") == "multivariate":
+        if estimator_instance.get_tag("y_input_type") == "multivariate":
             y = _make_series(n_columns=1)
             with pytest.raises(ValueError, match=r"two or more variables"):
                 estimator_instance.fit(y, fh=FH0)
 
-        if estimator_instance.get_tag("scitype:y") in ["univariate", "both"]:
+        if estimator_instance.get_tag("y_input_type") in ["univariate", "both"]:
             # this should pass since "both" allows any number of variables
             # and "univariate" automatically vectorizes, behaves multivariate
             pass

@@ -106,7 +106,7 @@ class SFA(BaseCollectionTransformer):
         "instancewise": False,
         "fit_is_empty": False,
         "requires_y": True,
-        "y_inner_mtype": "numpy1D",
+        "y_inner_type": "numpy1D",
     }
 
     def __init__(
