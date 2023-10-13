@@ -33,7 +33,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_quantiles",
+        "y_input_type_pred": "pred_quantiles",
         "lower_is_better": True,
     }
 
@@ -51,7 +51,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true.
 
         Returns
@@ -78,7 +78,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true
 
         multioutput : string "uniform_average" or "raw_values" determines how\
@@ -165,7 +165,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true
 
         multioutput : string "uniform_average" or "raw_values" determines how\
@@ -294,7 +294,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
             raise TypeError(msg)
 
         y_pred_mtype = metadata["mtype"]
-        inner_y_pred_mtype = self.get_tag("scitype:y_pred")
+        inner_y_pred_mtype = self.get_tag("y_input_type_pred")
 
         y_pred_inner = convert(
             y_pred,
@@ -386,7 +386,7 @@ class PinballLoss(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_quantiles",
+        "y_input_type_pred": "pred_quantiles",
         "lower_is_better": True,
     }
 
@@ -469,7 +469,7 @@ class EmpiricalCoverage(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_interval",
+        "y_input_type_pred": "pred_interval",
         "lower_is_better": False,
     }
 
@@ -536,7 +536,7 @@ class ConstraintViolation(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_interval",
+        "y_input_type_pred": "pred_interval",
         "lower_is_better": True,
     }
 

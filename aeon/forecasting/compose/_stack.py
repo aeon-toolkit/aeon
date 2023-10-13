@@ -62,7 +62,7 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": True,
         "capability:missing_values": True,
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "X-y-must-have-same-index": True,
     }
 

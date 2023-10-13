@@ -63,8 +63,8 @@ class TransformerTestScenario(TestScenario, BaseObject):
             True if self is applicable to obj, False if not
         """
         # pre-refactor classes can't deal with Series *and* Panel both
-        X_scitype = self.get_tag("X_scitype")
-        y_scitype = self.get_tag("y_scitype", None, raise_error=False)
+        X_scitype = self.get_tag("X_type")
+        y_scitype = self.get_tag("y_type", None, raise_error=False)
 
         if (
             isinstance(obj, BaseCollectionTransformer)
@@ -85,15 +85,15 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # we require vectorization from of a Series trafo to Panel data ...
         if X_scitype == "Panel" and "Panel" not in X_inner_scitypes:
             # ... but y is passed and y is not ignored internally ...
-            if self.get_tag("has_y") and get_tag(obj, "y_inner_mtype") != "None":
+            if self.get_tag("has_y") and get_tag(obj, "y_inner_type") != "None":
                 # ... this would raise an error since vectorization is not defined
                 return False
 
         # ensure scenario y matches type of inner y
-        y_inner_mtype = get_tag(obj, "y_inner_mtype")
-        if y_inner_mtype not in [None, "None"]:
+        y_inner_type = get_tag(obj, "y_inner_type")
+        if y_inner_type not in [None, "None"]:
             y_inner_scitypes = mtype_to_scitype(
-                y_inner_mtype, return_unique=True, coerce_to_list=True
+                y_inner_type, return_unique=True, coerce_to_list=True
             )
             if y_scitype not in y_inner_scitypes:
                 return False
@@ -132,7 +132,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             if obj is None:
                 raise ValueError('if key="inverse_transform", obj must be provided')
 
-            X_scitype = self.get_tag("X_scitype")
+            X_scitype = self.get_tag("X_type")
 
             X_out_scitype = get_tag(obj, "output_data_type")
             X_panel = get_tag(obj, "instancewise")
@@ -185,7 +185,8 @@ class TransformerFitTransformSeriesUnivariate(TransformerTestScenario):
     """Fit/transform, univariate Series X."""
 
     _tags = {
-        "X_scitype": "Series",
+        # These tags are only used in testing and are not defined in the registry
+        "X_type": "Series",
         "X_univariate": True,
         "has_y": False,
         "is_enabled": True,
@@ -203,7 +204,7 @@ class TransformerFitTransformSeriesMultivariate(TransformerTestScenario):
     """Fit/transform, multivariate Series X."""
 
     _tags = {
-        "X_scitype": "Series",
+        "X_type": "Series",
         "X_univariate": False,
         "has_y": False,
         "is_enabled": True,
@@ -224,11 +225,11 @@ class TransformerFitTransformSeriesUnivariateWithY(TransformerTestScenario):
     """Fit/transform, univariate Series X and univariate Series y."""
 
     _tags = {
-        "X_scitype": "Series",
+        "X_type": "Series",
         "X_univariate": True,
         "has_y": True,
         "is_enabled": True,
-        "y_scitype": "Series",
+        "y_type": "Series",
     }
 
     args = {
@@ -269,11 +270,11 @@ class TransformerFitTransformPanelUnivariateNumpyWithClassYOnlyFit(
     """Fit/predict with univariate panel X, numpy3D input type, and labels y."""
 
     _tags = {
-        "X_scitype": "Panel",
+        "X_type": "Panel",
         "X_univariate": True,
         "has_y": True,
         "is_enabled": True,
-        "y_scitype": "Table",
+        "y_type": "Table",
     }
 
     args = {
@@ -287,7 +288,7 @@ class TransformerFitTransformPanelUnivariate(TransformerTestScenario):
     """Fit/transform, univariate Panel X."""
 
     _tags = {
-        "X_scitype": "Panel",
+        "X_type": "Panel",
         "X_univariate": True,
         "has_y": False,
         "is_enabled": False,
@@ -312,7 +313,7 @@ class TransformerFitTransformPanelMultivariate(TransformerTestScenario):
     """Fit/transform, multivariate Panel X."""
 
     _tags = {
-        "X_scitype": "Panel",
+        "X_type": "Panel",
         "X_univariate": False,
         "has_y": False,
         "is_enabled": False,
@@ -337,11 +338,11 @@ class TransformerFitTransformPanelUnivariateWithClassY(TransformerTestScenario):
     """Fit/transform, multivariate Panel X, with y in fit and transform."""
 
     _tags = {
-        "X_scitype": "Panel",
+        "X_type": "Panel",
         "X_univariate": True,
         "is_enabled": True,
         "has_y": True,
-        "y_scitype": "Table",
+        "y_type": "Table",
     }
 
     args = {
@@ -373,11 +374,11 @@ class TransformerFitTransformPanelUnivariateWithClassYOnlyFit(TransformerTestSce
     """Fit/transform, multivariate Panel X, with y in fit but not in transform."""
 
     _tags = {
-        "X_scitype": "Panel",
+        "X_type": "Panel",
         "X_univariate": True,
         "is_enabled": False,
         "has_y": True,
-        "y_scitype": "Table",
+        "y_type": "Table",
     }
 
     args = {
@@ -396,7 +397,7 @@ class TransformerFitTransformHierarchicalUnivariate(TransformerTestScenario):
     """Fit/transform, univariate Hierarchical X."""
 
     _tags = {
-        "X_scitype": "Hierarchical",
+        "X_type": "Hierarchical",
         "X_univariate": True,
         "is_enabled": False,
         "has_y": False,
@@ -413,7 +414,7 @@ class TransformerFitTransformHierarchicalMultivariate(TransformerTestScenario):
     """Fit/transform, multivariate Hierarchical X."""
 
     _tags = {
-        "X_scitype": "Hierarchical",
+        "X_type": "Hierarchical",
         "X_univariate": False,
         "is_enabled": False,
         "has_y": False,

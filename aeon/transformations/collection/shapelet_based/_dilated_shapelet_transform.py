@@ -134,7 +134,7 @@ class RandomDilatedShapeletTransform(BaseTransformer):
         "fit_is_empty": False,
         "univariate-only": False,
         "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "numpy1D",
+        "y_inner_type": "numpy1D",
         "requires_y": False,
         "capability:inverse_transform": False,
         "capability:missing_values": False,
