@@ -1,18 +1,19 @@
 """HOG1D transform."""
+
 import math
 import numbers
 
 import numpy as np
 
 from aeon.transformations._split import SplitsTimeSeries
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class HOG1DTransformer(BaseTransformer, SplitsTimeSeries):
+class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """HOG1D transform.
 
-    This transformer calculates the HOG1D transform [1] of a collection of time seriess.
-    HOG1D splits each time series num_intervals times, and finds a histogram of
+    This transformer calculates the HOG1D transform [1] of a collection of time series.
+    HOG1D splits each time series n_intervals times, and finds a histogram of
     gradients within each interval.
 
     Parameters
@@ -45,7 +46,7 @@ class HOG1DTransformer(BaseTransformer, SplitsTimeSeries):
         self.n_intervals = n_intervals
         self.n_bins = n_bins
         self.scaling_factor = scaling_factor
-        super(HOG1DTransformer, self).__init__(_output_convert=False)
+        super(HOG1DTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

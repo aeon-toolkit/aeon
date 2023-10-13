@@ -14,7 +14,7 @@ from numba import njit, prange, set_num_threads
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import manhattan_distance
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
     choice_log,
     combinations_1d,
@@ -27,7 +27,7 @@ from aeon.utils.numba.stats import prime_up_to
 from aeon.utils.validation import check_n_jobs
 
 
-class RandomDilatedShapeletTransform(BaseTransformer):
+class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     """Random Dilated Shapelet Transform (RDST) as described in [1]_[2]_.
 
     Overview: The input is n series with d channels of length m. First step is to

@@ -1,7 +1,7 @@
 """Tabularizer transform, for pipelining."""
 
 __author__ = ["mloning", "fkiraly", "kcc-lion"]
-__all__ = ["Tabularizer"]
+__all__ = ["Tabularizer", "TimeBinner"]
 
 import warnings
 
@@ -9,17 +9,16 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes import convert, convert_to
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class Tabularizer(BaseTransformer):
+class Tabularizer(BaseCollectionTransformer):
     """
     A transformer that turns time series/panel data into tabular data.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular pandas dataframe with only primitives in
-    cells. This is useful for transforming
+    dataframe cells into a tabular numpy array. This is useful for transforming
     time-series/panel data into a format that is accepted by standard
     validation learning algorithms (as in sklearn).
     """
@@ -72,14 +71,14 @@ class Tabularizer(BaseTransformer):
         return Xt
 
 
-class TimeBinner(BaseTransformer):
+class TimeBinner(BaseCollectionTransformer):
     """
     Turns time series/panel data into tabular data based on intervals.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular pandas dataframe with only primitives in
-    cells. The primitives are calculated based on Intervals defined
+    dataframe cells into a tabular numpy array.
+    The primitives are calculated based on Intervals defined
     by the IntervalIndex and aggregated by aggfunc.
 
     This is useful for transforming time-series/panel data
