@@ -1,4 +1,4 @@
-"""Labels PRs based on title.
+"""Labels PRs based on title and change list.
 
 Must be run in a github action with the pull_request_target event.
 

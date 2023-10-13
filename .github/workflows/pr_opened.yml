@@ -52,17 +52,16 @@ jobs:
 
       - run: echo "${{needs.labeler.outputs.title-labels}} + ${{needs.labeler.outputs.title-labels-new}} + ${{needs.labeler.outputs.content-labels}} + ${{needs.labeler.outputs.content-labels-new}} + ${{needs.labeler.outputs.content-labels-status}} + ${{needs.labeler.outputs.present-content-labels}}"
 
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Write pull request comment
+        run: python build_tools/pr_open_commenter.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+
 #      - name: Install dependencies
 #        run: python -m pip install requests
-#
-#      - name: Download artifact
-#        id: download-artifact
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: lint-log
-#
-#      - name: Print log
-#        run: cat linting_output.txt
 #
 #      - name: Process Comments
 #        id: process-comments
