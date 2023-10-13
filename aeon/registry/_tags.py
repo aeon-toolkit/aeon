@@ -153,7 +153,7 @@ ESTIMATOR_TAG_REGISTER = [
                 "pd-multiindex",
                 "numpy3D",
                 "df-list",
-                "numpy-list",
+                "np-list",
             ],
         ),
         "which data structure is the internal _fit/_predict able to deal with?",
@@ -161,18 +161,20 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "input_data_type",
         "transformer",
-        ("list", ["Series", "Panel", "Collection"]),
-        "The abstract data type of the transformer input X. Panel and Collection are "
-        "equivalent: collections of time series",
+        ("list", ["Series", "Collection", "Panel"]),
+        "The input abstract data type of the transformer, input X. Series "
+        "indicates a single series input, Collection indicates a collection of "
+        "time series. Panel is a legacy term and equivalent to Collection.",
     ),
     (
         "output_data_type",
         "transformer",
-        ("list", ["Tabular", "Primitives", "Series", "Panel", "Collection"]),
+        ("list", ["Tabular", "Series", "Collection", "Primitives", "Panel"]),
         "The output abstract data type of the transformer output, the transformed X. "
-        "Panel and Collection are equivalent: collections of time series. Tabular and "
-        "Primitives are also equivalent: rows are cases and unordered attributes are "
-        "columns.",
+        "Tabular indicates 2D output where rows are cases and unordered attributes are "
+        "columns. Series indicates a single series output and collection indicates "
+        "output is a collection of time series.  Primitives is a legacy term for "
+        "Tabular and Panel for Collection.",
     ),
     (
         "instancewise",
