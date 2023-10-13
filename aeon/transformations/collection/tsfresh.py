@@ -15,7 +15,6 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "fit_is_empty": True,
-        "y_inner_type": "None",
         "python_dependencies": "tsfresh",
     }
 

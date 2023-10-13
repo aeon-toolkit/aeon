@@ -423,10 +423,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
-        "fit_is_empty": False,
-        "skip-inverse-transform": True,
         "capability:multivariate": True,
-        "y_inner_type": "numpy1D",
     }
 
     def __init__(

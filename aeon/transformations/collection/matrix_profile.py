@@ -3,7 +3,6 @@
 __author__ = ["Claudia Rincon Sanchez"]
 
 import numpy as np
-import pandas as pd
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
@@ -206,15 +205,8 @@ class MatrixProfile(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
         "fit_is_empty": True,
-        "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
-        "output_data_type": "Tabular",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
+        "capability:multivariate": True,
     }
 
     def __init__(self, m=10):
@@ -226,18 +218,15 @@ class MatrixProfile(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : pandas.DataFrame in nested_univ mtype format
-            Dataframe with the n_instances rows as the input.
-            The number of columns equals the number of subsequences
-            of the desired length in each time series.
+        Xt : Matrix profile series
         """
         # Input checks
-        n_instances = X.shape[0]
-        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_instances)])
+        n_instances = len(X)
+        Xt = np.ndarray([_stomp_self(X[i], self.m) for i in range(n_instances)])
         return Xt

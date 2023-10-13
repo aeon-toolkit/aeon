@@ -40,11 +40,13 @@ class BaseCollectionTransformer(
 ):
     """Transformer base class for collections."""
 
-    # Relevant tag values inherited from BaseTransformer
+    # tag values specific to CollectionTransformers
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
         "fit_is_empty": False,
+        "requires_y": False,
+        "capability:inverse_transform": False,
     }
 
     def __init__(self):
@@ -72,6 +74,9 @@ class BaseCollectionTransformer(
         -------
         self : a fitted instance of the estimator
         """
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
@@ -207,6 +212,7 @@ class BaseCollectionTransformer(
 
         return Xt
 
+    @final
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
 
@@ -248,7 +254,7 @@ class BaseCollectionTransformer(
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
 
         # update memory of X, if remember_data tag is set to True

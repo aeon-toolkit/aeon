@@ -131,13 +131,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
-        "fit_is_empty": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_type": "numpy1D",
-        "requires_y": False,
         "capability:multivariate": True,
-        "capability:inverse_transform": False,
-        "capability:missing_values": False,
     }
 
     def __init__(

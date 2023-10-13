@@ -34,12 +34,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """
 
     _tags = {
-        "output_data_type": "Series",
-        "instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_type": "None",
         "fit_is_empty": True,
-        "univariate-only": True,
     }
 
     def __init__(self, n_intervals=2, n_bins=8, scaling_factor=0.1):

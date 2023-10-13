@@ -48,6 +48,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
+        "fit_is_empty": True,
         "capability:multivariate": True,
     }
 

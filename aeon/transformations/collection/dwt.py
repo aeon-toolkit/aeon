@@ -30,11 +30,8 @@ class DWTTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Series",
-        "instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_type": "None",
         "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, n_levels=3):
