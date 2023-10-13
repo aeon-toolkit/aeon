@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.transformations.collection.segment import PlateauFinder
+from aeon.transformations.series.summarize import PlateauFinder
 
 
 @pytest.mark.parametrize("value", [np.nan, -10, 10, -0.5, 0.5])

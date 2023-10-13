@@ -18,7 +18,7 @@ def test_timebinner():
     tb.fit(X)
     row = 1
     Xtb = tb.transform(X)
-    assert np.isclose(np.sum(X.iloc[row, 0][freq : (2 * freq)]), Xtb[row, 1])
+    assert np.isclose(np.sum(X.iloc[row, 0][freq : (2 * freq)]), Xtb.iloc[row, 1])
 
 
 def test_timebinner2():
@@ -32,7 +32,9 @@ def test_timebinner2():
     tb.fit(X)
     row = 3
     Xtb = tb.transform(X)
-    assert np.isclose(np.max(X.iloc[row, 5][8 * 10 + 1 : 9 * 10 + 1]), Xtb[row, 58])
+    assert np.isclose(
+        np.max(X.iloc[row, 5][8 * 10 + 1 : 9 * 10 + 1]), Xtb.iloc[row, 58]
+    )
 
 
 def test_timebinner3():
@@ -51,5 +53,5 @@ def test_timebinner3():
     Xtb = tb.transform(X)
     assert np.isclose(
         np.quantile(X.iloc[row, 0][col * freq + 1 : ((col + 1) * freq) + 1], q=0.25),
-        Xtb[row, col],
+        Xtb.iloc[row, col],
     )
