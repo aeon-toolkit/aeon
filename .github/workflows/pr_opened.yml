@@ -16,8 +16,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     outputs:
+      title-labels: ${{ steps.label-pr.outputs.title-labels }}
       title-labels-new: ${{ steps.label-pr.outputs.title-labels-new }}
       content-labels-new: ${{ steps.label-pr.outputs.content-labels-new }}
+      content-labels-status: ${{ steps.label-pr.outputs.content-labels-status }}
 
     steps:
       - uses: actions/checkout@v3
@@ -46,7 +48,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - run: echo "${{needs.labeler.outputs.title-labels-new}} + ${{needs.labeler.outputs.content-labels-new}}"
+      - run: echo "${{needs.labeler.outputs.title-labels}} + ${{needs.labeler.outputs.title-labels-new}} + ${{needs.labeler.outputs.content-labels-new}} + ${{needs.labeler.outputs.content-labels-status}}"
 
 #      - name: Install dependencies
 #        run: python -m pip install requests
