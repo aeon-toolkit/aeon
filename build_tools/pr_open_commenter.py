@@ -25,17 +25,17 @@ content_labels_status = sys.argv[4]
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels
 ]
 title_labels_new = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels_new
 ]
 content_labels = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in content_labels
 ]
@@ -50,12 +50,12 @@ if len(title_labels) == 0:
 elif len(title_labels_new) != 0:
     title_labels_str = (
         "I have added the following labels to this PR based on the "
-        f"title: **{title_labels_new}**."
+        f"title: **[ {str(title_labels_new).strip('[]')} ]**."
     )
     if len(title_labels) != len(title_labels_new):
         title_labels_str += (
             " The following labels were already present: "
-            f"**{set(title_labels) - set(title_labels_new)}**"
+            f"**[ {str(set(title_labels) - set(title_labels_new)).strip('[]')} ]**"
         )
 
 
@@ -64,14 +64,14 @@ if len(content_labels) != 0:
     if content_labels_status == "used":
         content_labels_str = (
             "I have added the following labels to this PR based on "
-            f"the changes made: **{content_labels}**. Feel free to change "
-            "these if they do not properly represent the PR."
+            f"the changes made: **[ {str(content_labels).strip('[]')} ]**. Feel free "
+            "to change these if they do not properly represent the PR."
         )
     elif content_labels_status == "ignored":
         content_labels_str = (
             "I would have added the following labels to this PR "
-            f"based on the changes made: **{content_labels}**, however some "
-            "package labels are already present."
+            f"based on the changes made: **[ {str(content_labels).strip('[]')} ]**, "
+            "however some package labels are already present."
         )
     elif content_labels_status == "large":
         content_labels_str = (
