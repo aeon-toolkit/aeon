@@ -86,6 +86,4 @@ with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
     print(f"title-labels={title_labels}", file=fh)  # noqa: T201
     print(f"title-labels-new={title_labels_to_add}", file=fh)  # noqa: T201
     print(f"content-labels={content_labels}", file=fh)  # noqa: T201
-    print(f"content-labels-new={content_labels_to_add}", file=fh)  # noqa: T201
     print(f"content-labels-status={content_labels_status}", file=fh)  # noqa: T201
-    print(f"present-content-labels={present_content_labels}", file=fh)  # noqa: T201
