@@ -20,7 +20,7 @@ pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 labels = pr.get_labels()
 
-print(labels)  # noqa: T201
+print(list(labels))  # noqa: T201
 
 # title labels
 title = pr.title
@@ -41,6 +41,8 @@ print(title_labels_to_add)  # noqa: T201
 
 # content labels
 paths = [file.filename for file in pr.get_files()]
+
+print(paths)  # noqa: T201
 
 content_paths_to_labels = [
     ("aeon/anomaly_detection/", "anomaly detection"),
