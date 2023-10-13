@@ -85,7 +85,7 @@ Extension templates typically have the following ``todo``:
 *   Filling in the "inner" methods, e.g., ``_fit`` and ``_predict``. The docstrings and comments in the extension template should be followed here.
     The docstrings also describe the guarantees on the inputs to the "inner" methods, which are typically stronger than the guarantees on
     inputs to the public methods, and determined by values of tags that have been set.
-    For instance, setting the tag ``y_inner_mtype`` to ``pd.DataFrame`` for a forecaster guarantees that the ``y`` seen by ``_fit`` will be
+    For instance, setting the tag ``y_inner_type`` to ``pd.DataFrame`` for a forecaster guarantees that the ``y`` seen by ``_fit`` will be
     a ``pandas.DataFrame``, complying with additional data container specifications in ``aeon`` (e.g., index types).
 *   filling in testing parameters in ``get_test_params``. The selection of parameters should cover major estimator internal case distinctions
     to achieve good coverage.

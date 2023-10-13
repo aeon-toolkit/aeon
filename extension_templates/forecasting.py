@@ -74,9 +74,9 @@ class MyForecaster(BaseForecaster):
     #  tags are inherited from parent class if they are not set
     # todo: define the forecaster scitype by setting the tags
     #  the "forecaster scitype" is determined by the tags
-    #   scitype:y - the expected input scitype of y - univariate or multivariate or both
-    #  when changing scitype:y to multivariate or both:
-    #   y_inner_mtype should be changed to pd.DataFrame
+    #   y_input_type - the expected input type of y - univariate or multivariate or both
+    #  when changing y_input_type to multivariate or both:
+    #   y_inner_type should be changed to pd.DataFrame
     # other tags are "safe defaults" which can usually be left as-is
     _tags = {
         # to list all valid tags with description, use aeon.registry.all_tags
@@ -85,9 +85,9 @@ class MyForecaster(BaseForecaster):
         # behavioural tags: internal type
         # -------------------------------
         #
-        # y_inner_mtype, X_inner_mtype control which format X/y appears in
+        # y_inner_type, X_inner_mtype control which format X/y appears in
         # in the inner functions _fit, _predict, etc
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
@@ -97,9 +97,9 @@ class MyForecaster(BaseForecaster):
         #   in that case, X/y are passed through without conversion if on the list
         #   if not on the list, converted to the first entry of the same scitype
         #
-        # scitype:y controls whether internal y can be univariate/multivariate
+        # y_input_type controls whether internal y can be univariate/multivariate
         # if multivariate is not valid, applies vectorization over variables
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         # valid values: "univariate", "multivariate", "both"
         #   "univariate": inner _fit, _predict, etc, receive only univariate series
         #   "multivariate": inner methods receive only series with 2 or more variables
@@ -201,13 +201,13 @@ class MyForecaster(BaseForecaster):
         Parameters
         ----------
         y : aeon time series object
-            guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
@@ -260,7 +260,7 @@ class MyForecaster(BaseForecaster):
         Returns
         -------
         y_pred : aeon time series object
-            should be of the same type as seen in _fit, as in "y_inner_mtype" tag
+            should be of the same type as seen in _fit, as in "y_inner_type" tag
             Point predictions
         """
 
@@ -288,13 +288,13 @@ class MyForecaster(BaseForecaster):
         Parameters
         ----------
         y : aeon time series object
-            guaranteed to be of an mtype in self.get_tag("y_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X :  aeon time series object, optional (default=None)
             guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
@@ -362,7 +362,7 @@ class MyForecaster(BaseForecaster):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """
@@ -407,7 +407,7 @@ class MyForecaster(BaseForecaster):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -450,7 +450,7 @@ class MyForecaster(BaseForecaster):
                 Column names are exactly those of `y` passed in `fit`/`update`.
                     For nameless formats, column index will be a RangeIndex.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are variance forecasts, for var in col index.
                 A variance forecast for given variable and fh index is a predicted
                     variance for that variable and index, given observed data.
@@ -458,7 +458,7 @@ class MyForecaster(BaseForecaster):
                 Column index is a multiindex: 1st level is variable names (as above)
                     2nd level is fh.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are (co-)variance forecasts, for var in col index, and
                     covariance between time index in row and col.
                 Note: no covariance forecasts are returned between different variables.

@@ -79,7 +79,7 @@ class ClearSky(BaseTransformer):
         "X_inner_mtype": [
             "pd.Series",
         ],  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.DatetimeIndex,
