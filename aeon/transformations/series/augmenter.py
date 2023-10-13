@@ -24,7 +24,7 @@ class _AugmenterTags:
         "transform_labels": "None",
         "instancewise": True,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         "X-y-must-have-same-index": False,
         "fit_is_empty": True,

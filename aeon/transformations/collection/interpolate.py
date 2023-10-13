@@ -40,7 +40,7 @@ class TSInterpolator(BaseTransformer):
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "fit_is_empty": True,

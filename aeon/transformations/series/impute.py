@@ -86,7 +86,7 @@ class Imputer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,
         "capability:missing_values": True,
         "skip-inverse-transform": True,
@@ -127,7 +127,7 @@ class Imputer(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

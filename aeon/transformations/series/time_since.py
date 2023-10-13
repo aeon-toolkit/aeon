@@ -77,7 +77,7 @@ class TimeSince(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "transform_labels": "None",
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "univariate-only": False,
         "requires_y": False,
         "remember_data": False,
@@ -119,7 +119,7 @@ class TimeSince(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -203,7 +203,7 @@ class TimeSince(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
