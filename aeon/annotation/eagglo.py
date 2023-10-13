@@ -471,13 +471,13 @@ def get_distance_matrix(X, Y, alpha) -> float:
     return np.power(dist, alpha).mean()
 
 
-@njit(nopython=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def get_distance_single(X, Y, alpha) -> float:
     dist = euclidean(X, Y)
     return np.power(dist, alpha)  # .mean()
 
 
-@njit(nopython=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def euclidean_matrix_to_matrix(a, b):
     """Compute the Euclidean distances between the rows of two matrices."""
     n, m = a.shape[0], b.shape[0]
