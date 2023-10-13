@@ -82,7 +82,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_mtype": "df-list",

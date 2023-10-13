@@ -1,5 +1,4 @@
 """Interval and window segmenter transformers."""
-
 import math
 
 import numpy as np
@@ -7,11 +6,11 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import check_window_length
 
 
-class IntervalSegmenter(BaseCollectionTransformer):
+class IntervalSegmenter(BaseTransformer):
     """Interval segmentation transformer.
 
     Parameters
@@ -27,11 +26,11 @@ class IntervalSegmenter(BaseCollectionTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "instancewise": True,
         "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "fit_is_empty": False,
         "capability:unequal_length:removes": True,
         "capability:multivariate": False,
@@ -41,7 +40,7 @@ class IntervalSegmenter(BaseCollectionTransformer):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super(IntervalSegmenter, self).__init__()
+        super(IntervalSegmenter, self).__init__(_output_convert=False)
 
     def _fit(self, X, y=None):
         """
@@ -185,7 +184,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
 
     _tags = {
         "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",
+        "y_inner_type": "pd_Series_Table",
         # which mtypes do _fit/_predict support for y?
     }
 
@@ -348,6 +347,134 @@ def _rand_intervals_fixed_n(
     return np.column_stack([starts, ends])
 
 
+class SlidingWindowSegmenter(BaseTransformer):
+    """Sliding window segmenter transformer.
+
+    This class is to transform a univariate series into a multivariate one by
+    extracting sets of subsequences. It does this by firstly padding the time series
+    on either end floor(window_length/2) times. Then it performs a sliding
+    window of size window_length and hop size 1.
+
+    e.g. if window_length = 3
+
+    S = 1,2,3,4,5, floor(3/2) = 1 so S would be padded as
+
+    1,1,2,3,4,5,5
+
+    then SlidingWindowSegmenter would extract the following:
+
+    (1,1,2),(1,2,3),(2,3,4),(3,4,5),(4,5,5)
+
+    the time series is now a multivariate one.
+
+    Proposed in the ShapeDTW algorithm.
+
+    Parameters
+    ----------
+        window_length : int, optional, default=5.
+            length of sliding window interval
+
+    Returns
+    -------
+        np.array [n_instances, n_timepoints, window_length]
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.transformations.collection.segment import SlidingWindowSegmenter
+    >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
+    >>> seggy = SlidingWindowSegmenter(window_length=4)
+    >>> data2 = seggy.fit_transform(data)
+    """
+
+    _tags = {
+        "univariate-only": True,
+        "fit_is_empty": True,
+        "input_data_type": "Series",
+        # what is the scitype of X: Series, or Panel
+        "output_data_type": "Series",
+        "instancewise": False,
+        "X_inner_mtype": "numpy3D",
+        "y_inner_type": "None",
+    }
+
+    def __init__(self, window_length=5):
+        self.window_length = window_length
+        super(SlidingWindowSegmenter, self).__init__(_output_convert=False)
+
+    def _transform(self, X, y=None):
+        """Transform time series.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+            collection of time series to transform
+        y : ignored argument for interface compatibility
+
+        Returns
+        -------
+        X : 3D np.ndarray of shape = (n_cases, series_length, window_length)
+            windowed series
+        """
+        # get the number of attributes and instances
+        if X.shape[1] > 1:
+            raise ValueError("Segmenter does not support multivariate")
+        X = X.squeeze(1)
+
+        n_timepoints = X.shape[1]
+        n_instances = X.shape[0]
+
+        # Check the parameters are appropriate
+        self._check_parameters(n_timepoints)
+
+        pad_amnt = math.floor(self.window_length / 2)
+        padded_data = np.zeros((n_instances, n_timepoints + (2 * pad_amnt)))
+
+        # Pad both ends of X
+        for i in range(n_instances):
+            padded_data[i] = np.pad(X[i], pad_amnt, mode="edge")
+
+        subsequences = np.zeros((n_instances, n_timepoints, self.window_length))
+
+        # Extract subsequences
+        for i in range(n_instances):
+            subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
+        return np.array(subsequences)
+
+    def _extract_subsequences(self, instance, n_timepoints):
+        """Extract a set of subsequences from a list of instances.
+
+        Adopted from -
+        https://stackoverflow.com/questions/4923617/efficient-numpy-2d-array-
+        construction-from-1d-array/4924433#4924433
+
+        """
+        shape = (n_timepoints, self.window_length)
+        strides = (instance.itemsize, instance.itemsize)
+        return np.lib.stride_tricks.as_strided(instance, shape=shape, strides=strides)
+
+    def _check_parameters(self, n_timepoints):
+        """Check the values of parameters for interval segmenter.
+
+        Throws
+        ------
+        ValueError or TypeError if a parameters input is invalid.
+        """
+        if isinstance(self.window_length, int):
+            if self.window_length <= 0:
+                raise ValueError(
+                    "window_length must have the \
+                                  value of at least 1"
+                )
+        else:
+            raise TypeError(
+                "window_length must be an 'int'. \
+                            Found '"
+                + type(self.window_length).__name__
+                + "' instead."
+            )
+
+
 def _get_n_from_n_timepoints(n_timepoints, n="sqrt"):
     """Get number of intervals from number of time points.
 
@@ -424,217 +551,3 @@ def _get_n_from_n_timepoints(n_timepoints, n="sqrt"):
     # make sure n_intervals is an integer and there is at least one interval
     n_intervals_ = np.maximum(1, int(n_intervals_))
     return n_intervals_
-
-
-class SlidingWindowSegmenter(BaseCollectionTransformer):
-    """Sliding window segmenter transformer.
-
-    This class is to transform a univariate series into a multivariate one by
-    extracting sets of subsequences. It does this by firstly padding the time series
-    on either end floor(window_length/2) times. Then it performs a sliding
-    window of size window_length and hop size 1.
-
-    e.g. if window_length = 3
-
-    S = 1,2,3,4,5, floor(3/2) = 1 so S would be padded as
-
-    1,1,2,3,4,5,5
-
-    then SlidingWindowSegmenter would extract the following:
-
-    (1,1,2),(1,2,3),(2,3,4),(3,4,5),(4,5,5)
-
-    the time series is now a multivariate one.
-
-    Proposed in the ShapeDTW algorithm.
-
-    Parameters
-    ----------
-        window_length : int, optional, default=5.
-            length of sliding window interval
-
-    Returns
-    -------
-        np.array [n_instances, n_timepoints, window_length]
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_unit_test
-    >>> from aeon.transformations.collection.segment import SlidingWindowSegmenter
-    >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
-    >>> seggy = SlidingWindowSegmenter(window_length=4)
-    >>> data2 = seggy.fit_transform(data)
-    """
-
-    _tags = {
-        "univariate-only": True,
-        "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-    }
-
-    def __init__(self, window_length=5):
-        self.window_length = window_length
-        super(SlidingWindowSegmenter, self).__init__()
-
-    def _transform(self, X, y=None):
-        """Transform time series.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
-            collection of time series to transform
-        y : ignored argument for interface compatibility
-
-        Returns
-        -------
-        X : 3D np.ndarray of shape = (n_cases, series_length, window_length)
-            windowed series
-        """
-        # get the number of attributes and instances
-        if X.shape[1] > 1:
-            raise ValueError("Segmenter does not support multivariate")
-        X = X.squeeze(1)
-
-        n_timepoints = X.shape[1]
-        n_instances = X.shape[0]
-
-        # Check the parameters are appropriate
-        self._check_parameters(n_timepoints)
-
-        pad_amnt = math.floor(self.window_length / 2)
-        padded_data = np.zeros((n_instances, n_timepoints + (2 * pad_amnt)))
-
-        # Pad both ends of X
-        for i in range(n_instances):
-            padded_data[i] = np.pad(X[i], pad_amnt, mode="edge")
-
-        subsequences = np.zeros((n_instances, n_timepoints, self.window_length))
-
-        # Extract subsequences
-        for i in range(n_instances):
-            subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
-        return np.array(subsequences)
-
-    def _extract_subsequences(self, instance, n_timepoints):
-        """Extract a set of subsequences from a list of instances.
-
-        Adopted from -
-        https://stackoverflow.com/questions/4923617/efficient-numpy-2d-array-
-        construction-from-1d-array/4924433#4924433
-
-        """
-        shape = (n_timepoints, self.window_length)
-        strides = (instance.itemsize, instance.itemsize)
-        return np.lib.stride_tricks.as_strided(instance, shape=shape, strides=strides)
-
-    def _check_parameters(self, n_timepoints):
-        """Check the values of parameters for interval segmenter.
-
-        Throws
-        ------
-        ValueError or TypeError if a parameters input is invalid.
-        """
-        if isinstance(self.window_length, int):
-            if self.window_length <= 0:
-                raise ValueError(
-                    "window_length must have the \
-                                  value of at least 1"
-                )
-        else:
-            raise TypeError(
-                "window_length must be an 'int'. \
-                            Found '"
-                + type(self.window_length).__name__
-                + "' instead."
-            )
-
-
-class PlateauFinder(BaseCollectionTransformer):
-    """
-    Plateau finder transformer.
-
-    Transformer that finds segments of the same given value, plateau in
-    the time series, and returns the starting indices and lengths.
-
-    Parameters
-    ----------
-    value : {int, float, np.nan, np.inf}
-        Value for which to find segments
-    min_length : int
-        Minimum lengths of segments with same value to include.
-        If min_length is set to 1, the transformer can be used as a value
-        finder.
-    """
-
-    _tags = {
-        "fit_is_empty": True,
-        "univariate-only": True,
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-    }
-
-    def __init__(self, value=np.nan, min_length=2):
-        self.value = value
-        self.min_length = min_length
-        super(PlateauFinder, self).__init__()
-
-    def _transform(self, X, y=None):
-        """Transform X.
-
-        Parameters
-        ----------
-        X : numpy3D array shape (n_cases, 1, series_length)
-
-        Returns
-        -------
-        X : pandas data frame
-        """
-        _starts = []
-        _lengths = []
-
-        # find plateaus (segments of the same value)
-        for x in X[:, 0]:
-            # find indices of transition
-            if np.isnan(self.value):
-                i = np.where(np.isnan(x), 1, 0)
-
-            elif np.isinf(self.value):
-                i = np.where(np.isinf(x), 1, 0)
-
-            else:
-                i = np.where(x == self.value, 1, 0)
-
-            # pad and find where segments transition
-            transitions = np.diff(np.hstack([0, i, 0]))
-
-            # compute starts, ends and lengths of the segments
-            starts = np.where(transitions == 1)[0]
-            ends = np.where(transitions == -1)[0]
-            lengths = ends - starts
-
-            # filter out single points
-            starts = starts[lengths >= self.min_length]
-            lengths = lengths[lengths >= self.min_length]
-
-            _starts.append(starts)
-            _lengths.append(lengths)
-
-        # put into dataframe
-        Xt = pd.DataFrame()
-        column_prefix = "%s_%s" % (
-            "channel_",
-            "nan" if np.isnan(self.value) else str(self.value),
-        )
-        Xt["%s_starts" % column_prefix] = pd.Series(_starts)
-        Xt["%s_lengths" % column_prefix] = pd.Series(_lengths)
-
-        Xt = Xt.applymap(lambda x: pd.Series(x))
-        return Xt

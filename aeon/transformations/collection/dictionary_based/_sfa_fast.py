@@ -152,10 +152,10 @@ class SFAFast(BaseCollectionTransformer):
 
     _tags = {
         "univariate-only": True,
-        "scitype:instancewise": False,
+        "instancewise": False,
         "fit_is_empty": False,
         "requires_y": True,
-        "y_inner_mtype": "numpy1D",
+        "y_inner_type": "numpy1D",
     }
 
     def __init__(
