@@ -5,7 +5,7 @@ __author__ = ["Claudia Rincon Sanchez"]
 import numpy as np
 import pandas as pd
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _sliding_dot_products(q, t, q_len, t_len):
@@ -193,7 +193,7 @@ def _stomp_self(ts, m):
     return mp
 
 
-class MatrixProfile(BaseTransformer):
+class MatrixProfile(BaseCollectionTransformer):
     """Return the matrix profile and index profile for each time series of a dataset.
 
     Example of use:

@@ -1,14 +1,15 @@
 """Discrete wavelet transform."""
+
+__author__ = "Vincent Nicholson"
+
 import math
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
-
-__author__ = "Vincent Nicholson"
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class DWTTransformer(BaseTransformer):
+class DWTTransformer(BaseCollectionTransformer):
     """Discrete Wavelet Transform Transformer.
 
     Performs the Haar wavelet transformation on a time series.
