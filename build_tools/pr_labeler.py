@@ -83,7 +83,9 @@ if title_labels_to_add or content_labels_to_add:
     pr.add_to_labels(*title_labels_to_add + content_labels_to_add)
 
 with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-    print(f"title-labels={title_labels}", file=fh)  # noqa: T201
-    print(f"title-labels-new={title_labels_to_add}", file=fh)  # noqa: T201
-    print(f"content-labels={content_labels}", file=fh)  # noqa: T201
+    print(f"title-labels={title_labels}".replace(" ", ""), file=fh)  # noqa: T201
+    print(  # noqa: T201
+        f"title-labels-new={title_labels_to_add}".replace(" ", ""), file=fh
+    )
+    print(f"content-labels={content_labels}".replace(" ", ""), file=fh)  # noqa: T201
     print(f"content-labels-status={content_labels_status}", file=fh)  # noqa: T201
