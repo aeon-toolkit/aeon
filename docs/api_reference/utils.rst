@@ -8,6 +8,7 @@ Utility functions
 * :mod:`aeon.datatypes`, which contains utilities for data format checks and conversion.
 * :mod:`aeon.pipeline`, which contains generics for pipeline construction.
 * :mod:`aeon.registry`, which contains utilities for estimator and tag search.
+* :mod:`aeon.math_utils`, which contains mathematical utility functions.
 * :mod:`aeon.utils`, which contains generic utility functions.
 
 
@@ -110,3 +111,4 @@ Estimator Validity Checking
     :template: function.rst
 
     check_estimator
+    calculate_average
