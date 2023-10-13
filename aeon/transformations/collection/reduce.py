@@ -97,15 +97,11 @@ class TimeBinner(BaseCollectionTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": False,
-        "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
         "output_data_type": "Tabular",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,
         "X_inner_mtype": ["nested_univ"],
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # and for y?
+        "y_inner_type": "None",
+        "capability:multivariate": True,
     }
 
     def __init__(self, idx, aggfunc=None):

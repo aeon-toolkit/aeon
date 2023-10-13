@@ -422,10 +422,9 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
+        "requires_y": True,
+        "fit_is_empty": False,
+        "skip-inverse-transform": True,
         "capability:multivariate": True,
         "y_inner_type": "numpy1D",
     }
@@ -449,7 +448,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X: np.ndarray
             The training input samples.
         y: array-like or list
             The class values for X.

@@ -96,13 +96,10 @@ class BaseTransformer(BaseEstimator):
     # default tag values - these typically make the "safest" assumption
     _tags = {
         "input_data_type": "Series",
-        # The type of X: Series, or Panel
         "output_data_type": "Series",
-        # The type is returned: Primitives, Series, Panel
         "transform_labels": "None",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
@@ -114,10 +111,9 @@ class BaseTransformer(BaseEstimator):
         "transform-returns-same-time-index": False,
         # does transform return have the same time index as input X
         "skip-inverse-transform": False,  # is inverse-transform skipped when called?
+        "capability:inverse_transform": False,  # can the transformer inverse transform?
         "capability:unequal_length": True,
-        # can the transformer handle unequal length time series (if passed Panel)?
         "capability:unequal_length:removes": False,
-        # is transform result always guaranteed to be equal length (and series)?
         "capability:missing_values": False,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?

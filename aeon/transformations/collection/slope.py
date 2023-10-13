@@ -36,10 +36,10 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """
 
     _tags = {
-        "output_data_type": "Series",
         "instancewise": False,
         "X_inner_mtype": "numpy3D",
         "y_inner_type": "None",
+        "capability:multivariate": True,
         "fit_is_empty": True,
     }
 

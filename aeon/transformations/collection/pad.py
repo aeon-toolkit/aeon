@@ -47,11 +47,11 @@ class PaddingTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Series",
         "instancewise": False,
         "X_inner_mtype": ["np-list", "numpy3D"],
         "y_inner_type": "None",
         "fit_is_empty": False,
+        "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
