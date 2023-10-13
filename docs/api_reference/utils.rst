@@ -110,3 +110,20 @@ Estimator Validity Checking
     :template: function.rst
 
     check_estimator
+
+Mathematical Utilities
+----------------------
+
+:mod:`aeon.math_utils`
+
+.. automodule:: aeon.math_utils
+    :no-members:
+    :no-inherited-members:
+
+.. currentmodule:: aeon.math_utils
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    calculate_average
