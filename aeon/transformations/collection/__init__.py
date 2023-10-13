@@ -22,7 +22,6 @@ __all__ = [
     "IntervalSegmenter",
     "RandomIntervalSegmenter",
     "SlidingWindowSegmenter",
-    "PlateauFinder",
     "SlopeTransformer",
     "SevenNumberSummaryTransformer",
     "SupervisedIntervals",
@@ -54,7 +53,6 @@ from aeon.transformations.collection.reduce import Tabularizer, TimeBinner
 from aeon.transformations.collection.scaler import TimeSeriesScaler
 from aeon.transformations.collection.segment import (
     IntervalSegmenter,
-    PlateauFinder,
     RandomIntervalSegmenter,
     SlidingWindowSegmenter,
 )
