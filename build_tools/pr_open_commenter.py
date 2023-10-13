@@ -18,6 +18,7 @@ repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 
+print(sys.argv)  # noqa
 title_labels = ast.literal_eval(sys.argv[1])
 title_labels_new = ast.literal_eval(sys.argv[2])
 content_labels = ast.literal_eval(sys.argv[3])
