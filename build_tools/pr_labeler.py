@@ -53,7 +53,7 @@ content_paths_to_labels = [
     ("aeon/regression/", "regression"),
     ("aeon/segmentation/", "segmentation"),
     ("aeon/similarity_search/", "similarity search"),
-    ("aeon/transformations/", "transformation"),
+    ("aeon/transformations/", "transformations"),
 ]
 
 present_content_labels = [

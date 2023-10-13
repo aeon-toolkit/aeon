@@ -48,29 +48,32 @@ if len(title_labels) == 0:
         "requests titles. For now you can add the labels manually."
     )
 elif len(title_labels_new) != 0:
+    arr_str = str(title_labels_new).replace("[]'", "")
     title_labels_str = (
-        "I have added the following labels to this PR based on the "
-        f"title: **[ {str(title_labels_new).strip('[]')} ]**."
+        "I have added the following labels to this PR based on the title: "
+        f"**[ {arr_str} ]**."
     )
     if len(title_labels) != len(title_labels_new):
+        arr_str = str(set(title_labels) - set(title_labels_new)).replace("[]'", "")
         title_labels_str += (
-            " The following labels were already present: "
-            f"**[ {str(set(title_labels) - set(title_labels_new)).strip('[]')} ]**"
+            f" The following labels were already present: **[ {arr_str} ]**"
         )
 
 
 content_labels_str = ""
 if len(content_labels) != 0:
     if content_labels_status == "used":
+        arr_str = str(content_labels).replace("[]'", "")
         content_labels_str = (
             "I have added the following labels to this PR based on "
-            f"the changes made: **[ {str(content_labels).strip('[]')} ]**. Feel free "
+            f"the changes made: **[ {arr_str} ]**. Feel free "
             "to change these if they do not properly represent the PR."
         )
     elif content_labels_status == "ignored":
+        arr_str = str(content_labels).replace("[]'", "")
         content_labels_str = (
             "I would have added the following labels to this PR "
-            f"based on the changes made: **[ {str(content_labels).strip('[]')} ]**, "
+            f"based on the changes made: **[ {arr_str} ]**, "
             "however some package labels are already present."
         )
     elif content_labels_status == "large":
