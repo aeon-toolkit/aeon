@@ -92,7 +92,7 @@ elif title_labels_str == "":
 
 pr.create_issue_comment(
     f"""
-Thank you for contributing to `aeon`!
+## Thank you for contributing to `aeon`!
 
 {title_labels_str}
 {content_labels_str}
