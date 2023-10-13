@@ -3,7 +3,6 @@
 Includes output from the labeler action.
 """
 
-import ast
 import json
 import os
 import sys
@@ -19,9 +18,9 @@ pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 
 print(sys.argv)  # noqa
-title_labels = ast.literal_eval(sys.argv[1])
-title_labels_new = ast.literal_eval(sys.argv[2])
-content_labels = ast.literal_eval(sys.argv[3])
+title_labels = sys.argv[1][1:-1].split(", ")
+title_labels_new = sys.argv[2][1:-1].split(", ")
+content_labels = sys.argv[3][1:-1].split(", ")
 content_labels_status = sys.argv[4]
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
