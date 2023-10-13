@@ -25,17 +25,17 @@ content_labels_status = sys.argv[4]
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, labels)
+    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels
 ]
 title_labels_new = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, labels)
+    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels_new
 ]
 content_labels = [
-    "$\\color{%s}{\\textsf{%s}}$" % (color, labels)
+    "$\\color{%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in content_labels
 ]
@@ -93,7 +93,7 @@ Thank you for contributing to `aeon`!
 {title_labels_str}
 {content_labels_str}
 
-The 'Checks' tab above or the panel below will show the status of our automated tests. From the panel below you can click on 'Details' to the right of the check to see more information if there is a failure. If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR.
+The "Checks" tab above or the panel below will show the status of our automated tests. From the panel below you can click on "Details" to the right of the check to see more information if there is a failure. If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR.
 
 Don't hesitate to ask questions on the `aeon` Slack channel if you have any!
     """  # noqa
