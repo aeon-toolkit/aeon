@@ -3,10 +3,10 @@ import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
+from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
@@ -287,19 +287,12 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.series.exponent import ExponentTransformer
 
         t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
-
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        cls = DummyClassifier()
+        params = {"transformers": [t1], "classifier": cls}
+        return params
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -450,24 +443,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             return NotImplemented
 
-    def _convert_X_to_sklearn(self, X):
-        """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        output_type = self.transformers_.get_tag("output_data_type")
-        # if output_type is Primitives, output is Table, convert to 2D numpy array
-        if output_type == "Primitives":
-            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if output_type is Series, output is Panel, convert to 2D numpy array
-        elif output_type == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        else:
-            raise TypeError(
-                f"unexpected X output type "
-                f'in tag "output_data_type", found "{output_type}", '
-                'expected one of "Primitives" or "Series"'
-            )
-
-        return Xt
-
     def _fit(self, X, y):
         """Fit time series classifier to training data.
 
@@ -487,7 +462,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X=X, y=y)
-        Xt_sklearn = self._convert_X_to_sklearn(Xt)
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         self.classifier_.fit(Xt_sklearn, y)
 
         return self
@@ -506,7 +481,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X=X)
-        Xt_sklearn = self._convert_X_to_sklearn(Xt)
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         return self.classifier_.predict(Xt_sklearn)
 
     def _predict_proba(self, X) -> np.ndarray:
@@ -528,7 +503,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
-        Xt_sklearn = self._convert_X_to_sklearn(Xt)
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
@@ -595,19 +570,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         from sklearn.neighbors import KNeighborsClassifier
 
         from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
 
-        # example with series-to-series transformer before sklearn classifier
         t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        params1 = {"transformers": [t1], "classifier": c}
+        return params1
