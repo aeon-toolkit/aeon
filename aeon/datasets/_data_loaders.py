@@ -266,7 +266,7 @@ def _load_saved_dataset(
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d. If None will load 3D numpy or list of numpy
-        There other options, see datatypes.SCITYPE_REGISTER, but these
+        There other options, see datatypes.DATATYPE_REGISTER, but these
         will not necessarily be supported longterm.
     local_module: default = os.path.dirname(__file__),
     local_dirname: default = "data"

@@ -5,10 +5,8 @@ __author__ = ["fkiraly"]
 __all__ = ["retrieve_scenarios"]
 
 
-from inspect import isclass
-
 from aeon.base import BaseObject
-from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_SCITYPE_LIST, scitype
+from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, get_identifiers
 from aeon.utils._testing.scenarios_classification import (
     scenarios_classification,
     scenarios_early_classification,
@@ -28,7 +26,7 @@ scenarios["transformer"] = scenarios_transformers
 
 
 def retrieve_scenarios(obj, filter_tags=None):
-    """Retrieve test scenarios for obj, or by estimator scitype string.
+    """Retrieve test scenarios for obj, or by estimator type string.
 
     Exactly one of the arguments obj, estimator_type must be provided.
 
@@ -52,15 +50,15 @@ def retrieve_scenarios(obj, filter_tags=None):
     """
     if not isinstance(obj, (str, BaseObject)) and not issubclass(obj, BaseObject):
         raise TypeError("obj must be a str or inherit from BaseObject")
-    if isinstance(obj, str) and obj not in BASE_CLASS_SCITYPE_LIST:
+    if isinstance(obj, str) and obj not in BASE_CLASS_IDENTIFIER_LIST:
         raise ValueError(
-            "if obj is a str, then obj must be a valid scitype string, "
-            "see registry.BASE_CLASS_SCITYPE_LIST for valid scitype strings"
+            "if obj is a str, then obj must be a valid identifier, "
+            "see registry.BASE_CLASS_IDENTIFIER_LIST for valid identifier strings"
         )
 
-    # if class, get scitypes from inference; otherwise, str or list of str
+    # if class, get identifier from inference; otherwise, str or list of str
     if not isinstance(obj, str):
-        estimator_type = scitype(obj)
+        estimator_type = get_identifiers(obj)
     else:
         estimator_type = obj
 
@@ -88,20 +86,6 @@ def retrieve_scenarios(obj, filter_tags=None):
         ]
 
     return scenarios_for_type
-
-
-def _scitype_from_class(obj):
-    """Return scitype string given class or object."""
-    if obj is None:
-        raise ValueError("obj must not be None")
-    if not isclass(obj):
-        obj = type(obj)
-    if not isinstance(obj, tuple(BASE_CLASS_LIST)):
-        raise TypeError("obj must be instance of an aeon base class, or a base class")
-
-    for i in range(len(BASE_CLASS_SCITYPE_LIST)):
-        if isinstance(obj, BASE_CLASS_LIST[i]):
-            return BASE_CLASS_SCITYPE_LIST[i]
 
 
 def _check_tag_cond(obj, filter_tags=None):

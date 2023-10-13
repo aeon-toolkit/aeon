@@ -9,7 +9,7 @@ from aeon.datatypes._utilities import get_window
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
 # prepare tags to clone - exceptions are TAGS_TO_KEEP
-TAGS_TO_KEEP = ["fit_is_empty", "X_inner_mtype", "y_inner_mtype"]
+TAGS_TO_KEEP = ["fit_is_empty", "X_inner_mtype", "y_inner_type"]
 # fit must be executed to fit the wrapped estimator and remember the cutoff
 # mtype tags are set so X/y is passed through, conversions happen in wrapped estimator
 TAGS_TO_CLONE = _DelegatedForecaster().get_tags().keys()
@@ -51,7 +51,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
     }
 
@@ -79,13 +79,13 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
@@ -122,13 +122,13 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : pd.DataFrame, optional (default=None)
             Exogenous time series
         update_params : bool, optional (default=True)
@@ -236,7 +236,7 @@ class UpdateEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
     }
 
@@ -260,13 +260,13 @@ class UpdateEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
@@ -303,13 +303,13 @@ class UpdateEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : pd.DataFrame, optional (default=None)
             Exogenous time series
         update_params : bool, optional (default=True)
@@ -401,7 +401,7 @@ class DontUpdate(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
     }
 
@@ -431,13 +431,13 @@ class DontUpdate(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : pd.DataFrame, optional (default=None)
             Exogenous time series
         update_params : bool, optional (default=True)

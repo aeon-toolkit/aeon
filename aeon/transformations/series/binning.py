@@ -55,14 +55,14 @@ class TimeBinAggregate(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": False,
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # and for y?
+        "y_inner_type": "None",  # and for y?
         "capability:missing_values": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
@@ -104,7 +104,7 @@ class TimeBinAggregate(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

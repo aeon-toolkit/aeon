@@ -46,8 +46,8 @@ def inner_X_scitypes(est):
 
 class _DummyOne(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
         "X_inner_mtype": "numpy3D",
         "fit_is_empty": False,
     }
@@ -63,8 +63,8 @@ def test_series_in_series_out_not_supported_but_panel():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" does not support "Series" but does support "Panel"
             i.e., none of the mtypes in the list is "Series" but some are "Panel"
@@ -77,8 +77,8 @@ def test_series_in_series_out_not_supported_but_panel():
     assert "Panel" in inner_X_scitypes(est)
     assert "Series" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
 
@@ -90,8 +90,8 @@ def test_panel_in_panel_out_supported():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Panel"
 
@@ -102,8 +102,8 @@ def test_panel_in_panel_out_supported():
     est = cls.create_test_instance()
     assert "Panel" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
@@ -112,8 +112,8 @@ def test_panel_in_panel_out_supported():
 
 class _DummyTwo(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
         "X_inner_mtype": "np.ndarray",
         "univariate-only": True,
         "fit_is_empty": False,
@@ -127,8 +127,8 @@ def test_series_in_series_out_supported():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Series
 
@@ -139,8 +139,8 @@ def test_series_in_series_out_supported():
     est = cls.create_test_instance()
     assert "Series" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
@@ -151,8 +151,8 @@ def test_panel_in_panel_out_not_supported_but_series():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
 
@@ -165,8 +165,8 @@ def test_panel_in_panel_out_not_supported_but_series():
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
@@ -180,8 +180,8 @@ def test_vectorization_multivariate_no_row_vectorization_empty_fit():
 
     Setting: transformer has tags
         "univariate-only" = True
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Series"
 
@@ -193,8 +193,8 @@ def test_vectorization_multivariate_no_row_vectorization_empty_fit():
     est = FitInTransform(cls.create_test_instance())
     assert "Series" in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformSeriesMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
@@ -209,8 +209,8 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
 
@@ -223,8 +223,8 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series():
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformHierarchicalUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
@@ -240,8 +240,8 @@ def test_vectorization_multivariate_and_hierarchical():
 
     Setting: transformer has tags
         "univariate-only" = True
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical
 
@@ -254,8 +254,8 @@ def test_vectorization_multivariate_and_hierarchical():
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformHierarchicalMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
@@ -273,8 +273,8 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
 
     Setting: transformer has tags
         "univariate-only" = True
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical
 
@@ -287,8 +287,8 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformHierarchicalMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
@@ -301,8 +301,8 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
 
 class _DummyThree(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
         "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
     }
@@ -315,8 +315,8 @@ def test_series_in_series_out_supported_fit_in_transform():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Series"
 
@@ -327,8 +327,8 @@ def test_series_in_series_out_supported_fit_in_transform():
     est = cls.create_test_instance()
     assert "Series" in inner_X_scitypes(est)
     assert est.get_class_tag("fit_is_empty")
-    assert est.get_class_tag("scitype:transform-input") == "Series"
-    assert est.get_class_tag("scitype:transform-output") == "Series"
+    assert est.get_class_tag("input_data_type") == "Series"
+    assert est.get_class_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
@@ -339,8 +339,8 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
 
@@ -353,8 +353,8 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformHierarchicalUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
@@ -365,10 +365,10 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
 
 class _DummyFour(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Primitives",
+        "input_data_type": "Series",
+        "output_data_type": "Primitives",
         "X_inner_mtype": ["pd.DataFrame"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "fit_is_empty": True,
     }
 
@@ -380,8 +380,8 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
+        "input_data_type" = "Series"
+        "output_data_type" = "Primitives"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Series"
 
@@ -392,8 +392,8 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     est = cls.create_test_instance()
     assert "Series" in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
@@ -406,8 +406,8 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
+        "input_data_type" = "Series"
+        "output_data_type" = "Primitives"
         "fit_is_empty" = True
         "X_inner_mtype" does not support "Panel", but does supports "Series"
 
@@ -420,8 +420,8 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     assert "Panel" not in inner_X_scitypes(est)
     assert "Hierarchical" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
@@ -459,8 +459,8 @@ def test_vectorize_reconstruct_correct_hierarchy():
 
 class _DummyFive(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Primitives",
+        "input_data_type": "Series",
+        "output_data_type": "Primitives",
         "X_inner_mtype": ["numpy3D"],
         "fit_is_empty": True,
     }
@@ -473,8 +473,8 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
+        "input_data_type" = "Series"
+        "output_data_type" = "Primitives"
         "fit_is_empty" = True
         "X_inner_mtype" supports "Panel" but does not support "Series"
 
@@ -486,8 +486,8 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
     assert "Panel" in inner_X_scitypes(est)
     assert "Series" not in inner_X_scitypes(est)
     assert est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
@@ -498,8 +498,8 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
 
 class _DummySix(BaseTransformer):
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Primitives",
+        "input_data_type": "Series",
+        "output_data_type": "Primitives",
         "X_inner_mtype": ["numpy3D"],
         "fit_is_empty": False,
         "requires_y": True,
@@ -513,8 +513,8 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Primitives"
+        "input_data_type" = "Series"
+        "output_data_type" = "Primitives"
         "fit_is_empty" = False
         "requires_y" = True
         "X_inner_mtype" supports "Panel"
@@ -527,8 +527,8 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     assert "Panel" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("requires_y")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Primitives"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformPanelUnivariateWithClassYOnlyFit()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
     valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
@@ -544,8 +544,8 @@ def test_vectorization_multivariate_no_row_vectorization():
 
     Setting: transformer has tags
         "univariate-only" = True
-        "scitype:transform-input" = "Series"
-        "scitype:transform-output" = "Series"
+        "input_data_type" = "Series"
+        "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_mtype" supports "Series"
 
@@ -556,8 +556,8 @@ def test_vectorization_multivariate_no_row_vectorization():
     est = cls.create_test_instance()
     assert "Series" in inner_X_scitypes(est)
     assert not est.get_tag("fit_is_empty")
-    assert est.get_tag("scitype:transform-input") == "Series"
-    assert est.get_tag("scitype:transform-output") == "Series"
+    assert est.get_tag("input_data_type") == "Series"
+    assert est.get_tag("output_data_type") == "Series"
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformSeriesMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])

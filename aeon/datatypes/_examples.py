@@ -84,7 +84,7 @@ def get_examples(
     mtype: str - name of the mtype for the example, a valid mtype string
         valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
     as_scitype : str, optional - name of scitype of the example, a valid scitype string
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
         default = inferred from mtype of obj
     return_lossy: bool, optional, default=False
         whether to return second argument

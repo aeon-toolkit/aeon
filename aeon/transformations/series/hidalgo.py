@@ -85,9 +85,9 @@ class Hidalgo(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "transform-returns-same-time-index": True,
         "univariate-only": False,
@@ -662,7 +662,7 @@ class Hidalgo(BaseTransformer):
         X : Series of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series of mtype y_inner_mtype, default=None
+        y : Series of mtype y_inner_type, default=None
             Not used in this unsupervised implementation
 
         Returns

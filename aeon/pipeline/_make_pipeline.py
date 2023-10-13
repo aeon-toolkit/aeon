@@ -14,7 +14,7 @@ def make_pipeline(*steps):
     Returns
     -------
     pipe : aeon pipeline containing steps, in order
-        always a descendant of BaseObject, precise object determined by scitype
+        always a descendant of BaseObject, precise object determined by
         equivalent to result of step[0] * step[1] * ... * step[-1]
 
     Examples

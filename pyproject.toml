@@ -82,6 +82,7 @@ all_extras = [
     "tslearn>=0.5.2,<0.6.0",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
+    "imbalanced-learn",
 ]
 dl = [
     "keras-self-attention",

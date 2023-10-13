@@ -1,9 +1,10 @@
 """Test input for the BaseCollectionTransformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 
 import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 
 from aeon.datatypes import convert_to
 from aeon.transformations.collection import (
@@ -77,6 +78,24 @@ def test_collection_transformer_wrapper_collection(data_gen):
     assert Xt[0].ndim == 2
 
 
+def test_inverse_transform():
+    """Test inverse transform."""
+    d = _Dummy()
+    x, _ = make_3d_test_data()
+    d.fit(x)
+    d.set_tags(**{"skip-inverse-transform": True})
+    x2 = d.inverse_transform(x)
+    assert_almost_equal(x, x2)
+    d.set_tags(**{"skip-inverse-transform": False})
+    with pytest.raises(
+        NotImplementedError, match="does not implement " "inverse_transform"
+    ):
+        d.inverse_transform(x)
+    d.set_tags(**{"capability:inverse_transform": True})
+    x2 = d.inverse_transform(x)
+    assert_almost_equal(x, x2)
+
+
 class _Dummy(BaseCollectionTransformer):
     """Dummy transformer for testing.
 
@@ -96,4 +115,7 @@ class _Dummy(BaseCollectionTransformer):
         assert isinstance(X, np.ndarray) or isinstance(X, list)
         if isinstance(X, np.ndarray):
             return [x for x in X]
+        return X
+
+    def _inverse_transform(self, X, y=None):
         return X

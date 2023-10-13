@@ -29,10 +29,10 @@ class DWTTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
+        "output_data_type": "Series",
+        "instancewise": False,
         "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "fit_is_empty": True,
     }
 
