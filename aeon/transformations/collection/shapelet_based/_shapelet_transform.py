@@ -176,13 +176,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.random_state = random_state
 
         # The following set in method fit
-        self.n_classes = 0
-        self.n_instances = 0
-        self.n_channels = 0
-        self.series_length = 0
+        self.n_classes_ = 0
+        self.n_instances_ = 0
+        self.n_channels_ = 0
+        self.min_series_length_ = 0
         self.classes_ = []
         self.shapelets = []
 
+        # Protected attributes
         self._n_shapelet_samples = n_shapelet_samples
         self._max_shapelets = max_shapelets
         self._max_shapelet_length = max_shapelet_length
@@ -194,12 +195,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         super(RandomShapeletTransform, self).__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X, y):
         """Fit the shapelet transform to a specified X and y.
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, series_length)
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -212,38 +213,38 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.classes_, self._class_counts = np.unique(y, return_counts=True)
-        self.n_classes = self.classes_.shape[0]
+        self.n_classes_ = self.classes_.shape[0]
         for index, classVal in enumerate(self.classes_):
             self._class_dictionary[classVal] = index
 
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
 
-        self.n_instances = len(X)
-        self.n_channels = X[0].shape[0]
+        self.n_instances_ = len(X)
+        self.n_channels_ = X[0].shape[0]
         # Set series length to the minimum
-        self.series_length = X[0].shape[1]
-        for i in range(1, self.n_instances):
-            if X[i].shape[1] < self.series_length:
-                self.series_length = X[i].shape[1]
+        self.min_series_length_ = X[0].shape[1]
+        for i in range(1, self.n_instances_):
+            if X[i].shape[1] < self.min_series_length_:
+                self.min_series_length_ = X[i].shape[1]
 
         if self.max_shapelets is None:
-            self._max_shapelets = min(10 * self.n_instances, 1000)
-        if self._max_shapelets < self.n_classes:
-            self._max_shapelets = self.n_classes
+            self._max_shapelets = min(10 * self.n_instances_, 1000)
+        if self._max_shapelets < self.n_classes_:
+            self._max_shapelets = self.n_classes_
         if self.max_shapelet_length is None:
-            self._max_shapelet_length = self.series_length
+            self._max_shapelet_length = self.min_series_length_
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         fit_time = 0
 
-        max_shapelets_per_class = int(self._max_shapelets / self.n_classes)
+        max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
         # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
         shapelets = List(
-            [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes)]
+            [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes_)]
         )
         n_shapelets_extracted = 0
 
@@ -409,7 +410,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def _extract_random_shapelet(
         self, X, y, i, shapelets, max_shapelets_per_class, rng
     ):
-        inst_idx = i % self.n_instances
+        inst_idx = i % self.n_instances_
         cls_idx = int(y[inst_idx])
         worst_quality = (
             shapelets[cls_idx][0][0]
@@ -421,8 +422,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             rng.randint(0, self._max_shapelet_length - self.min_shapelet_length)
             + self.min_shapelet_length
         )
-        position = rng.randint(0, self.series_length - length)
-        channel = rng.randint(0, self.n_channels)
+        position = rng.randint(0, self.min_series_length_ - length)
+        channel = rng.randint(0, self.n_channels_)
 
         shapelet = z_normalise_series(
             X[inst_idx][channel][position : position + length]
@@ -442,7 +443,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             channel,
             inst_idx,
             self._class_counts[cls_idx],
-            self.n_instances - self._class_counts[cls_idx],
+            self.n_instances_ - self._class_counts[cls_idx],
             worst_quality,
         )
 
