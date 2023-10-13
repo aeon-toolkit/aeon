@@ -56,6 +56,10 @@ content_paths_to_labels = [
     ("aeon/transformations/", "transformation"),
 ]
 
+present_content_labels = [
+    label for _, label in content_paths_to_labels if label in labels
+]
+
 content_labels = [
     label
     for package, label in content_paths_to_labels
@@ -65,12 +69,14 @@ content_labels = list(set(content_labels))
 
 content_labels_to_add = content_labels
 content_labels_status = "used"
-if len(set(title_labels) - labels) > 0:
+if len(present_content_labels) > 0:
     content_labels_to_add = []
     content_labels_status = "ignored"
-elif len(content_labels) > 3:
+if len(content_labels) > 3:
     content_labels_to_add = []
-    content_labels_status = "large"
+    content_labels_status = (
+        "large" if content_labels_status != "ignored" else "ignored+large"
+    )
 
 # add to PR
 if title_labels_to_add or content_labels_to_add:
@@ -79,5 +85,7 @@ if title_labels_to_add or content_labels_to_add:
 with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
     print(f"title-labels={title_labels}", file=fh)  # noqa: T201
     print(f"title-labels-new={title_labels_to_add}", file=fh)  # noqa: T201
+    print(f"content-labels={content_labels}", file=fh)  # noqa: T201
     print(f"content-labels-new={content_labels_to_add}", file=fh)  # noqa: T201
     print(f"content-labels-status={content_labels_status}", file=fh)  # noqa: T201
+    print(f"present-content-labels={present_content_labels}", file=fh)  # noqa: T201
