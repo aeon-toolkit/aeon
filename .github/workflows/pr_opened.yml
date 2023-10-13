@@ -34,6 +34,6 @@ jobs:
           CONTEXT_GITHUB: ${{ toJson(github) }}
 
       - name: Write pull request comment
-        run: python build_tools/pr_open_commenter.py ${{ steps.label-pr.outputs.title-labels }} ${{ steps.label-pr.outputs.title-labels-new }} ${{ steps.label-pr.outputs.content-labels-new }} ${{ steps.label-pr.outputs.content-labels-status }}
+        run: python build_tools/pr_open_commenter.py ${{ steps.label-pr.outputs.title-labels }} ${{ steps.label-pr.outputs.title-labels-new }} ${{ steps.label-pr.outputs.content-labels }} ${{ steps.label-pr.outputs.content-labels-status }}
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}

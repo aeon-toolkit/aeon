@@ -18,7 +18,7 @@ g = Github(context_dict["token"])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
-labels = set([label.name for label in pr.get_labels()])
+labels = [label.name for label in pr.get_labels()]
 
 # title labels
 title = pr.title
@@ -34,7 +34,7 @@ title_regex_to_labels = [
 title_labels = [
     label for regex, label in title_regex_to_labels if re.search(regex, title)
 ]
-title_labels_to_add = list(set(title_labels) - labels)
+title_labels_to_add = list(set(title_labels) - set(labels))
 
 # content labels
 paths = [file.filename for file in pr.get_files()]
