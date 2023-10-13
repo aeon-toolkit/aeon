@@ -226,6 +226,8 @@ class MatrixProfile(BaseCollectionTransformer):
         Xt : Matrix profile series
         """
         # Input checks
+        import pandas as pd
+
         n_instances = len(X)
-        Xt = np.ndarray([_stomp_self(X[i], self.m) for i in range(n_instances)])
+        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_instances)])
         return Xt
