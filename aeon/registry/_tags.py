@@ -5,13 +5,14 @@ No other place is necessary to add new tags.
 
 This module exports the following:
 
+
 ---
 ESTIMATOR_TAG_REGISTER - list of tuples
 
 each tuple corresponds to a tag, elements as follows:
     0 : string - name of the tag as used in the _tags dictionary
-    1 : string - name of the scitype this tag applies to
-                 must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+    1 : string - identifier for the base class of objects this tag applies to
+                 must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
     2 : string - expected type of the tag value
         should be one of:
             "bool" - valid values are True/False
@@ -117,13 +118,13 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:y",
+        "y_input_type",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
         "which series type does the forecaster support? multivariate means >1 vars",
     ),
     (
-        "y_inner_mtype",
+        "y_inner_type",
         ["forecaster", "transformer"],
         (
             "list",
@@ -158,28 +159,28 @@ ESTIMATOR_TAG_REGISTER = [
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "scitype:transform-input",
+        "input_data_type",
         "transformer",
-        ("list", ["Series", "Panel"]),
-        "what is the scitype of the transformer input X",
+        ("list", ["Series", "Panel", "Collection"]),
+        "The abstract data type of the transformer input X",
     ),
     (
-        "scitype:transform-output",
+        "output_data_type",
         "transformer",
         ("list", ["Series", "Primitives", "Panel"]),
-        "what is the scitype of the transformer output, the transformed X",
+        "The input abstract data type of the transformer output, the transformed X",
     ),
     (
-        "scitype:instancewise",
+        "instancewise",
         "transformer",
         "bool",
-        "does the transformer transform instances independently?",
+        "Does the transformer transform instances independently?",
     ),
     (
-        "scitype:transform-labels",
+        "transform_labels",
         "transformer",
         ("list", ["None", "Series", "Primitives", "Panel"]),
-        "what is the scitype of y: None (not needed), Primitives, Series, Panel?",
+        "What is the type of y: None (not needed), Primitives, Series, Panel?",
     ),
     (
         "requires_y",
@@ -212,6 +213,7 @@ ESTIMATOR_TAG_REGISTER = [
             "clusterer",
             "early_classifier",
             "regressor",
+            "transformer",
         ],
         "bool",
         "can the estimator classify time series with 2 or more variables?",
@@ -280,20 +282,20 @@ ESTIMATOR_TAG_REGISTER = [
                 "deeplearning",
             ],
         ),
-        "which type the estimator falls under in the taxonomy of time series "
+        "Which type the estimator falls under in the taxonomy of time series "
         "machine learning algorithms.",
     ),
     (
         "requires-y-train",
         "metric",
         "bool",
-        "does metric require y-train data to be passed?",
+        "Does metric require y-train data to be passed?",
     ),
     (
         "requires-y-pred-benchmark",
         "metric",
         "bool",
-        "does metric require a predictive benchmark?",
+        "Does metric require a predictive benchmark?",
     ),
     (
         "univariate-metric",
@@ -302,10 +304,10 @@ ESTIMATOR_TAG_REGISTER = [
         "Does the metric only work on univariate y data?",
     ),
     (
-        "scitype:y_pred",
+        "y_input_type_pred",
         "metric",
         "str",
-        "What is the scitype of y_pred: quantiles, proba, interval?",
+        "What is the type of y_pred: quantiles, proba, interval?",
     ),
     (
         "lower_is_better",

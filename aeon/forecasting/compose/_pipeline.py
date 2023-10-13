@@ -368,8 +368,8 @@ class ForecastingPipeline(_Pipeline):
     """
 
     _tags = {
-        "scitype:y": "both",
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_input_type": "both",
+        "y_inner_type": SUPPORTED_MTYPES,
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
@@ -780,8 +780,8 @@ class TransformedTargetForecaster(_Pipeline):
     """
 
     _tags = {
-        "scitype:y": "both",
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_input_type": "both",
+        "y_inner_type": SUPPORTED_MTYPES,
         "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
@@ -1201,7 +1201,7 @@ class ForecastX(BaseForecaster):
 
     _tags = {
         "X_inner_mtype": SUPPORTED_MTYPES,
-        "y_inner_mtype": SUPPORTED_MTYPES,
+        "y_inner_type": SUPPORTED_MTYPES,
         "X-y-must-have-same-index": False,
         "fit_is_empty": False,
         "ignores-exogeneous-X": False,
@@ -1380,7 +1380,7 @@ class ForecastX(BaseForecaster):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -1413,7 +1413,7 @@ class ForecastX(BaseForecaster):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """
@@ -1444,7 +1444,7 @@ class ForecastX(BaseForecaster):
                 Column names are exactly those of `y` passed in `fit`/`update`.
                     For nameless formats, column index will be a RangeIndex.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are variance forecasts, for var in col index.
                 A variance forecast for given variable and fh index is a predicted
                     variance for that variable and index, given observed data.
@@ -1452,7 +1452,7 @@ class ForecastX(BaseForecaster):
                 Column index is a multiindex: 1st level is variable names (as above)
                     2nd level is fh.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are (co-)variance forecasts, for var in col index, and
                     covariance between time index in row and col.
                 Note: no covariance forecasts are returned between different variables.
@@ -1598,8 +1598,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     """
 
     _tags = {
-        "scitype:y": "both",
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_input_type": "both",
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
