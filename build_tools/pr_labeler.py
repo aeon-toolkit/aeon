@@ -18,7 +18,7 @@ g = Github(context_dict["token"])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
-labels = pr.get_labels()
+labels = [label.name for label in pr.get_labels()]
 
 print(list(labels))  # noqa: T201
 
@@ -62,7 +62,9 @@ content_paths_to_labels = [
 ]
 
 content_labels_to_add = [
-    label for path, label in content_paths_to_labels if path in paths
+    label
+    for package, label in content_paths_to_labels
+    if any([package in path for path in paths])
 ]
 content_labels_to_add = list(set(content_labels_to_add))
 content_labels_to_add = [] if len(content_labels_to_add) > 3 else content_labels_to_add
