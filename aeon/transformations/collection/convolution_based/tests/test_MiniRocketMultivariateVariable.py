@@ -14,7 +14,7 @@ from aeon.transformations.collection.convolution_based import (
 def test_minirocket_multivariate_variable_on_japanese_vowels():
     """Test of MiniRocketMultivariate on japanese vowels."""
     # load training data
-    X_training, Y_training = load_japanese_vowels(split="train", return_X_y=True)
+    X_training, Y_training = load_japanese_vowels(split="train")
 
     # 'fit' MINIROCKET -> infer data dimensions, generate random kernels
     num_kernels = 10_000
@@ -45,7 +45,7 @@ def test_minirocket_multivariate_variable_on_japanese_vowels():
     classifier.fit(X_training_transform, Y_training)
 
     # load test data
-    X_test, Y_test = load_japanese_vowels(split="test", return_X_y=True)
+    X_test, Y_test = load_japanese_vowels(split="test")
 
     # transform test data
     X_test_transform = minirocket_mv_var.transform(X_test)
