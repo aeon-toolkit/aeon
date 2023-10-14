@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Pipeline making utility."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["fkiraly"]
 
@@ -16,7 +14,7 @@ def make_pipeline(*steps):
     Returns
     -------
     pipe : aeon pipeline containing steps, in order
-        always a descendant of BaseObject, precise object determined by scitype
+        always a descendant of BaseObject, precise object determined by
         equivalent to result of step[0] * step[1] * ... * step[-1]
 
     Examples

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements forecaster for applying different univariates by column."""
 
 __author__ = ["GuzalBulatova", "mloning", "fkiraly"]
@@ -80,9 +77,9 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": PANDAS_MTYPES,
+        "y_inner_type": PANDAS_MTYPES,
         "X_inner_mtype": PANDAS_MTYPES,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,

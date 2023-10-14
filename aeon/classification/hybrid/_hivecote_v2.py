@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
 Upgraded hybrid ensemble of classifiers from 4 separate time series classification
@@ -27,7 +25,7 @@ class HIVECOTEV2(BaseClassifier):
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
     An ensemble of the STC, DrCIF, Arsenal and TDE classifiers from different feature
-    representations using the CAWPE structure as described in [1].
+    representations using the CAWPE structure as described in [1]_.
 
     Parameters
     ----------

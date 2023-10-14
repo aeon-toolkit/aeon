@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Multivariate MiniRocket transformer."""
 
 __author__ = ["angus924", "michaelfeil"]
@@ -83,8 +82,8 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
+        "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_mtype": "df-list",
     }

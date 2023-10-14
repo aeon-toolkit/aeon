@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests the conformal interval wrapper."""
 
 __author__ = ["fkiraly", "bethrice44"]
@@ -48,7 +46,7 @@ def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     We test once with an internal forecaster that needs pd.DataFrame conversion,
     and one that accepts pd.Series.
     We do this with a trick: the vanilla NaiveForecaster can accept both; we mimick a
-    "pd.DataFrame only" forecaster by restricting its y_inner_mtype tag to pd.Series.
+    "pd.DataFrame only" forecaster by restricting its y_inner_type tag to pd.Series.
     """
     y = load_airline()
     y = convert_to(y, to_type=input_type)
@@ -56,7 +54,7 @@ def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     f = NaiveForecaster()
 
     if override_y_type:
-        f.set_tags(**{"y_inner_mtype": "pd.DataFrame"})
+        f.set_tags(**{"y_inner_type": "pd.DataFrame"})
 
     interval_forecaster = wrapper(f)
     interval_forecaster.fit(y, fh=[1, 2, 3])

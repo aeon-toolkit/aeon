@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Utility functions for generating collections of time series."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [

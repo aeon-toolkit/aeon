@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Configuration file for the Sphinx documentation builder."""
 
 import os
@@ -46,6 +44,7 @@ extensions = [
     "sphinx_issues",
     "sphinx_copybutton",
     "sphinx_remove_toctrees",
+    "versionwarning.extension",
     "myst_parser",
 ]
 
@@ -349,10 +348,10 @@ Generated using nbsphinx_. The Jupyter notebook can be found here_.
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/{.major}".format(sys.version_info), None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
-    "matplotlib": ("https://matplotlib.org/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
     "scikit-learn": ("https://scikit-learn.org/stable/", None),

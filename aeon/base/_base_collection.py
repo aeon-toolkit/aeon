@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base class for estimators that fit collections of time series."""
 
 from aeon.base._base import BaseEstimator

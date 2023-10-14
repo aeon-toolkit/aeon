@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """KNN time series classification.
 
 A KNN classifier which supports time series distance measures.
@@ -19,11 +18,9 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesClassifier(BaseClassifier):
     """
-    KNN Time Series Classifier.
+    K-Nearest Neighbour Time Series Classifier.
 
-    An adapted K-Neighbors Classifier for time series data.
-
-    This class is a KNN classifier which supports time series distance measures.
+    A KNN classifier which supports time series distance measures.
     It has hardcoded string references to numba based distances in aeon.distances,
     and can also be used with callables, or aeon (pairwise transformer) estimators.
 

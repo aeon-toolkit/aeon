@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Theta forecasters."""
 
 __all__ = ["ThetaForecaster", "ThetaModularForecaster"]
@@ -88,7 +86,7 @@ class ThetaForecaster(ExponentialSmoothing):
 
     _fitted_param_names = ("initial_level", "smoothing_level")
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
@@ -366,7 +364,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     _tags = {
         "univariate-only": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
     }

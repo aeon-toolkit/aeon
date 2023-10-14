@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for classification."""
 
 __author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
@@ -18,7 +17,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 class CNNClassifier(BaseDeepClassifier):
     """
-    Time Convolutional Neural Network (CNN), as described in [1]_.
+    Time Convolutional Neural Network (CNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
@@ -56,11 +57,11 @@ class CNNClassifier(BaseDeepClassifier):
         The number of samples per gradient update.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : string, default="mean_squared_error"
+    loss : string, default = "mean_squared_error"
         Fit parameter for the keras model.
-    optimizer : keras.optimizer, default=keras.optimizers.Adam()
-    metrics : list of strings, default=["accuracy"]
-    callbacks : keras.callbacks, default=model_checkpoint
+    optimizer : keras.optimizer, default = keras.optimizers.Adam()
+    metrics : list of strings, default = ["accuracy"]
+    callbacks : keras.callbacks, default = model_checkpoint
         To save best model on training loss.
     file_path : file_path for the best model
         Only used if checkpoint is used as callback.
@@ -94,7 +95,7 @@ class CNNClassifier(BaseDeepClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> cnn = CNNClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> cnn = CNNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
     CNNClassifier(...)
     """
@@ -173,16 +174,16 @@ class CNNClassifier(BaseDeepClassifier):
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
+        In aeon, time series are stored in numpy arrays of shape (d, m), where d
         is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        data is in shape (m, d). This method also assumes (m, d). Transpose should
         happen in fit.
 
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
+            The shape of the data fed into the input layer, should be (m, d)
+        n_classes : int
             The number of classes, which becomes the size of the output layer
 
         Returns
@@ -290,9 +291,9 @@ class CNNClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return "default" set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -300,7 +301,7 @@ class CNNClassifier(BaseDeepClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

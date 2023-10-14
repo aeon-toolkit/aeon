@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Implements simple conformal forecast intervals.
 
 Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __all__ = ["ConformalIntervals"]
 __author__ = ["fkiraly", "bethrice44"]
@@ -89,7 +87,7 @@ class ConformalIntervals(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "ignores-exogeneous-X": False,
@@ -134,7 +132,7 @@ class ConformalIntervals(BaseForecaster):
             "requires-fh-in-fit",
             "ignores-exogeneous-X",
             "capability:missing_values",
-            "y_inner_mtype",
+            "y_inner_type",
             "X_inner_mtype",
             "X-y-must-have-same-index",
             "enforce_index_type",
@@ -204,7 +202,7 @@ class ConformalIntervals(BaseForecaster):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -285,7 +283,7 @@ class ConformalIntervals(BaseForecaster):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """

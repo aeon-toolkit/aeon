@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Registry of mtypes and scitypes.
 
 Note for extenders: new mtypes for an existing scitypes
     should be entered in the _registry in the module with name _[scitype].
-When adding a new scitype, add it in SCITYPE_REGISTER here.
+When adding a new scitype, add it in DATATYPE_REGISTER here.
 
 This module exports the following:
 
 ---
 
-SCITYPE_REGISTER - list of tuples
+DATATYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype tag, elements as follows:
     0 : string - name of the scitype as used throughout aeon and in datatypes
@@ -22,7 +20,7 @@ MTYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype, elements as follows:
     0 : string - name of the mtype as used throughout aeon and in datatypes
-    1 : string - name of the scitype the mtype is for, must be in SCITYPE_REGISTER
+    1 : string - name of the scitype the mtype is for, must be in DATATYPE_REGISTER
     2 : string - plain English description of the scitype
 
 ---
@@ -94,11 +92,11 @@ __all__ = [
     "MTYPE_LIST_TABLE",
     "MTYPE_LIST_PROBA",
     "MTYPE_SOFT_DEPS",
-    "SCITYPE_REGISTER",
+    "DATATYPE_REGISTER",
 ]
 
 
-SCITYPE_REGISTER = [
+DATATYPE_REGISTER = [
     ("Series", "uni- or multivariate time series"),
     ("Panel", "collection of uni- or multivariate time series"),
     ("Hierarchical", "hierarchical panel of time series with 3 or more levels"),
@@ -107,7 +105,7 @@ SCITYPE_REGISTER = [
     ("Proba", "probability distribution or distribution statistics, return types"),
 ]
 
-SCITYPE_LIST = [x[0] for x in SCITYPE_REGISTER]
+SCITYPE_LIST = [x[0] for x in DATATYPE_REGISTER]
 
 
 def mtype_to_scitype(mtype: str, return_unique=False, coerce_to_list=False):
@@ -175,7 +173,7 @@ def scitype_to_mtype(scitype: str, softdeps: str = "exclude"):
     ----------
     scitype : str, or list of str
         scitype(s) to find mtypes for, a valid scitype string
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
     softdeps : str, optional, default = "exclude"
         whether to return mtypes that require soft dependencies
         "exclude" = only mtypes that do not require soft dependencies are returned
@@ -213,7 +211,7 @@ def scitype_to_mtype(scitype: str, softdeps: str = "exclude"):
     # now we know scitype is a string, check if it is in the register
     if scitype not in SCITYPE_LIST:
         raise ValueError(
-            f'"{scitype}" is not a valid scitype string, see datatypes.SCITYPE_REGISTER'
+            f'"{scitype}" is not a valid type string, see datatypes.DATATYPE_REGISTER'
         )
 
     mtypes = [k[0] for k in MTYPE_REGISTER if k[1] == scitype]

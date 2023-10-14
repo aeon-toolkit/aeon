@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Vector Autoregressive Moving Average with eXogenous regressors model (VARMAX)."""
 __all__ = ["VARMAX"]
 __author__ = ["KatieBuc"]
@@ -207,10 +206,10 @@ class VARMAX(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "multivariate",
+        "y_input_type": "multivariate",
         "ignores-exogeneous-X": False,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
         "X_inner_mtype": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "X-y-must-have-same-index": True,

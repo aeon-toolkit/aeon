@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Wrapper for sklearn StandardScaler."""
 
 __author__ = ["TonyBagnall"]
@@ -72,6 +70,7 @@ class TimeSeriesScaler(BaseCollectionTransformer):
 
     _tags = {
         "X_inner_mtype": ["np-list", "numpy3D"],
+        "capability:multivariate": True,
         "capability:unequal_length": True,
     }
 

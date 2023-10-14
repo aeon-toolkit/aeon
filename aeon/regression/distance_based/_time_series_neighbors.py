@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """KNN time series regression.
 
 This class is a KNN regressor which supports time series distance measures.
@@ -19,7 +18,7 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """
-    KNN Time Series Regressor.
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 

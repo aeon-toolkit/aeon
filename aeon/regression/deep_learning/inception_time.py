@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """InceptionTime regressor."""
 
 __author__ = ["hadifawaz1999"]
@@ -21,7 +20,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class InceptionTimeRegressor(BaseRegressor):
     """InceptionTime ensemble regressor.
 
-    Ensemble of IndividualInceptionRegressor, as described in [1].
+    Ensemble of IndividualInceptionRegressor, as described in [1]_.
     This ensemble regressor is adapted from the classier InceptionTime
 
     Parameters

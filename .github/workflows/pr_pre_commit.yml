@@ -36,3 +36,6 @@ jobs:
       - name: Check for missing init files
         run: build_tools/fail_on_missing_init_files.sh
         shell: bash
+
+      - uses: pre-commit-ci/lite-action@v1.0.1
+        if: always()

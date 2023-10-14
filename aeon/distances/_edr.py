@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Edit distance for real sequences (EDR) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for transformer composition functionality attached to the base class."""
 
 __author__ = ["fkiraly"]
@@ -155,7 +153,7 @@ def test_featureunion_transform_cols():
 def test_sklearn_after_primitives():
     """Test that sklearn transformer after primitives is correctly applied."""
     t = SummaryTransformer() * StandardScaler()
-    assert t.get_tag("scitype:transform-output") == "Primitives"
+    assert t.get_tag("output_data_type") == "Primitives"
 
     X = get_examples("pd-multiindex")[0]
     X_out = t.fit_transform(X)
