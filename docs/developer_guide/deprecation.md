@@ -1,8 +1,3 @@
-.. _developer_guide_deprecation:
-
-===========
-Deprecation
-===========
 
 Deprecation policy
 ==================
@@ -25,6 +20,10 @@ Note that the deprecation policy does not necessarily apply to modules we class 
 still experimental. Currently experimental modules are:
 
 - annotation
+- anomaly detection
+- segmentation
+- similarity search
+
 
 When we introduce a new module, we may classify it as experimental until the API is
 stable. We will try not make drastic changes to experimental modules, but we need to
