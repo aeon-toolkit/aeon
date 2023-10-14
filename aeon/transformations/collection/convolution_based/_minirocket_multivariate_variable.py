@@ -1,6 +1,6 @@
 """Multivariate MiniRocket transformer."""
 
-__author__ = ["angus924", "michaelfeil"]
+__author__ = ["angus924", "michaelfeil", "TonyBagnall"]
 __all__ = ["MiniRocketMultivariateVariable"]
 
 import multiprocessing
@@ -134,7 +134,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : List of 2D dataframes
+        X : List of 2D np.ndarray
         y : ignored argument for interface compatibility
 
         Returns
@@ -202,15 +202,12 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : pd.DataFrame with nested columns
-            Dataframe with n_instances-rows and n_dimensions-columns,
-            each cell containing a series_length-long array
-
+        X : 2D list on np.ndarray
         y : ignored argument for interface compatibility
 
         Returns
         -------
-            pandas.DataFrame, size (n_instances, num_kernels)
+           np.ndarray, size (n_instances, num_kernels)
 
         Raises
         ------
@@ -284,80 +281,6 @@ def _np_list_transposed2D_array_and_len_list(
         else:
             lengths.append(_x_shape[1])
             vec.append(np.transpose(_x))
-
-    X_2d_t = np.vstack(vec).T.astype(dtype=np.float32)
-    lengths = np.array(lengths, dtype=np.int32)
-
-    if not lengths.sum() == X_2d_t.shape[1]:
-        raise ValueError("X_new and lengths do not match. check input dimension")
-
-    return X_2d_t, lengths
-
-
-def _nested_dataframe_to_transposed2D_array_and_len_list(
-    X: List[pd.DataFrame], pad: Union[int, float, None] = 0
-):
-    """Convert a nested dataframe to a 2D array and a list of lengths.
-
-    Parameters
-    ----------
-    X : List of dataframes
-        List of length n_instances, with
-        dataframes of series_length-rows and n_dimensions-columns
-    pad : float or None. if float/int,pads multivariate series with 'pad',
-        so that each series has at least length 9.
-        if None, no padding is applied.
-
-    Returns
-    -------
-    np.array: 2D array of shape =
-        [n_dimensions, sum(length_series(i) for i in n_instances)],
-        np.float32
-    np.array: 1D array of shape = [n_instances]
-        with length of each series, np.int32
-
-    Raises
-    ------
-    ValueError
-        If any multivariate series_length in X is < 9 and
-        pad_value_short_series is set to None
-    """
-    if not len(X):
-        raise ValueError("X is empty")
-
-    if isinstance(X, (tuple, list)) and isinstance(X[0], (pd.DataFrame, np.array)):
-        pass
-    else:
-        raise ValueError("X must be List of pd.DataFrame")
-
-    if not all(X[0].shape[1] == _x.shape[1] for _x in X):
-        raise ValueError(
-            "X must be nested pd.DataFrame or List of pd.DataFrame with n_dimensions"
-        )
-
-    vec = []
-    lengths = []
-
-    for _x in X:
-        _x_shape = _x.shape
-        if _x_shape[0] < 9:
-            if pad is not None:
-                # emergency: pad with zeros up to 9.
-                lengths.append(9)
-                vec.append(
-                    np.vstack(
-                        [_x.values, np.full([9 - _x_shape[0], _x_shape[1]], float(pad))]
-                    )
-                )
-            else:
-                raise ValueError(
-                    "X series_length must be >= 9 for all samples"
-                    f"but sample with series_length {_x_shape[0]} found. Consider"
-                    " padding, discard, or setting a pad_value_short_series value"
-                )
-        else:
-            lengths.append(_x_shape[0])
-            vec.append(_x.values)
 
     X_2d_t = np.vstack(vec).T.astype(dtype=np.float32)
     lengths = np.array(lengths, dtype=np.int32)
