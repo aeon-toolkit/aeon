@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-
 __author__ = ["Tomasz Chodakowski"]
 __all__ = ["TEST_YS", "TEST_YS_ZERO"]
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """InceptionTime classifier."""
 
 __author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
@@ -21,7 +20,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class InceptionTimeClassifier(BaseClassifier):
     """InceptionTime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1].
+    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1]_.
 
     Parameters
     ----------

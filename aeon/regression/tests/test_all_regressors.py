@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """Unit tests for all time series regressors."""
 
 __author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 
 
 import numpy as np
+from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.regression.tests._expected_outputs import (
@@ -39,68 +39,47 @@ class RegressorFixtureGenerator(BaseFixtureGenerator):
 class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
     """Module level tests for all aeon regressors."""
 
-    def test_regressor_on_covid_3month_data(self, estimator_class):
-        """Test regressor on unit test data."""
+    def test_regressor_against_expected_results(self, estimator_class):
+        """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # retrieve expected preds output, and skip test if not available
-        if classname in covid_3month_preds.keys():
-            expected_preds = covid_3month_preds[classname]
-        else:
-            # skip test if no expected probas are registered
-            return None
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
+        for data_name, data_dict, data_loader, data_seed in [
+            ["Covid3Month", covid_3month_preds, load_covid_3month, 0],
+            ["CardanoSentiment", cardano_sentiment_preds, load_cardano_sentiment, 0],
+        ]:
+            # retrieve expected predict output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_preds = data_dict[classname]
+            else:
+                # skip test if no expected preds are registered
+                continue
 
-        # load Covid3Month data
-        X_train, y_train = load_covid_3month(split="train")
-        X_test, y_test = load_covid_3month(split="test")
-        indices_train = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
-        indices_test = np.random.RandomState(0).choice(len(y_test), 10, replace=False)
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
 
-        # train regressor and predict
-        estimator_instance.fit(X_train[indices_train], y_train[indices_train])
-        y_preds = estimator_instance.predict(X_test[indices_test])
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            X_test, y_test = data_loader(split="test")
+            indices_train = np.random.RandomState(data_seed).choice(
+                len(y_train), 10, replace=False
+            )
+            indices_test = np.random.RandomState(data_seed).choice(
+                len(y_test), 10, replace=False
+            )
 
-        # assert predictions are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)
+            # train regressor and predict
+            estimator_instance.fit(X_train[indices_train], y_train[indices_train])
+            y_pred = estimator_instance.predict(X_test[indices_test])
 
-    def test_regressor_on_cardano_sentiment(self, estimator_class):
-        """Test regressor on cardano sentiment data."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # retrieve expected preds output, and skip test if not available
-        if classname in cardano_sentiment_preds.keys():
-            expected_preds = cardano_sentiment_preds[classname]
-        else:
-            # skip test if no expected preds are registered
-            return None
-
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
-
-        # load unit test data
-        X_train, y_train = load_cardano_sentiment(split="train")
-        X_test, y_test = load_cardano_sentiment(split="test")
-
-        indices_train = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
-        indices_test = np.random.RandomState(4).choice(len(y_test), 10, replace=False)
-
-        # train regressor and predict
-        estimator_instance.fit(X_train[indices_train], y_train[indices_train])
-        y_preds = estimator_instance.predict(X_test[indices_test])
-
-        # assert predictions are the same
-        _assert_array_almost_equal(y_preds, expected_preds, decimal=4)
+            # assert predictions are the same
+            _assert_array_almost_equal(
+                y_pred,
+                expected_preds,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )

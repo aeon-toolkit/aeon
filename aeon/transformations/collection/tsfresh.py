@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """tsfresh interface class."""
 
 __author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
@@ -14,11 +12,10 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Primitives",
+        "capability:multivariate": True,
         "fit_is_empty": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "scitype:instancewise": True,
+        "y_inner_type": "None",
         "python_dependencies": "tsfresh",
     }
 
@@ -439,10 +436,10 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "scitype:instancewise": False,
+        "instancewise": False,
         "requires_y": True,
         "X_inner_mtype": "nested_univ",
-        "y_inner_mtype": "pd_Series_Table",
+        "y_inner_type": "pd_Series_Table",
         "fit_is_empty": False,
     }
 
@@ -551,31 +548,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
-            |   `X`    | `tf-output`  |     type of return     |
-            |----------|--------------|------------------------|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        Explicitly, with examples:
-            if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
-                Example: detrending a single series
-            if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
-                then the return is `Panel` with same number of instances as `X`
-                    (the transformer is applied to each input Series instance)
-                Example: all series in the panel are detrended individually
-            if `X` is `Series` or `Panel` and `transform-output` is `Primitives`
-                then the return is `pd.DataFrame` with as many rows as instances in `X`
-                Example: i-th row of the return has mean and variance of the i-th series
-            if `X` is `Series` and `transform-output` is `Panel`
-                then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
         """
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector

@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """Plotting tools for estimator results."""
 
 __all__ = [
-    "plot_critical_difference",
     "plot_boxplot_median",
     "plot_scatter_predictions",
     "plot_scatter",
@@ -13,7 +11,6 @@ __author__ = ["dguijo"]
 
 import numpy as np
 
-from aeon.benchmarking._critical_difference import plot_critical_difference
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -40,10 +37,11 @@ def plot_boxplot_median(
     labels: list of estimators
         List with names of the estimators
     plot_type: str, default = "violin"
-        This function can create two sort of distribution plots: "violin", "swarm",
-        "boxplot". "violin" plot features a kernel density estimation of the underlying
-        distribution. "swarm" draws a categorical scatterplot with points adjusted to be
-        non-overlapping.
+        This function can create four sort of distribution plots: "violin", "swarm",
+        "boxplot" or "strip". "violin" plot features a kernel density estimation of the
+        underlying distribution. "swarm" draws a categorical scatterplot with points
+        adjusted to be non-overlapping. "strip" draws a categorical scatterplot using
+        jitter to reduce overplotting.
     outliers: bool, default = True
         Only applies when plot_type is "boxplot".
     title: str, default = None
@@ -57,6 +55,16 @@ def plot_boxplot_median(
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_boxplot_median
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
+    >>> plot.show() # doctest: +SKIP
+    >>> plot.savefig("boxplot.pdf", bbox_inches="tight") # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -72,7 +80,7 @@ def plot_boxplot_median(
     if plot_type == "violin":
         plot = sns.violinplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
             bw=0.3,
         )
@@ -85,14 +93,18 @@ def plot_boxplot_median(
     elif plot_type == "swarm":
         plot = sns.swarmplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
         )
     elif plot_type == "strip":
         plot = sns.stripplot(
             data=deviation_from_median,
-            lw=0.2,
+            linewidth=0.2,
             palette="pastel",
+        )
+    else:
+        raise ValueError(
+            "plot_type must be one of 'violin', 'boxplot', 'swarm' or 'strip'."
         )
 
     # Modifying limits for y-axis.
@@ -145,6 +157,22 @@ def plot_scatter_predictions(
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_scatter_predictions
+    >>> from aeon.datasets import load_covid_3month
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor  # doctest: +SKIP
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+    >>> fp = FreshPRINCERegressor(n_estimators=10)  # doctest: +SKIP
+    >>> fp.fit(X_train, y_train)  # doctest: +SKIP
+    >>> y_pred_fp = fp.predict(X_test)  # doctest: +SKIP
+    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",\
+        dataset="Covid3Month")  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")\
+        # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -195,19 +223,24 @@ def plot_scatter(
         Method name of the first approach.
     method_B: str
         Method name of the second approach.
-    dataset: str
-        Dataset's name.
     title: str, default = None
         Title to be shown in the top of the plot.
-    y_min: float, default = None
-        Min value for the y_axis of the plot.
-    y_max: float, default = None
-        Max value for the y_axis of the plot.
 
     Returns
     -------
     fig: matplotlib.figure
         Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking.results_plotting import plot_scatter
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
+
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -298,23 +331,15 @@ def plot_multi_comparison_matrix():
 
     Parameters
     ----------
-    results: np.array
-        Scores (either accuracies or errors) of dataset x strategy
-    method: str
-        Method's name.
-    dataset: str
-        Dataset's name.
-    title: str, default = None
-        Title to be shown in the top of the plot.
-    y_min: float, default = None
-        Min value for the y_axis of the plot.
-    y_max: float, default = None
-        Max value for the y_axis of the plot.
+    TODO: Add parameters
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    TODO: Add returns
+
+    Example
+    -------
+    TODO: Add example
 
     References
     ----------

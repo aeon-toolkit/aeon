@@ -1,13 +1,10 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-
 __author__ = ["fkiraly"]
 __all__ = []
 
 import numpy as np
 import pytest
 
-from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_SCITYPE_LIST
+from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
 from aeon.utils._testing.scenarios import TestScenario
 from aeon.utils._testing.scenarios_getter import retrieve_scenarios
 
@@ -26,7 +23,7 @@ def test_get_scenarios_for_class(estimator_class):
     # assert len(scenarios) > 0
 
 
-@pytest.mark.parametrize("scitype_string", BASE_CLASS_SCITYPE_LIST)
+@pytest.mark.parametrize("scitype_string", BASE_CLASS_IDENTIFIER_LIST)
 def test_get_scenarios_for_string(scitype_string):
     """Test retrieval of scenarios by string."""
     scenarios = retrieve_scenarios(obj=scitype_string)

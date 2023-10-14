@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract base class for time series classifiers.
 
@@ -114,7 +113,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return NotImplemented
 
     @final
-    def fit(self, X, y):
+    def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 
         Parameters
@@ -128,7 +127,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
-        np.array
+        y : np.array
             shape ``(n_instances)`` - class labels for fitting indices correspond to
             instance indices in X.
 
@@ -162,7 +161,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for time series in X.
+        """Predicts class labels for time series in X.
 
         Parameters
         ----------
@@ -192,7 +191,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts class label probabilities for time series in X.
 
         Parameters
         ----------

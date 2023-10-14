@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test suite for numba distances with parameters."""
 from typing import Callable, Dict, List
 
@@ -67,6 +66,7 @@ DIST_PARAMS = {
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
     "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.1}],
+    "adtw": BASIC_BOUNDING_PARAMS + [{"warp_penalty": 5.0}],
 }
 
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements the scaled logit transformation."""
 
 __author__ = ["ltsaprounis"]
@@ -91,13 +89,13 @@ class ScaledLogitTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
         "univariate-only": False,
@@ -120,7 +118,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Ignored argument for interface compatibility
 
         Returns
@@ -161,7 +159,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_mtype, optional (default=None)
+        y : Series or Panel of mtype y_inner_type, optional (default=None)
             Ignored argument for interface compatibility
 
         Returns

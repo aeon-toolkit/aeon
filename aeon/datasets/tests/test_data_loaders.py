@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test functions for data input and output."""
 
 __author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achieveordie"]
@@ -6,6 +5,7 @@ __author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achiev
 __all__ = []
 
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -37,7 +37,100 @@ from aeon.datasets._data_loaders import (
     _load_header_info,
     _load_saved_dataset,
 )
-from aeon.datatypes import check_is_mtype
+from aeon.tests._config import PR_TESTING
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_forecasting_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+    ):
+        load_forecasting(name)
+    name = "m1_quarterly_dataset"
+    data, meta = load_forecasting(name)
+    assert isinstance(data, pd.DataFrame)
+    assert isinstance(meta, dict)
+    assert meta["frequency"] == "quarterly"
+    assert meta["forecast_horizon"] == 8
+    assert not meta["contain_missing_values"]
+    assert not meta["contain_equal_length"]
+
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_classification_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"dataset name ={name} is not available on extract path"
+    ):
+        load_classification(name)
+    name = "SonyAIBORobotSurface1"
+    X, y, meta = load_classification(name)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(meta, dict)
+    assert len(X) == len(y)
+    assert X.shape == (621, 1, 70)
+    assert meta["problemname"] == "sonyaiborobotsurface1"
+    assert not meta["timestamps"]
+    assert meta["univariate"]
+    assert meta["equallength"]
+    assert meta["classlabel"]
+    assert not meta["targetlabel"]
+    assert meta["class_values"] == ["1", "2"]
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_regression_from_repo():
+    name = "FOO"
+    with pytest.raises(
+        ValueError, match=f"File name {name} is not in the list of " f"valid files"
+    ):
+        load_regression(name)
+    name = "FloodModeling1"
+    X, y, meta = load_regression(name)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(meta, dict)
+    assert len(X) == len(y)
+    assert X.shape == (673, 1, 266)
+    assert meta["problemname"] == "floodmodeling1"
+    assert not meta["timestamps"]
+    assert meta["univariate"]
+    assert meta["equallength"]
+    assert not meta["classlabel"]
+    assert meta["targetlabel"]
+    assert meta["class_values"] == []
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_fails():
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/",
+    )
+    with pytest.raises(ValueError):
+        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
+    with pytest.raises(ValueError):
+        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test__alias_datatype_check():
@@ -438,11 +531,18 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
     }
 
     df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
-
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(metadata, dict)
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
-    if return_type != "default_tsf":
-        assert check_is_mtype(obj=df, mtype=return_type)
+    # default_tsf"
+    #    assert check_is_mtype(obj=df, mtype=return_type)
+    if return_type == "default_tsf":
+        assert isinstance(df, pd.DataFrame)
+    elif return_type == "pd-multiindex":
+        assert isinstance(df.index, pd.MultiIndex)
+    elif return_type == "pd_multiindex_hier":
+        assert df.index.nlevels > 1
 
 
 def test_load_from_tsf_file():
@@ -473,12 +573,8 @@ def test_load_forecasting():
     df, meta = load_forecasting("m1_yearly_dataset")
     assert meta == expected_metadata
     assert df.shape == (181, 3)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
-    with pytest.raises(ValueError):
-        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+    df = load_forecasting("m1_yearly_dataset", return_metadata=False)
+    assert df.shape == (181, 3)
 
 
 def test_load_regression():
@@ -499,12 +595,6 @@ def test_load_regression():
     assert isinstance(y, np.ndarray)
     assert X.shape == (201, 1, 84)
     assert y.shape == (201,)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
-    with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
 
 
 def test_load_classification():
@@ -525,12 +615,6 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/",
-    )
-    with pytest.raises(ValueError):
-        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
@@ -629,9 +713,15 @@ def test_load_from_arff():
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
     X2, y2 = load_from_arff_file(data_path)
+    assert isinstance(X2, np.ndarray)
+    assert isinstance(y2, np.ndarray)
+    assert X.shape == X2.shape
+    assert len(X2) == len(y2)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
     X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
     data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
     X2, y2 = load_from_arff_file(data_path)
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y2, np.ndarray)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)

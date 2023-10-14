@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Composition functionality for reduction approaches to forecasting."""
 
 __author__ = [
@@ -1117,7 +1113,7 @@ class DirectTabularRegressionForecaster(_DirectReducer):
                 f"but found {pooling}"
             )
         self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1197,7 +1193,7 @@ class RecursiveTabularRegressionForecaster(_RecursiveReducer):
                 f"but found {pooling}"
             )
         self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1761,7 +1757,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         "requires-fh-in-fit": True,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -1802,7 +1798,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
                 f"but found {pooling}"
             )
         self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
@@ -2102,7 +2098,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         "requires-fh-in-fit": False,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -2138,7 +2134,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
                 f"but found {pooling}"
             )
         self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.

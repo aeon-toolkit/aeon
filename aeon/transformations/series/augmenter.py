@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Series transformers for time series augmentation."""
 
 __author__ = ["MrPr3ntice", "MFehsenfeld", "iljamaurer"]
@@ -21,12 +19,12 @@ from aeon.transformations.base import BaseTransformer
 
 class _AugmenterTags:
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": True,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         "X-y-must-have-same-index": False,
         "fit_is_empty": True,

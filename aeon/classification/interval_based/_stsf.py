@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Supervised Time Series Forest Classifier (STSF).
 
 Interval-based STSF classifier extracting summary features from intervals selected
@@ -32,7 +30,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     """Supervised Time Series Forest (STSF).
 
     An ensemble of decision trees built on intervals selected through a supervised
-    process as described in _[1].
+    process as described in [1]_.
     Overview: Input n series length m
     For each tree
         - sample X using class-balanced bagging

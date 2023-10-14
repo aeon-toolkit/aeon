@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Testing of registry lookup functionality."""
 
 __author__ = ["fkiraly", "MatthewMiddlehurst"]
@@ -7,15 +5,14 @@ __author__ = ["fkiraly", "MatthewMiddlehurst"]
 import pytest
 
 from aeon.base import BaseObject
-from aeon.registry import all_estimators, all_tags, scitype
-from aeon.registry._base_classes import BASE_CLASS_LOOKUP, BASE_CLASS_SCITYPE_LIST
+from aeon.registry import all_estimators, all_tags, get_identifiers
+from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
 from aeon.registry._lookup import _check_estimator_types
 from aeon.transformations.base import BaseTransformer
 
-VALID_SCITYPES_SET = set(BASE_CLASS_SCITYPE_LIST + ["estimator"])
+VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 
-# some scitypes have no associated tags yet
-SCITYPES_WITHOUT_TAGS = [
+CLASSES_WITHOUT_TAGS = [
     "series-annotator",
     "object",
     "splitter",
@@ -25,13 +22,13 @@ SCITYPES_WITHOUT_TAGS = [
 ]
 
 # shorthands for easy reading
-b = BASE_CLASS_SCITYPE_LIST
+b = BASE_CLASS_IDENTIFIER_LIST
 n = len(b)
 
 # selected examples of "search for two types at once to avoid quadratic scaling"
-double_estimator_scitypes = [[b[i], b[(i + 3) % n]] for i in range(n)]
-# fixtures search by individual scitypes, "None", and some pairs
-estimator_scitype_fixture = [None] + BASE_CLASS_SCITYPE_LIST + double_estimator_scitypes
+double_estimators = [[b[i], b[(i + 3) % n]] for i in range(n)]
+# fixtures search by individual identifiers, "None", and some pairs
+estimator_fixture = [None] + BASE_CLASS_IDENTIFIER_LIST + double_estimators
 
 
 def _to_list(obj):
@@ -42,21 +39,21 @@ def _to_list(obj):
         return obj
 
 
-def _get_type_tuple(estimator_scitype):
-    """Convert scitype string(s) into tuple of classes for isinstance check.
+def _get_type_tuple(estimator_identifiers):
+    """Convert string(s) into tuple of classes for isinstance check.
 
     Parameters
     ----------
-    estimator_scitypes: None, string, or list of string
+    estimator_identifiers: None, string, or list of string
 
     Returns
     -------
     estimator_classes : tuple of aeon base classes,
-        corresponding to scitype strings in estimator_scitypes
+        corresponding to strings in estimator_identifiers
     """
-    if estimator_scitype is not None:
+    if estimator_identifiers is not None:
         estimator_classes = tuple(
-            BASE_CLASS_LOOKUP[scitype] for scitype in _to_list(estimator_scitype)
+            BASE_CLASS_LOOKUP[id] for id in _to_list(estimator_identifiers)
         )
     else:
         estimator_classes = (BaseObject,)
@@ -65,15 +62,15 @@ def _get_type_tuple(estimator_scitype):
 
 
 @pytest.mark.parametrize("return_names", [True, False])
-@pytest.mark.parametrize("estimator_scitype", estimator_scitype_fixture)
-def test_all_estimators_by_scitype(estimator_scitype, return_names):
+@pytest.mark.parametrize("estimator_id", estimator_fixture)
+def test_all_estimators_by_identifier(estimator_id, return_names):
     """Check that all_estimators return argument has correct type."""
     estimators = all_estimators(
-        estimator_types=estimator_scitype,
+        estimator_types=estimator_id,
         return_names=return_names,
     )
 
-    estimator_classes = _get_type_tuple(estimator_scitype)
+    estimator_classes = _get_type_tuple(estimator_id)
 
     assert isinstance(estimators, list)
     # there should be at least one estimator returned
@@ -91,27 +88,23 @@ def test_all_estimators_by_scitype(estimator_scitype, return_names):
             assert issubclass(estimator, estimator_classes)
 
 
-@pytest.mark.parametrize("estimator_scitype", estimator_scitype_fixture)
-def test_all_tags(estimator_scitype):
+@pytest.mark.parametrize("estimator_id", estimator_fixture)
+def test_all_tags(estimator_id):
     """Check that all_tags return argument has correct type."""
-    tags = all_tags(estimator_types=estimator_scitype)
+    tags = all_tags(estimator_types=estimator_id)
     assert isinstance(tags, list)
 
     # there should be at least one tag returned
-    # exception: scitypes which we know don't have tags associated
-    est_list = (
-        estimator_scitype
-        if isinstance(estimator_scitype, list)
-        else [estimator_scitype]
-    )
-    if not set(est_list).issubset(SCITYPES_WITHOUT_TAGS):
+    # exception: types which we know don't have tags associated
+    est_list = estimator_id if isinstance(estimator_id, list) else [estimator_id]
+    if not set(est_list).issubset(CLASSES_WITHOUT_TAGS):
         assert len(tags) > 0
 
     # checks return type specification (see docstring)
     for tag in tags:
         assert isinstance(tag, tuple)
         assert isinstance(tag[0], str)
-        assert VALID_SCITYPES_SET.issuperset(_to_list(tag[1]))
+        assert VALID_IDENTIFIERS_SET.issuperset(_to_list(tag[1]))
         assert isinstance(tag[2], (str, tuple))
         if isinstance(tag[2], tuple):
             assert len(tag[2]) == 2
@@ -237,15 +230,15 @@ def test_all_estimators_return_tags_bad_arg(return_tags):
         _ = all_estimators(return_tags=return_tags)
 
 
-@pytest.mark.parametrize("estimator_scitype", BASE_CLASS_SCITYPE_LIST)
-def test_scitype_inference(estimator_scitype):
-    """Check that scitype inverts _check_estimator_types."""
-    base_class = _check_estimator_types(estimator_scitype)[0]
-    inferred_scitype = scitype(base_class)
+@pytest.mark.parametrize("estimator_id", BASE_CLASS_IDENTIFIER_LIST)
+def test_type_inference(estimator_id):
+    """Check that identifier inverts _check_estimator_types."""
+    base_class = _check_estimator_types(estimator_id)[0]
+    inferred_type = get_identifiers(base_class)
 
     assert (
-        inferred_scitype == estimator_scitype
-    ), "one of scitype, _check_estimator_types is incorrect, these should be inverses"
+        inferred_type == estimator_id
+    ), "one of types _check_estimator_types is incorrect, these should be inverses"
 
 
 def test_list_tag_lookup():

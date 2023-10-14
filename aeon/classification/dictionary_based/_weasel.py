@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """WEASEL classifier.
 
 Dictionary based classifier based on SFA transform, BOSS and linear regression.
@@ -22,9 +21,9 @@ from aeon.transformations.collection.dictionary_based import SFAFast
 
 class WEASEL(BaseClassifier):
     """
-    Word Extraction for Time Series Classification (WEASEL) [1].
+    Word Extraction for Time Series Classification (WEASEL).
 
-    Overview: Input 'n' series length 'm'
+    As described in [1]_. Overview: Input 'n' series length 'm'
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
     for different window lengths and learns a logistic regression classifier
     on this bag.

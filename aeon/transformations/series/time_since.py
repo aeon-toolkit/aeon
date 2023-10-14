@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """A transformer to compute the time elapsed since a reference time."""
 from __future__ import annotations
 
@@ -73,13 +71,13 @@ class TimeSince(BaseTransformer):
 
     _tags = {
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "scitype:transform-labels": "None",
+        "output_data_type": "Series",
+        "instancewise": True,  # is this an instance-wise transform?
+        "transform_labels": "None",
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         "univariate-only": False,
         "requires_y": False,
         "remember_data": False,
@@ -121,7 +119,7 @@ class TimeSince(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -205,7 +203,7 @@ class TimeSince(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

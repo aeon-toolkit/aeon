@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module exports: data type definitions, checks, validation, fixtures, converters."""
 
 __author__ = ["fkiraly"]
@@ -14,6 +13,7 @@ from aeon.datatypes._convert import convert, convert_to
 from aeon.datatypes._examples import get_examples
 from aeon.datatypes._registry import (
     ALL_TIME_SERIES_MTYPES,
+    DATATYPE_REGISTER,
     MTYPE_LIST_HIERARCHICAL,
     MTYPE_LIST_PANEL,
     MTYPE_LIST_PROBA,
@@ -21,7 +21,6 @@ from aeon.datatypes._registry import (
     MTYPE_LIST_TABLE,
     MTYPE_REGISTER,
     SCITYPE_LIST,
-    SCITYPE_REGISTER,
     mtype_to_scitype,
     scitype_to_mtype,
 )
@@ -48,7 +47,7 @@ __all__ = [
     "scitype",
     "scitype_to_mtype",
     "SCITYPE_LIST",
-    "SCITYPE_REGISTER",
+    "DATATYPE_REGISTER",
     "update_data",
     "VectorizedDF",
 ]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fully Connected Neural Network (CNN) for classification."""
 
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
@@ -17,62 +16,64 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class FCNClassifier(BaseDeepClassifier):
-    """Fully Connected Neural Network (FCN), as described in [1]_.
+    """Fully Connected Neural Network (FCN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_layers        : int, default = 3
-        number of convolution layers
-    n_filters       : int or list of int, default = [128,256,128]
-        number of filters used in convolution layers
-    kernel_size     : int or list of int, default = [8,5,3]
-        size of convolution kernel
-    dilation_rate   : int or list of int, default = 1
-        the dilation rate for convolution
-    strides         : int or list of int, default = 1
-        the strides of the convolution filter
-    padding         : str or list of str, default = "same"
-        the type of padding used for convolution
-    activation      : str or list of str, default = "relu"
-        activation used after the convolution
-    use_bias        : bool or list of bool, default = True
-        whether or not ot use bias in convolution
-    n_epochs        : int, default = 2000
-        the number of epochs to train the model
-    batch_size      : int, default = 16
-        the number of samples per gradient update.
-    use_mini_batch_size : bool, default = True,
-        whether or not to use the mini batch size formula
-    random_state    : int or None, default=None
+    n_layers : int, default = 3
+        Number of convolution layers.
+    n_filters : int or list of int, default = [128,256,128]
+        Number of filters used in convolution layers.
+    kernel_size : int or list of int, default = [8,5,3]
+        Size of convolution kernel.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate for convolution.
+    strides : int or list of int, default = 1
+        The strides of the convolution filter.
+    padding : str or list of str, default = "same"
+        The type of padding used for convolution.
+    activation : str or list of str, default = "relu"
+        Activation used after the convolution.
+    use_bias : bool or list of bool, default = True
+        Whether or not ot use bias in convolution.
+    n_epochs : int, default = 2000
+        The number of epochs to train the model.
+    batch_size : int, default = 16
+        The number of samples per gradient update.
+    use_mini_batch_size : bool, default = True
+        Whether or not to use the mini batch size formula.
+    random_state : int or None, default = None
         Seed for random number generation.
-    verbose         : boolean, default = False
-        whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    metrics         : list of strings, default=["accuracy"],
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
-    file_path       : str, default = "./"
-        file path to save best model
-    save_best_model     : bool, default = False
+    verbose : boolean, default = False
+        Whether to output extra information.
+    loss : string, default = "mean_squared_error"
+        Fit parameter for the keras model.
+    metrics : list of strings, default = ["accuracy"]
+    optimizer : keras.optimizers object, default = Adam(lr=0.01)
+        Specify the optimizer and the learning rate to be used.
+    file_path : str, default = "./"
+        File path to save best model.
+    save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model     : bool, default = False
+        file and the user can choose the file name.
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file
-    best_file_name      : str, default = "best_model"
+        save_last_model_to_file.
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
-        is discarded
-    last_file_name      : str, default = "last_model"
+        is discarded.
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
-        is discarded
-    callbacks       : keras.callbacks, default = None
+        is discarded.
+    callbacks : keras.callbacks, default = None
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
@@ -89,7 +90,7 @@ class FCNClassifier(BaseDeepClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> fcn = FCNClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
     FCNClassifier(...)
     """
@@ -175,9 +176,9 @@ class FCNClassifier(BaseDeepClassifier):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
+            The shape of the data fed into the input layer, should be (m, d).
+        n_classes : int
+            The number of classes, which becomes the size of the output layer.
 
         Returns
         -------
@@ -292,9 +293,9 @@ class FCNClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return "default" set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -302,7 +303,7 @@ class FCNClassifier(BaseDeepClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.

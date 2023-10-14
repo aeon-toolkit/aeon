@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Machine type checkers for scitypes.
 
 Exports
@@ -109,7 +107,7 @@ def check_is_mtype(
         valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
-        valid mtype strings are in datatypes.SCITYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
     return_metadata - bool, optional, default=False
         if False, returns only "valid" return
         if True, returns all three return objects
@@ -221,7 +219,7 @@ def check_raise(obj, mtype: str, scitype: str = None, var_name: str = "input"):
         valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
-        valid mtype strings are in datatypes.SCITYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
     var_name: str, optional, default="input" - name of input in error messages
 
     Returns
@@ -266,7 +264,7 @@ def mtype(
         name of scitype(s) the object "obj" is considered as, finds mtype for that
         if None (default), does not assume a specific as_scitype and tests all mtypes
             generally, as_scitype should be provided for maximum efficiency
-        valid scitype type strings are in datatypes.SCITYPE_REGISTER (1st column)
+        valid scitype type strings are in datatypes.DATATYPE_REGISTER (1st column)
     exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
         which mtypes to ignore in inferring mtype, default = ambiguous ones
 
@@ -345,7 +343,7 @@ def check_is_scitype(
     ----------
     obj - object to check
     scitype: str or list of str, scitype to check obj as
-        valid mtype strings are in datatypes.SCITYPE_REGISTER
+        valid mtype strings are in datatypes.DATATYPE_REGISTER
     return_metadata - bool, optional, default=False
         if False, returns only "valid" return
         if True, returns all three return objects
@@ -371,7 +369,7 @@ def check_is_scitype(
             "mtype": str, mtype of obj (assumed or inferred)
                 mtype strings with explanation are in datatypes.MTYPE_REGISTER
             "scitype": str, scitype of obj (assumed or inferred)
-                scitype strings with explanation are in datatypes.SCITYPE_REGISTER
+                scitype strings with explanation are in datatypes.DATATYPE_REGISTER
         For scitype "Series":
             "is_univariate": bool, True iff series has one variable
             "is_equally_spaced": bool, True iff series index is equally spaced
@@ -455,7 +453,7 @@ def scitype(obj, candidate_scitypes=SCITYPE_LIST, exclude_mtypes=AMBIGUOUS_MTYPE
     obj : object to infer type of - any type, should comply with some mtype spec
         if as_scitype is provided, this needs to be mtype belonging to scitype
     candidate_scitypes: str or list of str, scitypes to pick from
-        valid scitype strings are in datatypes.SCITYPE_REGISTER
+        valid scitype strings are in datatypes.DATATYPE_REGISTER
     exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
         which mtypes to ignore in inferring mtype, default = ambiguous ones
         valid mtype strings are in datatypes.MTYPE_REGISTER
@@ -464,7 +462,7 @@ def scitype(obj, candidate_scitypes=SCITYPE_LIST, exclude_mtypes=AMBIGUOUS_MTYPE
     -------
     str - the inferred sciype of "obj", a valid scitype string
             or None, if obj is None
-        scitype strings with explanation are in datatypes.SCITYPE_REGISTER
+        scitype strings with explanation are in datatypes.DATATYPE_REGISTER
 
     Raises
     ------

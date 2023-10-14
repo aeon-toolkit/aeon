@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FreshPRINCEClassifier.
 
 Pipeline classifier using the full set of TSFresh features and a

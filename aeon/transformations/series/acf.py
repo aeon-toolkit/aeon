@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Auto-correlation transformations.
 
 Module :mod:`aeon.transformations.series` implements auto-correlation
@@ -40,10 +36,10 @@ class AutoCorrelationTransformer(BaseTransformer):
         calculations.
 
         - "none" performs no checks or handling of missing values
-        - “raise” raises an exception if NaN values are found.
-        - “drop” removes the missing observations and then estimates the
+        - "raise" raises an exception if NaN values are found.
+        - "drop" removes the missing observations and then estimates the
           autocovariances treating the non-missing as contiguous.
-        - “conservative” computes the autocovariance using nan-ops so that nans
+        - "conservative" computes the autocovariance using nan-ops so that nans
           are removed when computing the mean and cross-products that are used to
           estimate the autocovariance. "n" in calculation is set to the number of
           non-missing observations.
@@ -68,13 +64,13 @@ class AutoCorrelationTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.Series",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": True,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",
@@ -200,13 +196,13 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": "pd.Series",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": True,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",

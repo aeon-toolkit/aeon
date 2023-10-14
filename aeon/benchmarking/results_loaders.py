@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions to load and collate results from timeseriesclassification.com."""
 __all__ = [
     "get_estimator_results",
@@ -46,7 +45,7 @@ NAME_ALIASES = {
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D"},
+    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL2"},
     "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed"},
     "kmeans-dtw": {"dtw-kmeans", "k-means-dtw"},
     "kmeans-msm": {"msm-kmeans", "k-means-msm"},

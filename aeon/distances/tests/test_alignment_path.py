@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -11,7 +10,7 @@ from aeon.distances.tests._utils import create_test_distance_numpy
 def _validate_cost_matrix_result(
     x: np.ndarray,
     y: np.ndarray,
-    name,  # This will be used in a later pr
+    name,
     distance,
     alignment_path,
 ):

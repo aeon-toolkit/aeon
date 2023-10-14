@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Tests for aeon annotators."""
 
 __author__ = ["miraep8", "fkiraly", "klam-data", "pyyim", "mgorlin"]

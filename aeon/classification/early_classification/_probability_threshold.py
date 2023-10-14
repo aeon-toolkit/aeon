@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Probability Threshold Early Classifier.
 
 An early classifier using a prediction probability threshold with a time series
@@ -157,11 +156,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         self._estimators = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -194,11 +196,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -258,11 +263,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -336,11 +344,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return accept_decision, state_info
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -354,11 +358,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return estimator
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )
