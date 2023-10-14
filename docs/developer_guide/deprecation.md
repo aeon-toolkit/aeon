@@ -3,7 +3,7 @@ Deprecation policy
 ==================
 
 aeon [releases](https://github.com/aeon-toolkit/aeon/releases) follow [semantic
-versioning](https://semver.org).  A release number denotes <major>.<minor>.<patch>
+versioning](https://semver.org).  A release number denotes ``major.minor.patch``
 versions.
 
 Broadly, if a change could unexpectedly cause code using aeon to crash, then it
@@ -33,10 +33,10 @@ retain the freedom to be more agile with the design in these cases.
 Deprecation process
 ===================
 
-To deprecate, write a :code:`TODO` comment stating the version the code should be
-removed in and raise a warning using use the [deprecated](https://deprecated.readthedocs.io/en/latest/index.html). This raises  a :code:`FutureWarning`
-saying that the functionality has been deprecated. Import from ``deprecated
-.sphinx``` so the deprecation message is automatically added to the docstring.
+To deprecate, write a ``TODO`` comment stating the version the code should be
+removed in and raise a warning using use the [deprecated package](https://deprecated.readthedocs.io/en/latest/index.html).
+This raises  a ``FutureWarning`` saying that the functionality has been deprecated.
+Import from ``deprecated.sphinx`` so the deprecation message is automatically added to the docstring.
 
 Examples
 --------
