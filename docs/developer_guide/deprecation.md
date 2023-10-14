@@ -41,7 +41,7 @@ saying that the functionality has been deprecated. Import from ``deprecated
 Examples
 --------
 
-Deprecate a function parameter
+Deprecate a function all together
 
 ```python
     from deprecated.sphinx import deprecated
@@ -62,7 +62,7 @@ category=FutureWarning)
         return x + y
 ```
 
-Deprecate a function all together
+Deprecate a function's signature
 
 ```python
     from deprecated.sphinx import deprecated
