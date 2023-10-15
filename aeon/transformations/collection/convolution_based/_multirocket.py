@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.datatypes import convert
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -112,7 +111,7 @@ class MultiRocket(BaseCollectionTransformer):
         self
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -139,7 +138,7 @@ class MultiRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
