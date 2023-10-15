@@ -267,11 +267,9 @@ def _np_list_transposed2D_array_and_len_list(
             if pad is not None:
                 # emergency: pad with zeros up to 9.
                 lengths.append(9)
-                vec.append(
-                    np.hstack(
-                        [_x.values, np.full([9 - _x_shape[1], _x_shape[0]], float(pad))]
-                    )
-                )
+                padding_width = ((0, 0), (0, 9 - _x_shape[1]))
+                x_pad = np.pad(_x, padding_width, mode="constant", constant_values=pad)
+                vec.append(np.transpose(x_pad))
             else:
                 raise ValueError(
                     "X series_length must be >= 9 for all samples"
