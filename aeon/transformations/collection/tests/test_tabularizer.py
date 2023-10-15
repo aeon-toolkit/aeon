@@ -10,4 +10,4 @@ def test_tabularizer():
     res = tab.fit_transform(arr)
     assert res.shape == (10, 300)
     res = tab.fit_transform(arr)
-    assert res.shape == (10, 1, 300)
+    assert res.shape == (10, 300)
