@@ -10,12 +10,11 @@ import pandas as pd
 
 from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation.collection import convert_collection
 
 
 class Tabularizer(BaseTransformer):
     """
-    A transformer that turns time series/panel data into tabular data.
+    A transformer that turns time series collections data into tabular data.
 
     This estimator converts nested pandas dataframe containing time-series/panel data
     with numpy arrays or pandas Series in dataframe cells into a tabular pandas
@@ -27,12 +26,12 @@ class Tabularizer(BaseTransformer):
     _tags = {
         "fit_is_empty": True,
         "univariate-only": False,
-        "input_data_type": "Series",
+        "input_data_type": "Panel",
         # what is the scitype of X: Series, or Panel
         "output_data_type": "Primitives",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["nested_univ", "numpy3D"],
+        "X_inner_mtype": ["numpy3D"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # and for y?
     }
@@ -51,26 +50,8 @@ class Tabularizer(BaseTransformer):
         Xt : pandas DataFrame
             Transformed dataframe with only primitives in cells.
         """
-        # TODO: this should be replaced with a bespoke function, it is not a generic
         # conversion
-        Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        return Xt
-
-    def inverse_transform(self, X, y=None):
-        """Transform tabular pandas dataframe into nested dataframe.
-
-        Parameters
-        ----------
-        X : pandas DataFrame
-            Tabular dataframe with primitives in cells.
-        y : array-like, optional (default=None)
-
-        Returns
-        -------
-        Xt : pandas DataFrame
-            Transformed dataframe with series in cells.
-        """
-        Xt = convert_collection(X, "numpy3D")
+        Xt = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
         return Xt
 
 
