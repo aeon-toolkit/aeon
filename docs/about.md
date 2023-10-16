@@ -2,8 +2,17 @@
 
 ## Roles
 
-The roles are described in scikit-time's {ref}`governance` document.
+The roles are described in scikit-time's [governance](governance.md) document.
 A list of all contributors can be found [here](contributors.md).
+
+### Code of Conduct Workgroup
+
+The [Code of Conduct Workgroup (COCW)]() maintains the code of conduct and handles any
+issues related that arise.
+
+```{eval-rst}
+.. include:: about/coc_committee.rst
+```
 
 ### Community Council
 
@@ -12,15 +21,6 @@ the project.
 
 ```{eval-rst}
 .. include:: about/community_council.rst
-```
-
-### Code of Conduct Committee
-
-The code of conduct committee maintains the code of conduct and handles any issues
-related that arise.
-
-```{eval-rst}
-.. include:: about/coc_committee.rst
 ```
 
 ### Core Developers
