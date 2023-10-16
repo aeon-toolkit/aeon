@@ -116,7 +116,6 @@ These transformers extract simple summary features.
 
     SummaryTransformer
     WindowSummarizer
-    PlateauFinder
     FittedParamExtractor
 
 
@@ -142,6 +141,8 @@ Shapelets, wavelets, and convolution
     MiniRocket
     MiniRocketMultivariate
     MiniRocketMultivariateVariable
+    MultiRocket
+    MultiRocketMultivariate
 
 .. currentmodule:: aeon.transformations.collection.dwt
 
