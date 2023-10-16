@@ -230,8 +230,7 @@ Benchmarking
 
 installation.md
 getting_started.md
-user_guide
-api_reference
+api_reference.md
 examples.md
 ```
 
@@ -239,8 +238,8 @@ examples.md
 :caption: Developing aeon
 :hidden:
 
-get_involved
-developers
+contributing.md
+developer_guide.md
 ```
 
 ```{toctree}
