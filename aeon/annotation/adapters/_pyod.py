@@ -33,27 +33,39 @@ class PyODAnnotator(BaseSeriesAnnotator):
     _tags = {"python_dependencies": "pyod"}
 
     def __init__(self, estimator, fmt="dense", labels="indicator"):
+        """
+        Initialize the PyODAnnotator.
+
+        Parameters
+        ----------
+        estimator : PyOD estimator
+            The outlier detection model to be used.
+        fmt : str, optional (default="dense")
+            The format of the output annotations. If "dense", a series of labels for all values in X is returned.
+            If "sparse", a sub-series of labels for only the outliers in X is returned.
+        labels : str, optional (default="indicator")
+            The type of the output labels. If "indicator", returned values are boolean, indicating whether a value is an
+            outlier. If "score", returned values are floats, giving the outlier score.
+        """
         self.estimator = estimator  # pyod estimator
         super(PyODAnnotator, self).__init__(fmt=fmt, labels=labels)
 
     def _fit(self, X, Y=None):
-        """Fit to training data.
+        """
+        Fit the PyODAnnotator to the training data.
 
-        core logic
+        The method fits the PyOD estimator to the training data. The fitted model is stored as an attribute ending in "_".
 
         Parameters
         ----------
         X : pd.DataFrame
-            training data to fit model to, time series
+            The training data to fit the model to. It should be a time series.
         Y : pd.Series, optional
-            ground truth annotations for training if annotator is supervised
+            The ground truth annotations for training if the annotator is supervised.
+
         Returns
         -------
         self : returns a reference to self
-
-        Notes
-        -----
-        Create fitted model that sets attributes ending in "_".
         """
         X_np = X.to_numpy()
 
