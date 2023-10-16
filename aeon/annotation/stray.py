@@ -1,20 +1,6 @@
-"""Tests for STRAY (Search TRace AnomalY) outlier estimator."""
-
-import warnings
-from typing import Dict
-
-import numpy as np
-import numpy.typing as npt
-from sklearn.neighbors import NearestNeighbors
-
-from aeon.transformations.base import BaseTransformer
-
-__author__ = ["KatieBuc"]
-__all__ = ["STRAY"]
-
-
 class STRAY(BaseTransformer):
-    """STRAY: robust anomaly detection in data streams with concept drift.
+    """
+    STRAY: robust anomaly detection in data streams with concept drift.
 
     This is based on STRAY (Search TRace AnomalY) _[1], which is a modification
     of HDoutliers _[2]. HDoutliers is a powerful algorithm for the detection of
@@ -24,6 +10,37 @@ class STRAY(BaseTransformer):
     from some limitations that affect its accuracy. STRAY is an extension of
     HDoutliers that uses extreme value theory for the anomolous threshold
     calculation, to deal with data streams that exhibit non-stationary behavior.
+
+    Parameters
+    ----------
+    alpha : float, default=0.01
+        Threshold for determining the cutoff for outliers.
+    k : int, default=10
+        Number of neighbours considered.
+    knn_algorithm : str, default="brute"
+        Algorithm used to compute the nearest neighbors.
+    p : float, default=0.5
+        Proportion of possible candidates for outliers.
+    size_threshold : int, default=50
+        Sample size to calculate an emperical threshold.
+    outlier_tail : str, default="max"
+        Direction of the outlier tail.
+
+    Attributes
+    ----------
+    alpha : float
+        Threshold for determining the cutoff for outliers.
+    k : int
+        Number of neighbours considered.
+    knn_algorithm : str
+        Algorithm used to compute the nearest neighbors.
+    p : float
+        Proportion of possible candidates for outliers.
+    size_threshold : int
+        Sample size to calculate an emperical threshold.
+    outlier_tail : str
+        Direction of the outlier tail.
+    """
 
     Parameters
     ----------
@@ -92,6 +109,24 @@ class STRAY(BaseTransformer):
         size_threshold: int = 50,
         outlier_tail: str = "max",
     ):
+        """
+        Initialize the STRAY estimator.
+    
+        Parameters
+        ----------
+        alpha : float, default=0.01
+            Threshold for determining the cutoff for outliers.
+        k : int, default=10
+            Number of neighbours considered.
+        knn_algorithm : str, default="brute"
+            Algorithm used to compute the nearest neighbors.
+        p : float, default=0.5
+            Proportion of possible candidates for outliers.
+        size_threshold : int, default=50
+            Sample size to calculate an emperical threshold.
+        outlier_tail : str, default="max"
+            Direction of the outlier tail.
+        """
         self.alpha = alpha
         self.k = k
         self.knn_algorithm = knn_algorithm
@@ -140,7 +175,8 @@ class STRAY(BaseTransformer):
         return np.where(outlier_score > bound)[0]
 
     def _find_outliers_kNN(self, X: npt.ArrayLike, n: int) -> Dict:
-        """Find outliers using kNN distance with maximum gap.
+        """
+        Find outliers using kNN distance with maximum gap.
 
         Parameters
         ----------
@@ -151,7 +187,8 @@ class STRAY(BaseTransformer):
 
         Returns
         -------
-        dict of index of outliers and the outlier scores
+        Dict
+            Dictionary of index of outliers and the outlier scores.
         """
         if len(X.shape) == 1:
             nbrs = NearestNeighbors(n_neighbors=self.k + 1).fit(X.reshape(-1, 1))
@@ -172,8 +209,9 @@ class STRAY(BaseTransformer):
         out_index = self._find_threshold(d, n)
         return {"idx_outliers": out_index, "out_scores": d}
 
-    def _find_outliers(self, X):
-        """Detect Anomalies in High Dimensional Data.
+    def _find_outliers(self, X: npt.ArrayLike) -> Dict:
+        """
+        Detect Anomalies in High Dimensional Data.
 
         Parameters
         ----------
@@ -182,7 +220,8 @@ class STRAY(BaseTransformer):
 
         Returns
         -------
-        dict of anomalies and their corresponding scores
+        Dict
+            Dictionary of anomalies and their corresponding scores.
         """
         r = np.shape(X)[0]
         idx_dropna = np.array([i for i in range(r) if not np.isnan(X[i]).any()])
