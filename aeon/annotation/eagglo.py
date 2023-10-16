@@ -243,11 +243,17 @@ class EAgglo(BaseTransformer):
 
         # if there is an initial grouping...
         if self.member is not None:
+            """
+            This block of code is responsible for calculating the distances between clusters.
+            If there is an initial grouping, it calculates the distances between each pair of clusters.
+            If there is no initial grouping, it calculates the distances between each pair of data points.
+            Finally, it sets the diagonal of the distance matrix to 0.
+            """
             grouped = X.copy().set_index(self._member).groupby(level=0)
             within = grouped.apply(
                 lambda x: get_distance_matrix(x.to_numpy(), x.to_numpy(), self.alpha)
             )
-
+    
             for i, xi in grouped:
                 self.distances[: self.n_cluster, i] = (
                     2
@@ -259,16 +265,16 @@ class EAgglo(BaseTransformer):
                     - within[i]
                     - within
                 )
-        # else (no initial groupings)...
-        else:
-            X_num = X.to_numpy()
-            for i in range(len(X)):
-                for j in range(len(X)):
-                    self.distances[i, j] = 2 * get_distance_single(
-                        X_num[i], X_num[j], self.alpha
-                    )
-
-        np.fill_diagonal(self.distances, 0)
+            # else (no initial groupings)...
+            else:
+                X_num = X.to_numpy()
+                for i in range(len(X)):
+                    for j in range(len(X)):
+                        self.distances[i, j] = 2 * get_distance_single(
+                            X_num[i], X_num[j], self.alpha
+                        )
+    
+            np.fill_diagonal(self.distances, 0)
 
         # set up left and right neighbors
         # special case for clusters 0 and n_cluster-1 to allow for cyclic merging
