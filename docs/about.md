@@ -1,8 +1,8 @@
-# About us
+# About Us
 
 ## Roles
 
-The roles are described in aeon's [governance](governance.md) document.
+The roles are described in `aeon`'s [governance](governance.md) document.
 A list of all contributors can be found [here](contributors.md).
 
 ### Code of Conduct Workgroup
@@ -90,8 +90,8 @@ point prior to our split from the project.
 ## History
 
 `aeon` was started in January 2023 as a fork of the
-[sktime project](https://pypi.org/project/sktime/) by 8 core developers using v0.16.0
-as a base.
+[sktime project](https://pypi.org/project/sktime/0.16.0/) by 8 core developers using
+v0.16.0 as a base.
 
 ## Artwork
 
