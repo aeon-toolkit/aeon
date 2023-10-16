@@ -81,15 +81,11 @@ class TimeBinner(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": False,
-        "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
         "output_data_type": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,
         "X_inner_mtype": ["nested_univ"],
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # and for y?
+        "y_inner_type": "None",
+        "capability:multivariate": True,
     }
 
     def __init__(self, idx, aggfunc=None):
@@ -111,7 +107,7 @@ class TimeBinner(BaseTransformer):
             self._aggfunc = self.aggfunc
         self.idx = idx
 
-        super(TimeBinner, self).__init__()
+        super(TimeBinner, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
