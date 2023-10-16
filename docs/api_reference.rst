@@ -22,6 +22,7 @@ For an overview of the aeon modules see the :ref:`examples`.
     api_reference/distances
     api_reference/transformations
     api_reference/annotation
+    api_reference/similarity_search
     api_reference/datasets
     api_reference/data_format
     api_reference/deployment

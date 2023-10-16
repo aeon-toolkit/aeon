@@ -24,7 +24,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         Name of the distance function to use.
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = =False.
+    store_distance_profile : bool, default = False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
     """
@@ -45,12 +45,14 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     def _get_distance_profile_function(self):
         dist_profile = DISTANCE_PROFILE_DICT.get(self.distance)
         if dist_profile is None:
-            raise ValueError(f"Unknown distrance profile function {dist_profile}")
+            raise ValueError(
+                f"Unknown or unsupported distance profile function {dist_profile}"
+            )
         return dist_profile[self.normalize]
 
     def _store_mean_std_from_inputs(self, Q_length):
         n_samples, n_channels, X_length = self._X.shape
-        search_space_size = n_samples * (X_length - Q_length + 1)
+        search_space_size = X_length - Q_length + 1
 
         means = np.zeros((n_samples, n_channels, search_space_size))
         stds = np.zeros((n_samples, n_channels, search_space_size))
@@ -72,7 +74,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ----------
         X : array, shape (n_cases, n_channels, n_timestamps)
             Input array to used as database for the similarity search
-        y : TYPE, optional
+        y : optional
             Not used.
 
         Raises
@@ -83,6 +85,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         Returns
         -------
         self
+
         """
         # For now force (n_samples, n_channels, n_timestamps), we could convert 2D
         #  (n_channels, n_timestamps) to 3D with a warning
@@ -149,8 +152,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
 
         if self.normalize:
-            self._q_mean = np.mean(q, axis=-1)
-            self._q_std = np.std(q, axis=-1)
+            self._q_means = np.mean(q, axis=-1)
+            self._q_stds = np.std(q, axis=-1)
             self._store_mean_std_from_inputs(q.shape[-1])
 
         return self._predict(q)

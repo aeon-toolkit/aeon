@@ -35,9 +35,45 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         )
 
     def _fit(self, X, y):
+        """
+        Private fit method, does nothing more than the base class.
+
+        Parameters
+        ----------
+        X : array, shape (n_cases, n_channels, n_timestamps)
+            Input array to used as database for the similarity search
+        y : optional
+            Not used.
+
+        Returns
+        -------
+        self
+
+        """
         return self
 
     def _predict(self, q):
+        """
+        Private predict method for TopKSimilaritySearch.
+
+        It compute the distance profiles and return the top k matches
+
+        Parameters
+        ----------
+        q :  array, shape (n_channels, q_length)
+            Input query used for similarity search.
+
+        Raises
+        ------
+        TypeError
+            If the input q array is not 2D raise an error.
+
+        Returns
+        -------
+        array
+            An array containing the indexes of the best k matches between q and _X.
+
+        """
         if self.normalize:
             distance_profile = self.distance_profile_function(
                 self._X, q, self._X_means, self._X_stds, self._q_means, self._q_stds
