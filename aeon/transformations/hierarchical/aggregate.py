@@ -49,18 +49,18 @@ class Aggregator(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
         # todo instance wise?
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": [
             "pd.Series",
             "pd.DataFrame",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?

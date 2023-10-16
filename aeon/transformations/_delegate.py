@@ -73,7 +73,7 @@ class _DelegatedTransformer(BaseTransformer):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |----------|--------------|------------------------|
@@ -107,7 +107,7 @@ class _DelegatedTransformer(BaseTransformer):
         """Use wrapped transformer to inverse transform X and return.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
+            "input_data_type"="Series", "output_data_type"="Series",
         have an inverse_transform.
 
 

@@ -53,12 +53,12 @@ class ForecasterTestScenario(TestScenario, BaseObject):
         if not isinstance(obj, BaseForecaster) and not issubclass(obj, BaseForecaster):
             return False
 
-        # applicable only if number of variables in y complies with scitype:y
+        # applicable only if number of variables in y complies with y_input_type
         # only rule: multivariate forecasters cannot deal with univariate data
         # univariate forecasters can deal with multivariate data by vectorization
         is_univariate = self.get_tag("univariate_y")
 
-        if is_univariate and get_tag(obj, "scitype:y") == "multivariate":
+        if is_univariate and get_tag(obj, "y_input_type") == "multivariate":
             return False
 
         # applicable only if fh is not passed later than it needs to be
@@ -68,12 +68,12 @@ class ForecasterTestScenario(TestScenario, BaseObject):
             return False
 
         # run Panel/Hierarchical scenarios for genuinely Panel/Hierarchical forecasters
-        y_scitype = self.get_tag("y_scitype", "Series", raise_error=False)
-        scenario_is_hierarchical = y_scitype in ["Panel", "Hierarchical"]
+        y_type = self.get_tag("y_type", "Series", raise_error=False)
+        scenario_is_hierarchical = y_type in ["Panel", "Hierarchical"]
 
-        obj_y_inner_types = get_tag(obj, "y_inner_mtype")
-        obj_scitypes = mtype_to_scitype(obj_y_inner_types)
-        obj_is_hierarchical = "Panel" in obj_scitypes or "Hierarchical" in obj_scitypes
+        obj_y_inner_types = get_tag(obj, "y_inner_type")
+        obj_types = mtype_to_scitype(obj_y_inner_types)
+        obj_is_hierarchical = "Panel" in obj_types or "Hierarchical" in obj_types
 
         # if scenario is hierarchical and obj is not genuinely hierarchical,
         # this would trigger generic vectorization, which is tested in test_base
@@ -246,9 +246,10 @@ class ForecasterFitPredictPanelSimple(ForecasterTestScenario):
     """Fit/predict only, univariate Panel y, no X, and longer fh passed early in fit."""
 
     _tags = {
+        # These tags are only used in testing and not defined in registry
         "univariate_y": True,
         "fh_passed_in_fit": True,
-        "y_scitype": "Panel",
+        "y_type": "Panel",
         "is_enabled": True,
     }
 
@@ -267,7 +268,7 @@ class ForecasterFitPredictHierarchicalSimple(ForecasterTestScenario):
     _tags = {
         "univariate_y": True,
         "fh_passed_in_fit": True,
-        "y_scitype": "Hierarchical",
+        "y_type": "Hierarchical",
         "is_enabled": True,
     }
 

@@ -6,11 +6,11 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_window_length
 
 
-class IntervalSegmenter(BaseTransformer):
+class IntervalSegmenter(BaseCollectionTransformer):
     """Interval segmentation transformer.
 
     Parameters
@@ -25,22 +25,14 @@ class IntervalSegmenter(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "fit_is_empty": False,
         "capability:unequal_length:removes": True,
-        "capability:multivariate": False,
     }
 
     def __init__(self, intervals=10):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super(IntervalSegmenter, self).__init__(_output_convert=False)
+        super(IntervalSegmenter, self).__init__()
 
     def _fit(self, X, y=None):
         """
@@ -183,9 +175,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",
-        # which mtypes do _fit/_predict support for y?
+        "X_inner_mtype": "numpy3D",
     }
 
     def __init__(
@@ -347,7 +337,7 @@ def _rand_intervals_fixed_n(
     return np.column_stack([starts, ends])
 
 
-class SlidingWindowSegmenter(BaseTransformer):
+class SlidingWindowSegmenter(BaseCollectionTransformer):
     """Sliding window segmenter transformer.
 
     This class is to transform a univariate series into a multivariate one by
@@ -388,19 +378,14 @@ class SlidingWindowSegmenter(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "instancewise": False,
+        "y_inner_type": "None",
     }
 
     def __init__(self, window_length=5):
         self.window_length = window_length
-        super(SlidingWindowSegmenter, self).__init__(_output_convert=False)
+        super(SlidingWindowSegmenter, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform time series.

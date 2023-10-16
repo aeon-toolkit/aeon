@@ -19,12 +19,12 @@ from aeon.transformations.base import BaseTransformer
 
 class _AugmenterTags:
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": True,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "X_inner_mtype": "pd.DataFrame",
         "X-y-must-have-same-index": False,
         "fit_is_empty": True,

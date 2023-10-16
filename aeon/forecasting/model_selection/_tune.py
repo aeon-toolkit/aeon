@@ -18,7 +18,7 @@ from aeon.utils.validation.forecasting import check_scoring
 
 class BaseGridSearch(_DelegatedForecaster):
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "ignores-exogeneous-X": True,
@@ -56,16 +56,16 @@ class BaseGridSearch(_DelegatedForecaster):
         tags_to_clone = [
             "requires-fh-in-fit",
             "capability:pred_int",
-            "scitype:y",
+            "y_input_type",
             "ignores-exogeneous-X",
             "capability:missing_values",
-            "y_inner_mtype",
+            "y_inner_type",
             "X_inner_mtype",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
         self.clone_tags(forecaster, tags_to_clone)
-        self._extend_to_all_scitypes("y_inner_mtype")
+        self._extend_to_all_scitypes("y_inner_type")
         self._extend_to_all_scitypes("X_inner_mtype")
 
     # attribute for _DelegatedForecaster, which then delegates
@@ -81,7 +81,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        tagname : str, name of the tag. Should be "y_inner_mtype" or "X_inner_mtype".
+        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_mtype".
 
         Returns
         -------
@@ -257,13 +257,13 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
             guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast

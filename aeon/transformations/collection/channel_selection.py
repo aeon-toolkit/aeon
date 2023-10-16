@@ -122,9 +122,9 @@ class ClassPrototype:
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     """
@@ -270,9 +270,9 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -290,7 +290,7 @@ class ElbowClassSum(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "skip-inverse-transform": True,
-        "y_inner_mtype": "numpy1D",
+        "y_inner_type": "numpy1D",
         "requires_y": True,
     }
 
@@ -404,9 +404,9 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -422,12 +422,8 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
+        "requires_y": True,
         "capability:multivariate": True,
-        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
@@ -449,7 +445,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X: np.ndarray
             The training input samples.
         y: array-like or list
             The class values for X.

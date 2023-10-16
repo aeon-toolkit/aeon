@@ -16,11 +16,6 @@ time series packages to provide a single framework for algorithm comparison.
 The latest `aeon` release is `v0.5.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/latest/changelog.html).
 
-```diff
-- The deprecation policy is currently suspended, be careful with the version bounds used when including aeon as a dependency.
-- The policy will return in version v0.6.0, but in the mean time the suspension allows us to quickly develop and maintain the package in the forking transition period.
-```
-
 Our webpage and documentation is available at https://aeon-toolkit.org.
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

@@ -58,7 +58,7 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
     }
 
     def __init__(

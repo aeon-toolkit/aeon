@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.datatypes import convert
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -72,7 +71,7 @@ class MultiRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
     }
 
     def __init__(
@@ -112,11 +111,11 @@ class MultiRocket(BaseCollectionTransformer):
         self
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
+        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
 
         self.parameter = self._get_parameter(X)
 
@@ -139,7 +138,7 @@ class MultiRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8

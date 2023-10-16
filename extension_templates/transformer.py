@@ -74,67 +74,67 @@ class MyTransformer(BaseTransformer):
     #  tags are inherited from parent class if they are not set
     #
     # todo: define the transformer scitype by setting the tags
-    #   scitype:transform-input - the expected input scitype of X
-    #   scitype:transform-output - the output scitype that transform produces
-    #   scitype:transform-labels - whether y is used and if yes which scitype
-    #   scitype:instancewise - whether transform uses all samples or acts by instance
+    #   input_data_type: - the expected input type of X
+    #   output_data_type - the output type that transform produces
+    #   transform_labels - whether y is used and if yes which type
+    #   instancewise - whether transform uses all samples or acts by instance
     #
     # todo: define internal types for X, y in _fit/_transform by setting the tags
     #   X_inner_mtype - the internal mtype used for X in _fit and _transform
-    #   y_inner_mtype - if y is used, the internal mtype used for y; usually "None"
+    #   y_inner_type - if y is used, the internal mtype used for y; usually "None"
     #   setting this guarantees that X, y passed to _fit, _transform are of above types
     #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
     #
-    #  when scitype:transform-input is set to Panel:
+    #  when input_data_type is set to Panel:
     #   X_inner_mtype must be changed to one or a list of aeon Panel mtypes
-    #  when scitype:transform-labels is set to Series or Panel:
-    #   y_inner_mtype must be changed to one or a list of compatible aeon mtypes
+    #  when transform_labels is set to Series or Panel:
+    #   y_inner_type must be changed to one or a list of compatible aeon mtypes
     #  the other tags are "safe defaults" which can usually be left as-is
     _tags = {
         # to list all valid tags with description, use aeon.registry.all_tags
-        #   all_tags(estimator_types="transformer", as_dataframe=True)
+        #   all_tags(estimator_identifiers="transformer", as_dataframe=True)
         #
         #
         # behavioural tags: transformer type
         # ----------------------------------
         #
-        # scitype:transform-input, scitype:transform-output, scitype:transform-labels
-        # control the input/output type of transform, in terms of scitype
+        # input_data_type, output_data_type, transform_labels
+        # control the input/output type of transform
         #
-        # scitype:transform-input, scitype:transform-output should be the
-        # simplest scitype that describes the mapping, taking into account vectorization
+        # input_data_type, output_data_type, should be the
+        # simplest type that describes the mapping, taking into account vectorization
         # a transform that produces Series when given Series, Panel when given Panel
         #   should have both transform-input and transform-output as "Series"
         # a transform that produces a tabular DataFrame (Table)
         #   when given Series or Panel should have transform-input "Series"
         #       and transform-output as "Primitives"
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # valid values: "Series", "Panel"
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # valid values: "Series", "Panel", "Primitives"
         #
-        # scitype:instancewise = is fit_transform an instance-wise operation?
+        # instancewise = is fit_transform an instance-wise operation?
         # instance-wise = only values of a given series instance are used to transform
         #   that instance. Example: Fourier transform; non-example: series PCA
-        "scitype:instancewise": True,
+        "instancewise": True,
         #
-        # scitype:transform-labels types the y used in transform
+        # transform_labels types the y used in transform
         #   if y is not used in transform, this should be "None"
-        "scitype:transform-labels": "None",
+        "transform_labels": "None",
         # valid values: "None" (not needed), "Primitives", "Series", "Panel"
         #
         #
         # behavioural tags: internal type
         # ----------------------------------
         #
-        # X_inner_mtype, y_inner_mtype control which format X/y appears in
+        # X_inner_mtype, y_inner_type control which format X/y appears in
         # in the inner functions _fit, _transform, etc
         "X_inner_mtype": "pd.DataFrame",
-        "y_inner_mtype": "None",
+        "y_inner_type": "None",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
-        #   y_inner_mtype can also be of scitype Table (one row/instance per series)
+        #   y_inner_type can also be of scitype Table (one row/instance per series)
         #   in that case, all inputs are converted to that one type
         # if list of str, must be a list of valid str specifiers
         #   in that case, X/y are passed through without conversion if on the list
@@ -208,7 +208,7 @@ class MyTransformer(BaseTransformer):
         #   is transform result always guaranteed to be equal length (and series)?
         "capability:unequal_length:removes": False,
         # valid values: boolean True (yes), False (no)
-        # applicable only if scitype:transform-output is not "Primitives"
+        # applicable only if output_data_type is not "Primitives"
         # used for search index and validity checking, does not raise direct exception
         #
         # capability:missing_values = can the transformer handle missing data
@@ -286,7 +286,7 @@ class MyTransformer(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -295,7 +295,7 @@ class MyTransformer(BaseTransformer):
         """
 
         # implement here
-        # X, y passed to this function are always of X_inner_mtype, y_inner_mtype
+        # X, y passed to this function are always of X_inner_mtype, y_inner_type
         # IMPORTANT: avoid side effects to X, y
         #
         # any model parameters should be written to attributes ending in "_"
@@ -324,7 +324,7 @@ class MyTransformer(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -332,7 +332,7 @@ class MyTransformer(BaseTransformer):
         transformed version of X
         """
         # implement here
-        # X, y passed to this function are always of X_inner_mtype, y_inner_mtype
+        # X, y passed to this function are always of X_inner_mtype, y_inner_type
         # IMPORTANT: avoid side effects to X, y
         #
         # if transform-output is "Primitives":
@@ -364,7 +364,7 @@ class MyTransformer(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_mtype, optional (default=None)
+        y : Series or Panel of mtype y_inner_type, optional (default=None)
             Additional data, e.g., labels for transformation
 
         Returns
@@ -400,7 +400,7 @@ class MyTransformer(BaseTransformer):
         X : Series or Panel of mtype X_inner_mtype
             if X_inner_mtype is list, _update must support all types in it
             Data to update transformer with
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -408,7 +408,7 @@ class MyTransformer(BaseTransformer):
         self: reference to self
         """
         # implement here
-        # X, y passed to this function are always of X_inner_mtype, y_inner_mtype
+        # X, y passed to this function are always of X_inner_mtype, y_inner_type
         # IMPORTANT: avoid side effects to X, y
         #
         # any model parameters should be written to attributes ending in "_"

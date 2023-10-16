@@ -3,10 +3,10 @@ Registry lookup methods.
 
 This module exports the following methods for registry lookup:
 
-all_estimators(estimator_types, filter_tags)
+all_estimators(estimator_identifiers, filter_tags)
     lookup and filtering of estimators
 
-all_tags(estimator_types)
+all_tags(estimator_identifiers)
     lookup and filtering of estimator tags
 """
 
@@ -65,8 +65,8 @@ def all_estimators(
     estimator_types: str, list of str, optional (default=None)
         Which kind of estimators should be returned.
         if None, no filter is applied and all estimators are returned.
-        if str or list of str, strings define scitypes specified in search
-                only estimators that are of (at least) one of the scitypes are returned
+        if str or list of str, string identifiers define types specified in search
+                only estimators that are of (at least) one of the types are returned
             possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
                 for instance 'classifier', 'regressor', 'transformer', 'forecaster'
     return_names: bool, optional (default=True)
@@ -450,8 +450,8 @@ def all_tags(
     tags: list of tuples (a, b, c, d),
         in alphabetical order by a
         a : string - name of the tag as used in the _tags dictionary
-        b : string - name of the scitype this tag applies to
-                    must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+        b : string - name of the type this tag applies to
+                    must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
         c : string - expected type of the tag value
             should be one of:
                 "bool" - valid values are True/False
@@ -492,7 +492,7 @@ def all_tags(
     return all_tags
 
 
-def _check_estimator_types(estimator_types, var_name="estimator_types"):
+def _check_estimator_types(estimator_types, var_name="estimator_identifiers"):
     """Return list of classes corresponding to type strings."""
     estimator_types = deepcopy(estimator_types)
 

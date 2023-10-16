@@ -82,7 +82,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_mtype": "df-list",
@@ -129,12 +129,12 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
         super(MiniRocketMultivariateVariable, self).__init__()
 
-    def _fit(self, X: List[np.ndarray], y=None):
+    def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
 
         Parameters
         ----------
-        X : List of 2D np.ndarray
+        X : List of 2D dataframes
         y : ignored argument for interface compatibility
 
         Returns
@@ -275,14 +275,14 @@ def _nested_dataframe_to_transposed2D_array_and_len_list(
         )
 
     vec = []
-    lenghts = []
+    lengths = []
 
     for _x in X:
         _x_shape = _x.shape
         if _x_shape[0] < 9:
             if pad is not None:
                 # emergency: pad with zeros up to 9.
-                lenghts.append(9)
+                lengths.append(9)
                 vec.append(
                     np.vstack(
                         [_x.values, np.full([9 - _x_shape[0], _x_shape[1]], float(pad))]
@@ -295,11 +295,11 @@ def _nested_dataframe_to_transposed2D_array_and_len_list(
                     " padding, discard, or setting a pad_value_short_series value"
                 )
         else:
-            lenghts.append(_x_shape[0])
+            lengths.append(_x_shape[0])
             vec.append(_x.values)
 
     X_2d_t = np.vstack(vec).T.astype(dtype=np.float32)
-    lengths = np.array(lenghts, dtype=np.int32)
+    lengths = np.array(lengths, dtype=np.int32)
 
     if not lengths.sum() == X_2d_t.shape[1]:
         raise ValueError("X_new and lengths do not match. check input dimension")

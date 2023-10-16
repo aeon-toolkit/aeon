@@ -108,7 +108,7 @@ class RandomIntervals(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
         "fit_is_empty": False,
     }
