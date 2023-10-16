@@ -369,7 +369,62 @@ class GGS:
 
 
 class GreedyGaussianSegmentation(BaseEstimator):
-    """Greedy Gaussian Segmentation Estimator.
+    """
+    Greedy Gaussian Segmentation Estimator.
+
+    This class is a wrapper around the GGS class, providing an interface that is
+    compatible with scikit-learn. It uses the GGS class to perform greedy Gaussian
+    segmentation on multivariate time series data.
+
+    The fit method initializes the internal state of the estimator. The predict method
+    performs the segmentation and returns labels for each data point. The fit_predict
+    method combines these two steps and is a common idiom in scikit-learn.
+
+    The get_params and set_params methods are used for getting and setting parameters
+    of the estimator, and are required for compatibility with scikit-learn's model
+    selection and evaluation tools.
+
+    Parameters
+    ----------
+    k_max: int, default=10
+        Maximum number of change points to find. The number of segments is thus k+1.
+    lamb: : float, default=1.0
+        Regularization parameter lambda (>= 0), which controls the amount of
+        (inverse) covariance regularization, see Eq (1) in [1]_. Regularization
+        is introduced to reduce issues for high-dimensional problems. Setting
+        ``lamb`` to zero will ignore regularization, whereas large values of
+        lambda will favour simpler models.
+    max_shuffles: int, default=250
+        Maximum number of shuffles
+    verbose: bool, default=False
+        If ``True`` verbose output is enabled.
+    random_state: int or np.random.RandomState, default=None
+        Either random seed or an instance of ``np.random.RandomState``
+
+    Attributes
+    ----------
+    change_points_: array_like, default=[]
+        Locations of change points as integer indexes. By convention change points
+        include the identity segmentation, i.e. first and last index + 1 values.
+    _intermediate_change_points: List[List[int]], default=[]
+        Intermediate values of change points for each value of k = 1...k_max
+    _intermediate_ll: List[float], default=[]
+        Intermediate values for log-likelihood for each value of k = 1...k_max
+
+    Notes
+    -----
+    Based on the work from [1]_.
+
+    - source code adapted based on: https://github.com/cvxgrp/GGS
+    - paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
+
+    References
+    ----------
+    .. [1] Hallac, D., Nystrup, P. & Boyd, S.,
+       "Greedy Gaussian segmentation of multivariate time series.",
+       Adv Data Anal Classif 13, 727–751 (2019).
+       https://doi.org/10.1007/s11634-018-0335-0
+    """
 
     The method approxmates solutions for the problem of breaking a
     multivariate time series into segments, where the data in each segment
