@@ -112,18 +112,19 @@ binder = [
     "jupyterlab",
 ]
 docs = [
-    "jupyter",
-    "myst-parser",
-    "nbsphinx>=0.8.12",
-    "numpydoc",
-    "furo",
-    "sphinx_issues>=3.0.1",
-    "sphinx-design>=0.3.0",
+    "sphinx<8.0.0",
+    "sphinx-design",
+    "sphinx-version-warning",
+    "sphinx_issues",
     "sphinx-copybutton",
-    "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
     "sphinx-remove-toctrees",
-    "tabulate",
     "sphinxext-opengraph",
+    "nbsphinx",
+    "numpydoc",
+    "myst-parser",
+    "jupyter",
+    "furo",
+    "tabulate",
 ]
 
 [project.urls]
