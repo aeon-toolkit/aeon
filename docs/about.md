@@ -2,7 +2,7 @@
 
 ## Roles
 
-The roles are described in scikit-time's {ref}`governance` document.
+The roles are described in aeon's [governance](governance.md) document.
 A list of all contributors can be found [here](contributors.md).
 
 ### Community Council

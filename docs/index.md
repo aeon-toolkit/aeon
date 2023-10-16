@@ -249,6 +249,8 @@ developers
 
 contributors.md
 about.md
+governance.md
+code_of_conduct.md
 ```
 
 ```{toctree}
