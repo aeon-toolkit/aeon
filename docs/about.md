@@ -7,20 +7,44 @@ A list of all contributors can be found [here](contributors.md).
 
 ### Code of Conduct Workgroup
 
-The [Code of Conduct Workgroup (COCW)]() maintains the code of conduct and handles any
+The code of conduct workgroup maintains the code of conduct and handles any
 issues related that arise.
 
 ```{eval-rst}
-.. include:: about/coc_committee.rst
+.. include:: about/code_of_conduct_workgroup.rst
 ```
 
-### Community Council
+### Communications Workgroup
 
-The community council currently has no sitting members while we discuss governance for
-the project.
+The communications workgroup manages the project's communication channels.
 
 ```{eval-rst}
-.. include:: about/community_council.rst
+.. include:: about/communications_workgroup.rst
+```
+
+### Finance Workgroup
+
+The finance workgroup is responsible for managing the project's finances.
+
+```{eval-rst}
+.. include:: about/finance_workgroup.rst
+```
+
+### Infrastructure Workgroup
+
+The infrastructure workgroup is responsible for managing the project's infrastructure
+and CI.
+
+```{eval-rst}
+.. include:: about/infrastructure_workgroup.rst
+```
+
+### Release Management Workgroup
+
+The release management workgroup is responsible for managing the project's releases.
+
+```{eval-rst}
+.. include:: about/release_management_workgroup.rst
 ```
 
 ### Core Developers

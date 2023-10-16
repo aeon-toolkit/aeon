@@ -36,7 +36,8 @@ immediately.
 If you believe someone is violating the CoC, we ask that you report it by
 contacting the COCW. All reports will be kept confidential. You can make a report by
 emailing the general aeon contact address [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org),
-or by messaging members of the COCW directly on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
+or by messaging [members of the COCW](./about.md#code-of-conduct-workgroup)
+directly on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
 
 Thank you for reading and helping make this a welcoming, friendly community for
 everyone.
