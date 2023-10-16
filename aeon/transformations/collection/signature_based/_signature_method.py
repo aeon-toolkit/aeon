@@ -40,9 +40,8 @@ class SignatureTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
-        "fit_is_empty": False,
         "python_dependencies": "esig",
         "python_version": "<3.11",
     }

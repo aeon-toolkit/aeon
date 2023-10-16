@@ -1,4 +1,5 @@
 """Distance computation."""
+
 __author__ = ["chrisholder", "TonyBagnall", "baraline"]
 
 __all__ = [

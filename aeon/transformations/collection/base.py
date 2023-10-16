@@ -1,7 +1,7 @@
 """
-Base class template for panel transformers.
+Base class template for Collection transformers.
 
-    class name: BasePanelTransformer
+    class name: BaseCollectionTransformer
 
 Defining methods:
     fitting         - fit(self, X, y=None)
@@ -25,6 +25,7 @@ __all__ = [
 ]
 
 from abc import ABCMeta, abstractmethod
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -37,18 +38,21 @@ from aeon.transformations.base import BaseTransformer
 class BaseCollectionTransformer(
     BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
 ):
-    """Transformer base class."""
+    """Transformer base class for collections."""
 
-    # Relevant tag values inherited from BaseTransformer
+    # tag values specific to CollectionTransformers
     _tags = {
-        "input_data_type": "Panel",
-        "output_data_type": "Panel",
+        "input_data_type": "Collection",
+        "output_data_type": "Collection",
         "fit_is_empty": False,
+        "requires_y": False,
+        "capability:inverse_transform": False,
     }
 
     def __init__(self):
         super(BaseCollectionTransformer, self).__init__()
 
+    @final
     def fit(self, X, y=None):
         """Fit transformer to X, optionally using y if supervised.
 
@@ -70,6 +74,9 @@ class BaseCollectionTransformer(
         -------
         self : a fitted instance of the estimator
         """
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
@@ -85,6 +92,7 @@ class BaseCollectionTransformer(
 
         return self
 
+    @final
     def transform(self, X, y=None):
         """Transform X and return a transformed version.
 
@@ -118,6 +126,7 @@ class BaseCollectionTransformer(
 
         return Xt
 
+    @final
     def fit_transform(self, X, y=None):
         """
         Fit to data, then transform it.
@@ -156,27 +165,28 @@ class BaseCollectionTransformer(
 
         return Xt
 
+    @final
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
 
         Currently it is assumed that only transformers with tags
-            "input_data_type"="Series", "output_data_type"="Series",
-        have an inverse_transform.
+             "input_data_type"="Series", "output_data_type"="Series",
+        can have an inverse_transform.
 
         State required:
-            Requires state to be "fitted".
+             Requires state to be "fitted".
 
         Accesses in self:
-        _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
-        fitted model attributes (ending in "_") : accessed by _inverse_transform
+         _is_fitted : must be True
+         _X : optionally accessed, only available if remember_data tag is True
+         fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
-            Additional data, e.g., labels for transformation
+             Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -202,6 +212,7 @@ class BaseCollectionTransformer(
 
         return Xt
 
+    @final
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
 
@@ -243,7 +254,7 @@ class BaseCollectionTransformer(
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner = self.preprocess_collection(X)
+        X_inner = self._preprocess_collection(X)
         y_inner = y
 
         # update memory of X, if remember_data tag is set to True
