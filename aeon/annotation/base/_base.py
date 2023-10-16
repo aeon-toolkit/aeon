@@ -70,19 +70,22 @@ class BaseSeriesAnnotator(BaseEstimator):
 
     def fit(self, X, Y=None):
         """Fit to training data.
-
+    
+        This method checks the format of the labels and the series, stores the input data for future use,
+        and sets the _is_fitted flag to True.
+    
         Parameters
         ----------
         X : pd.DataFrame
             Training data to fit model to (time series).
         Y : pd.Series, optional
             Ground truth annotations for training if annotator is supervised.
-
+    
         Returns
         -------
         self :
             Reference to self.
-
+    
         Notes
         -----
         Creates fitted model that updates attributes ending in "_". Sets
@@ -109,31 +112,37 @@ class BaseSeriesAnnotator(BaseEstimator):
 
     def predict(self, X):
         """Create annotations on test/deployment data.
-
+    
+        This method checks if the model is fitted, validates the input series, and then calls the _predict method
+        to generate the annotations.
+    
         Parameters
         ----------
         X : pd.DataFrame
             Data to annotate (time series).
-
+    
         Returns
         -------
         Y : pd.Series
             Annotations for sequence X exact format depends on annotation type.
         """
         self.check_is_fitted()
-
+    
         X = check_series(X)
-
+    
         return self._predict(X=X)
 
     def predict_scores(self, X):
         """Return scores for predicted annotations on test/deployment data.
-
+    
+        This method checks if the model is fitted, validates the input series, and then calls the _predict_scores method
+        to generate the annotation scores.
+    
         Parameters
         ----------
         X : pd.DataFrame
             Data to annotate (time series).
-
+    
         Returns
         -------
         Y : pd.Series
@@ -142,22 +151,25 @@ class BaseSeriesAnnotator(BaseEstimator):
         self.check_is_fitted()
         X = check_series(X)
         return self._predict_scores(X)
-
+    
     def update(self, X, Y=None):
         """Update model with new data and optional ground truth annotations.
-
+    
+        This method checks if the model is fitted, validates the input series (and optionally the input annotations),
+        updates the stored data, and then calls the _update method to update the model.
+    
         Parameters
         ----------
         X : pd.DataFrame
             Training data to update model with (time series).
         Y : pd.Series, optional
             Ground truth annotations for training if annotator is supervised.
-
+    
         Returns
         -------
         self :
             Reference to self.
-
+    
         Notes
         -----
         Updates fitted model that updates attributes ending in "_".
