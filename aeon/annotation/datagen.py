@@ -372,14 +372,35 @@ def label_piecewise_normal(
 class GenBasicGauss:
     """Data generator base class in order to allow composition."""
 
-    def __init__(self, means, lengths, std_dev=1.0, random_state=None):
+    def __init__(self, means: npt.ArrayLike, lengths: npt.ArrayLike, std_dev: Union[npt.ArrayLike, float] = 1.0, random_state: Union[int, np.random.RandomState] = None):
+        """
+        Initialize the GenBasicGauss class.
+
+        Parameters
+        ----------
+        means : array_like
+            Means of the segments to be generated
+        lengths : array_like
+            Lengths of the segments to be generated
+        std_dev : float or array_like, optional
+            Standard deviations of the segments to be generated, by default 1.0
+        random_state : int or np.random.RandomState, optional
+            Either a random seed or RandomState instance, by default None
+        """
         self.means = means
         self.lengths = lengths
         self.std_dev = std_dev
         self.random_state = random_state
 
-    def sample(self):
-        """Generate univariate mean shift random data sample."""
+    def sample(self) -> npt.ArrayLike:
+        """
+        Generate univariate mean shift random data sample.
+
+        Returns
+        -------
+        array_like
+            Univariate time series as np.array
+        """
         return piecewise_normal(
             means=self.means,
             lengths=self.lengths,
