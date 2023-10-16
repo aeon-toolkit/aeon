@@ -134,8 +134,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
-        "y_inner_type": "numpy1D",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
         "requires_y": True,
     }

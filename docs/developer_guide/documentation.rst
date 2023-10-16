@@ -206,3 +206,5 @@ dependencies listed in
 
       cd docs
       make html
+
+You may need to install pandoc to build the documentation locally.

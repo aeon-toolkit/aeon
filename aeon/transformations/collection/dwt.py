@@ -1,14 +1,15 @@
 """Discrete wavelet transform."""
+
+__author__ = "Vincent Nicholson"
+
 import math
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
-
-__author__ = "Vincent Nicholson"
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class DWTTransformer(BaseTransformer):
+class DWTTransformer(BaseCollectionTransformer):
     """Discrete Wavelet Transform Transformer.
 
     Performs the Haar wavelet transformation on a time series.
@@ -29,11 +30,8 @@ class DWTTransformer(BaseTransformer):
     """
 
     _tags = {
-        "output_data_type": "Series",
-        "instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_type": "None",
         "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, n_levels=3):
