@@ -8,5 +8,5 @@ the [Python Software Foundation Code of Conduct](https://www.python.org/psf/code
 
 If you want to make a CoC report, contact the general `aeon` email
 [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org) or message a member of the
-[Code of Conduct Workgroup (COCW)](https://www.aeon-toolkit.org/en/latest/governance.html#code-of-conduct-workgroup)
+[Code of Conduct Workgroup (COCW)](https://www.aeon-toolkit.org/en/latest/about.html#code-of-conduct-workgroup)
 directly on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
