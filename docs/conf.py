@@ -44,6 +44,7 @@ extensions = [
     "sphinx_issues",
     "sphinx_copybutton",
     "sphinx_remove_toctrees",
+    "versionwarning.extension",
     "myst_parser",
 ]
 
@@ -134,7 +135,7 @@ suppress_warnings = ["myst.mathjax"]
 # Recommended by sphinx_design when using the MyST Parser
 myst_enable_extensions = ["colon_fence", "html_image"]
 
-myst_heading_anchors = 2
+myst_heading_anchors = 4
 
 
 def linkcode_resolve(domain, info):
@@ -347,10 +348,10 @@ Generated using nbsphinx_. The Jupyter notebook can be found here_.
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/{.major}".format(sys.version_info), None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
-    "matplotlib": ("https://matplotlib.org/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
     "scikit-learn": ("https://scikit-learn.org/stable/", None),

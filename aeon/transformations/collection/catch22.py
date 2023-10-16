@@ -131,7 +131,7 @@ class Catch22(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
         "X_inner_mtype": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
         "capability:multivariate": True,

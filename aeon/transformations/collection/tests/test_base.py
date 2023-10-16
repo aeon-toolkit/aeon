@@ -38,11 +38,7 @@ def test_collection_transformer_valid_input(data_gen):
 @pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
-    y = convert_to(
-        _make_series(),
-        to_type=dtype,
-    )
-
+    y = (_make_series(),)
     t = _Dummy()
     with pytest.raises(TypeError):
         t.fit_transform(y)
