@@ -9,7 +9,8 @@ on:
 
 jobs:
   generate-markdown-and-commit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
       - uses: actions/checkout@v3
 
@@ -26,8 +27,8 @@ jobs:
 
       - uses: peter-evans/create-pull-request@v5
         with:
-          commit-message: "Automated CONTRIBUTORS.md update"
+          commit-message: "Automated `CONTRIBUTORS.md` update"
           branch: update_contributors
-          title: "[MNT] Automated CONTRIBUTORS.md update"
-          body: "Automated update to CONTRIBUTORS.md caused by an update to the .all-contributorsrc file."
+          title: "[MNT] Automated `CONTRIBUTORS.md` update"
+          body: "Automated update to CONTRIBUTORS.md caused by an update to the `.all-contributorsrc` file."
           labels: maintenance, no changelog
