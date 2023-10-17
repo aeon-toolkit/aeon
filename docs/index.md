@@ -20,7 +20,6 @@ comparison.
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series forecasting.
 
 +++
@@ -39,7 +38,6 @@ Forecasting
 :img-top: examples/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series classification.
 
@@ -60,7 +58,6 @@ Classification
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series extrinsic regression.
 
 +++
@@ -79,7 +76,6 @@ Regression
 :img-top: examples/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series clustering.
 
@@ -100,7 +96,6 @@ Clustering
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series transformations.
 
 +++
@@ -119,7 +114,6 @@ Transformations
 :img-top: examples/distances/img/dtw_vis.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series distances.
 
@@ -158,7 +152,6 @@ Networks
 :img-top: examples/annotation/img/clasp.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Annotation
 

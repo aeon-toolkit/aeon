@@ -1,7 +1,4 @@
-
-===============
-Developer Guide
-===============
+# Developer Guide
 
 Welcome to aeon's developer guide!
 
