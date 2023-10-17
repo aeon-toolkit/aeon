@@ -16,8 +16,8 @@ testing locally and learn how to check the status on pull requests.
 - Read up on the `aeon` [coding standards](developer_guide/coding_standards.rst) and
 pre-commit setup.
 
-`aeon` follows thr [scikit-learn](https://scikit-learn.org/stable/) API whenever
-possible. If you’re new to `scikit-learn`, take a look at their [getting-started guide](https://scikit-learn.org/stable/getting_started.html).
+`aeon` follows the `scikit-learn` API whenever possible. If you’re new to
+`scikit-learn`, take a look at their [getting-started guide](https://scikit-learn.org/stable/getting_started.html).
 If you’re already familiar with `scikit-learn`, you may still learn something new from
 their [developer's guide](https://scikit-learn.org/stable/developers/index.html).
 
@@ -27,6 +27,8 @@ Below we list further reading and guidance for specific topics in the developmen
 `aeon`.
 
 ```{toctree}
+:maxdepth: 1
+
 developer_guide/add_dataset
 developer_guide/add_estimators
 developer_guide/coding_standards

@@ -86,7 +86,7 @@ Information on contributing `aeon` enhancement proposals.
 
 +++
 
-```{button-ref} enhancement_proposals
+```{button-ref} contributing/enhancement_proposals
 :color: primary
 :click-parent:
 :expand:
@@ -107,7 +107,7 @@ Guidance for reporting bugs in `aeon`.
 
 +++
 
-```{button-ref} /examples/regression/regression.ipynb
+```{button-ref} contributing/reporting_bugs
 :color: primary
 :click-parent:
 :expand:
@@ -128,7 +128,7 @@ Guidance for reviewing `aeon` pull requests.
 
 +++
 
-```{button-ref} /examples/clustering/partitional_clustering.ipynb
+```{button-ref} contributing/reviewer_guide
 :color: primary
 :click-parent:
 :expand:
