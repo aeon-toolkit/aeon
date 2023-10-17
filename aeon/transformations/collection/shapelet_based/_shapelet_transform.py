@@ -365,7 +365,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         """
         output = np.zeros((len(X), len(self.shapelets)))
 
-        for i in range(0, self.n_instances_):
+        for i in range(0, len(X)):
             if X[i].shape[1] < self.min_series_length_:
                 raise ValueError(
                     "The shortest series in transform is smaller than "
