@@ -41,45 +41,63 @@ def get(url, auth):
 
 def get_contributors(auth):
     """Get the list of contributor profiles. Require admin rights."""
-    cc = []
-    cc_slug = "aeon-community-council"
-    cocc = []
-    cocc_slug = "aeon-code-of-conduct-committee"
-    core_devs = []
-    core_devs_slug = "aeon-core-developers"
+    cocw = []
+    cocw_slug = "aeon-code-of-conduct-workgroup"
+    cw = []
+    cw_slug = "aeon-communications-workgroup"
+    cd = []
+    cd_slug = "aeon-core-developers"
+    fw = []
+    fw_slug = "aeon-finance-workgroup"
+    iw = []
+    iw_slug = "aeon-infrastructure-workgroup"
+    rmw = []
+    rmw_slug = "aeon-release-management-workgroup"
 
     entry_point = "https://api.github.com/orgs/aeon-toolkit/"
 
     for team_slug, lst in zip(
-        (cc_slug, cocc_slug, core_devs_slug),
-        (cc, cocc, core_devs),
+        (cocw_slug, cw_slug, cd_slug, fw_slug, iw_slug, rmw_slug),
+        (cocw, cw, cd, fw, iw, rmw),
     ):
         for page in range(5):  # 5 pages, 30 per page
             reply = get(f"{entry_point}teams/{team_slug}/members?page={page}", auth)
             lst.extend(reply.json())
 
     # keep only the logins
-    cc = set(c["login"] for c in cc)
-    cocc = set(c["login"] for c in cocc)
-    core_devs = set(c["login"] for c in core_devs)
+    cocw = set(c["login"] for c in cocw)
+    cw = set(c["login"] for c in cw)
+    cd = set(c["login"] for c in cd)
+    fw = set(c["login"] for c in fw)
+    iw = set(c["login"] for c in iw)
+    rmw = set(c["login"] for c in rmw)
 
     # add missing contributors with GitHub accounts
-    cocc |= {"KatieBuc"}
+    cocw |= {"KatieBuc"}
 
     # get profiles from GitHub
-    cc = [get_profile(login, auth) for login in cc]
-    cocc = [get_profile(login, auth) for login in cocc]
-    core_devs = [get_profile(login, auth) for login in core_devs]
+    cocw = [get_profile(login, auth) for login in cocw]
+    cw = [get_profile(login, auth) for login in cw]
+    cd = [get_profile(login, auth) for login in cd]
+    fw = [get_profile(login, auth) for login in fw]
+    iw = [get_profile(login, auth) for login in iw]
+    rmw = [get_profile(login, auth) for login in rmw]
 
     # sort by last name
-    cc = sorted(cc, key=key)
-    cocc = sorted(cocc, key=key)
-    core_devs = sorted(core_devs, key=key)
+    cocw = sorted(cocw, key=key)
+    cw = sorted(cw, key=key)
+    cd = sorted(cd, key=key)
+    fw = sorted(fw, key=key)
+    iw = sorted(iw, key=key)
+    rmw = sorted(rmw, key=key)
 
     return (
-        cc,
-        cocc,
-        core_devs,
+        cocw,
+        cw,
+        cd,
+        fw,
+        iw,
+        rmw,
     )
 
 
@@ -138,22 +156,48 @@ if __name__ == "__main__":
     auth = ("user", token)
 
     (
-        cc,
-        cocc,
-        core_devs,
+        cocw,
+        cw,
+        cd,
+        fw,
+        iw,
+        rmw,
     ) = get_contributors(auth)
 
     with open(
-        REPO_FOLDER / "docs" / "about" / "community_council.rst", "w+", encoding="utf-8"
+        REPO_FOLDER / "docs" / "about" / "code_of_conduct_workgroup.rst",
+        "w+",
+        encoding="utf-8",
     ) as rst_file:
-        rst_file.write(generate_table(cc))
+        rst_file.write(generate_table(cocw))
 
     with open(
-        REPO_FOLDER / "docs" / "about" / "coc_committee.rst", "w+", encoding="utf-8"
+        REPO_FOLDER / "docs" / "about" / "communications_workgroup.rst",
+        "w+",
+        encoding="utf-8",
     ) as rst_file:
-        rst_file.write(generate_table(cocc))
+        rst_file.write(generate_table(cw))
 
     with open(
         REPO_FOLDER / "docs" / "about" / "core_developers.rst", "w+", encoding="utf-8"
     ) as rst_file:
-        rst_file.write(generate_table(core_devs))
+        rst_file.write(generate_table(cd))
+
+    with open(
+        REPO_FOLDER / "docs" / "about" / "finance_workgroup.rst", "w+", encoding="utf-8"
+    ) as rst_file:
+        rst_file.write(generate_table(fw))
+
+    with open(
+        REPO_FOLDER / "docs" / "about" / "infrastructure_workgroup.rst",
+        "w+",
+        encoding="utf-8",
+    ) as rst_file:
+        rst_file.write(generate_table(iw))
+
+    with open(
+        REPO_FOLDER / "docs" / "about" / "release_management_workgroup.rst",
+        "w+",
+        encoding="utf-8",
+    ) as rst_file:
+        rst_file.write(generate_table(rmw))

@@ -10,6 +10,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-manifest:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: check-manifest --hook-stage manual
+
+  pre-commit:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+
+      - name: Check for missing init files
+        run: build_tools/fail_on_missing_init_files.sh
+        shell: bash
+
   run-notebook-examples:
     runs-on: ubuntu-22.04
 
