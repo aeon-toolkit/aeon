@@ -1,4 +1,4 @@
-# Contributing to `aeon`
+# Contributing to aeon
 
 `aeon` is a community-driven project and contributions are most welcome. We value all
 kinds of contributions, not just code. Improvements to docs, bug reports, and taking
@@ -28,6 +28,9 @@ address. If you are unsure about any feedback, please ask for clarification.
 6. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
+Further guidance for contributing to `aeon` via GitHub can be found on the
+[developer guide](developer_guide.md).
+
 If your intended method of contribution does not fit into the above steps, please
 reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
 for discussion. While GitHub contributions are the most common, it is not the only
@@ -37,7 +40,7 @@ way to contribute to `aeon`.
 
 We follow the [all-contributors specification](https://allcontributors.org) and
 recognise various types of contributions. Take a look at our past and current
-[contributors](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTORS.md)!
+[contributors](contributors.md)!
 
 If you are a new contributor, make sure we add you to our list of contributors. All
 contributions are recorded in [.all-contributorsrc](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc).
@@ -46,7 +49,7 @@ bot to do this for you.
 
 ## Further Reading
 
-hh
+For further information on contributing to `aeon`, please see the following pages.
 
 ::::{grid} 1 2 2 2
 :gutter: 3
@@ -58,7 +61,7 @@ Developer Guide
 
 ^^^
 
-`aeon` developer guide.
+Guidance for `aeon` developers on a range of topics.
 
 +++
 
@@ -79,7 +82,7 @@ Enhancement Proposals
 
 ^^^
 
-`aeon` enhancement proposals.
+Information on contributing `aeon` enhancement proposals.
 
 +++
 
@@ -94,15 +97,13 @@ Enhancement Proposals
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tser.png
-:class-img-top: aeon-card-image
 :text-align: center
 
 Reporting Bugs
 
 ^^^
 
-`aeon` reporting bugs.
+Guidance for reporting bugs in `aeon`.
 
 +++
 
@@ -117,15 +118,13 @@ Reporting Bugs
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tscl.png
-:class-img-top: aeon-card-image
 :text-align: center
 
 Reviewer Guide
 
 ^^^
 
-`aeon` reviewer guide.
+Guidance for reviewing `aeon` pull requests.
 
 +++
 

@@ -2,12 +2,15 @@
 
 Welcome to the API reference for `aeon`.
 
-The API reference describes the public classes and functions included in `aeon`.
+The API reference describes the public classes and functions included in `aeon`, split
+by package.
 
 For an overview of the `aeon` modules see the [getting started](getting_started.md)
 and [examples](examples.md) page.
 
 ```{toctree}
+:maxdepth: 1
+
 api_reference/annotation
 api_reference/base
 api_reference/benchmarking
