@@ -365,6 +365,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         """
         output = np.zeros((len(X), len(self.shapelets)))
 
+        for i in range(0, self.n_instances_):
+            if X[i].shape[1] < self.min_series_length_:
+                raise ValueError(
+                    "The shortest series in transform is smaller than "
+                    "the min shapelet length, pad to min length prior to "
+                    "calling transform."
+                )
+
         for i, series in enumerate(X):
             dists = Parallel(
                 n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
