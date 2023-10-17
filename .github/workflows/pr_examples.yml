@@ -30,7 +30,7 @@ jobs:
           cache: "pip"
 
       - name: Install aeon and dependencies
-        run: python -m pip install .[all_extras,binder,dev]
+        run: pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
         run: build_tools/run_examples.sh
