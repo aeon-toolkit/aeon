@@ -28,12 +28,13 @@ jobs:
           python-version: "3.10"
 
       - name: Cache pip
-        uses: actions/cache@v2
+        id: cache-pip
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-      - name: Install aeon and dependencies
+          key: ${{ runner.os }}-pip
+
+      - name: Install aeon and dependencies
         run: pip install .[dev]
 
       - name: Show dependencies
@@ -57,12 +58,11 @@ jobs:
           python-version: "3.10"
 
       - name: Cache pip
-        uses: actions/cache@v2
+        id: cache-pip
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip--
+          key: ${{ runner.os }}-pip
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -91,12 +91,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip
-        uses: actions/cache@v2
+        id: cache-pip
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          key: ${{ runner.os }}-pip
 
       - name: Install aeon and dependencies
         run: pip install .[all_extras,dev]
@@ -108,7 +107,6 @@ jobs:
         run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
-    # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     needs: test-nosoftdeps
@@ -122,12 +120,11 @@ jobs:
           python-version: "3.10"
 
       - name: Cache pip
-        uses: actions/cache@v2
+        id: cache-pip
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          key: ${{ runner.os }}-pip
 
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
