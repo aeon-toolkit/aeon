@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip-
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -90,7 +90,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip
+      - name: Cache pip on Windows
+        if: runner.os == 'Windows'
+        uses: actions/cache@v3
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+
+      - name: Cache pip on linux and macOS
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         id: cache-pip
         uses: actions/cache@v3
         with:
