@@ -28,10 +28,6 @@ jobs:
           python-version: "3.10"
           cache: "pip"
 
-      - name: Cache debug
-        run: |
-        echo "Setup-python cache hit: ${{ steps.setup-python.outputs.cache-hit }}"
-
       - name: Install aeon and dependencies
         run: pip install .[dev]
 
