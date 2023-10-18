@@ -98,8 +98,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-pytest
 
       - name: Cache pip on linux
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-        id: cache-pip
+        if: runner.os == 'Linux'
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
@@ -107,7 +106,6 @@ jobs:
 
       - name: Cache pip on macOs
         if: runner.os == 'macOS'
-        id: cache-pip
         uses: actions/cache@v3
         with:
           path: ~\AppData\Local\pip\Cache
