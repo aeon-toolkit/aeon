@@ -9,6 +9,7 @@ from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
+# example
 expected_results = {
     "mean": [
         0,
