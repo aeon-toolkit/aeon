@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -62,7 +62,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -95,7 +95,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
 
       - name: Install aeon and dependencies
         run: pip install .[all_extras,dev]
@@ -124,7 +124,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
 
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
