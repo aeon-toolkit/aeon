@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-
+          key: ${{ runner.os }}-pip-3.10-dev-nosoftdep
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -62,7 +62,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip-3.10-nosoftdeps-full
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
@@ -95,15 +95,23 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-pytest
 
-      - name: Cache pip on linux and macOS
+      - name: Cache pip on linux
         if: runner.os == 'Linux' || runner.os == 'macOS'
         id: cache-pip
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-pytest
+
+      - name: Cache pip on macOs
+        if: runner.os == 'macOS'
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-pytest
 
       - name: Install aeon and dependencies
         run: pip install .[all_extras,dev]
@@ -132,7 +140,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip-3.10-codecov
 
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
