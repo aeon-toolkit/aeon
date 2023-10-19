@@ -275,7 +275,9 @@ def test__nested_univ_is_equal():
     """
     Test the function _nested_univ_is_equal for a pandas DataFrame.
 
-    This function tests whether all series in a nested DataFrame are of equal length. It assumes that series are of equal length over channels, so it only tests the first channel.
+    This function tests whether all series in a nested DataFrame are of equal 
+    length. It assumes that series are of equal length over channels, so it 
+    only tests the first channel.
 
     Parameters
     ----------
