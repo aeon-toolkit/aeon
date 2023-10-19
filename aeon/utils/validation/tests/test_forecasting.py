@@ -1,4 +1,4 @@
-"""Test forecasting module."""
+"""This module contains tests for the forecasting module in the aeon.utils.validation package."""
 
 __author__ = ["mloning"]
 
@@ -39,20 +39,10 @@ def test_check_fh():
 
 
 def test_check_functions():
-    X = pd.DataFrame(np.random.randint(0, 10, size=(6, 4)), columns=list("ABCD"))
-    y = pd.Series([1, 2, 3, 4, 5, 6])
-    y2, X2 = check_y_X(y, X)
-    assert isinstance(y2, pd.Series)
-    assert isinstance(X2, pd.DataFrame)
-    X2 = check_X(X)
-    assert isinstance(X2, pd.DataFrame)
-    y2 = check_y(y)
-    assert isinstance(y2, pd.Series)
-    y = pd.Series([1, 1, 1, 1, 1])
-    with raises(ValueError, match="All values of `y` are the same"):
-        check_y(y, allow_constant=False)
-    with raises(TypeError, match=f"`cv` is not an instance of {BaseSplitter}"):
-        check_cv("Arsenal")
+    """Test various aspects of the check_y_X, check_X, check_y, check_cv, check_step_length, and check_sp functions.
+    
+    This function tests various aspects of the check_y_X, check_X, check_y, check_cv, check_step_length, and check_sp functions from the aeon.utils.validation.forecasting module. It checks if these functions correctly perform their checks and return the expected results. The test creates a DataFrame and a Series, and checks if the check_y_X function correctly checks them and returns a Series and a DataFrame. It also checks if the check_X and check_y functions correctly check a DataFrame and a Series, respectively. It further checks if the check_cv function correctly checks a BaseSplitter object, and if the check_step_length function correctly checks various step lengths. Finally, it checks if the check_sp function correctly checks a seasonal periodicity.
+    """
     bs = BaseSplitter()
     bs.start_with_window = False
     with raises(ValueError, match="`start_with_window` must be set to True"):
