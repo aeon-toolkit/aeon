@@ -21,7 +21,10 @@ y = pd.Series(dtype=int)
 
 @pytest.mark.parametrize("X", BAD_INPUT_ARGS)
 def test_check_X_bad_input_args(X):
-    """Test for the correct reaction for bad input in check_X."""
+    """Test for the correct reaction for bad input in check_X.
+    
+    This test checks if the function check_X correctly raises a ValueError when it is given bad input. The bad input is defined in the list BAD_INPUT_ARGS and includes a list, a 1d np.array, a 4d np.array, and a non-nested pd.DataFrame. The test expects a ValueError to be raised when check_X is called with any of these inputs.
+    """
     with pytest.raises(ValueError):
         check_X(X)
 
@@ -30,7 +33,10 @@ def test_check_X_bad_input_args(X):
 
 
 def test_check_enforce_min_instances():
-    """Test minimum instances enforced in check_X."""
+    """Test minimum instances enforced in check_X.
+    
+    This test checks if the function check_X correctly enforces a minimum number of instances. The test creates a nested DataFrame with 3 cases using the function make_nested_dataframe_data. It then calls check_X with enforce_min_instances set to 4, which is more than the number of cases in the DataFrame. The test expects a ValueError to be raised with the message 'instance'.
+    """
     X, y = make_nested_dataframe_data(n_cases=3)
     msg = r"instance"
     with pytest.raises(ValueError, match=msg):
@@ -44,7 +50,10 @@ def test_check_enforce_min_instances():
 
 
 def test_check_X_enforce_univariate():
-    """Test univariate enforced in check_X."""
+    """Test univariate enforced in check_X.
+    
+    This test checks if the function check_X correctly enforces that the input is univariate. The test creates a nested DataFrame with 2 channels using the function make_nested_dataframe_data. It then calls check_X with enforce_univariate set to True. The test expects a ValueError to be raised with the message 'univariate'.
+    """
     X, y = make_nested_dataframe_data(n_channels=2)
     msg = r"univariate"
     with pytest.raises(ValueError, match=msg):
@@ -55,7 +64,10 @@ def test_check_X_enforce_univariate():
 
 
 def test_check_X_enforce_min_columns():
-    """Test minimum columns enforced in check_X."""
+    """Test minimum columns enforced in check_X.
+    
+    This test checks if the function check_X correctly enforces a minimum number of columns. The test creates a nested DataFrame with 2 channels using the function make_nested_dataframe_data. It then calls check_X with enforce_min_columns set to 3, which is more than the number of channels in the DataFrame. The test expects a ValueError to be raised with the message 'columns'.
+    """
     X, y = make_nested_dataframe_data(n_channels=2)
     msg = r"columns"
     with pytest.raises(ValueError, match=msg):
@@ -66,7 +78,10 @@ def test_check_X_enforce_min_columns():
 
 
 def test_check_X():
-    """Test check X."""
+    """Test check X.
+    
+    This test checks various aspects of the function check_X. It first checks if check_X correctly raises a ValueError when both coerce_to_pandas and coerce_to_numpy are set to True. It then checks if check_X correctly converts a 2d np.array to a 3d np.array and enforces a minimum number of instances. Finally, it checks if check_X correctly converts a nested DataFrame to a np.ndarray when coerce_to_numpy is set to True.
+    """
     with pytest.raises(ValueError, match="cannot both be set to True"):
         check_X(None, coerce_to_pandas=True, coerce_to_numpy=True)
     X = np.random.random(size=(5, 10))
@@ -82,7 +97,10 @@ def test_check_X():
 
 
 def test_check_y():
-    """Test check y."""
+    """Test check y.
+    
+    This test checks various aspects of the function check_y. It first checks if check_y correctly raises a ValueError when it is given a string as input. It then checks if check_y correctly converts a pd.Series to a np.ndarray and enforces a minimum number of instances when coerce_to_numpy is set to True.
+    """
     with pytest.raises(ValueError, match=" must be either a pd.Series or a np.ndarray"):
         check_y("Up the Arsenal")
     y = pd.Series([1, 2, 3, 4])
