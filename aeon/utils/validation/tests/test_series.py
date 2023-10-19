@@ -1,4 +1,4 @@
-"""Test series module."""
+"""This module contains tests for the series module in the aeon.utils.validation package."""
 
 __author__ = ["benheid", "TonyBagnall"]
 
@@ -18,7 +18,10 @@ from aeon.utils.validation.series import (
 
 
 def test_check_equal_time_index():
-    """Test check equal time index."""
+    """Test the function check_equal_time_index.
+    
+    This function tests whether the function check_equal_time_index correctly checks if the time indices of two series are equal or contain the same values. It tests various scenarios, including when the time indices are equal, when they contain the same values but are not equal, and when they do not contain the same values.
+    """
     assert check_equal_time_index(None) is None
     x = (pd.Series([1, 2, 3, 4, 5]), pd.Series([2, 3, 4, 5, 6]))
     with pytest.raises(ValueError, match="mode must be "):
@@ -36,7 +39,10 @@ def test_check_equal_time_index():
 
 
 def test__check_is_univariate():
-    """Test _check_is_univariate."""
+    """Test the function _check_is_univariate.
+    
+    This function tests whether the function _check_is_univariate correctly checks if a given series or DataFrame is univariate. It tests various scenarios, including when the series or DataFrame is univariate and when it is not.
+    """
     X = np.random.random(size=(10, 1, 20))
     _check_is_univariate(X)
     X = np.random.random(size=(10, 3, 20))
@@ -50,9 +56,9 @@ def test__check_is_univariate():
 
 
 def test__check_is_multivariate():
-    """Test _check_is_multivariate.
-
-    This function assumes ndarrays are in (n_timepoints, n_channels) shape.
+    """Test the function _check_is_multivariate.
+    
+    This function tests whether the function _check_is_multivariate correctly checks if a given series or DataFrame is multivariate. It tests various scenarios, including when the series or DataFrame is multivariate and when it is not. It assumes that ndarrays are in (n_timepoints, n_channels) shape.
     """
     X = pd.Series([1, 2, 3, 4, 5])
     with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
@@ -66,7 +72,10 @@ def test__check_is_multivariate():
 
 
 def test_check_series():
-    """Test check_series."""
+    """Test the function check_series.
+    
+    This function tests whether the function check_series correctly checks if a given object is a series. It tests various scenarios, including when the object is a series and when it is not.
+    """
     check_series(None)
     with pytest.raises(ValueError, match="cannot be None"):
         check_series(None, allow_None=False)
@@ -78,7 +87,10 @@ def test_check_series():
 
 
 def test_check_time_index():
-    """Test check_time_index."""
+    """Test the function check_time_index.
+    
+    This function tests whether the function check_time_index correctly checks if a given object is a valid time index. It tests various scenarios, including when the object is a valid time index and when it is not.
+    """
     x = np.array([1, 2, 3, 4, 5])
     with pytest.raises(NotImplementedError, match="is not supported"):
         check_time_index("HELLO")
@@ -93,7 +105,10 @@ def test_check_time_index():
 
 
 def test_check_consistent_index_type():
-    """Test check_consistent_index_type."""
+    """Test the function check_consistent_index_type.
+    
+    This function tests whether the function check_consistent_index_type correctly checks if two given indices are of the same type. It tests various scenarios, including when the indices are of the same type and when they are not.
+    """
     index1 = pd.RangeIndex(start=0, stop=5)
     index2 = pd.Index(["A", "B", "C", "D", "E"])
 
