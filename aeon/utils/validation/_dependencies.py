@@ -82,10 +82,6 @@ def _check_soft_dependencies(
         class_name = type(obj).__name__
     elif isclass(obj):
         class_name = obj.__name__
-    elif isinstance(obj, str):
-        class_name = obj
-    else:
-        raise TypeError("obj must be a class, an object, a str, or None")
 
     for package in packages:
         try:
