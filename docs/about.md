@@ -58,7 +58,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 #### Pre-fork Core Developers
 
 The following listed contributors were part of the sktime core developer team at some
-point prior to our split from the project.
+point prior to the split of the project.
 
 <details><summary>sktime v0.16.0 core developers</summary>
 <p>
@@ -122,7 +122,7 @@ The project developers would like to thank the following funders.
 #### Pre-fork funding
 
 As a fork of the sktime project, `aeon` has benefited from funding given to sktime prior
-to our split. We would like to thank the funders from before the split.
+to the projects split. We would like to thank the funders from before the split.
 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
