@@ -38,8 +38,10 @@ def _nested_univ_is_equal(X):
 
     Example
     -------
-    >>> df = pd.DataFrame({'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
-                           'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]})
+    >>> df = pd.DataFrame({
+    ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
+    ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
+    ... })
     >>> _nested_univ_is_equal(df)
     True
     """
