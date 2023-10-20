@@ -114,7 +114,7 @@ jobs:
         uses: actions/cache@v3
         id: macos_cache
         with:
-          path: ~\AppData\Local\pip\Cache
+          path: ~/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
