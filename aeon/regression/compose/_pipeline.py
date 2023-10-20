@@ -67,7 +67,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -131,9 +131,9 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         self.transformers_._steps = value
 
     def __rmul__(self, other):
-        """Overloaded multiplication (*) operator, return concatenated.
+        """Overloaded multiplication (*) operator.
 
-        RegressorPipeline, transformers on left.
+        Return concatenated RegressorPipeline, transformers on left.
 
         Implemented for `other` being a transformer, otherwise returns `NotImplemented`.
 
@@ -165,7 +165,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -188,7 +188,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -271,6 +271,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
+        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
         `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
@@ -319,7 +320,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": True,
@@ -407,7 +408,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -419,7 +420,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X, y)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        # If the output is not a 2D numpy, then need to convert
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         self.regressor_.fit(Xt_sklearn, y)
 
         return self
@@ -431,14 +433,14 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         return self.regressor_.predict(Xt_sklearn)
 
     def get_params(self, deep=True):
@@ -505,8 +507,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import MiniRocket
 
-        t1 = ExponentTransformer(power=2)
+        t1 = MiniRocket(num_kernels=200)
         c = KNeighborsRegressor()
         return {"transformers": [t1], "regressor": c}
