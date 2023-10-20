@@ -6,8 +6,8 @@ import pytest
 
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests._expected_results import _expected_distance_results_params
-from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_expected_results import _expected_distance_results_params
+from aeon.distances.tests.test_utils import create_test_distance_numpy
 
 
 def _test_distance_params(
