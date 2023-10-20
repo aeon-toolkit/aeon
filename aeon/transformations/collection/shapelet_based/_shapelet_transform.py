@@ -348,7 +348,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     sorted(range(s[1]), reverse=True, key=lambda j, sabs=sabs: sabs[j])
                 )
             )
-        return self
+        # find max shapelet length
+        self.max_fitted_shapelet_length_ = max(self.shapelets, key=lambda x: x[1])[1]
 
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
@@ -366,7 +367,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         output = np.zeros((len(X), len(self.shapelets)))
 
         for i in range(0, len(X)):
-            if X[i].shape[1] < self.min_series_length_:
+            if X[i].shape[1] < self.max_fitted_shapelet_length_:
                 raise ValueError(
                     "The shortest series in transform is smaller than "
                     "the min shapelet length, pad to min length prior to "
