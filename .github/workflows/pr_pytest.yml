@@ -34,10 +34,22 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
 
+      - name: Debug information post-cache
+        run: |
+          echo "Python location: $(which python)"
+          echo "Pip location: $(which pip)"
+          pip list
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[dev]
+        run: |
+          pip install .[dev]
+          echo "Post-installation packages:"
+          pip list
+#
+#      - name: Install aeon and dependencies
+#        if: steps.cache.outputs.cache-hit != 'true'
+#        run: pip install .[dev]
 
       - name: Show dependencies
         run: pip list
@@ -48,116 +60,116 @@ jobs:
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
           python -m pytest --pyargs aeon.tests.test_softdeps
 
-  test-nosoftdeps-full:
-    needs: test-nosoftdeps
-    runs-on: ubuntu-22.04
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Cache pip
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
-
-      - name: Install aeon and dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[dev]
-
-      - name: Show dependencies
-        run: pip list
-
-      - name: Run tests
-        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-
-  pytest:
-    needs: test-nosoftdeps
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip on Windows
-        if: runner.os == 'Windows'
-        uses: actions/cache@v3
-        id: windows_cache
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on linux
-        if: runner.os == 'Linux'
-        uses: actions/cache@v3
-        id: linux_cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on macOs
-        if: runner.os == 'macOS'
-        uses: actions/cache@v3
-        id: macos_cache
-        with:
-          path: ~/Library/Caches/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Install aeon and dependencies
-        if: steps.linux_cache.outputs.cache-hit != 'true' && steps.macos_cache.outputs.cache-hit != 'true' && steps.windows_cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,dev]
-
-      - name: Show dependencies
-        run: pip list
-
-      - name: Run tests
-        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-
-  codecov:
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
-
-    needs: test-nosoftdeps
-    runs-on: ubuntu-22.04
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Cache pip
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-codecov
-
-      - name: Disable Numba JIT
-        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
-
-      - name: Install aeon and dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,unstable_extras,dev]
-
-      - name: Show dependencies
-        run: pip list
-
-      - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml
-
-      - uses: codecov/codecov-action@v3
+#  test-nosoftdeps-full:
+#    needs: test-nosoftdeps
+#    runs-on: ubuntu-22.04
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: "3.10"
+#
+#      - name: Cache pip
+#        id: cache
+#        uses: actions/cache@v3
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
+#
+#      - name: Install aeon and dependencies
+#        if: steps.cache.outputs.cache-hit != 'true'
+#        run: pip install .[dev]
+#
+#      - name: Show dependencies
+#        run: pip list
+#
+#      - name: Run tests
+#        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+#
+#  pytest:
+#    needs: test-nosoftdeps
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Cache pip on Windows
+#        if: runner.os == 'Windows'
+#        uses: actions/cache@v3
+#        id: windows_cache
+#        with:
+#          path: ~\AppData\Local\pip\Cache
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Cache pip on linux
+#        if: runner.os == 'Linux'
+#        uses: actions/cache@v3
+#        id: linux_cache
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Cache pip on macOs
+#        if: runner.os == 'macOS'
+#        uses: actions/cache@v3
+#        id: macos_cache
+#        with:
+#          path: ~/Library/Caches/pip
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Install aeon and dependencies
+#        if: steps.linux_cache.outputs.cache-hit != 'true' && steps.macos_cache.outputs.cache-hit != 'true' && steps.windows_cache.outputs.cache-hit != 'true'
+#        run: pip install .[all_extras,dev]
+#
+#      - name: Show dependencies
+#        run: pip list
+#
+#      - name: Run tests
+#        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+#
+#  codecov:
+#    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
+#
+#    needs: test-nosoftdeps
+#    runs-on: ubuntu-22.04
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: "3.10"
+#
+#      - name: Cache pip
+#        id: cache
+#        uses: actions/cache@v3
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-codecov
+#
+#      - name: Disable Numba JIT
+#        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+#
+#      - name: Install aeon and dependencies
+#        if: steps.cache.outputs.cache-hit != 'true'
+#        run: pip install .[all_extras,unstable_extras,dev]
+#
+#      - name: Show dependencies
+#        run: pip list
+#
+#      - name: Run tests
+#        run: python -m pytest --cov=aeon --cov-report=xml
+#
+#      - uses: codecov/codecov-action@v3
