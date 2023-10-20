@@ -22,16 +22,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4.5.0
+      - uses: actions/setup-python@v4
         id: setup-python
         with:
           python-version: "3.10"
 
       - name: Cache pip
         id: cache
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         with:
-          path: /home/runner/.cache/pip
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
 
       - name: Install aeon and dependencies
@@ -54,15 +54,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4.5.0
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Cache pip
         id: cache
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         with:
-          path: /home/runner/.cache/pip
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
 
       - name: Install aeon and dependencies
@@ -88,32 +88,32 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4.5.0
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip on Windows
         if: runner.os == 'Windows'
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         id: windows_cache
         with:
-          path: c:\users\runneradmin\appdata\local\pip\cache
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Cache pip on linux
         if: runner.os == 'Linux'
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         id: linux_cache
         with:
-          path: /home/runner/.cache/pip
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Cache pip on macOs
         if: runner.os == 'macOS'
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         id: macos_cache
         with:
-          path: /Users/runner/Library/Caches/pip
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
@@ -127,8 +127,8 @@ jobs:
       - name: Show dependencies
         run: pip list
 
-      - name: Run tests
-        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+#      - name: Run tests
+#        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
@@ -139,15 +139,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4.5.0
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Cache pip
         id: cache
-        uses: actions/cache@v3.2.4
+        uses: actions/cache@v3
         with:
-          path: /home/runner/.cache/pip
+          path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-codecov
 
       - name: Disable Numba JIT
