@@ -127,6 +127,16 @@ jobs:
       - name: Show dependencies
         run: pip list
 
+      - name: Post-cache restore check
+        run: |
+          echo "Contents of pip cache:"
+          find /home/runner/.cache/pip | head -50  # limit output to the first 50 lines for brevity
+
+      - name: Check installed packages
+        run: |
+          echo "Installed packages:"
+          pip list
+
 #      - name: Run tests
 #        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 

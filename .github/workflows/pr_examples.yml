@@ -32,13 +32,13 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: /home/runner/.cache/pip
           key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-examples
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install .[all_extras,binder,dev]
 
-#      - name: Run example notebooks
-#        run: build_tools/run_examples.sh
-#        shell: bash
+      - name: Run example notebooks
+        run: build_tools/run_examples.sh
+        shell: bash
