@@ -82,7 +82,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.10"]
+        python-version: [ "3.8"]
 #        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
 
     steps:
@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v3
         id: windows_cache
         with:
-          path: ~\AppData\Local\pip\Cache
+          path: c:\users\runneradmin\appdata\local\pip\cache
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Cache pip on linux
@@ -113,7 +113,7 @@ jobs:
         uses: actions/cache@v3
         id: macos_cache
         with:
-          path: ~/Library/Caches/pip
+          path: /Users/runner/Library/Caches/pip
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
@@ -129,38 +129,38 @@ jobs:
 
 #      - name: Run tests
 #        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-#
-#  codecov:
-#    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
-#
-#    needs: test-nosoftdeps
-#    runs-on: ubuntu-22.04
-#
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - uses: actions/setup-python@v4
-#        with:
-#          python-version: "3.10"
-#
-#      - name: Cache pip
-#        id: cache
-#        uses: actions/cache@v3
-#        with:
-#          path: ~/.cache/pip
-#          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-codecov
-#
-#      - name: Disable Numba JIT
-#        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
-#
-#      - name: Install aeon and dependencies
-#        if: steps.cache.outputs.cache-hit != 'true'
-#        run: pip install .[all_extras,unstable_extras,dev]
-#
-#      - name: Show dependencies
-#        run: pip list
-#
-#      - name: Run tests
-#        run: python -m pytest --cov=aeon --cov-report=xml
-#
-#      - uses: codecov/codecov-action@v3
+
+  codecov:
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
+
+    needs: test-nosoftdeps
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Cache pip
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.cache/pip
+          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-codecov
+
+      - name: Disable Numba JIT
+        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+
+      - name: Install aeon and dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install .[all_extras,unstable_extras,dev]
+
+      - name: Show dependencies
+        run: pip list
+
+      - name: Run tests
+        run: python -m pytest --cov=aeon --cov-report=xml
+
+      - uses: codecov/codecov-action@v3
