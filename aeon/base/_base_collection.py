@@ -29,7 +29,7 @@ class BaseCollectionEstimator(BaseEstimator):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multithreading": False,
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
@@ -57,7 +57,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Returns
         -------
-        Data structure of type self.tags["x_inner_mtype"]
+        Data structure of type self.tags["X_inner_type"]
 
         See Also
         --------
@@ -168,7 +168,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Returns
         -------
-        data structure of type one of self.get_tag("X_inner_mtype").
+        data structure of type one of self.get_tag("X_inner_type").
 
 
         See Also
@@ -184,7 +184,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> get_type(X)
         'np-list'
         >>> hc = HIVECOTEV2()
-        >>> hc.get_tag("X_inner_mtype")
+        >>> hc.get_tag("X_inner_type")
         'numpy3D'
         >>> X = hc._convert_X(X)
         >>> get_type(X)
@@ -195,7 +195,7 @@ class BaseCollectionEstimator(BaseEstimator):
         else:
             metadata = self.metadata_
         # Convert X to X_inner_mtype if possible
-        inner_type = self.get_tag("X_inner_mtype")
+        inner_type = self.get_tag("X_inner_type")
         if type(inner_type) == list:
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal

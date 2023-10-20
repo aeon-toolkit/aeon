@@ -79,7 +79,7 @@ class DOBIN(BaseTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "fit_is_empty": False,
         "skip-inverse-transform": True,
     }

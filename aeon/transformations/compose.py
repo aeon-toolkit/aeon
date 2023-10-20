@@ -159,7 +159,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     _tags = {
         # we let all X inputs through to be handled by first transformer
-        "X_inner_mtype": CORE_MTYPES,
+        "X_inner_type": CORE_MTYPES,
         "univariate-only": False,
     }
 
@@ -469,7 +469,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         "instancewise": False,  # depends on components
         "univariate-only": False,  # depends on components
         "capability:missing_values": False,  # depends on components
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": "None",
         "X-y-must-have-same-index": False,
         "enforce_index_type": None,
@@ -888,7 +888,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     _tags = {
         "fit_is_empty": False,
         "univariate-only": False,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "X_inner_type": ALL_TIME_SERIES_MTYPES,
     }
 
     # attribute for _DelegatedTransformer, which then delegates
@@ -925,7 +925,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         self.clone_tags(self.transformer_)
         self.set_tags(**{"fit_is_empty": False})
         # this ensures that we convert in the inner estimator, not in the multiplexer
-        self.set_tags(**{"X_inner_mtype": ALL_TIME_SERIES_MTYPES})
+        self.set_tags(**{"X_inner_type": ALL_TIME_SERIES_MTYPES})
 
     @property
     def _transformers(self):
@@ -1079,7 +1079,7 @@ class InvertTransform(_DelegatedTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
+        "X_inner_type": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
@@ -1100,7 +1100,7 @@ class InvertTransform(_DelegatedTransformer):
             "input_data_type",
             "output_data_type",
             "instancewise",
-            "X_inner_mtype",
+            "X_inner_type",
             "y_inner_type",
             "capability:missing_values",
             "X-y-must-have-same-index",
@@ -1208,7 +1208,7 @@ class Id(BaseTransformer):
     _tags = {
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": CORE_MTYPES,  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": CORE_MTYPES,  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -1335,7 +1335,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": CORE_MTYPES,
+        "X_inner_type": CORE_MTYPES,
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
@@ -1441,7 +1441,7 @@ class ColumnwiseTransformer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
@@ -1649,7 +1649,7 @@ class ColumnConcatenator(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd-multiindex", "pd_multiindex_hier"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -1706,7 +1706,7 @@ class YtoX(BaseTransformer):
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": False,
         "univariate-only": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
         "fit_is_empty": True,

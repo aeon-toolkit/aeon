@@ -129,7 +129,7 @@ class MyTransformer(BaseTransformer):
         #
         # X_inner_mtype, y_inner_type control which format X/y appears in
         # in the inner functions _fit, _transform, etc
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER

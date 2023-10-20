@@ -141,7 +141,7 @@ ESTIMATOR_TAG_REGISTER = [
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "X_inner_mtype",
+        "X_inner_type",
         ["forecaster"],
         (
             "list",

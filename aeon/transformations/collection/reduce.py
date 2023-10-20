@@ -31,7 +31,7 @@ class Tabularizer(BaseTransformer):
         "output_data_type": "Primitives",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["numpy3D"],
+        "X_inner_type": ["numpy3D"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # and for y?
     }
@@ -83,7 +83,7 @@ class TimeBinner(BaseTransformer):
         "fit_is_empty": True,
         "output_data_type": "Primitives",
         "instancewise": True,
-        "X_inner_mtype": ["nested_univ"],
+        "X_inner_type": ["nested_univ"],
         "y_inner_type": "None",
         "capability:multivariate": True,
     }

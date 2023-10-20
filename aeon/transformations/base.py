@@ -100,7 +100,7 @@ class BaseTransformer(BaseEstimator):
         "transform_labels": "None",
         "instancewise": True,
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
@@ -730,13 +730,13 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") supports *higher* scitype than X
+                compatible with self.get_tag("X_inner_type") format
+            Case 1: self.get_tag("X_inner_type") supports scitype of X, then
+                converted/coerced version of X, mtype determined by "X_inner_type" tag
+            Case 2: self.get_tag("X_inner_type") supports *higher* scitype than X
                 then X converted to "one-Series" or "one-Panel" sub-case of that scitype
                 always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("X_inner_mtype") supports only *simpler* scitype than X
+            Case 3: self.get_tag("X_inner_type") supports only *simpler* scitype than X
                 then VectorizedDF of X, iterated as the most complex supported scitype
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
                 compatible with self.get_tag("y_inner_type") format
@@ -799,7 +799,7 @@ class BaseTransformer(BaseEstimator):
             return False
 
         # retrieve supported mtypes
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
+        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_type"))
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
         y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)

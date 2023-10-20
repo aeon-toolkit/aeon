@@ -78,7 +78,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             return False
 
         # the case that we would need to vectorize with y, skip
-        X_inner_mtype = get_tag(obj, "X_inner_mtype")
+        X_inner_mtype = get_tag(obj, "X_inner_type")
         X_inner_scitypes = mtype_to_scitype(
             X_inner_mtype, return_unique=True, coerce_to_list=True
         )

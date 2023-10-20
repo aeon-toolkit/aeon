@@ -168,7 +168,7 @@ class STLBootstrapTransformer(BaseTransformer):
         "output_data_type": "Panel",
         "transform_labels": "None",
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,
@@ -479,7 +479,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         "output_data_type": "Panel",
         "transform_labels": "None",
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,

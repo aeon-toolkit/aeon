@@ -132,7 +132,7 @@ class Catch22(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
         "capability:multivariate": True,
         "fit_is_empty": True,
