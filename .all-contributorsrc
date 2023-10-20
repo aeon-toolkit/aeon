@@ -2200,6 +2200,15 @@
         "doc",
         "test"
       ]
+    },
+    {
+      "login": "wwzeng1",
+      "name": "William Zeng",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44910023?v=4",
+      "profile": "https://github.com/wwzeng1",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"

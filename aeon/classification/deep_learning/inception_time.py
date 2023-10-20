@@ -24,103 +24,101 @@ class InceptionTimeClassifier(BaseClassifier):
 
     Parameters
     ----------
-        n_classifiers       : int, default = 5,
-            the number of Inception models used for the
-            Ensemble in order to create
-            InceptionTime.
-        depth               : int, default = 6,
+    n_classifiers       : int, default = 5,
+        the number of Inception models used for the
+        Ensemble in order to create
+        InceptionTime.
+    depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
-            the number of filters used in one inception
-            module, if not a list,
-            the same number of filters is used in
-            all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
-            the number of convolution layers in each inception
-            module, if not a list,
-            the same number of convolution layers is used
-            in all inception modules
-        kernel_size         : int or list of int, default = 40,
-            the head kernel size used for each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_max_pooling     : bool or list of bool, default = True,
-            conditioning whether or not to use max pooling layer
-            in inception modules,if not a list,
-            the same is used in all inception modules
-        max_pool_size       : int or list of int, default = 3,
-            the size of the max pooling layer, if not a list,
-            the same is used in all inception modules
-        strides             : int or list of int, default = 1,
-            the strides of kernels in convolution layers for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        dilation_rate       : int or list of int, default = 1,
-            the dilation rate of convolutions in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        padding             : str or list of str, default = "same",
-            the type of padding used for convoltuon for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        activation          : str or list of str, default = "relu",
-            the activation function used in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_bias            : bool or list of bool, default = False,
-            conditioning whether or not convolutions should
-            use bias values in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_residual : bool, default = True,
-            condition whether or not to use residual
-            connections all over Inception
-        use_bottleneck : bool, default = True,
-            condition whether or not to use bottlenecks
-            all over Inception
-        bottleneck_size : int, default = 32,
-            the bottleneck size in case use_bottleneck = True
-        use_custom_filters : bool, default = True,
-            condition on whether or not to use custom
-            filters in the first inception module
-        batch_size : int, default = 64
-            the number of samples per gradient update.
-        use_mini_batch_size : bool, default = False
-            condition on using the mini batch size
-            formula Wang et al.
-        n_epochs : int, default = 1500
-            the number of epochs to train the model.
-        callbacks : callable or None, default
-        ReduceOnPlateau and ModelCheckpoint
-            list of tf.keras.callbacks.Callback objects.
-        file_path : str, default = "./"
-            file_path when saving model_Checkpoint callback
-        save_best_model : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
-            automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model     : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        best_file_name      : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name      : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
-        verbose             : boolean, default = False
-            whether to output extra information
-        optimizer           : keras optimizer, default = Adam
-        loss                : keras loss,
-                              default = categorical_crossentropy
-        metrics             : keras metrics, default = None,
+    nb_filters          : int or list of int32, default = 32,
+        the number of filters used in one inception
+        module, if not a list,
+        the same number of filters is used in
+        all inception modules
+    nb_conv_per_layer   : int or list of int, default = 3,
+        the number of convolution layers in each inception
+        module, if not a list,
+        the same number of convolution layers is used
+        in all inception modules
+    kernel_size         : int or list of int, default = 40,
+        the head kernel size used for each inception
+        module, if not a list,
+        the same is used in all inception modules
+    use_max_pooling     : bool or list of bool, default = True,
+        conditioning whether or not to use max pooling layer
+        in inception modules,if not a list,
+        the same is used in all inception modules
+    max_pool_size       : int or list of int, default = 3,
+        the size of the max pooling layer, if not a list,
+        the same is used in all inception modules
+    strides             : int or list of int, default = 1,
+        the strides of kernels in convolution layers for each
+        inception module, if not a list,
+        the same is used in all inception modules
+    dilation_rate       : int or list of int, default = 1,
+        the dilation rate of convolutions in each inception
+        module, if not a list,
+        the same is used in all inception modules
+    padding             : str or list of str, default = "same",
+        the type of padding used for convoltuon for each
+        inception module, if not a list,
+        the same is used in all inception modules
+    activation          : str or list of str, default = "relu",
+        the activation function used in each inception
+        module, if not a list,
+        the same is used in all inception modules
+    use_bias            : bool or list of bool, default = False,
+        conditioning whether or not convolutions should
+        use bias values in each inception
+        module, if not a list,
+        the same is used in all inception modules
+    use_residual : bool, default = True,
+        condition whether or not to use residual
+        connections all over Inception
+    use_bottleneck : bool, default = True,
+        condition whether or not to use bottlenecks
+        all over Inception
+    bottleneck_size : int, default = 32,
+        the bottleneck size in case use_bottleneck = True
+    use_custom_filters : bool, default = True,
+        condition on whether or not to use custom
+        filters in the first inception module
+    batch_size : int, default = 64
+        the number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        condition on using the mini batch size
+        formula Wang et al.
+    n_epochs : int, default = 1500
+        the number of epochs to train the model.
+    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
+        list of tf.keras.callbacks.Callback objects.
+    file_path : str, default = "./"
+        file_path when saving model_Checkpoint callback
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name      : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
+    random_state        : int, default = 0
+        seed to any needed random actions.
+    verbose             : boolean, default = False
+        whether to output extra information
+    optimizer           : keras optimizer, default = Adam
+    loss                : keras loss, default = categorical_crossentropy
+    metrics             : keras metrics, default = None,
         will be set to accuracy as default if None
 
     Notes
