@@ -3,7 +3,7 @@
 __author__ = ["baraline"]
 
 from abc import ABC, abstractmethod
-from collections import Iterable
+from collections.abc import Iterable
 from typing import final
 
 import numpy as np
@@ -56,15 +56,15 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
         return dist_profile[self.normalize]
 
-    def _store_mean_std_from_inputs(self, Q_length):
+    def _store_mean_std_from_inputs(self, q_length):
         n_samples, n_channels, X_length = self._X.shape
-        search_space_size = X_length - Q_length + 1
+        search_space_size = X_length - q_length + 1
 
         means = np.zeros((n_samples, n_channels, search_space_size))
         stds = np.zeros((n_samples, n_channels, search_space_size))
 
         for i in range(n_samples):
-            _mean, _std = sliding_mean_std_one_series(self._X[i], Q_length, 1)
+            _mean, _std = sliding_mean_std_one_series(self._X[i], q_length, 1)
             stds[i] = _std
             means[i] = _mean
 
@@ -153,19 +153,20 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 " do q.reshape(1,-1)."
             )
 
-        if q.shape[-1] >= self._X.shape[-1]:
+        q_dim, q_length = q.shape
+        if q_length >= self._X.shape[-1]:
             raise ValueError(
                 "The length of the query should be inferior or equal to the length of"
                 "data (X) provided during fit, but got {} for q and {} for X".format(
-                    q.shape[-1], self._X.shape[-1]
+                    q_length, self._X.shape[-1]
                 )
             )
 
-        if q.shape[0] != self._X.shape[1]:
+        if q_dim != self._X.shape[1]:
             raise ValueError(
                 "The number of feature should be the same for the query q and the data"
                 "(X) provided during fit, but got {} for q and {} for X".format(
-                    q.shape[0], self._X.shape[1]
+                    q_dim, self._X.shape[1]
                 )
             )
 
@@ -186,7 +187,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         if self.normalize:
             self._q_means = np.mean(q, axis=-1)
             self._q_stds = np.std(q, axis=-1)
-            self._store_mean_std_from_inputs(q.shape[-1])
+            self._store_mean_std_from_inputs(q_length)
 
         return self._predict(q, q_index=q_index, exclusion_factor=exclusion_factor)
 
