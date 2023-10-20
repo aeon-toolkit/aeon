@@ -2,6 +2,8 @@
 
 __author__ = ["baraline"]
 
+import numpy as np
+
 from aeon.similarity_search.base import BaseSimiliaritySearch
 
 
@@ -52,7 +54,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         """
         return self
 
-    def _predict(self, q):
+    def _predict(self, q, q_index=None, exclusion_factor=2):
         """
         Private predict method for TopKSimilaritySearch.
 
@@ -62,11 +64,16 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         ----------
         q :  array, shape (n_channels, q_length)
             Input query used for similarity search.
-
-        Raises
-        ------
-        TypeError
-            If the input q array is not 2D raise an error.
+        q_index : tuple, default=None
+            Tuple used to specify the index of Q if it is extracted from the input data
+            X given during the fit method. Given the tuple (id_sample, id_timestamp),
+            the similarity search will define an exclusion zone around the q_index in
+            order to avoid matching q with itself. If None, it is considered that the
+            query is not extracted from X.
+        exclusion_factor : float, default=2.
+            The factor to apply to the query length to define the exclusion zone. The
+            exclusion zone is define from id_timestamp - q_length//exclusion_factor to
+            id_timestamp + q_length//exclusion_factor
 
         Returns
         -------
@@ -80,8 +87,17 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
             )
         else:
             distance_profile = self.distance_profile_function(self._X, q)
-        # Would creating base distance profile classes be relevant to force the same
-        # interface for normalized / non normalized distance profiles ?
+
+        if q_index is not None:
+            q_length = q.shape[1]
+            i_sample, i_timestamp = q_index
+            profile_length = distance_profile[i_sample].shape[-1]
+            exclusion_LB = max(0, i_timestamp - q_length // exclusion_factor)
+            exclusion_UB = min(
+                profile_length, i_timestamp + q_length // exclusion_factor
+            )
+            distance_profile[i_sample][exclusion_LB:exclusion_UB] = np.inf
+
         if self.store_distance_profile:
             self._distance_profile = distance_profile
 
@@ -89,8 +105,6 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
         _argsort = distance_profile.argsort(axis=None)[: self.k]
 
-        # return is [(id_sample, id_timestamp)]
-        #    -> candidate is X[id_sample, :, id_timestamps:id_timestamps+q_length]
         return [
             (_argsort[i] // search_size, _argsort[i] % search_size)
             for i in range(self.k)

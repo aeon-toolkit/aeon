@@ -3,6 +3,7 @@
 __author__ = ["baraline"]
 
 from abc import ABC, abstractmethod
+from collections import Iterable
 from typing import final
 
 import numpy as np
@@ -35,11 +36,16 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     }
 
     def __init__(
-        self, distance="euclidean", normalize=False, store_distance_profile=False
+        self,
+        distance="euclidean",
+        normalize=False,
+        store_distance_profile=False,
+        exclusion_factor=2,
     ):
         self.distance = distance
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
+        self.exclusion_factor = exclusion_factor
         super(BaseSimiliaritySearch, self).__init__()
 
     def _get_distance_profile_function(self):
@@ -103,7 +109,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return self
 
     @final
-    def predict(self, q):
+    def predict(self, q, q_index=None, exclusion_factor=2.0):
         """
         Predict method: Check the shape of q and call _predict to perform the search.
 
@@ -114,11 +120,23 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ----------
         q :  array, shape (n_channels, q_length)
             Input query used for similarity search.
+        q_index : Iterable, default=None
+            An Interable (tuple, list, array) used to specify the index of Q if it is
+            extracted from the input data X given during the fit method.
+            Given the tuple (id_sample, id_timestamp), the similarity search will define
+            an exclusion zone around the q_index in order to avoid matching q with
+            itself. If None, it is considered that the query is not extracted from X.
+        exclusion_factor : float, default=2.
+            The factor to apply to the query length to define the exclusion zone. The
+            exclusion zone is define from id_timestamp - q_length//exclusion_factor to
+            id_timestamp + q_length//exclusion_factor
 
         Raises
         ------
         TypeError
             If the input q array is not 2D raise an error.
+        ValueError
+            If the length of the query is greater
 
         Returns
         -------
@@ -137,7 +155,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         if q.shape[-1] >= self._X.shape[-1]:
             raise ValueError(
-                "The length of the query q should be shorter than the length of the"
+                "The length of the query should be inferior or equal to the length of"
                 "data (X) provided during fit, but got {} for q and {} for X".format(
                     q.shape[-1], self._X.shape[-1]
                 )
@@ -151,12 +169,26 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 )
             )
 
+        if q_index is not None:
+            if isinstance(q_index, Iterable) and len(q_index) != 2:
+                raise ValueError(
+                    "The q_index should contain an interable of size 2 such as"
+                    "(id_sample, id_timestamp), but got an iterable of size {}".format(
+                        len(q_index)
+                    )
+                )
+            else:
+                raise TypeError(
+                    "If not None, the q_index parameter should be an iterable, here"
+                    " q_index is of type {}".format(type(q_index))
+                )
+
         if self.normalize:
             self._q_means = np.mean(q, axis=-1)
             self._q_stds = np.std(q, axis=-1)
             self._store_mean_std_from_inputs(q.shape[-1])
 
-        return self._predict(q)
+        return self._predict(q, q_index=q_index, exclusion_factor=exclusion_factor)
 
     @abstractmethod
     def _fit(self, X, y):
