@@ -103,6 +103,16 @@ jobs:
             ~\AppData\Local\pip\Cache # For Windows
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
+      - name: Create directories for pip cache
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            mkdir -p ~\AppData\Local\pip\Cache
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            mkdir -p ~/Library/Caches/pip
+          else
+            mkdir -p ~/.cache/pip
+          fi
+
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install .[all_extras,dev]
