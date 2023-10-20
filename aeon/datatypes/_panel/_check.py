@@ -439,7 +439,7 @@ def is_nested_dataframe(obj, return_metadata=False, var_name="obj"):
 check_dict[("nested_univ", "Panel")] = is_nested_dataframe
 
 
-def check_numpyflat_Panel(obj, return_metadata=False, var_name="obj"):
+def check_numpy2d_collection(obj, return_metadata=False, var_name="obj"):
     if not isinstance(obj, np.ndarray):
         msg = f"{var_name} must be a numpy.ndarray, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -467,7 +467,7 @@ def check_numpyflat_Panel(obj, return_metadata=False, var_name="obj"):
     return _ret(True, None, metadata, return_metadata)
 
 
-check_dict[("numpyflat", "Panel")] = check_numpyflat_Panel
+check_dict[("numpy2D", "Panel")] = check_numpy2d_collection
 
 
 if _check_soft_dependencies("dask", severity="none"):

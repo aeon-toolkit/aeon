@@ -37,7 +37,7 @@ EQUAL_LENGTH_UNIVARIATE = {
     "numpy3D": np.random.random(size=(10, 1, 20)),
     "np-list": np_list,
     "df-list": df_list,
-    "numpyflat": np.zeros(shape=(10, 20)),
+    "numpy2D": np.zeros(shape=(10, 20)),
     "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
     "nested_univ": nested,
     "pd-multiindex": multiindex,

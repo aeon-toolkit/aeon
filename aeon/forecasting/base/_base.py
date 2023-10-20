@@ -1329,7 +1329,7 @@ class BaseForecaster(BaseEstimator):
         X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_MTYPES = ["numpyflat", "pd-wide"]
+        FORBIDDEN_MTYPES = ["numpy2D", "pd-wide"]
 
         for scitype in ALLOWED_SCITYPES:
             mtypes = set(scitype_to_mtype(scitype))

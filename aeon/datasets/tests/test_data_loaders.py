@@ -136,9 +136,9 @@ def test_load_fails():
 def test__alias_datatype_check():
     """Test the alias check"""
     assert _alias_datatype_check("FOO") == "FOO"
-    assert _alias_datatype_check("np2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("np2d") == "numpy2D"
+    assert _alias_datatype_check("numpy2d") == "numpy2D"
+    assert _alias_datatype_check("numpy2D") == "numpy2D"
     assert _alias_datatype_check("numpy3d") == "numpy3D"
     assert _alias_datatype_check("np3d") == "numpy3D"
     assert _alias_datatype_check("np3D") == "numpy3D"

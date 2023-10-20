@@ -519,7 +519,7 @@ class BaseSplitter(BaseObject):
             "np.ndarray",
             "nested_univ",
             "numpy3D",
-            # "numpyflat",
+            # "numpy2D",
             "pd-multiindex",
             # "pd-wide",
             # "pd-long",

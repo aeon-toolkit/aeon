@@ -271,7 +271,6 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
         `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
@@ -420,7 +419,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X, y)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         self.regressor_.fit(Xt_sklearn, y)
 
         return self
@@ -439,7 +438,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         return self.regressor_.predict(Xt_sklearn)
 
     def get_params(self, deep=True):
