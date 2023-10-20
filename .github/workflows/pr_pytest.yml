@@ -32,7 +32,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-3.10-dev-nosoftdep
+          key: ${{ runner.os }}-pip-3.10-${{ hashFiles('pyproject.toml') }}-nosoftdep
+
 
       - name: Install aeon and dependencies
         run: pip install .[dev]
