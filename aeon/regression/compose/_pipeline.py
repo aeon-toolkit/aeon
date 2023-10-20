@@ -131,9 +131,9 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         self.transformers_._steps = value
 
     def __rmul__(self, other):
-        """Overloaded multiplication (*) operator, return concatenated.
+        """Overloaded multiplication (*) operator.
 
-        RegressorPipeline, transformers on left.
+        Return concatenated RegressorPipeline, transformers on left.
 
         Implemented for `other` being a transformer, otherwise returns `NotImplemented`.
 
@@ -420,6 +420,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X, y)
+        # If the output is not a 2D numpy, then need to convert
         Xt_sklearn = convert_collection(Xt, "numpyflat")
         self.regressor_.fit(Xt_sklearn, y)
 
@@ -506,8 +507,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import MiniRocket
 
-        t1 = ExponentTransformer(power=2)
+        t1 = MiniRocket(num_kernels=200)
         c = KNeighborsRegressor()
         return {"transformers": [t1], "regressor": c}

@@ -287,9 +287,9 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import MiniRocket
 
-        t1 = ExponentTransformer(power=2)
+        t1 = MiniRocket(num_kernels=200)
         cls = DummyClassifier()
         params = {"transformers": [t1], "classifier": cls}
         return params
@@ -569,9 +569,9 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import MiniRocket
 
-        t1 = ExponentTransformer(power=2)
+        t1 = MiniRocket(num_kernels=200)
         c = KNeighborsClassifier()
         params1 = {"transformers": [t1], "classifier": c}
         return params1
