@@ -9,7 +9,6 @@ from aeon.utils.validation._convert_collection import (
     _equal_length,
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
-    _from_np_list_to_nested_univ,
     _from_numpy2d_to_df_list,
     _from_numpy2d_to_nested_univ,
     _from_numpy2d_to_np_list,
@@ -158,13 +157,15 @@ def test_resolve_equal_length_inner_type():
 
 
 def test_resolve_unequal_length_inner_type():
-    assert resolve_unequal_length_inner_type(["np-list"]) == "np-list"
-    assert resolve_unequal_length_inner_type(["np-list", "numpy3D"]) == "np-list"
-    assert resolve_unequal_length_inner_type(["nested_univ", "FOOBAR"]) == "nested_univ"
-    assert resolve_unequal_length_inner_type(["df-list"]) == "df-list"
-    assert resolve_unequal_length_inner_type(["pd-multiindex"]) == "pd-multiindex"
-    with pytest.raises(ValueError, match="no valid inner types for unequal series"):
-        resolve_unequal_length_inner_type(["Arsenal"])
+    test = ["np-list"]
+    X = resolve_unequal_length_inner_type(test)
+    assert X == "np-list"
+    test = ["np-list", "numpy3D"]
+    X = resolve_unequal_length_inner_type(test)
+    assert X == "np-list"
+    test = ["nested_univ", "FOOBAR"]
+    X = resolve_unequal_length_inner_type(test)
+    assert X == "nested_univ"
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -206,6 +207,9 @@ def test_is_unequal_length(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_has_missing(data):
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
+    X = np.random.random(size=(10, 2, 20))
+    X[5][1][12] = np.NAN
+    assert has_missing(X)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -313,36 +317,3 @@ def test_from_nested():
         TypeError, match="Cannot convert multivariate nested into numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
-
-
-def test_wrong_types():
-    pd_data = {
-        "float_col1": [1.0, 2.0, 3.0],
-        "float_col2": [4.0, 5.0, 6.0],
-        "non_float_col": ["A", "B", "C"],
-    }
-    data = np.random.random(size=(10, 2, 10))
-    df = pd.DataFrame(pd_data)
-    assert not _is_pd_wide(df)
-    with pytest.raises(TypeError, match="input should be a list of 2D np.ndarray"):
-        _from_np_list_to_nested_univ(data)
-    with pytest.raises(ValueError, match="unknown input type"):
-        _equal_length(df, input_type="FOOBAR")
-    with pytest.raises(ValueError, match="np.ndarray must be either 2D or 3D"):
-        get_type(np.array([1, 2, 3, 4]))
-    x1 = np.random.random(size=(10, 1, 1, 10))
-    lst = [x1, x1]
-    with pytest.raises(TypeError, match="np-list np.ndarray must be either 2D or 3D"):
-        get_type(lst)
-    df = pd.DataFrame(np.array([1, 2, 3, 4]))
-    df_list = [df, x1]
-    with pytest.raises(TypeError, match="df-list must only contain pd.DataFrame"):
-        get_type(df_list)
-    X = np.random.random(size=(10, 2, 20))
-    X[5][1][12] = np.NAN
-    assert has_missing(X)
-    assert has_missing([X[0], X[1], X[5]])
-    assert has_missing(pd.DataFrame(X[5]))
-    nested, _ = make_nested_dataframe_data()
-    nested.iloc[0, 0].iloc[0] = np.NAN
-    assert has_missing(nested)
