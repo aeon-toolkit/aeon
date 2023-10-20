@@ -272,20 +272,10 @@ def test_numpy2D_error(function):
 
 
 def test__nested_univ_is_equal():
-    """
-    Test the function _nested_univ_is_equal for a pandas DataFrame.
+    """Test _nested_univ_is_equal function for pd.DataFrame.
 
-    This function tests whether all series in a nested DataFrame are of equal 
-    length. It assumes that series are of equal length over channels, so it 
-    only tests the first channel.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
+    Note that the function _nested_univ_is_equal assumes series are equal length
+    over channels so only tests the first channel.
     """
 
     data = {
@@ -300,19 +290,7 @@ def test__nested_univ_is_equal():
 
 
 def test_from_nested():
-    """
-    Test the function _from_nested_univ_to_pd_multiindex with multiple nested columns and non-nested columns.
-
-    This function tests the conversion of a DataFrame with multiple nested columns and non-nested columns to a multi-index DataFrame using the function _from_nested_univ_to_pd_multiindex.
-
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    None
-    """
+    """Test with multiple nested columns and non-nested columns."""
     data = {
         "A": [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
         "B": [pd.Series(["a", "b", "c"]), pd.Series(["x", "y", "z"])],
