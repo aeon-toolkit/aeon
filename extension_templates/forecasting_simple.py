@@ -72,7 +72,7 @@ class MyForecaster(BaseForecaster):
         # behavioural tags: internal type
         # -------------------------------
         #
-        # y_inner_type, X_inner_mtype control which format X/y appears in
+        # y_inner_type, X_inner_type control which format X/y appears in
         # in the inner functions _fit, _predict, etc
         "y_inner_type": "pd.Series",
         "X_inner_type": "pd.DataFrame",

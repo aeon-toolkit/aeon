@@ -152,7 +152,7 @@ class BaseCollectionEstimator(BaseEstimator):
         return metadata
 
     def _convert_X(self, X):
-        """Convert X to type defined by tag X_inner_mtype.
+        """Convert X to type defined by tag X_inner_type.
 
         if self.metadata_ has not been set, it is set here from X, because we need to
         know if the data is unequal length in order to choose between different
@@ -194,7 +194,7 @@ class BaseCollectionEstimator(BaseEstimator):
             metadata = self._get_metadata(X)
         else:
             metadata = self.metadata_
-        # Convert X to X_inner_mtype if possible
+        # Convert X to X_inner_type if possible
         inner_type = self.get_tag("X_inner_type")
         if type(inner_type) == list:
             # If self can handle more than one internal type, resolve correct conversion

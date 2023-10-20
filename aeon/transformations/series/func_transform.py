@@ -106,7 +106,7 @@ class FunctionTransformer(BaseTransformer):
         super(FunctionTransformer, self).__init__()
 
         if X_type is not None:
-            self.set_tags(X_inner_mtype=X_type)
+            self.set_tags(X_inner_type=X_type)
 
     def _check_inverse_transform(self, Z):
         """Check that func and inverse_func are each other's inverse."""

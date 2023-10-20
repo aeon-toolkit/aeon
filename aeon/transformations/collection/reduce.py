@@ -116,8 +116,8 @@ class TimeBinner(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of type X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X : Series or Panel of type X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation

@@ -1324,9 +1324,9 @@ class BaseForecaster(BaseEstimator):
 
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_type"))
+        X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
         y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
-        X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
+        X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         FORBIDDEN_MTYPES = ["numpyflat", "pd-wide"]
@@ -1454,7 +1454,7 @@ class BaseForecaster(BaseEstimator):
             # converts X, converts None to None if X is None
             X_inner = convert_to(
                 X,
-                to_type=X_inner_mtype,
+                to_type=X_inner_type,
                 as_scitype=X_scitype,  # we are dealing with series
             )
         else:

@@ -35,11 +35,11 @@ from aeon.utils._testing.series import _make_series
 def inner_X_scitypes(est):
     """Return list of scitypes supported by class est, as list of str."""
     if isclass(est):
-        X_inner_mtype = est.get_class_tag("X_inner_type")
+        X_inner_type = est.get_class_tag("X_inner_type")
     else:
-        X_inner_mtype = est.get_tag("X_inner_type")
+        X_inner_type = est.get_tag("X_inner_type")
     X_inner_scitypes = mtype_to_scitype(
-        X_inner_mtype, return_unique=True, coerce_to_list=True
+        X_inner_type, return_unique=True, coerce_to_list=True
     )
     return X_inner_scitypes
 

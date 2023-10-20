@@ -289,8 +289,8 @@ class Lag(BaseTransformer):
         # type conventions are exactly those in _transform, reversed
         #
         # for example: if transform-output is "Series":
-        #  return should be of same mtype as input, X_inner_mtype
-        #  if multiple X_inner_mtype are supported, ensure same input/output
+        #  return should be of same mtype as input, X_inner_type
+        #  if multiple X_inner_type are supported, ensure same input/output
         #
         # todo: add the return mtype/scitype to the docstring, e.g.,
         #  Returns
