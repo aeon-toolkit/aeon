@@ -93,28 +93,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pip on Windows
-        if: runner.os == 'Windows'
+      - name: Set up pip cache
         uses: actions/cache@v3
         id: cache
         with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on linux
-        if: runner.os == 'Linux'
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on macOs
-        if: runner.os == 'macOS'
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: ~\AppData\Local\pip\Cache
+          path: |
+            ~/Library/Caches/pip  # For macOS
+            ~/.cache/pip          # For Linux
+            ~\AppData\Local\pip\Cache # For Windows
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
