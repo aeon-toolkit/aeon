@@ -1204,7 +1204,7 @@ class DirRecTabularRegressionForecaster(_DirRecReducer):
     For the hybrid dir-rec strategy, a separate forecaster is fitted
     for each step ahead of the forecasting horizon and then
     the previous forecasting horizon is added as an input
-    for training the next forecaster, following the recusrive
+    for training the next forecaster, following the recursive
     strategy.
 
     Parameters
