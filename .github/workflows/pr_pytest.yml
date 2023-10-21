@@ -27,16 +27,16 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-3.10-nosoftdep-
+#      - uses: actions/cache@v3
+#        id: cache
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-3.10-nosoftdep-
 
       - name: Install aeon and dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+#        if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[dev]
 
       - name: Show dependencies
@@ -59,16 +59,16 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-3.10-nosoftdep-
+#      - uses: actions/cache@v3
+#        id: cache
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-3.10-nosoftdep-
 
       - name: Install aeon and dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+#        if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[dev]
 
       - name: Show dependencies
@@ -87,12 +87,19 @@ jobs:
         os: [ ubuntu-latest, macOS-latest, windows-latest ]
         python-version: [ "3.8", "3.9", "3.10", "3.11" ]
 
+    env:
+      NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
+
     steps:
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Create Numba cache directory
+        run: mkdir -p .numba_cache
+        shell: bash
 
       - name: "Use GNU tar instead BSD tar (Workaround https://github.com/actions/cache/issues/576#issuecomment-830796954)"
         if: ${{ runner.os == 'Windows' }}
@@ -102,7 +109,9 @@ jobs:
       - uses: actions/cache@v3
         id: cache
         with:
-          path: ${{ env.pythonLocation }}
+          path: |
+            ${{ env.pythonLocation }}
+            .numba_cache
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
