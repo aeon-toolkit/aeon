@@ -74,58 +74,58 @@ jobs:
 
 #      - name: Run tests
 #        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-  pytest:
-    needs: test-nosoftdeps
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macOS-latest, windows-latest ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip on Windows
-        if: runner.os == 'Windows'
-        uses: actions/cache@v3
-        id: windows_cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on linux
-        if: runner.os == 'Linux'
-        uses: actions/cache@v3
-        id: linux_cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Cache pip on macOs
-        if: runner.os == 'macOS'
-        uses: actions/cache@v3
-        id: macos_cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Install aeon and dependencies
-        if: steps.linux_cache.outputs.cache-hit != 'true' && steps.macos_cache.outputs.cache-hit != 'true' && steps.windows_cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,dev]
-
-      - name: Show pip cache directory
-        run: |
-          pip cache dir
-
-      - name: Show dependencies
-        run: pip list
-
+#  pytest:
+#    needs: test-nosoftdeps
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Cache pip on Windows
+#        if: runner.os == 'Windows'
+#        uses: actions/cache@v3
+#        id: windows_cache
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Cache pip on linux
+#        if: runner.os == 'Linux'
+#        uses: actions/cache@v3
+#        id: linux_cache
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Cache pip on macOs
+#        if: runner.os == 'macOS'
+#        uses: actions/cache@v3
+#        id: macos_cache
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#
+#      - name: Install aeon and dependencies
+#        if: steps.linux_cache.outputs.cache-hit != 'true' && steps.macos_cache.outputs.cache-hit != 'true' && steps.windows_cache.outputs.cache-hit != 'true'
+#        run: pip install .[all_extras,dev]
+#
+#      - name: Show pip cache directory
+#        run: |
+#          pip cache dir
+#
+#      - name: Show dependencies
+#        run: pip list
+#
 #      - name: Run tests
 #        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
@@ -163,3 +163,68 @@ jobs:
         run: python -m pytest --cov=aeon --cov-report=xml
 
       - uses: codecov/codecov-action@v3
+
+  pytest:
+    needs: test-nosoftdeps
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        include:
+          - os: ubuntu-latest
+            path: ~/.cache/pip
+          - os: macos-latest
+            path: ~/Library/Caches/pip
+          - os: windows-latest
+            path: ~\AppData\Local\pip\Cache
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ matrix.path }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+#      - uses: actions/cache@v3
+#        if: startsWith(runner.os, 'Linux')
+#        with:
+#          path: ~/.cache/pip
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+#
+#      - uses: actions/cache@v3
+#        if: startsWith(runner.os, 'macOS')
+#        with:
+#          path: ~/Library/Caches/pip
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+#
+#      - uses: actions/cache@v3
+#        if: startsWith(runner.os, 'Windows')
+#        with:
+#          path: ~\AppData\Local\pip\Cache
+#          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+#
+      - name: Install aeon and dependencies
+        run: pip install .[all_extras,dev]
+
+      - name: Show pip cache directory
+        run: |
+          pip cache dir
+
+      - name: Show dependencies
+        run: pip list
