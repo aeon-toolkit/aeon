@@ -188,7 +188,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data to make predictions from of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -265,14 +265,13 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     The `SklearnRegressorPipeline` chains transformers and an single ``sklearn``
     regressor. The pipeline is constructed with a list of aeon transformers,
     plus a ``sklearn`` regressor. For a list of ``N`` transformers and a regressor
-    ``reg``, the pipeline behaves as follows:
+    ``reg``, the pipeline behves as follows:
     ``fit(X, y)`` - changes state by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
+        `X` is converted to `numpy2D` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `reg.predict` on the numpy converted output of `trafoN.transform`,
@@ -419,7 +418,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         Xt = self.transformers_.fit_transform(X, y)
         # If the output is not a 2D numpy, then need to convert
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         self.regressor_.fit(Xt_sklearn, y)
 
         return self
@@ -438,7 +437,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         return self.regressor_.predict(Xt_sklearn)
 
     def get_params(self, deep=True):

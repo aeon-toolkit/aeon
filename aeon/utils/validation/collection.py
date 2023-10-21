@@ -114,7 +114,7 @@ def convert_collection(X, output_type):
     if (input_type, output_type) not in convert_dictionary.keys():
         raise TypeError(
             f"Attempting to convert from {input_type} to {output_type} "
-            f"but this is not a valid conversion. See "
+            f"but {output_type} is not a valid type. See "
             f"aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE "
             f"for the list of valid collections"
         )

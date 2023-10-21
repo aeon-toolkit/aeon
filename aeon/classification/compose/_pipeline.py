@@ -450,7 +450,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X=X, y=y)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         self.classifier_.fit(Xt_sklearn, y)
 
         return self
@@ -469,7 +469,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X=X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         return self.classifier_.predict(Xt_sklearn)
 
     def _predict_proba(self, X) -> np.ndarray:
@@ -491,7 +491,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = convert_collection(Xt, "numpy2D")
         return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
