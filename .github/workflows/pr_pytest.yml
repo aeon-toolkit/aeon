@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
         python-version: [ "3.8", "3.9", "3.10", "3.11" ]
 
     steps:
@@ -90,13 +90,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Use GNU tar
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
       - name: Cache pip on Windows
         if: runner.os == 'Windows'
