@@ -39,7 +39,7 @@ jobs:
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,binder,dev] --prefer-binary
+        run: pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
         run: build_tools/run_examples.sh

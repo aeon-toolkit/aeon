@@ -37,7 +37,7 @@ jobs:
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[dev] --prefer-binary
+        run: pip install .[dev]
 
       - name: Show dependencies
         run: pip list
@@ -69,7 +69,7 @@ jobs:
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[dev] --prefer-binary
+        run: pip install .[dev]
 
       - name: Show dependencies
         run: pip list
@@ -109,7 +109,7 @@ jobs:
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,dev] --prefer-binary
+        run: pip install .[all_extras,dev]
 
       - name: Show dependencies
         run: pip list
