@@ -73,13 +73,13 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.classification import DummyClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
+    ...     DummyClassifier(), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -129,7 +129,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         self.set_tags(**tags_to_set)
         if unequal:
             tags_to_set = {
-                "X_inner_type": ["np-list", "numpy3D"],
+                "X_inner_mtype": ["np-list", "numpy3D"],
             }
             self.set_tags(**tags_to_set)
 
@@ -172,7 +172,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -195,7 +195,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -213,7 +213,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_type")
+        X : data to predict y with, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -298,28 +298,24 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The `SklearnClassifierPipeline` chains transformers and an single classifier.
-        Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
-    The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., transformers following the BaseTransformer interface,
-        classifier follows the `scikit-learn` classifier interface.
+    The ``SklearnClassifierPipeline`` chains transformers and an single classifier.
+        Similar to ``ClassifierPipeline``, but uses a tabular ``sklearn`` classifier.
+    The pipeline is constructed with a list of aeon BaseTransformer, plus a
+    classifier that follows the `scikit-learn` classifier interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
     For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
+    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpy2D` mtype if `X` is of `Panel` type;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
         and returning the output of `clf.predict`.
-        Output of `trasfoN.transform` is converted to numpy, as in `fit`.
     `predict_proba(X)` - result is of executing `trafo1.transform`, `trafo2.transform`,
         etc, with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict_proba` on the output of `trafoN.transform`,
@@ -332,14 +328,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
-    `SklearnClassifierPipeline` can also be created by using the magic multiplication
-        between `aeon` transformers and `sklearn` classifiers,
-            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
-            for instance, `my_trafo1 * my_trafo2 * my_clf`
-            will result in the same object as  obtained from the constructor
-            `SklearnClassifierPipeline(classifier=my_clf, transformers=[t1, t2])`
-        magic multiplication can also be used with (str, transformer) pairs,
-            as long as one element in the chain is a transformer
 
     Parameters
     ----------
@@ -450,7 +438,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -462,7 +450,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X=X, y=y)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         self.classifier_.fit(Xt_sklearn, y)
 
         return self
@@ -474,14 +462,14 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X=X)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         return self.classifier_.predict(Xt_sklearn)
 
     def _predict_proba(self, X) -> np.ndarray:
@@ -493,7 +481,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_type")
+        X : data to predict y with, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -503,7 +491,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt_sklearn = convert_collection(Xt, "numpyflat")
         return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
