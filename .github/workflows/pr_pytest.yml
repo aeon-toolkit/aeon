@@ -99,11 +99,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Create the Numba cache directory as we set it in the env
-      - name: Create Numba cache directory
-        run: mkdir -p .numba_cache
-        shell: bash
-
       # On Windows, GNU tar is much faster than the default BSD tar
       - name: "Use GNU tar instead BSD tar"
         if: ${{ runner.os == 'Windows' }}
