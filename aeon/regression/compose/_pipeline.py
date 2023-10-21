@@ -308,13 +308,11 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     >>> from sklearn.neighbors import KNeighborsRegressor
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import SklearnRegressorPipeline
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> t1 = ExponentTransformer()
-    >>> t2 = SummaryTransformer()
-    >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1, t2])
+    >>> t1 = Rocket(num_kernels=200)
+    >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1])
     >>> pipeline = pipeline.fit(X_train, y_train)
     >>> y_pred = pipeline.predict(X_test)
     """
@@ -507,8 +505,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.collection.convolution_based import MiniRocket
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = MiniRocket(num_kernels=200)
+        t1 = Rocket(num_kernels=200)
         c = KNeighborsRegressor()
         return {"transformers": [t1], "regressor": c}

@@ -73,13 +73,13 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.classification import DummyClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
+    ...     DummyClassifier(), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -298,28 +298,24 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The `SklearnClassifierPipeline` chains transformers and an single classifier.
-        Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
-    The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., transformers following the BaseTransformer interface,
-        classifier follows the `scikit-learn` classifier interface.
+    The ``SklearnClassifierPipeline`` chains transformers and an single classifier.
+        Similar to ``ClassifierPipeline``, but uses a tabular ``sklearn`` classifier.
+    The pipeline is constructed with a list of aeon BaseTransformer, plus a
+    classifier that follows the `scikit-learn` classifier interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
     For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
+    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
         and returning the output of `clf.predict`.
-        Output of `trasfoN.transform` is converted to numpy, as in `fit`.
     `predict_proba(X)` - result is of executing `trafo1.transform`, `trafo2.transform`,
         etc, with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict_proba` on the output of `trafoN.transform`,
@@ -332,14 +328,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
-    `SklearnClassifierPipeline` can also be created by using the magic multiplication
-        between `aeon` transformers and `sklearn` classifiers,
-            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
-            for instance, `my_trafo1 * my_trafo2 * my_clf`
-            will result in the same object as  obtained from the constructor
-            `SklearnClassifierPipeline(classifier=my_clf, transformers=[t1, t2])`
-        magic multiplication can also be used with (str, transformer) pairs,
-            as long as one element in the chain is a transformer
 
     Parameters
     ----------
