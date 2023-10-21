@@ -505,8 +505,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.collection.convolution_based import Rocket
+        from aeon.transformations.collection import SevenNumberSummaryTransformer
 
-        t1 = Rocket(num_kernels=200)
-        c = KNeighborsRegressor()
+        t1 = SevenNumberSummaryTransformer()
+        c = KNeighborsRegressor(n_neighbors=1)
         return {"transformers": [t1], "regressor": c}
