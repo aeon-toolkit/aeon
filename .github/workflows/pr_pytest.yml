@@ -91,6 +91,7 @@ jobs:
 
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
+      NUMBA_DEBUG_CACHE: 1
 
     steps:
       - uses: actions/checkout@v3
