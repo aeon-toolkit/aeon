@@ -138,10 +138,6 @@ jobs:
           mkdir -p $NUMBA_CACHE_DIR
           ls -l $NUMBA_CACHE_DIR
 
-      - name: Show Numba debug info
-        run: |
-          python -c "import numba; print(numba.__version__); print(numba.config.SHOW_OS_DETAILS, numba.config.SHOW_CPU_NAME)"
-
       - name: Run tests with increased verbosity
         run: python -m pytest -vv aeon/distances/
 
