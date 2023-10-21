@@ -118,16 +118,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
-      - name: Check Cache Integrity
-        run: |
-          echo "Checking cache directory after restore:"
-          ls -alh .numba_cache  # Adjust path if needed
-
       - name: Setup Environment Consistency
         run: |
           echo "NUMBA_CPU_NAME=generic" >> $GITHUB_ENV
           echo "NUMBA_CPU_FEATURES=+64bit,+adx,+aes,+avx,+avx2,...(rest of your features)..." >> $GITHUB_ENV
-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
