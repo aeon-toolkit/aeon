@@ -30,3 +30,14 @@ def test_TopKSimilaritySearch(dtype):
     search.fit(X)
     idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])
+
+    search = TopKSimilaritySearch(k=1, normalize=True)
+    search.fit(X)
+    q = np.asarray([[8, 8, 10]], dtype=dtype)
+    idx = search.predict(q)
+    assert_array_equal(idx, [(1, 2)])
+
+    search = TopKSimilaritySearch(k=1, normalize=True)
+    search.fit(X)
+    idx = search.predict(q, q_index=(1, 2))
+    assert_array_equal(idx, [(1, 0)])

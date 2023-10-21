@@ -9,11 +9,12 @@ from aeon.distances import euclidean_distance
 from aeon.similarity_search.distance_profiles._commons import (
     AEON_SIMSEARCH_STD_THRESHOLD,
     _get_input_sizes,
+    _z_normalize_1D_series_with_mean_std,
     _z_normalize_2D_series_with_mean_std,
 )
 
 
-def normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds):
+def normalized_naive_euclidean_profile(X, q, mask, X_means, X_stds, q_means, q_stds):
     """
     Compute a euclidean distance profile in a brute force way.
 
@@ -29,11 +30,18 @@ def normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds):
 
     Parameters
     ----------
-    X: array shape (n_instances, n_channels, series_length)
+    X : array, shape (n_instances, n_channels, series_length)
         The input samples.
-
-    q : np.ndarray shape (n_channels, query_length)
+    q : array, shape (n_channels, query_length)
         The query used for similarity search.
+    X_means : array, shape (n_instances, n_channels, series_length - (query_length-1))
+        Means of each subsequences of X of size query_length
+    X_stds : array, shape (n_instances, n_channels, series_length - (query_length-1))
+        Stds of each subsequences of X of size query_length
+    q_means : array, shape (n_channels)
+        Means of the query q
+    q_stds : array, shape (n_channels)
+        Stds of the query q
 
     Returns
     -------
@@ -45,25 +53,29 @@ def normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds):
     q_stds[q_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
     X_stds[X_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
 
-    return _normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds)
+    return _normalized_naive_euclidean_profile(
+        X, q, mask, X_means, X_stds, q_means, q_stds
+    )
 
 
 @njit(cache=True, fastmath=True)
-def _normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds):
-    n_samples, n_channels, X_length, q_length, search_space_size = _get_input_sizes(
-        X, q
-    )
+def _normalized_naive_euclidean_profile(X, q, mask, X_means, X_stds, q_means, q_stds):
+    n_instances, n_channels, X_length, q_length, profile_size = _get_input_sizes(X, q)
     q = _z_normalize_2D_series_with_mean_std(q, q_means, q_stds)
-    distance_profile = np.full((n_samples, search_space_size), np.inf)
+    distance_profile = np.full((n_instances, n_channels, profile_size), np.inf)
 
     # Compute euclidean distance for all candidate in a "brute force" way
-    for i_sample in range(n_samples):
-        for i_candidate in range(search_space_size):
-            # Extract and normalize the candidate
-            _C = X[i_sample, :, i_candidate : i_candidate + q_length]
-
-            _C = _z_normalize_2D_series_with_mean_std(
-                _C, X_means[i_sample, :, i_candidate], X_stds[i_sample, :, i_candidate]
-            )
-            distance_profile[i_sample, i_candidate] = euclidean_distance(q, _C)
+    for i_instance in range(n_instances):
+        for i_channel in range(n_channels):
+            for i_candidate in range(profile_size):
+                if mask[i_instance, i_channel, i_candidate]:
+                    # Extract and normalize the candidate
+                    _C = _z_normalize_1D_series_with_mean_std(
+                        X[i_instance, i_channel, i_candidate : i_candidate + q_length],
+                        X_means[i_instance, i_channel, i_candidate],
+                        X_stds[i_instance, i_channel, i_candidate],
+                    )
+                    distance_profile[
+                        i_instance, i_channel, i_candidate
+                    ] = euclidean_distance(q[i_channel], _C)
     return distance_profile

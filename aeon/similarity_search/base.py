@@ -57,13 +57,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return dist_profile[self.normalize]
 
     def _store_mean_std_from_inputs(self, q_length):
-        n_samples, n_channels, X_length = self._X.shape
+        n_instances, n_channels, X_length = self._X.shape
         search_space_size = X_length - q_length + 1
 
-        means = np.zeros((n_samples, n_channels, search_space_size))
-        stds = np.zeros((n_samples, n_channels, search_space_size))
+        means = np.zeros((n_instances, n_channels, search_space_size))
+        stds = np.zeros((n_instances, n_channels, search_space_size))
 
-        for i in range(n_samples):
+        for i in range(n_instances):
             _mean, _std = sliding_mean_std_one_series(self._X[i], q_length, 1)
             stds[i] = _std
             means[i] = _mean
@@ -78,7 +78,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : array, shape (n_cases, n_channels, n_timestamps)
+        X : array, shape (n_instances, n_channels, n_timestamps)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -93,12 +93,12 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self
 
         """
-        # For now force (n_samples, n_channels, n_timestamps), we could convert 2D
+        # For now force (n_instances, n_channels, n_timestamps), we could convert 2D
         #  (n_channels, n_timestamps) to 3D with a warning
         if not isinstance(X, np.ndarray) or X.ndim != 3:
             raise TypeError(
                 "Error, only supports 3D numpy of shape"
-                "(n_samples, n_channels, n_timestamps)."
+                "(n_instances, n_channels, n_timestamps)."
             )
 
         # Get distance function
@@ -170,26 +170,37 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 )
             )
 
+        n_instances, _, n_timestamps = self._X.shape
+        mask = np.ones((n_instances, q_dim, n_timestamps), dtype=bool)
+
         if q_index is not None:
-            if isinstance(q_index, Iterable) and len(q_index) != 2:
-                raise ValueError(
-                    "The q_index should contain an interable of size 2 such as"
-                    "(id_sample, id_timestamp), but got an iterable of size {}".format(
-                        len(q_index)
+            if isinstance(q_index, Iterable):
+                if len(q_index) != 2:
+                    raise ValueError(
+                        "The q_index should contain an interable of size 2 such as"
+                        "(id_sample, id_timestamp), but got an iterable of"
+                        "size {}".format(len(q_index))
                     )
-                )
             else:
                 raise TypeError(
                     "If not None, the q_index parameter should be an iterable, here"
                     " q_index is of type {}".format(type(q_index))
                 )
 
+            i_instance, i_timestamp = q_index
+            profile_length = n_timestamps - (q_length - 1)
+            exclusion_LB = max(0, int(i_timestamp - q_length // exclusion_factor))
+            exclusion_UB = min(
+                profile_length, int(i_timestamp + q_length // exclusion_factor)
+            )
+            mask[i_instance, :, exclusion_LB:exclusion_UB] = False
+
         if self.normalize:
             self._q_means = np.mean(q, axis=-1)
             self._q_stds = np.std(q, axis=-1)
             self._store_mean_std_from_inputs(q_length)
 
-        return self._predict(q, q_index=q_index, exclusion_factor=exclusion_factor)
+        return self._predict(q, mask)
 
     @abstractmethod
     def _fit(self, X, y):
