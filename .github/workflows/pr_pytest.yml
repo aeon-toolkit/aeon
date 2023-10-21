@@ -138,10 +138,19 @@ jobs:
           mkdir -p $NUMBA_CACHE_DIR
           ls -l $NUMBA_CACHE_DIR
 
-      - name: Run tests
+      - name: Show Numba debug info
+        run: |
+          python -c "import numba; print(numba.__version__); print(numba.config.SHOW_OS_DETAILS, numba.config.SHOW_CPU_NAME)"
+
+      - name: Run tests with increased verbosity
+        run: python -m pytest -vv aeon/distances/
+
+#      - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
 #        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-        run: python -m pytest aeon/distances/
+
+      - name: Run tests with increased verbosity
+        run: python -m pytest -vv aeon/distances/
 
       - name: Show numba cache after
         run: ls -l $NUMBA_CACHE_DIR
