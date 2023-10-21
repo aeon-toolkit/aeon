@@ -41,7 +41,7 @@ jobs:
       - name: Show dependencies
         run: pip list
 
-      - name: Run tests
+#      - name: Run tests
 #        run: |
 #          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
 #          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
@@ -68,6 +68,48 @@ jobs:
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install .[dev]
+
+      - name: Show dependencies
+        run: pip list
+
+  pytest:
+    needs: test-nosoftdeps
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.8" ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: "Use GNU tar instead BSD tar (Workaround https://github.com/actions/cache/issues/576#issuecomment-830796954)"
+        if: ${{ runner.os == 'Windows' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Install aeon and dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install .[all_extras,dev] --prefer-binary
+
+      - name: Show pip cache directory
+        run: |
+          pip cache dir
 
       - name: Show dependencies
         run: pip list
@@ -163,45 +205,3 @@ jobs:
 #        run: python -m pytest --cov=aeon --cov-report=xml
 #
 #      - uses: codecov/codecov-action@v3
-
-  pytest:
-    needs: test-nosoftdeps
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, macOS-latest, windows-latest ]
-#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-        python-version: [ "3.8" ]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: "Use GNU tar instead BSD tar (Workaround https://github.com/actions/cache/issues/576#issuecomment-830796954)"
-        if: ${{ runner.os == 'Windows' }}
-        shell: cmd
-        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-      - name: Install aeon and dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install .[all_extras,dev] --prefer-binary
-
-      - name: Show pip cache directory
-        run: |
-          pip cache dir
-
-      - name: Show dependencies
-        run: pip list
