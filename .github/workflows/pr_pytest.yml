@@ -126,7 +126,11 @@ jobs:
         run: echo $NUMBA_CACHE_DIR
 
       - name: Show numba cache before
-        run: ls -l $NUMBA_CACHE_DIR
+        run: |
+          if [ -d "$NUMBA_CACHE_DIR" ]; then
+            ls -l $NUMBA_CACHE_DIR
+          fi
+        shell: bash
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
