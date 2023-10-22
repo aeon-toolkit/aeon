@@ -592,6 +592,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = Rocket(num_kernels=200)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsClassifier()
         return {"transformers": [t1], "classifier": c}
