@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Auto-Encoder using Fully Connected Neural Network (FCN)."""
 
 __author__ = ["hadifawaz1999"]
