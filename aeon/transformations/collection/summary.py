@@ -45,6 +45,14 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
      1.39573111]
     """
 
+    _tags = {
+        "input_data_type": "Collection",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "fit_is_empty": True,
+    }
+
     def __init__(
         self,
         summary_stats="default",
@@ -54,18 +62,19 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
         super(SevenNumberSummaryTransformer, self).__init__()
 
     def _transform(self, X, y=None):
-        n_instances, n_dims, _ = X.shape
+        n_instances = len(X)
+        n_channels, _ = X[0].shape
 
         functions = self._get_functions()
 
-        Xt = np.zeros((n_instances, 7 * n_dims))
+        Xt = np.zeros((n_instances, 7 * n_channels))
         for i in range(n_instances):
             for n, f in enumerate(functions):
-                idx = n * n_dims
+                idx = n * n_channels
                 if isinstance(f, float):
-                    Xt[i, idx : idx + n_dims] = row_quantile(X[i], f)
+                    Xt[i, idx : idx + n_channels] = row_quantile(X[i], f)
                 else:
-                    Xt[i, idx : idx + n_dims] = f(X[i])
+                    Xt[i, idx : idx + n_channels] = f(X[i])
 
         return Xt
 
