@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Deep Learning Auto-Encoder using FCN Network."""
 __author__ = ["hadifawaz1999"]
 __all__ = ["AEFCNClusterer"]
