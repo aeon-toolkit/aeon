@@ -124,6 +124,10 @@ jobs:
         if: steps.cache.outputs.cache-hit == 'true'
         run: python .github/scripts/_numba_st_mtime_cache.py compare .numba_cache numba_cache_timestamps.pkl
 
+      - name: Restore time stamps
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: python .github/scripts/_numba_st_mtime_cache.py apply .numba_cache numba_cache_timestamps.pkl
+
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[all_extras,dev]

@@ -7,10 +7,12 @@ import sys
 def _save_timestamps(directory, output_file):
     """Script that records the chache'd timestamps of all files in a directory.
 
-    When the numba files are cache'd it does not store the last time the file was
-    updated. As such when the cache is loaded it will be invalidated because it
-    is missing the timestamp. This script records the timestamps of all files in
-    the numba cache so they can be correctly reloaded after loading the cahce.
+    When the numba files are cache'd they are zipped. When a file is zipped it does
+    not preserve the last modified time. As such the numba cached is invalidated when
+    it is used next (so it must be recompiled). As such we record the last modified
+    time of all files in the numba cache directory and then when the cache is restored
+    we manually set the last modified time of all files to the recorded value so the
+    caches are valid.
 
     Parameters
     ----------
@@ -56,6 +58,19 @@ def _compare_timestamps(directory, input_file):
         print("All timestamps match!")  # noqa: T001, T201
 
 
+def _apply_timestamps(directory, input_file):
+    with open(input_file, "rb") as f:
+        saved_timestamps = pickle.load(f)
+
+    for root, _, files in os.walk(directory):
+        for name in files:
+            filepath = os.path.join(root, name)
+            if filepath in saved_timestamps:
+                os.utime(
+                    filepath, (saved_timestamps[filepath], saved_timestamps[filepath])
+                )
+
+
 if __name__ == "__main__":
     """Script to save and compare the timestamps of the numba cache.
 
@@ -76,5 +91,7 @@ if __name__ == "__main__":
     output_file = sys.argv[3]
     if sys.argv[1] == "save":
         _save_timestamps(directory, output_file)
+    elif sys.argv[1] == "apply":
+        _apply_timestamps(directory, output_file)
     else:
         _compare_timestamps(directory, output_file)
