@@ -119,3 +119,27 @@ def fft_sliding_dot_product(X, q):
     for i in range(n_features):
         out[i, :] = convolve(np.flipud(q[i, :]), X[i, :], mode="valid").real
     return out
+
+
+def rolling_window_stride_trick(X, window):
+    """
+    Use strides to generate rolling/sliding windows for a numpy array.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        numpy array
+
+    window : int
+        Size of the rolling window
+
+    Returns
+    -------
+    output : numpy.ndarray
+        This will be a new view of the original input array.
+    """
+    a = np.asarray(X)
+    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
+    strides = a.strides + (a.strides[-1],)
+
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)

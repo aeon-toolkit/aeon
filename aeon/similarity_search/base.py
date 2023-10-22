@@ -36,16 +36,11 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     }
 
     def __init__(
-        self,
-        distance="euclidean",
-        normalize=False,
-        store_distance_profile=False,
-        exclusion_factor=2,
+        self, distance="euclidean", normalize=False, store_distance_profile=False
     ):
         self.distance = distance
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
-        self.exclusion_factor = exclusion_factor
         super(BaseSimiliaritySearch, self).__init__()
 
     def _get_distance_profile_function(self):
@@ -185,6 +180,12 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 raise TypeError(
                     "If not None, the q_index parameter should be an iterable, here"
                     " q_index is of type {}".format(type(q_index))
+                )
+
+            if exclusion_factor <= 0:
+                raise ValueError(
+                    "The value of exclusion_factor should be superior to 0, but got"
+                    "{}".format(len(exclusion_factor))
                 )
 
             i_instance, i_timestamp = q_index
