@@ -75,10 +75,7 @@ def test_rocket_on_univariate(transform):
     assert X_trans[3][55] == X_trans2[3][55]
 
 
-@pytest.mark.parametrize(
-    "transform",
-    ["Rocket", "MiniRocketMultivariate"],
-)
+@pytest.mark.parametrize("transform", ["Rocket", "MiniRocketMultivariate"])
 def test_rocket_on_multivariate(transform):
     """Test of Rocket on gun point."""
     # Create random univariate training data
@@ -102,3 +99,13 @@ def test_rocket_on_multivariate(transform):
     assert X_trans[2][3] == X_trans2[2][3]
     assert X_trans[0][80] == X_trans2[0][80]
     assert X_trans[3][55] == X_trans2[3][55]
+
+
+def test_normalise_rocket():
+    arr = np.random.random(size=(10, 1, 100))
+    rocket = Rocket(num_kernels=200, normalise=True)
+    trans = rocket.fit_transform(arr)
+    assert trans.shape == (10, 400)
+    rocket = MultiRocket(num_kernels=200, normalise=True)
+    trans = rocket.fit_transform(arr)
+    assert trans.shape == (10, 1344)

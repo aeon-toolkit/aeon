@@ -287,19 +287,12 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
+        t = Rocket(num_kernels=200)
+        cls = DummyClassifier()
 
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        return {"transformers": [t], "classifier": cls}
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -594,20 +587,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
+        t1 = Rocket(num_kernels=200)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        return {"transformers": [t1], "classifier": c}

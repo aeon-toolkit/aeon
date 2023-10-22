@@ -68,21 +68,19 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
+    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [Rocket(num_kernels=100)]
     ... )
     >>> pipeline.fit(X_train, y_train)
-    RegressorPipeline(...)
+    RegressorPipeline(regressor=KNeighborsTimeSeriesRegressor(n_neighbors=2),
+                      transformers=[Rocket(num_kernels=100)])
     >>> y_pred = pipeline.predict(X_test)
-
-    Alternative construction via dunder method:
-    >>> pipeline = TSInterpolator(length=10) * KNeighborsTimeSeriesRegressor(n_neighbors=2)  # noqa: E501
     """
 
     _tags = {
@@ -276,26 +274,12 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.utils.validation._dependencies import _check_soft_dependencies
+        from aeon.regression import DummyRegressor
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-
-        r = SklearnRegressorPipeline.create_test_instance()
-
-        params1 = {"transformers": [t1, t2], "regressor": r}
-
-        if _check_soft_dependencies("numba", severity="none"):
-            from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-
-            c = KNeighborsTimeSeriesRegressor()
-
-            # construct without names
-            params2 = {"transformers": [t1, t2], "regressor": c}
-            return [params1, params2]
-        else:
-            return params1
+        t1 = Rocket(num_kernels=200)
+        c = DummyRegressor()
+        return {"transformers": [t1], "classifier": c}
 
 
 class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
@@ -362,18 +346,13 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     >>> from sklearn.neighbors import KNeighborsRegressor
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import SklearnRegressorPipeline
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> t1 = ExponentTransformer()
-    >>> t2 = SummaryTransformer()
-    >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1, t2])
+    >>> t1 = Rocket(num_kernels=200)
+    >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1])
     >>> pipeline = pipeline.fit(X_train, y_train)
     >>> y_pred = pipeline.predict(X_test)
-
-    Alternative construction via dunder method:
-    >>> pipeline = t1 * t2 * KNeighborsRegressor()
     """
 
     _tags = {
@@ -460,6 +439,12 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     def _convert_X_to_sklearn(self, X):
         """Convert a Table or Panel X to 2D numpy required by sklearn."""
+        if isinstance(X, np.ndarray):
+            if X.ndim == 2:
+                return X
+            elif X.ndim == 3:
+                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
+
         output_type = self.transformers_.get_tag("output_data_type")
         # if output_type is Primitives, output is Table, convert to 2D numpy array
         if output_type == "Primitives":
@@ -581,20 +566,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn regressor
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
+        t1 = Rocket(num_kernels=200)
         c = KNeighborsRegressor()
-        params1 = {"transformers": [t1, t2], "regressor": c}
-
-        # example with series-to-primitive transformer before sklearn regressor
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsRegressor()
-        params2 = {"transformers": [t1, t2], "regressor": c}
-
-        # construct without names
-        return [params1, params2]
+        return {"transformers": [t1], "classifier": c}
