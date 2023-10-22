@@ -7,7 +7,7 @@ import inspect
 import numpy as np
 from sklearn.utils._testing import set_random_state
 
-from aeon.classification.tests._expected_outputs import (
+from aeon.classification.tests.test_expected_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )

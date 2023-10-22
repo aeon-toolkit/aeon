@@ -19,7 +19,7 @@ import pandas as pd
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base import BaseForecaster
-from aeon.tests._config import PR_TESTING
+from aeon.tests.test_config import PR_TESTING
 from aeon.utils._testing.collection import _make_collection_X
 from aeon.utils._testing.hierarchical import _make_hierarchical
 from aeon.utils._testing.scenarios import TestScenario

@@ -2,7 +2,7 @@
 import pytest
 
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
-from aeon.tests._config import PR_TESTING
+from aeon.tests.test_config import PR_TESTING
 from aeon.utils._testing.collection import make_2d_test_data
 
 
