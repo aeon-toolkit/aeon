@@ -44,5 +44,5 @@ jobs:
         run: build_tools/fail_on_missing_init_files.sh
         shell: bash
 
-      - if: failure() && ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+      - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
         uses: pre-commit-ci/lite-action@v1.0.1
