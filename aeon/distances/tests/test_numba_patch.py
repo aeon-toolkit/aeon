@@ -1,9 +1,9 @@
 import pickle
 
 import numba.core.caching
+import numpy as np
 
 from aeon.distances import squared_distance
-from aeon.distances.tests._utils import create_test_distance_numpy
 
 
 # Step 1: Define a new function with the same signature as the method you're replacing.
@@ -37,6 +37,6 @@ numba.core.caching.IndexDataCacheFile._load_index = custom_load_index
 
 
 def test_numba_cache():
-    x = create_test_distance_numpy(10, 10)
-    y = create_test_distance_numpy(10, 10, random_state=2)
+    x = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([[1, 2, 3], [4, 5, 6]])
     squared_distance(x, y)
