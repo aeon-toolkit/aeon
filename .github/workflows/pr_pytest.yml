@@ -128,7 +128,7 @@ jobs:
 
       - name: Restore time stamps
         if: steps.cache.outputs.cache-hit == 'true'
-        run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/aeon/init.py
+        run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/__init__.py
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
