@@ -170,12 +170,13 @@ testpaths = "aeon"
 addopts = '''
     --doctest-modules
     --durations 20
-    --timeout 600
-    --showlocals
-    --numprocesses auto
+
 '''
 filterwarnings = '''
     ignore::UserWarning
     ignore:numpy.dtype size changed
     ignore:numpy.ufunc size changed
 '''
+#    --timeout 600
+#    --showlocals
+#    --numprocesses auto

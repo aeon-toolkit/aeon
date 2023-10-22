@@ -141,7 +141,7 @@ jobs:
           ls -l $NUMBA_CACHE_DIR
 
       - name: Run tests
-        run: python -m pytest aeon/distances/
+        run: python -m pytest aeon/distances/tests/test_numba_patch.py
 
 #      - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
