@@ -287,19 +287,12 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
+        t = Rocket(num_kernels=200)
+        cls = DummyClassifier()
 
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        return {"transformers": [t], "classifier": cls}
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -452,6 +445,12 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     def _convert_X_to_sklearn(self, X):
         """Convert a Table or Panel X to 2D numpy required by sklearn."""
+        if isinstance(X, np.ndarray):
+            if X.ndim == 2:
+                return X
+            elif X.ndim == 3:
+                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
+
         output_type = self.transformers_.get_tag("output_data_type")
         # if output_type is Primitives, output is Table, convert to 2D numpy array
         if output_type == "Primitives":
@@ -588,26 +587,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        return {"transformers": [t1], "classifier": c}
