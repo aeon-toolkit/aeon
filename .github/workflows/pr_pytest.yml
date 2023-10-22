@@ -182,5 +182,3 @@ jobs:
         run: python -m pytest --cov=aeon --cov-report=xml
 
       - uses: codecov/codecov-action@v3
-.github/scripts/_numba_st_mtime_cache:
-  py:
