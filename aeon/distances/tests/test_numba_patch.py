@@ -1,3 +1,4 @@
+import logging
 import pickle
 
 import numba.core.caching
@@ -22,13 +23,13 @@ def custom_load_index(self):
         return {}
     stamp, overloads = pickle.loads(data)
     if stamp != self._source_stamp:
-        print("Stamp not equal")  # noqa: T001, T201
-        print(f"Stamp: {stamp}")  # noqa: T001, T201
-        print(f"Source stamp: {self._source_stamp}")  # noqa: T001, T201
+        logging.info("Stamp not equal")  # noqa: T001, T201
+        logging.info(f"Stamp: {stamp}")  # noqa: T001, T201
+        logging.info(f"Source stamp: {self._source_stamp}")  # noqa: T001, T201
 
     original_result = original_load_index(self)  # Calling the original method
     data = f"Cache loaded with the following data: {original_result}"
-    print(data)  # noqa: T001, T201
+    logging.info(data)  # noqa: T001, T201
     return original_result
 
 
