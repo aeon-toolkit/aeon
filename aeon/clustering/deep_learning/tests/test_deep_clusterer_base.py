@@ -65,12 +65,16 @@ class _DummyDeepClusterer(BaseDeepClusterer):
             batch_size=16,
             epochs=2,
         )
+        self._fit_clustering(X=X)
 
         gc.collect()
         return self
 
     def _score(self, X, y=None):
-        return True
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        return self.clusterer.score(latent_space)
 
 
 @pytest.mark.skipif(
@@ -110,4 +114,4 @@ def test_dummy_deep_clusterer():
 
     score = dummy_deep_clr.score(X)
 
-    assert type(score) == float
+    assert type(score) == np.float64
