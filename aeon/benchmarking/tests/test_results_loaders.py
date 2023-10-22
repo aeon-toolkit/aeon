@@ -52,7 +52,7 @@ def test_alias():
         estimator_alias("NotAClassifier")
 
 
-"""Tests for the results loaders that should not be part of the general CI."""
+# Tests for the results loaders that should not be part of the general CI.
 
 
 @pytest.mark.skip(

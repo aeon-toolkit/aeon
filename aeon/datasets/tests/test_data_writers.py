@@ -1,3 +1,5 @@
+"""Test functions for data writing."""
+
 import os
 import tempfile
 
@@ -5,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-"""Test functions for data writing."""
 from aeon.datasets import load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
