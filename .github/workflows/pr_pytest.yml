@@ -106,6 +106,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # On Windows, GNU tar is much faster than the default BSD tar
+      - name: "Use GNU tar instead BSD tar"
+        if: ${{ runner.os == 'Windows' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
       - name: Restore Cache
         uses: actions/cache@v3
         id: cache
@@ -124,11 +130,7 @@ jobs:
       - name: Checkout current branch
         uses: actions/checkout@v3
 
-      # On Windows, GNU tar is much faster than the default BSD tar
-      - name: "Use GNU tar instead BSD tar"
-        if: ${{ runner.os == 'Windows' }}
-        shell: cmd
-        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
 
 
       - name: Install aeon and dependencies
