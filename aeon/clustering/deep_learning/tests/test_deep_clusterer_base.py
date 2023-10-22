@@ -11,7 +11,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.utils._testing.collection import make_2d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["achieveordie", "hadifawaz1999"]
+__author__ = ["hadifawaz1999"]
 
 
 class _DummyDeepClusterer(BaseDeepClusterer):
@@ -86,7 +86,7 @@ def test_dummy_deep_clusterer():
 
     # generate random data
 
-    X, _ = make_2d_test_data()
+    X, y = make_2d_test_data()
 
     # test fit function on random data
     dummy_deep_clr.fit(X=X)
@@ -100,3 +100,15 @@ def test_dummy_deep_clusterer():
     # test summary of model
 
     assert dummy_deep_clr.summary() is not None
+
+    ypred = dummy_deep_clr.predict(X)
+    assert ypred is not None
+    assert len(ypred) == len(y)
+
+    ypred_proba = dummy_deep_clr.predict_proba(X)
+    assert ypred_proba is not None
+    assert len(ypred_proba[0]) == len(np.unique(y))
+
+    score = dummy_deep_clr.score(X)
+
+    assert type(score) == float

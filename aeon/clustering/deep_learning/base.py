@@ -13,15 +13,15 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
     Parameters
     ----------
-    n_clusters: int, default=None
-        Number of clusters for the deep learnign model.
-    clustering_algorithm: str, default="kmeans"
+    n_clusters : int, default=None
+        Number of clusters for the deep learning model.
+    clustering_algorithm : str, default="kmeans"
         The clustering algorithm used in the latent space.
-    clustering_params: dict, default=None
+    clustering_params : dict, default=None
         Dictionary containing the parameters of the clustering algorithm chosen.
     batch_size : int, default = 40
         training batch size for the model
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
@@ -73,7 +73,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
         Returns
         -------
-        history: dict or None,
+        history : dict or None,
             Dictionary containing model's train/validation losses and metrics
 
         """
@@ -98,7 +98,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
         Parameters
         ----------
-        X: np.ndarray, shape=(n_instances, n_timepoints, n_channels)
+        X : np.ndarray, shape=(n_instances, n_timepoints, n_channels)
             The input time series.
         """
         if self.clustering_params is None:

@@ -17,15 +17,15 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class AEFCNClusterer(BaseDeepClusterer):
-    """Fully Connected Neural Network (FCN), as described in [1].
+    """Fully Connected Neural Network (FCN), as described in [1]_.
 
     Parameters
     ----------
-    n_clusters: int, default=None
+    n_clusters : int, default=None
         Number of clusters for the deep learnign model.
-    clustering_algorithm: str, default="kmeans"
+    clustering_algorithm : str, default="kmeans"
         The clustering algorithm used in the latent space.
-    clustering_params: dict, default=None
+    clustering_params : dict, default=None
         Dictionary containing the parameters of the clustering algorithm chosen.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
@@ -63,7 +63,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
         File path to save best model.
-    save_best_model     : bool, default = False
+    save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
@@ -102,7 +102,7 @@ class AEFCNClusterer(BaseDeepClusterer):
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
     >>> aefcn = AEFCNClusterer(n_clusters=2,n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
-    FCNClassifier(...)
+    AEFCNClusterer(...)
     """
 
     _tags = {
@@ -192,15 +192,16 @@ class AEFCNClusterer(BaseDeepClusterer):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
-        happen in fit.
+        In aeon, time series are stored in numpy arrays of shape
+        (n_channels,n_timepoints). Keras/tensorflow assume
+        data is in shape (n_timepoints,n_channels). This method also assumes
+        (n_timepoints,n_channels). Transpose should happen in fit.
 
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d).
+            The shape of the data fed into the input layer, should be
+            (n_timepoints,n_channels).
 
         Returns
         -------
@@ -234,7 +235,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), n_timepoints (m))
             The training input samples.
 
         Returns

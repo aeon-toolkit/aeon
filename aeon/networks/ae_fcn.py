@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Auto-Encoder using Fully Connected Neural Network (FCN)."""
 
-__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__author__ = ["hadifawaz1999"]
 
 import numpy as np
 
@@ -12,7 +12,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class AEFCNNetwork(BaseDeepNetwork):
     """Establish the network structure for a AE-FCN.
 
-    Adapted from the implementation used in [1]
+    Adapted from the implementation used in [1]_
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ class AEFCNNetwork(BaseDeepNetwork):
 
         Arguments
         ---------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
         Returns
