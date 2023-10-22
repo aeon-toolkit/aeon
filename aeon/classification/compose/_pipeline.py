@@ -445,6 +445,12 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     def _convert_X_to_sklearn(self, X):
         """Convert a Table or Panel X to 2D numpy required by sklearn."""
+        if isinstance(X, np.ndarray):
+            if X.ndim == 2:
+                return X
+            elif X.ndim == 3:
+                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
+
         output_type = self.transformers_.get_tag("output_data_type")
         # if output_type is Primitives, output is Table, convert to 2D numpy array
         if output_type == "Primitives":
