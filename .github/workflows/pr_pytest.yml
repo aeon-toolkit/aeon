@@ -106,15 +106,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Checkout current branch
-        uses: actions/checkout@v3
-
-      # On Windows, GNU tar is much faster than the default BSD tar
-      - name: "Use GNU tar instead BSD tar"
-        if: ${{ runner.os == 'Windows' }}
-        shell: cmd
-        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-
       - name: Restore Cache
         uses: actions/cache@v3
         id: cache
@@ -129,6 +120,16 @@ jobs:
       - name: Restore time stamps
         if: steps.cache.outputs.cache-hit == 'true'
         run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/__init__.py
+
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+
+      # On Windows, GNU tar is much faster than the default BSD tar
+      - name: "Use GNU tar instead BSD tar"
+        if: ${{ runner.os == 'Windows' }}
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
