@@ -91,7 +91,7 @@ jobs:
 
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
-#      NUMBA_CPU_NAME: generic
+      NUMBA_CPU_NAME: generic
 #      NUMBA_CPU_FEATURES: "+64bit,+adx,+aes,+avx,+avx2,...(continue with the rest of the features)..."
       NUMBA_DEBUG_CACHE: 1
 
