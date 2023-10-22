@@ -279,7 +279,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         t1 = Rocket(num_kernels=200)
         c = DummyRegressor()
-        return {"transformers": [t1], "classifier": c}
+        return {"transformers": [t1], "regressor": c}
 
 
 class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
@@ -570,4 +570,4 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         t1 = Rocket(num_kernels=200)
         c = KNeighborsRegressor()
-        return {"transformers": [t1], "classifier": c}
+        return {"transformers": [t1], "regressor": c}
