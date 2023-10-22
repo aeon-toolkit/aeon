@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base class for deep clustering."""
 __author__ = ["hadifawaz1999"]
 
