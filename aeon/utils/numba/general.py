@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """General numba utilities."""
 
 __author__ = ["MatthewMiddlehurst", "baraline"]
@@ -18,6 +17,9 @@ __all__ = [
     "sliding_mean_std_one_series",
     "sliding_dot_product",
     "combinations_1d",
+    "slope_derivative",
+    "slope_derivative_2d",
+    "slope_derivative_3d",
 ]
 
 from typing import Tuple
@@ -537,3 +539,99 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
             u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = False
             i_comb += 1
     return combinations
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 1d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 1d numpy array
+        A 1d numpy array of values
+
+    Returns
+    -------
+    arr : 1d numpy array
+        The slope derivative of the series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> X_der = slope_derivative(X)
+    """
+    m = len(X)
+    arr = np.zeros(m)
+    for i in range(1, m - 1):
+        arr[i] = ((X[i] - X[i - 1]) + ((X[i + 1] - X[i - 1]) / 2.0)) / 2.0
+    arr[0] = arr[1]
+    arr[m - 1] = arr[m - 2]
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 2d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 2d numpy array
+        A 2d numpy array of values
+
+    Returns
+    -------
+    arr : 2d numpy array
+        The slope derivative of each series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative_2d
+    >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
+    >>> X_der = slope_derivative_2d(X)
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = slope_derivative(X[i])
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 3d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 3d numpy array
+        A 3d numpy array of values
+
+    Returns
+    -------
+    arr : 3d numpy array
+        The slope derivative of each series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative_3d
+    >>> X = np.array([
+    ...     [[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]],
+    ...     [[4, 4, 4, 4, 3, 3, 3, 2, 2, 1], [8, 8, 8, 8, 7, 7, 7, 6, 6, 5]],
+    ... ])
+    >>> X_der = slope_derivative_3d(X)
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = slope_derivative_2d(X[i])
+    return arr

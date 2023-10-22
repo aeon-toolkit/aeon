@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Catch22 features.
 
 A transformer for the Catch22 features.
@@ -48,7 +46,7 @@ feature_names = [
 class Catch22(BaseCollectionTransformer):
     """Canonical Time-series Characteristics (Catch22).
 
-    Overview: Input n series with d dimensions of length m
+    Overview: Input n series with d dimensions of length m.
     Transforms series into the 22 Catch22 [1]_ features extracted from the hctsa [2]_
     toolbox.
 
@@ -133,9 +131,11 @@ class Catch22(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "X_inner_mtype": ["np-list", "numpy3D"],
         "capability:unequal_length": True,
+        "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(

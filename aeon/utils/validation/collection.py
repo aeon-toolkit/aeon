@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """Validation and checking functions for collections of time series."""
 
 __author__ = ["TonyBagnall"]
@@ -208,7 +205,7 @@ def get_type(X):
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
     """
-    if isinstance(X, np.ndarray):  # “numpy3D” or numpyflat
+    if isinstance(X, np.ndarray):  # "numpy3D" or numpyflat
         if X.ndim == 3:
             return "numpy3D"
         elif X.ndim == 2:

@@ -55,6 +55,7 @@ Dictionary-based
     TemporalDictionaryEnsemble
     WEASEL
     WEASEL_V2
+    REDCOMETS
 
 Distance-based
 --------------
@@ -106,9 +107,9 @@ Interval-based
     :toctree: auto_generated/
     :template: class.rst
 
-    CanonicalIntervalForest
-    DrCIF
-    RandomIntervalSpectralEnsemble
+    CanonicalIntervalForestClassifier
+    DrCIFClassifier
+    RandomIntervalSpectralEnsembleClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
     RandomIntervalClassifier

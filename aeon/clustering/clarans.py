@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
@@ -29,7 +28,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, default='random'
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
@@ -38,12 +37,13 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
         first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe']
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     max_neighbours : int, default=None,
         The maximum number of neighbouring solutions that the algorithm will explore
         for each set of medoids. A neighbouring solution is obtained by replacing
@@ -101,7 +101,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         max_neighbours: int = None,
         n_init: int = 10,
@@ -124,7 +124,10 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def _fit_one_init(self, X: np.ndarray, max_neighbours: int):
         j = 0
         X_indexes = np.arange(X.shape[0], dtype=int)
-        best_medoids = self._init_algorithm(X)
+        if isinstance(self._init_algorithm, Callable):
+            best_medoids = self._init_algorithm(X)
+        else:
+            best_medoids = self._init_algorithm
         best_non_medoids = np.setdiff1d(X_indexes, best_medoids)
         best_cost = (
             self._compute_pairwise(X, best_non_medoids, best_medoids).min(axis=1).sum()

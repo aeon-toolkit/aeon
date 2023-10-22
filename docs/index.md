@@ -20,7 +20,6 @@ comparison.
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series forecasting.
 
 +++
@@ -39,7 +38,6 @@ Forecasting
 :img-top: examples/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series classification.
 
@@ -60,7 +58,6 @@ Classification
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series extrinsic regression.
 
 +++
@@ -79,7 +76,6 @@ Regression
 :img-top: examples/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series clustering.
 
@@ -100,7 +96,6 @@ Clustering
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series transformations.
 
 +++
@@ -119,7 +114,6 @@ Transformations
 :img-top: examples/distances/img/dtw_vis.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series distances.
 
@@ -158,7 +152,6 @@ Networks
 :img-top: examples/annotation/img/clasp.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Annotation
 
@@ -218,7 +211,7 @@ Benchmarking
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-1plkevy4x-vAg1dAUXcuoR38FjY9nxzg)
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
 
 **Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
@@ -230,8 +223,7 @@ Benchmarking
 
 installation.md
 getting_started.md
-user_guide
-api_reference
+api_reference.md
 examples.md
 ```
 
@@ -239,8 +231,8 @@ examples.md
 :caption: Developing aeon
 :hidden:
 
-get_involved
-developers
+contributing.md
+developer_guide.md
 ```
 
 ```{toctree}
@@ -249,6 +241,8 @@ developers
 
 contributors.md
 about.md
+governance.md
+code_of_conduct.md
 ```
 
 ```{toctree}
@@ -257,6 +251,5 @@ about.md
 
 glossary.md
 changelog.md
-related_software
 papers_using_aeon.md
 ```

@@ -1,23 +1,25 @@
-# -*- coding: utf-8 -*-
 """Slope transformer."""
-import math
-import statistics
-
-import numpy as np
-
-from aeon.transformations.base import BaseTransformer
 
 __all__ = ["SlopeTransformer"]
 __author__ = ["mloning"]
 
+import math
 
-class SlopeTransformer(BaseTransformer):
+import numpy as np
+
+from aeon.transformations._split import SplitsTimeSeries
+from aeon.transformations.collection import BaseCollectionTransformer
+
+
+class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """Piecewise slope transformation.
 
-    Class to perform a slope transformation on a collection of time series. Numpy
-    array of shape numpy array of shape (n_instances, n_channels, series_length) is
-    transformed to numpy array of shape (n_instances, n_channels, n_intervals). The
-    new feature is the slope over that interval found using a least squares regression.
+    Class to perform a slope transformation on a collection of time series.
+    Numpy array of shape (n_instances, n_channels, series_length) is
+    transformed to numpy array of shape (n_instances, n_channels, n_intervals).
+    The new feature is the slope over that interval found using a
+    total least squares regression (note that total least squares is different
+    from ordinary least squares regression.)
 
     Parameters
     ----------
@@ -34,16 +36,13 @@ class SlopeTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "capability:multivariate": True,
         "fit_is_empty": True,
     }
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super(SlopeTransformer, self).__init__(_output_convert=False)
+        super(SlopeTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -58,8 +57,8 @@ class SlopeTransformer(BaseTransformer):
 
         Returns
         -------
-        3D np.ndarray of shape = [n_instances, n_channels, series_length] collection
-        of time series to transform
+        3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        collection of time series to transform
         """
         # Get information about the dataframe
         n_cases, n_channels, series_length = X.shape
@@ -69,36 +68,11 @@ class SlopeTransformer(BaseTransformer):
             case_data = []
             for j in range(n_channels):
                 # Calculate gradients
-                res = self._get_gradients_of_lines(X[i][j])
+                res = [self._get_gradient(x) for x in self._split(X[i][j])]
                 case_data.append(res)
             full_data.append(np.asarray(case_data))
 
         return np.array(full_data)
-
-    def _get_gradients_of_lines(self, X):
-        """Get gradients of lines.
-
-        Function to get the gradients of the line of best fits
-        given a time series.
-
-        Parameters
-        ----------
-        X : a numpy array of shape = [time_series_length]
-
-        Returns
-        -------
-        gradients : a numpy array of shape = [self.n_intervals].
-                    It contains the gradients of the line of best fit
-                    for each interval in a time series.
-        """
-        # Firstly, split the time series into approx equal length intervals
-        splitTimeSeries = self._split_time_series(X)
-        gradients = []
-
-        for x in range(len(splitTimeSeries)):
-            gradients.append(self._get_gradient(splitTimeSeries[x]))
-
-        return gradients
 
     def _get_gradient(self, Y):
         """Get gradient of lines.
@@ -117,28 +91,24 @@ class SlopeTransformer(BaseTransformer):
         -------
         m : an int corresponding to the gradient of the best fit line.
         """
-        # Create a list that contains 1,2,3,4,...,len(Y) for the x coordinates.
-        X = [(i + 1) for i in range(len(Y))]
+        # Create an array that contains 1,2,3,...,len(Y) for the x coordinates.
+        X = np.arange(1, len(Y) + 1)
 
-        # Calculate the mean of both lists
-        meanX = statistics.mean(X)
-        meanY = statistics.mean(Y)
+        # Calculate the mean of both arrays
+        meanX = np.mean(X)
+        meanY = np.mean(Y)
 
-        # Calculate the list (yi-mean(y))^2
-        yminYbar = [(y - meanY) ** 2 for y in Y]
-        # Calculate the list (xi-mean(x))^2
-        xminXbar = [(x - meanX) ** 2 for x in X]
+        # Calculate (yi-mean(y))^2
+        yminYbar = (Y - meanY) ** 2
+
+        # Calculate (xi-mean(x))^2
+        xminXbar = (X - meanX) ** 2
 
         # Sum them to produce w.
-        w = sum(yminYbar) - sum(xminXbar)
+        w = np.sum(yminYbar) - np.sum(xminXbar)
 
-        # Calculate the list (xi-mean(x))*(yi-mean(y))
-        temp = []
-        for x in range(len(X)):
-            temp.append((X[x] - meanX) * (Y[x] - meanY))
-
-        # Sum it and multiply by 2 to calculate r
-        r = 2 * sum(temp)
+        # Sum (xi-mean(x))*(yi-mean(y)) and multiply by 2 to calculate r
+        r = 2 * np.sum((X - meanX) * (Y - meanY))
 
         if r == 0:
             # remove nans
@@ -148,31 +118,6 @@ class SlopeTransformer(BaseTransformer):
             m = (w + math.sqrt(w**2 + r**2)) / r
 
         return m
-
-    def _split_time_series(self, X):
-        """Split a time series into approximately equal intervals.
-
-        Adopted from = https://stackoverflow.com/questions/2130016/
-                       splitting-a-list-into-n-parts-of-approximately
-                       -equal-length
-
-        Parameters
-        ----------
-        X : a numpy array of shape = [time_series_length]
-
-        Returns
-        -------
-        output : a numpy array of shape = [self.n_intervals,interval_size]
-        """
-        avg = len(X) / float(self.n_intervals)
-        output = []
-        beginning = 0.0
-
-        while beginning < len(X):
-            output.append(X[int(beginning) : int(beginning + avg)])
-            beginning += avg
-
-        return output
 
     def _check_parameters(self, n_timepoints):
         """Check values of parameters for Slope transformer.

@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Implements Baxter-King bandpass filter transformation.
 
 Please see the original library
 (https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py)
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["klam-data", "pyyim", "mgorlin"]
 __all__ = ["BKFilter"]
@@ -27,7 +25,7 @@ class BKFilter(BaseTransformer):
     data and deals with the periodicity of the business cycle. Applying their
     band-pass filter to a series will produce a new series that does not contain
     fluctuations at a higher or lower frequency than those of the business cycle.
-    Baxter-King follow Burns and Mitchell’s work on business cycles, which suggests
+    Baxter-King follow Burns and Mitchell's work on business cycles, which suggests
     that U.S. business cycles typically last from 1.5 to 8 years.
 
     Parameters
@@ -67,15 +65,15 @@ class BKFilter(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.RangeIndex

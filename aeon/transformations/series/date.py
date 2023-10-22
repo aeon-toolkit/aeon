@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Extract calendar features from datetimeindex."""
 __author__ = ["danbartl", "KishManani"]
 __all__ = ["DateTimeFeatures"]
@@ -33,8 +30,6 @@ _RAW_DUMMIES = [
 ]
 
 
-# TODO: Change the default value of `keep_original_columns` from True to False
-# and remove the warning in v0.17.0
 class DateTimeFeatures(BaseTransformer):
     """DateTime feature extraction for use in e.g. tree based models.
 
@@ -83,7 +78,7 @@ class DateTimeFeatures(BaseTransformer):
         * day_of_quarter
         * is_weekend
         * year (special case with no lower frequency).
-    keep_original_columns :  boolean, optional, default=True
+    keep_original_columns :  boolean, optional, default=False
         Keep original columns in X passed to `.transform()`.
 
     Examples
@@ -114,11 +109,11 @@ class DateTimeFeatures(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": [
             "pd.Series",
             "pd.DataFrame",
@@ -126,7 +121,7 @@ class DateTimeFeatures(BaseTransformer):
             "pd_multiindex_hier",
         ],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
@@ -140,20 +135,14 @@ class DateTimeFeatures(BaseTransformer):
         ts_freq=None,
         feature_scope="minimal",
         manual_selection=None,
-        keep_original_columns=True,
+        keep_original_columns=False,
     ):
         self.ts_freq = ts_freq
         self.feature_scope = feature_scope
         self.manual_selection = manual_selection
         self.dummies = _prep_dummies(_RAW_DUMMIES)
         self.keep_original_columns = keep_original_columns
-        warnings.warn(
-            "Currently the default value of `keep_original_columns\n"
-            " is `True`. In future releases this will be changed \n"
-            " to `False`. To keep the current behaviour explicitly \n"
-            " set `keep_original_columns=True`.",
-            FutureWarning,
-        )
+
         super(DateTimeFeatures, self).__init__()
 
     def _transform(self, X, y=None):
@@ -208,7 +197,8 @@ class DateTimeFeatures(BaseTransformer):
                 ):
                     warnings.warn(
                         "Level of selected dummy variable "
-                        + " lower level than base ts_frequency."
+                        + " lower level than base ts_frequency.",
+                        stacklevel=2,
                     )
                 calendar_dummies = self.dummies.loc[
                     self.dummies["dummy"].isin(self.manual_selection),

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Testing advanced functionality of the base class."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 
@@ -293,12 +291,12 @@ def test_dynamic_tags_reset_properly():
     from aeon.forecasting.theta import ThetaForecaster
     from aeon.forecasting.var import VAR
 
-    # this forecaster will have the scitype:y tag set to "univariate"
+    # this forecaster will have the y_input_type tag set to "univariate"
     f = MultiplexForecaster([("foo", ThetaForecaster()), ("var", VAR())])
     f.set_params(selected_forecaster="var")
 
     X_multivariate = _make_series(n_columns=2)
-    # fit should reset the estimator, and set scitype:y tag to "multivariate"
+    # fit should reset the estimator, and set y_input_type tag to "multivariate"
     # the fit will cause an error if this is not happening properly
     f.fit(X_multivariate)
 

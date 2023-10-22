@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Test reduce."""
 
 __author__ = ["Lovkush-A", "mloning", "LuisZugasti", "AyushmaanSeth"]

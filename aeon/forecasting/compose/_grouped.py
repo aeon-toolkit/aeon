@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements compositors for performing forecasting by group."""
 
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES, mtype_to_scitype
@@ -56,8 +54,8 @@ class ForecastByLevel(_DelegatedForecaster):
     _tags = {
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
-        "scitype:y": "both",
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_input_type": "both",
+        "y_inner_type": ALL_TIME_SERIES_MTYPES,
         "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "fit_is_empty": False,
     }
@@ -95,7 +93,7 @@ class ForecastByLevel(_DelegatedForecaster):
 
         # this ensures that we convert in the inner estimator
         # but vectorization/broadcasting happens at the level of groupby
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
         self.set_tags(**{"X_inner_mtype": mtypes})
 
     @classmethod

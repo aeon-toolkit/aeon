@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket) regressor.
 
 Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
@@ -9,10 +8,10 @@ __all__ = ["RocketRegressor"]
 
 import numpy as np
 from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
-from aeon.pipeline import make_pipeline
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
@@ -29,8 +28,8 @@ class RocketRegressor(BaseRegressor):
     This regressor simply transforms the input data using the Rocket [1]_
     transformer and builds a RidgeCV estimator using the transformed data.
 
-    The regressor can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The regressor can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------
@@ -78,12 +77,12 @@ class RocketRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.convolution_based import RocketRegressor
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> reg = RocketRegressor(num_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(...)
+    RocketRegressor(num_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Rocket transformer."""
 
 __author__ = ["angus924"]
@@ -63,8 +62,8 @@ class Rocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
@@ -82,7 +81,7 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 

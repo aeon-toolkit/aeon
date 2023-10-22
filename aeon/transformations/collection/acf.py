@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Autocorrelation function transformer.
 
 Efficient implementation for collections using numba.
@@ -48,6 +46,11 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
      [-0.21166957  0.24992846 -0.38036068  0.10243325 -0.18565336  0.05619381
       -0.19569665  0.28835692 -0.42359509  0.21378191]]
     """
+
+    _tags = {
+        "fit_is_empty": True,
+        "capability:multivariate": True,
+    }
 
     def __init__(
         self,

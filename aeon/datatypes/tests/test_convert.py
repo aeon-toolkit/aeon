@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 """Testing machine type converters for scitypes."""
 
 __author__ = ["fkiraly"]
 
-from aeon.datatypes import SCITYPE_REGISTER, scitype_to_mtype
+from aeon.datatypes import DATATYPE_REGISTER, scitype_to_mtype
 from aeon.datatypes._convert import _conversions_defined, convert
 from aeon.datatypes._examples import get_examples
 from aeon.utils._testing.deep_equals import deep_equals
 
-SCITYPES = [sci[0] for sci in SCITYPE_REGISTER]
+SCITYPES = [sci[0] for sci in DATATYPE_REGISTER]
 
 # scitypes which have no conversions defined
 # should be listed here to avoid false positive test errors

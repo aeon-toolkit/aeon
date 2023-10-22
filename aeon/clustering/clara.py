@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time series kmedoids."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
@@ -10,7 +9,6 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.k_medoids import TimeSeriesKMedoids
-from aeon.distances import pairwise_distance
 
 
 class TimeSeriesCLARA(BaseClusterer):
@@ -28,21 +26,22 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str, default='random'
+    init_algorithm : str or np.ndarray, default='random'
         Method for initializing cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
-        accurate than random. It works by choosing centroids that are distant from
-        one another. First is the fastest method and simply chooses the first k
-        time series as centroids.
+        accurate than random. It works by choosing centroids that are distant
+        from one another. First is the fastest method and simply chooses the
+        first k time series as centroids.
+        If a np.ndarray provided it must be of shape (n_clusters,) and contain
+        the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. Any of the following
-        are valid: ['dtw', 'euclidean', 'erp', 'edr', 'lcss', 'squared', 'ddtw', 'wdtw',
-        'wddtw', 'msm', 'twe'].
-        If a callable is passed it must be a function that takes two 2d numpy arrays as
-        input and returns a float.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
         min(n_instances, 40 + 2 * n_clusters) is used.
@@ -110,7 +109,7 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, Callable] = "random",
+        init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         n_samples: int = None,
         n_sampling_iters: int = 10,
@@ -138,30 +137,12 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_iter_ = 0
 
         self._random_state = None
-        self._init_algorithm = None
-        self._distance_cache = None
-        self._distance_callable = None
         self._kmedoids_instance = None
-
-        self._distance_params = distance_params
-        if distance_params is None:
-            self._distance_params = {}
 
         super(TimeSeriesCLARA, self).__init__(n_clusters)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
-        if isinstance(self.distance, str):
-            pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
-            )
-        else:
-            pairwise_matrix = pairwise_distance(
-                X,
-                self.cluster_centers_,
-                self._distance_callable,
-                **self._distance_params,
-            )
-        return pairwise_matrix.argmin(axis=1)
+        return self._kmedoids_instance.predict(X)
 
     def _fit(self, X: np.ndarray, y=None):
         self._random_state = check_random_state(self.random_state)
@@ -192,7 +173,7 @@ class TimeSeriesCLARA(BaseClusterer):
                 tol=self.tol,
                 verbose=self.verbose,
                 random_state=self._random_state,
-                distance_params=self._distance_params,
+                distance_params=self.distance_params,
                 method="pam",
             )
             pam.fit(X[sample_idxs])
@@ -203,6 +184,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self.inertia_ = best_pam.inertia_
         self.cluster_centers_ = best_pam.cluster_centers_
         self.n_iter_ = best_pam.n_iter_
+        self._kmedoids_instance = best_pam
 
     def _score(self, X, y=None):
         return -self.inertia_

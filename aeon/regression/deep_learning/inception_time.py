@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """InceptionTime regressor."""
 
 __author__ = ["hadifawaz1999"]
@@ -21,7 +20,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class InceptionTimeRegressor(BaseRegressor):
     """InceptionTime ensemble regressor.
 
-    Ensemble of IndividualInceptionRegressor, as described in [1].
+    Ensemble of IndividualInceptionRegressor, as described in [1]_.
     This ensemble regressor is adapted from the classier InceptionTime
 
     Parameters
@@ -237,9 +236,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
 
-        Arguments:
+        Parameters
         ----------
-
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The training input samples.
         y : np.ndarray of shape n
@@ -293,9 +291,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def _predict(self, X) -> np.ndarray:
         """Predict the values of the test set using InceptionTime.
 
-        Arguments:
-        ---------
-
+        Parameters
+        ----------
         X : np.ndarray of shape (n_instances, n_channels, series_length)
             The testing input samples.
 

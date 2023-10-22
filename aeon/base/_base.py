@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for objects and fittable objects.
 
@@ -59,8 +57,6 @@ import warnings
 from collections import defaultdict
 from copy import deepcopy
 
-import numpy as np
-import pandas as pd
 from sklearn import clone
 from sklearn.base import BaseEstimator as _BaseEstimator
 from sklearn.ensemble._base import _set_random_states
@@ -1124,31 +1120,6 @@ class BaseEstimator(BaseObject):
             fitted parameters, keyed by names of fitted parameter.
         """
         return self._get_fitted_params_default()
-
-    def _internal_convert(self, X, y=None):
-        """Convert X and y to supported types.
-
-        Convert X to a 3D numpy array if it is a 2D and convert y into an 1D numpy
-        array if passed as a pd.Series. Used in classification, regression and
-        clustering.
-
-        Parameters
-        ----------
-        X : an object of any supported type.
-        y : np.ndarray or pd.Series.
-
-        Returns
-        -------
-        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged.
-        y: np.ndarray.
-        """
-        if isinstance(X, np.ndarray) and X.ndim == 2:
-            X = X.reshape(X.shape[0], 1, X.shape[1])
-        if y is not None and isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-        if y is None:
-            return X
-        return X, y
 
 
 def _clone_estimator(base_estimator, random_state=None):

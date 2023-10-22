@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Residual Network (ResNet) (minus the final output layer)."""
 
 __author__ = ["James Large", "Withington", "nilesh05apr", "hadifawaz1999"]
@@ -11,42 +10,40 @@ class ResNetNetwork(BaseDeepNetwork):
     """
     Establish the network structure for a ResNet.
 
-    Adapted from the implementations used in [1]
+    Adapted from the implementations used in [1]_.
 
     Parameters
     ----------
-        n_residual_blocks               : int, default = 3,
-            the number of residual blocks of ResNet's model
-        n_conv_per_residual_block       : int, default = 3,
-            the number of convolution blocks in each residual block
-        n_filters                       : int or list of int, default = [128, 64, 64],
-            the number of convolution filters for all the convolution layers in the same
-            residual block, if not a list, the same number of filters is used in all
-            convolutions of all residual blocks.
-        kernel_size                    : int or list of int, default = [8, 5, 3],
-            the kernel size of all the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        strides                         : int or list of int, default = 1,
-            the strides of convolution kernels in each of the
-            convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        dilation_rate                   : int or list of int, default = 1,
-            the dilation rate of the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        padding                         : str or list of str, default = 'padding',
-            the type of padding used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        activation                      : str or list of str, default = 'relu',
-            keras activation used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        use_bias                        : bool or list of bool, default = True,
-            condition on whether or not to use bias values in
-            the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        random_state                    : int, optional (default = 0)
-            The random seed to use random activities.
+    n_residual_blocks : int, default = 3
+        The number of residual blocks of ResNet's model.
+    n_conv_per_residual_block : int, default = 3
+        The number of convolution blocks in each residual block.
+    n_filters : int or list of int, default = [128, 64, 64]
+        The number of convolution filters for all the convolution layers in the same
+        residual block, if not a list, the same number of filters is used in all
+        convolutions of all residual blocks.
+    kernel_size : int or list of int, default = [8, 5, 3]
+        The kernel size of all the convolution layers in one residual block, if not a
+        list, the same kernel size is used in all convolution layers.
+    strides : int or list of int, default = 1
+        The strides of convolution kernels in each of the convolution layers in one
+        residual block, if not a list, the same kernel size is used in all
+        convolution layers.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate of the convolution layers in one residual block, if not a
+        list, the same kernel size is used in all convolution layers.
+    padding : str or list of str, default = 'padding'
+        The type of padding used in the convolution layers in one residual block, if not
+        a list, the same kernel size is used in all convolution layers.
+    activation : str or list of str, default = 'relu'
+        Keras activation used in the convolution layers in one residual block, if not
+        a list, the same kernel size is used in all convolution layers.
+    use_bias : bool or list of bool, default = True
+        Condition on whether or not to use bias values in the convolution layers in
+        one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
+    random_state : int, default = 0
+        The random seed to use random activities.
 
     Notes
     -----
@@ -114,8 +111,8 @@ class ResNetNetwork(BaseDeepNetwork):
         """
         Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (series_length (m), n_dimensions (d))
             The shape of the data fed into the input layer.
 

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements functionality for specifying forecast horizons in aeon."""
 
 __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]

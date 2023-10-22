@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Random interval features.
 
 A transformer for the extraction of features on randomly selected intervals.
@@ -110,7 +108,8 @@ class RandomIntervals(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 
@@ -492,4 +491,7 @@ class RandomIntervals(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"n_intervals": 2}
+        if parameter_set == "results_comparison":
+            return {"n_intervals": 3}
+        else:
+            return {"n_intervals": 2}

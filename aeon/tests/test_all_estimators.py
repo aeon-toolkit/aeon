@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Suite of tests for all estimators.
 
 adapted from scikit-learn's estimator_checks
@@ -92,8 +90,9 @@ class BaseFixtureGenerator:
         will have estimator and scenario fixtures parametrized out of the box.
 
     Descendants can override:
-        estimator_type_filter: str, class variable; None or scitype string
-            e.g., "forecaster", "transformer", "classifier", see BASE_CLASS_SCITYPE_LIST
+        estimator_type_filter: str, class variable; None or string of estimator type
+            e.g., "forecaster", "transformer", "classifier",
+            see BASE_CLASS_IDENTIFIER_LIST
             which estimators are being retrieved and tested
         fixture_sequence: list of str
             sequence of fixture variable names in conditional fixture generation
@@ -131,7 +130,7 @@ class BaseFixtureGenerator:
 
     # class variables which can be overridden by descendants
 
-    # which estimator types are generated; None=all, or scitype string like "forecaster"
+    # which estimator types are generated; None=all
     estimator_type_filter = None
 
     # which sequence the conditional fixtures are generated in
@@ -316,8 +315,8 @@ class BaseFixtureGenerator:
     def _excluded_scenario(test_name, scenario):
         """Skip list generator for scenarios to skip in test_name.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         test_name : str, name of test
         scenario : instance of TestScenario, to be used in test
 
@@ -1065,9 +1064,9 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         1. do not change state of the estimator, i.e., any attributes
             (including hyper-parameters and fitted parameters)
         2. expected output type of the method matches actual output type
-            - only for abstract BaseEstimator methods, common to all estimator scitypes
-            list of BaseEstimator methods tested: get_fitted_params
-            scitype specific method outputs are tested in TestAll[estimatortype] class
+            - only for abstract BaseEstimator methods, common to all estimators.
+            List of BaseEstimator methods tested: get_fitted_params
+            Subclass specific method outputs are tested in TestAll[estimatortype] class
         3. the state of method arguments does not change
         """
         estimator = estimator_instance
@@ -1238,7 +1237,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         _assert_array_almost_equal(
             results[1],
             results_2nd[1],
-            # err_msg=f"Idempotency check failed for method {method}",
+            err_msg=f"Running {method_nsc_arraylike} after fit twice with test "
+            f"parameters gives different results.",
         )
 
     def test_persistence_via_pickle(

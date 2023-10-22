@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformations to detrend a time series."""
 
 __all__ = ["Detrender"]
@@ -69,14 +66,14 @@ class Detrender(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": False,

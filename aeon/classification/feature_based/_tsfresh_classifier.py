@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TSFresh Classifier.
 
 Pipeline classifier using the TSFresh transformer and an estimator.
@@ -24,7 +23,7 @@ class TSFreshClassifier(BaseClassifier):
     """
     Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
 
-    This classifier simply transforms the input data using the TSFresh [1]
+    This classifier simply transforms the input data using the TSFresh [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters

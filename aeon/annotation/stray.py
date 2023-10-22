@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for STRAY (Search TRace AnomalY) outlier estimator."""
 
 import warnings
@@ -257,7 +256,8 @@ class STRAY(BaseTransformer):
             warnings.warn(
                 "Warning: Input data X differs from that given to fit(). "
                 "Refitting with new input data, not storing updated public class "
-                "attributes. For this, explicitly use fit(X) or fit_transform(X)."
+                "attributes. For this, explicitly use fit(X) or fit_transform(X).",
+                stacklevel=2,
             )
             return new_obj.y_.astype(bool)
 

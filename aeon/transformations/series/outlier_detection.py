@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements transformers for detecting outliers in a time series."""
 
 __author__ = ["aiwalter"]
@@ -53,14 +50,14 @@ class HampelFilter(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
+        "input_data_type": "Series",
         # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
+        "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,
         "capability:missing_values": True,
         "skip-inverse-transform": True,
@@ -120,7 +117,8 @@ class HampelFilter(BaseTransformer):
         if Z.isnull().values.any():
             warnings.warn(
                 """Series contains nan values, more nan might be
-                added if there are outliers"""
+                added if there are outliers""",
+                stacklevel=2,
             )
 
         cv = SlidingWindowSplitter(

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Deep learning networks."""
 __all__ = [
     "BaseDeepNetwork",

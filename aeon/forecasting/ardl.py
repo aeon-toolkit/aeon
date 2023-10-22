@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements ARDL Model as interface to statsmodels."""
 import warnings
 
@@ -195,10 +193,10 @@ class ARDL(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
         "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
@@ -278,7 +276,8 @@ class ARDL(_StatsModelsAdapter):
                 inner_order = 0
                 warnings.warn(
                     "X is none but the order for the exogenous variables was"
-                    " specified. Order was thus set to 0"
+                    " specified. Order was thus set to 0",
+                    stacklevel=2,
                 )
         else:
             if not isinstance(X, pd.DataFrame):
@@ -286,7 +285,8 @@ class ARDL(_StatsModelsAdapter):
                 inner_auto_ardl = False
                 warnings.warn(
                     "X is none but auto_ardl was set to True. auto_ardl was"
-                    " thus set to False with order=0"
+                    " thus set to False with order=0",
+                    stacklevel=2,
                 )
         return inner_order, inner_auto_ardl
 
@@ -301,9 +301,9 @@ class ARDL(_StatsModelsAdapter):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
             A 1-d endogenous response variable. The dependent variable.
         X : optional (default=None)
@@ -435,13 +435,13 @@ class ARDL(_StatsModelsAdapter):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
             guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series for the forecast
@@ -452,7 +452,7 @@ class ARDL(_StatsModelsAdapter):
         -------
         self : reference to self
         """
-        warnings.warn("Defaulting to `update_params=True`")
+        warnings.warn("Defaulting to `update_params=True`", stacklevel=2)
         update_params = True
         if update_params:
             # default to re-fitting if update is not implemented
@@ -460,7 +460,8 @@ class ARDL(_StatsModelsAdapter):
                 f"NotImplementedWarning: {self.__class__.__name__} "
                 f"does not have a custom `update` method implemented. "
                 f"{self.__class__.__name__} will be refit each time "
-                f"`update` is called with update_params=True."
+                f"`update` is called with update_params=True.",
+                stacklevel=2,
             )
             # we need to overwrite the mtype last seen, since the _y
             #    may have been converted
@@ -479,7 +480,8 @@ class ARDL(_StatsModelsAdapter):
                 f"NotImplementedWarning: {self.__class__.__name__} "
                 f"does not have a custom `update` method implemented. "
                 f"{self.__class__.__name__} will update all component cutoffs each time"
-                f" `update` is called with update_params=False."
+                f" `update` is called with update_params=False.",
+                stacklevel=2,
             )
             comp_forecasters = self._components(base_class=BaseForecaster)
             for comp in comp_forecasters.values():

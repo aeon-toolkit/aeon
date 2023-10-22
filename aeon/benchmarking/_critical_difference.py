@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Function to compute and plot critical difference diagrams."""
 
 __author__ = ["SveaMeyer13", "dguijo"]
@@ -19,8 +18,8 @@ def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
 
     Larger parts of code copied from scipy.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     n_estimators : int
       number of strategies to evaluate
     n_datasets : int
@@ -75,7 +74,8 @@ def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
     )
     cliques[cliques < 0] = np.inf
     cliques = cliques < cd
-    cliques = build_cliques(cliques, n_estimators)
+
+    cliques = build_cliques(cliques)
 
     return cliques
 
@@ -113,8 +113,6 @@ def wilcoxon_holm_cliques(results, labels, avranks, alpha):
     # correct alpha with holm
     new_alpha = float(alpha / (n_estimators - 1))
 
-    # print(f"{new_alpha=}")
-
     ordered_labels = [i for _, i in sorted(zip(avranks, labels))]
 
     same = np.eye(len(ordered_labels), dtype=bool)
@@ -130,36 +128,38 @@ def wilcoxon_holm_cliques(results, labels, avranks, alpha):
             same[idx_0][idx_1] = True
             same[idx_1][idx_0] = True
 
-    # print(p_values)
-    # print(ordered_labels)
-    # print(same)
-
-    cliques = build_cliques(same, n_estimators)
+    cliques = build_cliques(same)
 
     return cliques
 
 
-def build_cliques(same, n_estimators):
+def build_cliques(same):
     """Build cliques."""
-    for i in range(n_estimators):
-        for j in range(n_estimators):
-            if i < j:
-                same[i, j] = 0
+    n_estimators = same.shape[1]
 
     for i in range(n_estimators):
-        if np.sum(same[i, :]) >= 1:
+        if np.sum(same[i, :]) > 1:
             true_values_i = np.where(same[i, :] == 1)[0]
             first_true_i = true_values_i[0]
             last_true_i = true_values_i[-1]
-            for j in range(n_estimators):
-                if i != j and np.sum(same[j, :]) >= 1:
+            for j in range(i + 1, n_estimators):
+                if np.sum(same[j, :]) >= 1:
                     true_values_j = np.where(same[j, :] == 1)[0]
                     first_true_j = true_values_j[0]
                     last_true_j = true_values_j[-1]
+                    # if j is contained in i
                     if first_true_i <= first_true_j and last_true_i >= last_true_j:
-                        same[j, :] = 0
+                        if len(true_values_i) >= len(true_values_j):
+                            same[j, :] = 0
+                        else:
+                            same[i, :] = 0
+                    # if i is contained in j
+                    elif first_true_i >= first_true_j and last_true_i <= last_true_j:
+                        if len(true_values_i) >= len(true_values_j):
+                            same[j, :] = 0
+                        else:
+                            same[i, :] = 0
 
-    # print(same)
     n = np.sum(same, 1)
     cliques = same[n > 1, :]
 
@@ -172,7 +172,7 @@ def plot_critical_difference(
     highlight=None,
     errors=False,
     cliques=None,
-    clique_method="nemenyi",
+    clique_method="holm",
     alpha=0.05,
     width=6,
     textspace=1.5,
@@ -196,8 +196,8 @@ def plot_critical_difference(
     Parts of the code are copied and adapted from here:
     https://github.com/hfawaz/cd-diagram
 
-    Arguments
-    ---------
+    Parameters
+    ----------
         scores : np.array
             scores (either accuracies or errors) of dataset x strategy
         labels : list of estimators
@@ -207,20 +207,36 @@ def plot_critical_difference(
             be the same as scores
         errors : bool, default = False
             indicates whether scores are passed as errors (default) or accuracies
-        alpha : float default = 0.05
-             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
         cliques : lists of bit vectors, default = None
             e.g. [[0,1,1,1,0,0], [0,0,0,0,1,1]]
             statistically similiar cliques of estimators
             If none, cliques will be computed depending on clique_method
-        clique_method : string, default = "nemenyi"
+        clique_method : string, default = "holm"
             clique forming method, to include "nemenyi" and "holm"
+        alpha : float default = 0.05
+             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
         width : int, default = 6
            width in inches
         textspace : int
            space on figure sides (in inches) for the method names (default: 1.5)
         reverse : bool, default = True
            if set to 'True', the lowest rank is on the right
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+
+    Example
+    -------
+    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
+    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> plot = plot_critical_difference(results[0], methods, alpha=0.1)\
+        # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
 
@@ -513,6 +529,5 @@ def plot_critical_difference(
             linewidth=linewidth_sign,
         )
         start += height
-    plt.show()
 
     return fig

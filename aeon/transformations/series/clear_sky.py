@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Clear sky transformer for solar time-series."""
 
 __author__ = ["ciaran-g"]
@@ -10,9 +8,6 @@ from joblib import Parallel, delayed
 from scipy.stats import vonmises
 
 from aeon.transformations.base import BaseTransformer
-
-# todo: update function?
-# todo: clock changes, time-zone aware index, miliseconds?
 
 
 class ClearSky(BaseTransformer):
@@ -75,16 +70,16 @@ class ClearSky(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": True,  # can the transformer handle multivariate X?
         "X_inner_mtype": [
             "pd.Series",
         ],  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.DatetimeIndex,

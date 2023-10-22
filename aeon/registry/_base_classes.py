@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Register of estimator base classes corresponding to aeon scitypes.
+"""Register of estimator base classes corresponding to aeon class.
 
 This module exports the following:
 
@@ -8,13 +7,13 @@ This module exports the following:
 BASE_CLASS_REGISTER - list of tuples
 
 each tuple corresponds to a base class, elements as follows:
-    0 : string - scitype shorthand
+    0 : string - shorthand identifie for base class type
     1 : type - the base class itself
-    2 : string - plain English description of the scitype
+    2 : string - plain English description of the class
 
 ---
 
-BASE_CLASS_SCITYPE_LIST - list of string
+BASE_CLASS_IDENTIFIER_LIST - list of string
     elements are 0-th entries of BASE_CLASS_REGISTER, in same order
 
 ---
@@ -29,7 +28,7 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 
@@ -67,8 +66,8 @@ BASE_CLASS_REGISTER = [
 ]
 
 
-BASE_CLASS_SCITYPE_LIST = pd.DataFrame(BASE_CLASS_REGISTER)[0].tolist()
+BASE_CLASS_IDENTIFIER_LIST = pd.DataFrame(BASE_CLASS_REGISTER)[0].tolist()
 
 BASE_CLASS_LIST = pd.DataFrame(BASE_CLASS_REGISTER)[1].tolist()
 
-BASE_CLASS_LOOKUP = dict(zip(BASE_CLASS_SCITYPE_LIST, BASE_CLASS_LIST))
+BASE_CLASS_LOOKUP = dict(zip(BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST))

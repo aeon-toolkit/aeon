@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Pipeline with a regressor."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
@@ -71,11 +69,11 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
     ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
     ... )
@@ -88,7 +86,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -318,8 +316,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` scitype;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` scitype.
+        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
+        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `reg.predict` on the numpy converted output of `trafoN.transform`,
@@ -362,12 +360,12 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsRegressor
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import SklearnRegressorPipeline
     >>> from aeon.transformations.series.exponent import ExponentTransformer
     >>> from aeon.transformations.series.summarize import SummaryTransformer
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> t1 = ExponentTransformer()
     >>> t2 = SummaryTransformer()
     >>> pipeline = SklearnRegressorPipeline(KNeighborsRegressor(), [t1, t2])
@@ -462,17 +460,17 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     def _convert_X_to_sklearn(self, X):
         """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        X_scitype = self.transformers_.get_tag("scitype:transform-output")
-        # if X_scitype is Primitives, output is Table, convert to 2D numpy array
-        if X_scitype == "Primitives":
+        output_type = self.transformers_.get_tag("output_data_type")
+        # if output_type is Primitives, output is Table, convert to 2D numpy array
+        if output_type == "Primitives":
             Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if X_scitype is Series, output is Panel, convert to 2D numpy array (numpyflat)
-        elif X_scitype == "Series":
+        # if output_type is Series, output is Panel, convert to 2D numpy array
+        elif output_type == "Series":
             Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
         else:
             raise TypeError(
-                f"unexpected X output type in {type(self.regressor).__name__}, "
-                f'in tag "scitype:transform-output", found "{X_scitype}", '
+                f"unexpected X output type "
+                f'in tag "output_data_type", found "{output_type}", '
                 'expected one of "Primitives" or "Series"'
             )
 

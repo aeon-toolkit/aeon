@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Fourier Approximation (SFA) Transformer.
 
 Configurable SFA transform for discretising time series into words.
@@ -152,11 +151,7 @@ class SFAFast(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "scitype:instancewise": False,
-        "fit_is_empty": False,
         "requires_y": True,
-        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(

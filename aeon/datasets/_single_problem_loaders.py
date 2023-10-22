@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities for loading datasets."""
 
 __author__ = [
@@ -918,20 +917,13 @@ def load_unit_test_tsf():
         Whether the series have equal lengths or not.
     """
     path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    (
-        loaded_data,
-        frequency,
-        forecast_horizon,
-        contain_missing_values,
-        contain_equal_length,
-    ) = load_tsf_to_dataframe(path)
-
+    data, meta = load_tsf_to_dataframe(path)
     return (
-        loaded_data,
-        frequency,
-        forecast_horizon,
-        contain_missing_values,
-        contain_equal_length,
+        data,
+        meta["frequency"],
+        meta["forecast_horizon"],
+        meta["contain_missing_values"],
+        meta["contain_equal_length"],
     )
 
 
@@ -996,13 +988,11 @@ def load_solar(
         api_version="v4",
     ):
         """Private loader, for decoration with backoff."""
-        url = "https://api0.solar.sheffield.ac.uk/pvlive/api/"
-        url = url + api_version + "/gsp/0?"
-        url = url + "start=" + start + "T00:00:00&"
-        url = url + "end=" + end + "T00:00:00&"
-        url = url + "extra_fields=capacity_mwp&"
-        url = url + "data_format=csv"
-
+        url = (
+            f"https://api0.solar.sheffield.ac.uk/pvlive/api/"
+            f"{api_version}/gsp/0?start={start}T00:00:00&end={end}"
+            f"extra_fields=capacity_mwp&data_format=csv"
+        )
         df = (
             pd.read_csv(
                 url, index_col=["gsp_id", "datetime_gmt"], parse_dates=["datetime_gmt"]
@@ -1022,28 +1012,23 @@ def load_solar(
             else:
                 return df["generation_mw"].rename("solar_gen")
 
-    tries = 5
-    for i in range(tries):
-        try:
-            return _load_solar(
-                start=start,
-                end=end,
-                normalise=normalise,
-                return_full_df=return_full_df,
-                api_version=api_version,
-            )
-        except (URLError, HTTPError):
-            if i < tries - 1:
-                continue
-            else:
-                warn(
-                    """
+    try:
+        return _load_solar(
+            start=start,
+            end=end,
+            normalise=normalise,
+            return_full_df=return_full_df,
+            api_version=api_version,
+        )
+    except (URLError, HTTPError):
+        warn(
+            """
                     Error detected using API. Check connection, input arguments, and
                     API status here https://www.solar.sheffield.ac.uk/pvlive/api/.
                     Loading stored sample data instead.
                     """
-                )
-                return y
+        )
+        return y
 
 
 def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ShapeDTW classifier.
 
 Nearest neighbour classifier that extracts shape features.
@@ -8,6 +7,7 @@ import numpy as np
 
 # Tuning
 from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.preprocessing import FunctionTransformer
 
 # Classifiers
 from aeon.classification.base import BaseClassifier
@@ -17,16 +17,11 @@ from aeon.classification.distance_based._time_series_neighbors import (
 from aeon.transformations.collection.dictionary_based._paa import PAA
 from aeon.transformations.collection.dwt import DWTTransformer
 
-# Done
+# Transformers
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.segment import SlidingWindowSegmenter
 from aeon.transformations.collection.slope import SlopeTransformer
-from aeon.transformations.collection.summarize._extract import (
-    DerivativeSlopeTransformer,
-)
-
-# Transformers: To Do
-
+from aeon.utils.numba.general import slope_derivative_3d
 
 __author__ = ["vincent-nich12"]
 
@@ -35,7 +30,7 @@ class ShapeDTW(BaseClassifier):
     """
     ShapeDTW classifier.
 
-    ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
+    ShapeDTW [1]_ extracts a set of subseries describing local neighbourhoods around
     each data point in a time series. These subseries are then passed into a
     shape descriptor function that transforms these local neighbourhoods into a new
     representation. This new representation is then used for nearest neighbour
@@ -322,6 +317,13 @@ class ShapeDTW(BaseClassifier):
     def _get_transformer(self, tName):
         """Extract the appropriate transformer.
 
+        Requires self._metric_params, so only call after fit or in fit after these
+        lines of code
+        if self.metric_params is None:
+            self._metric_params = {}
+        else:
+            self._metric_params = self.metric_params
+
         Parameters
         ----------
         self   : the ShapeDTW object.
@@ -359,7 +361,7 @@ class ShapeDTW(BaseClassifier):
                 return SlopeTransformer()
             return SlopeTransformer(num_intervals)
         elif tName == "derivative":
-            return DerivativeSlopeTransformer()
+            return FunctionTransformer(func=slope_derivative_3d)
         elif tName == "hog1d":
             return self._get_hog_transformer(parameters)
         else:

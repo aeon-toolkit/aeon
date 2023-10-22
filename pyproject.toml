@@ -1,7 +1,11 @@
+[build-system]
+requires = ["setuptools>61", "wheel", "toml", "build"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "aeon"
-version = "0.4.0"
-description = "A unified framework for machine learning with time series"
+version = "0.5.0"
+description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
@@ -78,9 +82,15 @@ all_extras = [
     "tslearn>=0.5.2,<0.6.0",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
+    "imbalanced-learn",
+]
+dl = [
+    "keras-self-attention",
+    "tensorflow<2.13.0",
+    "tensorflow-probability<0.21.0",
 ]
 unstable_extras = [
-    "pycatch22",  # known to fail installation on some setups
+    "pycatch22<=4.3",  # known to fail installation on some setups
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
 dev = [
@@ -97,52 +107,36 @@ dev = [
     "botocore",  # mlflow related
     "moto",  # mlflow related
 ]
-
 binder = [
     "notebook",
     "jupyterlab",
 ]
-
 docs = [
-    "jupyter",
-    "myst-parser",
-    "nbsphinx>=0.8.12",
-    "numpydoc",
-    "furo",
-    "sphinx_issues>=3.0.1",
-    "sphinx-design>=0.3.0",
+    "sphinx<8.0.0",
+    "sphinx-design",
+    "sphinx-version-warning",
+    "sphinx_issues",
     "sphinx-copybutton",
-    "sphinx>=5.0.0,<6", # sphinx has <6 because of shinx-design
     "sphinx-remove-toctrees",
-    "tabulate",
     "sphinxext-opengraph",
-]
-
-dl = [
-    "keras-self-attention",
-    "tensorflow<2.13.0",
-    "tensorflow-probability<0.21.0",
+    "nbsphinx",
+    "numpydoc",
+    "myst-parser",
+    "jupyter",
+    "furo",
+    "tabulate",
 ]
 
 [project.urls]
 Homepage = "https://www.aeon-toolkit.org"
 Repository = "https://github.com/aeon-toolkit/aeon"
 Documentation = "https://www.aeon-toolkit.org"
+Changelog = "https://www.aeon-toolkit.org/en/stable/changelog.html"
 Download = "https://pypi.org/project/aeon/#files"
-"API Reference" = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
-"Release Notes" = "https://www.aeon-toolkit.org/en/stable/changelog.html"
+API = "https://www.aeon-toolkit.org/en/stable/api_reference.html"
 
 [project.license]
 file = "LICENSE"
-
-[build-system]
-requires = ["setuptools>61", "wheel", "toml", "build"]
-build-backend = "setuptools.build_meta"
-
-[tool.nbqa.exclude]
-black = "^docs/examples/"
-flake8 = "^docs/examples/"
-isort = "^docs/examples/"
 
 [tool.setuptools]
 zip-safe = true
@@ -160,3 +154,28 @@ aeon = [
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
+
+[tool.check-manifest]
+ignore = [
+    # Ignore virtual environments in local builds
+    "venv/**",
+    # Ignore the docs symlink and its contents
+    "docs/examples",
+    "docs/examples/**",
+]
+
+[tool.pytest.ini_options]
+# ignore certain folders and pytest warnings
+testpaths = "aeon"
+addopts = '''
+    --doctest-modules
+    --durations 20
+    --timeout 600
+    --showlocals
+    --numprocesses auto
+'''
+filterwarnings = '''
+    ignore::UserWarning
+    ignore:numpy.dtype size changed
+    ignore:numpy.ufunc size changed
+'''

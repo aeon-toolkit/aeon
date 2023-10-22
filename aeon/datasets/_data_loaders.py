@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 import tempfile
@@ -267,7 +266,7 @@ def _load_saved_dataset(
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d. If None will load 3D numpy or list of numpy
-        There other options, see datatypes.SCITYPE_REGISTER, but these
+        There other options, see datatypes.DATATYPE_REGISTER, but these
         will not necessarily be supported longterm.
     local_module: default = os.path.dirname(__file__),
     local_dirname: default = "data"
@@ -721,6 +720,7 @@ def load_from_arff_file(
     is_multi_variate = False
     is_first_case = True
     n_cases = 0
+    n_channels = 1
     with open(full_file_path_and_name, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
@@ -736,7 +736,6 @@ def load_from_arff_file(
                     continue
                 # if the 'data tag has been found, the header information
                 # has been cleared and now data can be loaded
-                n_channels = 1
                 if data_started:
                     line = line.replace("?", replace_missing_vals_with)
 
@@ -752,8 +751,8 @@ def load_from_arff_file(
                         elif len(channels) != n_channels:
                             raise ValueError(
                                 f" Number of channels not equal in "
-                                f"dataset, first case had {n_channels} "
-                                f"but {n_cases+1} case hase "
+                                f"dataset, first case had {n_channels} channel "
+                                f"but case number {n_cases+1} has "
                                 f"{len(channels)}"
                             )
                         inst = np.zeros(shape=(n_channels, n_timepoints))
@@ -1089,7 +1088,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     from aeon.datasets.tsf_data_lists import tsf_all
 
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
+        local_module = extract_path
         local_dirname = ""
     else:
         local_module = MODULE
@@ -1100,21 +1099,21 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     # Check if data already in extract path or, if extract_path None,
     # in datasets/data directory
     if name not in list_downloaded_tsf_datasets(extract_path):
-        if extract_path is None:
-            local_dirname = "local_data"
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in list_downloaded_tsc_tsr_datasets(
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download and install it.
+        if name in tsf_all.keys():
+            id = tsf_all[name]
+            if extract_path is None:
+                local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
+        else:
+            raise ValueError(
+                f"File name {name} is not in the list of valid files to download"
+            )
+        if name not in list_downloaded_tsf_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            # Dataset is not already present in the datasets directory provided.
-            # If it is not there, download and install it.
-            if name in tsf_all.keys():
-                id = tsf_all[name]
-            else:
-                raise ValueError(
-                    f"File name {name} is not in the list of valid files to download"
-                )
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
@@ -1185,10 +1184,16 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     if name not in list_downloaded_tsc_tsr_datasets(extract_path):
-        if extract_path is None:
-            local_dirname = "local_data"
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
+        if name in tser_all.keys():
+            id = tser_all[name]
+            if extract_path is None:
+                local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
+        else:
+            raise ValueError(
+                f"File name {name} is not in the list of valid files to download"
+            )
         if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
@@ -1288,8 +1293,8 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
 def download_all_regression(extract_path=None):
     """Download and unpack all of the Monash TSER datasets.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     extract_path: str or None, default = None
         where to download the fip file. If none, it goes in
     """

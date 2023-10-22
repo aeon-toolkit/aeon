@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Preprocessing algorithm DOBIN (Distance based Outlier BasIs using Neighbors)."""
 
 import warnings
@@ -103,7 +102,7 @@ class DOBIN(BaseTransformer):
         ----------
         X : Series of mtype X_inner_mtype
             Data to be transformed
-        y : Series of mtype y_inner_mtype, default=None
+        y : Series of mtype y_inner_type, default=None
             Not required for this unsupervised transform.
 
         Returns
@@ -119,7 +118,8 @@ class DOBIN(BaseTransformer):
         if n_dim == 1:
             warnings.warn(
                 "Warning: Input data X is univariate. For dimensionality reduction, "
-                "please provide multivariate input."
+                "please provide multivariate input.",
+                stacklevel=2,
             )
             self._coords = X
             return self
@@ -189,7 +189,7 @@ class DOBIN(BaseTransformer):
         ----------
         X : Series of mtype X_inner_mtype
             Data to be transformed
-        y : Series of mtype y_inner_mtype, default=None
+        y : Series of mtype y_inner_type, default=None
             Not required for this unsupervised transform.
 
         Returns
@@ -207,7 +207,8 @@ class DOBIN(BaseTransformer):
             warnings.warn(
                 "Warning: Input data X differs from that given to fit(). "
                 "Refitting with new input data, not storing updated public class "
-                "attributes. For this, explicitly use fit(X) or fit_transform(X)."
+                "attributes. For this, explicitly use fit(X) or fit_transform(X).",
+                stacklevel=2,
             )
             return new_dobin._coords
 

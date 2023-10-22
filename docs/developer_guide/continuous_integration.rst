@@ -8,8 +8,8 @@ if new pull requests do not break anything and meet code quality
 standards such as a common `coding style <#Coding-style>`__.
 Before setting up Continuous Integration, be sure that you have set
 up your developer environment, and installed a
-`developement version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
- of aeon.
+`development version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
+of aeon.
 
 Code quality checks
 -------------------
@@ -22,7 +22,8 @@ We recommend that you also set this up locally as it will ensure that you never 
 These checks run automatically before you make a new commit.
 To setup, simply navigate to the aeon folder and install our pre-commit configuration:
 
-::
+.. code:: bash
+
    pre-commit install
 
 pre-commit should now automatically run anything you make a commit! Please let us know if you encounter any issues getting this setup.
@@ -53,12 +54,6 @@ development version of aeon and all extra dependencies.
    `installation instructions <https://www.aeon-toolkit.org/en/latest/installation.html>`__.
 
 2. To run all unit tests, run:
-
-   .. code:: bash
-
-      make test
-
-or if you don't have `make <https://www.gnu.org/software/make/>`_ installed:
 
    .. code:: bash
 

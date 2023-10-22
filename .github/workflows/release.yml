@@ -6,7 +6,7 @@ on:
       - published
 
 jobs:
-  check_manifest:
+  check-manifest:
     runs-on: ubuntu-22.04
 
     steps:
@@ -20,7 +20,7 @@ jobs:
         with:
           extra_args: check-manifest --hook-stage manual
 
-  build_project:
+  build-project:
     needs: check_manifest
     runs-on: ubuntu-22.04
 
@@ -41,8 +41,9 @@ jobs:
         with:
           name: dist
           path: dist/*
+          retention-days: 5
 
-  test_wheels:
+  test-wheels:
     needs: build_project
     runs-on: ${{ matrix.os }}
 
@@ -64,24 +65,24 @@ jobs:
           name: dist
           path: dist
 
-      - if: matrix.os == 'windows-2022'
+      - if: runner.os == 'Windows'
         name: Windows wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $env:GITHUB_ENV
-      - if: matrix.os != 'windows-2022'
+      - if: runner.os != 'Windows'
         name: Unix wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
 
-      - if: matrix.os == 'windows-2022'
+      - if: runner.os == 'Windows'
         name: Windows install
         run: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
-      - if: matrix.os != 'windows-2022'
+      - if: runner.os != 'Windows'
         name: Unix install
         run: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
       - name: Tests
         run: python -m pytest
 
-  upload_wheels:
+  upload-wheels:
     needs: test_wheels
     runs-on: ubuntu-22.04
 

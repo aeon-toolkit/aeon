@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Time Convolutional Neural Network (CNN) for regression."""
 
 __author__ = ["AurumnPegasus", "achieveordie", "hadifawaz1999"]
@@ -17,7 +16,9 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class CNNRegressor(BaseDeepRegressor):
-    """Time Series Convolutional Neural Network (CNN), as described in [1].
+    """Time Series Convolutional Neural Network (CNN).
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------

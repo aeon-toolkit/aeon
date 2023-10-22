@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A shapelet transform classifier (STC).
 
 Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
@@ -14,7 +13,7 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -23,7 +22,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     A shapelet transform classifier (STC).
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
-    of [1][2] but with random shapelet sampling. Transforms the data using the
+    of [1]_[2]_ but with random shapelet sampling. Transforms the data using the
     configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
     classifier.
 
@@ -133,6 +132,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         "capability:train_estimate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
+        "X_inner_mtype": ["np-list", "numpy3D"],
         "algorithm_type": "shapelet",
     }
 
@@ -165,8 +166,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.n_jobs = n_jobs
 
         self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_channels_ = 0
         self.transformed_data_ = []
 
         self._transformer = None
@@ -196,7 +196,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_instances_ = len(X)
+        self.n_channels_ = X[0].shape[0]
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final
@@ -291,7 +292,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         n_instances, n_dims = X.shape
 
-        if n_instances != self.n_instances_ or n_dims != self.n_dims_:
+        if n_instances != self.n_instances_ or n_dims != self.n_channels_:
             raise ValueError(
                 "n_instances, n_dims mismatch. X should be "
                 "the same as the training data used in fit for generating train "

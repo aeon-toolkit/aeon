@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Common timeseries plotting functionality."""
 
 __all__ = ["plot_series", "plot_correlations", "plot_windows"]
@@ -34,17 +31,17 @@ def plot_series(
     Parameters
     ----------
     series : pd.Series or iterable of pd.Series
-        One or more time series
+        One or more time series.
     labels : list, default = None
-        Names of series, will be displayed in figure legend
-    markers: list, default = None
+        Names of series, will be displayed in figure legend.
+    markers : list, default = None
         Markers of data points, if None the marker "o" is used by default.
         The length of the list has to match with the number of series.
-    colors: list, default = None
+    colors : list, default = None
         The colors to use for plotting each series. Must contain one color per series
-    title: str, default = None
-        The text to use as the figure's suptitle
-    pred_interval: pd.DataFrame, default = None
+    title : str, default = None
+        The text to use as the figure's suptitle.
+    pred_interval : pd.DataFrame, default = None
         Output of `forecaster.predict_interval()`. Contains columns for lower
         and upper boundaries of confidence interval.
 
