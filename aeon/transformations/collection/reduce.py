@@ -1,33 +1,39 @@
 """Tabularizer transform, for pipelining."""
 
 __author__ = ["mloning", "fkiraly", "kcc-lion"]
-__all__ = ["Tabularizer", "TimeBinner"]
+__all__ = ["Tabularizer"]
 
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert, convert_to
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.datatypes import convert_to
+from aeon.transformations.base import BaseTransformer
 
 
-class Tabularizer(BaseCollectionTransformer):
+class Tabularizer(BaseTransformer):
     """
-    A transformer that turns time series/panel data into tabular data.
+    A transformer that turns time series collections data into tabular data.
 
-    This estimator converts nested pandas dataframe containing
-    time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular numpy array. This is useful for transforming
+    This estimator converts nested pandas dataframe containing time-series/panel data
+    with numpy arrays or pandas Series in dataframe cells into a tabular pandas
+    dataframe with only primitives in cells. This is useful for transforming
     time-series/panel data into a format that is accepted by standard
     validation learning algorithms (as in sklearn).
     """
 
     _tags = {
         "fit_is_empty": True,
-        "output_data_type": "Tabular",
-        "X_inner_mtype": ["nested_univ", "numpy3D"],
-        "capability:multivariate": True,
+        "univariate-only": False,
+        "input_data_type": "Panel",
+        # what is the scitype of X: Series, or Panel
+        "output_data_type": "Primitives",
+        # what is the scitype of y: None (not needed), Primitives, Series, Panel
+        "instancewise": True,  # is this an instance-wise transform?
+        "X_inner_mtype": ["numpy3D"],
+        # which mtypes do _fit/_predict support for X?
+        "y_inner_type": "None",  # and for y?
     }
 
     def _transform(self, X, y=None):
@@ -44,35 +50,19 @@ class Tabularizer(BaseCollectionTransformer):
         Xt : pandas DataFrame
             Transformed dataframe with only primitives in cells.
         """
-        Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        return Xt
-
-    def inverse_transform(self, X, y=None):
-        """Transform tabular pandas dataframe into nested dataframe.
-
-        Parameters
-        ----------
-        X : pandas DataFrame
-            Tabular dataframe with primitives in cells.
-        y : array-like, optional (default=None)
-
-        Returns
-        -------
-        Xt : pandas DataFrame
-            Transformed dataframe with series in cells.
-        """
-        Xt = convert(X, from_type="numpyflat", to_type="numpy3D", as_scitype="Panel")
+        # conversion
+        Xt = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
         return Xt
 
 
-class TimeBinner(BaseCollectionTransformer):
+class TimeBinner(BaseTransformer):
     """
     Turns time series/panel data into tabular data based on intervals.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular numpy array.
-    The primitives are calculated based on Intervals defined
+    dataframe cells into a tabular pandas dataframe with only primitives in
+    cells. The primitives are calculated based on Intervals defined
     by the IntervalIndex and aggregated by aggfunc.
 
     This is useful for transforming time-series/panel data
@@ -91,7 +81,7 @@ class TimeBinner(BaseCollectionTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "output_data_type": "Tabular",
+        "output_data_type": "Primitives",
         "instancewise": True,
         "X_inner_mtype": ["nested_univ"],
         "y_inner_type": "None",
@@ -117,7 +107,7 @@ class TimeBinner(BaseCollectionTransformer):
             self._aggfunc = self.aggfunc
         self.idx = idx
 
-        super(TimeBinner, self).__init__()
+        super(TimeBinner, self).__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -126,7 +116,7 @@ class TimeBinner(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
+        X : Series or Panel of type X_inner_mtype
             if X_inner_mtype is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel of mtype y_inner_type, default=None

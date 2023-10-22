@@ -4,11 +4,10 @@ __author__ = ["Christopher Holder", "Tony Bagnall"]
 __all__ = ["plot_cluster_algorithm"]
 
 import numpy as np
-import pandas as pd
 
 from aeon.clustering.base import BaseClusterer
-from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation.collection import convert_collection
 
 
 def _plot(cluster_values, center, axes):
@@ -32,8 +31,7 @@ def plot_series(X):
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
 
-    if isinstance(X, pd.DataFrame):
-        X = convert_to(X, "numpy3D")
+    X = convert_collection(X, "numpy3D")
     plt.figure(figsize=(5, 10))
     plt.rcParams["figure.dpi"] = 100
 
@@ -72,9 +70,8 @@ def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
 
-    predict_series = X
-    if isinstance(X, pd.DataFrame):
-        predict_series = convert_to(X, "numpy3D")
+    predict_series = convert_collection(X, "numpy3D")
+
     plt.figure(figsize=(5, 10))
     plt.rcParams["figure.dpi"] = 100
     indexes = model.predict(predict_series)
