@@ -96,11 +96,22 @@ jobs:
 #      NUMBA_DEBUG_CACHE: 1
 
     steps:
-      - uses: actions/checkout@v3
+      # restore here
+      - name: Checkout main
+        uses: actions/checkout@v3
+        with:
+          ref: main
 
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Restore time stamps
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/init.py
+
+      - name: Checkout current branch
+        uses: actions/checkout@v3
 
       # On Windows, GNU tar is much faster than the default BSD tar
       - name: "Use GNU tar instead BSD tar"
@@ -115,18 +126,9 @@ jobs:
           path: |
             ${{ env.pythonLocation }}
             .numba_cache
-            numba_cache_timestamps.pkl
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-      - name: Numba cache time
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: python .github/scripts/_numba_st_mtime_cache.py compare .numba_cache numba_cache_timestamps.pkl
-
-      - name: Restore time stamps
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: python .github/scripts/_numba_st_mtime_cache.py apply .numba_cache numba_cache_timestamps.pkl
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -146,9 +148,6 @@ jobs:
 #      - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
 #        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-
-      - name: Numba cache time
-        run: python .github/scripts/_numba_st_mtime_cache.py save .numba_cache numba_cache_timestamps.pkl
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
