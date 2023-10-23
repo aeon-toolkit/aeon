@@ -106,6 +106,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Restore Python Cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
       # Restores the numba cache separately from the dependencies
       - name: Restore Numba Cache
         uses: actions/cache@v3
@@ -131,16 +141,6 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-
-      - name: Restore Python Cache
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: |
-            ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
