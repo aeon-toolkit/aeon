@@ -84,14 +84,16 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     Attributes
     ----------
-    n_classes : int
+    n_classes_ : int
         The number of classes.
-    n_instances : int
+    n_instances_ : int
         The number of train cases.
-    n_dims : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length : int
-        The length of each series.
+    max_fitted_shapelet_length_ : int
+        The maximum actual shapelet length fitted to train data.
+    min_series_length_ : int
+        The minimum length of series in train data.
     classes_ : list
         The classes labels.
     shapelets : list
