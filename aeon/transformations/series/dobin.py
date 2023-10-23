@@ -79,7 +79,7 @@ class DOBIN(BaseTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": "pd.DataFrame",
+        "x_inner_type": "pd.DataFrame",
         "fit_is_empty": False,
         "skip-inverse-transform": True,
     }
@@ -100,7 +100,7 @@ class DOBIN(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_mtype
+        X : Series of mtype x_inner_type
             Data to be transformed
         y : Series of mtype y_inner_type, default=None
             Not required for this unsupervised transform.
@@ -187,7 +187,7 @@ class DOBIN(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_mtype
+        X : Series of mtype x_inner_type
             Data to be transformed
         y : Series of mtype y_inner_type, default=None
             Not required for this unsupervised transform.

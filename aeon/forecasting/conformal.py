@@ -133,7 +133,7 @@ class ConformalIntervals(BaseForecaster):
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_type",
-            "X_inner_mtype",
+            "x_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
@@ -189,7 +189,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -272,7 +272,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.

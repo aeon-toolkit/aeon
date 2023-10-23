@@ -85,10 +85,10 @@ class MyForecaster(BaseForecaster):
         # behavioural tags: internal type
         # -------------------------------
         #
-        # y_inner_type, X_inner_mtype control which format X/y appears in
+        # y_inner_type, x_inner_type control which format X/y appears in
         # in the inner functions _fit, _predict, etc
         "y_inner_type": "pd.Series",
-        "X_inner_mtype": "pd.DataFrame",
+        "x_inner_type": "pd.DataFrame",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
@@ -213,7 +213,7 @@ class MyForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X :  aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -254,7 +254,7 @@ class MyForecaster(BaseForecaster):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -296,7 +296,7 @@ class MyForecaster(BaseForecaster):
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
         X :  aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -351,7 +351,7 @@ class MyForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X :  aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -394,7 +394,7 @@ class MyForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X :  aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -437,7 +437,7 @@ class MyForecaster(BaseForecaster):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X :  aeon time series object, optional (default=None)
-            guaranteed to be of an mtype in self.get_tag("X_inner_mtype")
+            guaranteed to be of an mtype in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         cov : bool, optional (default=False)
             if True, computes covariance matrix forecast.

@@ -35,7 +35,7 @@ class _TestHandlesAllInput(BaseClassifier):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "x_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):

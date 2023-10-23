@@ -54,7 +54,7 @@ class Aggregator(BaseTransformer):
         "transform_labels": "None",
         # todo instance wise?
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": [
+        "x_inner_type": [
             "pd.Series",
             "pd.DataFrame",
             "pd-multiindex",

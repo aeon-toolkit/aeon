@@ -277,10 +277,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("x_inner_type")
+            if self.get_tag("x_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
+            if self.get_tag("x_inner_type") = "np-list":
                 list of 2D np.ndarray of shape = [n_instances]
         y : 1D np.array of int, of shape (n_instances,) - class labels for fitting
             indices correspond to instance indices in X
@@ -305,10 +305,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("x_inner_type")
+            if self.get_tag("x_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
+            if self.get_tag("x_inner_type") = "np-list":
                 list of 2D np.ndarray of length = [n_instances]
 
         Returns
@@ -327,10 +327,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("x_inner_type")
+            if self.get_tag("x_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
+            if self.get_tag("x_inner_type") = "np-list":
                 list of 2D np.ndarray of shape = (n_instances,)
 
         Returns

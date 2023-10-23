@@ -79,7 +79,7 @@ class FunctionTransformer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd.DataFrame", "pd.Series", "np.ndarray"],
+        "x_inner_type": ["pd.DataFrame", "pd.Series", "np.ndarray"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": True,
@@ -106,7 +106,7 @@ class FunctionTransformer(BaseTransformer):
         super(FunctionTransformer, self).__init__()
 
         if X_type is not None:
-            self.set_tags(X_inner_mtype=X_type)
+            self.set_tags(x_inner_type=X_type)
 
     def _check_inverse_transform(self, Z):
         """Check that func and inverse_func are each other's inverse."""

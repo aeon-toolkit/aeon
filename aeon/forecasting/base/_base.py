@@ -91,7 +91,7 @@ class BaseForecaster(BaseEstimator):
         "capability:pred_int": False,  # can the estimator produce prediction intervals?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit/_predict, support for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit/_predict, support for X?
+        "x_inner_type": "pd.DataFrame",  # which types do _fit/_predict, support for X?
         "requires-fh-in-fit": True,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -1270,10 +1270,10 @@ class BaseForecaster(BaseEstimator):
                     (complexity order: Hierarchical > Panel > Series)
             Case 3: None if y was None
         X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") does not support scitype of X, then
+                compatible with self.get_tag("x_inner_type") format
+            Case 1: self.get_tag("x_inner_type") supports scitype of X, then
+                converted/coerced version of X, mtype determined by "x_inner_type" tag
+            Case 2: self.get_tag("x_inner_type") does not support scitype of X, then
                 VectorizedDF of X, iterated as the most complex supported scitype
             Case 3: None if X was None
 
@@ -1324,9 +1324,9 @@ class BaseForecaster(BaseEstimator):
 
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
+        x_inner_type = _coerce_to_list(self.get_tag("x_inner_type"))
         y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
-        X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
+        X_inner_scitype = mtype_to_scitype(x_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         FORBIDDEN_MTYPES = ["numpyflat", "pd-wide"]
@@ -1454,7 +1454,7 @@ class BaseForecaster(BaseEstimator):
             # converts X, converts None to None if X is None
             X_inner = convert_to(
                 X,
-                to_type=X_inner_mtype,
+                to_type=x_inner_type,
                 as_scitype=X_scitype,  # we are dealing with series
             )
         else:
@@ -1798,7 +1798,7 @@ class BaseForecaster(BaseEstimator):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -1825,7 +1825,7 @@ class BaseForecaster(BaseEstimator):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -1861,7 +1861,7 @@ class BaseForecaster(BaseEstimator):
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -1934,7 +1934,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to predict from.
         coverage : float or list, optional (default=0.95)
            nominal coverage(s) of predictive interval(s)
@@ -2007,7 +2007,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -2082,7 +2082,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to predict from.
         cov : bool, optional (default=False)
             if True, computes covariance matrix forecast.
@@ -2177,7 +2177,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("x_inner_type")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index

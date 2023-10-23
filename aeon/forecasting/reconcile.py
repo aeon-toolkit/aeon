@@ -89,7 +89,7 @@ class ReconcilerForecaster(BaseForecaster):
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "X_inner_mtype": [
+        "x_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",

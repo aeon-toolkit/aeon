@@ -79,7 +79,7 @@ Extension templates typically have the following ``todo``:
 *   filling in docstrings of the module and the estimator. This is recommended as early as parameters have been settled on,
     it tends to be useful as a specification to follow in implementation.
 *   filling in the tags for the estimator. Some tags are "capabilities", i.e., what the estimator can do, e.g., dealing with nans.
-    Other tags determine the format of inputs seen in the "inner" methods ``_fit`` etc, these tags are usually called ``X_inner_mtype`` or similar.
+    Other tags determine the format of inputs seen in the "inner" methods ``_fit`` etc, these tags are usually called ``x_inner_type`` or similar.
     This is useful in case the inner functionality assumes ``numpy.ndarray``, or ``pandas.DataFrame``, and helps avoid conversion boilerplate.
     The type strings can be found in ``datatypes.MTYPE_REGISTER``. For a tutorial on data type conventions, see ``examples/AA_datatypes_and_datasets``.
 *   Filling in the "inner" methods, e.g., ``_fit`` and ``_predict``. The docstrings and comments in the extension template should be followed here.
