@@ -138,7 +138,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -vv -s aeon/distances/tests/test_numba_patch.py
+        run: python -m pytest aeon/distances
 
       - name: Run tests
         run: python -m pytest aeon/distances
