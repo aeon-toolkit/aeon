@@ -4,7 +4,7 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests._utils import _make_3d_series, create_test_distance_numpy
+from aeon.distances.tests.test_utils import _make_3d_series, create_test_distance_numpy
 
 
 def _validate_pairwise_result(
