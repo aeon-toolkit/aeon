@@ -71,14 +71,14 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
-    >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+    >>> from aeon.regression import DummyRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [Rocket(num_kernels=100)]
+    ...     DummyRegressor(), [Rocket(num_kernels=100)]
     ... )
     >>> pipeline.fit(X_train, y_train)
-    RegressorPipeline(regressor=KNeighborsTimeSeriesRegressor(n_neighbors=2),
+    RegressorPipeline(regressor=DummyRegressor(),
                       transformers=[Rocket(num_kernels=100)])
     >>> y_pred = pipeline.predict(X_test)
     """
