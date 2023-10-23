@@ -68,18 +68,18 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.convolution_based import Rocket
+    >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression import DummyRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     DummyRegressor(), [Rocket(num_kernels=100)]
+    ...     DummyRegressor(), [AutocorrelationFunctionTransformer(n_lags=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     RegressorPipeline(regressor=DummyRegressor(),
-                      transformers=[Rocket(num_kernels=100)])
+                      transformers=[AutocorrelationFunctionTransformer(n_lags=10)])
     >>> y_pred = pipeline.predict(X_test)
     """
 
