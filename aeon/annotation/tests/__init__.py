@@ -1,1 +1,1 @@
-"""Tests for annotation."""
+"""Annotator tests."""

@@ -3,10 +3,10 @@ import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
+from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
-from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
@@ -73,13 +73,13 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.classification import DummyClassifier
+    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     DummyClassifier(), [TSInterpolator(length=10)]
+    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -287,35 +287,39 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.transformations.collection.convolution_based import MiniRocket
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = MiniRocket(num_kernels=200)
+        t = Rocket(num_kernels=200)
         cls = DummyClassifier()
-        params = {"transformers": [t1], "classifier": cls}
-        return params
+
+        return {"transformers": [t], "classifier": cls}
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The ``SklearnClassifierPipeline`` chains transformers and an single classifier.
-        Similar to ``ClassifierPipeline``, but uses a tabular ``sklearn`` classifier.
-    The pipeline is constructed with a list of aeon BaseTransformer, plus a
-    classifier that follows the `scikit-learn` classifier interface.
+    The `SklearnClassifierPipeline` chains transformers and an single classifier.
+        Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
+    The pipeline is constructed with a list of aeon transformers, plus a classifier,
+        i.e., transformers following the BaseTransformer interface,
+        classifier follows the `scikit-learn` classifier interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
     For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
+    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
+        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
+        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
         and returning the output of `clf.predict`.
+        Output of `trasfoN.transform` is converted to numpy, as in `fit`.
     `predict_proba(X)` - result is of executing `trafo1.transform`, `trafo2.transform`,
         etc, with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict_proba` on the output of `trafoN.transform`,
@@ -328,6 +332,14 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
+    `SklearnClassifierPipeline` can also be created by using the magic multiplication
+        between `aeon` transformers and `sklearn` classifiers,
+            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
+            for instance, `my_trafo1 * my_trafo2 * my_clf`
+            will result in the same object as  obtained from the constructor
+            `SklearnClassifierPipeline(classifier=my_clf, transformers=[t1, t2])`
+        magic multiplication can also be used with (str, transformer) pairs,
+            as long as one element in the chain is a transformer
 
     Parameters
     ----------
@@ -431,6 +443,30 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             return NotImplemented
 
+    def _convert_X_to_sklearn(self, X):
+        """Convert a Table or Panel X to 2D numpy required by sklearn."""
+        if isinstance(X, np.ndarray):
+            if X.ndim == 2:
+                return X
+            elif X.ndim == 3:
+                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
+
+        output_type = self.transformers_.get_tag("output_data_type")
+        # if output_type is Primitives, output is Table, convert to 2D numpy array
+        if output_type == "Primitives":
+            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
+        # if output_type is Series, output is Panel, convert to 2D numpy array
+        elif output_type == "Series":
+            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
+        else:
+            raise TypeError(
+                f"unexpected X output type "
+                f'in tag "output_data_type", found "{output_type}", '
+                'expected one of "Primitives" or "Series"'
+            )
+
+        return Xt
+
     def _fit(self, X, y):
         """Fit time series classifier to training data.
 
@@ -450,7 +486,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         creates fitted model (attributes ending in "_")
         """
         Xt = self.transformers_.fit_transform(X=X, y=y)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
         self.classifier_.fit(Xt_sklearn, y)
 
         return self
@@ -469,7 +505,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of labels for X, np.ndarray
         """
         Xt = self.transformers_.transform(X=X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
         return self.classifier_.predict(Xt_sklearn)
 
     def _predict_proba(self, X) -> np.ndarray:
@@ -491,7 +527,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         if not hasattr(self.classifier_, "predict_proba"):
             # if sklearn classifier does not have predict_proba
             return BaseClassifier._predict_proba(self, X)
-        Xt_sklearn = convert_collection(Xt, "numpyflat")
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
         return self.classifier_.predict_proba(Xt_sklearn)
 
     def get_params(self, deep=True):
@@ -551,15 +587,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.collection.convolution_based import MiniRocket
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = MiniRocket(num_kernels=200)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1], "classifier": c}
-        return params1
+        return {"transformers": [t1], "classifier": c}

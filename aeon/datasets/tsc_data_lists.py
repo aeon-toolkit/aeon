@@ -1,4 +1,4 @@
-"""Datasets in the UCR/tsml data archives from timeseriesclassification.com.
+"""Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
 
 Lists of data available from timeseriesclassification.com. Data is available in .ts
 format, and for some problems, in .arff and .tsv format. For any issues with these
@@ -329,7 +329,7 @@ univariate_variable_length = {
     "ShakeGestureWiimoteZ",
 }
 
-# 4 fixed length univariate time series classification problems with missing values
+# 4 fixed length univariate time series classification problems with missing values"""
 univariate_missing_values = {
     "DodgerLoopDay",
     "DodgerLoopGame",
@@ -337,7 +337,7 @@ univariate_missing_values = {
     "MelbournePedestrian",
 }
 
-# 26 equal length multivariate time series classification problems [4]
+# 26 equal length multivariate time series classification problems [4]"""
 multivariate_equal_length = {
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -367,7 +367,7 @@ multivariate_equal_length = {
     "UWaveGestureLibrary",
 }
 
-# 7 variable length multivariate time series classification problems [4]
+# 7 variable length multivariate time series classification problems [4]"""
 multivariate_unequal_length = {
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
@@ -378,7 +378,7 @@ multivariate_unequal_length = {
     "SpokenArabicDigits",
 }
 
-# 142 time series classification problems
+# 142 time series classification problems"""
 whole_set = {
     "Adiac",
     "ArrowHead",
