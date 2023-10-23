@@ -10,7 +10,7 @@ least once, but not necessarily on each operating system / python version combin
 
 __author__ = ["fkiraly", "MatthewMiddlehurst"]
 
-from aeon.tests import _config
+from aeon.tests import test_config
 
 
 def pytest_addoption(parser):
@@ -29,4 +29,4 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     """Pytest configuration preamble."""
     if config.getoption("--prtesting") in [True, "True", "true"]:
-        _config.PR_TESTING = True
+        test_config.PR_TESTING = True

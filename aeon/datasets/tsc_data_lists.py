@@ -29,7 +29,7 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
 
 """
 
-""" 128 UCR univariate time series classification problems [1]"""
+# 128 UCR univariate time series classification problems [1]
 univariate = {
     "ACSF1",
     "Adiac",
@@ -161,7 +161,7 @@ univariate = {
     "Yoga",
 }
 
-""" 33 UEA multivariate time series classification problems [2]"""
+# 33 UEA multivariate time series classification problems [2]
 multivariate = {
     "ArticularyWordRecognition",
     "AsphaltObstaclesCoordinates",
@@ -198,7 +198,7 @@ multivariate = {
     "UWaveGestureLibrary",
 }
 
-"""112 equal length/no missing univariate time series classification problems [3]"""
+# 112 equal length/no missing univariate time series classification problems [3]
 univariate_equal_length = {
     "ACSF1",
     "Adiac",
@@ -314,7 +314,7 @@ univariate_equal_length = {
     "Yoga",
 }
 
-"""11 variable length univariate time series classification problems [3]"""
+# 11 variable length univariate time series classification problems [3]
 univariate_variable_length = {
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
@@ -329,7 +329,7 @@ univariate_variable_length = {
     "ShakeGestureWiimoteZ",
 }
 
-"""4 fixed length univariate time series classification problems with missing values"""
+# 4 fixed length univariate time series classification problems with missing values"""
 univariate_missing_values = {
     "DodgerLoopDay",
     "DodgerLoopGame",
@@ -337,7 +337,7 @@ univariate_missing_values = {
     "MelbournePedestrian",
 }
 
-"""26 equal length multivariate time series classification problems [4]"""
+# 26 equal length multivariate time series classification problems [4]"""
 multivariate_equal_length = {
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -367,7 +367,7 @@ multivariate_equal_length = {
     "UWaveGestureLibrary",
 }
 
-"""7 variable length multivariate time series classification problems [4]"""
+# 7 variable length multivariate time series classification problems [4]"""
 multivariate_unequal_length = {
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
@@ -378,7 +378,7 @@ multivariate_unequal_length = {
     "SpokenArabicDigits",
 }
 
-"""142 time series classification problems"""
+# 142 time series classification problems"""
 whole_set = {
     "Adiac",
     "ArrowHead",
