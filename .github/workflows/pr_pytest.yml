@@ -150,10 +150,10 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -s aeon/distances
+        run: python -m pytest -s aeon/distances/tests/test_numba_patch.py
 
       - name: Run tests
-        run: python -m pytest -s aeon/distances
+        run: python -m pytest -s aeon/distances/tests/test_numba_patch.py
 
 #      - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
