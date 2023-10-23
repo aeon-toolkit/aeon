@@ -27,6 +27,13 @@ def custom_load_index(self):
     stamp, overloads = pickle.loads(data)
     if DEBUG_CACHE:
         print("[cache] index loaded from %r", self._index_path)  # noqa: T001 T201
+
+    print("++++++++++++++++++++++++++++++++++++++")  # noqa: T001 T201
+    print(f"stamps: {stamp}")  # noqa: T001 T201
+    print(f"source stamps: {self._source_stamp}")  # noqa: T001 T201
+    print(f"equal: {stamp == self._source_stamp}")  # noqa: T001 T201
+    print("++++++++++++++++++++++++++++++++++++++")  # noqa: T001 T201
+
     if stamp[1] != self._source_stamp[1]:
         # Cache is not fresh.  Stale data files will be eventually
         # overwritten, since they are numbered in incrementing order.
