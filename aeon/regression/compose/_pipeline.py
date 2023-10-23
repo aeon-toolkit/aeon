@@ -279,7 +279,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         t1 = Rocket(num_kernels=200)
         c = DummyRegressor()
-        return {"transformers": [t1], "classifier": c}
+        return {"transformers": [t1], "regressor": c}
 
 
 class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
@@ -568,6 +568,6 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = Rocket(num_kernels=200)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsRegressor()
-        return {"transformers": [t1], "classifier": c}
+        return {"transformers": [t1], "regressor": c}
