@@ -2,45 +2,16 @@ __author__ = ["mloning"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import os
-import pickle
-
-import numba.core.caching
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
-DEBUG_CACHE = False
-
-
-def custom_load_index(self):
-    try:
-        with open(self._index_path, "rb") as f:
-            version = pickle.load(f)
-            data = f.read()
-    except FileNotFoundError:
-        # Index doesn't exist yet?
-        return {}
-    stamp, overloads = pickle.loads(data)
-    print("++++++++++++++++++++++++++++++++++++++")  # noqa: T001 T201
-    print(f"version: {version}")  # noqa: T001 T201
-    print(f"self._version: {self._version}")  # noqa: T001 T201
-    print(f"equal: {version == self._version}")  # noqa: T001 T201
-    print("__________________________________________")  # noqa: T001 T201
-    print(f"stamps: {stamp}")  # noqa: T001 T201
-    print(f"source stamps: {self._source_stamp}")  # noqa: T001 T201
-    print(f"equal: {stamp == self._source_stamp}")  # noqa: T001 T201
-    print("++++++++++++++++++++++++++++++++++++++")  # noqa: T001 T201
-
-    return original_load_index(self)  # Calling the original method
-
-
-original_load_index = numba.core.caching.IndexDataCacheFile._load_index
-
-numba.core.caching.IndexDataCacheFile._load_index = custom_load_index
-
 # whether to use smaller parameter matrices for test generation and subsample estimators
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
+
+if os.environ.get("CICD_RUNNING") == "1":
+    import aeon.utils._testing._cicd_numba_caching  # noqa: F401
 
 EXCLUDE_ESTIMATORS = []
 
