@@ -40,7 +40,7 @@ class Filter(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["np.ndarray", "numpy3D"],
+        "x_inner_type": ["np.ndarray", "numpy3D"],
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "python_dependencies": "mne",

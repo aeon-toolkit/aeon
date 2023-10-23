@@ -70,27 +70,27 @@ def test__convert_X(internal_type, data):
     X = EQUAL_LENGTH_UNIVARIATE[data]
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
-    assert get_type(X2) == cls.get_tag("X_inner_mtype")
+    assert get_type(X2) == cls.get_tag("x_inner_type")
     # Add the internal_type tag to cls, should still all revert to numpy3D
-    cls.set_tags(**{"X_inner_mtype": ["numpy3D", internal_type]})
+    cls.set_tags(**{"x_inner_type": ["numpy3D", internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == "numpy3D"
     # Set cls inner type to just internal_type, should convert to internal_type
-    cls.set_tags(**{"X_inner_mtype": internal_type})
+    cls.set_tags(**{"x_inner_type": internal_type})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     # Set to single type but in a list
-    cls.set_tags(**{"X_inner_mtype": [internal_type]})
+    cls.set_tags(**{"x_inner_type": [internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     # Set to the lowest priority data type, should convert to internal_type
-    cls.set_tags(**{"X_inner_mtype": ["nested_univ", internal_type]})
+    cls.set_tags(**{"x_inner_type": ["nested_univ", internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
         if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
             cls.set_tags(**{"capability:unequal_length": True})
-            cls.set_tags(**{"X_inner_mtype": ["nested_univ", "np-list", internal_type]})
+            cls.set_tags(**{"x_inner_type": ["nested_univ", "np-list", internal_type]})
             X = UNEQUAL_LENGTH_UNIVARIATE[data]
             X2 = cls._convert_X(X)
             assert get_type(X2) == "np-list"

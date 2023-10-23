@@ -84,7 +84,7 @@ class Imputer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd.DataFrame"],
+        "x_inner_type": ["pd.DataFrame"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,
@@ -124,8 +124,8 @@ class Imputer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+        X : Series or Panel of mtype x_inner_type
+            if x_inner_type is list, _fit must support all types in it
             Data to fit transform to
         y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation

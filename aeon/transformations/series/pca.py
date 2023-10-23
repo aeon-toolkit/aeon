@@ -108,7 +108,7 @@ class PCATransformer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "x_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
         "univariate-only": False,
         "fit_is_empty": False,
@@ -146,8 +146,8 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+        X : Series or Panel of mtype x_inner_type
+            if x_inner_type is list, _fit must support all types in it
             Data to fit transform to
         y : Ignored
 
@@ -177,8 +177,8 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X : Series or Panel of mtype x_inner_type
+            if x_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Ignored
 

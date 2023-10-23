@@ -26,7 +26,7 @@ class Tabularizer(BaseCollectionTransformer):
     _tags = {
         "fit_is_empty": True,
         "output_data_type": "Tabular",
-        "X_inner_mtype": ["nested_univ", "numpy3D"],
+        "x_inner_type": ["nested_univ", "numpy3D"],
         "capability:multivariate": True,
     }
 
@@ -93,7 +93,7 @@ class TimeBinner(BaseCollectionTransformer):
         "fit_is_empty": True,
         "output_data_type": "Tabular",
         "instancewise": True,
-        "X_inner_mtype": ["nested_univ"],
+        "x_inner_type": ["nested_univ"],
         "y_inner_type": "None",
         "capability:multivariate": True,
     }
@@ -126,8 +126,8 @@ class TimeBinner(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X : Series or Panel of mtype x_inner_type
+            if x_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation

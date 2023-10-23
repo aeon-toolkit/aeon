@@ -112,7 +112,7 @@ class Catch22Classifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "x_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,

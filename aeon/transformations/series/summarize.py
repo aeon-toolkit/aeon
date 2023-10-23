@@ -182,7 +182,7 @@ class WindowSummarizer(BaseTransformer):
         "instancewise": True,
         "capability:inverse_transform": False,
         "transform_labels": False,
-        "X_inner_mtype": [
+        "x_inner_type": [
             "pd-multiindex",
             "pd.DataFrame",
             "pd_multiindex_hier",
@@ -636,7 +636,7 @@ class SummaryTransformer(BaseTransformer):
         "output_data_type": "Primitives",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
+        "x_inner_type": ["pd.DataFrame", "pd.Series"],
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
         "fit_is_empty": True,
@@ -752,7 +752,7 @@ class PlateauFinder(BaseTransformer):
         "univariate-only": True,
         "output_data_type": "Series",
         "instancewise": False,
-        "X_inner_mtype": "numpy3D",
+        "x_inner_type": "numpy3D",
         "y_inner_type": "None",
     }
 
@@ -845,7 +845,7 @@ class FittedParamExtractor(BaseTransformer):
         "output_data_type": "Primitives",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
+        "x_inner_type": "numpy3D",  # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
     }
 

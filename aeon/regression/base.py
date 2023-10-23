@@ -194,8 +194,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("x_inner_type")
+            if self.get_tag("x_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
         y : 1D np.array of float, of shape (n_instances) - regression labels for
         fitting indices correspond to instance indices in X
@@ -218,8 +218,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("x_inner_type")
+            if self.get_tag("x_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
 
         Returns

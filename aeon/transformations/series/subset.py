@@ -41,7 +41,7 @@ class IndexSubset(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": ["pd.DataFrame", "pd.Series"],
+        "x_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": ["pd.DataFrame", "pd.Series"],
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
@@ -154,7 +154,7 @@ class ColumnSelect(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",
+        "x_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,

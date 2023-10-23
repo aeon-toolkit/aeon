@@ -45,7 +45,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "x_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
         "non-deterministic": True,
