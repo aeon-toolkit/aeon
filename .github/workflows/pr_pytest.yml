@@ -127,8 +127,8 @@ jobs:
         if: steps.cache.outputs.cache-hit == 'true'
         run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/__init__.py
 
-      - name: Checkout current branch
-        uses: actions/checkout@v3
+#      - name: Checkout current branch
+#        uses: actions/checkout@v3
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
