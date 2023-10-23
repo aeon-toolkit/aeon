@@ -2,9 +2,42 @@ __author__ = ["mloning"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import os
+import pickle
+
+import numba.core.caching
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
+
+DEBUG_CACHE = True
+
+
+def custom_load_index(self):
+    try:
+        with open(self._index_path, "rb") as f:
+            version = pickle.load(f)
+            data = f.read()
+    except FileNotFoundError:
+        # Index doesn't exist yet?
+        return {}
+    if version != self._version:
+        # This is another version.  Avoid trying to unpickling the
+        # rest of the stream, as that may fail.
+        return {}
+    stamp, overloads = pickle.loads(data)
+    if DEBUG_CACHE:
+        print("[cache] index loaded from %r", self._index_path)  # noqa: T001 T201
+    if stamp[1] != self._source_stamp[1]:
+        # Cache is not fresh.  Stale data files will be eventually
+        # overwritten, since they are numbered in incrementing order.
+        return {}
+    else:
+        return overloads
+
+
+original_load_index = numba.core.caching.IndexDataCacheFile._load_index
+
+numba.core.caching.IndexDataCacheFile._load_index = custom_load_index
 
 # whether to use smaller parameter matrices for test generation and subsample estimators
 # per os/version default is False, can be set to True by pytest --prtesting True flag
