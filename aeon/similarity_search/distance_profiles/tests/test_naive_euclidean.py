@@ -13,7 +13,7 @@ from aeon.similarity_search.distance_profiles.naive_euclidean import (
     naive_euclidean_profile,
 )
 
-DATATYPES = ["int64", "float64"]
+DATATYPES = ["float64"]
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

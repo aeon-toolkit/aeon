@@ -14,7 +14,7 @@ from aeon.similarity_search.distance_profiles.normalized_naive_euclidean import 
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
-DATATYPES = ["int64", "float64"]
+DATATYPES = ["float64"]
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
@@ -36,11 +36,12 @@ def test_normalized_naive_euclidean(dtype):
 
     q_means = q.mean(axis=-1)
     q_stds = q.std(axis=-1)
-
     mask = np.ones(X.shape, dtype=bool)
+
     dist_profile = normalized_naive_euclidean_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
-    ).sum(axis=1)
+    )
+    dist_profile = dist_profile.sum(axis=1)
 
     _q = q.copy()
     for k in range(q.shape[0]):

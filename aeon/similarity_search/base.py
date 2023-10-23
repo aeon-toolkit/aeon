@@ -99,7 +99,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
 
-        self._X = X
+        self._X = X.astype(float)
         self._fit(X, y)
         return self
 
@@ -201,7 +201,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             self._q_stds = np.std(q, axis=-1)
             self._store_mean_std_from_inputs(q_length)
 
-        return self._predict(q, mask)
+        return self._predict(q.astype(float), mask)
 
     @abstractmethod
     def _fit(self, X, y):
