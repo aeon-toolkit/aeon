@@ -309,7 +309,7 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "x_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
     }

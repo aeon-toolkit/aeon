@@ -99,7 +99,7 @@ class _Dummy(BaseCollectionTransformer):
     """
 
     _tags = {
-        "x_inner_type": ["numpy3D", "np-list"],
+        "X_inner_mtype": ["numpy3D", "np-list"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
     }

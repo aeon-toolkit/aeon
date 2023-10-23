@@ -80,7 +80,7 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
         "capability:missing_values": False,
         "y_input_type": "both",
         "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "x_inner_type": ALL_TIME_SERIES_MTYPES,
+        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "fit_is_empty": False,
     }
 
@@ -121,7 +121,7 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
         self.set_tags(**{"fit_is_empty": False})
         # this ensures that we convert in the inner estimator, not in the multiplexer
         self.set_tags(**{"y_inner_type": ALL_TIME_SERIES_MTYPES})
-        self.set_tags(**{"x_inner_type": ALL_TIME_SERIES_MTYPES})
+        self.set_tags(**{"X_inner_mtype": ALL_TIME_SERIES_MTYPES})
 
     @property
     def _forecasters(self):

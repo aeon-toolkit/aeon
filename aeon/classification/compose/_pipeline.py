@@ -129,7 +129,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         self.set_tags(**tags_to_set)
         if unequal:
             tags_to_set = {
-                "x_inner_type": ["np-list", "numpy3D"],
+                "X_inner_mtype": ["np-list", "numpy3D"],
             }
             self.set_tags(**tags_to_set)
 
@@ -172,7 +172,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("x_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -195,7 +195,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("x_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -213,7 +213,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("x_inner_type")
+        X : data to predict y with, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -474,7 +474,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("x_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -498,7 +498,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("x_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
@@ -517,7 +517,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("x_inner_type")
+        X : data to predict y with, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------

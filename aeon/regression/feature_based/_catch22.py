@@ -99,7 +99,7 @@ class Catch22Regressor(BaseRegressor):
     """
 
     _tags = {
-        "x_inner_type": ["np-list", "numpy3D"],
+        "X_inner_mtype": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,

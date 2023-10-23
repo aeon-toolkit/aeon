@@ -201,7 +201,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
         multi = estimator_class.get_class_tag("capability:unequal_length")
         if multi:  # one of x_inner_types must be capable of storing unequal length
-            internal_types = estimator_class.get_class_tag("x_inner_type")
+            internal_types = estimator_class.get_class_tag("X_inner_mtype")
             if isinstance(internal_types, str):
                 assert internal_types in valid_types
             else:  # must be a list

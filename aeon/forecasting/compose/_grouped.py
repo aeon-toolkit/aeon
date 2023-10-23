@@ -56,7 +56,7 @@ class ForecastByLevel(_DelegatedForecaster):
         "capability:missing_values": True,
         "y_input_type": "both",
         "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "x_inner_type": ALL_TIME_SERIES_MTYPES,
+        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "fit_is_empty": False,
     }
 
@@ -94,7 +94,7 @@ class ForecastByLevel(_DelegatedForecaster):
         # this ensures that we convert in the inner estimator
         # but vectorization/broadcasting happens at the level of groupby
         self.set_tags(**{"y_inner_type": mtypes})
-        self.set_tags(**{"x_inner_type": mtypes})
+        self.set_tags(**{"X_inner_mtype": mtypes})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

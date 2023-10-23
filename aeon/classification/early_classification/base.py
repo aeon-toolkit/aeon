@@ -61,7 +61,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
-        "x_inner_type": "numpy3D",
+        "X_inner_mtype": "numpy3D",
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,

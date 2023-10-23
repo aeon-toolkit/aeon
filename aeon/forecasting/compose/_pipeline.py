@@ -370,7 +370,7 @@ class ForecastingPipeline(_Pipeline):
     _tags = {
         "y_input_type": "both",
         "y_inner_type": SUPPORTED_MTYPES,
-        "x_inner_type": SUPPORTED_MTYPES,
+        "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
@@ -509,7 +509,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -544,7 +544,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -608,7 +608,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
@@ -782,7 +782,7 @@ class TransformedTargetForecaster(_Pipeline):
     _tags = {
         "y_input_type": "both",
         "y_inner_type": SUPPORTED_MTYPES,
-        "x_inner_type": SUPPORTED_MTYPES,
+        "X_inner_mtype": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
@@ -1072,7 +1072,7 @@ class TransformedTargetForecaster(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -1110,7 +1110,7 @@ class TransformedTargetForecaster(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -1200,7 +1200,7 @@ class ForecastX(BaseForecaster):
     """
 
     _tags = {
-        "x_inner_type": SUPPORTED_MTYPES,
+        "X_inner_mtype": SUPPORTED_MTYPES,
         "y_inner_type": SUPPORTED_MTYPES,
         "X-y-must-have-same-index": False,
         "fit_is_empty": False,
@@ -1367,7 +1367,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         coverage : float or list, optional (default=0.95)
            nominal coverage(s) of predictive interval(s)
@@ -1402,7 +1402,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -1431,7 +1431,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         cov : bool, optional (default=False)
             if True, computes covariance matrix forecast.
@@ -1473,7 +1473,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
@@ -1600,7 +1600,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     _tags = {
         "y_input_type": "both",
         "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "x_inner_type": ALL_TIME_SERIES_MTYPES,
+        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,

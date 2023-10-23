@@ -85,7 +85,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "x_inner_type": "np-list",
+        "X_inner_mtype": "np-list",
     }
 
     def __init__(

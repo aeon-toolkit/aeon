@@ -90,7 +90,7 @@ class BaggingForecaster(BaseForecaster):
         "ignores-exogeneous-X": True,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "x_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "requires-fh-in-fit": False,  # like AutoETS overwritten if forecaster not None
         "enforce_index_type": None,  # like AutoETS overwritten if forecaster not None
@@ -148,7 +148,7 @@ class BaggingForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to fit to.
 
         Returns

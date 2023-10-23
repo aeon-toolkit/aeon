@@ -32,7 +32,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "x_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -66,7 +66,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to fit to.
 
         Returns
@@ -211,7 +211,7 @@ class MockForecaster(BaseForecaster):
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for y?
-        "x_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -244,7 +244,7 @@ class MockForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to fit to.
 
         Returns

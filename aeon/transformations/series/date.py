@@ -114,7 +114,7 @@ class DateTimeFeatures(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "x_inner_type": [
+        "X_inner_mtype": [
             "pd.Series",
             "pd.DataFrame",
             "pd-multiindex",

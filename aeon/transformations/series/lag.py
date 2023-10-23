@@ -115,7 +115,7 @@ class Lag(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "x_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": False,
@@ -289,8 +289,8 @@ class Lag(BaseTransformer):
         # type conventions are exactly those in _transform, reversed
         #
         # for example: if transform-output is "Series":
-        #  return should be of same mtype as input, x_inner_type
-        #  if multiple x_inner_type are supported, ensure same input/output
+        #  return should be of same mtype as input, X_inner_mtype
+        #  if multiple X_inner_mtype are supported, ensure same input/output
         #
         # todo: add the return mtype/scitype to the docstring, e.g.,
         #  Returns
@@ -415,7 +415,7 @@ class ReducerTransform(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "x_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         "y_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": False,

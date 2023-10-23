@@ -59,7 +59,7 @@ class _DelegatedForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to fit to.
 
         Returns
@@ -166,7 +166,7 @@ class _DelegatedForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -201,7 +201,7 @@ class _DelegatedForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -265,7 +265,7 @@ class _DelegatedForecaster(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_mtype")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
