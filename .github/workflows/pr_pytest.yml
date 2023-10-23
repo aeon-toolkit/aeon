@@ -129,7 +129,7 @@ jobs:
       # Restores the numba cache separately from the dependencies
       - name: Restore Numba Cache
         uses: actions/cache@v3
-        id: cache
+        id: numba-cache
         with:
           path: |
             .numba_cache
