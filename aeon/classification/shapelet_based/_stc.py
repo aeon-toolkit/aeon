@@ -132,8 +132,6 @@ class ShapeletTransformClassifier(BaseClassifier):
         "capability:train_estimate": True,
         "capability:contractable": True,
         "capability:multithreading": True,
-        "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
         "algorithm_type": "shapelet",
     }
 
@@ -166,7 +164,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.n_jobs = n_jobs
 
         self.n_instances_ = 0
-        self.n_channels_ = 0
+        self.n_dims_ = 0
+        self.series_length_ = 0
         self.transformed_data_ = []
 
         self._transformer = None
@@ -196,8 +195,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_ = len(X)
-        self.n_channels_ = X[0].shape[0]
+        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final
@@ -292,7 +290,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         n_instances, n_dims = X.shape
 
-        if n_instances != self.n_instances_ or n_dims != self.n_channels_:
+        if n_instances != self.n_instances_ or n_dims != self.n_dims_:
             raise ValueError(
                 "n_instances, n_dims mismatch. X should be "
                 "the same as the training data used in fit for generating train "
