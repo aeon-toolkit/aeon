@@ -7,7 +7,7 @@ from aeon.datasets import make_example_long_table, make_example_multi_index_data
 from aeon.datatypes._adapter import convert_from_multiindex_to_listdataset
 from aeon.datatypes._panel._check import (
     are_columns_nested,
-    check_nplist_collection,
+    check_nplist_panel,
     is_nested_dataframe,
 )
 from aeon.datatypes._panel._convert import (
@@ -366,7 +366,7 @@ def test_from_3d_numpy_to_nplist(n_instances, n_channels, n_timepoints):
     np_list = from_3d_numpy_to_nplist(array)
 
     # check types and shapes
-    correct, _ = check_nplist_collection(np_list)
+    correct, _ = check_nplist_panel(np_list)
     assert correct
     assert len(np_list) == n_instances
     assert np_list[0].shape == (n_channels, n_timepoints)
@@ -385,7 +385,7 @@ def test_from_dflist_to_nplist(n_instances, n_channels, n_timepoints):
     np_list = from_dflist_to_nplist(df_list)
 
     # check types and shapes
-    correct, _ = check_nplist_collection(np_list)
+    correct, _ = check_nplist_panel(np_list)
     assert correct
     assert len(np_list) == n_instances
     assert np_list[0].shape == (n_channels, n_timepoints)
@@ -403,7 +403,7 @@ def test_from_nested_to_nplist(n_instances, n_channels, n_timepoints):
     np_list = from_nested_to_nplist(nested)
 
     # check types and shapes
-    correct, _ = check_nplist_collection(np_list)
+    correct, _ = check_nplist_panel(np_list)
     assert correct
     assert len(np_list) == n_instances
     assert np_list[0].shape == (n_channels, n_timepoints)
