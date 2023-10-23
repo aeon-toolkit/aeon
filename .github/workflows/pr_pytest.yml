@@ -99,8 +99,8 @@ jobs:
       # restore here
       - name: Checkout main
         uses: actions/checkout@v3
-#        with:
-#          ref: main
+        with:
+          ref: temp-workflow-script
 
       - uses: actions/setup-python@v4
         with:
@@ -118,8 +118,8 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Reset numba cache time stamps
-        if: steps.numba-cache.outputs.cache-hit == 'true'
-        run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/__init__.py
+        if: steps.cache.outputs.numba-cache-hit == 'true'
+        run: python .github/scripts/_numba_timestamp_cache.py .numba_cache aeon/__init__.py
 
       # We checkout to the current branch and so the files that have been changed will
       # have different timestamps so numba cache for those invalid
