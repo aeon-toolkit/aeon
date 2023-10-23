@@ -2,7 +2,7 @@
 import numpy as np
 
 from aeon.clustering.averaging import elastic_barycenter_average
-from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_utils import create_test_distance_numpy
 
 expected_dba = np.array(
     [
