@@ -140,9 +140,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
-        "capability:unequal_length": True,
-        "X_inner_type": ["np-list", "numpy3D"],
-        "y_inner_type": "numpy1D",
         "requires_y": True,
     }
 
@@ -175,14 +172,13 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.random_state = random_state
 
         # The following set in method fit
-        self.n_classes_ = 0
-        self.n_instances_ = 0
-        self.n_channels_ = 0
-        self.min_series_length_ = 0
+        self.n_classes = 0
+        self.n_instances = 0
+        self.n_channels = 0
+        self.series_length = 0
         self.classes_ = []
         self.shapelets = []
 
-        # Protected attributes
         self._n_shapelet_samples = n_shapelet_samples
         self._max_shapelets = max_shapelets
         self._max_shapelet_length = max_shapelet_length
@@ -194,12 +190,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         super(RandomShapeletTransform, self).__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X, y=None):
         """Fit the shapelet transform to a specified X and y.
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_time_series, n_channels, series_length)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -212,38 +208,32 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.classes_, self._class_counts = np.unique(y, return_counts=True)
-        self.n_classes_ = self.classes_.shape[0]
+        self.n_classes = self.classes_.shape[0]
         for index, classVal in enumerate(self.classes_):
             self._class_dictionary[classVal] = index
 
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
 
-        self.n_instances_ = len(X)
-        self.n_channels_ = X[0].shape[0]
-        # Set series length to the minimum
-        self.min_series_length_ = X[0].shape[1]
-        for i in range(1, self.n_instances_):
-            if X[i].shape[1] < self.min_series_length_:
-                self.min_series_length_ = X[i].shape[1]
+        self.n_instances, self.n_channels, self.series_length = X.shape
 
         if self.max_shapelets is None:
-            self._max_shapelets = min(10 * self.n_instances_, 1000)
-        if self._max_shapelets < self.n_classes_:
-            self._max_shapelets = self.n_classes_
+            self._max_shapelets = min(10 * self.n_instances, 1000)
+        if self._max_shapelets < self.n_classes:
+            self._max_shapelets = self.n_classes
         if self.max_shapelet_length is None:
-            self._max_shapelet_length = self.min_series_length_
+            self._max_shapelet_length = self.series_length
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         fit_time = 0
 
-        max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
+        max_shapelets_per_class = int(self._max_shapelets / self.n_classes)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
         # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
         shapelets = List(
-            [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes_)]
+            [List([(-1.0, -1, -1, -1, -1, -1)]) for _ in range(self.n_classes)]
         )
         n_shapelets_extracted = 0
 
@@ -329,7 +319,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 s[3],
                 s[4],
                 self.classes_[s[5]],
-                z_normalise_series(X[s[4]][s[3]][s[2] : s[2] + s[1]]),
+                z_normalise_series(X[s[4], s[3], s[2] : s[2] + s[1]]),
             )
             for class_shapelets in shapelets
             for s in class_shapelets
@@ -348,8 +338,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     sorted(range(s[1]), reverse=True, key=lambda j, sabs=sabs: sabs[j])
                 )
             )
-        # find max shapelet length
-        self.max_fitted_shapelet_length_ = max(self.shapelets, key=lambda x: x[1])[1]
+        return self
 
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
@@ -365,14 +354,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             The transformed data.
         """
         output = np.zeros((len(X), len(self.shapelets)))
-
-        for i in range(0, len(X)):
-            if X[i].shape[1] < self.max_fitted_shapelet_length_:
-                raise ValueError(
-                    "The shortest series in transform is smaller than "
-                    "the min shapelet length, pad to min length prior to "
-                    "calling transform."
-                )
 
         for i, series in enumerate(X):
             dists = Parallel(
@@ -418,7 +399,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def _extract_random_shapelet(
         self, X, y, i, shapelets, max_shapelets_per_class, rng
     ):
-        inst_idx = i % self.n_instances_
+        inst_idx = i % self.n_instances
         cls_idx = int(y[inst_idx])
         worst_quality = (
             shapelets[cls_idx][0][0]
@@ -430,12 +411,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             rng.randint(0, self._max_shapelet_length - self.min_shapelet_length)
             + self.min_shapelet_length
         )
-        position = rng.randint(0, self.min_series_length_ - length)
-        channel = rng.randint(0, self.n_channels_)
+        position = rng.randint(0, self.series_length - length)
+        dim = rng.randint(0, self.n_channels)
 
-        shapelet = z_normalise_series(
-            X[inst_idx][channel][position : position + length]
-        )
+        shapelet = z_normalise_series(X[inst_idx, dim, position : position + length])
         sabs = np.abs(shapelet)
         sorted_indicies = np.array(
             sorted(range(length), reverse=True, key=lambda j: sabs[j])
@@ -448,14 +427,14 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             sorted_indicies,
             position,
             length,
-            channel,
+            dim,
             inst_idx,
             self._class_counts[cls_idx],
-            self.n_instances_ - self._class_counts[cls_idx],
+            self.n_instances - self._class_counts[cls_idx],
             worst_quality,
         )
 
-        return np.round(quality, 8), length, position, channel, inst_idx, cls_idx
+        return np.round(quality, 8), length, position, dim, inst_idx, cls_idx
 
     @staticmethod
     @njit(fastmath=True, cache=True)

@@ -2,11 +2,11 @@
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
+from aeon.datatypes import convert_to
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_regressor
-from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["RegressorPipeline", "SklearnRegressorPipeline"]
@@ -15,10 +15,15 @@ __all__ = ["RegressorPipeline", "SklearnRegressorPipeline"]
 class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """Pipeline of transformers and a regressor.
 
-    The `RegressorPipeline` makes a pipeline of aeon transformers and a single
-    regressor. For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a
-    regressor `reg`, the pipeline behaves as follows:
-    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
+    The `RegressorPipeline` compositor chains transformers and a single regressor.
+    The pipeline is constructed with a list of aeon transformers, plus a regressor,
+        i.e., estimators following the BaseTransformer resp BaseRegressor interface.
+    The transformer list can be unnamed - a simple list of transformers -
+        or string named - a list of pairs of string, estimator.
+
+    For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a regressor `reg`,
+        the pipeline behaves as follows:
+    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` being the output of `trafo[N]`,
@@ -34,40 +39,52 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
 
+    `RegressorPipeline` can also be created by using the magic multiplication
+        on any regressor, i.e., if `my_reg` inherits from `BaseRegressor`,
+            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
+            for instance, `my_trafo1 * my_trafo2 * my_reg`
+            will result in the same object as  obtained from the constructor
+            `RegressorPipeline(regressor=my_reg, transformers=[my_trafo1, my_trafo2])`
+        magic multiplication can also be used with (str, transformer) pairs,
+            as long as one element in the chain is a transformer
+
     Parameters
     ----------
-    regressor : BaseRegressor
-        aeon regressor
-    transformers : list
-        list of aeon transformers, or list of tuples (str, transformer) of aeon
-        transformers
+    regressor : aeon regressor, i.e., estimator inheriting from BaseRegressor
+        this is a "blueprint" regressor, state does not change when `fit` is called
+    transformers : list of aeon transformers, or
+        list of tuples (str, transformer) of aeon transformers
+        these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
-    regressor_ : BaseRegressor
-        aeon regressor, clone of regressor in `regressor`
-    transformers_ : list
-        list of aeon transformers, or list of tuples (str, transformer) of aeon
-        transformers
+    regressor_ : aeon regressor, clone of regressor in `regressor`
+        this clone is fitted in the pipeline when `fit` is called
+    transformers_ : list of tuples (str, transformer) of aeon transformers
+        clones of transformers in `transformers` which are fitted in the pipeline
+        is always in (str, transformer) format, even if transformers is just a list
+        strings not passed in transformers are unique generated strings
+        i-th transformer in `transformers_` is clone of i-th in `transformers`
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.convolution_based import Rocket
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [TSInterpolator(length=10)]
+    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [Rocket(num_kernels=100)]
     ... )
     >>> pipeline.fit(X_train, y_train)
-    RegressorPipeline(...)
+    RegressorPipeline(regressor=KNeighborsTimeSeriesRegressor(n_neighbors=2),
+                      transformers=[Rocket(num_kernels=100)])
     >>> y_pred = pipeline.predict(X_test)
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
+        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -131,9 +148,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         self.transformers_._steps = value
 
     def __rmul__(self, other):
-        """Overloaded multiplication (*) operator.
-
-        Return concatenated RegressorPipeline, transformers on left.
+        """Magic * method, return concatenated RegressorPipeline, transformers on left.
 
         Implemented for `other` being a transformer, otherwise returns `NotImplemented`.
 
@@ -165,7 +180,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -176,8 +191,8 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         ------------
         creates fitted model (attributes ending in "_")
         """
-        Xt = self.transformers_.fit_transform(X, y)
-        self.regressor_.fit(Xt, y)
+        Xt = self.transformers_.fit_transform(X=X, y=y)
+        self.regressor_.fit(X=Xt, y=y)
 
         return self
 
@@ -188,14 +203,14 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data to make predictions from of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
-        Xt = self.transformers_.transform(X)
-        return self.regressor_.predict(Xt)
+        Xt = self.transformers_.transform(X=X)
+        return self.regressor_.predict(X=Xt)
 
     def get_params(self, deep=True):
         """Get parameters of estimator in `transformers`.
@@ -246,32 +261,47 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
+            For regressors, a "default" set of parameters should be provided for
+            general testing, and a "results_comparison" set for comparing against
+            previously recorded results if the general set does not produce suitable
+            probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.regression import DummyRegressor
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = ExponentTransformer(power=2)
-        r = DummyRegressor()
-        return {"transformers": [t1], "regressor": r}
+        t1 = Rocket(num_kernels=200)
+        c = DummyRegressor()
+        return {"transformers": [t1], "regressor": c}
 
 
 class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """Pipeline of transformers and a regressor.
 
-    The `SklearnRegressorPipeline` chains transformers and an single ``sklearn``
-    regressor. The pipeline is constructed with a list of aeon transformers,
-    plus a ``sklearn`` regressor. For a list of ``N`` transformers and a regressor
-    ``reg``, the pipeline behves as follows:
-    ``fit(X, y)`` - changes state by running `trafo1.fit_transform` on `X`,
+    The `SklearnRegressorPipeline` chains transformers and an single regressor.
+        Similar to `RegressorPipeline`, but uses a tabular `sklearn` regressor.
+    The pipeline is constructed with a list of aeon transformers, plus a regressor,
+        i.e., transformers following the BaseTransformer interface,
+        regressor follows the `scikit-learn` regressor interface.
+    The transformer list can be unnamed - a simple list of transformers -
+        or string named - a list of pairs of string, estimator.
+
+    For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a regressor `reg`,
+        the pipeline behaves as follows:
+    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpy2D` type.
+        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
+        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `reg.predict` on the numpy converted output of `trafoN.transform`,
@@ -283,6 +313,15 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         if names are non-unique, `f"_{str(i)}"` is appended to each name string
             where `i` is the total count of occurrence of a non-unique string
             inside the list of names leading up to it (inclusive)
+
+    `SklearnRegressorPipeline` can also be created by using the magic multiplication
+        between `aeon` transformers and `sklearn` regressors,
+            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
+            for instance, `my_trafo1 * my_trafo2 * my_reg`
+            will result in the same object as  obtained from the constructor
+            `SklearnRegressorPipeline(regressor=my_reg, transformers=[t1, t2])`
+        magic multiplication can also be used with (str, transformer) pairs,
+            as long as one element in the chain is a transformer
 
     Parameters
     ----------
@@ -317,7 +356,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": True,
@@ -398,6 +437,30 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         else:
             return NotImplemented
 
+    def _convert_X_to_sklearn(self, X):
+        """Convert a Table or Panel X to 2D numpy required by sklearn."""
+        if isinstance(X, np.ndarray):
+            if X.ndim == 2:
+                return X
+            elif X.ndim == 3:
+                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
+
+        output_type = self.transformers_.get_tag("output_data_type")
+        # if output_type is Primitives, output is Table, convert to 2D numpy array
+        if output_type == "Primitives":
+            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
+        # if output_type is Series, output is Panel, convert to 2D numpy array
+        elif output_type == "Series":
+            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
+        else:
+            raise TypeError(
+                f"unexpected X output type "
+                f'in tag "output_data_type", found "{output_type}", '
+                'expected one of "Primitives" or "Series"'
+            )
+
+        return Xt
+
     def _fit(self, X, y):
         """Fit time series regressor to training data.
 
@@ -405,7 +468,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_type")
+        X : Training data of type self.get_tag("X_inner_mtype")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -416,9 +479,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         ------------
         creates fitted model (attributes ending in "_")
         """
-        Xt = self.transformers_.fit_transform(X, y)
-        # If the output is not a 2D numpy, then need to convert
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt = self.transformers_.fit_transform(X=X, y=y)
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
         self.regressor_.fit(Xt_sklearn, y)
 
         return self
@@ -430,14 +492,14 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
+        X : data not used in training, of type self.get_tag("X_inner_mtype")
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
-        Xt = self.transformers_.transform(X)
-        Xt_sklearn = convert_collection(Xt, "numpy2D")
+        Xt = self.transformers_.transform(X=X)
+        Xt_sklearn = self._convert_X_to_sklearn(Xt)
         return self.regressor_.predict(Xt_sklearn)
 
     def get_params(self, deep=True):
@@ -504,8 +566,8 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         """
         from sklearn.neighbors import KNeighborsRegressor
 
-        from aeon.transformations.collection import SevenNumberSummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = SevenNumberSummaryTransformer()
-        c = KNeighborsRegressor(n_neighbors=1)
+        t1 = Rocket(num_kernels=200, random_state=49)
+        c = KNeighborsRegressor()
         return {"transformers": [t1], "regressor": c}

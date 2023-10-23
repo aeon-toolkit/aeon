@@ -4,7 +4,7 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import cost_matrix as compute_cost_matrix
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_utils import create_test_distance_numpy
 
 
 def _validate_cost_matrix_result(
