@@ -109,7 +109,7 @@ jobs:
       # Restores the numba cache separately from the dependencies
       - name: Restore Numba Cache
         uses: actions/cache@v3
-        id: numba_cache
+        id: numba-cache
         with:
           path: |
             .numba_cache
@@ -118,7 +118,7 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Reset numba cache time stamps
-        if: steps.cache.outputs.numba_cache-hit == 'true'
+        if: steps.numba-cache.outputs.cache-hit != 'true'
         run: python .github/scripts/_numba_st_mtime_cache.py .numba_cache aeon/__init__.py
 
       # We checkout to the current branch and so the files that have been changed will
