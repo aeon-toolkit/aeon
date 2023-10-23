@@ -71,7 +71,7 @@ class MultiRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "output_data_type": "Primitives",
+        "output_data_type": "Tabular",
     }
 
     def __init__(
