@@ -36,9 +36,11 @@ def test_normalized_naive_euclidean(dtype):
 
     q_means = q.mean(axis=-1)
     q_stds = q.std(axis=-1)
+
+    mask = np.ones(X.shape, dtype=bool)
     dist_profile = normalized_naive_euclidean_profile(
-        X, q, X_means, X_stds, q_means, q_stds
-    )
+        X, q, mask, X_means, X_stds, q_means, q_stds
+    ).sum(axis=1)
 
     _q = q.copy()
     for k in range(q.shape[0]):
@@ -73,9 +75,10 @@ def test_normalized_naive_euclidean_constant_case(dtype):
         X_stds[i] = _std
         X_means[i] = _mean
 
+    mask = np.ones(X.shape, dtype=bool)
     dist_profile = normalized_naive_euclidean_profile(
-        X, q, X_means, X_stds, q_means, q_stds
-    )
+        X, q, mask, X_means, X_stds, q_means, q_stds
+    ).sum(axis=1)
     # Should be full array for 0
 
     expected = np.array([[0] * search_space_size] * X.shape[0])
@@ -101,7 +104,8 @@ def test_non_alteration_of_inputs_normalized_naive_euclidean():
     q_means = q.mean(axis=-1, keepdims=True)
     q_stds = q.std(axis=-1, keepdims=True)
 
-    _ = normalized_naive_euclidean_profile(X, q, X_means, X_stds, q_means, q_stds)
+    mask = np.ones(X.shape, dtype=bool)
+    _ = normalized_naive_euclidean_profile(X, q, mask, X_means, X_stds, q_means, q_stds)
 
     assert_array_equal(q, q_copy)
     assert_array_equal(X, X_copy)

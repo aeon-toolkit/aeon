@@ -40,7 +40,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        X : array, shape (n_cases, n_channels, n_timestamps)
+        X : array, shape (n_instances, n_channels, n_timestamps)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -62,7 +62,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         ----------
         q :  array, shape (n_channels, q_length)
             Input query used for similarity search.
-        mask : array, shape (n_samples, n_channels, n_timestamps - (q_length - 1))
+        mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
             Boolean mask of the shape of the distance profile indicating for which part
             of it the distance should be computed.
 
@@ -88,7 +88,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         if self.store_distance_profile:
             self._distance_profile = distance_profile
 
-        # For now, deal with the multidimensional case as "fully dependent"
+        # For now, deal with the multidimensional case as "dependent", so we sum.
         distance_profile = distance_profile.sum(axis=1)
 
         search_size = distance_profile.shape[-1]

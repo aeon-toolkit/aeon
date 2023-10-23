@@ -27,14 +27,18 @@ def naive_euclidean_profile(X, q, mask):
     ----------
     X: array shape (n_cases, n_channels, series_length)
         The input samples.
-
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
+    mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
+        Boolean mask of the shape of the distance profile indicating for which part
+        of it the distance should be computed.
 
     Returns
     -------
-    distance_profile : np.ndarray shape (n_cases, series_length - query_length + 1)
-        The distance profile between q and the input time series X.
+    distance_profile : np.ndarray
+        shape (n_cases, n_channels, series_length - query_length + 1)
+        The distance profile between q and the input time series X independently
+        for each channel.
 
     """
     return _naive_euclidean_profile(X, q, mask)

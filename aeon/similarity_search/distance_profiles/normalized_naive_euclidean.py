@@ -34,6 +34,9 @@ def normalized_naive_euclidean_profile(X, q, mask, X_means, X_stds, q_means, q_s
         The input samples.
     q : array, shape (n_channels, query_length)
         The query used for similarity search.
+    mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
+        Boolean mask of the shape of the distance profile indicating for which part
+        of it the distance should be computed.
     X_means : array, shape (n_instances, n_channels, series_length - (query_length-1))
         Means of each subsequences of X of size query_length
     X_stds : array, shape (n_instances, n_channels, series_length - (query_length-1))
@@ -45,8 +48,10 @@ def normalized_naive_euclidean_profile(X, q, mask, X_means, X_stds, q_means, q_s
 
     Returns
     -------
-    distance_profile : np.ndarray shape (n_instances, series_length - query_length + 1)
-        The distance profile between q and the input time series X.
+    distance_profile : np.ndarray
+        shape (n_instances, n_channels, series_length - query_length + 1).
+        The distance profile between q and the input time series X independently
+        for each channel.
 
     """
     # Make STDS inferior to the threshold to 1 to avoid division per 0 error.
