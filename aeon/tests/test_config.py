@@ -9,7 +9,7 @@ import numba.core.caching
 from aeon.base import BaseEstimator, BaseObject
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
-DEBUG_CACHE = True
+DEBUG_CACHE = False
 
 
 def custom_load_index(self):
