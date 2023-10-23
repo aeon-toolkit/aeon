@@ -583,7 +583,7 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
         sum2 += i * i
 
     mean = sum / length
-    std = (sum2 - mean * mean * length) / length
+    std = math.sqrt((sum2 - mean * mean * length) / length)
     if std > 0:
         subseq = (subseq - mean) / std
     else:
