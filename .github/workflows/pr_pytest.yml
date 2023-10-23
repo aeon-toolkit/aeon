@@ -110,18 +110,8 @@ jobs:
         with:
           path: |
             ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-
-      # Restores the numba cache separately from the dependencies
-      - name: Restore Numba Cache
-        uses: actions/cache@v3
-        id: numba-cache
-        with:
-          path: |
             .numba_cache
-          key: ${{ runner.os }}-numba--${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
