@@ -99,9 +99,9 @@ jobs:
       # restore here
       - name: Checkout main
         uses: actions/checkout@v3
-        with:
-          ref: temp-workflow-script
-
+#        with:
+#          ref: temp-workflow-script
+#
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -123,8 +123,8 @@ jobs:
 
       # We checkout to the current branch and so the files that have been changed will
       # have different timestamps so numba cache for those invalid
-      - name: Checkout current branch
-        uses: actions/checkout@v3
+#      - name: Checkout current branch
+#        uses: actions/checkout@v3
 
       # On Windows, GNU tar is much faster than the default BSD tar
       - name: "Use GNU tar instead BSD tar"
