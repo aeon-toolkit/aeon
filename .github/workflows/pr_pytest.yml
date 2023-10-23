@@ -126,14 +126,8 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -s aeon/distances/tests/test_numba_patch.py
-
-      - name: Run tests
-        run: python -m pytest -s aeon/distances/tests/test_numba_patch.py
-
-#      - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-#        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
