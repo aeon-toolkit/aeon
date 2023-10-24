@@ -40,8 +40,6 @@ jobs:
             ${{ env.pythonLocation }}
             .numba_cache
           key: ${{ runner.os }}-pip-numba-3.10-examples-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-numba-3.10-examples-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
