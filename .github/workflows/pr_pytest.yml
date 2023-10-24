@@ -23,6 +23,7 @@ jobs:
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
+      NUMBA_CPU_FEATURES: +64bit
       CICD_RUNNING: 1
 
     steps:
@@ -69,6 +70,7 @@ jobs:
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
+      NUMBA_CPU_FEATURES: +64bit
       CICD_RUNNING: 1
 
     steps:
@@ -117,6 +119,7 @@ jobs:
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
+      NUMBA_CPU_FEATURES: +64bit
       CICD_RUNNING: 1
 
     steps:
