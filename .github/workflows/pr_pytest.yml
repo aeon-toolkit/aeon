@@ -36,6 +36,7 @@ jobs:
 
       # Python environment cache
       - uses: actions/cache@v3
+        name: Python environment cache
         id: cache
         with:
           path: ${{ env.pythonLocation }}
@@ -43,6 +44,7 @@ jobs:
 
       # Numba cache
       - uses: actions/cache@v3
+        name: Numba cache
         id: numba-cache
         with:
           path: .numba_cache
@@ -80,6 +82,7 @@ jobs:
 
       # Python environment cache
       - uses: actions/cache@v3
+        name: Python environment cache
         id: cache
         with:
           path: ${{ env.pythonLocation }}
@@ -87,6 +90,7 @@ jobs:
 
       # Numba cache
       - uses: actions/cache@v3
+        name: Numba cache
         id: numba-cache
         with:
           path: .numba_cache
