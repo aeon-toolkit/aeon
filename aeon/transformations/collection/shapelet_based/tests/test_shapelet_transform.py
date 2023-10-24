@@ -10,11 +10,11 @@ def test_shapelet_transform():
     """
     Test edge cases for RandomShapeletTransform.
 
-    This function tests the functionality of the RandomShapeletTransform class 
-    from the aeon.transformations.collection.shapelet_based module. It uses the 
-    make_3d_test_data function from the aeon.utils._testing.collection module 
-    to generate test data. The function checks that the RandomShapeletTransform 
-    class correctly handles edge cases, such as when the shortest series in 
+    This function tests the functionality of the RandomShapeletTransform class
+    from the aeon.transformations.collection.shapelet_based module. It uses the
+    make_3d_test_data function from the aeon.utils._testing.collection module
+    to generate test data. The function checks that the RandomShapeletTransform
+    class correctly handles edge cases, such as when the shortest series in
     transform is smaller than the min shapelet length.
     """
     X, y = make_3d_test_data(n_cases=10, n_timepoints=20, n_labels=4)
@@ -27,7 +27,6 @@ def test_shapelet_transform():
     )
     with pytest.raises(
         ValueError,
-        match="The shortest series in transform is "
-        "smaller than the min shapelet length",
+        match="The shortest series in transform is smaller than the min shapelet length",
     ):
         rst._transform(X)
