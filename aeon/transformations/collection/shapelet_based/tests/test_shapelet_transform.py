@@ -27,6 +27,7 @@ def test_shapelet_transform():
     )
     with pytest.raises(
         ValueError,
-        match="The shortest series in transform is smaller than the min shapelet length",
+        match=("The shortest series in transform is "
+               "smaller than the min shapelet length"),
     ):
         rst._transform(X)
