@@ -20,6 +20,11 @@ concurrency:
 jobs:
   run-notebook-examples:
     runs-on: ubuntu-22.04
+    env:
+      NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
+      NUMBA_CPU_NAME: generic
+      NUMBA_CPU_FEATURES: +64bit,+adx,+aes,+avx,+avx2,-avx512bf16,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,+bmi,+bmi2,-cldemote,-clflushopt,-clwb,-clzero,+cmov,+cx16,+cx8,-enqcmd,+f16c,+fma,-fma4,+fsgsbase,+fxsr,-gfni,+invpcid,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-mwaitx,+pclmul,-pconfig,-pku,+popcnt,-prefetchwt1,+prfchw,-ptwrite,-rdpid,+rdrnd,+rdseed,+rtm,+sahf,-sgx,-sha,-shstk,+sse,+sse2,+sse3,+sse4.1,+sse4.2,-sse4a,+ssse3,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop,+xsave,-xsavec,+xsaveopt,-xsaves
+      CICD_RUNNING: 1
 
     steps:
       - uses: actions/checkout@v3
@@ -28,18 +33,22 @@ jobs:
         with:
           python-version: "3.10"
 
-#      - uses: actions/cache@v3
-#        id: cache
-#        with:
-#          path: ${{ env.pythonLocation }}
-#          key: ${{ runner.os }}-pip-3.10-examples-${{ hashFiles('pyproject.toml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-3.10-examples-
+
+      # Python environment cache
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            ${{ env.pythonLocation }}
+            .numba_cache
+          key: ${{ runner.os }}-pip-numba-3.10-examples-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-numba-3.10-examples-
 
       - name: Install aeon and dependencies
-#        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[all_extras,binder,dev]
 
-#      - name: Run example notebooks
-#        run: build_tools/run_examples.sh
-#        shell: bash
+      - name: Run example notebooks
+        run: build_tools/run_examples.sh
+        shell: bash
