@@ -40,8 +40,6 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-3.10-nosoftdep-
 
       # Numba cache
       - uses: actions/cache@v3
@@ -49,8 +47,6 @@ jobs:
         with:
           path: .numba_cache
           key: ${{ runner.os }}-numba-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-numba-3.10-nosoftdep-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -88,8 +84,6 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-3.10-nosoftdep-
 
       # Numba cache
       - uses: actions/cache@v3
@@ -97,8 +91,6 @@ jobs:
         with:
           path: .numba_cache
           key: ${{ runner.os }}-numba-3.10-nosoftdepfull-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-numba-3.10-nosoftdepfull-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -146,8 +138,6 @@ jobs:
         with:
           path: .numba_cache
           key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-numba-${{ matrix.python-version }}-
 
       - name: Install aeon and dependencies
         run: python -m pip install .[all_extras,dev]
@@ -181,8 +171,6 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-pip-3.10-codecov-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-3.10-codecov-
 
       - name: Install aeon and dependencies
         if: steps.cache.outputs.cache-hit != 'true'
