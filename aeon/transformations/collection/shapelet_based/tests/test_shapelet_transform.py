@@ -25,7 +25,7 @@ def test_shapelet_transform():
     X, y = make_3d_test_data(
         n_cases = 3, 
         n_timepoints = rst.max_fitted_shapelet_length_ - 1, 
-        n_labels = 4,
+        n_labels = 4)
     with pytest.raises(
         ValueError, 
         match = (
