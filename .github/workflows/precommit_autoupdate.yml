@@ -4,6 +4,7 @@ on:
   schedule:
     # every Monday at 12:30 AM UTC
     - cron:  "30 0 * * 1"
+  workflow_dispatch:
 
 jobs:
   pre-commit-auto-update:
