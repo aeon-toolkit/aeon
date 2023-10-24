@@ -70,10 +70,10 @@ def custom_load_index(self):
     stamp, overloads = pickle.loads(data)
     cache_filename = self._index_path.split("/")[-1].split("-")[0].split(".")[0]
     if stamp[1] != self._source_stamp[1] or cache_filename in CHANGED_FILES:
-        print(f"Invalidating cache for {cache_filename}")  # noqa: T001 T201
+        # print(f"Invalidating cache for {cache_filename}")  # noqa: T001 T201
         return {}
     else:
-        print(f"Using cache for {cache_filename}")  # noqa: T001 T201
+        # print(f"Using cache for {cache_filename}")  # noqa: T001 T201
         return overloads
     # try:
     #     with open(self._index_path, "rb") as f:
