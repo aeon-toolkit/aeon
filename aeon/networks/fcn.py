@@ -1,4 +1,4 @@
-"""Fully Connected Neural Network (FCN) (minus the final output layer)."""
+"""Fully Convolutional Network (FCN) (minus the final output layer)."""
 
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 
