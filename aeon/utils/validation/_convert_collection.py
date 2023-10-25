@@ -22,10 +22,30 @@ import pandas as pd
 
 
 def _nested_univ_is_equal(X):
-    """Check whether series in a nested DataFrame are unequal length.
+    """Check whether series in a nested DataFrame are of equal length.
 
-    Note that the function _nested_univ_is_equal assumes series are equal length
-    over channels so only tests the first channel.
+    This function checks if all series in a nested DataFrame have the same length. It
+    assumes that series are of equal length over channels, so it only tests the first
+    channel.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        The nested DataFrame to check.
+
+    Returns
+    -------
+    bool
+        True if all series in the DataFrame are of equal length, False otherwise.
+
+    Example
+    -------
+    >>> df = pd.DataFrame({
+    ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
+    ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
+    ... })
+    >>> _nested_univ_is_equal(df)
+    True
     """
     length = X.iloc[0, 0].size
     for i in range(1, X.shape[0]):
