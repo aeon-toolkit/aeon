@@ -227,7 +227,6 @@ class Differencer(BaseTransformer):
         "fit_is_empty": False,
         "transform-returns-same-time-index": False,
         "univariate-only": False,
-        "capability:inverse_transform": True,
     }
 
     VALID_NA_HANDLING_STR = ["drop_na", "keep_na", "fill_zero"]

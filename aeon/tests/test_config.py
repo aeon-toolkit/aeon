@@ -41,9 +41,6 @@ EXCLUDED_TESTS = {
         "test_inheritance",
         "test_create_test_instance",
     ],
-    # test fails several variants of inversion, see
-    # https://github.com/aeon-toolkit/aeon/issues/700
-    "Differencer": ["test_transform_inverse_transform_equivalent"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
