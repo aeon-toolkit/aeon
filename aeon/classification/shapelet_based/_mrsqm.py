@@ -94,7 +94,7 @@ class MrSQMClassifier(BaseClassifier):
         super(MrSQMClassifier, self).__init__()
 
     _tags = {
-        "x_inner_type": "nested_univ",  # we don't like this, but it's the only input!
+        "X_inner_type": "nested_univ",  # we don't like this, but it's the only input!
         "algorithm_type": "shapelet",
         "cant-pickle": True,
         "python_dependencies": "mrsqm",

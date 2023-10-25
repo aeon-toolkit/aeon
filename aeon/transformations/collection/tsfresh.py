@@ -437,7 +437,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     _tags = {
         "instancewise": False,
         "requires_y": True,
-        "x_inner_type": "nested_univ",
+        "X_inner_type": "nested_univ",
         "y_inner_type": "pd_Series_Table",
         "fit_is_empty": False,
     }

@@ -175,7 +175,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
     """
 
     _tags = {
-        "x_inner_type": "numpy3D",
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(

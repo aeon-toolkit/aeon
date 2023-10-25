@@ -93,7 +93,7 @@ class ElasticEnsemble(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "x_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(

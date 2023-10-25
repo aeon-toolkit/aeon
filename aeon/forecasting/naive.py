@@ -603,7 +603,7 @@ class NaiveVariance(BaseForecaster):
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_type",
-            "x_inner_type",
+            "X_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]

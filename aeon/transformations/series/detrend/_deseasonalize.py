@@ -66,7 +66,7 @@ class Deseasonalizer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "x_inner_type": "pd.Series",
+        "X_inner_type": "pd.Series",
         # which mtypes do _fit/_predict support for X?
         "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,
@@ -454,7 +454,7 @@ class STLTransformer(BaseTransformer):
         "output_data_type": "Series",
         # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "x_inner_type": "pd.Series",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.Series",  # which mtypes do _fit/_predict support for X?
         "y_inner_type": "pd.Series",  # which mtypes do _fit/_predict support for y?
         "transform-returns-same-time-index": True,
         "univariate-only": True,

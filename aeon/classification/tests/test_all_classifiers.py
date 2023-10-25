@@ -197,11 +197,11 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             return None
 
     def test_classifier_tags_consistent(self, estimator_class):
-        """Test the tag x_inner_type is consistent with capability:unequal_length."""
+        """Test the tag X_inner_type is consistent with capability:unequal_length."""
         valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
         multi = estimator_class.get_class_tag("capability:unequal_length")
-        if multi:  # one of x_inner_types must be capable of storing unequal length
-            internal_types = estimator_class.get_class_tag("x_inner_type")
+        if multi:  # one of X_inner_types must be capable of storing unequal length
+            internal_types = estimator_class.get_class_tag("X_inner_type")
             if isinstance(internal_types, str):
                 assert internal_types in valid_types
             else:  # must be a list

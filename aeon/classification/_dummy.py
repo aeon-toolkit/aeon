@@ -64,7 +64,7 @@ class DummyClassifier(BaseClassifier):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "x_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     VALID_STRATEGIES = ["most_frequent", "prior", "stratified", "uniform", "constant"]

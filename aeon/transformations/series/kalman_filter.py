@@ -444,7 +444,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     _tags = {
         "transform_labels": "Series",
         # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "x_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for y?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True

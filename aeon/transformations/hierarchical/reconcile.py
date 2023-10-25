@@ -77,7 +77,7 @@ class Reconciler(BaseTransformer):
         "output_data_type": "Series",
         "transform_labels": "None",
         "instancewise": False,  # is this an instance-wise transform?
-        "x_inner_type": [
+        "X_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",

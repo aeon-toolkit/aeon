@@ -69,7 +69,7 @@ class TimeSeriesScaler(BaseCollectionTransformer):
     """
 
     _tags = {
-        "x_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
     }
