@@ -15,7 +15,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class AEFCNClusterer(BaseDeepClusterer):
-    """Fully Connected Neural Network (FCN), as described in [1]_.
+    """Auto-Encoder based Fully Convolutional Network (FCN), as described in [1]_.
 
     Parameters
     ----------

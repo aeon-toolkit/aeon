@@ -1,4 +1,4 @@
-"""Fully Connected Neural Network (CNN) for regression."""
+"""Fully Convolutional Network (FCN) for regression."""
 
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNRegressor"]
@@ -16,7 +16,7 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class FCNRegressor(BaseDeepRegressor):
-    """Fully Connected Neural Network (FCN).
+    """Fully Convolutional Network (FCN).
 
     Adapted from the implementation used in [1]_.
 

@@ -1,4 +1,4 @@
-"""Auto-Encoder using Fully Connected Neural Network (FCN)."""
+"""Auto-Encoder using Fully Convolutional Network (FCN)."""
 
 __author__ = ["hadifawaz1999"]
 
@@ -11,7 +11,8 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class AEFCNNetwork(BaseDeepNetwork):
     """Establish the network structure for a AE-FCN.
 
-    Adapted from the implementation used in [1]_
+    Auto-Encoder based Fully Convolutional Netwwork (AE-FCN),
+    adapted from the implementation used in [1]_.
 
     Parameters
     ----------
