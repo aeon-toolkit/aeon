@@ -4,6 +4,7 @@ on:
   schedule:
     # every Monday at 12:30 AM UTC
     - cron:  "30 0 * * 1"
+  workflow_dispatch:
 
 jobs:
   pre-commit-auto-update:
@@ -18,10 +19,18 @@ jobs:
 
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
-      - uses: peter-evans/create-pull-request@v5
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
         with:
+          app_id: ${{ secrets.PR_APP_ID }}
+          private_key: ${{ secrets.PR_APP_KEY }}
+
+      - if: always()
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
           commit-message: "Automated `pre-commit` hook update"
           branch: pre-commit-hooks-update
           title: "[MNT] Automated `pre-commit` hook update"
           body: "Automated weekly update to `.pre-commit-config.yaml` hook versions."
-          labels: maintenance, no changelog
+          labels: maintenance, full pre-commit, no changelog
