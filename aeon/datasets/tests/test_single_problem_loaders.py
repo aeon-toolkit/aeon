@@ -43,7 +43,7 @@ def test_load_dataframe(loader):
     assert isinstance(y, np.ndarray)
     assert y.ndim == 1
     X = loader(return_X_y=False)
-    assert isinstance(X, pd.DataFrame)
+    assert isinstance(X, tuple)
 
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
@@ -98,4 +98,4 @@ def test_load_covid_3month():
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
     X = load_covid_3month(return_X_y=False)
-    assert isinstance(X, pd.DataFrame)
+    assert isinstance(X, tuple)
