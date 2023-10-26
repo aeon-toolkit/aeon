@@ -424,7 +424,7 @@ Data in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/datasets/img/dsa.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_structures.ipynb
 :link-type: ref
@@ -435,7 +435,7 @@ Data structures and containers used in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/datasets/img/convert.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_conversions.ipynb
 :link-type: ref
@@ -446,7 +446,7 @@ Conversions between data structures
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/datasets/img/disk.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
