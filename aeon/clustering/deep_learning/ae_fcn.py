@@ -331,10 +331,10 @@ class AEFCNClusterer(BaseDeepClusterer):
         """
         param1 = {
             "n_clusters": 2,
-            "n_epochs": 10,
+            "n_epochs": 1,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 2,
+            "n_layers": 1,
             "padding": "same",
             "strides": 1,
         }
