@@ -16,6 +16,25 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
+:img-top: examples/base/img/uml.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Overview  of the class structure in aeon.
+
++++
+
+```{button-ref} /examples/base/base_classes.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Base class structure
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/forecasting/img/forecasting.png
 :class-img-top: aeon-card-image
 :text-align: center
