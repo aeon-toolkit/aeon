@@ -15,6 +15,8 @@ from aeon.datasets.dataset_collections import (
     list_downloaded_tsc_tsr_datasets,
     list_downloaded_tsf_datasets,
 )
+from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
+from aeon.utils.validation.collection import convert_collection
 
 __all__ = [  # Load functions
     "load_from_tsfile",
@@ -26,7 +28,6 @@ __all__ = [  # Load functions
     "load_regression",
     "download_all_regression",
 ]
-from aeon.utils.validation.collection import convert_collection
 
 
 # Return appropriate return_type in case an alias was used
@@ -164,10 +165,15 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             data_series = single_channel.split(",")
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
+                equal_length = meta_data["equallength"]
                 raise IOError(
-                    f"Unequal length series, in case {n_cases} meta "
-                    f"data specifies all equal {series_length} but saw "
-                    f"{len(single_channel)}"
+                    f"channel {i} in case {n_cases} has a different number of "
+                    f"observations to the other channels. "
+                    f"Saw {current_length} in the first channel but"
+                    f" {len(data_series)} in the channel {i}. The meta data "
+                    f"specifies equal length == {equal_length}. But even if series "
+                    f"length are unequal, all channels for a single case must be the "
+                    f"same length"
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)
@@ -663,6 +669,17 @@ def load_tsf_to_dataframe(
             loaded_data = _convert_tsf_to_hierarchical(
                 loaded_data, metadata, value_column_name=value_column_name
             )
+            if (
+                loaded_data.index.nlevels == 2
+                and return_type not in MTYPE_LIST_HIERARCHICAL
+            ):
+                loaded_data = convert(
+                    loaded_data, from_type="pd-multiindex", to_type=return_type
+                )
+            else:
+                loaded_data = convert(
+                    loaded_data, from_type="pd_multiindex_hier", to_type=return_type
+                )
         return loaded_data, metadata
 
 
