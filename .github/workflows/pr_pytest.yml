@@ -120,7 +120,7 @@ jobs:
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
-      NUMBA_CPU_FEATURES: +64bit
+      NUMBA_CPU_FEATURES: +64bit,+adx,+aes,+avx,-avx512bf16,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-clflushopt,-clwb,+cmov,+cx16,+cx8,-enqcmd,+f16c,-fma4,+fsgsbase,+fxsr,-gfni,+invpcid,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-mwaitx,-pconfig,+popcnt,-prefetchwt1,+prfchw,-ptwrite,-rdpid,+rdseed,+sahf,-sgx,-sha,-shstk,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop,+xsave,-xsavec,+xsaveopt,-xsaves
       CICD_RUNNING: 1
 
     steps:
@@ -152,8 +152,8 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-#        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
-        run: python -m pytest aeon/distances/tests/
+        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+#        run: python -m pytest aeon/distances/tests/
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
