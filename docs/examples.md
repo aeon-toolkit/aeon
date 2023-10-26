@@ -1,5 +1,21 @@
 # Examples
 
+## Base classes
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: /examples/base/img/uml.png
+:class-img-top: aeon-card-image-m
+:link: /examples/base/base_classes.ipynb
+:link-type: ref
+:text-align: center
+
+Overview of base class structure of aeon
+
+:::
+
 ## Forecasting
 
 ::::{grid} 2 4 4 4
