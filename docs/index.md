@@ -20,7 +20,7 @@ comparison.
 :class-img-top: aeon-card-image
 :text-align: center
 
-Overview  of the class structure in aeon.
+Overview of the class structure in aeon.
 
 +++
 
