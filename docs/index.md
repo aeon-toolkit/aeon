@@ -16,7 +16,7 @@ comparison.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/base/img/uml.png
+:img-top: examples/base/img/uml1.png
 :class-img-top: aeon-card-image
 :text-align: center
 
