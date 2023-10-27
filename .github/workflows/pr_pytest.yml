@@ -114,8 +114,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-        python-version: [ "3.8" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+#        python-version: [ "3.8" ]
 
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
