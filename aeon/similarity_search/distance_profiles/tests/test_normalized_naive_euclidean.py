@@ -1,8 +1,6 @@
-"""
-Created on Sun Sep 10 12:21:00 2023
+"""Tests for naive normalized Euclidean distance profile."""
 
-@author: antoi
-"""
+__author__ = ["baraline"]
 
 import numpy as np
 import pytest

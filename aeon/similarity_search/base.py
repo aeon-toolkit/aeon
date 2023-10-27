@@ -17,7 +17,8 @@ from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
 class BaseSimiliaritySearch(BaseEstimator, ABC):
-    """BaseSimilaritySearch.
+    """
+    BaseSimilaritySearch.
 
     Parameters
     ----------
@@ -223,7 +224,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
 # Dictionary structure :
 #     1st lvl key : distance function used
-#         2nd lvl key : boolean indicating wheter distance is normalized
+#         2nd lvl key : boolean indicating whether distance is normalized
 DISTANCE_PROFILE_DICT = {
     "euclidean": {
         True: normalized_naive_euclidean_profile,

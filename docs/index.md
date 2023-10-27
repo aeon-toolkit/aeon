@@ -165,6 +165,8 @@ Annotation
 Annotation
 ```
 
+:::
+
 :::{grid-item-card}
 :img-top: examples/similarity_search/img/sim_search.png
 :class-img-top: aeon-card-image

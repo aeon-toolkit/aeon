@@ -20,6 +20,27 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
     store_distance_profile : bool, default = =False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
+
+    Attributes
+    ----------
+    _X : array, shape (n_instances, n_channels, n_timestamps)
+        The input time series stored during the fit method.
+    distance_profile_function : function
+        The function used to compute the distance profile affected
+        during the fit method based on the distance and normalize
+        parameters.
+
+    Examples
+    --------
+    >>> from aeon.similarity_search._dummy import DummySimilaritySearch
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> clf = DummySimilaritySearch()
+    >>> clf.fit(X_train, y_train)
+    DummySimilaritySearch(...)
+    >>> q = X_test[0, :, 5:15]
+    >>> y_pred = clf.predict(q)
     """
 
     def __init__(

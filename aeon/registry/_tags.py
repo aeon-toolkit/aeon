@@ -220,6 +220,7 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "regressor",
             "transformer",
+            "similarity-search",
         ],
         "bool",
         "can the estimator classify time series with 2 or more variables?",
