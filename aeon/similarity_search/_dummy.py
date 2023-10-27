@@ -1,20 +1,18 @@
-"""TopKSimilaritySearch."""
+"""Dummy similarity seach estimator."""
 
 __author__ = ["baraline"]
+__all__ = ["DummySimilaritySearch"]
+
 
 from aeon.similarity_search.base import BaseSimiliaritySearch
 
 
-class TopKSimilaritySearch(BaseSimiliaritySearch):
+class DummySimilaritySearch(BaseSimiliaritySearch):
     """
-    Top-K similarity search method.
-
-    Finds the closest k series to the query series based on a distance function.
+    DummySimilaritySearch for testing of the BaseSimiliaritySearch class.
 
     Parameters
     ----------
-    k : int, default=1
-        The number of nearest matches from Q to return.
     distance : str, default ="euclidean"
         Name of the distance function to use.
     normalize : bool, default = False
@@ -22,34 +20,12 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     store_distance_profile : bool, default = =False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
-
-    Attributes
-    ----------
-    _X : array, shape (n_instances, n_channels, n_timestamps)
-        The input time series stored during the fit method.
-    distance_profile_function : function
-        The function used to compute the distance profile affected
-        during the fit method based on the distance and normalize
-        parameters.
-
-    Examples
-    --------
-    >>> from aeon.similarity_search import TopKSimilaritySearch
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = TopKSimilaritySearch(k=1)
-    >>> clf.fit(X_train, y_train)
-    TopKSimilaritySearch(...)
-    >>> q = X_test[0, :, 5:15]
-    >>> y_pred = clf.predict(q)
     """
 
     def __init__(
-        self, k=1, distance="euclidean", normalize=False, store_distance_profile=False
+        self, distance="euclidean", normalize=False, store_distance_profile=False
     ):
-        self.k = k
-        super(TopKSimilaritySearch, self).__init__(
+        super(DummySimilaritySearch, self).__init__(
             distance=distance,
             normalize=normalize,
             store_distance_profile=store_distance_profile,
@@ -75,9 +51,9 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
     def _predict(self, q, mask):
         """
-        Private predict method for TopKSimilaritySearch.
+        Private predict method for DummySimilaritySearch.
 
-        It compute the distance profiles and return the top k matches
+        It compute the distance profiles and then returns the best match
 
         Parameters
         ----------
@@ -90,7 +66,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         Returns
         -------
         array
-            An array containing the indexes of the best k matches between q and _X.
+            An array containing the index of the best match between q and _X.
 
         """
         if self.normalize:
@@ -110,12 +86,8 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
             self._distance_profile = distance_profile
 
         # For now, deal with the multidimensional case as "dependent", so we sum.
-        distance_profile = distance_profile.sum(axis=1)
-
         search_size = distance_profile.shape[-1]
-        _argsort = distance_profile.argsort(axis=None)[: self.k]
+        distance_profile = distance_profile.sum(axis=1)
+        _id_best = distance_profile.argmin(axis=None)
 
-        return [
-            (_argsort[i] // search_size, _argsort[i] % search_size)
-            for i in range(self.k)
-        ]
+        return [(_id_best // search_size, _id_best % search_size)]

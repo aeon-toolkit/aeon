@@ -19,7 +19,7 @@ from aeon.utils.numba.general import sliding_mean_std_one_series
 class BaseSimiliaritySearch(BaseEstimator, ABC):
     """BaseSimilaritySearch.
 
-    Attributes
+    Parameters
     ----------
     distance : str, default ="euclidean"
         Name of the distance function to use.
@@ -28,6 +28,15 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     store_distance_profile : bool, default = False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
+
+    Attributes
+    ----------
+    _X : array, shape (n_instances, n_channels, n_timestamps)
+        The input time series stored during the fit method.
+    distance_profile_function : function
+        The function used to compute the distance profile affected
+        during the fit method based on the distance and normalize
+        parameters.
     """
 
     _tags = {
