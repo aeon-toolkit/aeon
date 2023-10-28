@@ -72,10 +72,10 @@ class MyForecaster(BaseForecaster):
         # behavioural tags: internal type
         # -------------------------------
         #
-        # y_inner_type, x_inner_type control which format X/y appears in
+        # y_inner_type, X_inner_type control which format X/y appears in
         # in the inner functions _fit, _predict, etc
         "y_inner_type": "pd.Series",
-        "x_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
@@ -143,7 +143,7 @@ class MyForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("x_inner_type")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
