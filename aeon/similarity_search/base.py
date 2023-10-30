@@ -18,15 +18,20 @@ from aeon.utils.numba.general import sliding_mean_std_one_series
 
 class BaseSimiliaritySearch(BaseEstimator, ABC):
     """
-    BaseSimilaritySearch.
+    Base class for similarity search.
+
+    This class is used as a base class for all similarity search classes in the aeon library.
+    It provides the basic functionality for similarity search, including the ability to fit
+    the model to the data, predict the similarity of a query to the data, and store the
+    computed distance profile.
 
     Parameters
     ----------
     distance : str, default ="euclidean"
-        Name of the distance function to use.
+        The name of the distance function to use. Options are "euclidean".
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = False.
+    store_distance_profile : bool, default = False
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
 
@@ -38,6 +43,16 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         The function used to compute the distance profile affected
         during the fit method based on the distance and normalize
         parameters.
+
+    Examples
+    --------
+    >>> from aeon.similarity_search import BaseSimiliaritySearch
+    >>> import numpy as np
+    >>> X = np.random.rand(10, 1, 100)
+    >>> model = BaseSimiliaritySearch(distance="euclidean", normalize=True)
+    >>> model.fit(X)
+    >>> q = np.random.rand(1, 50)
+    >>> model.predict(q)
     """
 
     _tags = {
