@@ -8,7 +8,7 @@
     Parameters
     ----------
     X: array shape (n_cases, n_channels, series_length)
-        The input samples.
+    The input samples.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
     mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
