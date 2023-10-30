@@ -15,6 +15,7 @@ Similarity search with a known query
     :toctree: auto_generated/
     :template: class.rst
 
+    BaseSimiliaritySearch
     TopKSimilaritySearch
 
 
