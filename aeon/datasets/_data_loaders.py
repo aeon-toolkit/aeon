@@ -15,6 +15,8 @@ from aeon.datasets.dataset_collections import (
     list_downloaded_tsc_tsr_datasets,
     list_downloaded_tsf_datasets,
 )
+from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
+from aeon.utils.validation.collection import convert_collection
 
 __all__ = [  # Load functions
     "load_from_tsfile",
@@ -26,7 +28,6 @@ __all__ = [  # Load functions
     "load_regression",
     "download_all_regression",
 ]
-from aeon.utils.validation.collection import convert_collection
 
 
 # Return appropriate return_type in case an alias was used
@@ -663,6 +664,17 @@ def load_tsf_to_dataframe(
             loaded_data = _convert_tsf_to_hierarchical(
                 loaded_data, metadata, value_column_name=value_column_name
             )
+            if (
+                loaded_data.index.nlevels == 2
+                and return_type not in MTYPE_LIST_HIERARCHICAL
+            ):
+                loaded_data = convert(
+                    loaded_data, from_type="pd-multiindex", to_type=return_type
+                )
+            else:
+                loaded_data = convert(
+                    loaded_data, from_type="pd_multiindex_hier", to_type=return_type
+                )
         return loaded_data, metadata
 
 
