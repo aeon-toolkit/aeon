@@ -165,10 +165,15 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             data_series = single_channel.split(",")
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
+                equal_length = meta_data["equallength"]
                 raise IOError(
-                    f"Unequal length series, in case {n_cases} meta "
-                    f"data specifies all equal {series_length} but saw "
-                    f"{len(single_channel)}"
+                    f"channel {i} in case {n_cases} has a different number of "
+                    f"observations to the other channels. "
+                    f"Saw {current_length} in the first channel but"
+                    f" {len(data_series)} in the channel {i}. The meta data "
+                    f"specifies equal length == {equal_length}. But even if series "
+                    f"length are unequal, all channels for a single case must be the "
+                    f"same length"
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)

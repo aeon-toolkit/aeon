@@ -78,7 +78,7 @@ class STRAY(BaseTransformer):
 
     _tags = {
         "capability:missing_values": True,
-        "X_inner_mtype": "np.ndarray",
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": False,
         "skip-inverse-transform": True,
     }

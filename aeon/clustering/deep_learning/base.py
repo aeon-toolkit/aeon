@@ -27,7 +27,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
         "non-deterministic": True,
@@ -101,13 +101,18 @@ class BaseDeepClusterer(BaseClusterer, ABC):
             The input time series.
         """
         if self.clustering_params is None:
-            clustering_params_ = dict(n_clusters=self.n_clusters)
+            clustering_params_ = dict()
         else:
             clustering_params_ = self.clustering_params
-            clustering_params_["n_clusters"] = self.n_clusters
+            # clustering_params_["n_clusters"] = self.n_clusters
 
         if self.clustering_algorithm == "kmeans":
-            self.clusterer = TimeSeriesKMeans(**clustering_params_)
+            if len(clustering_params_.keys()) == 0:
+                self.clusterer = TimeSeriesKMeans(n_clusters=self.n_clusters)
+            else:
+                self.clusterer = TimeSeriesKMeans(
+                    n_clusters=self.n_clusters, **clustering_params_
+                )
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 

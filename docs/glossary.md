@@ -93,6 +93,12 @@ Time series transformers
     See {term}`series-to-series transformation` and {term}`series-to-features
     transformation` for types of transformer.
 
+Time series similarity search
+    A task focused on finding the most similar candidates to a given
+    {term}`time series` of length `l`, called the query. The candidates are
+    extracted from a collection of {term}`time series` of length equal or
+    superior to `l`.
+
 Collection transformers
     {term}`Time series transformers` that take a {term}`time series collection` as
     input. While these transformers only accept collections, a wrapper is provided to
