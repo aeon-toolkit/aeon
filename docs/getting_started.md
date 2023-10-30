@@ -22,6 +22,8 @@ instance are used to predict a continuous target value.
 instances with similar time series.
 - {term}`Time series annotation` which is focused on outlier detection, anomaly
 detection, change point detection and segmentation.
+- {term}`Time series similarity search` where the goal is to evaluate the similarity
+between a time series against a collection of other time series.
 
 Additionally, it provides numerous algorithms for {term}`time series transformation`,
 altering time series into different representations and domains or processing
@@ -632,3 +634,44 @@ the available `scikit-learn` functionality.
 >>> gscv.best_params_
 {'distance': 'euclidean', 'n_neighbors': 5}
 ```
+
+## Time series similarity search
+
+The similarity search module in `aeon` offers a set of functions and estimators to solve
+tasks related to time series similarity search. The estimators can be used standalone
+or as parts of pipelines, while the functions give you to the tools to build your own
+estimators that would rely on similarity search at some point.
+
+The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
+class accept 3D collection of time series as input types. This collection asked for the
+fit method is stored as a database, which will be used in the predict method. The
+predict method expect a single 2D time series. All inputs are expected to be in numpy
+array format. Then length of the time series in the 3D collection should be superior or
+equal to the length of the 2D time series given in the predict method.
+
+Given those two inputs, the predict method should return the set of most similar
+candidates to the 2D series in the 3D collection. The following example shows how to use
+the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
+class to extract the best `k` matches, using the Euclidean distance as similarity
+function.
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.similarity_search import TopKSimilaritySearch
+>>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
+...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_samples, n_channels, n_timestamps)
+>>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
+>>> topk.fit(X)  # fit the estimator on train data
+...
+>>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
+>>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
+[(0, 3), (1, 2)]
+```
+The output of predict gives a list of size `k`, where each element is a set indicating
+the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
+to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
+
+Note that you can still use univariate time series as inputs, you will just have to
+convert them to multivariate time series with one feature prior to using the similarity
+search module.

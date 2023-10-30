@@ -168,6 +168,26 @@ Annotation
 :::
 
 :::{grid-item-card}
+:img-top: examples/similarity_search/img/sim_search.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+
+Similarity search
+
++++
+
+```{button-ref} /examples/similarity_search/similarity_search.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Similarity search
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/datasets/img/data.png
 :class-img-top: aeon-card-image
 :text-align: center

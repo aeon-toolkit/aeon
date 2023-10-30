@@ -14,14 +14,3 @@ docs:
   sphinx: ["https://www.sphinx-doc.org/en/master/", "We use sphinx to generate our documentation."]
   myst: ["https://myst-parser.readthedocs.io/en/stable/", "We use myst to write our documentation in markdown."]
   pytest: ["https://docs.pytest.org/en/stable/", "We use pytest for unit testing."]
-
-sandbox:
-  install:
-    - pre-commit install
-  check:
-    - pre-commit run --files {file_path}
-
-rules:
-  - "Any clearly inefficient or redundant code can be optimized or refactored. Any improvements should not change the functionality of the code."
-  - "All public classes and functions except test functions should have a `numpydoc` style docstring. This should include a description of the class or function, the parameters, the class attributes or function return values, and a usage example for the class or function."
-  - "Update the relevant API page in `docs/api_reference/` when new public functions and classes are added and not included in the API documentation. For example, if a new function is added to `aeon/distances/`, a `sphinx.ext.autosummary` link should also be added to `docs/api_reference/distances.rst`. New sections in the page should not be created for individual functions and classes, add it to the most relevant existing one. Only add functions and classes which are not already in the relevant API page and avoid duplicate entries."

@@ -16,6 +16,7 @@ from aeon.datasets.dataset_collections import (
     list_downloaded_tsf_datasets,
 )
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
+from aeon.utils.validation.collection import convert_collection
 
 __all__ = [  # Load functions
     "load_from_tsfile",
@@ -164,10 +165,15 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             data_series = single_channel.split(",")
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
+                equal_length = meta_data["equallength"]
                 raise IOError(
-                    f"Unequal length series, in case {n_cases} meta "
-                    f"data specifies all equal {series_length} but saw "
-                    f"{len(single_channel)}"
+                    f"channel {i} in case {n_cases} has a different number of "
+                    f"observations to the other channels. "
+                    f"Saw {current_length} in the first channel but"
+                    f" {len(data_series)} in the channel {i}. The meta data "
+                    f"specifies equal length == {equal_length}. But even if series "
+                    f"length are unequal, all channels for a single case must be the "
+                    f"same length"
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)
@@ -311,36 +317,20 @@ def _load_saved_dataset(
         y = np.concatenate([y_train, y_test])
     else:
         raise ValueError("Invalid `split` value =", split)
-
-    # All this is to allow for the user to configure to load into different data
-    # structures. Its all for backward compatibility.
-    if isinstance(X, list):
-        loaded_type = "np-list"
-    elif isinstance(X, np.ndarray):
-        loaded_type = "numpy3D"
-
-    if return_type == "nested_univ":
-        X = convert(X, from_type="np-list", to_type="nested_univ")
-        loaded_type = "nested_univ"
-    elif meta_data["equallength"]:
-        if return_type == "numpyflat" and X.shape[1] == 1:
-            X = X.squeeze()
-            loaded_type = "numpyflat"
-    elif return_type is not None and loaded_type != return_type:
-        X = convert(X, from_type=loaded_type, to_type=return_type)
+    if return_type is not None:
+        X = convert_collection(X, return_type)
 
     if return_X_y:
         if return_meta:
             return X, y, meta_data
         else:
             return X, y
-    else:  # TODO: do this better, do we want it all in dataframes?
-        X = convert(X, from_type=loaded_type, to_type="nested_univ")
-        X["class_val"] = pd.Series(y)
+    else:
+        combo = (X, y)
         if return_meta:
-            return X, meta_data
+            return combo, meta_data
         else:
-            return X
+            return combo
 
 
 def _download_and_extract(url, extract_path=None):
@@ -690,7 +680,6 @@ def load_tsf_to_dataframe(
                 loaded_data = convert(
                     loaded_data, from_type="pd_multiindex_hier", to_type=return_type
                 )
-
         return loaded_data, metadata
 
 
