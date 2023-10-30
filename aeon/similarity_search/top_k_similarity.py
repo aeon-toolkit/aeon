@@ -9,17 +9,18 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     """
     Top-K similarity search method.
 
-    Finds the closest k series to the query series based on a distance function.
+    This class implements the Top-K similarity search method, which finds the closest k series 
+    to the query series based on a distance function.
 
     Parameters
     ----------
     k : int, default=1
         The number of nearest matches from Q to return.
     distance : str, default ="euclidean"
-        Name of the distance function to use.
+        The name of the distance function to use. Options are "euclidean".
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = =False.
+    store_distance_profile : bool, default = False
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
 
@@ -35,14 +36,12 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     Examples
     --------
     >>> from aeon.similarity_search import TopKSimilaritySearch
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = TopKSimilaritySearch(k=1)
-    >>> clf.fit(X_train, y_train)
-    TopKSimilaritySearch(...)
-    >>> q = X_test[0, :, 5:15]
-    >>> y_pred = clf.predict(q)
+    >>> import numpy as np
+    >>> X = np.random.rand(10, 1, 100)
+    >>> model = TopKSimilaritySearch(k=1, distance="euclidean", normalize=True)
+    >>> model.fit(X)
+    >>> q = np.random.rand(1, 50)
+    >>> model.predict(q)
     """
 
     def __init__(
@@ -76,6 +75,9 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     def _predict(self, q, mask):
         """
         Private predict method for TopKSimilaritySearch.
+        
+        This method computes the distance profiles and returns the top k matches.
+        It is called internally by the public predict method.
 
         It compute the distance profiles and return the top k matches
 
