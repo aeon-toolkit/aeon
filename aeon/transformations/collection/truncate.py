@@ -35,7 +35,7 @@ class TruncationTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,

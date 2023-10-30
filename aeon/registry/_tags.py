@@ -82,18 +82,6 @@ ESTIMATOR_TAG_REGISTER = [
         "flag for estimators which are unable to be pickled",
     ),
     (
-        "non-deterministic",
-        "estimator",
-        "bool",
-        "does running the estimator multiple times generate the same output?",
-    ),
-    (
-        "cant-pickle",
-        "estimator",
-        "bool",
-        "flag for estimators which are unable to be pickled",
-    ),
-    (
         "skip-inverse-transform",
         "transformer",
         "bool",
@@ -141,7 +129,7 @@ ESTIMATOR_TAG_REGISTER = [
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "X_inner_mtype",
+        "X_inner_type",
         ["forecaster"],
         (
             "list",
