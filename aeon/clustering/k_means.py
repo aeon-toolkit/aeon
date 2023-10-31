@@ -70,7 +70,7 @@ class TimeSeriesKMeans(BaseClusterer):
         Verbosity mode.
     random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    averaging_method : str or Callable, default='mean'
+    averaging_method : str or Callable, default='ba'
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
