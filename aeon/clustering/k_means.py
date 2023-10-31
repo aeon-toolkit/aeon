@@ -77,8 +77,9 @@ class TimeSeriesKMeans(BaseClusterer):
         If you specify 'ba' then by default the distance measure used will be the same
         as the distance measure used for clustering. If you wish to use a different
         distance measure you can specify it by passing {"distance": "dtw"} as
-        averaging_params. BA is very computationally expensive so you may want to
-        consider setting a bounding window or using a different averaging method.
+        averaging_params. BA yields 'better' clustering results but is very
+        computationally expensive so you may want to consider setting a bounding window
+        or using a different averaging method if time complexity is a concern.
     average_params : dict, default=None
         Dictionary containing kwargs for averaging_method. See documentation of
         aeon.clustering.averaging and aeon.distances for more details. NOTE: if you
