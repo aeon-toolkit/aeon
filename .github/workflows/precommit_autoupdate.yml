@@ -1,10 +1,13 @@
 name: Update pre-commit Hooks
 
 on:
-  schedule:
-    # every Monday at 12:30 AM UTC
-    - cron:  "30 0 * * 1"
-  workflow_dispatch:
+#  schedule:
+#    # every Monday at 12:30 AM UTC
+#    - cron:  "30 0 * * 1"
+#  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   pre-commit-auto-update:
@@ -20,16 +23,16 @@ jobs:
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
       - if: always()
-        uses: tibdex/github-app-token@v1
-        id: generate-token
+        uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          app_id: ${{ secrets.PR_APP_ID }}
-          private_key: ${{ secrets.PR_APP_KEY }}
+          app-id: ${{ secrets.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
 
       - if: always()
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ steps.generate-token.outputs.token }}
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `pre-commit` hook update"
           branch: pre-commit-hooks-update
           title: "[MNT] Automated `pre-commit` hook update"
