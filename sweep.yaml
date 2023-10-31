@@ -14,3 +14,11 @@ docs:
   sphinx: ["https://www.sphinx-doc.org/en/master/", "We use sphinx to generate our documentation."]
   myst: ["https://myst-parser.readthedocs.io/en/stable/", "We use myst to write our documentation in markdown."]
   pytest: ["https://docs.pytest.org/en/stable/", "We use pytest for unit testing."]
+
+sandbox:
+  install:
+    - pre-commit install
+  check:
+    - git add . && pre-commit run --files {file_path} || exit 0
+
+rules: []
