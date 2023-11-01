@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tempfile
 import urllib
@@ -65,6 +66,7 @@ def _load_header_info(file):
     boolean_keys = ["timestamps", "missing", "univariate", "equallength", "targetlabel"]
     for line in file:
         line = line.strip().lower()
+        line = re.sub(r"\s+", " ", line)
         if line and not line.startswith("#"):
             tokens = line.split(" ")
             token_len = len(tokens)
