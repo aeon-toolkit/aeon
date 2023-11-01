@@ -337,7 +337,12 @@ class AEFCNClusterer(BaseDeepClusterer):
             "n_layers": 1,
             "padding": "same",
             "strides": 1,
-            "clustering_params": {"distance": "euclidean"},
+            "clustering_params": {
+                "distance": "euclidean",
+                "averaging_method": "mean",
+                "n_init": 1,
+                "max_iter": 30,
+            },
         }
 
         test_params = [param1]
