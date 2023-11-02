@@ -11,6 +11,8 @@ from github import Github
 
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
+print(context_dict)  # noqa
+
 repo = context_dict["repository"]
 g = Github(context_dict["token"])
 repo = g.get_repo(repo)
