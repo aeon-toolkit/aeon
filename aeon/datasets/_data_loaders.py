@@ -103,7 +103,7 @@ def _load_header_info(file):
     return meta_data
 
 
-def _get_channel_strings(line, target):
+def _get_channel_strings(line, target, missing):
     """Split a string with timestamps into separate csv strings."""
     channel_strings = re.sub(r"\s", "", line)
     channel_strings = channel_strings.split("):")
@@ -112,7 +112,7 @@ def _get_channel_strings(line, target):
         c = c - 1
     for i in range(c):
         channel_strings[i] = channel_strings[i] + ")"
-        numbers = re.findall(r"\d+\.\d+|NaN", channel_strings[i])
+        numbers = re.findall(r"\d+\.\d+|" + missing, channel_strings[i])
         channel_strings[i] = ",".join(numbers)
     return channel_strings
 
@@ -154,7 +154,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         line = line.replace("nan", replace_missing_vals_with)
         line = line.replace("?", replace_missing_vals_with)
         if meta_data["timestamps"]:
-            channels = _get_channel_strings(line, target)
+            channels = _get_channel_strings(line, target, replace_missing_vals_with)
         else:
             channels = line.split(":")
         n_cases += 1
