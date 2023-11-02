@@ -95,11 +95,6 @@ def test_basic_load_tsf_to_dataframe():
     assert metadata["contain_equal_length"] is False
 
 
-def test__convert_tsf_to_hierarchical():
-    full_path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    df, metadata = load_tsf_to_dataframe(full_path)
-
-
 def test_load_solar():
     solar = load_solar(api_version=None)
     assert type(solar) == pd.Series
