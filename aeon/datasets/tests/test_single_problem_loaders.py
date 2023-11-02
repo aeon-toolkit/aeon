@@ -1,4 +1,6 @@
 """Test single problem loaders with varying return types."""
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -13,6 +15,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_osuleaf,
     load_plaid,
     load_solar,
+    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
@@ -31,6 +34,9 @@ UNEQUAL_LENGTH_PROBLEMS = [
     load_plaid,
     load_japanese_vowels,
 ]
+
+DIRNAME = "data"
+MODULE = os.path.dirname("..\\datasets")
 
 
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
@@ -75,6 +81,23 @@ def test_load_unit_test_tsf():
     assert tuple[2] == 4
     assert not tuple[3]
     assert not tuple[4]
+
+
+def test_basic_load_tsf_to_dataframe():
+    """Simple loader test."""
+
+    full_path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    df, metadata = load_tsf_to_dataframe(full_path)
+    assert isinstance(df, pd.DataFrame)
+    assert metadata["frequency"] == "yearly"
+    assert metadata["forecast_horizon"] == 4
+    assert metadata["contain_missing_values"] is False
+    assert metadata["contain_equal_length"] is False
+
+
+def test__convert_tsf_to_hierarchical():
+    full_path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    df, metadata = load_tsf_to_dataframe(full_path)
 
 
 def test_load_solar():
