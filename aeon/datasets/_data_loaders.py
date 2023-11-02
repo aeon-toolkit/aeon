@@ -103,6 +103,20 @@ def _load_header_info(file):
     return meta_data
 
 
+def _get_channel_strings(line, target):
+    """Split a string with timestamps into separate csv strings."""
+    channel_strings = re.sub(r"\s", "", line)
+    channel_strings = channel_strings.split("):")
+    c = len(channel_strings)
+    if target:
+        c = c - 1
+    for i in range(c):
+        channel_strings[i] = channel_strings[i] + ")"
+        numbers = re.findall(r"\d+\.\d+|NaN", channel_strings[i])
+        channel_strings[i] = ",".join(numbers)
+    return channel_strings
+
+
 def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     """Load data from a file with no header.
 
@@ -133,13 +147,19 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     current_channels = 0
     series_length = 0
     y_values = []
+    if meta_data["classlabel"] or meta_data["targetlabel"]:
+        target = True
     for line in file:
         line = line.strip().lower()
+        line = line.replace("nan", replace_missing_vals_with)
         line = line.replace("?", replace_missing_vals_with)
-        channels = line.split(":")
+        if meta_data["timestamps"]:
+            channels = _get_channel_strings(line, target)
+        else:
+            channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             current_channels -= 1
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
@@ -1129,7 +1149,27 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
 
 def load_regression(name, split=None, extract_path=None, return_metadata=True):
-    """Download/load forecasting problem from https://forecastingdata.org/.
+    """Download/load regression problem from http://tseregression.org/.
+
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from http://tseregression.org/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tser_lists.py``.  This function can load timestamped data, but it does
+    not store the time stamps. The time stamp loading is fragile, it will only work
+    if all data are floats.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
+    is an example of a univariate equal length problem, BasicMotions an equal length
+    multivariate problem.
+
 
     Parameters
     ----------
@@ -1226,18 +1266,24 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
 def load_classification(name, split=None, extract_path=None, return_metadata=True):
     """Load a classification dataset.
 
-    Loads a TSC dataset from extract_path, or from timeseriesclassification.com,
-    if not on extract path.
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from https://timeseriesclassification.com/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tsc_lists.py``.  This function can load timestamped data, but it does
+    not store the time stamps. The time stamp loading is fragile, it will only work
+    if all data are floats.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series.
-    Each dimension is separated by a colon, each value in a series is comma
-    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
-    a univariate equal length problem, BasicMotions an equal length multivariate
-    problem.
-
-    Data is stored in extract_path/name/name.ts, extract_path/name/name_TRAIN.ts and
-    extract_path/name/name_TEST.ts.
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
+    is an example of a univariate equal length problem, BasicMotions an equal length
+    multivariate problem.
 
     Parameters
     ----------
