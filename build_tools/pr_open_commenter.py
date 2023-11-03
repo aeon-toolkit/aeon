@@ -12,16 +12,16 @@ from github import Github
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(context_dict["token"])
+g = Github(sys.argv[1])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 
-print(sys.argv)  # noqa
-title_labels = sys.argv[1][1:-1].split(",")
-title_labels_new = sys.argv[2][1:-1].split(",")
-content_labels = sys.argv[3][1:-1].split(",")
-content_labels_status = sys.argv[4]
+print(sys.argv[2:])  # noqa
+title_labels = sys.argv[2][1:-1].split(",")
+title_labels_new = sys.argv[3][1:-1].split(",")
+content_labels = sys.argv[4][1:-1].split(",")
+content_labels_status = sys.argv[5]
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
