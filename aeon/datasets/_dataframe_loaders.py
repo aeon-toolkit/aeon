@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets._data_generators import _convert_tsf_to_hierarchical
+from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 from aeon.datatypes._panel._convert import from_long_to_nested
 
 DIRNAME = "data"
@@ -994,4 +995,16 @@ def load_tsf_to_dataframe(
             loaded_data = _convert_tsf_to_hierarchical(
                 loaded_data, metadata, value_column_name=value_column_name
             )
+            if (
+                loaded_data.index.nlevels == 2
+                and return_type not in MTYPE_LIST_HIERARCHICAL
+            ):
+                loaded_data = convert(
+                    loaded_data, from_type="pd-multiindex", to_type=return_type
+                )
+            else:
+                loaded_data = convert(
+                    loaded_data, from_type="pd_multiindex_hier", to_type=return_type
+                )
+
         return loaded_data, metadata
