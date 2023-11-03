@@ -75,10 +75,18 @@ jobs:
 
       - if: runner.os == 'Windows'
         name: Windows install
-        run: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
       - if: runner.os != 'Windows'
         name: Unix install
-        run: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
       - name: Tests
         run: python -m pytest
