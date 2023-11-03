@@ -23,23 +23,3 @@ tser_all = {
     "NewsTitleSentiment": 3902726,
     "Covid3Month": 3902690,
 }
-tser_all_tsc = {
-    "AppliancesEnergy" "HouseholdPowerConsumption1-no-missing",
-    "HouseholdPowerConsumption2-no-missing",
-    "BenzeneConcentration-no-missing",
-    "BeijingPM25Quality-no-missing",
-    "BeijingPM10Quality-no-missing",
-    "LiveFuelMoistureContent",
-    "FloodModeling1",
-    "FloodModeling2",
-    "FloodModeling3",
-    "AustraliaRainfall",
-    "PPGDalia-equal-length",
-    "IEEEPPG",
-    #   "BIDMCRR": 4001463, Not found
-    #    "BIDMCHR": 4001456, Not found
-    #    "BIDMCSpO2": 4001464, Not found
-    "NewsHeadlineSentiment",
-    "NewsTitleSentiment",
-    "Covid3Month",
-}
