@@ -123,6 +123,7 @@ def get_estimator_results(
     task="classification",
     type="accuracy",
     path="https://timeseriesclassification.com/results/ReferenceResults",
+    suffix="_TESTFOLDS.csv",
 ):
     """Look for results for given estimators for a list of datasets.
 
@@ -166,7 +167,6 @@ def get_estimator_results(
         raise ValueError(f"Error in get_estimator_results, {task} is not a valid task")
 
     path = f"{path}/{task}/{type}/"
-    suffix = "_TESTFOLDS.csv"
     all_results = {}
     for cls in estimators:
         alias_cls = estimator_alias(cls)
@@ -270,3 +270,60 @@ def get_estimator_results_as_array(
         return np.array(all_res)
     else:
         return np.array(all_res), names
+
+
+def get_bake_off_2017_results(default_only=True, estimators=None):
+    path = (
+        "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/",
+    )
+    if estimators is None:
+        estimators = [
+            "ACF",
+            "BOSS",
+            "BoP",
+            "CID_DTW",
+            "CID_ED",
+            "COTE",
+            "DDTW_R1_1NN",
+            "DDTW_Rn_1NN",
+            "EE",
+            "ERP_1NN",
+            "Euclidean_1NN",
+            "FS",
+            "LCSS_1NN",
+            "LPS",
+            "LS",
+            "MSM_1NN",
+            "PS",
+            "RotF",
+            "SAXVSM",
+            "ST",
+            "TSBF",
+            "TSF",
+            "TWE_1NN",
+            "WDDTW_1NN",
+            "EDTW_1NN",
+        ]
+    datasets = []
+    all_results = {}
+    for cls in estimators:
+        url = path + cls + ".csv"
+        try:
+            data = pd.read_csv(url)
+        except Exception:
+            raise ValueError(
+                f"Cannot connect to {url} website down or results not present"
+            )
+        cls_results = {}
+        problems = data.iloc[:, 0].tolist()
+        results = data.iloc[:, 1:].to_numpy()
+        p = list(problems)
+        for problem in datasets:
+            if problem in p:
+                pos = p.index(problem)
+                if default_only:
+                    cls_results[problem] = results[pos][0]
+                else:
+                    cls_results[problem] = results[pos]
+        all_results[cls] = cls_results
+    return all_results
