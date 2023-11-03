@@ -8,7 +8,12 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_from_tsfile, write_to_tsfile
-from aeon.datasets._data_writers import _write_dataframe_to_tsfile
+from aeon.datasets._data_writers import (
+    _write_data_to_tsfile,
+    _write_dataframe_to_tsfile,
+    _write_header,
+    write_results_to_uea_format,
+)
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.utils._testing.collection import (
     make_3d_test_data,
@@ -101,3 +106,73 @@ def test_write_dataframe_to_ts(tsfile_writer):
         pd.testing.assert_frame_equal(newX, X)
         y2 = pd.Series(y)
         pd.testing.assert_series_equal(y, y2)
+
+
+def test_write_data_to_tsfile():
+    with pytest.raises(TypeError, match="Wrong input data type"):
+        write_to_tsfile("A string", "path")
+    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
+        _write_data_to_tsfile("AFC", "49", "undefeated")
+    X, _ = make_3d_test_data(n_cases=6, n_timepoints=10, n_channels=1)
+    y = np.ndarray([0, 1, 1, 0, 1])
+    with pytest.raises(
+        IndexError,
+        match="The number of cases in X does not match the number of values in y",
+    ):
+        _write_data_to_tsfile(X, "temp", "temp", y=y)
+
+
+def test_write_results_to_uea_format():
+    with tempfile.TemporaryDirectory() as tmp:
+        y_true = np.array([0, 1, 1, 0, 0])
+        y_pred = np.array([0, 1, 1, 0])
+        with pytest.raises(
+            IndexError, match="The number of predicted values is not the same"
+        ):
+            write_results_to_uea_format(
+                "HC", "Testy", y_pred=y_pred, y_true=y_true, output_path=tmp
+            )
+        y_true = np.array([0, 1, 1, 0])
+        write_results_to_uea_format(
+            "HC",
+            "Testy",
+            y_pred=y_pred,
+            output_path=tmp,
+            full_path=False,
+            split="TEST",
+            timing_type="seconds",
+            first_line_comment="Hello",
+        )
+
+        probs = [[0.0, 1.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0]]
+        write_results_to_uea_format(
+            "HC",
+            "Testy2",
+            y_pred=y_pred,
+            y_true=y_true,
+            output_path=tmp,
+            full_path=False,
+            split="TEST",
+            timing_type="seconds",
+            first_line_comment="Hello",
+            predicted_probs=probs,
+        )
+
+
+def test__write_header():
+    with tempfile.TemporaryDirectory() as tmp:
+        problem_name = "header.csv"
+        with pytest.raises(
+            ValueError, match="Cannot have class_labels true for a regression problem"
+        ):
+            _write_header(tmp, problem_name, class_labels=True, regression=True)
+    with pytest.raises(ValueError, match="Error trying to access"):
+        _write_header(path="?!-@", problem_name=problem_name)
+    _write_header(
+        tmp,
+        problem_name,
+        suffix="_TRAIN",
+        extension=".csv",
+        comment="Hello",
+        regression=True,
+    )
