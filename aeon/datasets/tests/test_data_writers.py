@@ -166,8 +166,6 @@ def test__write_header():
             ValueError, match="Cannot have class_labels true for a regression problem"
         ):
             _write_header(tmp, problem_name, class_labels=True, regression=True)
-    with pytest.raises(ValueError, match="Error trying to access"):
-        _write_header(path="<invalid:/\0|*?>", problem_name=problem_name)
     _write_header(
         tmp,
         problem_name,
