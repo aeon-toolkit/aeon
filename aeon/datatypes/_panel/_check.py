@@ -1,8 +1,10 @@
-"""Type checkers for Collections type.
+"""Machine type checkers for Series scitype.
+
+Exports checkers for Series scitype:
 
 check_dict: dict indexed by pairs of str
-  1st element = data type - str
-  2nd element = abstract type - str
+  1st element = mtype - str
+  2nd element = scitype - str
 elements are checker/validation functions for mtype
 
 Function signature of all elements
@@ -83,7 +85,7 @@ def _list_all_equal(obj):
 check_dict = dict()
 
 
-def check_dflist_collection(obj, return_metadata=False, var_name="obj"):
+def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
     if not isinstance(obj, list):
         msg = f"{var_name} must be list of pd.DataFrame, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -120,7 +122,7 @@ def check_dflist_collection(obj, return_metadata=False, var_name="obj"):
     return _ret(True, None, metadata, return_metadata)
 
 
-check_dict[("df-list", "Panel")] = check_dflist_collection
+check_dict[("df-list", "Panel")] = check_dflist_panel
 
 
 def _has_nans(arr):
@@ -131,7 +133,7 @@ def _has_nans(arr):
     return False
 
 
-def check_nplist_collection(np_list, return_metadata=False, var_name="np_list"):
+def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
     if not isinstance(np_list, list):
         msg = f"{var_name} must be list of np.ndarray, found {type(np_list)}"
         return _ret(False, msg, None, return_metadata)
@@ -165,10 +167,10 @@ def check_nplist_collection(np_list, return_metadata=False, var_name="np_list"):
     return True, None
 
 
-check_dict[("np-list", "Panel")] = check_nplist_collection
+check_dict[("np-list", "Panel")] = check_nplist_panel
 
 
-def check_numpy3d_collection(obj, return_metadata=False, var_name="obj"):
+def check_numpy3d_panel(obj, return_metadata=False, var_name="obj"):
     if not isinstance(obj, np.ndarray):
         msg = f"{var_name} must be a numpy.ndarray, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -197,12 +199,10 @@ def check_numpy3d_collection(obj, return_metadata=False, var_name="obj"):
     return _ret(True, None, metadata, return_metadata)
 
 
-check_dict[("numpy3D", "Panel")] = check_numpy3d_collection
+check_dict[("numpy3D", "Panel")] = check_numpy3d_panel
 
 
-def check_pdmultiindex_collection(
-    obj, return_metadata=False, var_name="obj", panel=True
-):
+def check_pdmultiindex_panel(obj, return_metadata=False, var_name="obj", panel=True):
     if not isinstance(obj, pd.DataFrame):
         msg = f"{var_name} must be a pd.DataFrame, found {type(obj)}"
         return _ret(False, msg, None, return_metadata)
@@ -295,7 +295,7 @@ def check_pdmultiindex_collection(
     return _ret(True, None, metadata, return_metadata)
 
 
-check_dict[("pd-multiindex", "Panel")] = check_pdmultiindex_collection
+check_dict[("pd-multiindex", "Panel")] = check_pdmultiindex_panel
 
 
 def _cell_is_series(cell):
