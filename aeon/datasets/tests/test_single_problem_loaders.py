@@ -19,6 +19,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_unit_test,
     load_unit_test_tsf,
 )
+from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -34,9 +35,6 @@ UNEQUAL_LENGTH_PROBLEMS = [
     load_plaid,
     load_japanese_vowels,
 ]
-
-DIRNAME = "data"
-MODULE = os.path.dirname("..\\datasets")
 
 
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
@@ -86,7 +84,7 @@ def test_load_unit_test_tsf():
 def test_basic_load_tsf_to_dataframe():
     """Simple loader test."""
 
-    full_path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
     df, metadata = load_tsf_to_dataframe(full_path)
     assert isinstance(df, pd.DataFrame)
     assert metadata["frequency"] == "yearly"
