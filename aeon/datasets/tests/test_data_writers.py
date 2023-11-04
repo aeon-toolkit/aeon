@@ -10,6 +10,7 @@ import pytest
 from aeon.datasets import load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import _write_dataframe_to_tsfile
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
+from aeon.tests.test_config import PR_TESTING
 from aeon.utils._testing.collection import (
     make_3d_test_data,
     make_nested_dataframe_data,
@@ -17,6 +18,10 @@ from aeon.utils._testing.collection import (
 )
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("regression", [True, False])
 @pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
 def test_write_to_tsfile_equal_length(regression, problem_name):
@@ -42,6 +47,10 @@ def test_write_to_tsfile_equal_length(regression, problem_name):
             np.testing.assert_array_almost_equal(y, newy)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
 def test_write_regression_to_tsfile_equal_length(problem_name):
     """Test function to write a regression dataset.
@@ -61,6 +70,10 @@ def test_write_regression_to_tsfile_equal_length(problem_name):
         assert np.array_equal(y, newy)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("problem_name", ["Testy", "Testy2.ts"])
 def test_write_to_tsfile_unequal_length(problem_name):
     """Test function to write a dataset.
@@ -80,6 +93,10 @@ def test_write_to_tsfile_unequal_length(problem_name):
         assert np.array_equal(y, newy)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("tsfile_writer", [_write_dataframe_to_tsfile, write_to_tsfile])
 def test_write_dataframe_to_ts(tsfile_writer):
     """Tests whether a dataset can be written by the .ts writer then read in."""

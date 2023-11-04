@@ -16,6 +16,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_unit_test,
     load_unit_test_tsf,
 )
+from aeon.tests.test_config import PR_TESTING
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -33,6 +34,10 @@ UNEQUAL_LENGTH_PROBLEMS = [
 ]
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
 def test_load_dataframe(loader):
     """Test unequal length baked in TSC problems load into List of numpy."""
@@ -46,6 +51,10 @@ def test_load_dataframe(loader):
     assert isinstance(X, tuple)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
 def test_load_numpy3d(loader):
     """Test equal length TSC problems load into numpy3d."""
@@ -56,6 +65,10 @@ def test_load_numpy3d(loader):
     assert y.ndim == 1
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
 def test_load_numpy2d_uni(loader):
     """Test equal length TSC problems load into numpy3d."""
@@ -66,6 +79,10 @@ def test_load_numpy2d_uni(loader):
     assert y.ndim == 1
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_unit_test_tsf():
     """Test load unit test tsf."""
     tuple = load_unit_test_tsf()
@@ -77,6 +94,10 @@ def test_load_unit_test_tsf():
     assert not tuple[4]
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_solar():
     solar = load_solar(api_version=None)
     assert type(solar) == pd.Series
@@ -90,6 +111,10 @@ def test_load_solar():
     assert solar.name == "solar_gen"
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_covid_3month():
     """Test load covid 3 month."""
     X, y = load_covid_3month()
