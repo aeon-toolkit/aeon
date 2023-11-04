@@ -152,7 +152,6 @@ class RDSTClassifier(BaseClassifier):
 
         self.n_instances_ = 0
         self.n_dims_ = 0
-        self.series_length_ = 0
         self.transformed_data_ = []
 
         self._transformer = None
@@ -180,7 +179,8 @@ class RDSTClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_instances_ = len(X)
+        self.n_dims_ = X[0].shape[0]
 
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,

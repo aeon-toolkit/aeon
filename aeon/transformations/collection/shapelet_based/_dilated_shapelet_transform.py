@@ -132,6 +132,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:unequal_length": True,
     }
 
     def __init__(
@@ -178,7 +179,11 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
-        self.n_instances, self.n_channels, self.series_length = X.shape
+        self.n_instances = len(X)
+        self.n_channels = X[0].shape[0]
+        self.min_series_length_fit = min(
+            [X[i].shape[1] for i in range(self.n_instances)]
+        )
 
         self._check_input_params()
 
@@ -194,7 +199,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
                 "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
-                "with input length = {}".format(self.series_length),
+                "with an input length = {}".format(self.min_series_length_fit),
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -257,7 +262,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
             self.shapelet_lengths_ = np.array(
-                [min(max(2, self.series_length // 2), 11)]
+                [min(max(2, self.min_series_length_fit // 2), 11)]
             )
         else:
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
@@ -277,14 +282,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     self.shapelet_lengths_ >= 2
                 ]
 
-            if not np.all(self.shapelet_lengths_ <= self.series_length):
+            if not np.all(self.shapelet_lengths_ <= self.min_series_length_fit):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
                     + "the series length. Shapelet lengths above it will be ignored.",
                     stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
-                    self.shapelet_lengths_ <= self.series_length
+                    self.shapelet_lengths_ <= self.min_series_length_fit
                 ]
 
             if len(self.shapelet_lengths_) == 0:
@@ -429,6 +434,7 @@ def _init_random_shapelet_params(
 def random_dilated_shapelet_extraction(
     X,
     y,
+    min_series_length_fit,
     max_shapelets,
     shapelet_lengths,
     proba_normalization,
@@ -492,8 +498,13 @@ def random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    n_instances, n_channels, series_length = X.shape
-
+    n_instances = len(X)
+    n_channels = X[0].shape[0]
+    series_lengths = np.zeros(n_instances, dtype=np.int64)
+    for i in range(n_instances):
+        series_lengths[i] = X[i].shape[1]
+    min_series_length = series_lengths.min()
+    max_series_length = series_lengths.max()
     # Fix the random seed
     set_numba_random_seed(seed)
 
@@ -512,7 +523,7 @@ def random_dilated_shapelet_extraction(
         proba_normalization,
         use_prime_dilations,
         n_channels,
-        series_length,
+        min_series_length,
     )
     # Get unique dilations to loop over
     unique_dil = np.unique(dilations)
@@ -521,7 +532,11 @@ def random_dilated_shapelet_extraction(
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
-        alpha_mask = np.ones((2, n_instances, series_length), dtype=np.bool_)
+        alpha_mask = np.ones((2, n_instances, max_series_length), dtype=np.bool_)
+        for i in range(n_instances):
+            # For the unequal length case, we scale the mask up and set to False
+            alpha_mask[:, i, series_lengths[i] :] = False
+
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
         # For each shapelet id with this dilation
@@ -530,7 +545,7 @@ def random_dilated_shapelet_extraction(
             dilation = dilations[i_shp]
             length = lengths[i_shp]
             norm = np.int32(normalize[i_shp])
-            dist_vect_shape = series_length - (length - 1) * dilation
+            dist_vect_shape = max_series_length - (length - 1) * dilation
 
             # Possible sampling points given self similarity mask
             current_mask = alpha_mask[norm, :, :dist_vect_shape]
@@ -648,7 +663,7 @@ def dilated_shapelet_transform(X, shapelets):
     """
     (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
     n_shapelets = len(lengths)
-    n_instances, n_channels, series_length = X.shape
+    n_instances = len(X)
     n_ft = 3
 
     # (u_l * u_d , 2)
