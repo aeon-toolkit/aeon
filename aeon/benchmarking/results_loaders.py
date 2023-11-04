@@ -275,15 +275,14 @@ def get_estimator_results_as_array(
 classifiers_2017 = [
     "ACF",
     "BOSS",
-    "BoP",
     "CID_DTW",
     "CID_ED",
-    "COTE",
     "DDTW_R1_1NN",
     "DDTW_Rn_1NN",
     "EE",
     "ERP_1NN",
     "Euclidean_1NN",
+    "FlatCOTE",
     "FS",
     "LCSS_1NN",
     "LPS",
@@ -297,36 +296,29 @@ classifiers_2017 = [
     "TSF",
     "TWE_1NN",
     "WDDTW_1NN",
-    "EDTW_1NN",
+    "WDTW_1NN",
 ]
 
 
 def get_bake_off_2017_results(default_only=True, estimators=None):
-    path = (
-        "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/",
-    )
+    path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/"
     if estimators is None:
         estimators = classifiers_2017
-    datasets = []
     all_results = {}
     for cls in estimators:
         url = path + cls + ".csv"
-        try:
-            data = pd.read_csv(url)
-        except Exception:
-            raise ValueError(
-                f"Cannot connect to {url} website down or results not present"
-            )
-        cls_results = {}
+        data = pd.read_csv(url, header=None)
         problems = data.iloc[:, 0].tolist()
         results = data.iloc[:, 1:].to_numpy()
-        p = list(problems)
-        for problem in datasets:
-            if problem in p:
-                pos = p.index(problem)
-                if default_only:
-                    cls_results[problem] = results[pos][0]
-                else:
-                    cls_results[problem] = np.average(results[pos])
+        cls_results = np.zeros(shape=len(problems))
+        if results.shape[1] != 100:
+            results = results[:, :100]
+        for i in range(len(problems)):
+            if default_only:
+                cls_results[i] = results[i][0]
+            else:
+                cls_results[i] = np.nanmean(results[i])
         all_results[cls] = cls_results
-    return all_results
+    arrays = [v for v in all_results.values()]
+    data_array = np.stack(arrays, axis=-1)
+    return data_array

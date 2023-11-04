@@ -235,6 +235,7 @@ univariate = {
     "ToeSegmentation1",
     "ToeSegmentation2",
     "Trace",
+    "TSBF",
     "TwoLeadECG",
     "TwoPatterns",
     "UMD",

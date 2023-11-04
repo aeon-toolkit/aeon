@@ -1,15 +1,19 @@
 """Result loading tests."""
 import os
 
+import pandas as pd
 import pytest
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
     NAME_ALIASES,
     estimator_alias,
+    get_available_estimators,
+    get_bake_off_2017_results,
     get_estimator_results,
     get_estimator_results_as_array,
 )
+from aeon.tests.test_config import PR_TESTING
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
@@ -24,6 +28,14 @@ def test_get_estimator_results():
     """
     res = get_estimator_results(estimators=cls, datasets=data, path=data_path)
     assert res["HC2"]["Chinatown"] == 0.9825072886297376
+    res = get_estimator_results(
+        estimators=cls, datasets=data, path=data_path, default_only=False
+    )
+    assert res["HC2"]["Chinatown"][0] == 0.9825072886297376
+    with pytest.raises(ValueError, match="not a valid task"):
+        get_estimator_results(estimators=cls, task="skipping")
+    with pytest.raises(ValueError, match="not a valid type "):
+        get_estimator_results(estimators=cls, type="madness")
 
 
 def test_get_estimator_results_as_array():
@@ -32,9 +44,21 @@ def test_get_estimator_results_as_array():
     Tests with baked in examples to avoid reliance on external website.
     """
     res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
+        estimators=cls,
+        datasets=data,
+        path=data_path,
+        include_missing=True,
+        default_only=True,
     )
     assert res[0][0] == 0.9825072886297376
+    res = get_estimator_results_as_array(
+        estimators=cls,
+        datasets=data,
+        path=data_path,
+        include_missing=True,
+        default_only=False,
+    )
+    assert res[0][0] == 0.9700680272108843
 
 
 def test_alias():
@@ -80,3 +104,30 @@ def test_load_all_classifier_results():
 
             assert res.shape[0] == len(UCR)
             assert res.shape[1] == 1
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because it relies on external website.",
+)
+def test_get_available_estimators():
+    with pytest.raises(ValueError, match="not available on tsc.com"):
+        get_available_estimators(task="smiling")
+    classifiers = get_available_estimators(task="classification")
+    assert isinstance(classifiers, pd.DataFrame)
+    assert classifiers.isin(["HC2"]).any().any()
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because it relies on external website.",
+)
+def test_get_bake_off_2017_results():
+    default_results = get_bake_off_2017_results()
+    assert default_results.shape == (85, 24)
+    assert default_results[0][0] == 0.6649616368286445
+    assert default_results[84][23] == 0.853
+    default_results = get_bake_off_2017_results(default_only=False)
+    assert default_results.shape == (85, 24)
+    assert default_results[0][0] == 0.6575447570332481
+    assert default_results[84][23] == 0.8578933333100001
