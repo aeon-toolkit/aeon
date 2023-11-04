@@ -208,24 +208,24 @@ def get_estimator_results_as_array(
 
     Parameters
     ----------
-    estimators: list of string.
+    estimators : list of string
         list of estimators to search for.
-    datasets: list of string default = UCR.
+    datasets : list of string default = UCR.
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists
-    default_only: boolean, default = True
+        datasets listed in aeon.datasets.tsc_data_lists.
+    default_only : boolean, default = True
         whether to recover just the default test results, or 30 resamples. If false,
         values are averaged to get a 2D array.
-    include_missing: boolean, default = False
+    include_missing : boolean, default = False
         If a classifier does not have results for a given problem, either the whole
-        problem is ignored when include_missing is False, or NaN
-    path: string default https://timeseriesclassification.com/results/ReferenceResults/
-        path where to read results from, default to tsc.com
+        problem is ignored when include_missing is False, or NaN.
+    path : string default https://timeseriesclassification.com/results/ReferenceResults/
+        path where to read results from, default to tsc.com.
 
     Returns
     -------
-    results: 2D numpy array, each column is a results for a classifier, each row a
-    dataset.
+    2D numpy array
+        Each column is a results for a classifier, each row a dataset.
     if include_missing == false, returns names: an aligned list of names of included
 
     Example
@@ -300,10 +300,24 @@ classifiers_2017 = [
 ]
 
 
-def get_bake_off_2017_results(default_only=True, estimators=None):
+def get_bake_off_2017_results(default_only=True):
+    """Pull down all the results of the 2017 bake off [1]_ from tsc.com.
+
+    Basic utility function to recover legacy results.
+
+    Parameters
+    ----------
+    default_only : boolean, default = True
+        Whether to return the results for the default train/test split, or results
+        averaged over resamples.
+
+    Returns
+    -------
+    2D numpy array
+        Each column is a results for a classifier, each row a dataset.
+    """
     path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/"
-    if estimators is None:
-        estimators = classifiers_2017
+    estimators = classifiers_2017
     all_results = {}
     for cls in estimators:
         url = path + cls + ".csv"
