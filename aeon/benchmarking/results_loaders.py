@@ -272,38 +272,41 @@ def get_estimator_results_as_array(
         return np.array(all_res), names
 
 
+classifiers_2017 = [
+    "ACF",
+    "BOSS",
+    "BoP",
+    "CID_DTW",
+    "CID_ED",
+    "COTE",
+    "DDTW_R1_1NN",
+    "DDTW_Rn_1NN",
+    "EE",
+    "ERP_1NN",
+    "Euclidean_1NN",
+    "FS",
+    "LCSS_1NN",
+    "LPS",
+    "LS",
+    "MSM_1NN",
+    "PS",
+    "RotF",
+    "SAXVSM",
+    "ST",
+    "TSBF",
+    "TSF",
+    "TWE_1NN",
+    "WDDTW_1NN",
+    "EDTW_1NN",
+]
+
+
 def get_bake_off_2017_results(default_only=True, estimators=None):
     path = (
         "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/",
     )
     if estimators is None:
-        estimators = [
-            "ACF",
-            "BOSS",
-            "BoP",
-            "CID_DTW",
-            "CID_ED",
-            "COTE",
-            "DDTW_R1_1NN",
-            "DDTW_Rn_1NN",
-            "EE",
-            "ERP_1NN",
-            "Euclidean_1NN",
-            "FS",
-            "LCSS_1NN",
-            "LPS",
-            "LS",
-            "MSM_1NN",
-            "PS",
-            "RotF",
-            "SAXVSM",
-            "ST",
-            "TSBF",
-            "TSF",
-            "TWE_1NN",
-            "WDDTW_1NN",
-            "EDTW_1NN",
-        ]
+        estimators = classifiers_2017
     datasets = []
     all_results = {}
     for cls in estimators:
@@ -324,6 +327,6 @@ def get_bake_off_2017_results(default_only=True, estimators=None):
                 if default_only:
                     cls_results[problem] = results[pos][0]
                 else:
-                    cls_results[problem] = results[pos]
+                    cls_results[problem] = np.average(results[pos])
         all_results[cls] = cls_results
     return all_results
