@@ -120,8 +120,8 @@ class RDSTClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:multithreading": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "non-deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }

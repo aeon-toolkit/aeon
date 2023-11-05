@@ -133,6 +133,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "X_inner_type": ["np-list", "numpy3D"],
+        "y_inner_type": "numpy1D",
     }
 
     def __init__(
@@ -195,7 +197,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             y = LabelEncoder().fit_transform(y)
 
-        if any(self.shapelet_lengths_ > self.series_length):
+        if any(self.shapelet_lengths_ > self.min_series_length_fit):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
                 "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
@@ -448,7 +450,6 @@ def _init_random_shapelet_params(
 def random_dilated_shapelet_extraction(
     X,
     y,
-    min_series_length_fit,
     max_shapelets,
     shapelet_lengths,
     proba_normalization,
