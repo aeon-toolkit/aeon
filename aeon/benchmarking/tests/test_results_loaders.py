@@ -10,6 +10,8 @@ from aeon.benchmarking.results_loaders import (
     estimator_alias,
     get_available_estimators,
     get_bake_off_2017_results,
+    get_bake_off_2021_results,
+    get_bake_off_2023_results,
     get_estimator_results,
     get_estimator_results_as_array,
 )
@@ -127,7 +129,37 @@ def test_get_bake_off_2017_results():
     assert default_results.shape == (85, 24)
     assert default_results[0][0] == 0.6649616368286445
     assert default_results[84][23] == 0.853
-    default_results = get_bake_off_2017_results(default_only=False)
-    assert default_results.shape == (85, 24)
-    assert default_results[0][0] == 0.6575447570332481
-    assert default_results[84][23] == 0.8578933333100001
+    average_results = get_bake_off_2017_results(default_only=False)
+    assert average_results.shape == (85, 24)
+    assert average_results[0][0] == 0.6575447570332481
+    assert average_results[84][23] == 0.8578933333100001
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because it relies on external website.",
+)
+def test_get_bake_off_2020_results():
+    default_results = get_bake_off_2021_results()
+    assert default_results.shape == (26, 11)
+    assert default_results[0][0] == 0.99
+    assert default_results[25][10] == 0.775
+    average_results = get_bake_off_2021_results(default_only=False)
+    assert average_results.shape == (26, 11)
+    assert average_results[0][0] == 0.9755555555555556
+    assert average_results[25][10] == 0.8505208333333333
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because it relies on external website.",
+)
+def test_get_bake_off_2023_results():
+    default_results = get_bake_off_2023_results()
+    assert default_results.shape == (112, 33)
+    assert default_results[0][0] == 0.7774936061381074
+    assert default_results[111][32] == 0.9504373177842566
+    average_results = get_bake_off_2023_results(default_only=False)
+    assert average_results.shape == (112, 33)
+    assert average_results[0][0] == 0.7692242114236999
+    assert average_results[111][32] == 0.9428571428571431

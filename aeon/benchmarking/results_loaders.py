@@ -272,6 +272,35 @@ def get_estimator_results_as_array(
         return np.array(all_res), names
 
 
+def _get_published_results(
+    directory, classifiers, resamples, suffix, default_only, header, n_data
+):
+    path = (
+        "https://timeseriesclassification.com/results/PublishedResults/"
+        + directory
+        + "/"
+    )
+    estimators = classifiers
+    all_results = {}
+    for cls in estimators:
+        url = path + cls + suffix
+        data = pd.read_csv(url, header=header)
+        problems = data.iloc[:, 0].tolist()
+        results = data.iloc[:, 1:].to_numpy()
+        cls_results = np.zeros(shape=len(problems))
+        if results.shape[1] != resamples:
+            results = results[:, :resamples]
+        for i in range(len(problems)):
+            if default_only:
+                cls_results[i] = results[i][0]
+            else:
+                cls_results[i] = np.nanmean(results[i])
+        all_results[cls] = cls_results
+    arrays = [v[:n_data] for v in all_results.values()]
+    data_array = np.stack(arrays, axis=-1)
+    return data_array
+
+
 classifiers_2017 = [
     "ACF",
     "BOSS",
@@ -300,10 +329,64 @@ classifiers_2017 = [
 ]
 
 
+classifiers_2021 = [
+    "CBOSS",
+    "CIF",
+    #    "DTW_A", Excluded because results are not complete
+    "DTW_D",
+    "DTW_I",
+    "gRSF",
+    "HIVE-COTEv1",
+    "ResNet",
+    "RISE",
+    "ROCKET",
+    "STC",
+    "TSF",
+]
+
+classifiers_2023 = [
+    "Arsenal",
+    "BOSS",
+    "CIF",
+    "CNN",
+    "Catch22",
+    "DrCIF",
+    "EE",
+    "FreshPRINCE",
+    "HC1",
+    "HC2",
+    "Hydra-MR",
+    "Hydra",
+    "InceptionT",
+    "Mini-R",
+    "MrSQM",
+    "Multi-R",
+    "PF",
+    "RDST",
+    "RISE",
+    "ROCKET",
+    "RSF",
+    "RSTSF",
+    "ResNet",
+    "STC",
+    "ShapeDTW",
+    "Signatures",
+    "TDE",
+    "TS-CHIEF",
+    "TSF",
+    "TSFresh",
+    "WEASEL-D",
+    "WEASEL",
+    "cBOSS",
+]
+
+
 def get_bake_off_2017_results(default_only=True):
     """Pull down all the results of the 2017 bake off [1]_ from tsc.com.
 
-    Basic utility function to recover legacy results.
+    Basic utility function to recover legacy results. Loads results for 85 UCR data
+    sets for all the classifiers listed in ``classifiers_2017``. Can load either the
+    default train/test split, or the results averaged over 100 resamples.
 
     Parameters
     ----------
@@ -315,24 +398,139 @@ def get_bake_off_2017_results(default_only=True):
     -------
     2D numpy array
         Each column is a results for a classifier, each row a dataset.
+
+    References
+    ----------
+    .. [1] A Bagnall, J Lines, A Bostrom, J Large, E Keogh, "The great time series
+    classification bake off: a review and experimental evaluation of recent
+    algorithmic advances", Data mining and knowledge discovery 31, 606-660, 2017.
+
+    Examples
+    --------
+    >>> from aeon.benchmarking import get_bake_off_2017_results, classifiers_2017
+    >>> from aeon.benchmarking import plot_critical_difference
+    >>> default_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
+    >>> cls_choice = [1,5,6,9,16,18] # doctest: +SKIP
+    >>> cls = [classifiers_2017[i] for i in cls_choice] # doctest: +SKIP
+    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
+    >>> average_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
+    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
     """
-    path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/"
-    estimators = classifiers_2017
-    all_results = {}
-    for cls in estimators:
-        url = path + cls + ".csv"
-        data = pd.read_csv(url, header=None)
-        problems = data.iloc[:, 0].tolist()
-        results = data.iloc[:, 1:].to_numpy()
-        cls_results = np.zeros(shape=len(problems))
-        if results.shape[1] != 100:
-            results = results[:, :100]
-        for i in range(len(problems)):
-            if default_only:
-                cls_results[i] = results[i][0]
-            else:
-                cls_results[i] = np.nanmean(results[i])
-        all_results[cls] = cls_results
-    arrays = [v for v in all_results.values()]
-    data_array = np.stack(arrays, axis=-1)
-    return data_array
+    return _get_published_results(
+        directory="Bakeoff2017",
+        classifiers=classifiers_2017,
+        resamples=100,
+        suffix=".csv",
+        default_only=default_only,
+        header=None,
+        n_data=85,
+    )
+
+
+def get_bake_off_2021_results(default_only=True):
+    """Pull down all the results of the 2020 multivariate bake off [1]_ from tsc.com.
+
+    Basic utility function to recover legacy results. Loads results for 26 tsml
+    data sets for all the classifiers listed in ``classifiers_2021``. Can load either
+    the default train/test split, or the results averaged over 30 resamples.
+
+    Parameters
+    ----------
+    default_only : boolean, default = True
+        Whether to return the results for the default train/test split, or results
+        averaged over resamples.
+
+    Returns
+    -------
+    2D numpy array
+        Each column is a results for a classifier, each row a dataset.
+
+    References
+    ----------
+    .. [1] AP Ruiz, M Flynn, J Large, M Middlehurst, A Bagnall, "The great multivariate
+    time series classification bake off: a review and experimental evaluation of
+    recent algorithmic advances", Data mining and knowledge discovery 35, 401-449, 2021.
+
+    Examples
+    --------
+    >>> from aeon.benchmarking import get_bake_off_2021_results, classifiers_2021
+    >>> from aeon.benchmarking import plot_critical_difference
+    >>> default_results = get_bake_off_2021_results(default_only=True) # doctest: +SKIP
+    >>> cls_choice = [0,1,2,5,6,8] # doctest: +SKIP
+    >>> cls = [classifiers_2021[i] for i in cls_choice] # doctest: +SKIP
+    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
+    >>> average_results = get_bake_off_2021_results(default_only=False) # doctest: +SKIP
+    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
+    """
+    return _get_published_results(
+        directory="Bakeoff2021",
+        classifiers=classifiers_2021,
+        resamples=30,
+        suffix="_TESTFOLDS.csv",
+        default_only=default_only,
+        header="infer",
+        n_data=112,
+    )
+
+
+def get_bake_off_2023_results(default_only=True):
+    """Pull down all the results of the 2023 univariate bake off [1]_ from tsc.com.
+
+    Basic utility function to recover legacy results. Loads results for 112 UCR/tsml
+    data sets for all the classifiers listed in ``classifiers_2023``. Can load
+    either the default train/test split, or the results averaged over 30 resamples.
+    Please note this paper is under review, and there are more extensive results on
+    new datasets we will make more generally avaiable once published.
+
+    Parameters
+    ----------
+    default_only : boolean, default = True
+        Whether to return the results for the default train/test split, or results
+        averaged over resamples.
+
+    Returns
+    -------
+    2D numpy array
+        Each column is a results for a classifier, each row a dataset.
+
+    References
+    ----------
+    .. [1] M Middlehurst, P Schaefer, A Bagnall, "Bake off redux: a review and
+    experimental evaluation of recent time series classification algorithms",
+    arXiv preprint arXiv:2304.13029, 2023.
+
+
+    Examples
+    --------
+    >>> from aeon.benchmarking import get_bake_off_2023_results, classifiers_2023
+    >>> from aeon.benchmarking import plot_critical_difference
+    >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
+    >>> cls_choice = [8,9,10,12,15,19] # doctest: +SKIP
+    >>> cls = [classifiers_2023[i] for i in cls_choice] # doctest: +SKIP
+    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
+    >>> average_results = get_bake_off_2023_results(default_only=False) # doctest: +SKIP
+    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> plot.show()# doctest: +SKIP
+
+
+    """
+    return _get_published_results(
+        directory="Bakeoff2023",
+        classifiers=classifiers_2023,
+        resamples=30,
+        suffix="_TESTFOLDS.csv",
+        default_only=default_only,
+        header="infer",
+        n_data=112,
+    )

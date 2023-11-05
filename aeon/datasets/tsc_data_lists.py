@@ -251,12 +251,9 @@ univariate = {
     "Yoga",
 }
 
-# 33 UEA multivariate time series classification problems [2]
+# 30 UEA multivariate time series classification problems [2]
 multivariate = {
     "ArticularyWordRecognition",
-    "AsphaltObstaclesCoordinates",
-    "AsphaltPavementTypeCoordinates",
-    "AsphaltRegularityCoordinates",
     "AtrialFibrillation",
     "BasicMotions",
     "CharacterTrajectories",
