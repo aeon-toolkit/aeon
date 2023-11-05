@@ -223,6 +223,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 "you have NaN values in your data. We do not currently support NaN "
                 "values for shapelet transformation."
             )
+
+        # Shapelet "length" is length-1 times dilation
+        self.max_fitted_shapelet_length_ = np.max(
+            (self.shapelets_[1] - 1) * self.shapelets_[2]
+        )
+
         return self
 
     def _transform(self, X, y=None):
@@ -238,6 +244,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
             The transformed data.
         """
+        for i in range(0, len(X)):
+            if X[i].shape[1] < self.max_fitted_shapelet_length_:
+                raise ValueError(
+                    "The shortest series in transform is smaller than "
+                    "the min shapelet length, pad to min length prior to "
+                    "calling transform."
+                )
+
         X_new = dilated_shapelet_transform(X, self.shapelets_)
         if np.isinf(X_new).any() or np.isnan(X_new).any():
             warnings.warn(
