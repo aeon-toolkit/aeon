@@ -181,11 +181,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
-        self.n_instances = len(X)
-        self.n_channels = X[0].shape[0]
-        self.min_series_length_fit = min(
-            [X[i].shape[1] for i in range(self.n_instances)]
-        )
+        n_instances_ = len(X)
+        self.min_series_length_fit = min([X[i].shape[1] for i in range(n_instances_)])
 
         self._check_input_params()
 
@@ -193,7 +190,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         set_num_threads(self._n_jobs)
 
         if y is None:
-            y = np.zeros(self.n_instances)
+            y = np.zeros(n_instances_)
         else:
             y = LabelEncoder().fit_transform(y)
 

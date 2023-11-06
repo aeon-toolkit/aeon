@@ -79,10 +79,6 @@ class RDSTClassifier(BaseClassifier):
         The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
-    n_instances_ : int
-        The number of train cases in the training set.
-    n_dims_ : int
-        The number of dimensions per case in the training set.
     series_length_ : int
         The length of each series in the training set.
     transformed_data_ : list of shape (n_estimators) of ndarray
@@ -151,9 +147,6 @@ class RDSTClassifier(BaseClassifier):
         self.save_transformed_data = save_transformed_data
         self.random_state = random_state
         self.n_jobs = n_jobs
-
-        self.n_instances_ = 0
-        self.n_dims_ = 0
         self.transformed_data_ = []
 
         self._transformer = None
@@ -181,9 +174,6 @@ class RDSTClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_ = len(X)
-        self.n_dims_ = X[0].shape[0]
-
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             shapelet_lengths=self.shapelet_lengths,
