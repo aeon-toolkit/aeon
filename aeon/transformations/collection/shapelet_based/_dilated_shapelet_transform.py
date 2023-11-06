@@ -443,6 +443,30 @@ def _init_random_shapelet_params(
     return values, lengths, dilations, threshold, normalize, means, stds
 
 
+@njit(cache=True)
+def _get_admissible_sampling_point(current_mask):
+    n_instances = len(current_mask)
+    # Count the number of admissible points per sample as cumsum
+    n_admissible_points = np.zeros(n_instances, dtype=np.int_)
+    n_admissible_points[0] = current_mask[0].shape[0]
+    for _i in range(1, n_instances):
+        n_admissible_points[_i] = (
+            n_admissible_points[_i - 1] + current_mask[_i].shape[0]
+        )
+    # Total admissible is last element
+    if n_admissible_points[-1] > 0:
+        # Choose a sample and a timestamp
+        idx_choice = np.random.choice(n_admissible_points[-1] + 1)
+        _tmp = n_admissible_points - idx_choice
+        idx_sample = np.where(_tmp >= 0)[0][0]
+        # To deal with sample that are all false
+        idx_sample = np.where(_tmp == _tmp[idx_sample])[0][-1]
+        idx_timestamp = current_mask[idx_sample][_tmp[idx_sample]]
+        return idx_sample, idx_timestamp
+    else:
+        return -1, -1
+
+
 @njit(fastmath=True, cache=True, parallel=True)
 def random_dilated_shapelet_extraction(
     X,
@@ -545,9 +569,9 @@ def random_dilated_shapelet_extraction(
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
         alpha_mask = np.ones((2, n_instances, max_series_length), dtype=np.bool_)
-        for i in range(n_instances):
+        for _i in range(n_instances):
             # For the unequal length case, we scale the mask up and set to False
-            alpha_mask[:, i, series_lengths[i] :] = False
+            alpha_mask[:, _i, series_lengths[_i] :] = False
 
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
@@ -556,20 +580,16 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = np.int32(normalize[i_shp])
-            dist_vect_shape = max_series_length - (length - 1) * dilation
-
+            norm = np.int_(normalize[i_shp])
             # Possible sampling points given self similarity mask
-            current_mask = alpha_mask[norm, :, :dist_vect_shape]
-            idx_mask = np.where(current_mask)
-
-            n_admissible_points = idx_mask[0].shape[0]
-            if n_admissible_points > 0:
-                # Choose a sample and a timestamp
-                idx_choice = np.random.choice(n_admissible_points)
-                idx_sample = idx_mask[0][idx_choice]
-                idx_timestamp = idx_mask[1][idx_choice]
-
+            current_mask = [
+                np.where(
+                    alpha_mask[norm, _i, : series_lengths[_i] - (length - 1) * dilation]
+                )[0]
+                for _i in range(n_instances)
+            ]
+            idx_sample, idx_timestamp = _get_admissible_sampling_point(current_mask)
+            if idx_sample >= 0:
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
                 for j in range(alpha_size):
@@ -596,7 +616,6 @@ def random_dilated_shapelet_extraction(
                     _val = get_subsequence(
                         X[idx_sample], idx_timestamp, length, dilation
                     )
-
                 # Select another sample of the same class as the sample used to
                 loc_others = np.where(y == y[idx_sample])[0]
                 if loc_others.shape[0] > 1:
@@ -613,7 +632,6 @@ def random_dilated_shapelet_extraction(
                         X[id_test], length, dilation
                     )
                     X_subs = normalize_subsequences(X_subs, X_means, X_stds)
-
                 x_dist = compute_shapelet_dist_vector(X_subs, _val, length)
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
