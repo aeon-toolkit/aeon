@@ -11,9 +11,6 @@ from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
 from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-DIRNAME = "data"
-MODULE = os.path.dirname(__file__)
-
 __author__ = [
     "mloning",
     "sajaysurya",
@@ -52,6 +49,9 @@ __all__ = [
     "load_unit_test_tsf",
     "load_covid_3month",
 ]
+
+DIRNAME = "data"
+MODULE = os.path.dirname(__file__)
 
 
 def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
