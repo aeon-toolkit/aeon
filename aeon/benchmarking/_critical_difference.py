@@ -80,11 +80,53 @@ def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
     return cliques
 
 
-def wilcoxon_holm_cliques(results, labels, avranks, alpha):
-    """Find cliques using Wilcoxon and post hoc Holm test."""
-    # get number of strategies:
-    n_estimators = results.shape[1]
+def wilcoxon_holm_cliques(results, labels, avranks, alpha=0.1):
+    """Find cliques using Wilcoxon and post hoc Holm test.
 
+    Computes groups of estimators (cliques) within which there is no significant
+    difference. The algorithm assumes that the estimators (named in labels) are
+    sorted by average rank, so that labels[0] is the "best" estimator in terms of
+    lowest average rank.
+
+    This algorithm first forms a clique for each estimator set as control,
+    then merges dominated cliques.
+
+    Suppose we have four estimators, A, B, C and D sorted by average rank. Starting
+    from A, we test the null hypothesis that average ranks are equal against the
+    alternative hypothesis that the average rank of A is less than that of B. If we
+    reject the null hypothesis then we stop, and A is not in a clique. If we cannot
+    reject the null, we test A vs C, continuing until we reject the null or we have
+    tested all estimators.
+
+    Suppose we find B is significantly worse that A, but that on the next iteration we
+    find no difference between B and C, nor any difference between B and D. We have
+    formed one clique, [B, C, D]. On the third iteration, we also find not difference
+    between C and D and thus form a second clique, [C, D]. We have found two cliques,
+    but [C,D] is containedin [B, C, D] and is thus redundant. In this case we would
+    return a single clique, [ B, C, D].
+
+    All tests are performed with one sided Wilcoxon sign rank test, using a Holm
+    correction that simply divides alpha by number of estimators-1. Thus if we were
+    testing the above four estimators with alpha = 0.1, we would need a p-value of less
+    than 0.3333 to reject the null hypothesis.
+
+    Parameters
+    ----------
+        results : np.ndarray
+            Scores of shape ``(n_datasets, n_estimators)``.
+        labels : list of str
+            List with names of the estimators.
+            results :
+        avranks : np.ndarray
+            Sorted ranks of estimators.
+        alpha : float, default = 0.1
+             Alpha level for one-sided Wilcoxon sign rank test.
+
+    Example
+    -------
+    """
+    # get number of estimators:
+    n_estimators = results.shape[1]
     # init array that contains the p-values calculated by the Wilcoxon signed rank test
     p_values = []
     # loop through the algorithms to compare pairwise
@@ -99,7 +141,7 @@ def wilcoxon_holm_cliques(results, labels, avranks, alpha):
             classifier_2 = labels[j]
             # get the performance of classifier two
             perf_2 = np.array(results[:, j])
-            # calculate the p_value
+            # calculate the p_value. By default this does a two sided test
             p_value = wilcoxon(perf_1, perf_2, zero_method="wilcox")[1]
             # append to the list
             p_values.append((classifier_1, classifier_2, p_value, False))
