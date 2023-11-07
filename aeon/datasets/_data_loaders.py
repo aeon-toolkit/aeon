@@ -147,6 +147,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     current_channels = 0
     series_length = 0
     y_values = []
+    target = False
     if meta_data["classlabel"] or meta_data["targetlabel"]:
         target = True
     for line in file:
@@ -159,7 +160,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
-        if target:
+        if meta_data["classlabel"] or meta_data["targetlabel"]:
             current_channels -= 1
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
@@ -199,7 +200,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             y_values.append(channels[n_channels])
     if meta_data["equallength"]:
         data = np.array(data)
