@@ -203,7 +203,7 @@ def write_results_to_uea_format(
     third_line : str
         summary performance information (see comment below)
     """
-    if len(y_true) != len(y_pred):
+    if y_true is not None and len(y_true) != len(y_pred):
         raise IndexError(
             "The number of predicted values is not the same as the "
             "number of actual class values"
@@ -287,11 +287,7 @@ def _write_header(
     extension=None,
 ):
     if class_labels is not None and regression:
-        raise ValueError(
-            "Cannot have class_labels and targetlabel. If the problem "
-            "is classification, add class_labels. If regression, "
-            "set targetlabel to true."
-        )
+        raise ValueError("Cannot have class_labels true for a regression problem")
     # create path if it does not exist
     dir = f"{str(path)}/"
     try:
