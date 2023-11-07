@@ -24,7 +24,7 @@ def test_downloaded_tsf_datasets():
 def test_list_available_tsc_datasets():
     """Test recovering lists of available data sets."""
     res = list_available_tsc_datasets()
-    assert len(res) == 162
+    assert len(res) == 158
     res = list_available_tsc_datasets("FOO")
     assert not res
     res = list_available_tsc_datasets("Chinatown")
