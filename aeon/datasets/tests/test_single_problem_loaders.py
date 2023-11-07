@@ -1,4 +1,6 @@
 """Test single problem loaders with varying return types."""
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -13,10 +15,11 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_osuleaf,
     load_plaid,
     load_solar,
+    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
-from aeon.tests.test_config import PR_TESTING
+from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -34,10 +37,6 @@ UNEQUAL_LENGTH_PROBLEMS = [
 ]
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
 def test_load_dataframe(loader):
     """Test unequal length baked in TSC problems load into List of numpy."""
@@ -51,10 +50,6 @@ def test_load_dataframe(loader):
     assert isinstance(X, tuple)
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
 def test_load_numpy3d(loader):
     """Test equal length TSC problems load into numpy3d."""
@@ -65,10 +60,6 @@ def test_load_numpy3d(loader):
     assert y.ndim == 1
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
 def test_load_numpy2d_uni(loader):
     """Test equal length TSC problems load into numpy3d."""
@@ -79,10 +70,6 @@ def test_load_numpy2d_uni(loader):
     assert y.ndim == 1
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 def test_load_unit_test_tsf():
     """Test load unit test tsf."""
     tuple = load_unit_test_tsf()
@@ -94,10 +81,18 @@ def test_load_unit_test_tsf():
     assert not tuple[4]
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
+def test_basic_load_tsf_to_dataframe():
+    """Simple loader test."""
+
+    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    df, metadata = load_tsf_to_dataframe(full_path)
+    assert isinstance(df, pd.DataFrame)
+    assert metadata["frequency"] == "yearly"
+    assert metadata["forecast_horizon"] == 4
+    assert metadata["contain_missing_values"] is False
+    assert metadata["contain_equal_length"] is False
+
+
 def test_load_solar():
     solar = load_solar(api_version=None)
     assert type(solar) == pd.Series
@@ -111,10 +106,6 @@ def test_load_solar():
     assert solar.name == "solar_gen"
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 def test_load_covid_3month():
     """Test load covid 3 month."""
     X, y = load_covid_3month()

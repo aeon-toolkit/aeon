@@ -6,6 +6,7 @@ __all__ = []
 
 import os
 import shutil
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -162,6 +163,29 @@ def test__load_header_info():
         assert meta_data["classlabel"]
         assert meta_data["class_values"][0] == "1"
         assert meta_data["class_values"][1] == "2"
+    WRONG_STRINGS = ["@data 55", "@missing 42, @classlabel True"]
+    count = 1
+    with tempfile.TemporaryDirectory() as tmp:
+        for name in WRONG_STRINGS:
+            problem_name = f"temp{count}.ts"
+            load_path = os.path.join(tmp, problem_name)
+            temp_file = open(load_path, "w", encoding="utf-8")
+            temp_file.write(name)
+            temp_file.close()
+            with open(load_path, "r", encoding="utf-8") as file:
+                with pytest.raises(IOError):
+                    _load_header_info(file)
+            count = count + 1
+        name = "@missing true \n @classlabel True 0 1"
+        problem_name = "temp_correct.ts"
+        load_path = os.path.join(tmp, problem_name)
+        temp_file = open(load_path, "w", encoding="utf-8")
+        temp_file.write(name)
+        temp_file.close()
+        with open(load_path, "r", encoding="utf-8") as file:
+            meta = _load_header_info(file)
+            assert meta["missing"] is True
+            assert meta["classlabel"] is True
 
 
 @pytest.mark.skipif(
@@ -190,6 +214,38 @@ def test__load_data():
         meta_data["equallength"] = True
         with pytest.raises(IOError):
             X, y, _ = _load_data(file, meta_data)
+    WRONG_DATA = [
+        "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0",
+        "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0\n1.0,2.0,3.0,4.0:0",
+    ]
+    meta_data = {"classlabel": True, "class_values": [0, 1], "equallength": False}
+    count = 1
+    with tempfile.TemporaryDirectory() as tmp:
+        for data in WRONG_DATA:
+            problem_name = f"temp{count}.ts"
+            load_path = os.path.join(tmp, problem_name)
+            temp_file = open(load_path, "w", encoding="utf-8")
+            temp_file.write(data)
+            temp_file.close()
+            with open(load_path, "r", encoding="utf-8") as file:
+                with pytest.raises(IOError):
+                    _load_data(file, meta_data)
+            count = count + 1
+        meta_data = {
+            "classlabel": True,
+            "class_values": [0, 1],
+            "equallength": True,
+            "univariate": True,
+        }
+        data = "1.0,2.0,3.0:0.0\n 1.0,2.0,3.0:1.0\n 2.0,3.0,4.0:0"
+        problem_name = "tempCorrect.ts"
+        load_path = os.path.join(tmp, problem_name)
+        temp_file = open(load_path, "w", encoding="utf-8")
+        temp_file.write(data)
+        temp_file.close()
+        with open(load_path, "r", encoding="utf-8") as file:
+            X, y, meta_data = _load_data(file, meta_data)
+            assert isinstance(X, np.ndarray)
 
 
 @pytest.mark.skipif(
