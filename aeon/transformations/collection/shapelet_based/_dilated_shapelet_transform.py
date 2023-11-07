@@ -176,6 +176,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
+        # Numba does not yet support new random numpy API with generator
         if isinstance(self.random_state, int):
             self._random_state = np.int32(self.random_state)
         else:
@@ -447,22 +448,16 @@ def _init_random_shapelet_params(
 def _get_admissible_sampling_point(current_mask):
     n_instances = len(current_mask)
     # Count the number of admissible points per sample as cumsum
-    n_admissible_points = np.zeros(n_instances, dtype=np.int_)
-    n_admissible_points[0] = current_mask[0].shape[0]
-    for _i in range(1, n_instances):
-        n_admissible_points[_i] = (
-            n_admissible_points[_i - 1] + current_mask[_i].shape[0]
-        )
-    # Total admissible is last element
-    if n_admissible_points[-1] > 0:
-        # Choose a sample and a timestamp
-        idx_choice = np.random.choice(n_admissible_points[-1] + 1)
-        _tmp = n_admissible_points - idx_choice
-        idx_sample = np.where(_tmp >= 0)[0][0]
-        # To deal with sample that are all false
-        idx_sample = np.where(_tmp == _tmp[idx_sample])[0][-1]
-        idx_timestamp = current_mask[idx_sample][_tmp[idx_sample]]
-        return idx_sample, idx_timestamp
+    n_admissible_points = 0
+    for i in range(n_instances):
+        n_admissible_points += current_mask[i].shape[0]
+    if n_admissible_points > 0:
+        idx_choice = np.random.choice(n_admissible_points)
+        for i in range(n_instances):
+            _new_val = idx_choice - current_mask[i].shape[0]
+            if _new_val < 0 and current_mask[i].shape[0] > 0:
+                return i, idx_choice
+            idx_choice = _new_val
     else:
         return -1, -1
 
