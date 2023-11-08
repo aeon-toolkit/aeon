@@ -97,6 +97,10 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - normalization parameter
             - mean parameter
             - standard deviation parameter
+    max_shapelet_length_ : int
+        The maximum actual shapelet length fitted to train data.
+    min_series_length_ : int
+        The minimum length of series in train data.
 
     Notes
     -----
@@ -183,7 +187,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
         n_instances_ = len(X)
-        self.min_series_length_fit = min([X[i].shape[1] for i in range(n_instances_)])
+        self.min_series_length_ = min([X[i].shape[1] for i in range(n_instances_)])
 
         self._check_input_params()
 
@@ -195,11 +199,11 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             y = LabelEncoder().fit_transform(y)
 
-        if any(self.shapelet_lengths_ > self.min_series_length_fit):
+        if any(self.shapelet_lengths_ > self.min_series_length_):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
                 "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
-                "with an input length = {}".format(self.min_series_length_fit),
+                "with an input length = {}".format(self.min_series_length_),
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -225,7 +229,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             )
 
         # Shapelet "length" is length-1 times dilation
-        self.max_fitted_shapelet_length_ = np.max(
+        self.max_shapelet_length_ = np.max(
             (self.shapelets_[1] - 1) * self.shapelets_[2]
         )
 
@@ -245,7 +249,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             The transformed data.
         """
         for i in range(0, len(X)):
-            if X[i].shape[1] < self.max_fitted_shapelet_length_:
+            if X[i].shape[1] < self.max_shapelet_length_:
                 raise ValueError(
                     "The shortest series in transform is smaller than "
                     "the min shapelet length, pad to min length prior to "
@@ -276,7 +280,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
             self.shapelet_lengths_ = np.array(
-                [min(max(2, self.min_series_length_fit // 2), 11)]
+                [min(max(2, self.min_series_length_ // 2), 11)]
             )
         else:
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
@@ -296,14 +300,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     self.shapelet_lengths_ >= 2
                 ]
 
-            if not np.all(self.shapelet_lengths_ <= self.min_series_length_fit):
+            if not np.all(self.shapelet_lengths_ <= self.min_series_length_):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
                     + "the series length. Shapelet lengths above it will be ignored.",
                     stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
-                    self.shapelet_lengths_ <= self.min_series_length_fit
+                    self.shapelet_lengths_ <= self.min_series_length_
                 ]
 
             if len(self.shapelet_lengths_) == 0:
