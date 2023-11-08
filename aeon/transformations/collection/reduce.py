@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert, convert_to
+from aeon.datatypes import convert_to
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -26,7 +26,7 @@ class Tabularizer(BaseCollectionTransformer):
     _tags = {
         "fit_is_empty": True,
         "output_data_type": "Tabular",
-        "X_inner_type": ["nested_univ", "numpy3D"],
+        "X_inner_type": ["numpy3D"],
         "capability:multivariate": True,
     }
 
@@ -44,24 +44,7 @@ class Tabularizer(BaseCollectionTransformer):
         Xt : pandas DataFrame
             Transformed dataframe with only primitives in cells.
         """
-        Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        return Xt
-
-    def inverse_transform(self, X, y=None):
-        """Transform tabular pandas dataframe into nested dataframe.
-
-        Parameters
-        ----------
-        X : pandas DataFrame
-            Tabular dataframe with primitives in cells.
-        y : array-like, optional (default=None)
-
-        Returns
-        -------
-        Xt : pandas DataFrame
-            Transformed dataframe with series in cells.
-        """
-        Xt = convert(X, from_type="numpyflat", to_type="numpy3D", as_scitype="Panel")
+        Xt = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
         return Xt
 
 
