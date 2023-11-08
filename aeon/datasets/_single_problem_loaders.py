@@ -1,16 +1,5 @@
 """Utilities for loading datasets."""
 
-import os
-from urllib.error import HTTPError, URLError
-from warnings import warn
-
-import numpy as np
-import pandas as pd
-
-from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
-from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
 __author__ = [
     "mloning",
     "sajaysurya",
@@ -49,6 +38,17 @@ __all__ = [
     "load_unit_test_tsf",
     "load_covid_3month",
 ]
+
+import os
+from urllib.error import HTTPError, URLError
+from warnings import warn
+
+import numpy as np
+import pandas as pd
+
+from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
+from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
