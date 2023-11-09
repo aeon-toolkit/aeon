@@ -14,13 +14,11 @@ from aeon.transformations.collection import BaseCollectionTransformer
 
 class Tabularizer(BaseCollectionTransformer):
     """
-    A transformer that turns time series/panel data into tabular data.
+    A transformer that turns time series collection into tabular data.
 
-    This estimator converts nested pandas dataframe containing
-    time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular numpy array. This is useful for transforming
-    time-series/panel data into a format that is accepted by standard
-    validation learning algorithms (as in sklearn).
+    This estimator converts a 3D numpy into a 2D numpy by concatenating channels
+    using ``reshape``. This is only usable with equal length series. This is useful for
+    transforming time-series collections into a format that is accepted by sklearn.
     """
 
     _tags = {
@@ -50,7 +48,7 @@ class Tabularizer(BaseCollectionTransformer):
 
 class TimeBinner(BaseCollectionTransformer):
     """
-    Turns time series/panel data into tabular data based on intervals.
+    Turns time series collections data into tabular data based on intervals.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in
