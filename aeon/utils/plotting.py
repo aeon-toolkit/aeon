@@ -9,7 +9,6 @@ from warnings import simplefilter, warn
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
 from aeon.utils.validation.series import check_consistent_index_type
@@ -67,8 +66,6 @@ def plot_series(
         check_y(y, allow_index_names=True)
 
     series = list(series)
-    series = [convert_to(y, "pd.Series", "Series") for y in series]
-
     n_series = len(series)
     _ax_kwarg_is_none = True if ax is None else False
     # labels
@@ -319,8 +316,12 @@ def plot_correlations(
     import matplotlib.pyplot as plt
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-    series = check_y(series)
-    series = convert_to(series, "pd.Series", "Series")
+    if not isinstance(series, pd.Series):
+        raise ValueError(" Series must be of type pd.Series for plot_correlations.")
+    if len(series) == 0:
+        raise ValueError(" Empty series passed to plot_correlations.")
+
+    #    series = check_y(series)
 
     # Setup figure for plotting
     fig = plt.figure(constrained_layout=True, figsize=(12, 8))
