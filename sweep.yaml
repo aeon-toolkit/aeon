@@ -1,8 +1,8 @@
 gha_enabled: True
 branch: "main"
 blocked_dirs: [".github/"]
-draft: False
-description: "aeon-toolkit/aeon is a Python project for machine learning algorithms using time series data. We have generalised tests for all of our ML algorithms which are in a separate class. Write code that adheres to PEP8 and is formatted to the Black code style. The projects documentation is built using Sphinx and MyST, and unit testing is done using pytest."
+draft: True
+description: "aeon-toolkit/aeon is a Python project for machine learning algorithms using time series data.  We have generalised tests for all of our ML algorithms which are in a separate class. Write code that adheres to PEP8 and is formatted to the Black code style. The projects documentation is built using Sphinx and MyST, and unit testing is done using pytest."
 
 docs:
   scikit-learn: ["https://scikit-learn.org/stable/", "We use the scikit-learn framework for our machine learning algorithms."]
