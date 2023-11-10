@@ -160,7 +160,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             current_channels -= 1
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
