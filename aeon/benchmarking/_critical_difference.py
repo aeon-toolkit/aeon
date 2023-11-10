@@ -59,8 +59,9 @@ def _check_friedman(ranks):
     return chisq, p_value
 
 
-def nemenyi_test(n_estimators, n_datasets, ordered_avg_ranks, alpha):
+def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     """Find cliques using post hoc Nemenyi test."""
+    n_estimators = len(ordered_avg_ranks)
     qalpha = get_qalpha(alpha)
     # calculate critical difference with Nemenyi
     cd = qalpha[n_estimators] * np.sqrt(
@@ -78,7 +79,7 @@ def nemenyi_test(n_estimators, n_datasets, ordered_avg_ranks, alpha):
     return cliques
 
 
-def wilcoxon_test(results, adjusted_alpha):
+def wilcoxon_test(results):
     """
     Perform Wilcoxon test.
 
@@ -86,13 +87,9 @@ def wilcoxon_test(results, adjusted_alpha):
     ----------
     results: np.array
       results of strategies on datasets
-    adjusted_alpha: float
-        alpha level adjusted for multiple testing
 
     Returns
     -------
-    cliques: list of lists
-        statistically similar cliques
     p_values: np.array
         p-values of Wilcoxon test
     """
@@ -106,9 +103,7 @@ def wilcoxon_test(results, adjusted_alpha):
                 results[:, i], results[:, j], zero_method="wilcox"
             )[1]
 
-    cliques = _build_cliques(p_values > adjusted_alpha)
-
-    return cliques, p_values
+    return p_values
 
 
 def _build_cliques(pairwise_matrix):
@@ -269,7 +264,7 @@ def plot_critical_difference(
     # Step 4: If Friedman test is significant find cliques
     if p_value_friedman < alpha:
         if test == "nemenyi":
-            cliques = nemenyi_test(n_estimators, n_datasets, ordered_avg_ranks, alpha)
+            cliques = nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
         elif test == "wilcoxon":
             if correction == "bonferroni":
                 adjusted_alpha = alpha / (n_estimators * (n_estimators - 1) / 2)
@@ -279,7 +274,8 @@ def plot_critical_difference(
                 adjusted_alpha = alpha
             else:
                 raise ValueError("correction available are None, bonferroni and holm.")
-            cliques, p_values = wilcoxon_test(ordered_scores, adjusted_alpha)
+            p_values = wilcoxon_test(ordered_scores)
+            cliques = _build_cliques(p_values > adjusted_alpha)
         else:
             raise ValueError("tests available are only nemenyi and wilcoxon.")
     # If Friedman test is not significant everything has to be one clique
