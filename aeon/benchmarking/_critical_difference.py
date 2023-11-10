@@ -56,7 +56,7 @@ def _check_friedman(ranks):
         - 3 * n_datasets * (n_estimators + 1)
     ) / c
     p_value = distributions.chi2.sf(chisq, n_estimators - 1)
-    return chisq, p_value
+    return p_value
 
 
 def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
@@ -260,7 +260,7 @@ def plot_critical_difference(
         colours = ["#000000"] * len(ordered_labels)
 
     # Step 3 : check whether Friedman test is significant
-    _, p_value_friedman = _check_friedman(ranks)
+    p_value_friedman = _check_friedman(ranks)
     # Step 4: If Friedman test is significant find cliques
     if p_value_friedman < alpha:
         if test == "nemenyi":
