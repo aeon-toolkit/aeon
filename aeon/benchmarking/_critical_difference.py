@@ -128,11 +128,11 @@ def _build_cliques(pairwise_matrix):
     n = np.sum(pairwise_matrix, 1)
     possible_cliques = pairwise_matrix[n > 1, :]
 
-    # all False values between two True values are set to True as they have to be
-    # represented as significant differences
     for i in range(0, possible_cliques.shape[0]):
-        true_limits = np.where(possible_cliques[i, :] == 1)[0]
-        possible_cliques[i, true_limits[0] : true_limits[-1]] = 1  # noqa: E203
+        for j in range(i + 1, possible_cliques.shape[1]):
+            if possible_cliques[i, j] == 0:
+                possible_cliques[i, j + 1 :] = 0  # noqa: E203
+                break
 
     for i in range(possible_cliques.shape[0] - 1, 0, -1):
         for j in range(i - 1, -1, -1):
