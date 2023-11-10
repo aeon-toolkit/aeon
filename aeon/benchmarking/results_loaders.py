@@ -308,6 +308,7 @@ classifiers_2017 = [
     "CID_ED",
     "DDTW_R1_1NN",
     "DDTW_Rn_1NN",
+    "DTW_F",
     "EE",
     "ERP_1NN",
     "Euclidean_1NN",
@@ -378,6 +379,7 @@ classifiers_2023 = [
     "WEASEL-D",
     "WEASEL",
     "cBOSS",
+    "1NN-DTW",
 ]
 
 
