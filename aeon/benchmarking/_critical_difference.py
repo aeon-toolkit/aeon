@@ -128,8 +128,8 @@ def _build_cliques(pairwise_matrix):
     n = np.sum(pairwise_matrix, 1)
     possible_cliques = pairwise_matrix[n > 1, :]
 
-    for i in range(possible_cliques.shape[0] - 1, 1, -1):
-        for j in range(i - 1, 0, -1):
+    for i in range(possible_cliques.shape[0] - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
             if np.all(possible_cliques[j, possible_cliques[i, :]]):
                 possible_cliques[i, :] = 0
                 break
@@ -284,10 +284,10 @@ def plot_critical_difference(
     #     6
     # ).to_csv("./p_values.csv")
 
-    # print((alpha / (n_estimators - 1)))
+    # print(adjusted_alpha)
 
     # pd.DataFrame(
-    #     p_values > (alpha / (n_estimators - 1)),
+    #     p_values > adjusted_alpha,
     #     index=ordered_labels,
     #     columns=ordered_labels,
     # ).to_csv("./same.csv")
