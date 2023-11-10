@@ -60,7 +60,24 @@ def _check_friedman(ranks):
 
 
 def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
-    """Find cliques using post hoc Nemenyi test."""
+    """
+    Find cliques using post hoc Nemenyi test.
+
+    Parameters
+    ----------
+    ordered_avg_ranks: np.array
+        average ranks of strategies
+    n_datasets: int
+        number of datasets
+    alpha: float
+        alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
+
+    Returns
+    -------
+    cliques: list of lists
+        statistically similar cliques
+
+    """
     n_estimators = len(ordered_avg_ranks)
     qalpha = get_qalpha(alpha)
     # calculate critical difference with Nemenyi
@@ -100,7 +117,10 @@ def wilcoxon_test(results):
     for i in range(n_estimators - 1):
         for j in range(i + 1, n_estimators):
             p_values[i, j] = wilcoxon(
-                results[:, i], results[:, j], zero_method="wilcox"
+                results[:, i],
+                results[:, j],
+                zero_method="wilcox",
+                alternative="greater",
             )[1]
 
     return p_values
@@ -148,7 +168,7 @@ def plot_critical_difference(
     errors=False,
     test="wilconxon",
     correction="holm",
-    alpha=0.05,
+    alpha=0.1,
     width=6,
     textspace=1.5,
     reverse=True,
