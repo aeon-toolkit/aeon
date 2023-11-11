@@ -1,6 +1,6 @@
 """Function to compute and plot critical difference diagrams."""
 
-__author__ = ["SveaMeyer13", "dguijo"]
+__author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
 
 import math
 

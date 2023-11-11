@@ -57,6 +57,7 @@ def test_nemenyi_test():
 
 
 def test_wilcoxon_test():
+    """Test Wilcoxon pairwise test for multiple estimators."""
     cls = ["HC2", "InceptionT", "WEASEL-D", "FreshPRINCE"]
     data_full = list(univariate_equal_length)
     data_full.sort()
@@ -68,6 +69,7 @@ def test_wilcoxon_test():
 
 
 def test__check_friedman():
+    """Test Friedman test for overall difference in estimators."""
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     data = univariate_equal_length
     res = get_estimator_results_as_array(
@@ -164,7 +166,7 @@ def test__build_cliques(cliques):
 
 
 def test__build_cliques_empty():
-    """Test build cliques with empt return."""
+    """Test build cliques with empty return."""
     test_clique = np.array([[True, False], [False, True]])
     obs_clique = _build_cliques(test_clique)
     assert obs_clique.size == 0
@@ -175,6 +177,7 @@ def test__build_cliques_empty():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_critical_difference():
+    """Test plot critical difference diagram."""
     _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
 
