@@ -9,9 +9,9 @@ from scipy.stats import rankdata
 from aeon.benchmarking._critical_difference import (
     _build_cliques,
     _check_friedman,
-    nemenyi_test,
+    _nemenyi_test,
+    _wilcoxon_test,
     plot_critical_difference,
-    wilcoxon_test,
 )
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
@@ -37,7 +37,7 @@ def test_nemenyi_test():
     avranks = ranked_data.mean(axis=0)
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
 
-    cliques = nemenyi_test(avranks, len(data_full), alpha)
+    cliques = _nemenyi_test(avranks, len(data_full), alpha)
 
     assert np.all(cliques == [False, True, True, True])
 
@@ -51,7 +51,7 @@ def test_nemenyi_test():
     ranked_data = rankdata(-1 * res, axis=1)
     avranks = ranked_data.mean(axis=0)
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
-    cliques = nemenyi_test(avranks, len(data), 0.01)
+    cliques = _nemenyi_test(avranks, len(data), 0.01)
 
     assert np.all(cliques == [True, True, True, True])
 
@@ -64,7 +64,7 @@ def test_wilcoxon_test():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
-    p_vals = wilcoxon_test(res)
+    p_vals = _wilcoxon_test(res)
     assert_almost_equal(p_vals[0], np.array([1.0, 0.0, 0.0, 0.0]), decimal=2)
 
 
