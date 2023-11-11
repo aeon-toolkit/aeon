@@ -17,8 +17,6 @@ def _check_friedman(ranks):
     """
     Check whether Friedman test is significant.
 
-    Larger parts of code copied from scipy.
-
     Parameters
     ----------
     n_estimators : int
@@ -30,9 +28,8 @@ def _check_friedman(ranks):
 
     Returns
     -------
-    is_significant : bool
-      Indicates whether strategies differ significantly in terms of performance
-      (according to Friedman test).
+    float
+      p value of the test
     """
     n_datasets, n_estimators = ranks.shape
 
