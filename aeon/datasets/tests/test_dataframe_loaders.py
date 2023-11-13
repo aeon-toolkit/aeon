@@ -14,6 +14,6 @@ def test_load_from_tsfile_to_dataframe():
     )
 
     data, y = load_from_tsfile_to_dataframe(data_path)
-    assert type(data) == pd.DataFrame
+    assert type(data) is pd.DataFrame
     assert data.shape == (4, 1)
     assert len(y) == 4

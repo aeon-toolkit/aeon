@@ -79,10 +79,10 @@ def test_load_unit_test_tsf():
 
 def test_load_solar():
     solar = load_solar(api_version=None)
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version="WRONG")
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version=None, return_full_df=True)
     assert solar.name == "solar_gen"
