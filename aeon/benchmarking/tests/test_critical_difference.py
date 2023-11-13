@@ -193,7 +193,7 @@ def test_plot_critical_difference():
         res,
         cls,
         highlight=None,
-        errors=False,
+        lower_better=False,
         alpha=0.05,
         width=6,
         textspace=1.5,
