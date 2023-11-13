@@ -87,13 +87,14 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
 
     Parameters
     ----------
-        task : str. default = "classification".
-            this is not case sensitive. Should be one of
-            "classification/clustering/regression
+    task : str, default="classification"
+        Should be one of classification/clustering/regression. This is not case
+        sensitive.
 
     Returns
     -------
-        str: standardised name as defined by NAME_ALIASES
+    str
+        Standardised name as defined by NAME_ALIASES.
 
     Example
     -------
@@ -127,26 +128,29 @@ def get_estimator_results(
 ):
     """Look for results for given estimators for a list of datasets.
 
-    This function pulls down a CSV of results, scans it for datasets and returns any
-    results found. If a dataset is not present, it is ignored.
+    This function loads or pulls down a CSV of results, scans it for datasets and
+    returns any results found. If a dataset is not present, it is ignored.
 
     Parameters
     ----------
-    estimators: list of string.
+    estimators : list of str
         list of estimators to search for.
-    datasets: list of string default = UCR.
+    datasets: list of str, default = UCR
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists
-    default_only: boolean, default = True
-        whether to recover just the default test results, or 30 resamples
-    path: string default https://timeseriesclassification.com/results/ReferenceResults/
-        path where to read results from, default to tsc.com
+        datasets listed in aeon.datasets.tsc_data_lists.
+    default_only : boolean, default = True
+        Whether to recover just the default test results, or 30 resamples.
+    path : str, default=https://timeseriesclassification.com/results/ReferenceResults/
+        Path where to read results from, default to tsc.com
+    suffix : str, default="_TESTFOLDS.csv"
+        String added to dataset name to load.
+
     Returns
     -------
-        results: list of dictionaries of dictionaries.
-            list len(estimators) of dictionaries, each of which is a dictionary of
-            dataset names for keys and results as the value. If default only is an
-            np.ndarray.
+    list of dictionaries of dictionaries
+        list len(estimators) of dictionaries, each of which is a dictionary of
+        dataset names for keys and results as the value. If default only is an
+        np.ndarray.
 
     Example
     -------
@@ -208,25 +212,25 @@ def get_estimator_results_as_array(
 
     Parameters
     ----------
-    estimators : list of string
-        list of estimators to search for.
-    datasets : list of string default = UCR.
-        list of problem names to search for. Default is to look for the 112 UCR
+    estimators : list of str
+        List of estimators to search for.
+    datasets : list of str, default = UCR.
+        List of problem names to search for. Default is to look for the 112 UCR
         datasets listed in aeon.datasets.tsc_data_lists.
     default_only : boolean, default = True
-        whether to recover just the default test results, or 30 resamples. If false,
+        Whether to recover just the default test results, or 30 resamples. If false,
         values are averaged to get a 2D array.
     include_missing : boolean, default = False
         If a classifier does not have results for a given problem, either the whole
         problem is ignored when include_missing is False, or NaN.
-    path : string default https://timeseriesclassification.com/results/ReferenceResults/
-        path where to read results from, default to tsc.com.
+    path : str, default https://timeseriesclassification.com/results/ReferenceResults/
+        Path where to read results from, default to tsc.com.
 
     Returns
     -------
     2D numpy array
         Each column is a results for a classifier, each row a dataset.
-    if include_missing == false, returns names: an aligned list of names of included
+    if include_missing == false, returns names: an aligned list of names of included.
 
     Example
     -------
