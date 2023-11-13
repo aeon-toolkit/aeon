@@ -14,7 +14,7 @@ updates:
       - "no changelog"
     groups:
       github-actions:
-        patterns:
+        patternss:
           - "*"
   # update Python dependencies
   - package-ecosystem: "pip"
