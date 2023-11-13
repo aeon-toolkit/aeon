@@ -1,16 +1,4 @@
-"""
-ClaSP (Classification Score Profile) Segmentation.
-
-Notes
------
-As described in
-@inproceedings{clasp2021,
-  title={ClaSP - Time Series Segmentation},
-  author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
-  booktitle={CIKM},
-  year={2021}
-}
-"""
+"""ClaSP (Classification Score Profile) Segmentation."""
 
 import warnings
 
@@ -185,37 +173,34 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
 class ClaSPSegmentation(BaseSeriesAnnotator):
     """ClaSP (Classification Score Profile) Segmentation.
 
-    Using ClaSP for the CPD problem is straightforward: We first compute the profile
-    and then choose its global maximum as the change point. The following CPDs
+    Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
+    profile and then choose its global maximum as the change point. The following CPDs
     are obtained using a bespoke recursive split segmentation algorithm.
 
     Parameters
     ----------
-    period_length :         int, default = 10
-        size of window for sliding, based on the period length of the data
-    n_cps :                 int, default = 1
-        the number of change points to search
-    fmt :                  str {"dense", "sparse"}, optional (default="sparse")
-        annotation output format:
+    period_length : int, default = 10
+        Size of window for sliding, based on the period length of the data.
+    n_cps : int, default = 1
+        The number of change points to search.
+    fmt : str {"dense", "sparse"}, default="sparse"
+        Segmentation output format:
         * If "sparse", a pd.Series of the found Change Points is returned
-        * If "dense", a pd.IndexSeries with the Segmenation of X is returned
+        * If "dense", a pd.IndexSeries with the Segmenation of X is returned.
     exclusion_radius : int
-        Exclusion Radius for change points to be non-trivial matches
+        Exclusion Radius for change points to be non-trivial matches.
 
-    Notes
-    -----
-    As described in
-    @inproceedings{clasp2021,
-      title={ClaSP - Time Series Segmentation},
-      author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
-      booktitle={CIKM},
-      year={2021}
-    }
+    References
+    ----------
+    .. [1] Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
+    Segmentation", CIKM, 2021.
+    .. [2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
+    time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
 
     Examples
     --------
-    >>> from aeon.annotation.clasp import ClaSPSegmentation
-    >>> from aeon.annotation.clasp import find_dominant_window_sizes
+    >>> from aeon.segmentation import ClaSPSegmentation
+    >>> from aeon.segmentation import find_dominant_window_sizes
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> dominant_period_size = find_dominant_window_sizes(X)

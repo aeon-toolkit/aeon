@@ -1,4 +1,6 @@
 """Test single problem loaders with varying return types."""
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -13,9 +15,11 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_osuleaf,
     load_plaid,
     load_solar,
+    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
+from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -75,6 +79,18 @@ def test_load_unit_test_tsf():
     assert tuple[2] == 4
     assert not tuple[3]
     assert not tuple[4]
+
+
+def test_basic_load_tsf_to_dataframe():
+    """Simple loader test."""
+
+    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    df, metadata = load_tsf_to_dataframe(full_path)
+    assert isinstance(df, pd.DataFrame)
+    assert metadata["frequency"] == "yearly"
+    assert metadata["forecast_horizon"] == 4
+    assert metadata["contain_missing_values"] is False
+    assert metadata["contain_equal_length"] is False
 
 
 def test_load_solar():

@@ -163,7 +163,7 @@ class IGTS:
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> from aeon.annotation.igts import InformationGainSegmentation
+    >>> from aeon.segmentation import InformationGainSegmentation
     >>> igts = InformationGainSegmentation(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
 
@@ -371,13 +371,13 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
     --------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
+    >>> from aeon.segmentation import InformationGainSegmentation
     >>> X = piecewise_normal_multivariate(
     ... lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> from aeon.annotation.igts import InformationGainSegmentation
     >>> igts = InformationGainSegmentation(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
 

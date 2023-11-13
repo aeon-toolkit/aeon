@@ -6,6 +6,7 @@ __all__ = []
 
 import os
 import shutil
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -144,6 +145,10 @@ def test__alias_datatype_check():
     assert _alias_datatype_check("np3D") == "numpy3D"
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test__load_header_info():
     """Test loading a header."""
     path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
@@ -158,8 +163,35 @@ def test__load_header_info():
         assert meta_data["classlabel"]
         assert meta_data["class_values"][0] == "1"
         assert meta_data["class_values"][1] == "2"
+    WRONG_STRINGS = ["@data 55", "@missing 42, @classlabel True"]
+    count = 1
+    with tempfile.TemporaryDirectory() as tmp:
+        for name in WRONG_STRINGS:
+            problem_name = f"temp{count}.ts"
+            load_path = os.path.join(tmp, problem_name)
+            temp_file = open(load_path, "w", encoding="utf-8")
+            temp_file.write(name)
+            temp_file.close()
+            with open(load_path, "r", encoding="utf-8") as file:
+                with pytest.raises(IOError):
+                    _load_header_info(file)
+            count = count + 1
+        name = "@missing true \n @classlabel True 0 1"
+        problem_name = "temp_correct.ts"
+        load_path = os.path.join(tmp, problem_name)
+        temp_file = open(load_path, "w", encoding="utf-8")
+        temp_file.write(name)
+        temp_file.close()
+        with open(load_path, "r", encoding="utf-8") as file:
+            meta = _load_header_info(file)
+            assert meta["missing"] is True
+            assert meta["classlabel"] is True
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test__load_data():
     """Test loading after header."""
     path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
@@ -182,8 +214,44 @@ def test__load_data():
         meta_data["equallength"] = True
         with pytest.raises(IOError):
             X, y, _ = _load_data(file, meta_data)
+    WRONG_DATA = [
+        "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0",
+        "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0\n1.0,2.0,3.0,4.0:0",
+    ]
+    meta_data = {"classlabel": True, "class_values": [0, 1], "equallength": False}
+    count = 1
+    with tempfile.TemporaryDirectory() as tmp:
+        for data in WRONG_DATA:
+            problem_name = f"temp{count}.ts"
+            load_path = os.path.join(tmp, problem_name)
+            temp_file = open(load_path, "w", encoding="utf-8")
+            temp_file.write(data)
+            temp_file.close()
+            with open(load_path, "r", encoding="utf-8") as file:
+                with pytest.raises(IOError):
+                    _load_data(file, meta_data)
+            count = count + 1
+        meta_data = {
+            "classlabel": True,
+            "class_values": [0, 1],
+            "equallength": True,
+            "univariate": True,
+        }
+        data = "1.0,2.0,3.0:0.0\n 1.0,2.0,3.0:1.0\n 2.0,3.0,4.0:0"
+        problem_name = "tempCorrect.ts"
+        load_path = os.path.join(tmp, problem_name)
+        temp_file = open(load_path, "w", encoding="utf-8")
+        temp_file.write(data)
+        temp_file.close()
+        with open(load_path, "r", encoding="utf-8") as file:
+            X, y, meta_data = _load_data(file, meta_data)
+            assert isinstance(X, np.ndarray)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("return_X_y", [True, False])
 @pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D", "numpy2D"])
 def test_load_provided_dataset(return_X_y, return_type):
@@ -208,6 +276,10 @@ def test_load_provided_dataset(return_X_y, return_type):
     # Check whether object is same mtype or not, via bool
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_tsfile():
     """Test function for loading TS formats.
 
@@ -275,6 +347,10 @@ _CHECKS = {
 }
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("dataset", sorted(_CHECKS.keys()))
 def test_forecasting_data_loaders(dataset):
     """
@@ -312,6 +388,10 @@ def test_forecasting_data_loaders(dataset):
         assert len(X) == checks["len_X"]
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_long_to_dataframe(tmpdir):
     """Test for loading from long to dataframe."""
     # create and save a example long-format file to csv
@@ -323,6 +403,10 @@ def test_load_from_long_to_dataframe(tmpdir):
     assert isinstance(nested_dataframe, pd.DataFrame)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_long_incorrect_format(tmpdir):
     """Test for loading from long with incorrect format."""
     with pytest.raises(ValueError):
@@ -547,6 +631,10 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         assert df.index.nlevels > 1
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_tsf_file():
     """Test the tsf loader that has no conversions."""
     data_path = os.path.join(
@@ -564,6 +652,10 @@ def test_load_from_tsf_file():
     assert df.shape == (3, 3)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_forecasting():
     """Test load forecasting for baked in data."""
     expected_metadata = {
@@ -579,6 +671,10 @@ def test_load_forecasting():
     assert df.shape == (181, 3)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_regression():
     """Test the load regression function."""
     expected_metadata = {
@@ -599,6 +695,10 @@ def test_load_regression():
     assert y.shape == (201,)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_classification():
     """Test load classification."""
     expected_metadata = {
@@ -619,6 +719,10 @@ def test_load_classification():
     assert y.shape == (42,)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 @pytest.mark.parametrize("freq", [None, "YS"])
 def test_convert_tsf_to_multiindex(freq):
     input_df = pd.DataFrame(
@@ -700,6 +804,10 @@ def test_convert_tsf_to_multiindex(freq):
     )
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
@@ -710,6 +818,10 @@ def test_load_from_ucr_tsv():
     assert np.array_equal(y, y2)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
