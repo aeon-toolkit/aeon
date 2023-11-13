@@ -1,31 +1,32 @@
 version: 2
 updates:
   # update GitHub actions versions
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
       time: "01:00"
     commit-message:
-      prefix: "[MNT]"
+      prefix: "[MNT] "
     labels:
       - "maintenance"
+      - "dependencies"
       - "no changelog"
     groups:
       github-actions:
         patterns:
           - "*"
-
   # update Python dependencies
-  - package-ecosystem: pip
-    directory: /
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
       time: "01:00"
     commit-message:
-      prefix: "[MNT]"
+      prefix: "[MNT] "
     labels:
       - "maintenance"
+      - "dependencies"
       - "full pytest actions"
       - "no changelog"
     groups:
