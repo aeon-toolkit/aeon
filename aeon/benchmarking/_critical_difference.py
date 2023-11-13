@@ -169,7 +169,7 @@ def plot_critical_difference(
     width=6,
     textspace=1.5,
     reverse=True,
-    p_values=True,
+    return_p_values=True,
 ):
     """
     Plot the average ranks and cliques based on the method described in [1]_.
@@ -577,7 +577,7 @@ def plot_critical_difference(
             linewidth=linewidth_sign,
         )
         start += height
-    if p_values:
+    if return_p_values:
         return fig, p_values
     else:
         return fig
