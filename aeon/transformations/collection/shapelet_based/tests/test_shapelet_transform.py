@@ -14,7 +14,7 @@ def test_shapelet_transform():
     # Assert at least one shapelet per class when max_shapelets < n_labels
     assert len(rst.shapelets) == 4
     X, y = make_3d_test_data(
-        n_cases=3, n_timepoints=rst.max_fitted_shapelet_length_ - 1, n_labels=4
+        n_cases=3, n_timepoints=rst.max_shapelet_length_ - 1, n_labels=4
     )
     with pytest.raises(
         ValueError,
