@@ -126,6 +126,7 @@ def test_get_available_estimators():
     reason="Only run on overnights because it relies on external website.",
 )
 def test_get_bake_off_2017_results():
+    """Test original bake off results."""
     default_results = get_bake_off_2017_results()
     assert default_results.shape == (85, 24)
     assert default_results[0][0] == 0.6649616368286445
@@ -141,6 +142,7 @@ def test_get_bake_off_2017_results():
     reason="Only run on overnights because it relies on external website.",
 )
 def test_get_bake_off_2020_results():
+    """Test multivariate bake off results."""
     default_results = get_bake_off_2021_results()
     assert default_results.shape == (26, 11)
     assert default_results[0][0] == 0.99
@@ -156,6 +158,7 @@ def test_get_bake_off_2020_results():
     reason="Only run on overnights because it relies on external website.",
 )
 def test_get_bake_off_2023_results():
+    """Test bake off redux results."""
     default_results = get_bake_off_2023_results()
     assert default_results.shape == (112, 33)
     assert default_results[0][0] == 0.7774936061381074
