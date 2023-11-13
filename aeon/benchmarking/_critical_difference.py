@@ -29,7 +29,7 @@ def _check_friedman(ranks):
     Returns
     -------
     float
-      p value of the test
+      p-value of the test
     """
     n_datasets, n_estimators = ranks.shape
 
@@ -220,18 +220,16 @@ def plot_critical_difference(
     B, as a control. Imagine we find no difference between B and C, nor any difference
     between B and D. We have formed a clique for B: [B, C, D]. On the third
     iteration, imagine we also find not difference between C and D and thus form a
-    second clique, [C, D]. We have found two cliques, but [C,D] is contained in [B,
-    C, D] and is thus redundant. In this case we would
-    return a single clique, [B, C, D].
+    second clique, [C, D]. We have found two cliques, but [C,D] is contained in [B, C,
+    D] and is thus redundant. In this case we would return a single clique, [B, C, D].
 
     Not this is a heuristic approach not without problems: If the best ranked estimator
     A is significantly better than B but not significantly different to C, this will
     not be reflected in the diagram. Because of this, we recommend also reporting
     p-values in a table, and exploring other ways to present results such as pairwise
     plots. Comparing estimators on archive data sets can only be indicative of
-    overall performance in general, and such comparisons should be seen as
-    exploratory analysis rather than designed experiments to test an a priori
-    hyptothis.
+    overall performance in general, and such comparisons should be seen as exploratory
+    analysis rather than designed experiments to test an a priori hypothesis.
 
     Parts of the code are adapted from here:
     https://github.com/hfawaz/cd-diagram
@@ -260,8 +258,9 @@ def plot_critical_difference(
         Space on figure sides (in inches) for the method names (default: 1.5).
     reverse : bool, default = True
         If set to 'True', the lowest rank is on the right.
-    p_values : bool, default = False
-        Whether to return the pairwise uadjusted matrix of p-values.dexp
+    return_p_values : bool, default = False
+        Whether to return the pairwise matrix of p-values.
+
     Returns
     -------
         matplotlib.figure
@@ -270,16 +269,16 @@ def plot_critical_difference(
     References
     ----------
     .. [1] Demsar J., "Statistical comparisons of classifiers over multiple data sets."
-    Journal of Machine Learning Research 7:1–30, 2006.
-    .. [2] Garcıa S. and Herrera F., "An extension on “statistical comparisons of
+    Journal of Machine Learning Research 7:1-30, 2006.
+    .. [2] García S. and Herrera F., "An extension on “statistical comparisons of
     classifiers over multiple data sets” for all pairwise comparisons."
-    Journal of Machine Learning Research 9:2677–2694, 2008.
+    Journal of Machine Learning Research 9:2677-2694, 2008.
     .. [3] Benavoli A., Corani G. and Mangili F "Should we really use post-hoc tests
-    based on mean-ranks?" Journal of Machine Learning Research 17:1–10, 2016.
+    based on mean-ranks?" Journal of Machine Learning Research 17:1-10, 2016.
     .. [4] Nemenyi P., "Distribution-free multiple comparisons".
     PhD thesis, Princeton University, 1963.
     .. [5] Holm S., " A simple sequentially rejective multiple test procedure."
-    Scandinavian Journal of Statistics, 6:65–70, 1979.
+    Scandinavian Journal of Statistics, 6:65-70, 1979.
 
     Example
     -------
