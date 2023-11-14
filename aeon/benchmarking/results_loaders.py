@@ -333,20 +333,19 @@ classifiers_2017 = {
     "WDTW_1NN": 24,
 }
 
-classifiers_2021 = [
-    "CBOSS",
-    "CIF",
-    #    "DTW_A", Excluded because results are not complete
-    "DTW_D",
-    "DTW_I",
-    "gRSF",
-    "HIVE-COTEv1",
-    "ResNet",
-    "RISE",
-    "ROCKET",
-    "STC",
-    "TSF",
-]
+classifiers_2021 = {
+    "CBOSS": 0,
+    "CIF": 1,
+    "DTW_D": 2,
+    "DTW_I": 3,
+    "gRSF": 4,
+    "HIVE-COTEv1": 5,
+    "ResNet": 6,
+    "RISE": 7,
+    "ROCKET": 8,
+    "STC": 9,
+    "TSF": 10,
+}
 
 classifiers_2023 = [
     "Arsenal",
