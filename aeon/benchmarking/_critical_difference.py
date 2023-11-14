@@ -93,7 +93,7 @@ def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     return cliques
 
 
-def _wilcoxon_test(results):
+def _wilcoxon_test(results, lower_better):
     """
     Perform Wilcoxon test.
 
@@ -101,6 +101,10 @@ def _wilcoxon_test(results):
     ----------
     results: np.array
       results of strategies on datasets
+
+    lower_better : bool, default = False
+        Indicates whether smaller is better for the results in scores. For example,
+        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
 
     Returns
     -------
@@ -117,7 +121,7 @@ def _wilcoxon_test(results):
                 results[:, i],
                 results[:, j],
                 zero_method="wilcox",
-                alternative="greater",
+                alternative="less" if lower_better else "greater",
             )[1]
 
     return p_values
@@ -300,6 +304,11 @@ def plot_critical_difference(
         test = test.lower()
     if isinstance(correction, str):
         correction = correction.lower()
+    if return_p_values and test == "nemenyi":
+        raise ValueError(
+            "Cannot return p values for the Nemenyi test, since it does "
+            "not calculate p-values."
+        )
     # Step 1: rank data: in case of ties average ranks are assigned
     if lower_better:  # low is good -> rank 1
         ranks = rankdata(scores, axis=1)
@@ -341,7 +350,7 @@ def plot_critical_difference(
                 adjusted_alpha = alpha
             else:
                 raise ValueError("correction available are None, Bonferroni and Holm.")
-            p_values = _wilcoxon_test(ordered_scores)
+            p_values = _wilcoxon_test(ordered_scores, lower_better)
             cliques = _build_cliques(p_values > adjusted_alpha)
         else:
             raise ValueError("tests available are only nemenyi and wilcoxon.")
@@ -404,8 +413,8 @@ def plot_critical_difference(
 
     bigtick = 0.3
     smalltick = 0.15
-    linewidth = 2.0
-    linewidth_sign = 4.0
+    linewidth = 0.75
+    linewidth_sign = 2.5
 
     def _rankpos(rank):
         if not reverse:
