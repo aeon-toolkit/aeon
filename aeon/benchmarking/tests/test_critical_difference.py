@@ -3,14 +3,15 @@ import os
 
 import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 from scipy.stats import rankdata
 
 from aeon.benchmarking._critical_difference import (
+    _build_cliques,
     _check_friedman,
-    build_cliques,
-    nemenyi_cliques,
+    _nemenyi_test,
+    _wilcoxon_test,
     plot_critical_difference,
-    wilcoxon_holm_cliques,
 )
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
@@ -20,143 +21,8 @@ test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
 
 
-def test__check_friedman():
-    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
-    alpha = 0.05
-    data = univariate_equal_length
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
-    )
-    ranked_data = rankdata(-1 * res, axis=1)
-
-    is_significant = _check_friedman(len(cls), len(data), ranked_data, alpha)
-    assert is_significant
-
-    # test that approaches are not significantly different.
-    cls = ["HC2", "HC2", "HC2"]
-    res = get_estimator_results_as_array(
-        estimators=cls,
-        datasets=data,
-        path=data_path,
-        include_missing=True,
-    )
-
-    # add some tiny noise to the results.
-    np.random.seed(42)
-    random_values = np.random.uniform(-0.01, 0.01, size=res.shape)
-    res = np.clip(res + random_values, 0, 1)
-
-    ranked_data = rankdata(-1 * res, axis=1)
-
-    is_significant = _check_friedman(len(cls), len(data), ranked_data, alpha)
-    assert not is_significant
-
-
-def test_build_cliques():
-    cliques = np.array(
-        [
-            [True, False, True, False],
-            [False, True, True, True],
-            [True, True, True, False],
-            [False, True, True, True],
-        ]
-    )
-
-    cliques = build_cliques(cliques)
-
-    cliques_correct = np.array(
-        [
-            [False, True, True, True],
-            [True, True, True, False],
-        ]
-    )
-
-    assert np.all(cliques == cliques_correct)
-
-    cliques = np.array(
-        [
-            [True, False, False, False],
-            [False, True, True, True],
-            [False, True, True, False],
-            [False, False, False, True],
-        ]
-    )
-
-    cliques = build_cliques(cliques)
-
-    cliques_correct = np.array(
-        [
-            [False, True, True, True],
-        ]
-    )
-
-    assert np.all(cliques == cliques_correct)
-
-    cliques = np.array(
-        [
-            [True, True, False, False, False, False, False, False],
-            [True, True, False, False, False, False, False, False],
-            [False, False, True, True, True, False, False, False],
-            [False, False, True, True, True, True, False, False],
-            [False, False, True, True, True, True, False, False],
-            [False, False, False, True, True, True, False, False],
-            [False, False, False, False, False, False, True, False],
-            [False, False, False, False, False, False, False, True],
-        ]
-    )
-
-    cliques = build_cliques(cliques)
-
-    cliques_correct = np.array(
-        [
-            [True, True, False, False, False, False, False, False],
-            [False, False, True, True, True, True, False, False],
-        ]
-    )
-
-    assert np.all(cliques == cliques_correct)
-
-    cliques = np.array(
-        [
-            [True, True, False, False, False, False],
-            [True, True, True, False, False, False],
-            [False, True, True, True, False, False],
-            [False, False, True, True, False, True],
-            [False, False, False, False, True, True],
-            [False, False, False, True, True, True],
-        ]
-    )
-
-    cliques = build_cliques(cliques)
-
-    cliques_correct = np.array(
-        [
-            [True, True, True, False, False, False],
-            [False, True, True, True, False, False],
-            [False, False, True, True, False, True],
-        ]
-    )
-
-    assert np.all(cliques == cliques_correct)
-
-    cliques = np.array(
-        [
-            [True, False, False, False, False, False],
-            [False, True, False, False, False, False],
-            [False, False, True, False, False, False],
-            [False, False, False, True, False, False],
-            [False, False, False, False, True, False],
-            [False, False, False, False, False, True],
-        ]
-    )
-
-    cliques = build_cliques(cliques)
-
-    cliques_correct = np.ndarray([])
-    assert np.all(cliques == cliques_correct)
-
-
-def test_nemenyi_cliques():
+def test_nemenyi_test():
+    """Test Nemenyi test for differences in ranks."""
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     alpha = 0.05
     data_full = list(univariate_equal_length)
@@ -171,7 +37,7 @@ def test_nemenyi_cliques():
     avranks = ranked_data.mean(axis=0)
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
 
-    cliques = nemenyi_cliques(len(cls), len(data_full), avranks, alpha)
+    cliques = _nemenyi_test(avranks, len(data_full), alpha)
 
     assert np.all(cliques == [False, True, True, True])
 
@@ -185,34 +51,125 @@ def test_nemenyi_cliques():
     ranked_data = rankdata(-1 * res, axis=1)
     avranks = ranked_data.mean(axis=0)
     avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
-
-    cliques = nemenyi_cliques(len(cls), len(data), avranks, 0.01)
+    cliques = _nemenyi_test(avranks, len(data), 0.01)
 
     assert np.all(cliques == [True, True, True, True])
 
 
-def test_wilcoxon_holm_cliques():
-    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+def test_wilcoxon_test():
+    """Test Wilcoxon pairwise test for multiple estimators."""
+    cls = ["HC2", "InceptionT", "WEASEL-D", "FreshPRINCE"]
     data_full = list(univariate_equal_length)
     data_full.sort()
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
+    p_vals = _wilcoxon_test(res)
+    assert_almost_equal(p_vals[0], np.array([1.0, 0.0, 0.0, 0.0]), decimal=2)
 
+
+def test__check_friedman():
+    """Test Friedman test for overall difference in estimators."""
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data = univariate_equal_length
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data, path=data_path, include_missing=True
+    )
     ranked_data = rankdata(-1 * res, axis=1)
-    avranks = ranked_data.mean(axis=0)
-    avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
+    assert _check_friedman(ranked_data) < 0.05
 
-    cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.1)
+    # test that approaches are not significantly different.
+    cls = ["HC2", "HC2", "HC2"]
+    res = get_estimator_results_as_array(
+        estimators=cls,
+        datasets=data,
+        path=data_path,
+        include_missing=True,
+    )
+    # add some tiny noise to the results.
+    np.random.seed(42)
+    random_values = np.random.uniform(-0.01, 0.01, size=res.shape)
+    res = np.clip(res + random_values, 0, 1)
+    ranked_data = rankdata(-1 * res, axis=1)
+    assert _check_friedman(ranked_data) > 0.05
 
-    assert np.all(cliques == [False, False, True, True])
 
-    cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.05)
+test_clique1 = np.array(
+    [
+        [True, False, False, False],
+        [False, True, False, False],
+        [False, False, True, True],
+        [False, False, False, True],
+    ]
+)
+correct_clique1 = np.array(
+    [
+        [False, False, True, True],
+    ]
+)
+test_clique2 = np.array(
+    [
+        [True, False, False, False],
+        [False, True, False, False],
+        [False, False, True, True],
+        [False, False, False, True],
+    ]
+)
+correct_clique2 = np.array([[False, False, True, True]])
 
-    assert np.all(cliques == [False, True, True, True])
+test_clique3 = np.array(
+    [
+        [True, True, True, True, True, False, False, False, False, False, False],
+        [False, True, True, True, True, True, True, False, False, False, False],
+        [False, False, True, True, True, True, False, False, False, False, False],
+        [False, False, False, True, True, True, True, True, True, True, True],
+        [False, False, False, False, True, True, True, True, True, True, False],
+        [False, False, False, False, False, True, True, True, True, True, True],
+        [False, False, False, False, False, False, True, True, True, True, False],
+        [False, False, False, False, False, False, False, True, True, True, True],
+        [False, False, False, False, False, False, False, False, True, True, True],
+        [False, False, False, False, False, False, False, False, False, True, True],
+        [False, False, False, False, False, False, False, False, False, False, True],
+    ]
+)
+correct_clique3 = np.array(
+    [
+        [True, True, True, True, True, False, False, False, False, False, False],
+        [False, True, True, True, True, True, True, False, False, False, False],
+        [False, False, False, True, True, True, True, True, True, True, True],
+    ]
+)
+test_clique4 = np.array(
+    [
+        [True, True, True, True],
+        [False, True, False, False],
+        [False, False, True, True],
+        [False, False, False, True],
+    ]
+)
+correct_clique4 = np.array([[True, True, True, True]])
 
-    cliques = wilcoxon_holm_cliques(res, cls, avranks, 0.01)
-    assert np.all(cliques == [False, True, True, True])
+
+CLIQUES = [
+    (test_clique1, correct_clique1),
+    (test_clique2, correct_clique2),
+    (test_clique3, correct_clique3),
+    (test_clique4, correct_clique4),
+]
+
+
+@pytest.mark.parametrize("cliques", CLIQUES)
+def test__build_cliques(cliques):
+    """Test build cliques with different cases."""
+    obs_clique = _build_cliques(cliques[0])
+    assert np.all(obs_clique == cliques[1])
+
+
+def test__build_cliques_empty():
+    """Test build cliques with empty return."""
+    test_clique = np.array([[True, False], [False, True]])
+    obs_clique = _build_cliques(test_clique)
+    assert obs_clique.size == 0
 
 
 @pytest.mark.skipif(
@@ -220,6 +177,7 @@ def test_wilcoxon_holm_cliques():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_critical_difference():
+    """Test plot critical difference diagram."""
     _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
 
@@ -235,9 +193,7 @@ def test_plot_critical_difference():
         res,
         cls,
         highlight=None,
-        errors=False,
-        cliques=None,
-        clique_method="nemenyi",
+        lower_better=False,
         alpha=0.05,
         width=6,
         textspace=1.5,
