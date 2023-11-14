@@ -137,14 +137,14 @@ def _build_cliques(pairwise_matrix):
     cliques: list of lists
         cliques within which there is no significant different between estimators.
     """
+    for i in range(0, pairwise_matrix.shape[0]):
+        for j in range(i + 1, pairwise_matrix.shape[1]):
+            if pairwise_matrix[i, j] == 0:
+                pairwise_matrix[i, j + 1 :] = 0  # noqa: E203
+                break
+
     n = np.sum(pairwise_matrix, 1)
     possible_cliques = pairwise_matrix[n > 1, :]
-
-    for i in range(0, possible_cliques.shape[0]):
-        for j in range(i + 1, possible_cliques.shape[1]):
-            if possible_cliques[i, j] == 0:
-                possible_cliques[i, j + 1 :] = 0  # noqa: E203
-                break
 
     for i in range(possible_cliques.shape[0] - 1, 0, -1):
         for j in range(i - 1, -1, -1):
