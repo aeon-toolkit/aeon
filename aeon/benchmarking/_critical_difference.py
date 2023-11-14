@@ -93,7 +93,7 @@ def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     return cliques
 
 
-def _wilcoxon_test(results, lower_better):
+def _wilcoxon_test(results, lower_better=False):
     """
     Perform Wilcoxon test.
 
