@@ -305,34 +305,33 @@ def _get_published_results(
     return data_array
 
 
-classifiers_2017 = [
-    "ACF",
-    "BOSS",
-    "CID_DTW",
-    "CID_ED",
-    "DDTW_R1_1NN",
-    "DDTW_Rn_1NN",
-    "DTW_F",
-    "EE",
-    "ERP_1NN",
-    "Euclidean_1NN",
-    "FlatCOTE",
-    "FS",
-    "LCSS_1NN",
-    "LPS",
-    "LS",
-    "MSM_1NN",
-    "PS",
-    "RotF",
-    "SAXVSM",
-    "ST",
-    "TSBF",
-    "TSF",
-    "TWE_1NN",
-    "WDDTW_1NN",
-    "WDTW_1NN",
-]
-
+classifiers_2017 = {
+    "ACF": 0,
+    "BOSS": 1,
+    "CID_DTW": 2,
+    "CID_ED": 3,
+    "DDTW_R1_1NN": 4,
+    "DDTW_Rn_1NN": 5,
+    "DTW_F": 6,
+    "EE": 7,
+    "ERP_1NN": 8,
+    "Euclidean_1NN": 9,
+    "FlatCOTE": 10,
+    "FS": 11,
+    "LCSS_1NN": 12,
+    "LPS": 13,
+    "LS": 14,
+    "MSM_1NN": 15,
+    "PS": 16,
+    "RotF": 17,
+    "SAXVSM": 18,
+    "ST": 19,
+    "TSBF": 20,
+    "TSF": 21,
+    "TWE_1NN": 22,
+    "WDDTW_1NN": 23,
+    "WDTW_1NN": 24,
+}
 
 classifiers_2021 = [
     "CBOSS",
@@ -388,10 +387,11 @@ classifiers_2023 = [
 
 
 def get_bake_off_2017_results(default_only=True):
-    """Pull down all the results of the 2017 bake off [1]_ from tsc.com.
+    """Fetch all the results of the 2017 univariate TSC bake off [1]_ from tsc.com.
 
-    Basic utility function to recover legacy results. Loads results for 85 UCR data
-    sets for all the classifiers listed in ``classifiers_2017``. Can load either the
+    Basic utility function to recover legacy results. Loads results for 85
+    univariate UCR data sets for all the classifiers listed in ``classifiers_2017``.
+    Can load either the
     default train/test split, or the results averaged over 100 resamples.
 
     Parameters
@@ -416,13 +416,14 @@ def get_bake_off_2017_results(default_only=True):
     >>> from aeon.benchmarking import get_bake_off_2017_results, classifiers_2017
     >>> from aeon.benchmarking import plot_critical_difference
     >>> default_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
-    >>> cls_choice = [1,5,6,9,16,18] # doctest: +SKIP
-    >>> cls = [classifiers_2017[i] for i in cls_choice] # doctest: +SKIP
-    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> classifiers = ["MSM_1NN","LPS","TSBF","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"]
+    >>> # Get column positions of classifiers in results
+    >>> index =[classifiers_2017[key] for key in classifiers if key in classifiers_2017]
+    >>> selected =default_results[:,index] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
     >>> average_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
-    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
+    >>> selected =average_results[:,index] # doctest: +SKIP
     >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
     """
