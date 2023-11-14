@@ -16,7 +16,7 @@ aeon/classification/dictionary_based/_redcomets.py @zy18811
 
 aeon/clustering/ @chrisholder @TonyBagnall
 
-aeon/distances/ @chrisholder @TonyBagnall
+aeon/distances/ @chrisholder @TonyBagnall @akshatvishu
 
 aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
 aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
