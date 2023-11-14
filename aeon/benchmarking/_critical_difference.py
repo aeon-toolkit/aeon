@@ -300,6 +300,11 @@ def plot_critical_difference(
         test = test.lower()
     if isinstance(correction, str):
         correction = correction.lower()
+    if return_p_values and test == "nemenyi":
+        raise ValueError(
+            "Cannot return p values for the Nemenyi test, since it does "
+            "not calculate p-values."
+        )
     # Step 1: rank data: in case of ties average ranks are assigned
     if lower_better:  # low is good -> rank 1
         ranks = rankdata(scores, axis=1)
