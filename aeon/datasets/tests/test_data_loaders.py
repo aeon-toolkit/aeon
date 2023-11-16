@@ -117,9 +117,6 @@ def test_load_regression_from_repo():
         assert meta["class_values"] == []
 
 
-#        shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
-
-
 @pytest.mark.skipif(
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
