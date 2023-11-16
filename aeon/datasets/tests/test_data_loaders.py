@@ -101,20 +101,23 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    X, y, meta = load_regression(name)
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert isinstance(meta, dict)
-    assert len(X) == len(y)
-    assert X.shape == (673, 1, 266)
-    assert meta["problemname"] == "floodmodeling1"
-    assert not meta["timestamps"]
-    assert meta["univariate"]
-    assert meta["equallength"]
-    assert not meta["classlabel"]
-    assert meta["targetlabel"]
-    assert meta["class_values"] == []
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    with tempfile.TemporaryDirectory() as tmp:
+        X, y, meta = load_regression(name, extract_path=tmp)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(meta, dict)
+        assert len(X) == len(y)
+        assert X.shape == (673, 1, 266)
+        assert meta["problemname"] == "floodmodeling1"
+        assert not meta["timestamps"]
+        assert meta["univariate"]
+        assert meta["equallength"]
+        assert not meta["classlabel"]
+        assert meta["targetlabel"]
+        assert meta["class_values"] == []
+
+
+#        shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
 
 
 @pytest.mark.skipif(
@@ -218,7 +221,12 @@ def test__load_data():
         "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0",
         "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0\n1.0,2.0,3.0,4.0:0",
     ]
-    meta_data = {"classlabel": True, "class_values": [0, 1], "equallength": False}
+    meta_data = {
+        "classlabel": True,
+        "class_values": [0, 1],
+        "equallength": False,
+        "timestamps": False,
+    }
     count = 1
     with tempfile.TemporaryDirectory() as tmp:
         for data in WRONG_DATA:

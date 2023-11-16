@@ -154,7 +154,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         line = line.strip().lower()
         line = line.replace("nan", replace_missing_vals_with)
         line = line.replace("?", replace_missing_vals_with)
-        if meta_data["timestamps"]:
+        if "timestamps" in meta_data and meta_data["timestamps"]:
             channels = _get_channel_strings(line, target, replace_missing_vals_with)
         else:
             channels = line.split(":")
