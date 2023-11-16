@@ -128,13 +128,13 @@ def test_get_available_estimators():
 def test_get_bake_off_2017_results():
     """Test original bake off results."""
     default_results = get_bake_off_2017_results()
-    assert default_results.shape == (85, 24)
+    assert default_results.shape == (85, 25)
     assert default_results[0][0] == 0.6649616368286445
-    assert default_results[84][23] == 0.853
+    assert default_results[84][24] == 0.853
     average_results = get_bake_off_2017_results(default_only=False)
-    assert average_results.shape == (85, 24)
+    assert average_results.shape == (85, 25)
     assert average_results[0][0] == 0.6575447570332481
-    assert average_results[84][23] == 0.8578933333100001
+    assert average_results[84][24] == 0.8578933333100001
 
 
 @pytest.mark.skipif(
@@ -160,10 +160,10 @@ def test_get_bake_off_2020_results():
 def test_get_bake_off_2023_results():
     """Test bake off redux results."""
     default_results = get_bake_off_2023_results()
-    assert default_results.shape == (112, 33)
+    assert default_results.shape == (112, 34)
     assert default_results[0][0] == 0.7774936061381074
     assert default_results[111][32] == 0.9504373177842566
     average_results = get_bake_off_2023_results(default_only=False)
-    assert average_results.shape == (112, 33)
+    assert average_results.shape == (112, 34)
     assert average_results[0][0] == 0.7692242114236999
     assert average_results[111][32] == 0.9428571428571431
