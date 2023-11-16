@@ -7,20 +7,20 @@ __all__ = [
     "get_bake_off_2017_results",
     "get_bake_off_2021_results",
     "get_bake_off_2023_results",
-    "classifiers_2017",
-    "classifiers_2021",
-    "classifiers_2023",
+    "uni_classifiers_2017",
+    "multi_classifiers_2021",
+    "uni_classifiers_2023",
 ]
 
 from aeon.benchmarking._critical_difference import plot_critical_difference
 from aeon.benchmarking.results_loaders import (
-    classifiers_2017,
-    classifiers_2021,
-    classifiers_2023,
     get_available_estimators,
     get_bake_off_2017_results,
     get_bake_off_2021_results,
     get_bake_off_2023_results,
     get_estimator_results,
     get_estimator_results_as_array,
+    multi_classifiers_2021,
+    uni_classifiers_2017,
+    uni_classifiers_2023,
 )
