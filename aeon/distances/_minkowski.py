@@ -184,8 +184,8 @@ def minkowski_pairwise_distance(
     """
     if y is None:
         if X.ndim == 3:
-            # _X = X.reshape((X.shape[0] * X.shape[1], X.shape[2]))
-            return _minkowski_pairwise_distance(X, p, w)
+            _X = X.reshape((X.shape[0] * X.shape[1], X.shape[2]))
+            return _minkowski_pairwise_distance(_X, p, w)
         elif X.ndim == 2:
             return _minkowski_pairwise_distance(X, p, w)
         raise ValueError("X must be 2D or 3D array")
