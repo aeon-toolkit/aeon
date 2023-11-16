@@ -19,17 +19,13 @@ def _check_friedman(ranks):
 
     Parameters
     ----------
-    n_estimators : int
-      number of strategies to evaluate
-    n_datasets : int
-      number of datasets classified per strategy
-    ranks : np.array (shape: n_estimators * n_datasets)
-      rank of strategy on dataset
+    ranks : np.array
+      Rank of estimators on datasets, shape (n_estimators, n_datasets).
 
     Returns
     -------
     float
-      p-value of the test
+      p-value of the test.
     """
     n_datasets, n_estimators = ranks.shape
 
@@ -62,18 +58,18 @@ def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
 
     Parameters
     ----------
-    ordered_avg_ranks: np.array
-        average ranks of strategies
-    n_datasets: int
-        number of datasets
-    alpha: float
-        alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
+    ordered_avg_ranks : np.array
+        Average ranks of estimators.
+    n_datasets : int
+        Mumber of datasets.
+    alpha : float
+        alpha level for Nemenyi test.
 
     Returns
     -------
-    cliques: list of lists
-        statistically similar cliques
-
+    list of lists
+        List of cliques. A clique is a group of estimators within which there is no
+        significant difference.
     """
     n_estimators = len(ordered_avg_ranks)
     qalpha = get_qalpha(alpha)
@@ -100,7 +96,7 @@ def _wilcoxon_test(results, lower_better=False):
     Parameters
     ----------
     results: np.array
-      results of strategies on datasets
+      results of estimators on datasets
 
     lower_better : bool, default = False
         Indicates whether smaller is better for the results in scores. For example,
@@ -108,8 +104,8 @@ def _wilcoxon_test(results, lower_better=False):
 
     Returns
     -------
-    p_values: np.array
-        p-values of Wilcoxon test
+    np.array
+        p-values of Wilcoxon sign rank test.
     """
     n_estimators = results.shape[1]
 
@@ -133,12 +129,14 @@ def _build_cliques(pairwise_matrix):
 
     Parameters
     ----------
-    pairwise_matrix: np.array
-        pairwise comparison matrix
+    pairwise_matrix : np.array
+        Pairwise matrix shape (n_estimators, n_estimators) indicating if there is a
+        significant difference between pairs. Assumed to be ordered by rank of
+        estimators.
 
     Returns
     -------
-    cliques: list of lists
+    list of lists
         cliques within which there is no significant different between estimators.
     """
     for i in range(0, pairwise_matrix.shape[0]):
@@ -204,7 +202,7 @@ def plot_critical_difference(
     what adjustment to make for multiple testing, and whether to perform a one sided
     or two sided test. The Bonferroni adjustment is known to be conservative. Hence,
     by default, we base our clique finding from pairwise tests on the control
-    tests described in [1]_ and the sequential method recommended in [2]_  proposed
+    tests described in [1]_ and the sequential method recommended in [2]_ and proposed
     in [5]_ that uses a less conservative adjustment than Bonferroni.
 
     We perform all pairwise tests using a one-sided Wilcoxon sign rank test with the
@@ -241,7 +239,7 @@ def plot_critical_difference(
     Parameters
     ----------
     scores : np.array
-        Performance scores for estimators of shape (num datasets, num estimators).
+        Performance scores for estimators of shape (n_datasets, n_estimators).
     labels : list of estimators
         List with names of the estimators. Order should be the same as scores
     highlight : dict, default = None
@@ -267,8 +265,11 @@ def plot_critical_difference(
 
     Returns
     -------
-        matplotlib.figure
+        fig : matplotlib.figure
             Figure created.
+        p_values : np.ndarray (optional)
+            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+            unadjusted p values for the pairwise Wilcoxon sign rank test.
 
     References
     ----------
