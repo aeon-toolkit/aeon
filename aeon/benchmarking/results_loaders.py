@@ -466,13 +466,12 @@ def get_bake_off_2021_results(default_only=True):
     >>> from aeon.benchmarking import get_bake_off_2021_results, classifiers_2021
     >>> from aeon.benchmarking import plot_critical_difference
     >>> default_results = get_bake_off_2021_results(default_only=True) # doctest: +SKIP
-    >>> cls_choice = [0,1,2,5,6,8] # doctest: +SKIP
-    >>> cls = [classifiers_2021[i] for i in cls_choice] # doctest: +SKIP
-    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
+    >>> cls = list(classifiers_2021.keys()) # doctest: +SKIP
+    >>> selected =default_results # doctest: +SKIP
     >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
     >>> average_results = get_bake_off_2021_results(default_only=False) # doctest: +SKIP
-    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
+    >>> selected =average_results # doctest: +SKIP
     >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
     """
@@ -483,7 +482,7 @@ def get_bake_off_2021_results(default_only=True):
         suffix="_TESTFOLDS.csv",
         default_only=default_only,
         header="infer",
-        n_data=112,
+        n_data=26,
     )
 
 
