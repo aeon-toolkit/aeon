@@ -358,8 +358,8 @@ def _load_saved_dataset(
 
 def download_dataset(name, safe_path=None):
     """
-    Download a dataset from the timeseriesclassification.com website 
-    and safes it to the extract_path.
+
+    Download a dataset from the timeseriesclassification.com website.
 
     Parameters
     ----------
@@ -375,7 +375,8 @@ def download_dataset(name, safe_path=None):
 
     Raises
     ------
-    ValueError if the dataset is not available on the website or the extract path is invalid
+    ValueError if the dataset is not available on the website 
+    or the extract path is invalid
     """
     if safe_path is None:
         safe_path = os.path.join(MODULE, "local_data")
