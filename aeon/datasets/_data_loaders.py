@@ -358,7 +358,7 @@ def _load_saved_dataset(
 
 def download_dataset(name, safe_path=None):
     """
-    Download a dataset from the timeseriesclassification.com website 
+    Download a dataset from the timeseriesclassification.com website
     and safes it to the extract_path.
 
     Parameters
