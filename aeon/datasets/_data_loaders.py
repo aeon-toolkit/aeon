@@ -362,7 +362,7 @@ def download_dataset(name, safe_path=None):
 
     Parameters
     ----------
-    name : string, 
+    name : string,
             name of the dataset to download
 
     safe_path : string, optional (default: None)
@@ -382,21 +382,23 @@ def download_dataset(name, safe_path=None):
     if not os.path.exists(safe_path):
         os.makedirs(safe_path)
 
-    if name not in list_downloaded_tsc_tsr_datasets(safe_path) or name not in list_downloaded_tsf_datasets(safe_path):
-            # Dataset is not already present in the datasets directory provided.
-            # If it is not there, download it.
-            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-            try:
-                _download_and_extract(url, extract_path=safe_path)
-            except zipfile.BadZipFile as e:
-                raise ValueError(
-                    f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{safe_path}. Nor is it available on "
-                    f"https://timeseriesclassification.com/.",
-                ) from e
-            
+    if name not in list_downloaded_tsc_tsr_datasets(
+        safe_path
+    ) or name not in list_downloaded_tsf_datasets(safe_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download it.
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        try:
+            _download_and_extract(url, extract_path=safe_path)
+        except zipfile.BadZipFile as e:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{safe_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/.",
+            ) from e
+
     return os.path.join(safe_path, name)
-    
+
 
 def _download_and_extract(url, extract_path=None):
     """
