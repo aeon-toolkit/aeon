@@ -157,9 +157,9 @@ def minkowski_pairwise_distance(
     >>> from aeon.distances import minkowski_pairwise_distance
     >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
     >>> minkowski_pairwise_distance(X, p=1)
-    array([[30., 39., 48.],
-           [21., 30., 39.],
-           [12., 21., 30.]])
+    array([[ 0. 10. 19.],
+          [10.  0.  9.],
+          [19.  9.  0.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
@@ -184,8 +184,8 @@ def minkowski_pairwise_distance(
     """
     if y is None:
         if X.ndim == 3:
-            _X = X.reshape((X.shape[0] * X.shape[1], X.shape[2]))
-            return _minkowski_pairwise_distance(_X, p, w)
+            # _X = X.reshape((X.shape[0] * X.shape[1], X.shape[2]))
+            return _minkowski_pairwise_distance(X, p, w)
         elif X.ndim == 2:
             return _minkowski_pairwise_distance(X, p, w)
         raise ValueError("X must be 2D or 3D array")
