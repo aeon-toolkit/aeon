@@ -288,7 +288,12 @@ def _get_published_results(
     all_results = {}
     for cls in estimators:
         url = path + cls + suffix
-        data = pd.read_csv(url, header=header)
+        try:
+            data = pd.read_csv(url, header=header)
+        except Exception:
+            print(" Error trying to load from url", url)  # noqa
+            print(" Check results for ", cls, " are on the website")  # noqa
+            raise
         problems = data.iloc[:, 0].tolist()
         results = data.iloc[:, 1:].to_numpy()
         cls_results = np.zeros(shape=len(problems))
@@ -347,42 +352,42 @@ multi_classifiers_2021 = {
     "TSF": 10,
 }
 
-uni_classifiers_2023 = [
-    "Arsenal",
-    "BOSS",
-    "CIF",
-    "CNN",
-    "Catch22",
-    "DrCIF",
-    "EE",
-    "FreshPRINCE",
-    "HC1",
-    "HC2",
-    "Hydra-MR",
-    "Hydra",
-    "InceptionT",
-    "Mini-R",
-    "MrSQM",
-    "Multi-R",
-    "PF",
-    "RDST",
-    "RISE",
-    "ROCKET",
-    "RSF",
-    "RSTSF",
-    "ResNet",
-    "STC",
-    "ShapeDTW",
-    "Signatures",
-    "TDE",
-    "TS-CHIEF",
-    "TSF",
-    "TSFresh",
-    "WEASEL-D",
-    "WEASEL",
-    "cBOSS",
-    "1NN-DTW",
-]
+uni_classifiers_2023 = {
+    "Arsenal": 0,
+    "BOSS": 1,
+    "CIF": 2,
+    "CNN": 3,
+    "Catch22": 4,
+    "DrCIF": 5,
+    "EE": 6,
+    "FreshPRINCE": 7,
+    "HC1": 8,
+    "HC2": 9,
+    "Hydra-MR": 10,
+    "Hydra": 11,
+    "InceptionT": 12,
+    "Mini-R": 13,
+    "MrSQM": 14,
+    "Multi-R": 15,
+    "PF": 16,
+    "RDST": 17,
+    "RISE": 18,
+    "ROCKET": 19,
+    "RSF": 20,
+    "RSTSF": 21,
+    "ResNet": 22,
+    "STC": 23,
+    "ShapeDTW": 24,
+    "Signatures": 25,
+    "TDE": 26,
+    "TS-CHIEF": 27,
+    "TSF": 28,
+    "TSFresh": 29,
+    "WEASEL-D": 30,
+    "WEASEL": 31,
+    "cBOSS": 32,
+    "1NN-DTW": 33,
+}
 
 
 def get_bake_off_2017_results(default_only=True):
@@ -513,20 +518,22 @@ def get_bake_off_2023_results(default_only=True):
     experimental evaluation of recent time series classification algorithms",
     arXiv preprint arXiv:2304.13029, 2023.
 
-
     Examples
     --------
     >>> from aeon.benchmarking import get_bake_off_2023_results, uni_classifiers_2023
     >>> from aeon.benchmarking import plot_critical_difference
     >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
-    >>> cls_choice = [8,9,10,12,15,19] # doctest: +SKIP
-    >>> cls = [uni_classifiers_2023[i] for i in cls_choice] # doctest: +SKIP
-    >>> selected =default_results[:,cls_choice] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST",
+    "RSTSF"]
+    >>> # Get column positions of classifiers in results
+    >>> cls = uni_classifiers_2023
+    >>> index =[cls[key] for key in classifiers if key in cls]
+    >>> selected =default_results[:,index] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
     >>> average_results = get_bake_off_2023_results(default_only=False) # doctest: +SKIP
-    >>> selected =average_results[:,cls_choice] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
+    >>> selected =average_results[:,index] # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
     >>> plot.show()# doctest: +SKIP
 
 
