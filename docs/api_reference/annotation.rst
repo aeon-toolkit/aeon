@@ -4,19 +4,9 @@ Time series annotation
 ======================
 
 The :mod:`aeon.annotation` module contains algorithms and tools
-for time series annotation tasks, like anomaly/outlier detection,
-and time series segmentation.
+for time series annotation. This no longer includes anomaly/outlier
+detection and time series segmentation, which are now in their own module.
 
-Time Series Segmentation
-------------------------
-
-.. currentmodule:: aeon.annotation.clasp
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ClaSPSegmentation
 
 .. currentmodule:: aeon.annotation.eagglo
 
@@ -42,14 +32,6 @@ Time Series Segmentation
 
     GMMHMM
 
-.. currentmodule:: aeon.annotation.ggs
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    GreedyGaussianSegmentation
-
 .. currentmodule:: aeon.annotation.hmm
 
 .. autosummary::
@@ -58,14 +40,6 @@ Time Series Segmentation
 
     HMM
 
-.. currentmodule:: aeon.annotation.igts
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    InformationGainSegmentation
-
 .. currentmodule:: aeon.annotation.hmm_learn.poisson
 
 .. autosummary::
@@ -73,14 +47,6 @@ Time Series Segmentation
     :template: class.rst
 
     PoissonHMM
-
-.. currentmodule:: aeon.annotation.stray
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    STRAY
 
 Adapters
 --------

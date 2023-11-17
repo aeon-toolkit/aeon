@@ -8,25 +8,23 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert, convert_to
+from aeon.datatypes import convert_to
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
 class Tabularizer(BaseCollectionTransformer):
     """
-    A transformer that turns time series/panel data into tabular data.
+    A transformer that turns time series collection into tabular data.
 
-    This estimator converts nested pandas dataframe containing
-    time-series/panel data with numpy arrays or pandas Series in
-    dataframe cells into a tabular numpy array. This is useful for transforming
-    time-series/panel data into a format that is accepted by standard
-    validation learning algorithms (as in sklearn).
+    This estimator converts a 3D numpy into a 2D numpy by concatenating channels
+    using ``reshape``. This is only usable with equal length series. This is useful for
+    transforming time-series collections into a format that is accepted by sklearn.
     """
 
     _tags = {
         "fit_is_empty": True,
         "output_data_type": "Tabular",
-        "X_inner_type": ["nested_univ", "numpy3D"],
+        "X_inner_type": ["numpy3D"],
         "capability:multivariate": True,
     }
 
@@ -44,30 +42,13 @@ class Tabularizer(BaseCollectionTransformer):
         Xt : pandas DataFrame
             Transformed dataframe with only primitives in cells.
         """
-        Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        return Xt
-
-    def inverse_transform(self, X, y=None):
-        """Transform tabular pandas dataframe into nested dataframe.
-
-        Parameters
-        ----------
-        X : pandas DataFrame
-            Tabular dataframe with primitives in cells.
-        y : array-like, optional (default=None)
-
-        Returns
-        -------
-        Xt : pandas DataFrame
-            Transformed dataframe with series in cells.
-        """
-        Xt = convert(X, from_type="numpyflat", to_type="numpy3D", as_scitype="Panel")
+        Xt = X.reshape(X.shape[0], X.shape[1] * X.shape[2])
         return Xt
 
 
 class TimeBinner(BaseCollectionTransformer):
     """
-    Turns time series/panel data into tabular data based on intervals.
+    Turns time series collections data into tabular data based on intervals.
 
     This estimator converts nested pandas dataframe containing
     time-series/panel data with numpy arrays or pandas Series in

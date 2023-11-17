@@ -52,7 +52,7 @@ class GGS:
     """
     Greedy Gaussian Segmentation.
 
-    The method approxmates solutions for the problem of breaking a
+    The method approximates solutions for the problem of breaking a
     multivariate time series into segments, where the data in each segment
     could be modeled as independent samples from a multivariate Gaussian
     distribution. It uses a dynamic programming search algorithm with
@@ -371,7 +371,7 @@ class GGS:
 class GreedyGaussianSegmentation(BaseEstimator):
     """Greedy Gaussian Segmentation Estimator.
 
-    The method approxmates solutions for the problem of breaking a
+    The method approximates solutions for the problem of breaking a
     multivariate time series into segments, where the data in each segment
     could be modeled as independent samples from a multivariate Gaussian
     distribution. It uses a dynamic programming search algorithm with
@@ -389,20 +389,20 @@ class GreedyGaussianSegmentation(BaseEstimator):
 
     Parameters
     ----------
-    k_max: int, default=10
+    k_max : int, default=10
         Maximum number of change points to find. The number of segments is thus k+1.
-    lamb: : float, default=1.0
+    lamb : float, default=1.0
         Regularization parameter lambda (>= 0), which controls the amount of
         (inverse) covariance regularization, see Eq (1) in [1]_. Regularization
         is introduced to reduce issues for high-dimensional problems. Setting
         ``lamb`` to zero will ignore regularization, whereas large values of
         lambda will favour simpler models.
-    max_shuffles: int, default=250
-        Maximum number of shuffles
-    verbose: bool, default=False
+    max_shuffles : int, default=250
+        Maximum number of shuffles.
+    verbose : bool, default=False
         If ``True`` verbose output is enabled.
-    random_state: int or np.random.RandomState, default=None
-        Either random seed or an instance of ``np.random.RandomState``
+    random_state : int or np.random.RandomState, default=None
+        Either random seed or an instance of ``np.random.RandomState``.
 
     Attributes
     ----------
@@ -427,6 +427,20 @@ class GreedyGaussianSegmentation(BaseEstimator):
        "Greedy Gaussian segmentation of multivariate time series.",
        Adv Data Anal Classif 13, 727–751 (2019).
        https://doi.org/10.1007/s11634-018-0335-0
+
+    Examples
+    --------
+    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from sklearn.preprocessing import MinMaxScaler
+    >>> from aeon.segmentation import GreedyGaussianSegmentation
+    >>> X = piecewise_normal_multivariate(
+    ... lengths=[10, 10, 10, 10],
+    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ... variances=0.5,
+    ... )
+    >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
+    >>> ggs = GreedyGaussianSegmentation(k_max=3, max_shuffles=5)
+    >>> y = ggs.fit_predict(X_scaled)
     """
 
     def __init__(

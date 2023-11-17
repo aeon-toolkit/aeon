@@ -2,11 +2,17 @@
 import os
 
 import pandas as pd
+import pytest
 
 import aeon
 from aeon.datasets import load_from_tsfile_to_dataframe
+from aeon.tests.test_config import PR_TESTING
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_from_tsfile_to_dataframe():
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),

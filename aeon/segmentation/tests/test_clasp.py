@@ -5,8 +5,8 @@ __all__ = []
 
 import numpy as np
 
-from aeon.annotation.clasp import ClaSPSegmentation
 from aeon.datasets import load_gun_point_segmentation
+from aeon.segmentation import ClaSPSegmentation
 
 
 def test_clasp_sparse():

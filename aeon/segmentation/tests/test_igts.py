@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.annotation.igts import IGTS, InformationGainSegmentation, entropy
+from aeon.segmentation import IGTS, InformationGainSegmentation, entropy
 
 
 @pytest.fixture
