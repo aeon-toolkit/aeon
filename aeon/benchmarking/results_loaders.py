@@ -523,8 +523,7 @@ def get_bake_off_2023_results(default_only=True):
     >>> from aeon.benchmarking import get_bake_off_2023_results, uni_classifiers_2023
     >>> from aeon.benchmarking import plot_critical_difference
     >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
-    >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST",
-    "RSTSF"]
+    >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]
     >>> # Get column positions of classifiers in results
     >>> cls = uni_classifiers_2023
     >>> index =[cls[key] for key in classifiers if key in cls]
