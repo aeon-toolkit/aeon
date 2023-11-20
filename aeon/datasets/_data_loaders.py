@@ -356,6 +356,52 @@ def _load_saved_dataset(
             return combo
 
 
+def download_dataset(name, save_path=None):
+    """
+
+    Download a dataset from the timeseriesclassification.com website.
+
+    Parameters
+    ----------
+    name : string,
+            name of the dataset to download
+
+    safe_path : string, optional (default: None)
+            Path to the directory where the dataset is downloaded into.
+
+    Returns
+    -------
+    if successful, string containing the path of the saved file
+
+    Raises
+    ------
+    ValueError if the dataset is not available on the website
+    or the extract path is invalid
+    """
+    if save_path is None:
+        save_path = os.path.join(MODULE, "local_data")
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    if name not in list_downloaded_tsc_tsr_datasets(
+        save_path
+    ) or name not in list_downloaded_tsf_datasets(save_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download it.
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        try:
+            _download_and_extract(url, extract_path=save_path)
+        except zipfile.BadZipFile as e:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{save_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/.",
+            ) from e
+
+    return os.path.join(save_path, name)
+
+
 def _download_and_extract(url, extract_path=None):
     """
     Download and unzip datasets (helper function).
