@@ -62,7 +62,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         Parameters
         ----------
         X : array, shape (n_instances, n_channels, n_timestamps)
-            Input array to used as database for the similarity search
+            Input array to used as database for the similarity search.
         y : optional
             Not used.
 
@@ -73,19 +73,16 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         """
         return self
 
-    def _predict(self, q, mask):
+    def _predict(self, distance_profile):
         """
         Private predict method for TopKSimilaritySearch.
 
-        It compute the distance profiles and return the top k matches
+        It takes the distance profiles and return the top k matches.
 
         Parameters
         ----------
-        q :  array, shape (n_channels, q_length)
-            Input query used for similarity search.
-        mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
-            Boolean mask of the shape of the distance profile indicating for which part
-            of it the distance should be computed.
+        distance_profile : array, shape (n_samples, n_timestamps - q_length + 1)
+            Precomputed distance profile.
 
         Returns
         -------
@@ -93,25 +90,6 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
             An array containing the indexes of the best k matches between q and _X.
 
         """
-        if self.normalize:
-            distance_profile = self.distance_profile_function(
-                self._X,
-                q,
-                mask,
-                self._X_means,
-                self._X_stds,
-                self._q_means,
-                self._q_stds,
-            )
-        else:
-            distance_profile = self.distance_profile_function(self._X, q, mask)
-
-        if self.store_distance_profile:
-            self._distance_profile = distance_profile
-
-        # For now, deal with the multidimensional case as "dependent", so we sum.
-        distance_profile = distance_profile.sum(axis=1)
-
         search_size = distance_profile.shape[-1]
         _argsort = distance_profile.argsort(axis=None)[: self.k]
 

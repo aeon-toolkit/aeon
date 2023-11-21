@@ -9,9 +9,10 @@ from typing import final
 import numpy as np
 
 from aeon.base import BaseEstimator
+from aeon.distances import get_distance_function
 from aeon.similarity_search.distance_profiles import (
-    naive_euclidean_profile,
-    normalized_naive_euclidean_profile,
+    naive_distance_profile,
+    normalized_naive_distance_profile,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
@@ -20,15 +21,47 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     """
     BaseSimilaritySearch.
 
+    The following distance functions are available from the
+    aeon distance module :
+    =============== ========================================
+    distance        Distance Function
+    =============== ========================================
+    'dtw'           distance.dtw_distance
+    'shape_dtw'     distance.shape_dtw_distance
+    'ddtw'          distance.ddtw_distance
+    'wdtw'          distance.wdtw_distance
+    'wddtw'         distance.wddtw_distance
+    'adtw'          distance.adtw_distance
+    'erp'           distance.erp_distance
+    'edr'           distance.edr_distance
+    'msm'           distance.msm_distance
+    'twe'           distance.twe_distance
+    'lcss'          distance.lcss_distance
+    'euclidean'     distance.euclidean_distance
+    'squared'       distance.squared_distance
+    =============== ========================================
+
+    And the the following speed ups are available for
+    similarity search module:
+    =============== =============== ===============
+    speed_up        distance        normalize
+    =============== =============== ===============
+
+    =============== =============== ===============
+
     Parameters
     ----------
     distance : str, default ="euclidean"
-        Name of the distance function to use.
+        Name of the distance function to use. The distance function
+        must be one of the distance avaialble in the aeon distance module.
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
     store_distance_profile : bool, default = False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
+    speed_up : str, default = None
+        Which speed up technique to use with for the selected distance
+        function.
 
     Attributes
     ----------
@@ -46,35 +79,17 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     }
 
     def __init__(
-        self, distance="euclidean", normalize=False, store_distance_profile=False
+        self,
+        distance="euclidean",
+        normalize=False,
+        store_distance_profile=False,
+        speed_up=None,
     ):
         self.distance = distance
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
+        self.speed_up = speed_up
         super(BaseSimiliaritySearch, self).__init__()
-
-    def _get_distance_profile_function(self):
-        dist_profile = DISTANCE_PROFILE_DICT.get(self.distance)
-        if dist_profile is None:
-            raise ValueError(
-                f"Unknown or unsupported distance profile function {dist_profile}"
-            )
-        return dist_profile[self.normalize]
-
-    def _store_mean_std_from_inputs(self, q_length):
-        n_instances, n_channels, X_length = self._X.shape
-        search_space_size = X_length - q_length + 1
-
-        means = np.zeros((n_instances, n_channels, search_space_size))
-        stds = np.zeros((n_instances, n_channels, search_space_size))
-
-        for i in range(n_instances):
-            _mean, _std = sliding_mean_std_one_series(self._X[i], q_length, 1)
-            stds[i] = _std
-            means[i] = _mean
-
-        self._X_means = means
-        self._X_stds = stds
 
     @final
     def fit(self, X, y=None):
@@ -98,8 +113,6 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self
 
         """
-        # For now force (n_instances, n_channels, n_timestamps), we could convert 2D
-        #  (n_channels, n_timestamps) to 3D with a warning
         if not isinstance(X, np.ndarray) or X.ndim != 3:
             raise TypeError(
                 "Error, only supports 3D numpy of shape"
@@ -107,7 +120,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
 
         # Get distance function
-        self.distance_profile_function = self._get_distance_profile_function()
+        self.distance_profile_function = self._get_distance_function(self)
 
         self._X = X.astype(float)
         self._fit(X, y)
@@ -211,23 +224,86 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             self._q_stds = np.std(q, axis=-1)
             self._store_mean_std_from_inputs(q_length)
 
-        return self._predict(q.astype(float), mask)
+        return self._predict(self._call_distance_profile(q, mask))
+
+    def _get_distance_profile_function(self):
+        if self.speed_up is None:
+            self.distance_function = get_distance_function(self.distance)
+            if self.normalize:
+                return normalized_naive_distance_profile
+            else:
+                return naive_distance_profile
+        else:
+            speed_up_profile = (
+                SPEED_UP_DICT.get(self.distance).get(self.normalize).get(self.speed_up)
+            )
+            if speed_up_profile is None:
+                raise ValueError(
+                    f"Unknown or unsupported speed up {self.speed_up} for"
+                    f"{self.distance} distance function with"
+                )
+        return speed_up_profile
+
+    def _store_mean_std_from_inputs(self, q_length):
+        n_instances, n_channels, X_length = self._X.shape
+        search_space_size = X_length - q_length + 1
+
+        means = np.zeros((n_instances, n_channels, search_space_size))
+        stds = np.zeros((n_instances, n_channels, search_space_size))
+
+        for i in range(n_instances):
+            _mean, _std = sliding_mean_std_one_series(self._X[i], q_length, 1)
+            stds[i] = _std
+            means[i] = _mean
+
+        self._X_means = means
+        self._X_stds = stds
+
+    def _call_distance_profile(self, q, mask):
+        if self.speed_up is None:
+            if self.normalize:
+                distance_profile = self.distance_profile_function(
+                    self._X,
+                    q,
+                    mask,
+                    self._X_means,
+                    self._X_stds,
+                    self._q_means,
+                    self._q_stds,
+                    self.distance_function,
+                )
+            else:
+                distance_profile = self.distance_profile_function(
+                    self._X, q, mask, self.distance_function
+                )
+        else:
+            if self.normalize:
+                distance_profile = self.distance_profile_function(
+                    self._X,
+                    q,
+                    mask,
+                    self._X_means,
+                    self._X_stds,
+                    self._q_means,
+                    self._q_stds,
+                )
+            else:
+                distance_profile = self.distance_profile_function(self._X, q, mask)
+        # For now, deal with the multidimensional case as "dependent", so we sum.
+        distance_profile = distance_profile.sum(axis=1)
+        return distance_profile
 
     @abstractmethod
     def _fit(self, X, y):
         ...
 
     @abstractmethod
-    def _predict(self, q):
+    def _predict(self, distance_profile):
         ...
 
 
 # Dictionary structure :
 #     1st lvl key : distance function used
-#         2nd lvl key : boolean indicating whether distance is normalized
-DISTANCE_PROFILE_DICT = {
-    "euclidean": {
-        True: normalized_naive_euclidean_profile,
-        False: naive_euclidean_profile,
-    }
-}
+#     2nd lvl key : boolean indicating whether distance is normalized
+#     3rd lvl key : spzeed up name
+SPEED_UP_DICT = {}
