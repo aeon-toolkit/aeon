@@ -211,6 +211,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self : RandomShapeletTransform
             This estimator.
         """
+        print(" ON THE BRANCH ajb/stc")  # noqa
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.classes_, self._class_counts = np.unique(y, return_counts=True)
