@@ -83,7 +83,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances,, series_length]
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -111,7 +111,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.array of shape = [n_instances,, series_length]
 
         Returns
         -------

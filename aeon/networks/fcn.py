@@ -77,7 +77,7 @@ class FCNNetwork(BaseDeepNetwork):
         Parameters
         ----------
         input_shape : tuple
-          shape = (series_length (m), n_dimensions (d)), the shape of the data fed
+          shape = (series_length (m),n_channels (d)), the shape of the data fed
           into the input layer.
 
         Returns

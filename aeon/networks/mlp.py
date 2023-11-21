@@ -42,7 +42,7 @@ class MLPNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
+        input_shape : tuple of shape = (series_length (m), (d))
             The shape of the data fed into the input layer
 
         Returns

@@ -179,7 +179,7 @@ class MLPClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
