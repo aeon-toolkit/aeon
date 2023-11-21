@@ -185,7 +185,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.shapelets = []
 
         # Protected attributes
-        self._n_shapelet_samples = n_shapelet_samples
         self._max_shapelets = max_shapelets
         self._max_shapelet_length = max_shapelet_length
         self._n_jobs = n_jobs
@@ -286,12 +285,12 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 n_shapelets_extracted += self._batch_size
                 fit_time = time.time() - start_time
         else:
-            while n_shapelets_extracted < self._n_shapelet_samples:
+            while n_shapelets_extracted < self.n_shapelet_samples:
                 n_shapelets_to_extract = (
                     self._batch_size
                     if n_shapelets_extracted + self._batch_size
-                    <= self._n_shapelet_samples
-                    else self._n_shapelet_samples - n_shapelets_extracted
+                    <= self.n_shapelet_samples
+                    else self.n_shapelet_samples - n_shapelets_extracted
                 )
 
                 candidate_shapelets = Parallel(
