@@ -16,8 +16,8 @@ __all__ = ["STRAY"]
 class STRAY(BaseTransformer):
     """STRAY: robust anomaly detection in data streams with concept drift.
 
-    This is based on STRAY (Search TRace AnomalY) _[1], which is a modification
-    of HDoutliers _[2]. HDoutliers is a powerful algorithm for the detection of
+    This is based on STRAY (Search TRace AnomalY) [1]_, which is a modification
+    of HDoutliers [2]_. HDoutliers is a powerful algorithm for the detection of
     anomalous observations in a dataset, which has (among other advantages) the
     ability to detect clusters of outliers in multi-dimensional data without
     requiring a model of the typical behavior of the system. However, it suffers
@@ -63,7 +63,7 @@ class STRAY(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.annotation.stray import STRAY
+    >>> from aeon.anomaly_detection import STRAY
     >>> from aeon.datasets import load_airline
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
@@ -78,7 +78,7 @@ class STRAY(BaseTransformer):
 
     _tags = {
         "capability:missing_values": True,
-        "X_inner_mtype": "np.ndarray",
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": False,
         "skip-inverse-transform": True,
     }

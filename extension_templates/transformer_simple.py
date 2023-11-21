@@ -72,13 +72,13 @@ class MyTransformer(BaseTransformer):
     #   instancewise - whether transform uses all samples or acts by instance
     #
     # todo: define internal types for X, y in _fit/_transform by setting the tags
-    #   X_inner_mtype - the internal mtype used for X in _fit and _transform
+    #   X_inner_type - the internal mtype used for X in _fit and _transform
     #   y_inner_type - if y is used, the internal mtype used for y; usually "None"
     #   setting this guarantees that X, y passed to _fit, _transform are of above types
     #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
     #
     #  when input_data_type is set to Panel:
-    #   X_inner_mtype must be changed to one or a list of aeon Panel mtypes
+    #   X_inner_type must be changed to one or a list of aeon Panel mtypes
     #  when transform_labels is set to Series or Panel:
     #   y_inner_type must be changed to one or a list of compatible aeon mtypes
     #  the other tags are "safe defaults" which can usually be left as-is
@@ -119,9 +119,9 @@ class MyTransformer(BaseTransformer):
         # behavioural tags: internal type
         # ----------------------------------
         #
-        # X_inner_mtype, y_inner_type control which format X/y appears in
+        # X_inner_type, y_inner_type control which format X/y appears in
         # in the inner functions _fit, _transform, etc
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         # valid values: str and list of str
         # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
@@ -194,8 +194,8 @@ class MyTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
         y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -206,7 +206,7 @@ class MyTransformer(BaseTransformer):
         """
 
         # implement here
-        # X, y passed to this function are always of X_inner_mtype, y_inner_type
+        # X, y passed to this function are always of X_inner_type, y_inner_type
         # IMPORTANT: avoid side effects to X, y
         #
         # any model parameters should be written to attributes ending in "_"
@@ -230,8 +230,8 @@ class MyTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -241,15 +241,15 @@ class MyTransformer(BaseTransformer):
         transformed version of X
         """
         # implement here
-        # X, y passed to this function are always of X_inner_mtype, y_inner_type
+        # X, y passed to this function are always of X_inner_type, y_inner_type
         # IMPORTANT: avoid side effects to X, y
         #
         # if transform-output is "Primitives":
         #  return should be pd.DataFrame, with as many rows as instances in input
         #  if input is a single series, return should be single-row pd.DataFrame
         # if transform-output is "Series":
-        #  return should be of same mtype as input, X_inner_mtype
-        #  if multiple X_inner_mtype are supported, ensure same input/output
+        #  return should be of same mtype as input, X_inner_type
+        #  if multiple X_inner_type are supported, ensure same input/output
         # if transform-output is "Panel":
         #  return a multi-indexed pd.DataFrame of Panel mtype pd_multiindex
         #

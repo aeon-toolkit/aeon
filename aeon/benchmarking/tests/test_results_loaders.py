@@ -1,4 +1,5 @@
 """Result loading tests."""
+
 import os
 
 import pytest

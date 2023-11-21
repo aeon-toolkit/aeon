@@ -111,11 +111,11 @@ class MultiRocket(BaseCollectionTransformer):
         self
         """
         X = X.astype(np.float64)
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
 
         self.parameter = self._get_parameter(X)
 
@@ -138,7 +138,7 @@ class MultiRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float64)
-        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8

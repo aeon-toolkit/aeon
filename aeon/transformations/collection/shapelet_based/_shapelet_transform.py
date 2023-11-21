@@ -84,14 +84,16 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
     Attributes
     ----------
-    n_classes : int
+    n_classes_ : int
         The number of classes.
-    n_instances : int
+    n_instances_ : int
         The number of train cases.
-    n_dims : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length : int
-        The length of each series.
+    max_shapelet_length_ : int
+        The maximum actual shapelet length fitted to train data.
+    min_series_length_ : int
+        The minimum length of series in train data.
     classes_ : list
         The classes labels.
     shapelets : list
@@ -141,7 +143,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "y_inner_type": "numpy1D",
         "requires_y": True,
     }
@@ -348,7 +350,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     sorted(range(s[1]), reverse=True, key=lambda j, sabs=sabs: sabs[j])
                 )
             )
-        return self
+        # find max shapelet length
+        self.max_shapelet_length_ = max(self.shapelets, key=lambda x: x[1])[1]
 
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
@@ -366,7 +369,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         output = np.zeros((len(X), len(self.shapelets)))
 
         for i in range(0, len(X)):
-            if X[i].shape[1] < self.min_series_length_:
+            if X[i].shape[1] < self.max_shapelet_length_:
                 raise ValueError(
                     "The shortest series in transform is smaller than "
                     "the min shapelet length, pad to min length prior to "

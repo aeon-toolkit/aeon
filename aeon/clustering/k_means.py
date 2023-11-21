@@ -70,14 +70,16 @@ class TimeSeriesKMeans(BaseClusterer):
         Verbosity mode.
     random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-    averaging_method : str or Callable, default='mean'
+    averaging_method : str or Callable, default='ba'
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
         If you specify 'ba' then by default the distance measure used will be the same
         as the distance measure used for clustering. If you wish to use a different
         distance measure you can specify it by passing {"distance": "dtw"} as
-        averaging_params.
+        averaging_params. BA yields 'better' clustering results but is very
+        computationally expensive so you may want to consider setting a bounding window
+        or using a different averaging method if time complexity is a concern.
     average_params : dict, default=None
         Dictionary containing kwargs for averaging_method. See documentation of
         aeon.clustering.averaging and aeon.distances for more details. NOTE: if you

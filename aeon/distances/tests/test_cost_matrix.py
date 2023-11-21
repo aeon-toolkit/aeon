@@ -17,7 +17,7 @@ def _validate_cost_matrix_result(
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
-    assert np.array_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
+    assert_almost_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
     elif name == "lcss":

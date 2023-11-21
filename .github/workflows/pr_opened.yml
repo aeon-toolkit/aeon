@@ -1,4 +1,5 @@
 name: PR Opened
+
 on:
   pull_request_target:
     types: [opened]
@@ -14,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           sparse-checkout: build_tools
 
@@ -25,13 +26,19 @@ jobs:
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
       - name: Label pull request
         id: label-pr
-        run: python build_tools/pr_labeler.py
+        run: python build_tools/pr_labeler.py ${{ steps.app-token.outputs.token }}
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
 
       - name: Write pull request comment
-        run: python build_tools/pr_open_commenter.py ${{ steps.label-pr.outputs.title-labels }} ${{ steps.label-pr.outputs.title-labels-new }} ${{ steps.label-pr.outputs.content-labels }} ${{ steps.label-pr.outputs.content-labels-status }}
+        run: python build_tools/pr_open_commenter.py ${{ steps.app-token.outputs.token }} ${{ steps.label-pr.outputs.title-labels }} ${{ steps.label-pr.outputs.title-labels-new }} ${{ steps.label-pr.outputs.content-labels }} ${{ steps.label-pr.outputs.content-labels-status }}
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}

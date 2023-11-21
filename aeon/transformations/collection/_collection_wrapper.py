@@ -41,7 +41,7 @@ class CollectionToSeriesWrapper(BaseTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": BaseCollectionTransformer.ALLOWED_INPUT_TYPES,
+        "X_inner_type": BaseCollectionTransformer.ALLOWED_INPUT_TYPES,
     }
 
     def __init__(

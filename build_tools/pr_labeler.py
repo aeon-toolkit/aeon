@@ -8,13 +8,14 @@ Based on the scikit-learn v1.3.1 label_title_regex.py script.
 import json
 import os
 import re
+import sys
 
 from github import Github
 
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(context_dict["token"])
+g = Github(sys.argv[1])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
@@ -28,6 +29,7 @@ title_regex_to_labels = [
     (r"\bMNT\b", "maintenance"),
     (r"\bBUG\b", "bug"),
     (r"\bDOC\b", "documentation"),
+    (r"\bREF\b", "refactor"),
     (r"\bGOV\b", "governance"),
 ]
 
