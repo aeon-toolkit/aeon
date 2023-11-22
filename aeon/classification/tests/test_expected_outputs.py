@@ -215,6 +215,8 @@ unit_test_proba["HIVECOTEV2"] = np.array(
         [1.0, 0.0],
         [0.7753, 0.2247],
         [0.2571, 0.7429],
+        [0.7984, 0.2016],
+        [0.929, 0.071],
     ]
 )
 unit_test_proba["CanonicalIntervalForestClassifier"] = np.array(
