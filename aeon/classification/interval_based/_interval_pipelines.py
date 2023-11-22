@@ -11,7 +11,10 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.interval_based import SupervisedIntervals, RandomIntervals
+from aeon.transformations.collection.interval_based import (
+    RandomIntervals,
+    SupervisedIntervals,
+)
 
 
 class RandomIntervalClassifier(BaseClassifier):
