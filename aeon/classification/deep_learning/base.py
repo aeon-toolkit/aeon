@@ -111,7 +111,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
             The training input samples. input_checks : boolean
             Whether to check the X parameter
 
