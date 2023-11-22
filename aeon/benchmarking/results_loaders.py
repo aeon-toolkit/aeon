@@ -88,7 +88,7 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
     Parameters
     ----------
     task : str, default="classification"
-        Should be one of classification/clustering/regression. This is not case
+        Should be one of "classification","clustering","regression". This is not case
         sensitive.
 
     Returns
@@ -135,12 +135,12 @@ def get_estimator_results(
     ----------
     estimators : list of str
         list of estimators to search for.
-    datasets: list of str, default = UCR
+    datasets : list of str, default = UCR
         list of problem names to search for. Default is to look for the 112 UCR
         datasets listed in aeon.datasets.tsc_data_lists.
     default_only : boolean, default = True
         Whether to recover just the default test results, or 30 resamples.
-    path : str, default=https://timeseriesclassification.com/results/ReferenceResults/
+    path : str, default="https://timeseriesclassification.com/results/ReferenceResults/"
         Path where to read results from, default to tsc.com
     suffix : str, default="_TESTFOLDS.csv"
         String added to dataset name to load.
@@ -310,6 +310,7 @@ def _get_published_results(
     return data_array
 
 
+# Classifiers used in the original 2017 univariate TSC bake off
 uni_classifiers_2017 = {
     "ACF": 0,
     "BOSS": 1,
@@ -338,6 +339,7 @@ uni_classifiers_2017 = {
     "WDTW_1NN": 24,
 }
 
+# Classifiers used in the 2021 multivariate TSC bake off
 multi_classifiers_2021 = {
     "CBOSS": 0,
     "CIF": 1,
