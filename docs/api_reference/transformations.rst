@@ -103,7 +103,7 @@ Primitive features are usually a vector of floats, but can also be categorical.
 
 When applied to panels or hierarchical data, the transformation result is a table with as many rows as time series in the collection.
 
-Summarization
+Summarisation
 ~~~~~~~~~~~~~
 
 These transformers extract simple summary features.
@@ -176,7 +176,7 @@ Dictionary-based features
     SFA
     SAX
 
-Moment-based features
+Signature-based features
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.signature_based
@@ -192,7 +192,7 @@ Feature collections
 
 These transformers extract larger collections of features.
 
-.. currentmodule:: aeon.transformations.collection.tsfresh
+.. currentmodule:: aeon.transformations.collection.feature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -200,14 +200,8 @@ These transformers extract larger collections of features.
 
     TSFreshRelevantFeatureExtractor
     TSFreshFeatureExtractor
-
-.. currentmodule:: aeon.transformations.collection.catch22
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
     Catch22
+    SevenNumberSummaryTransformer
 
 Series-to-series transformers
 -----------------------------

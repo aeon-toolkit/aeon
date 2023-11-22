@@ -6,7 +6,7 @@ import pytest
 
 from aeon.datasets import load_unit_test
 from aeon.datatypes import convert
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils._testing.collection import make_nested_dataframe_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
