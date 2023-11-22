@@ -372,7 +372,7 @@ class VARMAX(_StatsModelsAdapter):
         # but only when out-of-sample forecasting, i.e. when forecasting horizon is
         # greater than zero
         if pd.__version__ < "2.0.0":
-            if (type(self._y.index) is pd.core.indexes.numeric.Int64Index) & (
+            if (type(self._y.index) == pd.core.indexes.numeric.Int64Index) & (
                 any(fh.to_relative(self.cutoff) > 0)
             ):
                 y_pred.index = y_pred.index + self._y.index[0]

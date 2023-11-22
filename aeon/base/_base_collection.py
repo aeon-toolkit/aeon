@@ -196,7 +196,7 @@ class BaseCollectionEstimator(BaseEstimator):
             metadata = self.metadata_
         # Convert X to X_inner_type if possible
         inner_type = self.get_tag("X_inner_type")
-        if isinstance(inner_type, list):
+        if type(inner_type) == list:
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal
             if metadata["unequal_length"]:

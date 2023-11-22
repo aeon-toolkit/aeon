@@ -1139,7 +1139,7 @@ class BaseForecaster(BaseEstimator):
 
         y_pred = self.predict(fh=fh, X=X)
 
-        if type(y_pred) is not type(y):
+        if not type(y_pred) == type(y):
             raise TypeError(
                 "y must have same type, dims, index as expected predict return. "
                 f"expected type {type(y_pred)}, but found {type(y)}"

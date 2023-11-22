@@ -65,7 +65,7 @@ def deep_equals(x, y, return_msg=False):
         else:
             return is_equal
 
-    if type(x) is not type(y):
+    if type(x) != type(y):
         return ret(False, f".type, x.type = {type(x)} != y.type = {type(y)}")
 
     # compute delayed objects (dask)

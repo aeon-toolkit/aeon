@@ -89,7 +89,7 @@ def test_make_dataframe_data(
     if classification:
         assert len(np.unique(y)) == n_classes
     else:
-        assert type(y) is pd.Series
+        assert type(y) == pd.Series
 
 
 @pytest.mark.parametrize("n_cases", N_INSTANCES)

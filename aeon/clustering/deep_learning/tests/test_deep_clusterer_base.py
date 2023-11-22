@@ -114,4 +114,4 @@ def test_dummy_deep_clusterer():
 
     score = dummy_deep_clr.score(X)
 
-    assert isinstance(score, np.float64)
+    assert type(score) == np.float64
