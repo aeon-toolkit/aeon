@@ -517,8 +517,7 @@ def _load_tsc_dataset(
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on "
-                    f"https://timeseriesclassification.com/.",
+                    f"{extract_path}. Nor is it available on {url}",
                 ) from e
 
     return _load_saved_dataset(
