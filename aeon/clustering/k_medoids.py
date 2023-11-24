@@ -452,7 +452,15 @@ class TimeSeriesKMedoids(BaseClusterer):
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
                 f"n_instances ({X.shape[0]})"
             )
-        self._distance_callable = get_distance_function(metric=self.distance)
+        if isinstance(self.distance, str):
+            self._distance_callable = get_distance_function(metric=self.distance)
+        elif callable(self.distance):
+            self._distance_callable = self.distance
+        else:
+            raise ValueError(
+                "distance must be a string or a callable, saw ", type(self.distance)
+            )
+
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
         if self.method == "alternate":
