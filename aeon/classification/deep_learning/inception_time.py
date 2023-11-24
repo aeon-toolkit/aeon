@@ -80,7 +80,7 @@ class InceptionTimeClassifier(BaseClassifier):
         all over Inception
     bottleneck_size : int, default = 32,
         the bottleneck size in case use_bottleneck = True
-    use_custom_filters : bool, default = True,
+    use_custom_filters : bool, default = False,
         condition on whether or not to use custom
         filters in the first inception module
     batch_size : int, default = 64
@@ -173,7 +173,7 @@ class InceptionTimeClassifier(BaseClassifier):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=True,
+        use_custom_filters=False,
         file_path="./",
         save_last_model=False,
         save_best_model=False,
@@ -409,7 +409,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             confition whether or not to use bottlenecks all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = True,
+        use_custom_filters  : bool, default = False,
             condition on whether or not to use custom filters
             in the first inception module
         batch_size          : int, default = 64
@@ -491,7 +491,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=True,
+        use_custom_filters=False,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
