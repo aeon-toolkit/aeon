@@ -8,6 +8,8 @@ from aeon.utils.validation._dependencies import _check_dl_dependencies
 class LITENetwork(BaseDeepNetwork):
     """LITE Network.
 
+    LITE deep neural network architecture from [1]_.
+
     Parameters
     ----------
     nb_filters : int or list of int32, default = 32
@@ -23,23 +25,15 @@ class LITENetwork(BaseDeepNetwork):
         The activation function used in each lite layer, if not a list,
         the same is used in all lite layers.
 
+    Notes
+    -----
+    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
+    tEchniques for Time Series Classificaion, IEEE International
+    Conference on Data Science and Advanced Analytics, 2023.
+
     Adapted from the implementation from Ismail-Fawaz et. al
 
     https://github.com/MSD-IRIMAS/LITE
-
-    Network originally defined in:
-
-    @inproceedings{ismail-fawaz2023lite,
-        author = {Ismail-Fawaz, Ali and Devanne, Maxime and Berretti, Stefano
-                    and Weber, Jonathan and Forestier, Germain},
-        title = {LITE: Light Inception with boosTing tEchniques
-                for Time Series Classification},
-        booktitle = {International Conference on Data Science and
-                    Advanced Analytics (DSAA)},
-        city = {Thessaloniki},
-        country = {Greece},
-        url = {https://doi.org/10.1109/DSAA60987.2023.10302569},
-        year = {2023}}
     """
 
     _tags = {"python_dependencies": "tensorflow"}

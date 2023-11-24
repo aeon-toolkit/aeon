@@ -24,7 +24,7 @@ class LITETimeClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_classifiers       : int, default = 5,
+    n_classifiers : int, default = 5,
         the number of LITE models used for the
         Ensemble in order to create
         LITETime.
@@ -53,29 +53,29 @@ class LITETimeClassifier(BaseClassifier):
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
+        model checkpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
-    save_last_model     : bool, default = False
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
-    best_file_name      : str, default = "best_model"
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
         is discarded
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
+    random_state : int, default = 0
         seed to any needed random actions.
-    verbose             : boolean, default = False
+    verbose : boolean, default = False
         whether to output extra information
-    optimizer           : keras optimizer, default = Adam
-    loss                : keras loss, default = categorical_crossentropy
-    metrics             : keras metrics, default = None,
+    optimizer : keras optimizer, default = Adam
+    loss : keras loss, default = categorical_crossentropy
+    metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
     Notes
@@ -306,7 +306,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
+        model checkpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
@@ -322,13 +322,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
+    random_state : int, default = 0
         seed to any needed random actions.
-    verbose             : boolean, default = False
+    verbose : boolean, default = False
         whether to output extra information
-    optimizer           : keras optimizer, default = Adam
-    loss                : keras loss, default = categorical_crossentropy
-    metrics             : keras metrics, default = None,
+    optimizer : keras optimizer, default = Adam
+    loss : keras loss, default = categorical_crossentropy
+    metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
     Notes
