@@ -1,4 +1,4 @@
-__author__ = ["chrisholder", "TonyBagnall"]
+__author__ = ["chrisholder", "TonyBagnall", "akshatvishu"]
 
 from typing import Any, Callable, List, Tuple, Union
 
@@ -42,6 +42,7 @@ from aeon.distances._lcss import (
     lcss_pairwise_distance,
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
+from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -134,6 +135,8 @@ def distance(
         return euclidean_distance(x, y)
     elif metric == "manhattan":
         return manhattan_distance(x, y)
+    elif metric == "minkowski":
+        return minkowski_distance(x, y)
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
@@ -292,6 +295,8 @@ def pairwise_distance(
         return euclidean_pairwise_distance(x, y)
     elif metric == "manhattan":
         return manhattan_pairwise_distance(x, y)
+    elif metric == "minkowski":
+        return minkowski_pairwise_distance(x, y)
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -721,6 +726,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'lcss'          distance.lcss_distance
     'euclidean'     distance.euclidean_distance
     'squared'       distance.squared_distance
+    'minkowski'     distance.minkowski_distance
     =============== ========================================
 
     Parameters
@@ -775,6 +781,7 @@ def get_pairwise_distance_function(
     'lcss'          distance.lcss_pairwise_distance
     'euclidean'     distance.euclidean_pairwise_distance
     'squared'       distance.squared_pairwise_distance
+    'minkowski'     distance.minkowski_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -933,6 +940,11 @@ DISTANCES = [
         "name": "squared",
         "distance": squared_distance,
         "pairwise_distance": squared_pairwise_distance,
+    },
+    {
+        "name": "minkowski",
+        "distance": minkowski_distance,
+        "pairwise_distance": minkowski_pairwise_distance,
     },
     {
         "name": "dtw",

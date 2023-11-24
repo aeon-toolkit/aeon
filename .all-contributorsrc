@@ -2205,9 +2205,19 @@
       "login": "wwzeng1",
       "name": "William Zeng",
       "avatar_url": "https://avatars.githubusercontent.com/u/44910023?v=4",
-      "profile": "https://github.com/wwzeng1",
+      "profile": "https://github.com/akshatvishu",
       "contributions": [
         "bug"
+
+      ]
+    },
+    {
+      "login": "akshatvishu",
+      "name": "Akshat Nayak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33392262?v=4",
+      "profile": "https://github.com/wwzeng1",
+      "contributions": [
+        "code"
       ]
     }
   ],
