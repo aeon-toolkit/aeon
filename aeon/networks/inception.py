@@ -109,7 +109,7 @@ class InceptionNetwork(BaseDeepNetwork):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=False,
+        use_custom_filters=True,
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
@@ -132,7 +132,6 @@ class InceptionNetwork(BaseDeepNetwork):
         self.random_state = random_state
 
         super(InceptionNetwork, self).__init__()
-
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.
 
