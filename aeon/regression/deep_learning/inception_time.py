@@ -81,7 +81,7 @@ class InceptionTimeRegressor(BaseRegressor):
             all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = True,
+        use_custom_filters  : bool, default = False,
             condition on whether or not to use custom
             filters in the first inception module
         output_activation   : str, default = "linear",
@@ -178,7 +178,7 @@ class InceptionTimeRegressor(BaseRegressor):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=True,
+        use_custom_filters=False,
         output_activation="linear",
         file_path="./",
         save_last_model=False,
@@ -394,7 +394,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             condition whether or not to use bottlesnecks all over Inception
         bottleneck_size     : int, default = 32,
             the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = True,
+        use_custom_filters  : bool, default = False,
             condition on whether or not to use custom filters
             in the first inception module
         output_activation   : str, default = "linear",
@@ -478,7 +478,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=True,
+        use_custom_filters=False,
         output_activation="linear",
         file_path="./",
         save_best_model=False,
