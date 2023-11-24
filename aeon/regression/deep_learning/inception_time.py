@@ -178,7 +178,7 @@ class InceptionTimeRegressor(BaseRegressor):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=False,
+        use_custom_filters=True,
         output_activation="linear",
         file_path="./",
         save_last_model=False,
@@ -515,7 +515,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.n_epochs = n_epochs
-        self.use_custom_filters = use_custom_filters
+        self.use_custom_filters = True
         self.output_activation = output_activation
 
         self.file_path = file_path
