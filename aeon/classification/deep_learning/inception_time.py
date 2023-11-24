@@ -491,7 +491,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         use_bottleneck=True,
         bottleneck_size=32,
         depth=6,
-        use_custom_filters=False,
+        use_custom_filters=True,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
