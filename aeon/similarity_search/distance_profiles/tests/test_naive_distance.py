@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from aeon.distances import euclidean_distance
+from aeon.distances import euclidean_distance, get_distance_function
 from aeon.similarity_search.distance_profiles.naive_distance_profile import (
     naive_distance_profile,
     normalized_naive_distance_profile,
@@ -14,22 +14,25 @@ from aeon.similarity_search.distance_profiles.naive_distance_profile import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 DATATYPES = ["float64"]
+DISTANCES = ["euclidean", "dtw", "lcss", "msm"]
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_naive_euclidean(dtype):
+@pytest.mark.parametrize("distance_str", DISTANCES)
+def test_naive_distance(dtype, distance_str):
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
     q = np.asarray([[3, 4, 5]], dtype=dtype)
 
     mask = np.ones(X.shape, dtype=bool)
-    dist_profile = naive_distance_profile(X, q, mask, euclidean_distance).sum(axis=1)
+    distance = get_distance_function(distance_str)
+    dist_profile = naive_distance_profile(X, q, mask, distance).sum(axis=1)
 
     expected = np.array(
         [
             [
-                euclidean_distance(q, X[j, :, i : i + q.shape[-1]])
+                distance(q, X[j, :, i : i + q.shape[-1]])
                 for i in range(X.shape[-1] - q.shape[-1] + 1)
             ]
             for j in range(X.shape[0])
@@ -65,7 +68,8 @@ def test_non_alteration_of_inputs_naive_euclidean():
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_normalized_naive_euclidean(dtype):
+@pytest.mark.parametrize("distance_str", DISTANCES)
+def test_normalized_naive_distance(dtype, distance_str):
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -85,8 +89,9 @@ def test_normalized_naive_euclidean(dtype):
     q_stds = q.std(axis=-1)
     mask = np.ones(X.shape, dtype=bool)
 
+    distance = get_distance_function(distance_str)
     dist_profile = normalized_naive_distance_profile(
-        X, q, mask, X_means, X_stds, q_means, q_stds, euclidean_distance
+        X, q, mask, X_means, X_stds, q_means, q_stds, distance
     )
     dist_profile = dist_profile.sum(axis=1)
 
@@ -100,7 +105,7 @@ def test_normalized_naive_euclidean(dtype):
             _C = X[i, :, j : j + q.shape[-1]].copy()
             for k in range(X.shape[1]):
                 _C[k] = (_C[k] - X_means[i, k, j]) / X_stds[i, k, j]
-            expected[i, j] = euclidean_distance(_q, _C)
+            expected[i, j] = distance(_q, _C)
 
     assert_array_almost_equal(dist_profile, expected)
 

@@ -51,7 +51,14 @@ def naive_distance_profile(X, q, mask, numba_distance_function):
 
 
 def normalized_naive_distance_profile(
-    X, q, mask, X_means, X_stds, q_means, q_stds, numba_distance_function
+    X,
+    q,
+    mask,
+    X_means,
+    X_stds,
+    q_means,
+    q_stds,
+    numba_distance_function,
 ):
     """
     Compute a distance profile in a brute force way.
@@ -97,13 +104,26 @@ def normalized_naive_distance_profile(
     # Make STDS inferior to the threshold to 1 to avoid division per 0 error.
     q_stds[q_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
     X_stds[X_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
+
     return _normalized_naive_distance_profile(
-        X, q, mask, X_means, X_stds, q_means, q_stds, numba_distance_function
+        X,
+        q,
+        mask,
+        X_means,
+        X_stds,
+        q_means,
+        q_stds,
+        numba_distance_function,
     )
 
 
 @njit(cache=True, fastmath=True)
-def _naive_distance_profile(X, q, mask, numba_distance_function):
+def _naive_distance_profile(
+    X,
+    q,
+    mask,
+    numba_distance_function,
+):
     n_instances, n_channels, X_length, q_length, profile_size = _get_input_sizes(X, q)
     distance_profile = np.full((n_instances, n_channels, profile_size), np.inf)
 
@@ -123,7 +143,14 @@ def _naive_distance_profile(X, q, mask, numba_distance_function):
 
 @njit(cache=True, fastmath=True)
 def _normalized_naive_distance_profile(
-    X, q, mask, X_means, X_stds, q_means, q_stds, numba_distance_function
+    X,
+    q,
+    mask,
+    X_means,
+    X_stds,
+    q_means,
+    q_stds,
+    numba_distance_function,
 ):
     n_instances, n_channels, X_length, q_length, profile_size = _get_input_sizes(X, q)
     q = _z_normalize_2D_series_with_mean_std(q, q_means, q_stds)
@@ -143,4 +170,5 @@ def _normalized_naive_distance_profile(
                     distance_profile[
                         i_instance, i_channel, i_candidate
                     ] = numba_distance_function(q[i_channel], _C)
+
     return distance_profile

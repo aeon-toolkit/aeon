@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from typing import final
 
 import numpy as np
+from numba.core.registry import CPUDispatcher
 
 from aeon.base import BaseEstimator
 from aeon.distances import get_distance_function
@@ -54,6 +55,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     distance : str, default ="euclidean"
         Name of the distance function to use. The distance function
         must be one of the distance avaialble in the aeon distance module.
+        This can also be a numba njit function used to compute the
+        distance between two 1D vectors.
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
     store_distance_profile : bool, default = False.
@@ -71,6 +74,12 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         The function used to compute the distance profile affected
         during the fit method based on the distance and normalize
         parameters.
+
+    Notes
+    -----
+    For now, the multivariate case is only treated as independent.
+    Distances are computed for each channel independently and then
+    summed together.
     """
 
     _tags = {
@@ -120,7 +129,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
 
         # Get distance function
-        self.distance_profile_function = self._get_distance_function(self)
+        self.distance_profile_function = self._get_distance_profile_function()
 
         self._X = X.astype(float)
         self._fit(X, y)
@@ -165,29 +174,20 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             (e.g. top-k, threshold, ...).
 
         """
-        if not isinstance(q, np.ndarray) or q.ndim != 2:
-            raise TypeError(
-                "Error, only supports 2D numpy atm. If q is univariate"
-                " do q.reshape(1,-1)."
-            )
+        q_dim, q_length = self._check_query_format(q)
+        n_instances, _, n_timestamps = self._X.shape
+        mask = self._apply_q_index_mask(
+            q_index, q_dim, q_length, exclusion_factor=exclusion_factor
+        )
 
-        q_dim, q_length = q.shape
-        if q_length >= self._X.shape[-1]:
-            raise ValueError(
-                "The length of the query should be inferior or equal to the length of"
-                "data (X) provided during fit, but got {} for q and {} for X".format(
-                    q_length, self._X.shape[-1]
-                )
-            )
+        if self.normalize:
+            self._q_means = np.mean(q, axis=-1)
+            self._q_stds = np.std(q, axis=-1)
+            self._store_mean_std_from_inputs(q_length)
 
-        if q_dim != self._X.shape[1]:
-            raise ValueError(
-                "The number of feature should be the same for the query q and the data"
-                "(X) provided during fit, but got {} for q and {} for X".format(
-                    q_dim, self._X.shape[1]
-                )
-            )
+        return self._predict(self._call_distance_profile(q, mask))
 
+    def _apply_q_index_mask(self, q_index, q_dim, q_length, exclusion_factor=2.0):
         n_instances, _, n_timestamps = self._X.shape
         mask = np.ones((n_instances, q_dim, n_timestamps), dtype=bool)
 
@@ -219,30 +219,61 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
             mask[i_instance, :, exclusion_LB:exclusion_UB] = False
 
-        if self.normalize:
-            self._q_means = np.mean(q, axis=-1)
-            self._q_stds = np.std(q, axis=-1)
-            self._store_mean_std_from_inputs(q_length)
+        return mask
 
-        return self._predict(self._call_distance_profile(q, mask))
+    def _check_query_format(self, q):
+        if not isinstance(q, np.ndarray) or q.ndim != 2:
+            raise TypeError(
+                "Error, only supports 2D numpy atm. If q is univariate"
+                " do q.reshape(1,-1)."
+            )
+
+        q_dim, q_length = q.shape
+        if q_length >= self._X.shape[-1]:
+            raise ValueError(
+                "The length of the query should be inferior or equal to the length of"
+                "data (X) provided during fit, but got {} for q and {} for X".format(
+                    q_length, self._X.shape[-1]
+                )
+            )
+
+        if q_dim != self._X.shape[1]:
+            raise ValueError(
+                "The number of feature should be the same for the query q and the data"
+                "(X) provided during fit, but got {} for q and {} for X".format(
+                    q_dim, self._X.shape[1]
+                )
+            )
+        return q_dim, q_length
 
     def _get_distance_profile_function(self):
-        if self.speed_up is None:
-            self.distance_function = get_distance_function(self.distance)
-            if self.normalize:
-                return normalized_naive_distance_profile
+        if isinstance(self.distance, str):
+            if self.speed_up is None:
+                self.distance_function_ = get_distance_function(self.distance)
             else:
-                return naive_distance_profile
-        else:
-            speed_up_profile = (
-                SPEED_UP_DICT.get(self.distance).get(self.normalize).get(self.speed_up)
-            )
-            if speed_up_profile is None:
-                raise ValueError(
-                    f"Unknown or unsupported speed up {self.speed_up} for"
-                    f"{self.distance} distance function with"
+                speed_up_profile = (
+                    SPEED_UP_DICT.get(self.distance)
+                    .get(self.normalize)
+                    .get(self.speed_up)
                 )
-        return speed_up_profile
+                if speed_up_profile is None:
+                    raise ValueError(
+                        f"Unknown or unsupported speed up {self.speed_up} for"
+                        f"{self.distance} distance function with"
+                    )
+                return speed_up_profile
+        else:
+            if isinstance(self.distance, CPUDispatcher):
+                self.distance_function_ = self.distance
+            else:
+                raise ValueError(
+                    "If distance argument is not a string, it is expected to be a"
+                    f"numba function (CPUDispatcher), but got {type(self.distance)}."
+                )
+        if self.normalize:
+            return normalized_naive_distance_profile
+        else:
+            return naive_distance_profile
 
     def _store_mean_std_from_inputs(self, q_length):
         n_instances, n_channels, X_length = self._X.shape
@@ -260,35 +291,24 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._X_stds = stds
 
     def _call_distance_profile(self, q, mask):
-        if self.speed_up is None:
-            if self.normalize:
-                distance_profile = self.distance_profile_function(
-                    self._X,
-                    q,
-                    mask,
-                    self._X_means,
-                    self._X_stds,
-                    self._q_means,
-                    self._q_stds,
-                    self.distance_function,
-                )
-            else:
-                distance_profile = self.distance_profile_function(
-                    self._X, q, mask, self.distance_function
-                )
+        if self.normalize:
+            distance_profile = self.distance_profile_function(
+                self._X,
+                q,
+                mask,
+                self._X_means,
+                self._X_stds,
+                self._q_means,
+                self._q_stds,
+                self.distance_function_,
+            )
         else:
-            if self.normalize:
-                distance_profile = self.distance_profile_function(
-                    self._X,
-                    q,
-                    mask,
-                    self._X_means,
-                    self._X_stds,
-                    self._q_means,
-                    self._q_stds,
-                )
-            else:
-                distance_profile = self.distance_profile_function(self._X, q, mask)
+            distance_profile = self.distance_profile_function(
+                self._X,
+                q,
+                mask,
+                self.distance_function_,
+            )
         # For now, deal with the multidimensional case as "dependent", so we sum.
         distance_profile = distance_profile.sum(axis=1)
         return distance_profile
