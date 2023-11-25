@@ -453,7 +453,6 @@ class TimeSeriesKMedoids(BaseClusterer):
                 f"n_instances ({X.shape[0]})"
             )
         self._distance_callable = get_distance_function(metric=self.distance)
-
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
         if self.method == "alternate":
