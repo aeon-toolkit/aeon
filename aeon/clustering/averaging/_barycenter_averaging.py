@@ -93,13 +93,13 @@ def elastic_barycenter_average(
     if len(X) <= 1:
         return X
 
-    center = X.mean(axis=0)
-    # center = _medoids(
-    #     X,
-    #     distance=distance,
-    #     precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
-    #     **kwargs,
-    # )
+    # center = X.mean(axis=0)
+    center = _medoids(
+        X,
+        distance=distance,
+        precomputed_pairwise_distance=precomputed_medoids_pairwise_distance,
+        **kwargs,
+    )
 
     cost_prev = np.inf
     if distance == "wdtw" or distance == "wddtw":
