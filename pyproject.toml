@@ -170,6 +170,9 @@ testpaths = "aeon"
 addopts = '''
     --doctest-modules
     --durations 20
+    --timeout 600
+    --showlocals
+    --numprocesses auto
 '''
 filterwarnings = '''
     ignore::UserWarning
