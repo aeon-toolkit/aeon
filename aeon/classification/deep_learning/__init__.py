@@ -12,14 +12,14 @@ __all__ = [
     "LITETimeClassifier",
     "IndividualLITEClassifier",
 ]
+from aeon.classification.deep_learning._inception_time import (
+    InceptionTimeClassifier,
+    IndividualInceptionClassifier,
+)
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.classification.deep_learning.cnn import CNNClassifier
 from aeon.classification.deep_learning.encoder import EncoderClassifier
 from aeon.classification.deep_learning.fcn import FCNClassifier
-from aeon.classification.deep_learning.inception_time import (
-    InceptionTimeClassifier,
-    IndividualInceptionClassifier,
-)
 from aeon.classification.deep_learning.lite_time import (
     IndividualLITEClassifier,
     LITETimeClassifier,
