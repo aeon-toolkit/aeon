@@ -10,9 +10,9 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks.resnet import ResNetNetwork
+from aeon.networks import ResNetNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetRegressor(BaseDeepRegressor):
@@ -147,7 +147,7 @@ class ResNetRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(ResNetRegressor, self).__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
