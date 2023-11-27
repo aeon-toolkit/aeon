@@ -3,7 +3,7 @@
 __author__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class EncoderNetwork(BaseDeepNetwork):
@@ -62,7 +62,7 @@ class EncoderNetwork(BaseDeepNetwork):
         fc_units=256,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         self.kernel_size = kernel_size
         self.n_filters = n_filters

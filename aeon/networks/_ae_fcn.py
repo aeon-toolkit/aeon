@@ -5,7 +5,7 @@ __author__ = ["hadifawaz1999"]
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNNetwork(BaseDeepNetwork):
@@ -76,7 +76,7 @@ class AEFCNNetwork(BaseDeepNetwork):
         random_state=0,
     ):
         super(AEFCNNetwork, self).__init__()
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
