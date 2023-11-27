@@ -76,18 +76,18 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow<2.16.0",
-    "tensorflow-probability<0.23.0",
+    "tensorflow<2.13.0",
+    "tensorflow-probability<0.21.0",
     "tsfresh>=0.20.0",
-    "tslearn>=0.5.2,<0.7.0",
+    "tslearn>=0.5.2,<0.6.0",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
     "imbalanced-learn",
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow<2.16.0",
-    "tensorflow-probability<0.23.0",
+    "tensorflow<2.13.0",
+    "tensorflow-probability<0.21.0",
 ]
 unstable_extras = [
     "pycatch22<=0.4.3",  # known to fail installation on some setups
