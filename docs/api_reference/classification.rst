@@ -5,10 +5,9 @@ Time series classification
 
 The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
 
-All classifiers in ``aeon`` can be listed using the ``aeon.registry
-.all_estimators`` utility,
+All classifiers in `aeon`  can be listed using the `aeon.registry.all_estimators` utility,
 using ``estimator_types="classifier"``, optionally filtered by tags.
-Valid tags can be listed using ``aeon.registry.all_tags``.
+Valid tags can be listed by calling the function `aeon.registry.all_tags`.
 
 Convolution-based
 -----------------
