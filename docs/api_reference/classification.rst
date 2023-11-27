@@ -36,6 +36,8 @@ Deep learning
     InceptionTimeClassifier
     IndividualInceptionClassifier
     TapNetClassifier
+    EncoderClassifier
+    LITETimeClassifier
 
 Dictionary-based
 ----------------
