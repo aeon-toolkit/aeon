@@ -15,7 +15,7 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.tapnet import TapNetNetwork
+from aeon.networks._tapnet import TapNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 

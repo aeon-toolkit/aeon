@@ -10,7 +10,7 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks.cnn import CNNNetwork
+from aeon.networks._cnn import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 

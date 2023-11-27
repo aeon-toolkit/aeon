@@ -11,7 +11,7 @@ from copy import deepcopy
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.networks.inception import InceptionNetwork
+from aeon.networks._inception import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.utils.validation._dependencies import _check_dl_dependencies
