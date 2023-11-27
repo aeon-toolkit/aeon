@@ -74,7 +74,7 @@ class MLPClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.mlp import MLPClassifier
+    >>> from aeon.classification.deep_learning import MLPClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> mlp = MLPClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
