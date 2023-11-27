@@ -68,7 +68,7 @@ def _is_nested_univ_dataframe(X):
 
 def _is_pd_wide(X):
     """Check whether the input nested DataFrame is "pd-wide" type."""
-    # only test is if all values are float. This from chatgpt seems stupid
+    # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
         if _is_nested_univ_dataframe(X):
             return False
