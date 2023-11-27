@@ -4,13 +4,13 @@ This contains all functions to convert supported collection data types.
 
 String identifier meanings (from aeon.utils.validation.collection import
 COLLECTIONS_DATA_TYPES) :
-numpy3D     : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
-np-list     : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
-df-list     : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
-numpyflat   : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
-pd-wide     : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
+numpy3D : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
+np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
+df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
+numpyflat : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
+pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
 nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
-pd-multiindex : d.DataFrame with multi-index,
+pd-multiindex : pd.DataFrame with multi-index,
 
 For the seven supported, this gives 42 different converters.
 Rather than use them directly, we recommend using the conversion dictionary
@@ -584,7 +584,7 @@ def _equal_length(X, input_type):
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """
-    always_equal = {"numpy3D", "numpyflat", "pd-wide", "pd-multiindex"}
+    always_equal = {"numpy3D", "numpyflat", "pd-wide"}
     if input_type in always_equal:
         return True
     # np-list are shape (n_channels, n_timepoints)
@@ -603,5 +603,7 @@ def _equal_length(X, input_type):
         return True
     if input_type == "nested_univ":  # Nested univariate or hierachical
         return _nested_univ_is_equal(X)
+    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
+        return not X.isna().any().any()
     raise ValueError(f" unknown input type {input_type}")
     return False
