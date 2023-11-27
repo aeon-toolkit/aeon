@@ -78,7 +78,7 @@ class TapNetClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.tapnet import TapNetClassifier
+    >>> from aeon.classification.deep_learning import TapNetClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
