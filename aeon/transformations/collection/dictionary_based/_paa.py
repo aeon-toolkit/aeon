@@ -41,6 +41,7 @@ class PAA(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "fit_is_empty": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(self, n_segments=8):
