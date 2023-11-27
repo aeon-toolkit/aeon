@@ -15,8 +15,8 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks._tapnet import TapNetNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import TapNetNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetClassifier(BaseDeepClassifier):
@@ -113,7 +113,7 @@ class TapNetClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose=False,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(TapNetClassifier, self).__init__()
 
         self.batch_size = batch_size

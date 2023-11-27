@@ -11,7 +11,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEFCNNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNClusterer(BaseDeepClusterer):
@@ -138,7 +138,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         last_file_name="last_file",
         callbacks=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(AEFCNClusterer, self).__init__(
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,

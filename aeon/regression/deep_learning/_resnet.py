@@ -1,7 +1,7 @@
-"""Residual Network (ResNet) for classification."""
+"""Residual Network (ResNet) for regression."""
 
 __author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
-__all__ = ["ResNetClassifier"]
+__all__ = ["ResNetRegressor"]
 
 import gc
 import os
@@ -10,77 +10,86 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks._resnet import ResNetNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import ResNetNetwork
+from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class ResNetClassifier(BaseDeepClassifier):
+class ResNetRegressor(BaseDeepRegressor):
     """
-    Residual Neural Network (RNN).
+    Residual Neural Network.
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_residual_blocks : int, default = 3
-        The number of residual blocks of ResNet's model.
-    n_conv_per_residual_block : int, default = 3
-        The number of convolution blocks in each residual block.
-    n_filters : int or list of int, default = [128, 64, 64]
-        The number of convolution filters for all the convolution layers in the same
-        residual block, if not a list, the same number of filters is used in all
-        convolutions of all residual blocks.
-    kernel_sizes : int or list of int, default = [8, 5, 3]
-        The kernel size of all the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-    strides : int or list of int, default = 1
-        The strides of convolution kernels in each of the convolution layers in
-        one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
-    dilation_rate : int or list of int, default = 1
-        The dilation rate of the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-    padding : str or list of str, default = 'padding'
-        The type of padding used in the convolution layers in one residual block, if
-        not a list, the same kernel size is used in all convolution layers.
-    activation : str or list of str, default = 'relu'
-        keras activation used in the convolution layers in one residual block,
-        if not a list, the same kernel size is used in all convolution layers.
-    use_bia : bool or list of bool, default = True
-        Condition on whether or not to use bias values in the convolution layers
-        in one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
-    n_epochs : int, default = 1500
-        The number of epochs to train the model.
-    batch_size : int, default = 16
-        The number of samples per gradient update.
-    use_mini_batch_size : bool, default = False
-        Condition on using the mini batch size formula Wang et al.
-    callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
-        List of tf.keras.callbacks.Callback objects.
-    file_path : str, default = './'
-        file_path when saving model_Checkpoint callback.
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the modelcheckpoint callback is
-        used by default, this condition, if True, will prevent the automatic
-        deletion of the best saved model from file and the user can choose the
-        file name.
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last epoch trained, using the base
-        class method save_last_model_to_file.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if save_best_model is set to
-        False, this parameter is discarded.
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if save_last_model is set to
-        False, this parameter is discarded.
-    verbose : boolean, default = False
-        whether to output extra information
-    loss : string, default = "mean_squared_error"
-        fit parameter for the keras model.
-    optimizer : keras.optimizer, default = keras.optimizers.Adam()
-    metrics : list of strings, default = ["accuracy"]
+        n_residual_blocks : int, default = 3
+            the number of residual blocks of ResNet's model
+        n_conv_per_residual_block   : int, default = 3,
+            the number of convolution blocks in each residual block
+        n_filters                   : int or list of int, default = [128, 64, 64],
+            the number of convolution filters for all the convolution layers in the same
+            residual block, if not a list, the same number of filters is used in all
+            convolutions of all residual blocks.
+        kernel_sizes                : int or list of int, default = [8, 5, 3],
+            the kernel size of all the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        strides                     : int or list of int, default = 1,
+            the strides of convolution kernels in each of the
+            convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        dilation_rate               : int or list of int, default = 1,
+            the dilation rate of the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        padding                     : str or list of str, default = 'padding',
+            the type of padding used in the convolution layers
+            in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        activation                  : str or list of str, default = 'relu',
+            keras activation used in the convolution layers
+            in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        output_activation   : str, default = "linear",
+            the output activation for the regressor
+        use_bias : bool or list of bool, default = True,
+            condition on whether or not to use bias values in
+            the convolution layers in one residual block, if not
+            a list, the same kernel size is used in all convolution layers
+        n_epochs : int, default = 1500
+            the number of epochs to train the model
+        batch_size : int, default = 16
+            the number of samples per gradient update.
+        use_mini_batch_size : bool, default = False
+            condition on using the mini batch size formula Wang et al.
+        callbacks : callable or None, default
+        ReduceOnPlateau and ModelCheckpoint
+            list of tf.keras.callbacks.Callback objects.
+        file_path                   : str, default = './'
+            file_path when saving model_Checkpoint callback
+        save_best_model     : bool, default = False
+            Whether or not to save the best model, if the
+            modelcheckpoint callback is used by default,
+            this condition, if True, will prevent the
+            automatic deletion of the best saved model from
+            file and the user can choose the file name
+        save_last_model     : bool, default = False
+            Whether or not to save the last model, last
+            epoch trained, using the base class method
+            save_last_model_to_file
+        best_file_name      : str, default = "best_model"
+            The name of the file of the best model, if
+            save_best_model is set to False, this parameter
+            is discarded
+        last_file_name      : str, default = "last_model"
+            The name of the file of the last model, if
+            save_last_model is set to False, this parameter
+            is discarded
+        verbose                     : boolean, default = False
+            whether to output extra information
+        loss                        : string, default="mean_squared_error"
+            fit parameter for the keras model
+        optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
+        metrics                     : list of strings, default=["accuracy"],
 
     Notes
     -----
@@ -89,18 +98,20 @@ class ResNetClassifier(BaseDeepClassifier):
 
     References
     ----------
-    .. [1] Wang et. al, Time series classification from
+        .. [1] Wang et. al, Time series classification from
     scratch with deep neural networks: A strong baseline,
     International joint conference on neural networks (IJCNN), 2017.
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.resnet import ResNetClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> clf.fit(X_train, Y_train) # doctest: +SKIP
-    ResNetClassifier(...)
+    >>> from aeon.regression.deep_learning import ResNetRegressor
+    >>> from aeon.datasets import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=0)
+    >>> rgs = ResNetRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> rgs.fit(X, y) # doctest: +SKIP
+    ResNetRegressor(...)
     """
 
     _tags = {
@@ -123,7 +134,8 @@ class ResNetClassifier(BaseDeepClassifier):
         n_epochs=1500,
         callbacks=None,
         verbose=False,
-        loss="categorical_crossentropy",
+        loss="mse",
+        output_activation="linear",
         metrics=None,
         batch_size=64,
         use_mini_batch_size=True,
@@ -135,8 +147,8 @@ class ResNetClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
+        _check_soft_dependencies("tensorflow")
+        super(ResNetRegressor, self).__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -153,6 +165,7 @@ class ResNetClassifier(BaseDeepClassifier):
         self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
         self.activation = activation
+        self.output_activation = output_activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
@@ -174,7 +187,7 @@ class ResNetClassifier(BaseDeepClassifier):
             random_state=random_state,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -186,8 +199,6 @@ class ResNetClassifier(BaseDeepClassifier):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
 
         Returns
         -------
@@ -211,7 +222,8 @@ class ResNetClassifier(BaseDeepClassifier):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
+            units=1,
+            activation=self.output_activation,
         )(output_layer)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
@@ -224,14 +236,14 @@ class ResNetClassifier(BaseDeepClassifier):
         return model
 
     def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
+        """Fit the regressor on the training set (X, y).
 
         Parameters
         ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
-            The training data class labels.
+            The training data target values.
 
         Returns
         -------
@@ -239,14 +251,13 @@ class ResNetClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:
             self.training_model_.summary()
@@ -277,7 +288,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
         self.history = self.training_model_.fit(
             X,
-            y_onehot,
+            y,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -308,7 +319,7 @@ class ResNetClassifier(BaseDeepClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
@@ -328,6 +339,4 @@ class ResNetClassifier(BaseDeepClassifier):
             "n_conv_per_residual_block": 1,
         }
 
-        test_params = [param]
-
-        return test_params
+        return [param]

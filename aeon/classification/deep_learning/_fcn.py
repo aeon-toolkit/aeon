@@ -1,7 +1,7 @@
-"""Time Convolutional Neural Network (CNN) for classification."""
+"""Fully Convolutional Network (FCN) for classification."""
 
-__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
-__all__ = ["CNNClassifier"]
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__all__ = ["FCNClassifier"]
 
 import gc
 import os
@@ -11,78 +11,73 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks._cnn import CNNNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import FCNNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class CNNClassifier(BaseDeepClassifier):
-    """
-    Time Convolutional Neural Network (CNN).
+class FCNClassifier(BaseDeepClassifier):
+    """Fully Convolutional Network (FCN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_layers : int, default = 2
-        The number of convolution layers in the network.
-    kernel_size : int or list of int, default = 7
-        Kernel size of convolution layers, if not a list, the same kernel size
-        is used for all layer, len(list) should be n_layers.
-    n_filters : int or list of int, default = [6, 12]
-        Number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
-    avg_pool_size : int or list of int, default = 3
-        The size of the average pooling layer, if not a list, the same
-        max pooling size is used for all convolution layer.
-    activation : str or list of str, default = "sigmoid"
-        Keras activation function used in the model for each layer, if not a list,
-        the same activation is used for all layers.
-    padding : str or list of str, default = 'valid'
-        The method of padding in convolution layers, if not a list, the same padding
-        used for all convolution layers.
-    strides : int or list of int, default = 1
-        The strides of kernels in the convolution and max pooling layers, if not a
-        list, the same strides are used for all layers.
+    n_layers : int, default = 3
+        Number of convolution layers.
+    n_filters : int or list of int, default = [128,256,128]
+        Number of filters used in convolution layers.
+    kernel_size : int or list of int, default = [8,5,3]
+        Size of convolution kernel.
     dilation_rate : int or list of int, default = 1
-        The dilation rate of the convolution layers, if not a list, the same dilation
-        rate is used all over the network.
+        The dilation rate for convolution.
+    strides : int or list of int, default = 1
+        The strides of the convolution filter.
+    padding : str or list of str, default = "same"
+        The type of padding used for convolution.
+    activation : str or list of str, default = "relu"
+        Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        Condition on whether to use bias values for convolution layers,
-        if not a list, the same condition is used for all layers.
-    random_state : int, default = 0
-        Seed to any needed random actions.
+        Whether or not ot use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
+    use_mini_batch_size : bool, default = True
+        Whether or not to use the mini batch size formula.
+    random_state : int or None, default = None
+        Seed for random number generation.
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default = "mean_squared_error"
         Fit parameter for the keras model.
-    optimizer : keras.optimizer, default = keras.optimizers.Adam()
     metrics : list of strings, default = ["accuracy"]
-    callbacks : keras.callbacks, default = model_checkpoint
-        To save best model on training loss.
-    file_path : file_path for the best model
-        Only used if checkpoint is used as callback.
+    optimizer : keras.optimizers object, default = Adam(lr=0.01)
+        Specify the optimizer and the learning rate to be used.
+    file_path : str, default = "./"
+        File path to save best model.
     save_best_model : bool, default = False
-        Whether to save the best model, if the modelcheckpoint callback is used by
-        default, this condition, if True, will prevent the automatic deletion of the
-        best saved model from file and the user can choose the file name.
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name.
     save_last_model : bool, default = False
-        Whether to save the last model, last epoch trained, using the base class method
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
         save_last_model_to_file.
     best_file_name : str, default = "best_model"
-        The name of the file of the best model, if save_best_model is set to False,
-        this parameter is discarded.
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded.
     last_file_name : str, default = "last_model"
-        The name of the file of the last model, if save_last_model is set to False,
-        this parameter is discarded.
-
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded.
+    callbacks : keras.callbacks, default = None
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
 
     References
     ----------
@@ -91,13 +86,13 @@ class CNNClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.cnn import CNNClassifier
+    >>> from aeon.classification.deep_learning.fcn import FCNClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> cnn = CNNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
-    >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
-    CNNClassifier(...)
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
+    FCNClassifier(...)
     """
 
     _tags = {
@@ -108,83 +103,82 @@ class CNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=2,
-        kernel_size=7,
+        n_layers=3,
         n_filters=None,
-        avg_pool_size=3,
-        activation="sigmoid",
-        padding="valid",
-        strides=1,
+        kernel_size=None,
         dilation_rate=1,
-        n_epochs=2000,
-        batch_size=16,
-        callbacks=None,
+        strides=1,
+        padding="same",
+        activation="relu",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        n_epochs=2000,
+        batch_size=16,
+        use_mini_batch_size=True,
+        callbacks=None,
         verbose=False,
-        loss="mean_squared_error",
+        loss="categorical_crossentropy",
         metrics=None,
         random_state=None,
         use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(CNNClassifier, self).__init__(last_file_name=last_file_name)
+        _check_soft_dependencies("tensorflow")
+        super(FCNClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.padding = padding
         self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.avg_pool_size = avg_pool_size
         self.activation = activation
+        self.dilation_rate = dilation_rate
+        self.padding = padding
         self.use_bias = use_bias
-        self.random_state = random_state
 
+        self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.batch_size = batch_size
-        self.callbacks = callbacks
+        self.use_mini_batch_size = use_mini_batch_size
+        self.verbose = verbose
+        self.loss = loss
+        self.metrics = metrics
+        self.random_state = random_state
+        self.optimizer = optimizer
+        self.history = None
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
-        self.verbose = verbose
-        self.loss = loss
-        self.metrics = metrics
-        self.optimizer = optimizer
-        self.history = None
-        self._network = CNNNetwork(
+        self._network = FCNNetwork(
+            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
-            avg_pool_size=self.avg_pool_size,
-            activation=self.activation,
-            padding=self.padding,
             strides=self.strides,
+            padding=self.padding,
             dilation_rate=self.dilation_rate,
+            activation=self.activation,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d, m), where d
+        In aeon, time series are stored in numpy arrays of shape (d,m), where d
         is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m, d). This method also assumes (m, d). Transpose should
+        data is in shape (m,d). This method also assumes (m,d). Transpose should
         happen in fit.
 
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m, d)
+            The shape of the data fed into the input layer, should be (m, d).
         n_classes : int
-            The number of classes, which becomes the size of the output layer
+            The number of classes, which becomes the size of the output layer.
 
         Returns
         -------
@@ -201,7 +195,7 @@ class CNNClassifier(BaseDeepClassifier):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
@@ -245,12 +239,20 @@ class CNNClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.file_name_ = (
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
         self.callbacks_ = (
             [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".hdf5",
                     monitor="loss",
@@ -264,7 +266,7 @@ class CNNClassifier(BaseDeepClassifier):
         self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
@@ -310,7 +312,10 @@ class CNNClassifier(BaseDeepClassifier):
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "avg_pool_size": 4,
+            "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
         test_params = [param1]

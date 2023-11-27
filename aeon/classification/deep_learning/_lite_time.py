@@ -13,8 +13,8 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks._lite import LITENetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import LITENetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LITETimeClassifier(BaseClassifier):
@@ -372,7 +372,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(IndividualLITEClassifier, self).__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters

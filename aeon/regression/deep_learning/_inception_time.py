@@ -11,10 +11,10 @@ from copy import deepcopy
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.networks._inception import InceptionNetwork
+from aeon.networks import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeRegressor(BaseRegressor):
@@ -494,7 +494,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss="mse",
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(IndividualInceptionRegressor, self).__init__(
             last_file_name=last_file_name
         )

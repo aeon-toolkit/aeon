@@ -11,8 +11,8 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks._encoder import EncoderNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import EncoderNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class EncoderClassifier(BaseDeepClassifier):
@@ -109,7 +109,7 @@ class EncoderClassifier(BaseDeepClassifier):
         use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(EncoderClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_filters = n_filters
