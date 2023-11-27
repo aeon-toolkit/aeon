@@ -61,7 +61,7 @@ def plot_boxplot_median(
     >>> from aeon.benchmarking.results_plotting import plot_boxplot_median
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
-    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
     >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
     >>> plot.show() # doctest: +SKIP
     >>> plot.savefig("boxplot.pdf", bbox_inches="tight") # doctest: +SKIP
