@@ -52,7 +52,7 @@ class Catch22(BaseCollectionTransformer):
 
     Parameters
     ----------
-    features : int/str or List of int/str, optional, default="all"
+    features : int/str or List of int/str, default="all"
         The Catch22 features to extract by feature index, feature name as a str or as a
         list of names or indices for multiple features. If "all", all features are
         extracted.
@@ -68,20 +68,20 @@ class Catch22(BaseCollectionTransformer):
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
             "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
-    catch24 : bool, optional, default=False
+    catch24 : bool, default=False
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
         Normalise each series during the two outlier Catch22 features, which can take a
         while to process for large values.
-    replace_nans : bool, optional, default=False
+    replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, optional, default=False
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    n_jobs : int, optional, default=1
+    n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. Requires multiple input
         cases. ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
