@@ -33,7 +33,8 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import SevenNumberSummaryTransformer
+    >>> from aeon.transformations.collection.feature_based import
+    ... SevenNumberSummaryTransformer
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0)
