@@ -584,7 +584,7 @@ def _equal_length(X, input_type):
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """
-    always_equal = {"numpy3D", "numpyflat", "pd-wide"}
+    always_equal = {"numpy3D", "numpyflat", "pd-wide", "pd-multiindex"}
     if input_type in always_equal:
         return True
     # np-list are shape (n_channels, n_timepoints)
@@ -603,8 +603,5 @@ def _equal_length(X, input_type):
         return True
     if input_type == "nested_univ":  # Nested univariate or hierachical
         return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":
-        # TEMPORARY: WORK OUT HOW TO TEST IF pd.MULTINDEX are equal length
-        return True
     raise ValueError(f" unknown input type {input_type}")
     return False
