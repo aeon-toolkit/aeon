@@ -86,6 +86,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": "np-list",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -239,7 +240,7 @@ def _np_list_transposed2D_array_and_len_list(
     ----------
     X : List of dataframes
         List of length n_instances, with
-        dataframes of series_length-rows and n_dimensions-columns
+        dataframes of series_length-rows and n_channels-columns
     pad : float or None. if float/int,pads multivariate series with 'pad',
         so that each series has at least length 9.
         if None, no padding is applied.
@@ -247,7 +248,7 @@ def _np_list_transposed2D_array_and_len_list(
     Returns
     -------
     np.array: 2D array of shape =
-        [n_dimensions, sum(length_series(i) for i in n_instances)],
+        [n_channels, sum(length_series(i) for i in n_instances)],
         np.float32
     np.array: 1D array of shape = [n_instances]
         with length of each series, np.int32

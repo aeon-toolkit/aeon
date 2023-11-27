@@ -1,7 +1,7 @@
-"""InceptionTime classifier."""
+"""LITETime classifier."""
 
-__author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
-__all__ = ["InceptionTimeClassifier"]
+__author__ = ["hadifawaz1999"]
+__all__ = ["LITETimeClassifier"]
 
 import gc
 import os
@@ -13,76 +13,33 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.inception import InceptionNetwork
+from aeon.networks.lite import LITENetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
-class InceptionTimeClassifier(BaseClassifier):
-    """InceptionTime ensemble classifier.
+class LITETimeClassifier(BaseClassifier):
+    """LITETime ensemble classifier.
 
-    Ensemble of IndividualInceptionTimeClassifier objects, as described in [1]_.
+    Ensemble of IndividualLITETimeClassifier objects, as described in [1]_.
 
     Parameters
     ----------
-    n_classifiers       : int, default = 5,
-        the number of Inception models used for the
+    n_classifiers : int, default = 5,
+        the number of LITE models used for the
         Ensemble in order to create
-        InceptionTime.
-    depth               : int, default = 6,
-            the number of inception modules used
-    nb_filters          : int or list of int32, default = 32,
-        the number of filters used in one inception
-        module, if not a list,
-        the same number of filters is used in
-        all inception modules
-    nb_conv_per_layer   : int or list of int, default = 3,
-        the number of convolution layers in each inception
-        module, if not a list,
-        the same number of convolution layers is used
-        in all inception modules
-    kernel_size         : int or list of int, default = 40,
-        the head kernel size used for each inception
-        module, if not a list,
-        the same is used in all inception modules
-    use_max_pooling     : bool or list of bool, default = True,
-        conditioning whether or not to use max pooling layer
-        in inception modules,if not a list,
-        the same is used in all inception modules
-    max_pool_size       : int or list of int, default = 3,
-        the size of the max pooling layer, if not a list,
-        the same is used in all inception modules
-    strides             : int or list of int, default = 1,
-        the strides of kernels in convolution layers for each
-        inception module, if not a list,
-        the same is used in all inception modules
-    dilation_rate       : int or list of int, default = 1,
-        the dilation rate of convolutions in each inception
-        module, if not a list,
-        the same is used in all inception modules
-    padding             : str or list of str, default = "same",
-        the type of padding used for convoltuon for each
-        inception module, if not a list,
-        the same is used in all inception modules
-    activation          : str or list of str, default = "relu",
-        the activation function used in each inception
-        module, if not a list,
-        the same is used in all inception modules
-    use_bias            : bool or list of bool, default = False,
-        conditioning whether or not convolutions should
-        use bias values in each inception
-        module, if not a list,
-        the same is used in all inception modules
-    use_residual : bool, default = True,
-        condition whether or not to use residual
-        connections all over Inception
-    use_bottleneck : bool, default = True,
-        condition whether or not to use bottlenecks
-        all over Inception
-    bottleneck_size : int, default = 32,
-        the bottleneck size in case use_bottleneck = True
-    use_custom_filters : bool, default = False,
-        condition on whether or not to use custom
-        filters in the first inception module
+        LITETime.
+    nb_filters : int or list of int32, default = 32
+        The number of filters used in one lite layer, if not a list, the same
+        number of filters is used in all lite layers.
+    kernel_size : int or list of int, default = 40
+        The head kernel size used for each lite layer, if not a list, the same
+        is used in all lite module.
+    strides : int or list of int, default = 1
+        The strides of kernels in convolution layers for each lite layer,
+        if not a list, the same is used in all lite layers.
+    activation : str or list of str, default = 'relu'
+        The activation function used in each lite layer, if not a list,
+        the same is used in all lite layers.
     batch_size : int, default = 64
         the number of samples per gradient update.
     use_mini_batch_size : bool, default = False
@@ -96,56 +53,49 @@ class InceptionTimeClassifier(BaseClassifier):
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
+        model checkpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
-    save_last_model     : bool, default = False
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
-    best_file_name      : str, default = "best_model"
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
         is discarded
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
+    random_state : int, default = 0
         seed to any needed random actions.
-    verbose             : boolean, default = False
+    verbose : boolean, default = False
         whether to output extra information
-    optimizer           : keras optimizer, default = Adam
-    loss                : keras loss, default = categorical_crossentropy
-    metrics             : keras metrics, default = None,
+    optimizer : keras optimizer, default = Adam
+    loss : keras loss, default = categorical_crossentropy
+    metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
     Notes
     -----
-    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    Classification, Data Mining and Knowledge Discovery, 34, 2020
+    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
+    tEchniques for Time Series Classificaion, IEEE International
+    Conference on Data Science and Advanced Analytics, 2023.
 
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series
-    Classification Using New
-    Hand-Crafted Convolution Filters, 2022 IEEE International
-    Conference on Big Data.
-
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
-
-    and Ismail-Fawaz et al.
-    https://github.com/MSD-IRIMAS/CF-4-TSC
+    Adapted from the implementation from Ismail-Fawaz et. al
+    https://github.com/MSD-IRIMAS/LITE
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import InceptionTimeClassifier
+    >>> from aeon.classification.deep_learning import LITETimeClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> inctime = InceptionTimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
-    >>> inctime.fit(X_train, y_train)  # doctest: +SKIP
-    InceptionTimeClassifier(...)
+    >>> ltime = LITETimeClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> ltime.fit(X_train, y_train)  # doctest: +SKIP
+    LITETimeClassifier(...)
     """
 
     _tags = {
@@ -160,20 +110,9 @@ class InceptionTimeClassifier(BaseClassifier):
         self,
         n_classifiers=5,
         nb_filters=32,
-        nb_conv_per_layer=3,
         kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
         strides=1,
-        dilation_rate=1,
-        padding="same",
         activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
         file_path="./",
         save_last_model=False,
         save_best_model=False,
@@ -191,24 +130,13 @@ class InceptionTimeClassifier(BaseClassifier):
     ):
         self.n_classifiers = n_classifiers
 
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
-        self.use_max_pooling = use_max_pooling
-        self.max_pool_size = max_pool_size
         self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.padding = padding
         self.activation = activation
-        self.use_bias = use_bias
-        self.use_residual = use_residual
-        self.use_bottleneck = use_bottleneck
-        self.bottleneck_size = bottleneck_size
-        self.depth = depth
+        self.nb_filters = nb_filters
+
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.n_epochs = n_epochs
-
-        self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
 
@@ -227,10 +155,10 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        super(InceptionTimeClassifier, self).__init__()
+        super(LITETimeClassifier, self).__init__()
 
     def _fit(self, X, y):
-        """Fit the ensemble of IndividualInceptionClassifier models.
+        """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
         ----------
@@ -247,21 +175,9 @@ class InceptionTimeClassifier(BaseClassifier):
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_classifiers):
-            cls = IndividualInceptionClassifier(
+            cls = IndividualLITEClassifier(
                 nb_filters=self.nb_filters,
-                nb_conv_per_layer=self.nb_conv_per_layer,
                 kernel_size=self.kernel_size,
-                use_max_pooling=self.use_max_pooling,
-                max_pool_size=self.max_pool_size,
-                strides=self.strides,
-                dilation_rate=self.dilation_rate,
-                padding=self.padding,
-                activation=self.activation,
-                use_bias=self.use_bias,
-                use_residual=self.use_residual,
-                use_bottleneck=self.use_bottleneck,
-                depth=self.depth,
-                use_custom_filters=self.use_custom_filters,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -284,7 +200,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict the labels of the test set using InceptionTime.
+        """Predict the labels of the test set using LITETime.
 
         Parameters
         ----------
@@ -305,7 +221,7 @@ class InceptionTimeClassifier(BaseClassifier):
         )
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict the proba of labels of the test set using InceptionTime.
+        """Predict the proba of labels of the test set using LITETime.
 
         Parameters
         ----------
@@ -353,145 +269,94 @@ class InceptionTimeClassifier(BaseClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
-            "use_residual": False,
-            "depth": 1,
-            "use_custom_filters": False,
         }
 
         return [param1]
 
 
-class IndividualInceptionClassifier(BaseDeepClassifier):
-    """Single InceptionTime classifier.
+class IndividualLITEClassifier(BaseDeepClassifier):
+    """Single LITETime classifier.
+
+    One LITE deep model, as described in [1]_.
 
     Parameters
     ----------
-        depth               : int, default = 6,
-            the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
-            the number of filters used in one inception module, if not a list,
-            the same number of filters is used in all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
-            the number of convolution layers in each inception module, if not a list,
-            the same number of convolution layers is used in all inception modules
-        kernel_size         : int or list of int, default = 40,
-            the head kernel size used for each inception module, if not a list,
-            the same is used in all inception modules
-        use_max_pooling     : bool or list of bool, default = True,
-            conditioning whether or not to use max pooling layer
-            in inception modules,if not a list,
-            the same is used in all inception modules
-        max_pool_size       : int or list of int, default = 3,
-            the size of the max pooling layer, if not a list,
-            the same is used in all inception modules
-        strides             : int or list of int, default = 1,
-            the strides of kernels in convolution layers for
-            each inception module, if not a list,
-            the same is used in all inception modules
-        dilation_rate       : int or list of int, default = 1,
-            the dilation rate of convolutions in each inception module, if not a list,
-            the same is used in all inception modules
-        padding             : str or list of str, default = "same",
-            the type of padding used for convoltuon for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        activation          : str or list of str, default = "relu",
-            the activation function used in each inception module, if not a list,
-            the same is used in all inception modules
-        use_bias            : bool or list of bool, default = False,
-            conditioning whether or not convolutions should
-            use bias values in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_residual        : bool, default = True,
-            condition whether or not to use residual connections all over Inception
-        use_bottleneck      : bool, default = True,
-            confition whether or not to use bottlenecks all over Inception
-        bottleneck_size     : int, default = 32,
-            the bottleneck size in case use_bottleneck = True
-        use_custom_filters  : bool, default = False,
-            condition on whether or not to use custom filters
-            in the first inception module
-        batch_size          : int, default = 64
-            the number of samples per gradient update.
-        use_mini_batch_size : bool, default = False
-            condition on using the mini batch size formula Wang et al.
-        n_epochs           : int, default = 1500
-            the number of epochs to train the model.
-        callbacks           : callable or None, default
-        ReduceOnPlateau and ModelCheckpoint
-            list of tf.keras.callbacks.Callback objects.
-        file_path           : str, default = "./"
-            file_path when saving model_Checkpoint callback
-        save_best_model     : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
-            automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model     : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        best_file_name      : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name      : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
-        verbose             : boolean, default = False
-            whether to output extra information
-        optimizer           : keras optimizer, default = Adam
-        loss                : keras loss, default = categorical_crossentropy
-        metrics             : keras metrics, default = None, will be set
-        to accuracy as default if None
+        nb_filters : int or list of int32, default = 32
+        The number of filters used in one lite layer, if not a list, the same
+        number of filters is used in all lite layers.
+    kernel_size : int or list of int, default = 40
+        The head kernel size used for each lite layer, if not a list, the same
+        is used in all lite layers.
+    strides : int or list of int, default = 1
+        The strides of kernels in convolution layers for each lite layer,
+        if not a list, the same is used in all lite layers.
+    activation : str or list of str, default = 'relu'
+        The activation function used in each lite layer, if not a list,
+        the same is used in all lite layers.
+    batch_size : int, default = 64
+        the number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        condition on using the mini batch size
+        formula Wang et al.
+    n_epochs : int, default = 1500
+        the number of epochs to train the model.
+    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
+        list of tf.keras.callbacks.Callback objects.
+    file_path : str, default = "./"
+        file_path when saving model_Checkpoint callback
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the
+        model checkpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model     : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name      : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name      : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
+    random_state : int, default = 0
+        seed to any needed random actions.
+    verbose : boolean, default = False
+        whether to output extra information
+    optimizer : keras optimizer, default = Adam
+    loss : keras loss, default = categorical_crossentropy
+    metrics : keras metrics, default = None,
+        will be set to accuracy as default if None
 
     Notes
     -----
-    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    Classification, Data Mining and Knowledge Discovery, 34, 2020
+    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
+    tEchniques for Time Series Classificaion, IEEE International
+    Conference on Data Science and Advanced Analytics, 2023.
 
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series Classification Using New
-    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
-
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
-
-    and Ismail-Fawaz et al.
-    https://github.com/MSD-IRIMAS/CF-4-TSC
+    Adapted from the implementation from Ismail-Fawaz et. al
+    https://github.com/MSD-IRIMAS/LITE
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
+    >>> from aeon.classification.deep_learning import IndividualLITEClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
-    >>> inc.fit(X_train, y_train)  # doctest: +SKIP
-    IndividualInceptionClassifier(...)
+    >>> lite = IndividualLITEClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> lite.fit(X_train, y_train)  # doctest: +SKIP
+    IndividualLITEClassifier(...)
     """
 
     def __init__(
         self,
         nb_filters=32,
-        nb_conv_per_layer=3,
         kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
         strides=1,
-        dilation_rate=1,
-        padding="same",
         activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
@@ -508,27 +373,15 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_dl_dependencies(severity="error")
-        super(IndividualInceptionClassifier, self).__init__(
-            last_file_name=last_file_name
-        )
+        super(IndividualLITEClassifier, self).__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
-        self.use_max_pooling = use_max_pooling
-        self.max_pool_size = max_pool_size
         self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.padding = padding
         self.activation = activation
-        self.use_bias = use_bias
-        self.use_residual = use_residual
-        self.use_bottleneck = use_bottleneck
-        self.bottleneck_size = bottleneck_size
-        self.depth = depth
+
         self.kernel_size = kernel_size
         self.batch_size = batch_size
         self.n_epochs = n_epochs
-        self.use_custom_filters = use_custom_filters
 
         self.file_path = file_path
 
@@ -545,22 +398,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self._network = InceptionNetwork(
+        self._network = LITENetwork(
             nb_filters=self.nb_filters,
-            nb_conv_per_layer=self.nb_conv_per_layer,
             kernel_size=self.kernel_size,
-            use_max_pooling=self.use_max_pooling,
-            max_pool_size=self.max_pool_size,
             strides=self.strides,
-            dilation_rate=self.dilation_rate,
-            padding=self.padding,
             activation=self.activation,
-            use_bias=self.use_bias,
-            use_residual=self.use_residual,
-            use_bottleneck=self.use_bottleneck,
-            bottleneck_size=self.bottleneck_size,
-            depth=self.depth,
-            use_custom_filters=self.use_custom_filters,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -712,10 +554,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "kernel_size": 4,
-            "use_residual": False,
-            "use_bottleneck": True,
-            "depth": 1,
-            "use_custom_filters": False,
         }
 
         return [param1]

@@ -213,7 +213,7 @@ class TapNetClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances(n), n_dimensions(d), series_length(m))
+        X : np.ndarray of shape = (n_instances(n), n_channels(d), series_length(m))
             Input training samples
         y : np.ndarray of shape n
             Input training class labels

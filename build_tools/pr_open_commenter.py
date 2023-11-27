@@ -97,8 +97,10 @@ pr.create_issue_comment(
 {title_labels_str}
 {content_labels_str}
 
-The "Checks" tab above or the panel below will show the status of our automated tests. From the panel below you can click on "Details" to the right of the check to see more information if there is a failure. If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR.
+The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab will show the status of our automated tests. You can click on individual test runs in the tab or "Details" in the panel below to see more information if there is a failure.
 
-Don't hesitate to ask questions on the `aeon` Slack channel if you have any!
+If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
+
+Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any!
     """  # noqa
 )

@@ -68,7 +68,7 @@ def test_stratified_resample(input_type):
     )
 
     # Valid return type
-    assert type(X_train) == type(new_X_train) and type(X_test) == type(new_X_test)
+    assert type(X_train) is type(new_X_train) and type(X_test) is type(new_X_test)
 
     classes_train, classes_count_train = np.unique(y_train, return_counts=True)
     classes_test, classes_count_test = np.unique(y_test, return_counts=True)

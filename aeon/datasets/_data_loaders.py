@@ -103,6 +103,20 @@ def _load_header_info(file):
     return meta_data
 
 
+def _get_channel_strings(line, target, missing):
+    """Split a string with timestamps into separate csv strings."""
+    channel_strings = re.sub(r"\s", "", line)
+    channel_strings = channel_strings.split("):")
+    c = len(channel_strings)
+    if target:
+        c = c - 1
+    for i in range(c):
+        channel_strings[i] = channel_strings[i] + ")"
+        numbers = re.findall(r"\d+\.\d+|" + missing, channel_strings[i])
+        channel_strings[i] = ",".join(numbers)
+    return channel_strings
+
+
 def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     """Load data from a file with no header.
 
@@ -133,13 +147,20 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     current_channels = 0
     series_length = 0
     y_values = []
+    target = False
+    if meta_data["classlabel"] or meta_data["targetlabel"]:
+        target = True
     for line in file:
         line = line.strip().lower()
+        line = line.replace("nan", replace_missing_vals_with)
         line = line.replace("?", replace_missing_vals_with)
-        channels = line.split(":")
+        if "timestamps" in meta_data and meta_data["timestamps"]:
+            channels = _get_channel_strings(line, target, replace_missing_vals_with)
+        else:
+            channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             current_channels -= 1
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
@@ -179,7 +200,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             y_values.append(channels[n_channels])
     if meta_data["equallength"]:
         data = np.array(data)
@@ -335,6 +356,52 @@ def _load_saved_dataset(
             return combo
 
 
+def download_dataset(name, save_path=None):
+    """
+
+    Download a dataset from the timeseriesclassification.com website.
+
+    Parameters
+    ----------
+    name : string,
+            name of the dataset to download
+
+    safe_path : string, optional (default: None)
+            Path to the directory where the dataset is downloaded into.
+
+    Returns
+    -------
+    if successful, string containing the path of the saved file
+
+    Raises
+    ------
+    ValueError if the dataset is not available on the website
+    or the extract path is invalid
+    """
+    if save_path is None:
+        save_path = os.path.join(MODULE, "local_data")
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    if name not in list_downloaded_tsc_tsr_datasets(
+        save_path
+    ) or name not in list_downloaded_tsf_datasets(save_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download it.
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        try:
+            _download_and_extract(url, extract_path=save_path)
+        except zipfile.BadZipFile as e:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{save_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/.",
+            ) from e
+
+    return os.path.join(save_path, name)
+
+
 def _download_and_extract(url, extract_path=None):
     """
     Download and unzip datasets (helper function).
@@ -450,8 +517,7 @@ def _load_tsc_dataset(
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on "
-                    f"https://timeseriesclassification.com/.",
+                    f"{extract_path}. Nor is it available on {url}",
                 ) from e
 
     return _load_saved_dataset(
@@ -1129,7 +1195,27 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
 
 
 def load_regression(name, split=None, extract_path=None, return_metadata=True):
-    """Download/load forecasting problem from https://forecastingdata.org/.
+    """Download/load regression problem from http://tseregression.org/.
+
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from http://tseregression.org/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tser_lists.py``.  This function can load timestamped data, but it does
+    not store the time stamps. The time stamp loading is fragile, it will only work
+    if all data are floats.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
+    is an example of a univariate equal length problem, BasicMotions an equal length
+    multivariate problem.
+
 
     Parameters
     ----------
@@ -1226,18 +1312,24 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
 def load_classification(name, split=None, extract_path=None, return_metadata=True):
     """Load a classification dataset.
 
-    Loads a TSC dataset from extract_path, or from timeseriesclassification.com,
-    if not on extract path.
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from https://timeseriesclassification.com/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tsc_lists.py``.  This function can load timestamped data, but it does
+    not store the time stamps. The time stamp loading is fragile, it will only work
+    if all data are floats.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series.
-    Each dimension is separated by a colon, each value in a series is comma
-    separated. For examples see aeon.datasets.data.tsc. ArrowHead is an example of
-    a univariate equal length problem, BasicMotions an equal length multivariate
-    problem.
-
-    Data is stored in extract_path/name/name.ts, extract_path/name/name_TRAIN.ts and
-    extract_path/name/name_TEST.ts.
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
+    is an example of a univariate equal length problem, BasicMotions an equal length
+    multivariate problem.
 
     Parameters
     ----------
