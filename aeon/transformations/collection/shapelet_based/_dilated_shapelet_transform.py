@@ -139,6 +139,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         "capability:unequal_length": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "y_inner_type": "numpy1D",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
