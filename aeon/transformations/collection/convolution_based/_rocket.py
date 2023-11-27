@@ -64,6 +64,7 @@ class Rocket(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):

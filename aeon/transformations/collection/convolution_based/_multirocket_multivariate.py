@@ -73,6 +73,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(
