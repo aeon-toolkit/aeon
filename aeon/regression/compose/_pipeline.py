@@ -300,7 +300,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
+        `X` is converted to `numpy2D` mtype if `X` is of `Panel` type;
         `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
@@ -451,7 +451,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
             Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
         # if output_type is Series, output is Panel, convert to 2D numpy array
         elif output_type == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
+            Xt = convert_to(X, to_type="numpy2D", as_scitype="Panel")
         else:
             raise TypeError(
                 f"unexpected X output type "

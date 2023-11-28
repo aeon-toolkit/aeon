@@ -286,7 +286,7 @@ def from_nested_to_2d_np_array(obj, store=None):
 
 convert_dict[("nested_univ", "pd-wide", "Panel")] = from_nested_to_pdwide
 
-convert_dict[("nested_univ", "numpyflat", "Panel")] = from_nested_to_2d_np_array
+convert_dict[("nested_univ", "numpy2D", "Panel")] = from_nested_to_2d_np_array
 
 
 def from_2d_array_to_nested(
@@ -1112,7 +1112,7 @@ def from_dflist_to_nested_adp(obj, store=None):
 convert_dict[("df-list", "nested_univ", "Panel")] = from_dflist_to_nested_adp
 
 
-def from_numpy3d_to_numpyflat(obj, store=None):
+def from_numpy3d_to_numpy2D(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 3:
         raise TypeError("obj must be a 3D numpy.ndarray")
 
@@ -1127,10 +1127,10 @@ def from_numpy3d_to_numpyflat(obj, store=None):
     return obj_in_2D
 
 
-convert_dict[("numpy3D", "numpyflat", "Panel")] = from_numpy3d_to_numpyflat
+convert_dict[("numpy3D", "numpy2D", "Panel")] = from_numpy3d_to_numpy2D
 
 
-def from_numpyflat_to_numpy3d(obj, store=None):
+def from_numpy2D_to_numpy3d(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 2:
         raise TypeError("obj must be a 2D numpy.ndarray")
 
@@ -1153,11 +1153,9 @@ def from_numpyflat_to_numpy3d(obj, store=None):
     return obj_in_3D
 
 
-convert_dict[("numpyflat", "numpy3D", "Panel")] = from_numpyflat_to_numpy3d
+convert_dict[("numpy2D", "numpy3D", "Panel")] = from_numpy2D_to_numpy3d
 
-_extend_conversions(
-    "numpyflat", "numpy3D", convert_dict, mtype_universe=MTYPE_LIST_PANEL
-)
+_extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=MTYPE_LIST_PANEL)
 
 
 if _check_soft_dependencies("dask", severity="none"):

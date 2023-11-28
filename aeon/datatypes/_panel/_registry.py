@@ -21,7 +21,7 @@ MTYPE_REGISTER_PANEL = [
         "3D np.ndarray of format (n_cases, n_channels, n_timepoints)",
     ),
     (
-        "numpyflat",
+        "numpy2D",
         "Panel",
         "2D np.ndarray of format (n_cases, n_channels*n_timepoints)",
     ),

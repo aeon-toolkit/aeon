@@ -7,7 +7,7 @@ COLLECTIONS_DATA_TYPES) :
 numpy3D : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
 np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
 df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
-numpyflat : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
+numpy2D : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
 pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
 nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 pd-multiindex : pd.DataFrame with multi-index,
@@ -166,11 +166,11 @@ def _from_numpy3d_to_pd_wide(X):
         raise TypeError(numpy3D_error)
     if X.shape[1] != 1:
         raise TypeError("Cannot convert multivariate series to pd-wide")
-    X_flat = _from_numpy3d_to_numpyflat(X)
+    X_flat = _from_numpy3d_to_numpy2D(X)
     return pd.DataFrame(X_flat)
 
 
-def _from_numpy3d_to_numpyflat(X):
+def _from_numpy3d_to_numpy2D(X):
     """Convert 3D np.darray to a 2D np.ndarray if shape[1] == 1."""
     if X.ndim != 3:
         raise TypeError(numpy3D_error)
@@ -256,17 +256,17 @@ def _from_np_list_to_nested_univ(X, store=None):
     return df
 
 
-def _from_np_list_to_numpyflat(X):
+def _from_np_list_to_numpy2D(X):
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray):
         raise TypeError(np_list_error)
     X_3d = _from_np_list_to_numpy3d(X)
     if X_3d.shape[1] > 1:
         raise TypeError(numpy2D_error)
-    return _from_numpy3d_to_numpyflat(X_3d)
+    return _from_numpy3d_to_numpy2D(X_3d)
 
 
 def _from_np_list_to_pd_wide(X):
-    X = _from_np_list_to_numpyflat(X)
+    X = _from_np_list_to_numpy2D(X)
     return pd.DataFrame(X)
 
 
@@ -300,14 +300,14 @@ def _from_df_list_to_numpy3d(X):
     return nump3D
 
 
-def _from_df_list_to_numpyflat(X):
+def _from_df_list_to_numpy2D(X):
     if not _equal_length(X, "df-list"):
         raise TypeError(
             f"{type(X)} does not store equal length series."
             f"Cannot convert unequal length to numpy flat"
         )
     np_list = _from_df_list_to_np_list(X)
-    return _from_np_list_to_numpyflat(np_list)
+    return _from_np_list_to_numpy2D(np_list)
 
 
 def _from_df_list_to_pd_wide(X):
@@ -331,22 +331,22 @@ def _from_df_list_to_pd_multiindex(X):
     return mi
 
 
-numpyflat_error = (
+numpy2D_error = (
     "Input should be 2-dimensional np.ndarray with shape (n_instances, "
     "n_timepoints).",
 )
 
 
-def _from_numpyflat_to_numpy3d(X):
+def _from_numpy2D_to_numpy3d(X):
     if X.ndim != 2:
-        raise TypeError(numpyflat_error)
+        raise TypeError(numpy2D_error)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
     return X_3d
 
 
-def _from_numpyflat_to_np_list(X):
+def _from_numpy2D_to_np_list(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(numpyflat_error)
+        raise TypeError(numpy2D_error)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
     X_list = []
     for x in X_3d:
@@ -354,8 +354,8 @@ def _from_numpyflat_to_np_list(X):
     return X_list
 
 
-def _from_numpyflat_to_df_list(X):
-    """Convert numpyflat collection to list of dataframe shape (1,n_timepoints).
+def _from_numpy2D_to_df_list(X):
+    """Convert numpy2D collection to list of dataframe shape (1,n_timepoints).
 
     Parameters
     ----------
@@ -368,7 +368,7 @@ def _from_numpyflat_to_df_list(X):
         list of pd.DataFrame (n_instances, n_timepoints)
     """
     if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(numpyflat_error)
+        raise TypeError(numpy2D_error)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
     X_list = []
     for x in X_3d:
@@ -376,14 +376,14 @@ def _from_numpyflat_to_df_list(X):
     return X_list
 
 
-def _from_numpyflat_to_pd_wide(X):
+def _from_numpy2D_to_pd_wide(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(numpyflat_error)
+        raise TypeError(numpy2D_error)
     return pd.DataFrame(X)
 
 
-def _from_numpyflat_to_nested_univ(X):
-    """Convert numpyflat to nested_univ format pd.DataFrame with a single column.
+def _from_numpy2D_to_nested_univ(X):
+    """Convert numpy2D to nested_univ format pd.DataFrame with a single column.
 
     Parameters
     ----------
@@ -395,7 +395,7 @@ def _from_numpyflat_to_nested_univ(X):
         DataFrame with a single column of pd.Series
     """
     if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(numpyflat_error)
+        raise TypeError(numpy2D_error)
     container = pd.Series
     n_instances, n_timepoints = X.shape
     time_index = np.arange(n_timepoints)
@@ -407,33 +407,33 @@ def _from_numpyflat_to_nested_univ(X):
     return Xt
 
 
-def _from_numpyflat_to_pd_multiindex(X):
-    X_3d = _from_numpyflat_to_numpy3d(X)
+def _from_numpy2D_to_pd_multiindex(X):
+    X_3d = _from_numpy2D_to_numpy3d(X)
     return _from_numpy3d_to_pd_multiindex(X_3d)
 
 
 def _from_pd_wide_to_numpy3d(X):
     X = X.to_numpy()
-    return _from_numpyflat_to_numpy3d(X)
+    return _from_numpy2D_to_numpy3d(X)
 
 
 def _from_pd_wide_to_np_list(X):
     X = X.to_numpy()
-    return _from_numpyflat_to_np_list(X)
+    return _from_numpy2D_to_np_list(X)
 
 
 def _from_pd_wide_to_df_list(X):
     X = X.to_numpy()
-    return _from_numpyflat_to_df_list(X)
+    return _from_numpy2D_to_df_list(X)
 
 
-def _from_pd_wide_to_numpyflat(X):
+def _from_pd_wide_to_numpy2D(X):
     return X.to_numpy()
 
 
 def _from_pd_wide_to_nested_univ(X):
     X = X.to_numpy()
-    return _from_numpyflat_to_nested_univ(X)
+    return _from_numpy2D_to_nested_univ(X)
 
 
 def _pd_wide_to_pd_multiindex(X):
@@ -494,11 +494,11 @@ def _from_nested_univ_to_df_list(X):
     return _from_pd_multiindex_to_df_list(X_multi)
 
 
-def _from_nested_univ_to_numpyflat(X):
+def _from_nested_univ_to_numpy2D(X):
     if not _nested_univ_is_equal(X):
-        raise TypeError("Cannot convert unequal length series to numpyflat")
+        raise TypeError("Cannot convert unequal length series to numpy2D")
     if X.shape[1] > 1:
-        raise TypeError("Cannot convert multivariate nested into numpyflat")
+        raise TypeError("Cannot convert multivariate nested into numpy2D")
     Xt = np.array([np.array(series) for series in X.iloc[:, 0]])
     return Xt
 
@@ -524,9 +524,9 @@ def _from_pd_multiindex_to_numpy3d(X):
     return _from_df_list_to_numpy3d(df_list)
 
 
-def _from_pd_multiindex_to_numpyflat(X):
+def _from_pd_multiindex_to_numpy2D(X):
     df_list = _from_pd_multiindex_to_df_list(X)
-    return _from_df_list_to_numpyflat(df_list)
+    return _from_df_list_to_numpy2D(df_list)
 
 
 def _from_pd_multiindex_to_pd_wide(X):
@@ -584,7 +584,7 @@ def _equal_length(X, input_type):
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """
-    always_equal = {"numpy3D", "numpyflat", "pd-wide"}
+    always_equal = {"numpy3D", "numpy2D", "pd-wide"}
     if input_type in always_equal:
         return True
     # np-list are shape (n_channels, n_timepoints)
