@@ -5,7 +5,7 @@ from aeon.benchmarking.experiments import (
     run_clustering_experiment,
 )
 from aeon.classification import DummyClassifier
-from aeon.clustering.k_means import TimeSeriesKMeans
+from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_unit_test
 
 
