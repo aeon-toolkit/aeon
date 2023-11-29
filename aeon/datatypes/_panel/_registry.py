@@ -23,7 +23,7 @@ MTYPE_REGISTER_PANEL = [
     (
         "numpy2D",
         "Panel",
-        "2D np.ndarray of format (n_cases, n_channels*n_timepoints)",
+        "2D np.ndarray of format (n_cases, n_channels)",
     ),
     ("pd-multiindex", "Panel", "pd.DataFrame with multi-index (instances, timepoints)"),
     ("pd-wide", "Panel", "pd.DataFrame in wide format, cols = (instance*timepoints)"),
