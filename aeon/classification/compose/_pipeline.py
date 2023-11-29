@@ -6,6 +6,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
+from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
@@ -444,8 +445,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     def _convert_X_to_sklearn(self, X):
         """Convert X to 2D numpy required by sklearn."""
-        from aeon.utils.validation.collection import convert_collection
-
         Xt = convert_collection(X, "numpy3D")
         if Xt.ndim == 2:
             return X
