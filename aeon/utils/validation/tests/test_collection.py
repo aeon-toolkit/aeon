@@ -267,7 +267,7 @@ NUMPY2D = [
 def test_numpy2D_error(function):
     """Test numpy flat converters only work with 2D numpy"""
     X = np.random.random(size=(10, 2, 20))
-    with pytest.raises(TypeError, match="Input should be 2-dimensional np.ndarray"):
+    with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
         function(X)
 
 
