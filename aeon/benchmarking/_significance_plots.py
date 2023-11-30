@@ -1,5 +1,4 @@
 # Adjusting the function to compress the graph further, reducing overall white space
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -18,6 +17,8 @@ def _plot_significance_groups(boolean_matrix, identifiers, names):
     identifiers: A list of strings of length n for graph labels
     names: A list of strings of length n for X axis labels
     """
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots()
     num_cols = len(boolean_matrix[0])
     # Filter out the rows that contain all false values
