@@ -59,34 +59,26 @@ class SFAFast(BaseCollectionTransformer):
 
     Parameters
     ----------
-        word_length:         int, default = 8
-            length of word to shorten window to (using PAA)
-
-        alphabet_size:       int, default = 4
-            number of values to discretise each value to
-
-        window_size:         int, default = 12
-            size of window for sliding. Input series
-            length for whole series transform
-
-        norm:                boolean, default = False
-            mean normalise words by dropping first fourier coefficient
-
-        binning_method:      {"equi-depth", "equi-width", "information-gain",
-            "information-gain-mae", "kmeans"}, default="equi-depth"
-            the binning method used to derive the breakpoints.
-
-        anova:               boolean, default = False
-            If True, the Fourier coefficient selection is done via a one-way
-            ANOVA test. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-
-        variance:               boolean, default = False
-            If True, the Fourier coefficient selection is done via the largest
-            variance. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-
-        dilation:            int, default = 0
+    word_length : int, default = 8
+        Length of word to shorten window to (using PAA).
+    alphabet_size : int, default = 4
+        Number of values to discretise each value to.
+    window_size : int, default = 12
+        Size of window for sliding. Input series length for whole series transform.
+    norm : boolean, default = False
+        Mean normalise words by dropping first fourier coefficient.
+    binning_method : str, default="equi-depth"
+        The binning method used to derive the breakpoints. One of {"equi-depth",
+        "equi-width", "information-gain", "information-gain-mae", "kmeans"},
+    anova : boolean, default = False
+        If True, the Fourier coefficient selection is done via a one-way ANOVA test.
+        If False, the first Fourier coefficients are selected. Only applicable if
+        labels are given.
+    variance : boolean, default = False
+        If True, the Fourier coefficient selection is done via the largest variance.
+        If False, the first Fourier coefficients are selected. Only applicable if
+        labels are given.
+    dilation :            int, default = 0
             When set to dilation > 1, adds dilation to the sliding window operation.
 
         save_words:          boolean, default = False
@@ -152,6 +144,7 @@ class SFAFast(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -683,14 +676,14 @@ class SFAFast(BaseCollectionTransformer):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
 
-        if type(state["relevant_features"]) == Dict:
+        if type(state["relevant_features"]) is Dict:
             state["relevant_features"] = dict(state["relevant_features"])
         return state
 
     def __setstate__(self, state):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
-        if type(self.relevant_features) == dict:
+        if isinstance(self.relevant_features, dict):
             typed_dict = Dict.empty(key_type=types.uint32, value_type=types.uint32)
             for key, value in self.relevant_features.items():
                 typed_dict[key] = value

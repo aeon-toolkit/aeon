@@ -1,7 +1,7 @@
-"""Encoder Classifier."""
+"""Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = ["hadifawaz1999"]
-__all__ = ["EncoderClassifier"]
+__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
+__all__ = ["CNNClassifier"]
 
 import gc
 import os
@@ -11,91 +11,113 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.encoder import EncoderNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import CNNNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class EncoderClassifier(BaseDeepClassifier):
+class CNNClassifier(BaseDeepClassifier):
     """
-    Establish the network structure for an Encoder.
+    Time Convolutional Neural Network (CNN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    kernel_size : array of int, default = [5, 11, 21]
-        Specifying the length of the 1D convolution windows.
-    n_filters : array of int, default = [128, 256, 512]
-        Specifying the number of 1D convolution filters used for each layer,
-        the shape of this array should be the same as kernel_size.
-    max_pool_size : int, default = 2
-        Size of the max pooling windows.
-    activation : string, default = sigmoid
-        Keras activation function.
-    dropout_proba : float, default = 0.2
-        Specifying the dropout layer probability.
-    padding : string, default = same
-        Specifying the type of padding used for the 1D convolution.
-    strides : int, default = 1
-        Specifying the sliding rate of the 1D convolution filter.
-    fc_units : int, default = 256
-        Specifying the number of units in the hidden fully
-        connected layer used in the EncoderNetwork.
-    file_path : str, default = "./"
-        File path when saving model_Checkpoint callback.
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name.
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded.
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded.
+    n_layers : int, default = 2
+        The number of convolution layers in the network.
+    kernel_size : int or list of int, default = 7
+        Kernel size of convolution layers, if not a list, the same kernel size
+        is used for all layer, len(list) should be n_layers.
+    n_filters : int or list of int, default = [6, 12]
+        Number of filters for each convolution layer, if not a list, the same n_filters
+        is used in all layers.
+    avg_pool_size : int or list of int, default = 3
+        The size of the average pooling layer, if not a list, the same
+        max pooling size is used for all convolution layer.
+    activation : str or list of str, default = "sigmoid"
+        Keras activation function used in the model for each layer, if not a list,
+        the same activation is used for all layers.
+    padding : str or list of str, default = 'valid'
+        The method of padding in convolution layers, if not a list, the same padding
+        used for all convolution layers.
+    strides : int or list of int, default = 1
+        The strides of kernels in the convolution and max pooling layers, if not a
+        list, the same strides are used for all layers.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate of the convolution layers, if not a list, the same dilation
+        rate is used all over the network.
+    use_bias : bool or list of bool, default = True
+        Condition on whether to use bias values for convolution layers,
+        if not a list, the same condition is used for all layers.
     random_state : int, default = 0
         Seed to any needed random actions.
+    n_epochs : int, default = 2000
+        The number of epochs to train the model.
+    batch_size : int, default = 16
+        The number of samples per gradient update.
+    verbose : boolean, default = False
+        Whether to output extra information.
+    loss : string, default = "mean_squared_error"
+        Fit parameter for the keras model.
+    optimizer : keras.optimizer, default = keras.optimizers.Adam()
+    metrics : list of strings, default = ["accuracy"]
+    callbacks : keras.callbacks, default = model_checkpoint
+        To save best model on training loss.
+    file_path : file_path for the best model
+        Only used if checkpoint is used as callback.
+    save_best_model : bool, default = False
+        Whether to save the best model, if the modelcheckpoint callback is used by
+        default, this condition, if True, will prevent the automatic deletion of the
+        best saved model from file and the user can choose the file name.
+    save_last_model : bool, default = False
+        Whether to save the last model, last epoch trained, using the base class method
+        save_last_model_to_file.
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if save_best_model is set to False,
+        this parameter is discarded.
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if save_last_model is set to False,
+        this parameter is discarded.
 
     Notes
     -----
-    Adapted from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
+    Adapted from the implementation from Fawaz et. al
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
 
     References
     ----------
-    .. [1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
-    In proceedings International Conference of the Catalan Association
-    for Artificial Intelligence, 120--129 2018.
+    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
+    Journal of Systems Engineering and Electronics, 28(1):2017.
 
-
+    Examples
+    --------
+    >>> from aeon.classification.deep_learning import CNNClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> cnn = CNNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
+    CNNClassifier(...)
     """
 
     _tags = {
-        "python_dependencies": ["tensorflow", "tensorflow_addons"],
+        "python_dependencies": "tensorflow",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
     }
 
     def __init__(
         self,
-        n_epochs=100,
-        batch_size=12,
-        kernel_size=None,
+        n_layers=2,
+        kernel_size=7,
         n_filters=None,
-        dropout_proba=0.2,
+        avg_pool_size=3,
         activation="sigmoid",
-        max_pool_size=2,
-        padding="same",
+        padding="valid",
         strides=1,
-        fc_units=256,
+        dilation_rate=1,
+        n_epochs=2000,
+        batch_size=16,
         callbacks=None,
         file_path="./",
         save_best_model=False,
@@ -103,49 +125,49 @@ class EncoderClassifier(BaseDeepClassifier):
         best_file_name="best_model",
         last_file_name="last_model",
         verbose=False,
-        loss="categorical_crossentropy",
+        loss="mean_squared_error",
         metrics=None,
         random_state=None,
         use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(EncoderClassifier, self).__init__(last_file_name=last_file_name)
+        _check_soft_dependencies("tensorflow")
+        super(CNNClassifier, self).__init__(last_file_name=last_file_name)
 
-        self.n_filters = n_filters
-        self.max_pool_size = max_pool_size
+        self.n_layers = n_layers
         self.kernel_size = kernel_size
-        self.strides = strides
-        self.activation = activation
+        self.n_filters = n_filters
         self.padding = padding
-        self.dropout_proba = dropout_proba
-        self.fc_units = fc_units
+        self.strides = strides
+        self.dilation_rate = dilation_rate
+        self.avg_pool_size = avg_pool_size
+        self.activation = activation
+        self.use_bias = use_bias
+        self.random_state = random_state
 
+        self.n_epochs = n_epochs
+        self.batch_size = batch_size
         self.callbacks = callbacks
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
-        self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
-        self.use_bias = use_bias
         self.optimizer = optimizer
         self.history = None
-
-        self._network = EncoderNetwork(
+        self._network = CNNNetwork(
+            n_layers=self.n_layers,
             kernel_size=self.kernel_size,
-            max_pool_size=self.max_pool_size,
             n_filters=self.n_filters,
-            fc_units=self.fc_units,
-            strides=self.strides,
-            padding=self.padding,
-            dropout_proba=self.dropout_proba,
+            avg_pool_size=self.avg_pool_size,
             activation=self.activation,
+            padding=self.padding,
+            strides=self.strides,
+            dilation_rate=self.dilation_rate,
+            use_bias=self.use_bias,
             random_state=self.random_state,
         )
 
@@ -160,9 +182,9 @@ class EncoderClassifier(BaseDeepClassifier):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m, d).
+            The shape of the data fed into the input layer, should be (m, d)
         n_classes : int
-            The number of classes, which becomes the size of the output layer.
+            The number of classes, which becomes the size of the output layer
 
         Returns
         -------
@@ -183,9 +205,7 @@ class EncoderClassifier(BaseDeepClassifier):
         )(output_layer)
 
         self.optimizer_ = (
-            tf.keras.optimizers.Adam(learning_rate=0.00001)
-            if self.optimizer is None
-            else self.optimizer
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
@@ -202,7 +222,7 @@ class EncoderClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -288,12 +308,9 @@ class EncoderClassifier(BaseDeepClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_epochs": 8,
+            "n_epochs": 10,
             "batch_size": 4,
-            "use_bias": False,
-            "fc_units": 8,
-            "strides": 2,
-            "dropout_proba": 0,
+            "avg_pool_size": 4,
         }
 
         test_params = [param1]

@@ -3,7 +3,7 @@
 __author__ = ["James-Large", "Withington", "AurumnPegasus"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class MLPNetwork(BaseDeepNetwork):
@@ -33,7 +33,7 @@ class MLPNetwork(BaseDeepNetwork):
         self,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         self.random_state = random_state
         super(MLPNetwork, self).__init__()
 
@@ -42,7 +42,7 @@ class MLPNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
+        input_shape : tuple of shape = (series_length (m), n_channels (d))
             The shape of the data fed into the input layer
 
         Returns

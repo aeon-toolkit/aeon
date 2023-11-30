@@ -1,7 +1,7 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Residual Network (ResNet) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
-__all__ = ["MLPClassifier"]
+__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
+__all__ = ["ResNetClassifier"]
 
 import gc
 import os
@@ -11,60 +11,81 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.mlp import MLPNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import ResNetNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class MLPClassifier(BaseDeepClassifier):
-    """Multi Layer Perceptron Network (MLP).
+class ResNetClassifier(BaseDeepClassifier):
+    """
+    Residual Neural Network (RNN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_epochs : int, default = 2000
-        the number of epochs to train the model
+    n_residual_blocks : int, default = 3
+        The number of residual blocks of ResNet's model.
+    n_conv_per_residual_block : int, default = 3
+        The number of convolution blocks in each residual block.
+    n_filters : int or list of int, default = [128, 64, 64]
+        The number of convolution filters for all the convolution layers in the same
+        residual block, if not a list, the same number of filters is used in all
+        convolutions of all residual blocks.
+    kernel_sizes : int or list of int, default = [8, 5, 3]
+        The kernel size of all the convolution layers in one residual block, if not
+        a list, the same kernel size is used in all convolution layers.
+    strides : int or list of int, default = 1
+        The strides of convolution kernels in each of the convolution layers in
+        one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
+    dilation_rate : int or list of int, default = 1
+        The dilation rate of the convolution layers in one residual block, if not
+        a list, the same kernel size is used in all convolution layers.
+    padding : str or list of str, default = 'padding'
+        The type of padding used in the convolution layers in one residual block, if
+        not a list, the same kernel size is used in all convolution layers.
+    activation : str or list of str, default = 'relu'
+        keras activation used in the convolution layers in one residual block,
+        if not a list, the same kernel size is used in all convolution layers.
+    use_bia : bool or list of bool, default = True
+        Condition on whether or not to use bias values in the convolution layers
+        in one residual block, if not a list, the same kernel size is used in all
+        convolution layers.
+    n_epochs : int, default = 1500
+        The number of epochs to train the model.
     batch_size : int, default = 16
-        the number of samples per gradient update.
-    random_state : int or None, default=None
-        Seed for random number generation.
+        The number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        Condition on using the mini batch size formula Wang et al.
+    callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
+        List of tf.keras.callbacks.Callback objects.
+    file_path : str, default = './'
+        file_path when saving model_Checkpoint callback.
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the modelcheckpoint callback is
+        used by default, this condition, if True, will prevent the automatic
+        deletion of the best saved model from file and the user can choose the
+        file name.
+    save_last_model : bool, default = False
+        Whether or not to save the last model, last epoch trained, using the base
+        class method save_last_model_to_file.
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if save_best_model is set to
+        False, this parameter is discarded.
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if save_last_model is set to
+        False, this parameter is discarded.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default="mean_squared_error"
-        fit parameter for the keras model
-    file_path : str, default = "./"
-        file_path when saving model_Checkpoint callback
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
-    metrics : list of strings, default=["accuracy"],
-    activation : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
+    loss : string, default = "mean_squared_error"
+        fit parameter for the keras model.
+    optimizer : keras.optimizer, default = keras.optimizers.Adam()
+    metrics : list of strings, default = ["accuracy"]
 
     Notes
     -----
     Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/mlp.py
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py
 
     References
     ----------
@@ -74,12 +95,12 @@ class MLPClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.mlp import MLPClassifier
+    >>> from aeon.classification.deep_learning import ResNetClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> mlp = MLPClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
-    >>> mlp.fit(X_train, y_train)  # doctest: +SKIP
-    MLPClassifier(...)
+    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> clf.fit(X_train, Y_train) # doctest: +SKIP
+    ResNetClassifier(...)
     """
 
     _tags = {
@@ -90,30 +111,46 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
+        n_residual_blocks=3,
+        n_conv_per_residual_block=3,
+        n_filters=None,
+        kernel_size=None,
+        strides=1,
+        dilation_rate=1,
+        padding="same",
+        activation="relu",
+        use_bias=True,
+        n_epochs=1500,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
         metrics=None,
+        batch_size=64,
+        use_mini_batch_size=True,
+        random_state=None,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
-        random_state=None,
-        activation="sigmoid",
-        use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(MLPClassifier, self).__init__(last_file_name=last_file_name)
-        self.callbacks = callbacks
+        _check_soft_dependencies("tensorflow")
+        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
+        self.n_residual_blocks = n_residual_blocks
+        self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.strides = strides
+        self.dilation_rate = dilation_rate
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
+        self.callbacks = callbacks
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
+        self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
@@ -124,8 +161,17 @@ class MLPClassifier(BaseDeepClassifier):
         self.last_file_name = last_file_name
         self.optimizer = optimizer
         self.history = None
-        self._network = MLPNetwork(
-            random_state=self.random_state,
+        self._network = ResNetNetwork(
+            n_residual_blocks=self.n_residual_blocks,
+            n_conv_per_residual_block=self.n_conv_per_residual_block,
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            use_bias=self.use_bias,
+            activation=self.activation,
+            dilation_rate=self.dilation_rate,
+            padding=self.padding,
+            random_state=random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -148,30 +194,33 @@ class MLPClassifier(BaseDeepClassifier):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
+
+        self.optimizer_ = (
+            tf.keras.optimizers.Adam(learning_rate=0.01)
+            if self.optimizer is None
+            else self.optimizer
+        )
 
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
+
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+        output_layer = tf.keras.layers.Dense(
+            units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
 
-        self.optimizer_ = (
-            keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
-        )
-
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=metrics,
         )
+
         return model
 
     def _fit(self, X, y):
@@ -179,7 +228,7 @@ class MLPClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -209,7 +258,7 @@ class MLPClassifier(BaseDeepClassifier):
         self.callbacks_ = (
             [
                 tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=200, min_lr=0.1
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".hdf5",
@@ -221,10 +270,15 @@ class MLPClassifier(BaseDeepClassifier):
             else self.callbacks
         )
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
@@ -267,12 +321,13 @@ class MLPClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
+        param = {
             "n_epochs": 10,
             "batch_size": 4,
-            "use_bias": False,
+            "n_residual_blocks": 1,
+            "n_conv_per_residual_block": 1,
         }
 
-        test_params = [param1]
+        test_params = [param]
 
         return test_params

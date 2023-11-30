@@ -2209,6 +2209,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "PaulRabich",
+      "name": "Paul Rabich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/78356939?v=4",
+      "profile": "https://github.com/PaulRabich",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "xiaopu222",
+      "name": "xiaopu222",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118000577?v=4",
+      "profile": "https://github.com/xiaopu222",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

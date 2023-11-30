@@ -1,7 +1,7 @@
-"""Residual Network (ResNet) for classification."""
+"""Fully Convolutional Network (FCN) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
-__all__ = ["ResNetClassifier"]
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__all__ = ["FCNClassifier"]
 
 import gc
 import os
@@ -11,96 +11,88 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.resnet import ResNetNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import FCNNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class ResNetClassifier(BaseDeepClassifier):
-    """
-    Residual Neural Network (RNN).
+class FCNClassifier(BaseDeepClassifier):
+    """Fully Convolutional Network (FCN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_residual_blocks : int, default = 3
-        The number of residual blocks of ResNet's model.
-    n_conv_per_residual_block : int, default = 3
-        The number of convolution blocks in each residual block.
-    n_filters : int or list of int, default = [128, 64, 64]
-        The number of convolution filters for all the convolution layers in the same
-        residual block, if not a list, the same number of filters is used in all
-        convolutions of all residual blocks.
-    kernel_sizes : int or list of int, default = [8, 5, 3]
-        The kernel size of all the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-    strides : int or list of int, default = 1
-        The strides of convolution kernels in each of the convolution layers in
-        one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
+    n_layers : int, default = 3
+        Number of convolution layers.
+    n_filters : int or list of int, default = [128,256,128]
+        Number of filters used in convolution layers.
+    kernel_size : int or list of int, default = [8,5,3]
+        Size of convolution kernel.
     dilation_rate : int or list of int, default = 1
-        The dilation rate of the convolution layers in one residual block, if not
-        a list, the same kernel size is used in all convolution layers.
-    padding : str or list of str, default = 'padding'
-        The type of padding used in the convolution layers in one residual block, if
-        not a list, the same kernel size is used in all convolution layers.
-    activation : str or list of str, default = 'relu'
-        keras activation used in the convolution layers in one residual block,
-        if not a list, the same kernel size is used in all convolution layers.
-    use_bia : bool or list of bool, default = True
-        Condition on whether or not to use bias values in the convolution layers
-        in one residual block, if not a list, the same kernel size is used in all
-        convolution layers.
-    n_epochs : int, default = 1500
+        The dilation rate for convolution.
+    strides : int or list of int, default = 1
+        The strides of the convolution filter.
+    padding : str or list of str, default = "same"
+        The type of padding used for convolution.
+    activation : str or list of str, default = "relu"
+        Activation used after the convolution.
+    use_bias : bool or list of bool, default = True
+        Whether or not ot use bias in convolution.
+    n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
-    use_mini_batch_size : bool, default = False
-        Condition on using the mini batch size formula Wang et al.
-    callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
-        List of tf.keras.callbacks.Callback objects.
-    file_path : str, default = './'
-        file_path when saving model_Checkpoint callback.
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the modelcheckpoint callback is
-        used by default, this condition, if True, will prevent the automatic
-        deletion of the best saved model from file and the user can choose the
-        file name.
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last epoch trained, using the base
-        class method save_last_model_to_file.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if save_best_model is set to
-        False, this parameter is discarded.
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if save_last_model is set to
-        False, this parameter is discarded.
+    use_mini_batch_size : bool, default = True
+        Whether or not to use the mini batch size formula.
+    random_state : int or None, default = None
+        Seed for random number generation.
     verbose : boolean, default = False
-        whether to output extra information
+        Whether to output extra information.
     loss : string, default = "mean_squared_error"
-        fit parameter for the keras model.
-    optimizer : keras.optimizer, default = keras.optimizers.Adam()
+        Fit parameter for the keras model.
     metrics : list of strings, default = ["accuracy"]
-
+    optimizer : keras.optimizers object, default = Adam(lr=0.01)
+        Specify the optimizer and the learning rate to be used.
+    file_path : str, default = "./"
+        File path to save best model.
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name.
+    save_last_model : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file.
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded.
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded.
+    callbacks : keras.callbacks, default = None
     Notes
     -----
-    Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py
+    Adapted from the implementation from Fawaz et. al
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
 
     References
     ----------
-    .. [1] Wang et. al, Time series classification from
-    scratch with deep neural networks: A strong baseline,
-    International joint conference on neural networks (IJCNN), 2017.
+    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
+    Journal of Systems Engineering and Electronics, 28(1):2017.
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.resnet import ResNetClassifier
+    >>> from aeon.classification.deep_learning import FCNClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> clf.fit(X_train, Y_train) # doctest: +SKIP
-    ResNetClassifier(...)
+    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
+    FCNClassifier(...)
     """
 
     _tags = {
@@ -111,67 +103,66 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_residual_blocks=3,
-        n_conv_per_residual_block=3,
+        n_layers=3,
         n_filters=None,
         kernel_size=None,
-        strides=1,
         dilation_rate=1,
+        strides=1,
         padding="same",
         activation="relu",
-        use_bias=True,
-        n_epochs=1500,
-        callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics=None,
-        batch_size=64,
-        use_mini_batch_size=True,
-        random_state=None,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        n_epochs=2000,
+        batch_size=16,
+        use_mini_batch_size=True,
+        callbacks=None,
+        verbose=False,
+        loss="categorical_crossentropy",
+        metrics=None,
+        random_state=None,
+        use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
-        self.n_residual_blocks = n_residual_blocks
-        self.n_conv_per_residual_block = n_conv_per_residual_block
-        self.n_filters = n_filters
+        _check_soft_dependencies("tensorflow")
+        super(FCNClassifier, self).__init__(last_file_name=last_file_name)
+
+        self.n_layers = n_layers
         self.kernel_size = kernel_size
-        self.padding = padding
+        self.n_filters = n_filters
         self.strides = strides
+        self.activation = activation
         self.dilation_rate = dilation_rate
-        self.n_epochs = n_epochs
+        self.padding = padding
+        self.use_bias = use_bias
+
         self.callbacks = callbacks
+        self.n_epochs = n_epochs
+        self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.batch_size = batch_size
-        self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
-        self.activation = activation
-        self.use_bias = use_bias
+        self.optimizer = optimizer
+        self.history = None
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
-        self.optimizer = optimizer
-        self.history = None
-        self._network = ResNetNetwork(
-            n_residual_blocks=self.n_residual_blocks,
-            n_conv_per_residual_block=self.n_conv_per_residual_block,
-            n_filters=self.n_filters,
+        self._network = FCNNetwork(
+            random_state=self.random_state,
+            n_layers=self.n_layers,
             kernel_size=self.kernel_size,
+            n_filters=self.n_filters,
             strides=self.strides,
-            use_bias=self.use_bias,
-            activation=self.activation,
-            dilation_rate=self.dilation_rate,
             padding=self.padding,
-            random_state=random_state,
+            dilation_rate=self.dilation_rate,
+            activation=self.activation,
+            use_bias=self.use_bias,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -185,9 +176,9 @@ class ResNetClassifier(BaseDeepClassifier):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
+            The shape of the data fed into the input layer, should be (m, d).
+        n_classes : int
+            The number of classes, which becomes the size of the output layer.
 
         Returns
         -------
@@ -197,22 +188,19 @@ class ResNetClassifier(BaseDeepClassifier):
 
         tf.random.set_seed(self.random_state)
 
-        self.optimizer_ = (
-            tf.keras.optimizers.Adam(learning_rate=0.01)
-            if self.optimizer is None
-            else self.optimizer
-        )
-
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
-
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
             units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
+
+        self.optimizer_ = (
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
+        )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
@@ -228,7 +216,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data class labels.
@@ -251,6 +239,11 @@ class ResNetClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.file_name_ = (
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
@@ -269,11 +262,6 @@ class ResNetClassifier(BaseDeepClassifier):
             if self.callbacks is None
             else self.callbacks
         )
-
-        if self.use_mini_batch_size:
-            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
-        else:
-            mini_batch_size = self.batch_size
 
         self.history = self.training_model_.fit(
             X,
@@ -305,9 +293,9 @@ class ResNetClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return "default" set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -315,19 +303,21 @@ class ResNetClassifier(BaseDeepClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param = {
+        param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "n_residual_blocks": 1,
-            "n_conv_per_residual_block": 1,
+            "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
-        test_params = [param]
+        test_params = [param1]
 
         return test_params

@@ -10,9 +10,9 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks.cnn import CNNNetwork
+from aeon.networks import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNRegressor(BaseDeepRegressor):
@@ -135,7 +135,7 @@ class CNNRegressor(BaseDeepRegressor):
         use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(CNNRegressor, self).__init__(
             batch_size=batch_size,
         )
@@ -222,7 +222,7 @@ class CNNRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
             The training data target values.
