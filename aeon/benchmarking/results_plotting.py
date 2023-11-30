@@ -72,7 +72,14 @@ def plot_boxplot_median(
 
     # Obtains deviation from median for each independent experiment.
     medians = np.median(results, axis=1)
-    deviation_from_median = results / (results + medians[:, np.newaxis])
+    sum_results_medians = results + medians[:, np.newaxis]
+
+    deviation_from_median = np.divide(
+        results,
+        sum_results_medians,
+        out=np.zeros_like(results),
+        where=sum_results_medians != 0,
+    )
 
     fig = plt.figure(figsize=(10, 6))
 
