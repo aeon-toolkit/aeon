@@ -18,7 +18,6 @@ __all__ = [
     "PeriodogramTransformer",
     "RandomIntervals",
     "Tabularizer",
-    "TimeBinner",
     "IntervalSegmenter",
     "RandomIntervalSegmenter",
     "SlidingWindowSegmenter",
@@ -49,7 +48,7 @@ from aeon.transformations.collection.matrix_profile import MatrixProfile
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.collection.periodogram import PeriodogramTransformer
 from aeon.transformations.collection.random_intervals import RandomIntervals
-from aeon.transformations.collection.reduce import Tabularizer, TimeBinner
+from aeon.transformations.collection.reduce import Tabularizer
 from aeon.transformations.collection.scaler import TimeSeriesScaler
 from aeon.transformations.collection.segment import (
     IntervalSegmenter,
