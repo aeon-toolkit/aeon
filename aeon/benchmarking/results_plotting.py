@@ -336,6 +336,7 @@ def plot_scatter(
             color="darkseagreen",
             fontweight="bold",
             fontsize=13,
+            ha="center",
         ),
     )
     anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
@@ -352,6 +353,7 @@ def plot_scatter(
             color="cornflowerblue",
             fontweight="bold",
             fontsize=13,
+            ha="center",
         ),
     )
     anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
