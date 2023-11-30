@@ -219,6 +219,7 @@ def plot_scatter(
     method_A,
     method_B,
     title=None,
+    metric="accuracy",
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -232,6 +233,8 @@ def plot_scatter(
         Method name of the second approach.
     title: str, default = None
         Title to be shown in the top of the plot.
+    metric : str, default = "accuracy"
+        Metric to be used for the comparison.
 
     Returns
     -------
@@ -257,8 +260,11 @@ def plot_scatter(
 
     differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
 
-    min_value = results.min() * 0.97
+    min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
+
+    if metric == "accuracy":
+        max_value = min(max_value, 1)
 
     x, y = [min_value, max_value], [min_value, max_value]
     plt.plot(x, y, color="black", alpha=0.5, zorder=1)
@@ -269,6 +275,23 @@ def plot_scatter(
         hue=differences,
         palette="pastel",
         zorder=2,
+    )
+
+    # Draw the average value per method as a dashed line from 0 to the mean value.
+    plt.plot(
+        [results[:, 0].mean(), min_value],
+        [results[:, 0].mean(), results[:, 0].mean()],
+        linestyle="--",
+        color="#ccebc5",
+        zorder=3,
+    )
+
+    plt.plot(
+        [results[:, 1].mean(), results[:, 1].mean()],
+        [results[:, 1].mean(), min_value],
+        linestyle="--",
+        color="#b3cde3",
+        zorder=3,
     )
 
     # Compute the W, T, and L per methods
@@ -293,8 +316,8 @@ def plot_scatter(
     max_value_text = results.max()
 
     # Setting labels for x and y axis
-    plot.set_xlabel(f"{method_B} accuracy")
-    plot.set_ylabel(f"{method_A} accuracy")
+    plot.set_xlabel(f"{method_B} {metric}")
+    plot.set_ylabel(f"{method_A} {metric}")
 
     # Setting text with W, T and L for each method
     plt.text(
