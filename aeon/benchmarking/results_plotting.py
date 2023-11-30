@@ -316,8 +316,8 @@ def plot_scatter(
     max_value_text = results.max()
 
     # Setting labels for x and y axis
-    plot.set_xlabel(f"{method_B} {metric}")
-    plot.set_ylabel(f"{method_A} {metric}")
+    plot.set_xlabel(f"{method_B} {metric}\n(avg.: {results[:, 1].mean():.4f})")
+    plot.set_ylabel(f"{method_A} {metric}\n(avg.: {results[:, 0].mean():.4f})")
 
     # Setting text with W, T and L for each method
     plt.text(
