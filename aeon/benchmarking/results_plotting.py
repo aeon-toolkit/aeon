@@ -220,21 +220,28 @@ def plot_scatter(
     method_B,
     title=None,
     metric="accuracy",
+    statistic_test="wilcoxon",
+    lower_better=False,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
     Parameters
     ----------
-    results: np.array
+    results : np.array
         Scores (either accuracies or errors) of dataset x strategy.
-    method_A: str
+    method_A : str
         Method name of the first approach.
-    method_B: str
+    method_B : str
         Method name of the second approach.
-    title: str, default = None
+    title : str, default = None
         Title to be shown in the top of the plot.
     metric : str, default = "accuracy"
         Metric to be used for the comparison.
+    statistic_test : str, default = "wilcoxon"
+        Statistic test to be used for the comparison. Possible values are: "wilcoxon"
+        or "ttest".
+    lower_better : bool, default = False
+        If True, lower values are considered better, i.e. errors.
 
     Returns
     -------
@@ -278,17 +285,19 @@ def plot_scatter(
     )
 
     # Draw the average value per method as a dashed line from 0 to the mean value.
+    avg_method_A = results[:, 0].mean()
+    avg_method_B = results[:, 1].mean()
     plt.plot(
-        [results[:, 0].mean(), min_value],
-        [results[:, 0].mean(), results[:, 0].mean()],
+        [avg_method_A, min_value],
+        [avg_method_A, avg_method_A],
         linestyle="--",
         color="#ccebc5",
         zorder=3,
     )
 
     plt.plot(
-        [results[:, 1].mean(), results[:, 1].mean()],
-        [results[:, 1].mean(), min_value],
+        [avg_method_B, avg_method_B],
+        [avg_method_B, min_value],
         linestyle="--",
         color="#b3cde3",
         zorder=3,
@@ -316,8 +325,8 @@ def plot_scatter(
     max_value_text = results.max()
 
     # Setting labels for x and y axis
-    plot.set_xlabel(f"{method_B} {metric}\n(avg.: {results[:, 1].mean():.4f})")
-    plot.set_ylabel(f"{method_A} {metric}\n(avg.: {results[:, 0].mean():.4f})")
+    plot.set_xlabel(f"{method_B} {metric}\n(avg.: {avg_method_B:.4f})")
+    plot.set_ylabel(f"{method_A} {metric}\n(avg.: {avg_method_A:.4f})")
 
     # Setting text with W, T and L for each method
     plt.text(
@@ -350,7 +359,40 @@ def plot_scatter(
 
     # Setting title if provided.
     if title is not None:
-        plot.set_title(rf"{title}")
+        plt.suptitle(rf"{title}", fontsize=16)
+
+    # Adding p-value if desired.
+    if statistic_test is not None:
+        first, first_method, second = (
+            (results[:, 0], method_A, results[:, 1])
+            if avg_method_A >= avg_method_B
+            else results[:, 1],
+            method_B,
+            results[:, 0],
+        )
+        if statistic_test == "wilcoxon":
+            from scipy.stats import wilcoxon
+
+            p_value = wilcoxon(
+                first,
+                second,
+                zero_method="wilcox",
+                alternative="less" if lower_better else "greater",
+            )[1]
+        elif statistic_test == "ttest":
+            from scipy.stats import ttest_rel
+
+            p_value = ttest_rel(
+                first,
+                second,
+                alternative="less" if lower_better else "greater",
+            )[1]
+        else:
+            raise ValueError("statistic_test must be one of 'wilcoxon' or 'ttest'.")
+
+        plot.set_title(
+            f"{statistic_test} p-value={p_value:.3f} for {first_method}", fontsize=12
+        )
 
     return fig
 
