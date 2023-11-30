@@ -42,7 +42,7 @@ import numpy.typing as npt
 from attrs import asdict, define, field
 from sklearn.utils.validation import check_random_state
 
-from aeon.base import BaseEstimator
+from aeon.segmentation import BaseSegmenter
 
 logger = logging.getLogger(__name__)
 
@@ -368,7 +368,7 @@ class GGS:
         return change_points
 
 
-class GreedyGaussianSegmentation(BaseEstimator):
+class GreedyGaussianSegmentation(BaseSegmenter):
     """Greedy Gaussian Segmentation Estimator.
 
     The method approximates solutions for the problem of breaking a
@@ -451,49 +451,42 @@ class GreedyGaussianSegmentation(BaseEstimator):
         verbose: bool = False,
         random_state: int = None,
     ):
-        # this is ugly and necessary only because of dum `test_constructor`
         self.k_max = k_max
         self.lamb = lamb
         self.max_shuffles = max_shuffles
         self.verbose = verbose
         self.random_state = random_state
-
-        self._adaptee_class = GGS
-        self._adaptee = self._adaptee_class(
+        self.ggs = GGS(
             k_max=k_max,
             lamb=lamb,
             max_shuffles=max_shuffles,
             verbose=verbose,
             random_state=random_state,
         )
+        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=1)
 
-    def fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
+    def _fit(self, X, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
 
-        It sets the internal state of the estimator and returns the initialized
-        instance.
+        Initialises the ggs segmenter.
 
         Parameters
         ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
+        X: np.ndarray
+            Time series shape (n_timepoints, n_channels).
         y: array_like
             Placeholder for compatibility with sklearn-api, not used, default=None.
         """
-        self._adaptee.initialize_intermediates()
+        self.ggs.initialize_intermediates()
         return self
 
-    def predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
+    def _predict(self, X):
         """Perform segmentation.
 
         Parameters
         ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
+        X: np.ndarray
+            Time series shape (n_timepoints, n_channels).
 
         Returns
         -------
@@ -502,7 +495,7 @@ class GreedyGaussianSegmentation(BaseEstimator):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self._adaptee.find_change_points(X)
+        self.change_points_ = self.ggs.find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
         for i, (start, stop) in enumerate(
@@ -511,14 +504,13 @@ class GreedyGaussianSegmentation(BaseEstimator):
             labels[start:stop] = i
         return labels
 
-    def fit_predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
+    def fit_predict(self, X, y=None):
         """Perform segmentation.
 
         Parameters
         ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
+        X: np.ndarray
+            Time series shape (n_timepoints, n_channels).
         y: array_like
             Placeholder for compatibility with sklearn-api, not used, default=None.
 
@@ -529,7 +521,7 @@ class GreedyGaussianSegmentation(BaseEstimator):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        return self.fit(X, y).predict(X, y)
+        return self.fit(X, y).predict(X)
 
     def get_params(self, deep: bool = True) -> Dict:
         """Return initialization parameters.
@@ -545,7 +537,7 @@ class GreedyGaussianSegmentation(BaseEstimator):
             Dictionary with the estimator's initialization parameters, with
             keys being argument names and values being argument values.
         """
-        return asdict(self._adaptee, filter=lambda attr, value: attr.init is True)
+        return asdict(self.ggs, filter=lambda attr, value: attr.init is True)
 
     def set_params(self, **parameters):
         """Set the parameters of this object.
@@ -553,16 +545,16 @@ class GreedyGaussianSegmentation(BaseEstimator):
         Parameters
         ----------
         parameters : dict
-            Initialization parameters for th estimator.
+            Initialization parameters for the estimator.
 
         Returns
         -------
         self : reference to self (after parameters have been set)
         """
         for key, value in parameters.items():
-            setattr(self._adaptee, key, value)
+            setattr(self.ggs, key, value)
         return self
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
-        return self._adaptee.__repr__()
+        return self.ggs.__repr__()
