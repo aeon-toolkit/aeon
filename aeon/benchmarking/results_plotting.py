@@ -262,8 +262,9 @@ def plot_scatter(
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns
+    from matplotlib.offsetbox import AnchoredText
 
-    fig = plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
 
     differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
 
@@ -319,43 +320,45 @@ def plot_scatter(
     # Remove legend
     plot.get_legend().remove()
 
-    # these are matplotlib.patch.Patch properties
-    props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
-    min_value_text = results.min()
-    max_value_text = results.max()
-
     # Setting labels for x and y axis
     plot.set_xlabel(f"{method_B} {metric}\n(avg.: {avg_method_B:.4f})")
     plot.set_ylabel(f"{method_A} {metric}\n(avg.: {avg_method_A:.4f})")
 
     # Setting text with W, T and L for each method
-    plt.text(
-        min_value_text,
-        max_value_text * 0.98,
-        f"{method_A} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
-        fontsize=13,
-        va="top",
-        ha="left",
-        ma="center",
-        bbox=props,
-        clip_on=True,
-        color="darkseagreen",
-        fontweight="bold",
-    )
 
-    plt.text(
-        max_value_text,
-        min_value_text * 1.02,
-        f"{method_B} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
-        fontsize=13,
-        va="bottom",
-        ha="right",
-        ma="center",
-        bbox=props,
-        clip_on=True,
-        color="cornflowerblue",
-        fontweight="bold",
+    # these are matplotlib.patch.Patch properties
+
+    anc = AnchoredText(
+        f"{method_A} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
+        loc="upper left",
+        frameon=True,
+        prop=dict(
+            color="darkseagreen",
+            fontweight="bold",
+            fontsize=13,
+        ),
     )
+    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc.patch.set_color("wheat")
+    anc.patch.set_edgecolor("black")
+    anc.patch.set_alpha(0.5)
+    ax.add_artist(anc)
+
+    anc = AnchoredText(
+        f"{method_B} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
+        loc="lower right",
+        frameon=True,
+        prop=dict(
+            color="cornflowerblue",
+            fontweight="bold",
+            fontsize=13,
+        ),
+    )
+    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc.patch.set_color("wheat")
+    anc.patch.set_edgecolor("black")
+    anc.patch.set_alpha(0.5)
+    ax.add_artist(anc)
 
     # Setting title if provided.
     if title is not None:
