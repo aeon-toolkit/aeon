@@ -115,11 +115,11 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
 
         if self.score_average and multioutput == "uniform_average":
             out = float(out.mean(axis=1))  # average over all
-        if self.score_average and multioutput == "raw_values":
+        elif self.score_average and multioutput == "raw_values":
             out = out.groupby(axis=1, level=0).mean()  # average over scores
-        if not self.score_average and multioutput == "uniform_average":
+        elif not self.score_average and multioutput == "uniform_average":
             out = out.groupby(axis=1, level=1).mean()  # average over variables
-        if not self.score_average and multioutput == "raw_values":
+        elif not self.score_average and multioutput == "raw_values":
             out = out  # don't average
 
         if isinstance(out, pd.DataFrame):

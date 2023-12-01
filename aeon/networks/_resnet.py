@@ -3,7 +3,7 @@
 __author__ = ["James Large", "Withington", "nilesh05apr", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetNetwork(BaseDeepNetwork):
@@ -79,7 +79,7 @@ class ResNetNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(ResNetNetwork, self).__init__()
 
         self.n_filters = n_filters

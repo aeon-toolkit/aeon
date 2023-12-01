@@ -72,6 +72,7 @@ class MultiRocket(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
+        "algorithm_type": "convolution",
     }
 
     def __init__(

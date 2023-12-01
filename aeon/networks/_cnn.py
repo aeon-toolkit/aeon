@@ -3,7 +3,7 @@
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNNetwork(BaseDeepNetwork):
@@ -68,7 +68,7 @@ class CNNNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         self.n_layers = n_layers
         self.random_state = random_state

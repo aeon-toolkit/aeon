@@ -3,7 +3,7 @@
 __author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class FCNNetwork(BaseDeepNetwork):
@@ -59,7 +59,7 @@ class FCNNetwork(BaseDeepNetwork):
         random_state=0,
     ):
         super(FCNNetwork, self).__init__()
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         self.n_layers = n_layers
         self.n_filters = n_filters
