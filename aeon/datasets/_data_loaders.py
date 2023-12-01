@@ -1309,7 +1309,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     )
 
 
-def load_classification(name, split=None, extract_path=None, return_metadata=True):
+def load_classification(name, split=None, extract_path=None, return_metadata=False):
     """Load a classification dataset.
 
     If you want to load a problem from a local file, specify the
@@ -1362,7 +1362,7 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
     Examples
     --------
     >>> from aeon.datasets import load_classification
-    >>> X, y, meta = load_classification(name="ArrowHead")  # doctest: +SKIP
+    >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
     return _load_tsc_dataset(
         name,

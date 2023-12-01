@@ -74,7 +74,7 @@ def test_load_classification_from_repo():
     ):
         load_classification(name)
     name = "SonyAIBORobotSurface1"
-    X, y, meta = load_classification(name)
+    X, y, meta = load_classification(name, return_metadata=True)
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
     assert isinstance(meta, dict)
@@ -716,7 +716,7 @@ def test_load_classification():
         "classlabel": True,
         "class_values": ["1", "2"],
     }
-    X, y, meta = load_classification("UnitTest")
+    X, y, meta = load_classification("UnitTest", return_metadata=True)
     assert meta == expected_metadata
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
