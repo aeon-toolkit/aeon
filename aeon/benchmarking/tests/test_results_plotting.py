@@ -80,7 +80,36 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(res, "HC2", "FreshPRINCE")
+    fig = plot_scatter(
+        res, cls[0], cls[1], metric="accuracy", statistic_test="wilcoxon"
+    )
+    assert isinstance(fig, Figure)
+
+    cls = ["InceptionTime", "WEASEL-D"]
+
+    data = univariate_equal_length
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data, path=data_path, include_missing=True
+    )
+    fig = plot_scatter(
+        res, cls[0], cls[1], metric="accuracy", statistic_test="ttest", title="test"
+    )
+    assert isinstance(fig, Figure)
+
+    cls = ["InceptionTime", "WEASEL-D"]
+
+    data = univariate_equal_length
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data, path=data_path, include_missing=True
+    )
+    fig = plot_scatter(
+        1 - res,
+        cls[0],
+        cls[1],
+        metric="error",
+        statistic_test="wilcoxon",
+        lower_better=True,
+    )
     assert isinstance(fig, Figure)
 
 

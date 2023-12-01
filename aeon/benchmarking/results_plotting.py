@@ -305,6 +305,9 @@ def plot_scatter(
     )
 
     # Compute the W, T, and L per methods
+    if lower_better:
+        differences = [-i for i in differences]
+
     wins_A = sum(i == 1 for i in differences)
     ties_A = sum(i == 0 for i in differences)
     losses_A = sum(i == -1 for i in differences)
@@ -368,13 +371,18 @@ def plot_scatter(
 
     # Adding p-value if desired.
     if statistic_test is not None:
-        first, first_method, second = (
-            (results[:, 0], method_A, results[:, 1])
-            if avg_method_A >= avg_method_B
-            else results[:, 1],
-            method_B,
-            results[:, 0],
-        )
+        if lower_better:
+            first, first_method, second = (
+                (results[:, 0], method_A, results[:, 1])
+                if avg_method_A <= avg_method_B
+                else (results[:, 1], method_B, results[:, 0])
+            )
+        else:
+            first, first_method, second = (
+                (results[:, 0], method_A, results[:, 1])
+                if avg_method_A >= avg_method_B
+                else (results[:, 1], method_B, results[:, 0])
+            )
         if statistic_test == "wilcoxon":
             from scipy.stats import wilcoxon
 
