@@ -1113,7 +1113,7 @@ def load_from_tsf_file(
         return loaded_data, metadata
 
 
-def load_forecasting(name, extract_path=None, return_metadata=True):
+def load_forecasting(name, extract_path=None, return_metadata=False):
     """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
@@ -1139,7 +1139,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_forecasting
-    >>> X, meta=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
+    >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
     # Allow user to have non standard extract path
     from aeon.datasets.tsf_data_lists import tsf_all
@@ -1194,7 +1194,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     return data
 
 
-def load_regression(name, split=None, extract_path=None, return_metadata=True):
+def load_regression(name, split=None, extract_path=None, return_metadata=False):
     """Download/load regression problem from http://tseregression.org/.
 
     If you want to load a problem from a local file, specify the
@@ -1247,7 +1247,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_regression
-    >>> X, y, meta=load_regression("FloodModeling1") # doctest: +SKIP
+    >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
     from aeon.datasets.tser_data_lists import tser_all
 

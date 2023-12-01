@@ -102,7 +102,7 @@ def test_load_regression_from_repo():
         load_regression(name)
     name = "FloodModeling1"
     with tempfile.TemporaryDirectory() as tmp:
-        X, y, meta = load_regression(name, extract_path=tmp)
+        X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
         assert isinstance(y, np.ndarray)
         assert isinstance(meta, dict)
@@ -127,11 +127,11 @@ def test_load_fails():
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+        X, y = load_regression("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
+        X, y = load_classification("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+        X, y = load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test__alias_datatype_check():
@@ -669,7 +669,7 @@ def test_load_forecasting():
         "contain_missing_values": False,
         "contain_equal_length": False,
     }
-    df, meta = load_forecasting("m1_yearly_dataset")
+    df, meta = load_forecasting("m1_yearly_dataset", return_metadata=True)
     assert meta == expected_metadata
     assert df.shape == (181, 3)
     df = load_forecasting("m1_yearly_dataset", return_metadata=False)
@@ -692,7 +692,7 @@ def test_load_regression():
         "classlabel": False,
         "class_values": [],
     }
-    X, y, meta = load_regression("Covid3Month")
+    X, y, meta = load_regression("Covid3Month", return_metadata=True)
     assert meta == expected_metadata
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
