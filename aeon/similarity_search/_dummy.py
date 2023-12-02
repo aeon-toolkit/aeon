@@ -88,7 +88,5 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         """
         search_size = distance_profile.shape[-1]
-        distance_profile = distance_profile.sum(axis=1)
         _id_best = distance_profile.argmin(axis=None)
-
         return [(_id_best // search_size, _id_best % search_size)]
