@@ -911,7 +911,9 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     return _resolve_key_from_distance(metric, "cost_matrix")
 
 
-def _resolve_key_from_distance(metric: str, key: str) -> Any:
+def _resolve_key_from_distance(metric: Union[str, Callable], key: str) -> Any:
+    if isinstance(metric, Callable):
+        return metric
     if metric == "mpdist":
         return mpdist
     dist = DISTANCES_DICT.get(metric)

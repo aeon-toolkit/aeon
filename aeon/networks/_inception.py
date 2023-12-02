@@ -1,12 +1,12 @@
-"""Inception Time Classifier."""
+"""Inception Network."""
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionNetwork(BaseDeepNetwork):
-    """InceptionTime Network.
+    """Inception Network.
 
     Parameters
     ----------
@@ -112,7 +112,7 @@ class InceptionNetwork(BaseDeepNetwork):
         use_custom_filters=False,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
