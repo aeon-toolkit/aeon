@@ -304,11 +304,15 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 self._q_means,
                 self._q_stds,
                 self.distance_function_,
-                self.distance_args,
+                numba_distance_args=self.distance_args,
             )
         else:
             distance_profile = self.distance_profile_function(
-                self._X, q, mask, self.distance_function_, self.distance_args
+                self._X,
+                q,
+                mask,
+                self.distance_function_,
+                numba_distance_args=self.distance_args,
             )
         # For now, deal with the multidimensional case as "dependent", so we sum.
         distance_profile = distance_profile.sum(axis=1)

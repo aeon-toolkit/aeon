@@ -15,7 +15,9 @@ from aeon.utils.numba.general import (
 )
 
 
-def naive_distance_profile(X, q, mask, numba_distance_function, numba_distance_args):
+def naive_distance_profile(
+    X, q, mask, numba_distance_function, numba_distance_args=None
+):
     r"""
     Compute a distance profile in a brute force way.
 
@@ -40,7 +42,7 @@ def naive_distance_profile(X, q, mask, numba_distance_function, numba_distance_a
         of it the distance should be computed.
     numba_distance_function : func
         A numba njit function used to compute the distance between two 1D vectors.
-    numba_distance_args : dict
+    numba_distance_args : dict, default=None
         Dictionary containing keywords arguments to use for the numba_distance_function
 
     Returns
@@ -66,7 +68,7 @@ def normalized_naive_distance_profile(
     q_means,
     q_stds,
     numba_distance_function,
-    numba_distance_args,
+    numba_distance_args=None,
 ):
     """
     Compute a distance profile in a brute force way.
@@ -100,7 +102,7 @@ def normalized_naive_distance_profile(
         Stds of the query q
      numba_distance_function : func
          A numba njit function used to compute the distance between two 1D vectors.
-    numba_distance_args : dict
+    numba_distance_args : dict, default=None
         Dictionary containing keywords arguments to use for the numba_distance_function
 
     Returns
