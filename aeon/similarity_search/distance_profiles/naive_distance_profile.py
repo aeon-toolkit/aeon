@@ -6,11 +6,9 @@ __author__ = ["baraline"]
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.distance_profiles._commons import (
-    AEON_SIMSEARCH_STD_THRESHOLD,
-    _get_input_sizes,
-)
+from aeon.similarity_search.distance_profiles._commons import _get_input_sizes
 from aeon.utils.numba.general import (
+    AEON_NUMBA_STD_THRESHOLD,
     generate_new_default_njit_func,
     z_normalize_series_2d_with_mean_std,
     z_normalize_series_with_mean_std,
@@ -114,8 +112,8 @@ def normalized_naive_distance_profile(
 
     """
     # Make STDS inferior to the threshold to 1 to avoid division per 0 error.
-    q_stds[q_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
-    X_stds[X_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
+    q_stds[q_stds < AEON_NUMBA_STD_THRESHOLD] = 1
+    X_stds[X_stds < AEON_NUMBA_STD_THRESHOLD] = 1
 
     dist_func = generate_new_default_njit_func(
         numba_distance_function, numba_distance_args
