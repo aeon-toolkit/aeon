@@ -2,18 +2,22 @@
 
 __author__ = ["baraline"]
 
+
 import numpy as np
 from numba import njit
 
 from aeon.similarity_search.distance_profiles._commons import (
     AEON_SIMSEARCH_STD_THRESHOLD,
     _get_input_sizes,
-    _z_normalize_1D_series_with_mean_std,
-    _z_normalize_2D_series_with_mean_std,
+)
+from aeon.utils.numba.general import (
+    generate_new_default_njit_func,
+    z_normalize_series_2d_with_mean_std,
+    z_normalize_series_with_mean_std,
 )
 
 
-def naive_distance_profile(X, q, mask, numba_distance_function):
+def naive_distance_profile(X, q, mask, numba_distance_function, numba_distance_args):
     r"""
     Compute a distance profile in a brute force way.
 
@@ -38,6 +42,8 @@ def naive_distance_profile(X, q, mask, numba_distance_function):
         of it the distance should be computed.
     numba_distance_function : func
         A numba njit function used to compute the distance between two 1D vectors.
+    numba_distance_args : dict
+        Dictionary containing keywords arguments to use for the numba_distance_function
 
     Returns
     -------
@@ -47,7 +53,10 @@ def naive_distance_profile(X, q, mask, numba_distance_function):
         for each channel.
 
     """
-    return _naive_distance_profile(X, q, mask, numba_distance_function)
+    dist_func = generate_new_default_njit_func(
+        numba_distance_function, numba_distance_args
+    )
+    return _naive_distance_profile(X, q, mask, dist_func)
 
 
 def normalized_naive_distance_profile(
@@ -59,6 +68,7 @@ def normalized_naive_distance_profile(
     q_means,
     q_stds,
     numba_distance_function,
+    numba_distance_args,
 ):
     """
     Compute a distance profile in a brute force way.
@@ -92,6 +102,8 @@ def normalized_naive_distance_profile(
         Stds of the query q
      numba_distance_function : func
          A numba njit function used to compute the distance between two 1D vectors.
+    numba_distance_args : dict
+        Dictionary containing keywords arguments to use for the numba_distance_function
 
     Returns
     -------
@@ -105,15 +117,12 @@ def normalized_naive_distance_profile(
     q_stds[q_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
     X_stds[X_stds < AEON_SIMSEARCH_STD_THRESHOLD] = 1
 
+    dist_func = generate_new_default_njit_func(
+        numba_distance_function, numba_distance_args
+    )
+
     return _normalized_naive_distance_profile(
-        X,
-        q,
-        mask,
-        X_means,
-        X_stds,
-        q_means,
-        q_stds,
-        numba_distance_function,
+        X, q, mask, X_means, X_stds, q_means, q_stds, dist_func
     )
 
 
@@ -153,7 +162,7 @@ def _normalized_naive_distance_profile(
     numba_distance_function,
 ):
     n_instances, n_channels, X_length, q_length, profile_size = _get_input_sizes(X, q)
-    q = _z_normalize_2D_series_with_mean_std(q, q_means, q_stds)
+    q = z_normalize_series_2d_with_mean_std(q, q_means, q_stds)
     distance_profile = np.full((n_instances, n_channels, profile_size), np.inf)
 
     # Compute euclidean distance for all candidate in a "brute force" way
@@ -162,7 +171,7 @@ def _normalized_naive_distance_profile(
             for i_candidate in range(profile_size):
                 if mask[i_instance, i_channel, i_candidate]:
                     # Extract and normalize the candidate
-                    _C = _z_normalize_1D_series_with_mean_std(
+                    _C = z_normalize_series_with_mean_std(
                         X[i_instance, i_channel, i_candidate : i_candidate + q_length],
                         X_means[i_instance, i_channel, i_candidate],
                         X_stds[i_instance, i_channel, i_candidate],

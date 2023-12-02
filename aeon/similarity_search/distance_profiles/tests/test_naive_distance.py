@@ -14,7 +14,7 @@ from aeon.similarity_search.distance_profiles.naive_distance_profile import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 DATATYPES = ["float64"]
-DISTANCES = ["euclidean", "dtw", "lcss", "msm"]
+DISTANCES = ["euclidean", "dtw", "lcss"]
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

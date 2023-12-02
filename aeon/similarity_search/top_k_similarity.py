@@ -17,6 +17,8 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
         The number of nearest matches from Q to return.
     distance : str, default ="euclidean"
         Name of the distance function to use.
+    distance_args : dict, default=None
+        Optional keyword arguments for the distance function.
     normalize : bool, default = False
         Whether the distance function should be z-normalized.
     store_distance_profile : bool, default = =False.
@@ -46,11 +48,17 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     """
 
     def __init__(
-        self, k=1, distance="euclidean", normalize=False, store_distance_profile=False
+        self,
+        k=1,
+        distance="euclidean",
+        distance_args=None,
+        normalize=False,
+        store_distance_profile=False,
     ):
         self.k = k
         super(TopKSimilaritySearch, self).__init__(
             distance=distance,
+            distance_args=distance_args,
             normalize=normalize,
             store_distance_profile=store_distance_profile,
         )

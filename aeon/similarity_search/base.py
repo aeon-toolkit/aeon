@@ -42,7 +42,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     'squared'       distance.squared_distance
     =============== ========================================
 
-    And the the following speed ups are available for
+    And the following speed ups are available for
     similarity search module:
     =============== =============== ===============
     speed_up        distance        normalize
@@ -52,17 +52,19 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
     Parameters
     ----------
-    distance : str, default ="euclidean"
+    distance : str, default="euclidean"
         Name of the distance function to use. The distance function
         must be one of the distance avaialble in the aeon distance module.
         This can also be a numba njit function used to compute the
         distance between two 1D vectors.
-    normalize : bool, default = False
+    distance_args : dict, default=None
+        Optional keyword arguments for the distance function.
+    normalize : bool, default=False
         Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = False.
+    store_distance_profile : bool, default=False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
-    speed_up : str, default = None
+    speed_up : str, default=None
         Which speed up technique to use with for the selected distance
         function.
 
@@ -90,11 +92,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     def __init__(
         self,
         distance="euclidean",
+        distance_args=None,
         normalize=False,
         store_distance_profile=False,
         speed_up=None,
     ):
         self.distance = distance
+        self.distance_args = distance_args
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
         self.speed_up = speed_up
@@ -127,7 +131,6 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 "Error, only supports 3D numpy of shape"
                 "(n_instances, n_channels, n_timestamps)."
             )
-
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
 
@@ -301,13 +304,11 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 self._q_means,
                 self._q_stds,
                 self.distance_function_,
+                self.distance_args,
             )
         else:
             distance_profile = self.distance_profile_function(
-                self._X,
-                q,
-                mask,
-                self.distance_function_,
+                self._X, q, mask, self.distance_function_, self.distance_args
             )
         # For now, deal with the multidimensional case as "dependent", so we sum.
         distance_profile = distance_profile.sum(axis=1)

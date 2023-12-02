@@ -72,3 +72,24 @@ def test_TopKSimilaritySearch_custom_func(dtype):
     search.fit(X)
     idx = search.predict(q, q_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_TopKSimilaritySearch_change_args(dtype):
+    X = np.asarray(
+        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
+    )
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
+
+    search = TopKSimilaritySearch(k=1, distance="dtw", distance_args={"window": 0.0})
+    search.fit(X)
+    idx = search.predict(q)
+    assert_array_equal(idx, [(0, 2)])
+
+    search = TopKSimilaritySearch(
+        k=1, normalize=True, distance="dtw", distance_args={"window": 0.0}
+    )
+    search.fit(X)
+    q = np.asarray([[8, 8, 10]], dtype=dtype)
+    idx = search.predict(q)
+    assert_array_equal(idx, [(1, 2)])
