@@ -21,6 +21,17 @@ Convolution-based
     Arsenal
     RocketClassifier
 
+Subsequence-based
+-----------------
+
+.. currentmodule:: aeon.classification.subsequence_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SASTClassifier
+
 Deep learning
 -------------
 

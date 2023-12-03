@@ -119,7 +119,7 @@ These transformers extract simple summary features.
     FittedParamExtractor
 
 
-Shapelets, wavelets, and convolution
+Shapelets, wavelets, subsequence and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.shapelet_based
@@ -143,6 +143,14 @@ Shapelets, wavelets, and convolution
     MiniRocketMultivariateVariable
     MultiRocket
     MultiRocketMultivariate
+
+.. currentmodule:: aeon.transformations.collection.subsequence_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SAST
 
 .. currentmodule:: aeon.transformations.collection.dwt
 
