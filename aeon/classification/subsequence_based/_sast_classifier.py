@@ -102,7 +102,7 @@ class SASTClassifier(BaseClassifier):
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
-            self.random_state,
+            self.seed,
             self.n_jobs,
         )
 
