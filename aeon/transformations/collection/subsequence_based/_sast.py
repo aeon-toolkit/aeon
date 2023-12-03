@@ -60,7 +60,7 @@ class SAST(BaseCollectionTransformer):
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
-    random_state : int, default = None
+    seed : int, default = None
         the seed of the random generator
     n_jobs : int, default -1
         Number of threads to use for the transform.
@@ -99,7 +99,7 @@ class SAST(BaseCollectionTransformer):
         lengths=None,
         stride=1,
         nb_inst_per_class=1,
-        random_state=None,
+        seed=None,
         n_jobs=-1,
     ):
         super(SAST, self).__init__()
@@ -110,11 +110,7 @@ class SAST(BaseCollectionTransformer):
         self.kernel_orig_ = None  # non z-normalized subsequences
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
-        self.random_state = (
-            np.random.RandomState(random_state)
-            if not isinstance(random_state, np.random.RandomState)
-            else random_state
-        )
+        self.seed = seed
 
     def _fit(self, X, y):
         """Select reference time series and generate subsequences from them.
@@ -135,6 +131,12 @@ class SAST(BaseCollectionTransformer):
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
         self.length_list = (
             self.lengths if self.lengths is not None else np.arange(3, X_.shape[1])
+        )
+
+        self.random_state = (
+            np.random.RandomState(self.seed)
+            if not isinstance(self.seed, np.random.RandomState)
+            else self.seed
         )
 
         classes = np.unique(y)
