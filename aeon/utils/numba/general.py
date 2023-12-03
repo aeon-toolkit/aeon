@@ -74,22 +74,20 @@ def generate_new_default_njit_func(base_func, new_defaults_args):
         base_func_py = base_func.py_func
         signature = inspect.signature(base_func_py)
 
-        _new_defaults = tuple(
-            [
-                new_defaults_args[k]
-                if v.default is not inspect.Parameter.empty
-                and k in new_defaults_args.keys()
-                else v.default
-                for k, v in signature.parameters.items()
-            ]
-        )
+        _new_defaults = []
+        for k, v in signature.parameters.items():
+            if v.default is not inspect.Parameter.empty:
+                if k in new_defaults_args.keys():
+                    _new_defaults.append(new_defaults_args[k])
+                else:
+                    _new_defaults.append(v.default)
 
         _new_name = "_tmp_" + base_func_py.__name__
         new_func = types.FunctionType(
             base_func_py.__code__,
             base_func_py.__globals__,
             _new_name,
-            _new_defaults,
+            tuple(_new_defaults),
             base_func_py.__closure__,
         )
         # If new_func was given attrs (this dict is a shallow copy but we don't modify)
