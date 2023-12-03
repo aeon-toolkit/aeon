@@ -51,7 +51,7 @@ class SASTClassifier(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = SASTClassifier(num_kernels=500)
+    >>> clf = SASTClassifier()
     >>> clf.fit(X_train, y_train)
     SASTClassifier(...)
     >>> y_pred = clf.predict(X_test)

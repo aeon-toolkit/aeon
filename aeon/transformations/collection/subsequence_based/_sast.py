@@ -81,7 +81,7 @@ class SAST(BaseCollectionTransformer):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> sast = SAST()
-    >>> sast.fit(X_train)
+    >>> sast.fit(X_train, y_train)
     SAST()
     >>> X_train = sast.transform(X_train)
     >>> X_test = sast.transform(X_test)
