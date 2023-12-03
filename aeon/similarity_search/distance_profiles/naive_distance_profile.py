@@ -56,6 +56,8 @@ def naive_distance_profile(
     dist_func = generate_new_default_njit_func(
         numba_distance_function, numba_distance_args
     )
+    # This will compile the new function and check for errors outside the numba loops
+    dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
     return _naive_distance_profile(X, q, mask, dist_func)
 
 
@@ -120,7 +122,8 @@ def normalized_naive_distance_profile(
     dist_func = generate_new_default_njit_func(
         numba_distance_function, numba_distance_args
     )
-
+    # This will compile the new function and check for errors outside the numba loops
+    dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
     return _normalized_naive_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds, dist_func
     )

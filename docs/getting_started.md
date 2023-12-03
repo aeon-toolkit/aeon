@@ -639,14 +639,18 @@ the available `scikit-learn` functionality.
 
 The similarity search module in `aeon` offers a set of functions and estimators to solve
 tasks related to time series similarity search. The estimators can be used standalone
-or as parts of pipelines, while the functions give you to the tools to build your own
+or as parts of pipelines, while the functions give you the tools to build your own
 estimators that would rely on similarity search at some point.
 
 The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accept 3D collection of time series as input types. This collection asked for the
-fit method is stored as a database, which will be used in the predict method. The
-predict method expect a single 2D time series. All inputs are expected to be in numpy
-array format. Then length of the time series in the 3D collection should be superior or
+class accepts as inputs 3D time series (n_instances, n_channels, n_timepoints) for the
+fit method. Univariate and single series can still be used, but will need to be reshaped
+to this format.
+
+This collection, asked for the fit method, is stored as a database. It will be used in
+the predict method, which expects a single 2D time series as input
+(n_channels, query_length), which will be used as a query to search for in the database.
+Note that the length of the time series in the 3D  collection should be superior or
 equal to the length of the 2D time series given in the predict method.
 
 Given those two inputs, the predict method should return the set of most similar
@@ -660,7 +664,7 @@ function.
 >>> from aeon.similarity_search import TopKSimilaritySearch
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_samples, n_channels, n_timestamps)
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_instances, n_channels, n_timepoints)
 >>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
 >>> topk.fit(X)  # fit the estimator on train data
 ...
