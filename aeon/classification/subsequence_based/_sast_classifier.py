@@ -29,7 +29,7 @@ class SASTClassifier(BaseClassifier):
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
-    random_state : int, default = None
+    seed : int, default = None
         the seed of the random generator
     classifier : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
@@ -68,7 +68,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride=1,
         nb_inst_per_class=1,
-        random_state=None,
+        seed=None,
         classifier=None,
         n_jobs=-1,
     ):
@@ -77,11 +77,7 @@ class SASTClassifier(BaseClassifier):
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.random_state = (
-            np.random.RandomState(random_state)
-            if not isinstance(random_state, np.random.RandomState)
-            else random_state
-        )
+        self.seed = seed
 
         self.classifier = classifier
 
@@ -114,7 +110,7 @@ class SASTClassifier(BaseClassifier):
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             if self.classifier is None
             else self.classifier,
-            self.random_state,
+            self.seed,
         )
 
         self._pipeline = make_pipeline(self._transformer, self._classifier)
@@ -153,7 +149,15 @@ class SASTClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes]
             Predicted class probabilities.
         """
-        return self._pipeline.predict_proba(X)
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self.pipeline_.predict_proba(X)
+        else:
+            dists = np.zeros((X.shape[0], self.n_classes_))
+            preds = self.pipeline_.predict(X)
+            for i in range(0, X.shape[0]):
+                dists[i, np.where(self.classes_ == preds[i])] = 1
+            return dists
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         """Plot the most important features on ts.
