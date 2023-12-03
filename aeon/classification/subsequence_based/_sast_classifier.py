@@ -153,7 +153,7 @@ class SASTClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes]
             Predicted class probabilities.
         """
-        return self.pipeline_.predict_proba(X)
+        return self.pipeline.predict_proba(X)
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         """Plot the most important features on ts.
