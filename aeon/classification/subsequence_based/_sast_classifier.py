@@ -8,7 +8,6 @@ __all__ = ["SASTClassifier"]
 
 from operator import itemgetter
 
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
@@ -172,6 +171,8 @@ class SASTClassifier(BaseClassifier):
         -------
         plt figure
         """
+        import matplotlib.pyplot as plt
+
         features = zip(self._transformer.kernel_orig_, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 
