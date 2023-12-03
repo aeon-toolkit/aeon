@@ -106,8 +106,8 @@ class SAST(BaseCollectionTransformer):
         self.lengths = lengths
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
-        self.kernels_ = None  # z-normalized subsequences
-        self.kernel_orig_ = None  # non z-normalized subsequences
+        self._kernels = None  # z-normalized subsequences
+        self._kernel_orig = None  # non z-normalized subsequences
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
         self.seed = seed
@@ -129,18 +129,18 @@ class SAST(BaseCollectionTransformer):
         self
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
-        self.length_list = (
+        self._length_list = (
             self.lengths if self.lengths is not None else np.arange(3, X_.shape[1])
         )
 
-        self.random_state = (
+        self._random_state = (
             np.random.RandomState(self.seed)
             if not isinstance(self.seed, np.random.RandomState)
             else self.seed
         )
 
         classes = np.unique(y)
-        self.num_classes = classes.shape[0]
+        self._num_classes = classes.shape[0]
 
         candidates_ts = []
         for c in classes:
@@ -149,33 +149,33 @@ class SAST(BaseCollectionTransformer):
             # convert to int because if self.
             # nb_inst_per_class is float, the result of np.min() will be float
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
-            choosen = self.random_state.permutation(X_c.shape[0])[:cnt]
+            choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             candidates_ts.append(X_c[choosen])
             self.kernels_generators_[c] = X_c[choosen]
 
         candidates_ts = np.concatenate(candidates_ts, axis=0)
 
-        self.length_list = self.length_list[self.length_list <= X_.shape[1]]
+        self._length_list = self._length_list[self._length_list <= X_.shape[1]]
 
-        max_shp_length = max(self.length_list)
+        max_shp_length = max(self._length_list)
 
         n, m = candidates_ts.shape
 
-        n_kernels = n * np.sum([m - len_ + 1 for len_ in self.length_list])
+        n_kernels = n * np.sum([m - len_ + 1 for len_ in self._length_list])
 
-        self.kernels_ = np.full(
+        self._kernels = np.full(
             (n_kernels, max_shp_length), dtype=np.float32, fill_value=np.nan
         )
-        self.kernel_orig_ = []
+        self._kernel_orig = []
 
         k = 0
-        for shp_length in self.length_list:
+        for shp_length in self._length_list:
             for i in range(candidates_ts.shape[0]):
                 for j in range(0, candidates_ts.shape[1] - shp_length + 1, self.stride):
                     end = j + shp_length
                     can = np.squeeze(candidates_ts[i][j:end])
-                    self.kernel_orig_.append(can)
-                    self.kernels_[k, :shp_length] = _znormalize_array(can)
+                    self._kernel_orig.append(can)
+                    self._kernels[k, :shp_length] = _znormalize_array(can)
                     k += 1
         return self
 
@@ -203,7 +203,7 @@ class SAST(BaseCollectionTransformer):
             n_jobs = self.n_jobs
 
         set_num_threads(n_jobs)
-        X_transformed = _apply_kernels(X_, self.kernels_)  # subsequence transform of X
+        X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
         set_num_threads(prev_threads)
 
         return X_transformed

@@ -117,9 +117,9 @@ class SASTClassifier(BaseClassifier):
             self.random_state,
         )
 
-        self.pipeline = make_pipeline(self._transformer, self._classifier)
+        self._pipeline = make_pipeline(self._transformer, self._classifier)
 
-        self.pipeline.fit(X, y)
+        self._pipeline.fit(X, y)
 
         return self
 
@@ -137,7 +137,7 @@ class SASTClassifier(BaseClassifier):
         y : array-like, shape = [n_instances]
             Predicted class labels.
         """
-        return self.pipeline.predict(X)
+        return self._pipeline.predict(X)
 
     def _predict_proba(self, X):
         """Predict labels probabilities for the input.
@@ -153,7 +153,7 @@ class SASTClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes]
             Predicted class probabilities.
         """
-        return self.pipeline.predict_proba(X)
+        return self._pipeline.predict_proba(X)
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         """Plot the most important features on ts.
@@ -173,7 +173,7 @@ class SASTClassifier(BaseClassifier):
         """
         import matplotlib.pyplot as plt
 
-        features = zip(self._transformer.kernel_orig_, feature_importance)
+        features = zip(self._transformer._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 
         max_ = min(limit, len(sorted_features))
