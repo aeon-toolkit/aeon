@@ -67,18 +67,18 @@ def minkowski_distance(
     if x.ndim not in (1, 2) or y.ndim not in (1, 2):
         raise ValueError("x and y must be 1D or 2D arrays")
 
-    if not (isinstance(p, (float, int)) and p >= 1):
-        raise ValueError(
-            f"Argument ``p`` must be a float or int greater than 1, but got {p}"
-        )
+    if p < 1:
+        raise ValueError("p should be greater or equal to 1")
 
     # Handle weights
-    if w is not None:
-        if x.shape != w.shape:
-            raise ValueError("Weights w must have the same shape as x and y")
-        if np.any(w < 0):
-            raise ValueError("Input weights should be all non-negative")
-        w = w.astype(x.dtype)
+    # Numba is not handing `None` type
+    # if w is not None:
+    #     if x.shape != w.shape:
+    #         raise ValueError("Weights w must have the same shape as x and y")
+    #     for weight in w:
+    #         if weight.any() < 0:
+    #             raise ValueError("Input weights should be all non-negative")
+    #     w = w.astype(x.dtype)
 
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_minkowski_distance(x, y, p, w)
@@ -92,10 +92,19 @@ def minkowski_distance(
 def _univariate_minkowski_distance(
     x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
 ) -> float:
-    if w is None:
-        dist = np.sum(np.abs(x - y) ** p)
-    else:
+    min_length = min(x.shape[0], y.shape[0])
+
+    # Slice x and y to the minimum length
+    x = x[:min_length]
+    y = y[:min_length]
+
+    if w is not None:
+        # Also slice w to the minimum length
+        w = w[:min_length]
         dist = np.sum(w * (np.abs(x - y) ** p))
+    else:
+        dist = np.sum(np.abs(x - y) ** p)
+
     return dist ** (1.0 / p)
 
 
@@ -104,12 +113,19 @@ def _multivariate_minkowski_distance(
     x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
 ) -> float:
     dist = 0.0
-    for i in range(x.shape[0]):  # Iterate over rows (time points/instances)
-        diff = np.abs(x[i] - y[i]) ** p
+    min_rows = min(x.shape[0], y.shape[0])
+    for i in range(min_rows):
+        min_cols = min(x[i].shape[0], y[i].shape[0])  # Find the minimum column length
+        x_row = x[i][:min_cols]
+        y_row = y[i][:min_cols]
+
+        diff = np.abs(x_row - y_row) ** p
+
         if w is None:
             dist += np.sum(diff)
         else:
-            dist += np.sum(w[i] * diff)
+            w_row = w[i][:min_cols]
+            dist += np.sum(w_row * diff)
 
     return dist ** (1.0 / p)
 
