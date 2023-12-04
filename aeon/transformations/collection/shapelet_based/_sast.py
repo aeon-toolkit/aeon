@@ -76,7 +76,7 @@ class SAST(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.subsequence_based import SAST
+    >>> from aeon.transformations.collection.shapelet_based import SAST
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")

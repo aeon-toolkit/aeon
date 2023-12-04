@@ -14,7 +14,7 @@ from sklearn.pipeline import make_pipeline
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.collection.subsequence_based import SAST
+from aeon.transformations.collection.shapelet_based import SAST
 
 
 class SASTClassifier(BaseClassifier):
@@ -47,7 +47,7 @@ class SASTClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.subsequence_based import SASTClassifier
+    >>> from aeon.classification.shapelet_based import SASTClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
@@ -151,10 +151,10 @@ class SASTClassifier(BaseClassifier):
         """
         m = getattr(self._classifier, "predict_proba", None)
         if callable(m):
-            return self.pipeline_.predict_proba(X)
+            return self._pipeline.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self.pipeline_.predict(X)
+            preds = self._pipeline.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
