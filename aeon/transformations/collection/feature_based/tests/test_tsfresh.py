@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_unit_test
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

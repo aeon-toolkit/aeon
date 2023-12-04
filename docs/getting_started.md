@@ -392,11 +392,11 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.catch22.Catch22), which calculates 22 summary
+[Catch22](transformations.collection.feauture_based), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> import numpy as np
 >>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
 >>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
@@ -444,7 +444,7 @@ multivariate series and automatically convert output.
 
 ```{code-block} python
 >>> from aeon.transformations.collection import CollectionToSeriesWrapper
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> c22 = Catch22(replace_nans=True)
@@ -526,7 +526,7 @@ feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
->>> from aeon.transformations.collection import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from sklearn.ensemble import RandomForestClassifier
 >>> from sklearn.pipeline import make_pipeline
 >>> from sklearn.metrics import accuracy_score

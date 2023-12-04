@@ -5,7 +5,7 @@ import pytest
 from numpy import testing
 
 from aeon.datasets import load_basic_motions
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
