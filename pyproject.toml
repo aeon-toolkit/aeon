@@ -76,8 +76,8 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow<2.13.0",
-    "tensorflow-probability<0.21.0",
+    "tensorflow<2.16.0",
+    "tensorflow-probability<0.23.0",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
@@ -86,8 +86,8 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow<2.13.0",
-    "tensorflow-probability<0.21.0",
+    "tensorflow<2.16.0",
+    "tensorflow-probability<0.23.0",
 ]
 unstable_extras = [
     "pycatch22<=0.4.3",  # known to fail installation on some setups

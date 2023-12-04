@@ -267,13 +267,13 @@ KNeighborsTimeSeriesRegressor()
 
 Like classification and regression, time series clustering aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
-the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
 clusterer on the
 [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
 ```{code-block} python
->>> from aeon.clustering.k_means import TimeSeriesKMeans
+>>> from aeon.clustering import TimeSeriesKMeans
 >>> from aeon.datasets import load_arrow_head
 >>> from sklearn.metrics import rand_score
 >>> X, y = load_arrow_head()

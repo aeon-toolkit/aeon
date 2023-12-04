@@ -4,7 +4,7 @@ import pytest
 from sklearn import metrics
 from sklearn.utils import check_random_state
 
-from aeon.clustering.k_means import TimeSeriesKMeans
+from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
 from aeon.utils.validation._dependencies import _check_estimator_deps
