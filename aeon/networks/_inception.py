@@ -188,7 +188,7 @@ class InceptionNetwork(BaseDeepNetwork):
                 kernel_size=kernel_size,
                 padding="same",
                 use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_),
+                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
                 trainable=False,
                 name="hybrid-increasse-"
                 + str(self.keep_track)
@@ -221,7 +221,7 @@ class InceptionNetwork(BaseDeepNetwork):
                 kernel_size=kernel_size,
                 padding="same",
                 use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_),
+                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
                 trainable=False,
                 name="hybrid-decrease-" + str(self.keep_track) + "-" + str(kernel_size),
             )(input_tensor)
@@ -262,7 +262,7 @@ class InceptionNetwork(BaseDeepNetwork):
                 kernel_size=kernel_size + kernel_size // 2,
                 padding="same",
                 use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_),
+                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
                 trainable=False,
                 name="hybrid-peeks-" + str(self.keep_track) + "-" + str(kernel_size),
             )(input_tensor)
