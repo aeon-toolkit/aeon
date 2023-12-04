@@ -10,11 +10,8 @@ transformations.
    :no-members:
    :no-inherited-members:
 
-All (simple) transformers in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
-using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``aeon.registry.all_tags``.
-
-For pairwise transformers (time series distances, kernels), instead see :ref:`_transformations_pairwise_ref`.
+All (simple) transformers in `aeon` can be listed using the `aeon.registry
+.all_estimators` utility, using `estimator_types="transformer"` tag.
 
 Transformations are categorized as follows:
 
@@ -27,17 +24,17 @@ Transformations are categorized as follows:
    * - Composition
      - Building blocks for pipelines, wrappers, adapters
      - Transformer pipeline
-   * - Series-to-features
-     - Transforms series to float/category vector
+   * - Series-to-tabular
+     - Transforms series to tabular data
      - Length and mean
-   * - Series-to-series
+   * - series-to-series
      - Transforms individual series to series
      - Differencing, detrending
-   * - Series-to-Panel
-     - transforms a series into a panel
+   * - Series-to-collection
+     - transforms a series into a collection of time series
      - Bootstrap, sliding window
-   * - Panel transform
-     - Transforms panel to panel, not by-series
+   * - Collection
+     - Transforms a collection of times series into a new collection of time series
      - Padding to equal length
    * - Hierarchical
      - uses hierarchy information non-trivially
@@ -95,13 +92,14 @@ Sklearn and pandas adapters
     TabularToSeriesAdaptor
     PandasTransformAdaptor
 
-Series-to-features transformers
+Series-to-tabular transformers
 -------------------------------
 
-Series-to-features transformers transform individual time series to a collection of primitive features.
-Primitive features are usually a vector of floats, but can also be categorical.
+Series-to-tabular transformers transform individual time series to a vector of
+features, usually a vector of floats, but can also be categorical.
 
-When applied to panels or hierarchical data, the transformation result is a table with as many rows as time series in the collection.
+When applied to collections or hierarchical data, the transformation result is a table
+with as many rows as time series in the collection and a column for each feature.
 
 Summarization
 ~~~~~~~~~~~~~
@@ -176,8 +174,8 @@ Dictionary-based features
     SFA
     SAX
 
-Moment-based features
-~~~~~~~~~~~~~~~~~~~~~
+Signature-based features
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.signature_based
 
@@ -213,8 +211,8 @@ Series-to-series transformers
 -----------------------------
 
 Series-to-series transformers transform individual time series into another time series.
-
-When applied to panels or hierarchical data, individual series are transformed.
+When applied to collections or hierarchical data, individual series are transformed
+through broadcasting.
 
 Lagging
 ~~~~~~~
