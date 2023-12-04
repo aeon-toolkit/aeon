@@ -81,7 +81,7 @@ def plot_boxplot_median(
         where=sum_results_medians != 0,
     )
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(layout="tight")
 
     # Plots violin or boxplots
     if plot_type == "violin":
@@ -185,7 +185,7 @@ def plot_scatter_predictions(
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(layout="tight")
     min_value = min(y.min(), y_pred.min()) * 0.97
     max_value = max(y.max(), y_pred.max()) * 1.03
 
