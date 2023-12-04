@@ -45,7 +45,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
         "non-deterministic": True,
@@ -111,7 +111,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
             The training input samples. input_checks : boolean
             Whether to check the X parameter
 
@@ -137,8 +137,18 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self.classes_ = self.label_encoder.classes_
         self.n_classes_ = len(self.classes_)
         y = y.reshape(len(y), 1)
-        self.onehot_encoder = OneHotEncoder(sparse=False, categories="auto")
+        # Adjustment to allow deprecated attribute "sparse for older versions
+        import sklearn
+        from packaging import version
+
+        # Get the installed version of scikit-learn
+        installed_version = sklearn.__version__
+        # Compare the installed version with the target version
         # categories='auto' to get rid of FutureWarning
+        if version.parse(installed_version) < version.parse("1.1"):
+            self.onehot_encoder = OneHotEncoder(sparse=False)
+        else:
+            self.onehot_encoder = OneHotEncoder(sparse_output=False)
         y = self.onehot_encoder.fit_transform(y)
         return y
 

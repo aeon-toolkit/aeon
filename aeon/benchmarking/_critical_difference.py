@@ -1,38 +1,34 @@
 """Function to compute and plot critical difference diagrams."""
 
-__author__ = ["SveaMeyer13", "dguijo"]
+__author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
 
 import math
-import operator
 
 import numpy as np
+
+# import pandas as pd
 from scipy.stats import distributions, find_repeats, rankdata, wilcoxon
 
 from aeon.benchmarking.utils import get_qalpha
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
+def _check_friedman(ranks):
     """
     Check whether Friedman test is significant.
 
-    Larger parts of code copied from scipy.
-
     Parameters
     ----------
-    n_estimators : int
-      number of strategies to evaluate
-    n_datasets : int
-      number of datasets classified per strategy
-    ranked_data : np.array (shape: n_estimators * n_datasets)
-      rank of strategy on dataset
+    ranks : np.array
+      Rank of estimators on datasets, shape (n_estimators, n_datasets).
 
     Returns
     -------
-    is_significant : bool
-      Indicates whether strategies differ significantly in terms of performance
-      (according to Friedman test).
+    float
+      p-value of the test.
     """
+    n_datasets, n_estimators = ranks.shape
+
     if n_estimators < 3:
         raise ValueError(
             "At least 3 sets of measurements must be given for Friedmann test, "
@@ -42,126 +38,124 @@ def _check_friedman(n_estimators, n_datasets, ranked_data, alpha):
     # calculate c to correct chisq for ties:
     ties = 0
     for i in range(n_datasets):
-        replist, repnum = find_repeats(ranked_data[i])
+        replist, repnum = find_repeats(ranks[i])
         for t in repnum:
             ties += t * (t * t - 1)
     c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
 
-    ssbn = np.sum(ranked_data.sum(axis=0) ** 2)
+    ssbn = np.sum(ranks.sum(axis=0) ** 2)
     chisq = (
         12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
         - 3 * n_datasets * (n_estimators + 1)
     ) / c
-    p = distributions.chi2.sf(chisq, n_estimators - 1)
-    if p < alpha:
-        is_significant = True
-    else:
-        is_significant = False
-    return is_significant
+    p_value = distributions.chi2.sf(chisq, n_estimators - 1)
+    return p_value
 
 
-def nemenyi_cliques(n_estimators, n_datasets, avranks, alpha):
-    """Find cliques using post hoc Nemenyi test."""
-    # Get critical value, there is an exact way now
+def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
+    """
+    Find cliques using post hoc Nemenyi test.
+
+    Parameters
+    ----------
+    ordered_avg_ranks : np.array
+        Average ranks of estimators.
+    n_datasets : int
+        Mumber of datasets.
+    alpha : float
+        alpha level for Nemenyi test.
+
+    Returns
+    -------
+    list of lists
+        List of cliques. A clique is a group of estimators within which there is no
+        significant difference.
+    """
+    n_estimators = len(ordered_avg_ranks)
     qalpha = get_qalpha(alpha)
     # calculate critical difference with Nemenyi
     cd = qalpha[n_estimators] * np.sqrt(
         n_estimators * (n_estimators + 1) / (6 * n_datasets)
     )
     # compute statistically similar cliques
-    cliques = np.tile(avranks, (n_estimators, 1)) - np.tile(
-        np.vstack(avranks.T), (1, n_estimators)
+    cliques = np.tile(ordered_avg_ranks, (n_estimators, 1)) - np.tile(
+        np.vstack(ordered_avg_ranks.T), (1, n_estimators)
     )
     cliques[cliques < 0] = np.inf
     cliques = cliques < cd
 
-    cliques = build_cliques(cliques)
+    cliques = _build_cliques(cliques)
 
     return cliques
 
 
-def wilcoxon_holm_cliques(results, labels, avranks, alpha):
-    """Find cliques using Wilcoxon and post hoc Holm test."""
-    # get number of strategies:
+def _wilcoxon_test(results, lower_better=False):
+    """
+    Perform Wilcoxon test.
+
+    Parameters
+    ----------
+    results: np.array
+      results of estimators on datasets
+
+    lower_better : bool, default = False
+        Indicates whether smaller is better for the results in scores. For example,
+        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
+
+    Returns
+    -------
+    np.array
+        p-values of Wilcoxon sign rank test.
+    """
     n_estimators = results.shape[1]
 
-    # init array that contains the p-values calculated by the Wilcoxon signed rank test
-    p_values = []
-    # loop through the algorithms to compare pairwise
+    p_values = np.eye(n_estimators)
+
     for i in range(n_estimators - 1):
-        # get the name of classifier one
-        classifier_1 = labels[i]
-        # get the performance of classifier one
-        perf_1 = np.array(results[:, i])
-
         for j in range(i + 1, n_estimators):
-            # get the name of the second classifier
-            classifier_2 = labels[j]
-            # get the performance of classifier two
-            perf_2 = np.array(results[:, j])
-            # calculate the p_value
-            p_value = wilcoxon(perf_1, perf_2, zero_method="wilcox")[1]
-            # append to the list
-            p_values.append((classifier_1, classifier_2, p_value, False))
+            p_values[i, j] = wilcoxon(
+                results[:, i],
+                results[:, j],
+                zero_method="wilcox",
+                alternative="less" if lower_better else "greater",
+            )[1]
 
-    # get the number of hypothesis
-    n_hypothesis = len(p_values)
-
-    # sort the list in ascending manner of p-value
-    p_values.sort(key=operator.itemgetter(2))
-
-    # correct alpha with holm
-    new_alpha = float(alpha / (n_estimators - 1))
-
-    ordered_labels = [i for _, i in sorted(zip(avranks, labels))]
-
-    same = np.eye(len(ordered_labels), dtype=bool)
-
-    # loop through the hypothesis
-    for i in range(n_hypothesis):
-        # test if significant after holm's correction of alpha
-        if p_values[i][2] <= new_alpha:
-            p_values[i] = (p_values[i][0], p_values[i][1], p_values[i][2], True)
-        else:
-            idx_0 = np.where(np.array(ordered_labels) == p_values[i][0])[0][0]
-            idx_1 = np.where(np.array(ordered_labels) == p_values[i][1])[0][0]
-            same[idx_0][idx_1] = True
-            same[idx_1][idx_0] = True
-
-    cliques = build_cliques(same)
-
-    return cliques
+    return p_values
 
 
-def build_cliques(same):
-    """Build cliques."""
-    n_estimators = same.shape[1]
+def _build_cliques(pairwise_matrix):
+    """
+    Build cliques from pairwise comparison matrix.
 
-    for i in range(n_estimators):
-        if np.sum(same[i, :]) > 1:
-            true_values_i = np.where(same[i, :] == 1)[0]
-            first_true_i = true_values_i[0]
-            last_true_i = true_values_i[-1]
-            for j in range(i + 1, n_estimators):
-                if np.sum(same[j, :]) >= 1:
-                    true_values_j = np.where(same[j, :] == 1)[0]
-                    first_true_j = true_values_j[0]
-                    last_true_j = true_values_j[-1]
-                    # if j is contained in i
-                    if first_true_i <= first_true_j and last_true_i >= last_true_j:
-                        if len(true_values_i) >= len(true_values_j):
-                            same[j, :] = 0
-                        else:
-                            same[i, :] = 0
-                    # if i is contained in j
-                    elif first_true_i >= first_true_j and last_true_i <= last_true_j:
-                        if len(true_values_i) >= len(true_values_j):
-                            same[j, :] = 0
-                        else:
-                            same[i, :] = 0
+    Parameters
+    ----------
+    pairwise_matrix : np.array
+        Pairwise matrix shape (n_estimators, n_estimators) indicating if there is a
+        significant difference between pairs. Assumed to be ordered by rank of
+        estimators.
 
-    n = np.sum(same, 1)
-    cliques = same[n > 1, :]
+    Returns
+    -------
+    list of lists
+        cliques within which there is no significant different between estimators.
+    """
+    for i in range(0, pairwise_matrix.shape[0]):
+        for j in range(i + 1, pairwise_matrix.shape[1]):
+            if pairwise_matrix[i, j] == 0:
+                pairwise_matrix[i, j + 1 :] = 0  # noqa: E203
+                break
+
+    n = np.sum(pairwise_matrix, 1)
+    possible_cliques = pairwise_matrix[n > 1, :]
+
+    for i in range(possible_cliques.shape[0] - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
+            if np.all(possible_cliques[j, possible_cliques[i, :]]):
+                possible_cliques[i, :] = 0
+                break
+
+    n = np.sum(possible_cliques, 1)
+    cliques = possible_cliques[n > 1, :]
 
     return cliques
 
@@ -170,141 +164,205 @@ def plot_critical_difference(
     scores,
     labels,
     highlight=None,
-    errors=False,
-    cliques=None,
-    clique_method="holm",
-    alpha=0.05,
+    lower_better=False,
+    test="wilcoxon",
+    correction="holm",
+    alpha=0.1,
     width=6,
     textspace=1.5,
     reverse=True,
+    return_p_values=False,
 ):
     """
-    Draw critical difference diagram.
+    Plot the average ranks and cliques based on the method described in [1]_.
 
-    Step 1 & 2: Calculate average ranks from data
-    Step 3: Use Friedman test to check whether
-    the strategy significantly affects the classification performance
-    Step 4: Compute critical differences using Nemenyi post-hoc test.
-    (How much should the average rank of two strategies differ to be
-     statistically significant)
-    Step 5: Compute statistically similar cliques of strategies
-    Step 6: Draw the diagram
+    This function summarises the relative performance of multiple estimators
+    evaluated on multiple datasets. The resulting plot shows the average rank of each
+    estimator on a number line. Estimators are grouped by solid lines,
+    called cliques. A clique represents a group of estimators within which there is
+    no significant difference in performance (see the caveats below). Please note
+    that these diagrams are not an end in themselves, but rather form one part of
+    the description of performance of estimators.
 
-    See Janez Demsar, Statistical Comparisons of Classifiers over
-    Multiple Data Sets, 7(Jan):1--30, 2006.
+    The input is a summary performance measure of each estimator on each problem,
+    where columns are estimators and rows datasets. This could be any measure such as
+    accuracy/error, F1, negative log-likelihood, mean squared error or rand score.
 
-    Parts of the code are copied and adapted from here:
+    This algorithm first calculates the rank of all estimators on all problems (
+    averaging ranks over ties), then sorts estimators on average rank. It then forms
+    cliques. The original critical difference diagrams [1]_ use the post hoc Neymeni
+    test [4]_ to find a critical difference. However, as discussed [3]_,this post hoc
+    test is senstive to the estimators included in the test: "For instance the
+    difference between A and B could be declared significant if the pool comprises
+    algorithms C, D, E and not significant if the pool comprises algorithms
+    F, G, H.". Our default option is to base cliques finding on pairwise Wilcoxon sign
+    rank test.
+
+    There are two issues when performing multiple pairwise tests to find cliques:
+    what adjustment to make for multiple testing, and whether to perform a one sided
+    or two sided test. The Bonferroni adjustment is known to be conservative. Hence,
+    by default, we base our clique finding from pairwise tests on the control
+    tests described in [1]_ and the sequential method recommended in [2]_ and proposed
+    in [5]_ that uses a less conservative adjustment than Bonferroni.
+
+    We perform all pairwise tests using a one-sided Wilcoxon sign rank test with the
+    Holm correction to alpha, which involves reducing alpha by dividing it by number
+    of estimators -1.
+
+    Suppose we have four estimators, A, B, C and D sorted by average rank. Starting
+    from A, we test the null hypothesis that average ranks are equal against the
+    alternative hypothesis that the average rank of A is less than that of B,
+    with significance level alpha/(n_estimators-1). If we reject the null hypothesis
+    then we stop, and A is not in a clique. If we cannot
+    reject the null, we test A vs C, continuing until we reject the null or we have
+    tested all estimators. Suppose we find that A vs B is significant. We form no
+    clique for A.
+
+    We then continue to form a clique using the second best estimator,
+    B, as a control. Imagine we find no difference between B and C, nor any difference
+    between B and D. We have formed a clique for B: [B, C, D]. On the third
+    iteration, imagine we also find not difference between C and D and thus form a
+    second clique, [C, D]. We have found two cliques, but [C,D] is contained in [B, C,
+    D] and is thus redundant. In this case we would return a single clique, [B, C, D].
+
+    Not this is a heuristic approach not without problems: If the best ranked estimator
+    A is significantly better than B but not significantly different to C, this will
+    not be reflected in the diagram. Because of this, we recommend also reporting
+    p-values in a table, and exploring other ways to present results such as pairwise
+    plots. Comparing estimators on archive data sets can only be indicative of
+    overall performance in general, and such comparisons should be seen as exploratory
+    analysis rather than designed experiments to test an a priori hypothesis.
+
+    Parts of the code are adapted from here:
     https://github.com/hfawaz/cd-diagram
 
     Parameters
     ----------
-        scores : np.array
-            scores (either accuracies or errors) of dataset x strategy
-        labels : list of estimators
-            list with names of the estimators. Order should be the same as scores
-        highlight: dict with labels and HTML colours to be used, default = None
-            dict with labels and HTML colours to be used for highlighting. Order should
-            be the same as scores
-        errors : bool, default = False
-            indicates whether scores are passed as errors (default) or accuracies
-        cliques : lists of bit vectors, default = None
-            e.g. [[0,1,1,1,0,0], [0,0,0,0,1,1]]
-            statistically similiar cliques of estimators
-            If none, cliques will be computed depending on clique_method
-        clique_method : string, default = "holm"
-            clique forming method, to include "nemenyi" and "holm"
-        alpha : float default = 0.05
-             Alpha level for statistical tests currently supported: 0.1, 0.05 or 0.01)
-        width : int, default = 6
-           width in inches
-        textspace : int
-           space on figure sides (in inches) for the method names (default: 1.5)
-        reverse : bool, default = True
-           if set to 'True', the lowest rank is on the right
+    scores : np.array
+        Performance scores for estimators of shape (n_datasets, n_estimators).
+    labels : list of estimators
+        List with names of the estimators. Order should be the same as scores
+    highlight : dict, default = None
+        A dict with labels and HTML colours to be used for highlighting. Order should be
+        the same as scores.
+    lower_better : bool, default = False
+        Indicates whether smaller is better for the results in scores. For example,
+        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
+    test : string, default = "wilcoxon"
+        test method used to form cliques, either "nemenyi" or "wilcoxon"
+    correction: string, default = "holm"
+        correction method for multiple testing, one of "bonferroni", "holm" or "none".
+    alpha : float, default = 0.1
+        Critical value for statistical tests of difference.
+    width : int, default = 6
+        Width in inches.
+    textspace : int
+        Space on figure sides (in inches) for the method names (default: 1.5).
+    reverse : bool, default = True
+        If set to 'True', the lowest rank is on the right.
+    return_p_values : bool, default = False
+        Whether to return the pairwise matrix of p-values.
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+        fig : matplotlib.figure
+            Figure created.
+        p_values : np.ndarray (optional)
+            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+            unadjusted p values for the pairwise Wilcoxon sign rank test.
+
+    References
+    ----------
+    .. [1] Demsar J., "Statistical comparisons of classifiers over multiple data sets."
+    Journal of Machine Learning Research 7:1-30, 2006.
+    .. [2] García S. and Herrera F., "An extension on “statistical comparisons of
+    classifiers over multiple data sets” for all pairwise comparisons."
+    Journal of Machine Learning Research 9:2677-2694, 2008.
+    .. [3] Benavoli A., Corani G. and Mangili F "Should we really use post-hoc tests
+    based on mean-ranks?" Journal of Machine Learning Research 17:1-10, 2016.
+    .. [4] Nemenyi P., "Distribution-free multiple comparisons".
+    PhD thesis, Princeton University, 1963.
+    .. [5] Holm S., " A simple sequentially rejective multiple test procedure."
+    Scandinavian Journal of Statistics, 6:65-70, 1979.
 
     Example
     -------
     >>> from aeon.benchmarking import plot_critical_difference
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
-    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
     >>> plot = plot_critical_difference(results[0], methods, alpha=0.1)\
         # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
-    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
+    >>> plot.savefig("cd.pdf", bbox_inches="tight")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
 
     import matplotlib.pyplot as plt
 
-    # Helper Functions
-    # get number of datasets and strategies:
-    n_datasets, n_estimators = scores.shape[0], scores.shape[1]
+    n_datasets, n_estimators = scores.shape
+    if isinstance(test, str):
+        test = test.lower()
+    if isinstance(correction, str):
+        correction = correction.lower()
+    if return_p_values and test == "nemenyi":
+        raise ValueError(
+            "Cannot return p values for the Nemenyi test, since it does "
+            "not calculate p-values."
+        )
+    # Step 1: rank data: in case of ties average ranks are assigned
+    if lower_better:  # low is good -> rank 1
+        ranks = rankdata(scores, axis=1)
+    else:  # assign opposite ranks
+        ranks = rankdata(-1 * scores, axis=1)
 
-    # Step 1: rank data: best algorithm gets rank of 1 second best rank of 2...
-    # in case of ties average ranks are assigned
-    if errors:
-        # low is good -> rank 1
-        ranked_data = rankdata(scores, axis=1)
-    else:
-        # assign opposite ranks
-        ranked_data = rankdata(-1 * scores, axis=1)
+    # Step 2: calculate average rank per estimator
+    ordered_avg_ranks = ranks.mean(axis=0)
+    # Sort labels and ranks
+    ordered_labels_ranks = np.array(
+        [(l, float(r)) for r, l in sorted(zip(ordered_avg_ranks, labels))], dtype=object
+    )
+    ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
+    ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
 
-    # Step 2: calculate average rank per strategy
-    avranks = ranked_data.mean(axis=0)
-    # Sort labels
-    combined = zip(avranks, labels)
-    temp_labels = []
+    indices = [np.where(np.array(labels) == r)[0] for r in ordered_labels]
 
-    x = sorted(combined)
-    i = 0
-    for s, n in x:
-        avranks[i] = s
-        temp_labels.append(n)
-        i = i + 1
-
+    ordered_scores = scores[:, indices]
     # sort out colours for labels
     if highlight is not None:
         colours = [
             highlight[label] if label in highlight else "#000000"
-            for label in temp_labels
+            for label in ordered_labels
         ]
     else:
-        colours = ["#000000"] * len(temp_labels)
-
+        colours = ["#000000"] * len(ordered_labels)
     # Step 3 : check whether Friedman test is significant
-    is_significant = _check_friedman(n_estimators, n_datasets, ranked_data, alpha)
+    p_value_friedman = _check_friedman(ranks)
     # Step 4: If Friedman test is significant find cliques
-    if is_significant:
-        if cliques is None:
-            if clique_method == "nemenyi":
-                cliques = nemenyi_cliques(n_estimators, n_datasets, avranks, alpha)
-            elif clique_method == "holm":
-                cliques = wilcoxon_holm_cliques(
-                    scores, labels, ranked_data.mean(axis=0), alpha
-                )
+    if p_value_friedman < alpha:
+        if test == "nemenyi":
+            cliques = _nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
+        elif test == "wilcoxon":
+            if correction == "bonferroni":
+                adjusted_alpha = alpha / (n_estimators * (n_estimators - 1) / 2)
+            elif correction == "holm":
+                adjusted_alpha = alpha / (n_estimators - 1)
+            elif correction is None:
+                adjusted_alpha = alpha
             else:
-                raise ValueError(
-                    "clique methods available are only nemenyi, bonferroni and holm."
-                )
+                raise ValueError("correction available are None, Bonferroni and Holm.")
+            p_values = _wilcoxon_test(ordered_scores, lower_better)
+            cliques = _build_cliques(p_values > adjusted_alpha)
+        else:
+            raise ValueError("tests available are only nemenyi and wilcoxon.")
     # If Friedman test is not significant everything has to be one clique
     else:
-        if cliques is None:
-            cliques = [
-                [
-                    1,
-                ]
-                * n_estimators
-            ]
+        cliques = [[1] * n_estimators]
+
     # Step 6 create the diagram:
     # check from where to where the axis has to go
-    lowv = min(1, int(math.floor(min(avranks))))
-    highv = max(len(avranks), int(math.ceil(max(avranks))))
+    lowv = min(1, int(math.floor(min(ordered_avg_ranks))))
+    highv = max(len(ordered_avg_ranks), int(math.ceil(max(ordered_avg_ranks))))
 
     # set up the figure
     width = float(width)
@@ -332,12 +390,7 @@ def plot_critical_difference(
     ax.set_ylim(1, 0)
 
     def _lloc(lst, n):
-        """
-        List location in list of list structure.
-
-        Enable the use of negative locations:
-        -1 is the last element, -2 second last...
-        """
+        """List location in list of list structure."""
         if n < 0:
             return len(lst[0]) + n
         else:
@@ -361,8 +414,8 @@ def plot_critical_difference(
 
     bigtick = 0.3
     smalltick = 0.15
-    linewidth = 2.0
-    linewidth_sign = 4.0
+    linewidth = 0.75
+    linewidth_sign = 2.5
 
     def _rankpos(rank):
         if not reverse:
@@ -394,13 +447,13 @@ def plot_critical_difference(
 
     # sort out lines and text based on whether order is reversed or not
     space_between_names = 0.24
-    for i in range(math.ceil(len(avranks) / 2)):
+    for i in range(math.ceil(len(ordered_avg_ranks) / 2)):
         chei = cline + minnotsignificant + i * space_between_names
         if reverse:
             _line(
                 [
-                    (_rankpos(avranks[i]), cline),
-                    (_rankpos(avranks[i]), chei),
+                    (_rankpos(ordered_avg_ranks[i]), cline),
+                    (_rankpos(ordered_avg_ranks[i]), chei),
                     (textspace + scalewidth + 0.2, chei),
                 ],
                 linewidth=linewidth,
@@ -409,7 +462,7 @@ def plot_critical_difference(
             _text(  # labels left side.
                 textspace + scalewidth + 0.3,
                 chei,
-                temp_labels[i],
+                ordered_labels[i],
                 ha="left",
                 va="center",
                 size=16,
@@ -418,7 +471,7 @@ def plot_critical_difference(
             _text(  # ranks left side.
                 textspace + scalewidth - 0.3,
                 chei - 0.075,
-                format(avranks[i], ".4f"),
+                format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
                 size=10,
@@ -427,8 +480,8 @@ def plot_critical_difference(
         else:
             _line(
                 [
-                    (_rankpos(avranks[i]), cline),
-                    (_rankpos(avranks[i]), chei),
+                    (_rankpos(ordered_avg_ranks[i]), cline),
+                    (_rankpos(ordered_avg_ranks[i]), chei),
                     (textspace - 0.1, chei),
                 ],
                 linewidth=linewidth,
@@ -437,7 +490,7 @@ def plot_critical_difference(
             _text(  # labels left side.
                 textspace - 0.2,
                 chei,
-                temp_labels[i],
+                ordered_labels[i],
                 ha="right",
                 va="center",
                 size=16,
@@ -446,20 +499,24 @@ def plot_critical_difference(
             _text(  # ranks left side.
                 textspace + 0.4,
                 chei - 0.075,
-                format(avranks[i], ".4f"),
+                format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
                 size=10,
                 color=colours[i],
             )
 
-    for i in range(math.ceil(len(avranks) / 2), len(avranks)):
-        chei = cline + minnotsignificant + (len(avranks) - i - 1) * space_between_names
+    for i in range(math.ceil(len(ordered_avg_ranks) / 2), len(ordered_avg_ranks)):
+        chei = (
+            cline
+            + minnotsignificant
+            + (len(ordered_avg_ranks) - i - 1) * space_between_names
+        )
         if reverse:
             _line(
                 [
-                    (_rankpos(avranks[i]), cline),
-                    (_rankpos(avranks[i]), chei),
+                    (_rankpos(ordered_avg_ranks[i]), cline),
+                    (_rankpos(ordered_avg_ranks[i]), chei),
                     (textspace - 0.1, chei),
                 ],
                 linewidth=linewidth,
@@ -468,7 +525,7 @@ def plot_critical_difference(
             _text(  # labels right side.
                 textspace - 0.2,
                 chei,
-                temp_labels[i],
+                ordered_labels[i],
                 ha="right",
                 va="center",
                 size=16,
@@ -477,7 +534,7 @@ def plot_critical_difference(
             _text(  # ranks right side.
                 textspace + 0.4,
                 chei - 0.075,
-                format(avranks[i], ".4f"),
+                format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
                 size=10,
@@ -486,8 +543,8 @@ def plot_critical_difference(
         else:
             _line(
                 [
-                    (_rankpos(avranks[i]), cline),
-                    (_rankpos(avranks[i]), chei),
+                    (_rankpos(ordered_avg_ranks[i]), cline),
+                    (_rankpos(ordered_avg_ranks[i]), chei),
                     (textspace + scalewidth + 0.1, chei),
                 ],
                 linewidth=linewidth,
@@ -496,7 +553,7 @@ def plot_critical_difference(
             _text(  # labels right side.
                 textspace + scalewidth + 0.2,
                 chei,
-                temp_labels[i],
+                ordered_labels[i],
                 ha="left",
                 va="center",
                 size=16,
@@ -505,7 +562,7 @@ def plot_critical_difference(
             _text(  # ranks right side.
                 textspace + scalewidth - 0.4,
                 chei - 0.075,
-                format(avranks[i], ".4f"),
+                format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
                 size=10,
@@ -523,11 +580,13 @@ def plot_critical_difference(
         max_idx = np.array(positions).max()
         _line(
             [
-                (_rankpos(avranks[min_idx]) - side, start),
-                (_rankpos(avranks[max_idx]) + side, start),
+                (_rankpos(ordered_avg_ranks[min_idx]) - side, start),
+                (_rankpos(ordered_avg_ranks[max_idx]) + side, start),
             ],
             linewidth=linewidth_sign,
         )
         start += height
-
-    return fig
+    if return_p_values:
+        return fig, p_values
+    else:
+        return fig

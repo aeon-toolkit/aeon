@@ -103,6 +103,7 @@ class SFA(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(

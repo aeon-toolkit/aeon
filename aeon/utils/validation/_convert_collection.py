@@ -4,13 +4,13 @@ This contains all functions to convert supported collection data types.
 
 String identifier meanings (from aeon.utils.validation.collection import
 COLLECTIONS_DATA_TYPES) :
-numpy3D     : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
-np-list     : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
-df-list     : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
-numpyflat   : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
-pd-wide     : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
+numpy3D : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
+np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
+df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
+numpyflat : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
+pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
 nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
-pd-multiindex : d.DataFrame with multi-index,
+pd-multiindex : pd.DataFrame with multi-index,
 
 For the seven supported, this gives 42 different converters.
 Rather than use them directly, we recommend using the conversion dictionary
@@ -22,10 +22,30 @@ import pandas as pd
 
 
 def _nested_univ_is_equal(X):
-    """Check whether series in a nested DataFrame are unequal length.
+    """Check whether series in a nested DataFrame are of equal length.
 
-    Note that the function _nested_univ_is_equal assumes series are equal length
-    over channels so only tests the first channel.
+    This function checks if all series in a nested DataFrame have the same length. It
+    assumes that series are of equal length over channels, so it only tests the first
+    channel.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        The nested DataFrame to check.
+
+    Returns
+    -------
+    bool
+        True if all series in the DataFrame are of equal length, False otherwise.
+
+    Example
+    -------
+    >>> df = pd.DataFrame({
+    ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
+    ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
+    ... })
+    >>> _nested_univ_is_equal(df)
+    True
     """
     length = X.iloc[0, 0].size
     for i in range(1, X.shape[0]):
@@ -48,7 +68,7 @@ def _is_nested_univ_dataframe(X):
 
 def _is_pd_wide(X):
     """Check whether the input nested DataFrame is "pd-wide" type."""
-    # only test is if all values are float. This from chatgpt seems stupid
+    # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
         if _is_nested_univ_dataframe(X):
             return False
@@ -583,8 +603,7 @@ def _equal_length(X, input_type):
         return True
     if input_type == "nested_univ":  # Nested univariate or hierachical
         return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":
-        # TEMPORARY: WORK OUT HOW TO TEST IF pd.MULTINDEX are equal length
-        return True
+    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
+        return not X.isna().any().any()
     raise ValueError(f" unknown input type {input_type}")
     return False

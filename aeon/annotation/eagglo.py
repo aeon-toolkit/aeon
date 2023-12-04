@@ -110,7 +110,7 @@ class EAgglo(BaseTransformer):
         X : pd.DataFrame
             Data for anomaly detection (time series).
         y : pd.Series, optional
-            Not used for this unsupervsed method.
+            Not used for this unsupervised method.
 
         Returns
         -------
@@ -187,7 +187,7 @@ class EAgglo(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_mtype
+        X : Series of mtype X_inner_type
             Data to be transformed
         y : Series of type y_inner_type, default=None
             Not required for this unsupervised transform.

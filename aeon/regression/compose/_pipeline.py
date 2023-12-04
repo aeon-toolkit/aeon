@@ -68,23 +68,23 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.convolution_based import Rocket
+    >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
-    >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+    >>> from aeon.regression import DummyRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [Rocket(num_kernels=100)]
+    ...     DummyRegressor(), [AutocorrelationFunctionTransformer(n_lags=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
-    RegressorPipeline(regressor=KNeighborsTimeSeriesRegressor(n_neighbors=2),
-                      transformers=[Rocket(num_kernels=100)])
+    RegressorPipeline(regressor=DummyRegressor(),
+                      transformers=[AutocorrelationFunctionTransformer(n_lags=10)])
     >>> y_pred = pipeline.predict(X_test)
     """
 
     _tags = {
-        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
+        "X_inner_type": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -180,7 +180,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -203,7 +203,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -356,7 +356,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_type": "pd-multiindex",  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": True,
@@ -468,7 +468,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -492,7 +492,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------

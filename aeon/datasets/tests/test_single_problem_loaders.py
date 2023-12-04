@@ -1,4 +1,6 @@
 """Test single problem loaders with varying return types."""
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -13,9 +15,11 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_osuleaf,
     load_plaid,
     load_solar,
+    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
+from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -43,7 +47,7 @@ def test_load_dataframe(loader):
     assert isinstance(y, np.ndarray)
     assert y.ndim == 1
     X = loader(return_X_y=False)
-    assert isinstance(X, pd.DataFrame)
+    assert isinstance(X, tuple)
 
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
@@ -77,12 +81,24 @@ def test_load_unit_test_tsf():
     assert not tuple[4]
 
 
+def test_basic_load_tsf_to_dataframe():
+    """Simple loader test."""
+
+    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
+    df, metadata = load_tsf_to_dataframe(full_path)
+    assert isinstance(df, pd.DataFrame)
+    assert metadata["frequency"] == "yearly"
+    assert metadata["forecast_horizon"] == 4
+    assert metadata["contain_missing_values"] is False
+    assert metadata["contain_equal_length"] is False
+
+
 def test_load_solar():
     solar = load_solar(api_version=None)
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version="WRONG")
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version=None, return_full_df=True)
     assert solar.name == "solar_gen"
@@ -98,4 +114,4 @@ def test_load_covid_3month():
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
     X = load_covid_3month(return_X_y=False)
-    assert isinstance(X, pd.DataFrame)
+    assert isinstance(X, tuple)

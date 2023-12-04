@@ -64,7 +64,7 @@ class MyClusterer(BaseClusterer):
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, Other
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, Other
         # types are allowable, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
         "capability:unequal_length": False,
@@ -102,7 +102,7 @@ class MyClusterer(BaseClusterer):
 
         Parameters
         ----------
-        X : Data to cluster, of type self.get_tag("X_inner_mtype")
+        X : Data to cluster, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -120,7 +120,7 @@ class MyClusterer(BaseClusterer):
         Parameters
         ----------
         X : data to cluster based on model formed in _fit, of type self.get_tag(
-        "X_inner_mtype")
+        "X_inner_type")
         y: ignored, exists for API consistency reasons.
 
         Returns

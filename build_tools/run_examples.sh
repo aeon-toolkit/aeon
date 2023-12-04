@@ -7,7 +7,8 @@ CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.t
 
 excluded=(
   "examples/datasets/load_data_from_web.ipynb"
-  "examples/benchmarking/results_loading.ipynb"
+  "examples/benchmarking/reference_results.ipynb"
+  "examples/benchmarking/bakeoff_results.ipynb"
 )
 
 shopt -s lastpipe

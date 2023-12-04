@@ -22,6 +22,8 @@ instance are used to predict a continuous target value.
 instances with similar time series.
 - {term}`Time series annotation` which is focused on outlier detection, anomaly
 detection, change point detection and segmentation.
+- {term}`Time series similarity search` where the goal is to evaluate the similarity
+between a time series against a collection of other time series.
 
 Additionally, it provides numerous algorithms for {term}`time series transformation`,
 altering time series into different representations and domains or processing
@@ -265,13 +267,13 @@ KNeighborsTimeSeriesRegressor()
 
 Like classification and regression, time series clustering aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
-the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
 clusterer on the
 [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
 ```{code-block} python
->>> from aeon.clustering.k_means import TimeSeriesKMeans
+>>> from aeon.clustering import TimeSeriesKMeans
 >>> from aeon.datasets import load_arrow_head
 >>> from sklearn.metrics import rand_score
 >>> X, y = load_arrow_head()
@@ -390,11 +392,11 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.catch22.Catch22), which calculates 22 summary
+[Catch22](transformations.collection.feauture_based), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> import numpy as np
 >>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
 >>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
@@ -442,7 +444,7 @@ multivariate series and automatically convert output.
 
 ```{code-block} python
 >>> from aeon.transformations.collection import CollectionToSeriesWrapper
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> c22 = Catch22(replace_nans=True)
@@ -524,7 +526,7 @@ feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
->>> from aeon.transformations.collection import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from sklearn.ensemble import RandomForestClassifier
 >>> from sklearn.pipeline import make_pipeline
 >>> from sklearn.metrics import accuracy_score
@@ -632,3 +634,44 @@ the available `scikit-learn` functionality.
 >>> gscv.best_params_
 {'distance': 'euclidean', 'n_neighbors': 5}
 ```
+
+## Time series similarity search
+
+The similarity search module in `aeon` offers a set of functions and estimators to solve
+tasks related to time series similarity search. The estimators can be used standalone
+or as parts of pipelines, while the functions give you to the tools to build your own
+estimators that would rely on similarity search at some point.
+
+The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
+class accept 3D collection of time series as input types. This collection asked for the
+fit method is stored as a database, which will be used in the predict method. The
+predict method expect a single 2D time series. All inputs are expected to be in numpy
+array format. Then length of the time series in the 3D collection should be superior or
+equal to the length of the 2D time series given in the predict method.
+
+Given those two inputs, the predict method should return the set of most similar
+candidates to the 2D series in the 3D collection. The following example shows how to use
+the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
+class to extract the best `k` matches, using the Euclidean distance as similarity
+function.
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.similarity_search import TopKSimilaritySearch
+>>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
+...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_samples, n_channels, n_timestamps)
+>>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
+>>> topk.fit(X)  # fit the estimator on train data
+...
+>>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
+>>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
+[(0, 3), (1, 2)]
+```
+The output of predict gives a list of size `k`, where each element is a set indicating
+the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
+to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
+
+Note that you can still use univariate time series as inputs, you will just have to
+convert them to multivariate time series with one feature prior to using the similarity
+search module.
