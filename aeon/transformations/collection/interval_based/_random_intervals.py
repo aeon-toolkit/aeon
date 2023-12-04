@@ -111,6 +111,7 @@ class RandomIntervals(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "fit_is_empty": False,
+        "algorithm_type": "interval",
     }
 
     def __init__(

@@ -1,7 +1,7 @@
-"""Time Convolutional Neural Network (CNN) for regression."""
+"""Fully Convolutional Network (FCN) for regression."""
 
-__author__ = ["AurumnPegasus", "achieveordie", "hadifawaz1999"]
-__all__ = ["CNNRegressor"]
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__all__ = ["FCNRegressor"]
 
 import gc
 import os
@@ -10,64 +10,53 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks.cnn import CNNNetwork
+from aeon.networks import FCNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class CNNRegressor(BaseDeepRegressor):
-    """Time Series Convolutional Neural Network (CNN).
+class FCNRegressor(BaseDeepRegressor):
+    """Fully Convolutional Network (FCN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_layers        : int, default = 2,
-        the number of convolution layers in the network
-    kernel_size    : int or list of int, default = 7,
-        kernel size of convolution layers, if not a list, the same kernel size
-        is used for all layer, len(list) should be n_layers
-    n_filters       : int or list of int, default = [6, 12],
-        number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
-    avg_pool_size   : int or list of int, default = 3,
-        the size of the average pooling layer, if not a list, the same
-        max pooling size is used
-        for all convolution layer
-    output_activation   : str, default = "linear",
-        the output activation for the regressor
-    activation      : str or list of str, default = "sigmoid",
-        keras activation function used in the model for each layer,
-        if not a list, the same
-        activation is used for all layers
-    padding         : str or list of str, default = 'valid',
-        the method of padding in convolution layers, if not a list,
-        the same padding used
-        for all convolution layers
-    strides         : int or list of int, default = 1,
-        the strides of kernels in the convolution and max pooling layers,
-        if not a list, the same strides are used for all layers
-    dilation_rate   : int or list of int, default = 1,
-        the dilation rate of the convolution layers, if not a list,
-        the same dilation rate is used all over the network
-    use_bias        : bool or list of bool, default = True,
-        condition on whether or not to use bias values for convolution layers,
-        if not a list, the same condition is used for all layers
-    random_state    : int, default = 0
-        seed to any needed random actions
-    n_epochs       : int, default = 2000
+    n_layers        : int, default = 3
+        number of convolution layers
+    n_filters       : int or list of int, default = [128,256,128]
+        number of filters used in convolution layers
+    kernel_size     : int or list of int, default = [8,5,3]
+        size of convolution kernel
+    dilation_rate   : int or list of int, default = 1
+        the dilation rate for convolution
+    strides         : int or list of int, default = 1
+        the strides of the convolution filter
+    padding         : str or list of str, default = "same"
+        the type of padding used for convolution
+    activation      : str or list of str, default = "relu"
+        activation used after the convolution
+    use_bias        : bool or list of bool, default = True
+        whether or not ot use bias in convolution
+    n_epochs        : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
+    use_mini_batch_size : bool, default = True,
+        whether or not to use the mini batch size formula
+    random_state    : int or None, default=None
+        Seed for random number generation.
     verbose         : boolean, default = False
         whether to output extra information
+    output_activation   : str, default = "linear",
+        the output activation of the regressor
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
     metrics         : list of strings, default=["accuracy"],
-    callbacks       : keras.callbacks, default=model_checkpoint to save best
-                      model on training loss
-    file_path       : file_path for the best model (if checkpoint is used as callback)
+    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
+        specify the optimizer and the learning rate to be used.
+    file_path       : str, default = "./"
+        file path to save best model
     save_best_model     : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
@@ -86,11 +75,11 @@ class CNNRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-
+    callbacks       : keras.callbacks, default = None
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
 
     References
     ----------
@@ -99,81 +88,85 @@ class CNNRegressor(BaseDeepRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.deep_learning import CNNRegressor
+    >>> from aeon.regression.deep_learning import FCNRegressor
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = CNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> rgs.fit(X, y) # doctest: +SKIP
-    CNNRegressor(...)
+    >>> rgs = FCNRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> rgs.fit(X, y)  # doctest: +SKIP
+    FCNRegressor(...)
     """
+
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+    }
 
     def __init__(
         self,
-        n_layers=2,
-        kernel_size=7,
+        n_layers=3,
         n_filters=None,
-        avg_pool_size=3,
-        activation="sigmoid",
-        padding="valid",
-        strides=1,
+        kernel_size=None,
         dilation_rate=1,
-        n_epochs=2000,
-        batch_size=16,
-        callbacks=None,
+        strides=1,
+        padding="same",
+        activation="relu",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        n_epochs=2000,
+        batch_size=16,
+        use_mini_batch_size=True,
+        callbacks=None,
         verbose=False,
-        loss="mse",
         output_activation="linear",
+        loss="mse",
         metrics=None,
         random_state=None,
         use_bias=True,
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
-        super(CNNRegressor, self).__init__(
-            batch_size=batch_size,
-        )
+        _check_soft_dependencies("tensorflow")
+        super(FCNRegressor, self).__init__(last_file_name=last_file_name)
+
         self.n_layers = n_layers
-        self.avg_pool_size = avg_pool_size
-        self.padding = padding
-        self.n_filters = n_filters
         self.kernel_size = kernel_size
+        self.n_filters = n_filters
+        self.strides = strides
+        self.activation = activation
+        self.dilation_rate = dilation_rate
+        self.padding = padding
+        self.use_bias = use_bias
+        self.output_activation = output_activation
+        self.callbacks = callbacks
+        self.n_epochs = n_epochs
+        self.batch_size = batch_size
+        self.use_mini_batch_size = use_mini_batch_size
+        self.verbose = verbose
+        self.loss = loss
+        self.metrics = metrics
+        self.random_state = random_state
+        self.optimizer = optimizer
+        self.history = None
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
-        self.strides = strides
-        self.dilation_rate = dilation_rate
-        self.callbacks = callbacks
-        self.n_epochs = n_epochs
-        self.batch_size = batch_size
-        self.verbose = verbose
-        self.loss = loss
-        self.output_activation = output_activation
-        self.metrics = metrics
-        self.random_state = random_state
-        self.activation = activation
-        self.use_bias = use_bias
-        self.optimizer = optimizer
-        self.history = None
-        self._network = CNNNetwork(
+        self._network = FCNNetwork(
+            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
-            avg_pool_size=self.avg_pool_size,
-            activation=self.activation,
-            padding=self.padding,
             strides=self.strides,
+            padding=self.padding,
             dilation_rate=self.dilation_rate,
+            activation=self.activation,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -194,27 +187,31 @@ class CNNRegressor(BaseDeepRegressor):
         output : a compiled Keras Model
         """
         import tensorflow as tf
-        from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
 
+        if self.metrics is None:
+            metrics = ["accuracy"]
+        else:
+            metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(units=1, activation=self.output_activation)(
-            output_layer
-        )
+        output_layer = tf.keras.layers.Dense(
+            units=1,
+            activation=self.output_activation,
+        )(output_layer)
 
         self.optimizer_ = (
-            keras.optimizers.Adam() if self.optimizer is None else self.optimizer
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
-
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=metrics,
         )
+
         return model
 
     def _fit(self, X, y):
@@ -244,12 +241,20 @@ class CNNRegressor(BaseDeepRegressor):
         if self.verbose:
             self.training_model_.summary()
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.file_name_ = (
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
         self.callbacks_ = (
             [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".hdf5",
                     monitor="loss",
@@ -263,7 +268,7 @@ class CNNRegressor(BaseDeepRegressor):
         self.history = self.training_model_.fit(
             X,
             y,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
@@ -293,7 +298,7 @@ class CNNRegressor(BaseDeepRegressor):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For regressors, a "default" set of parameters should be provided for
+            For Regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
@@ -309,7 +314,10 @@ class CNNRegressor(BaseDeepRegressor):
         param = {
             "n_epochs": 10,
             "batch_size": 4,
-            "avg_pool_size": 4,
+            "use_bias": False,
+            "n_layers": 2,
+            "padding": "valid",
+            "strides": 2,
         }
 
         return [param]

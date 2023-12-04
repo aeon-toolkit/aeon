@@ -137,6 +137,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "requires_y": True,
+        "algorithm_type": "interval",
     }
 
     def __init__(

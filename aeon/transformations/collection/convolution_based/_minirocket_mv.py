@@ -86,6 +86,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": "np-list",
+        "algorithm_type": "convolution",
     }
 
     def __init__(

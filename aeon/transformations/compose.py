@@ -5,7 +5,6 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 from sklearn import clone
-from sklearn.utils.metaestimators import if_delegate_has_method
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES
@@ -1563,7 +1562,6 @@ class ColumnwiseTransformer(BaseTransformer):
 
         return X
 
-    @if_delegate_has_method(delegate="transformer")
     def update(self, X, y=None, update_params=True):
         """Update parameters.
 

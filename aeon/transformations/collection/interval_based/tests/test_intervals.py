@@ -1,9 +1,6 @@
 """Interval extraction test code."""
 
-from aeon.transformations.collection.feature_based import (
-    Catch22,
-    SevenNumberSummaryTransformer,
-)
+from aeon.transformations.collection import Catch22, SevenNumberSummaryTransformer
 from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
