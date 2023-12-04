@@ -202,7 +202,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshFeatureExtractor
     ... )
-    >>> X, y = load_arrow_head(return_X_y=True)
+    >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> ts_eff = TSFreshFeatureExtractor(
     ...     default_fc_parameters="efficient", disable_progressbar=True
