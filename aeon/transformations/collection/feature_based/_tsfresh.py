@@ -199,7 +199,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     --------
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
-    >>> from aeon.transformations.collection.tsfresh import (
+    >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshFeatureExtractor
     ... )
     >>> X, y = load_arrow_head()
@@ -414,7 +414,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     --------
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
-    >>> from aeon.transformations.collection.tsfresh import (
+    >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshRelevantFeatureExtractor
     ... )
     >>> X, y = load_arrow_head(return_X_y=True)

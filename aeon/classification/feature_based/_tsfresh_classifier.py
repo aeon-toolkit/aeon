@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.tsfresh import (
+from aeon.transformations.collection.feature_based import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
 )
