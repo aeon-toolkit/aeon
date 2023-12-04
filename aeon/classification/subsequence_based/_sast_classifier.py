@@ -149,7 +149,7 @@ class SASTClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes]
             Predicted class probabilities.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self._classifier, "predict_proba", None)
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:
