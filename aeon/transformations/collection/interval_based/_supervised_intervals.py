@@ -120,7 +120,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import SupervisedIntervals
+    >>> from aeon.transformations.collection.interval_based import SupervisedIntervals
     >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20,
     ...                              return_y=True, random_state=0)
@@ -137,6 +137,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "requires_y": True,
+        "algorithm_type": "interval",
     }
 
     def __init__(

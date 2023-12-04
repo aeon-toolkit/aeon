@@ -18,7 +18,10 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection import RandomIntervals, SupervisedIntervals
+from aeon.transformations.collection.interval_based import (
+    RandomIntervals,
+    SupervisedIntervals,
+)
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.panel import check_X_y
