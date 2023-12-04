@@ -3,7 +3,7 @@ import numpy as np
 from sklearn import metrics
 from sklearn.utils import check_random_state
 
-from aeon.clustering.k_medoids import TimeSeriesKMedoids
+from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
 
