@@ -86,8 +86,8 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow<2.16.0",
-    "tensorflow-probability<0.23.0",
+    "tensorflow",
+    "tensorflow-probability",
 ]
 unstable_extras = [
     "pycatch22<=0.4.3",  # known to fail installation on some setups
