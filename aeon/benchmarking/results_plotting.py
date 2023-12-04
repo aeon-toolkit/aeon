@@ -140,8 +140,7 @@ def plot_boxplot_median(
 def plot_scatter_predictions(
     y,
     y_pred,
-    method,
-    dataset,
+    title=None,
 ):
     """Plot a scatter that compares actual and predicted values for a given dataset.
 
@@ -155,10 +154,8 @@ def plot_scatter_predictions(
         Actual values.
     y_pred: np.array
         Predicted values.
-    method: str
-        Method's name for title.
-    dataset: str
-        Dataset's name for title.
+    title: str, default = None
+        Title to be shown in the top of the plot.
 
     Returns
     -------
@@ -175,8 +172,8 @@ def plot_scatter_predictions(
     >>> fp = FreshPRINCERegressor(n_estimators=10)  # doctest: +SKIP
     >>> fp.fit(X_train, y_train)  # doctest: +SKIP
     >>> y_pred_fp = fp.predict(X_test)  # doctest: +SKIP
-    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",\
-        dataset="Covid3Month")  # doctest: +SKIP
+    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, title="FP-Covid3Month")\
+        # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")\
         # doctest: +SKIP
@@ -209,7 +206,8 @@ def plot_scatter_predictions(
     plot.set_xlabel("Actual values")
     plot.set_ylabel("Predicted values")
 
-    plot.set_title(rf"{method} - {dataset}")
+    if title is not None:
+        plot.set_title(rf"{title}")
 
     return fig
 
