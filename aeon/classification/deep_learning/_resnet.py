@@ -11,8 +11,8 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks.resnet import ResNetNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
+from aeon.networks import ResNetNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetClassifier(BaseDeepClassifier):
@@ -95,7 +95,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning.resnet import ResNetClassifier
+    >>> from aeon.classification.deep_learning import ResNetClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
@@ -135,7 +135,7 @@ class ResNetClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         optimizer=None,
     ):
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
         super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block

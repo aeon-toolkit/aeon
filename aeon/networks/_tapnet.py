@@ -9,10 +9,7 @@ import math
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import (
-    _check_dl_dependencies,
-    _check_soft_dependencies,
-)
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetNetwork(BaseDeepNetwork):
@@ -76,7 +73,7 @@ class TapNetNetwork(BaseDeepNetwork):
             package_import_alias={"keras-self-attention": "keras_self_attention"},
             severity="error",
         )
-        _check_dl_dependencies(severity="error")
+        _check_soft_dependencies("tensorflow")
 
         super(TapNetNetwork, self).__init__()
 
