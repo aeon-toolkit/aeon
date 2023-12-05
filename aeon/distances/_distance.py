@@ -103,7 +103,8 @@ def distance(
     metric : str or Callable
         The distance metric to use.
         A list of valid distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function`.
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -242,8 +243,9 @@ def pairwise_distance(
        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
     metric : str or Callable
         The distance metric to use.
-        A list of valid pairwise distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_pairwise_distance_function`.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
