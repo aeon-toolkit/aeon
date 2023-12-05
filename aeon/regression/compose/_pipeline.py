@@ -440,11 +440,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     def _convert_X_to_sklearn(self, X):
         """Convert X to 2D numpy required by sklearn."""
         Xt = convert_collection(X, "numpy3D")
-        if Xt.ndim == 2:
-            return X
-        elif Xt.ndim == 3:
-            return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
-        return Xt
+        return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _fit(self, X, y):
         """Fit time series regressor to training data.
