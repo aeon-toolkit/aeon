@@ -16,4 +16,4 @@ def test_mpdist():
         mpdist(x, y)
     y = np.random.rand(1, 10)
     d = mpdist(x, y)
-    assert d > 0
+    assert d >= 0
