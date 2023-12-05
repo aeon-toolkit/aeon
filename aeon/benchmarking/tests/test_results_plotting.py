@@ -22,7 +22,6 @@ data_path = os.path.join(test_path, "../example_results/")
     reason="skip test if required soft dependency not available",
 )
 def test_plot_boxplot_median():
-    _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
@@ -50,7 +49,6 @@ def test_plot_boxplot_median():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_scatter_predictions():
-    _check_soft_dependencies("matplotlib")
     from random import uniform
 
     from matplotlib.figure import Figure
@@ -70,8 +68,6 @@ def test_plot_scatter_predictions():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_scatter():
-    _check_soft_dependencies("matplotlib")
-
     from matplotlib.figure import Figure
 
     cls = ["HC2", "FreshPRINCE"]
