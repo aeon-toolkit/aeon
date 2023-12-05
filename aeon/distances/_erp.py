@@ -272,7 +272,7 @@ def erp_pairwise_distance(
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
-        If None, then the squared pairwise distance between the instances of X is
+        If None, then the erp pairwise distance between the instances of X is
         calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -392,6 +392,7 @@ def erp_alignment_path(
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ERP alignment path between two time series.
 
+    The optimal value of g is selected from the range [σ/5, σ], where σ is the
     The optimal value of g is selected from the range [σ/5, σ], where σ is the
     standard deviation of the training data. When there is > 1 channel, g should
     be a np.ndarray where the nth value is the standard deviation of the nth

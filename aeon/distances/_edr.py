@@ -233,7 +233,7 @@ def edr_pairwise_distance(
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
-        If None, then the squared pairwise distance between the instances of X is
+        If None, then the edr pairwise distance between the instances of X is
         calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix

@@ -82,7 +82,7 @@ def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
-        If None, then the squared pairwise distance between the instances of X is
+        If None, then the manhattan pairwise distance between the instances of X is
         calculated.
 
 
