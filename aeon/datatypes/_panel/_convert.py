@@ -1112,7 +1112,7 @@ def from_dflist_to_nested_adp(obj, store=None):
 convert_dict[("df-list", "nested_univ", "Panel")] = from_dflist_to_nested_adp
 
 
-def from_numpy3d_to_numpy2D(obj, store=None):
+def from_numpy3d_to_numpy2d(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 3:
         raise TypeError("obj must be a 3D numpy.ndarray")
 
@@ -1127,10 +1127,10 @@ def from_numpy3d_to_numpy2D(obj, store=None):
     return obj_in_2D
 
 
-convert_dict[("numpy3D", "numpy2D", "Panel")] = from_numpy3d_to_numpy2D
+convert_dict[("numpy3D", "numpy2D", "Panel")] = from_numpy3d_to_numpy2d
 
 
-def from_numpy2D_to_numpy3d(obj, store=None):
+def from_numpy2d_to_numpy3d(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 2:
         raise TypeError("obj must be a 2D numpy.ndarray")
 
@@ -1153,7 +1153,7 @@ def from_numpy2D_to_numpy3d(obj, store=None):
     return obj_in_3D
 
 
-convert_dict[("numpy2D", "numpy3D", "Panel")] = from_numpy2D_to_numpy3d
+convert_dict[("numpy2D", "numpy3D", "Panel")] = from_numpy2d_to_numpy3d
 
 _extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=MTYPE_LIST_PANEL)
 
