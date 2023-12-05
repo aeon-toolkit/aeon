@@ -29,35 +29,35 @@ for x in COLLECTIONS_DATA_TYPES:
 convert_dictionary[("numpy3D", "np-list")] = conv._from_numpy3d_to_np_list
 convert_dictionary[("numpy3D", "df-list")] = conv._from_numpy3d_to_df_list
 convert_dictionary[("numpy3D", "pd-wide")] = conv._from_numpy3d_to_pd_wide
-convert_dictionary[("numpy3D", "numpy2D")] = conv._from_numpy3d_to_numpy2D
+convert_dictionary[("numpy3D", "numpy2D")] = conv._from_numpy3d_to_numpy2d
 convert_dictionary[("numpy3D", "nested_univ")] = conv._from_numpy3d_to_nested_univ
 convert_dictionary[("numpy3D", "pd-multiindex")] = conv._from_numpy3d_to_pd_multiindex
 # np-list-> *
 convert_dictionary[("np-list", "numpy3D")] = conv._from_np_list_to_numpy3d
 convert_dictionary[("np-list", "df-list")] = conv._from_np_list_to_df_list
 convert_dictionary[("np-list", "pd-wide")] = conv._from_np_list_to_pd_wide
-convert_dictionary[("np-list", "numpy2D")] = conv._from_np_list_to_numpy2D
+convert_dictionary[("np-list", "numpy2D")] = conv._from_np_list_to_numpy2d
 convert_dictionary[("np-list", "nested_univ")] = conv._from_np_list_to_nested_univ
 convert_dictionary[("np-list", "pd-multiindex")] = conv._from_np_list_to_pd_multiindex
 # df-list-> *
 convert_dictionary[("df-list", "numpy3D")] = conv._from_df_list_to_numpy3d
 convert_dictionary[("df-list", "np-list")] = conv._from_df_list_to_np_list
 convert_dictionary[("df-list", "pd-wide")] = conv._from_df_list_to_pd_wide
-convert_dictionary[("df-list", "numpy2D")] = conv._from_df_list_to_numpy2D
+convert_dictionary[("df-list", "numpy2D")] = conv._from_df_list_to_numpy2d
 convert_dictionary[("df-list", "nested_univ")] = conv._from_df_list_to_nested_univ
 convert_dictionary[("df-list", "pd-multiindex")] = conv._from_df_list_to_pd_multiindex
 # numpy2D -> *: NOTE ASSUMES n_channels == 1 for this conversion.
-convert_dictionary[("numpy2D", "numpy3D")] = conv._from_numpy2D_to_numpy3d
-convert_dictionary[("numpy2D", "np-list")] = conv._from_numpy2D_to_np_list
-convert_dictionary[("numpy2D", "df-list")] = conv._from_numpy2D_to_df_list
-convert_dictionary[("numpy2D", "pd-wide")] = conv._from_numpy2D_to_pd_wide
-convert_dictionary[("numpy2D", "nested_univ")] = conv._from_numpy2D_to_nested_univ
-convert_dictionary[("numpy2D", "pd-multiindex")] = conv._from_numpy2D_to_pd_multiindex
+convert_dictionary[("numpy2D", "numpy3D")] = conv._from_numpy2d_to_numpy3d
+convert_dictionary[("numpy2D", "np-list")] = conv._from_numpy2d_to_np_list
+convert_dictionary[("numpy2D", "df-list")] = conv._from_numpy2d_to_df_list
+convert_dictionary[("numpy2D", "pd-wide")] = conv._from_numpy2d_to_pd_wide
+convert_dictionary[("numpy2D", "nested_univ")] = conv._from_numpy2d_to_nested_univ
+convert_dictionary[("numpy2D", "pd-multiindex")] = conv._from_numpy2d_to_pd_multiindex
 # pd-wide -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("pd-wide", "numpy3D")] = conv._from_pd_wide_to_numpy3d
 convert_dictionary[("pd-wide", "np-list")] = conv._from_pd_wide_to_np_list
 convert_dictionary[("pd-wide", "df-list")] = conv._from_pd_wide_to_df_list
-convert_dictionary[("pd-wide", "numpy2D")] = conv._from_pd_wide_to_numpy2D
+convert_dictionary[("pd-wide", "numpy2D")] = conv._from_pd_wide_to_numpy2d
 convert_dictionary[("pd-wide", "nested_univ")] = conv._from_pd_wide_to_nested_univ
 convert_dictionary[("pd-wide", "pd-multiindex")] = conv._pd_wide_to_pd_multiindex
 # nested_univ -> *
@@ -65,7 +65,7 @@ convert_dictionary[("nested_univ", "numpy3D")] = conv._from_nested_univ_to_numpy
 convert_dictionary[("nested_univ", "np-list")] = conv._from_nested_univ_to_np_list
 convert_dictionary[("nested_univ", "df-list")] = conv._from_nested_univ_to_df_list
 convert_dictionary[("nested_univ", "pd-wide")] = conv._from_nested_univ_to_pd_wide
-convert_dictionary[("nested_univ", "numpy2D")] = conv._from_nested_univ_to_numpy2D
+convert_dictionary[("nested_univ", "numpy2D")] = conv._from_nested_univ_to_numpy2d
 convert_dictionary[
     ("nested_univ", "pd-multiindex")
 ] = conv._from_nested_univ_to_pd_multiindex
@@ -74,7 +74,7 @@ convert_dictionary[("pd-multiindex", "numpy3D")] = conv._from_pd_multiindex_to_n
 convert_dictionary[("pd-multiindex", "np-list")] = conv._from_pd_multiindex_to_np_list
 convert_dictionary[("pd-multiindex", "df-list")] = conv._from_pd_multiindex_to_df_list
 convert_dictionary[("pd-multiindex", "pd-wide")] = conv._from_pd_multiindex_to_pd_wide
-convert_dictionary[("pd-multiindex", "numpy2D")] = conv._from_pd_multiindex_to_numpy2D
+convert_dictionary[("pd-multiindex", "numpy2D")] = conv._from_pd_multiindex_to_numpy2d
 convert_dictionary[
     ("pd-multiindex", "nested_univ")
 ] = conv._from_pd_multiindex_to_nested_univ

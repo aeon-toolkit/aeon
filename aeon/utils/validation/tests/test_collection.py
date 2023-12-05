@@ -7,14 +7,14 @@ from aeon.datasets import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
 from aeon.utils.validation._convert_collection import (
     _equal_length,
-    _from_nested_univ_to_numpy2D,
+    _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
-    _from_numpy2D_to_df_list,
-    _from_numpy2D_to_nested_univ,
-    _from_numpy2D_to_np_list,
-    _from_numpy2D_to_numpy3d,
-    _from_numpy2D_to_pd_multiindex,
-    _from_numpy2D_to_pd_wide,
+    _from_numpy2d_to_df_list,
+    _from_numpy2d_to_nested_univ,
+    _from_numpy2d_to_np_list,
+    _from_numpy2d_to_numpy3d,
+    _from_numpy2d_to_pd_multiindex,
+    _from_numpy2d_to_pd_wide,
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_nested_univ,
     _from_numpy3d_to_np_list,
@@ -254,12 +254,12 @@ def test_numpy3D_error(function):
 
 
 NUMPY2D = [
-    _from_numpy2D_to_numpy3d,
-    _from_numpy2D_to_np_list,
-    _from_numpy2D_to_df_list,
-    _from_numpy2D_to_pd_wide,
-    _from_numpy2D_to_nested_univ,
-    _from_numpy2D_to_pd_multiindex,
+    _from_numpy2d_to_numpy3d,
+    _from_numpy2d_to_np_list,
+    _from_numpy2d_to_df_list,
+    _from_numpy2d_to_pd_wide,
+    _from_numpy2d_to_nested_univ,
+    _from_numpy2d_to_pd_multiindex,
 ]
 
 
@@ -308,12 +308,12 @@ def test_from_nested():
     with pytest.raises(
         TypeError, match="Cannot convert unequal length series to " "numpy2D"
     ):
-        _from_nested_univ_to_numpy2D(X)
+        _from_nested_univ_to_numpy2d(X)
     X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
-    result = _from_nested_univ_to_numpy2D(X)
+    result = _from_nested_univ_to_numpy2d(X)
     assert result.shape == (10, 20)
     X, _ = make_nested_dataframe_data(n_cases=10, n_channels=2, n_timepoints=20)
     with pytest.raises(
         TypeError, match="Cannot convert multivariate nested into " "numpy2D"
     ):
-        _from_nested_univ_to_numpy2D(X)
+        _from_nested_univ_to_numpy2d(X)
