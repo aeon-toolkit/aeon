@@ -1,91 +1,49 @@
-import time
-from typing import Callable
-
+"""Tests for distance utility function."""
 import numpy as np
-from sklearn.utils.validation import check_random_state
+import pytest
+
+from aeon.distances._utils import (
+    _make_3d_series,
+    create_test_distance_numpy,
+    reshape_pairwise_to_multiple,
+)
 
 
-def create_test_distance_numpy(
-    n_instance: int,
-    n_channels: int = None,
-    n_timepoints: int = None,
-    random_state: int = 1,
-):
-    """Create a test numpy distance.
-
-    Parameters
-    ----------
-    n_instance: int
-        Number of instances to create.
-    n_channels: int
-        Number of channels to create.
-    n_timepoints: int, default=None
-        Number of timepoints to create in each channel.
-    random_state: int, default=1
-        Random state to initialise with.
-
-    Returns
-    -------
-    np.ndarray 2D or 3D numpy
-        Numpy array of shape specific. If 1 instance then 2D array returned,
-        if > 1 instance then 3D array returned.
-    """
-    rng = check_random_state(random_state)
-    # Generate data as 3d numpy array
-    if n_timepoints is None and n_channels is None:
-        return rng.normal(scale=0.5, size=(1, n_instance))
-    if n_timepoints is None:
-        return rng.normal(scale=0.5, size=(n_instance, n_channels))
-    return rng.normal(scale=0.5, size=(n_instance, n_channels, n_timepoints))
+def test_create_test_distance_numpy():
+    """Test function to create distance test instance."""
+    x = create_test_distance_numpy(10)
+    assert isinstance(x, np.ndarray)
+    assert x.shape == (1, 10)
+    x = create_test_distance_numpy(10, n_channels=4)
+    assert isinstance(x, np.ndarray)
+    assert x.shape == (10, 4)
+    x = create_test_distance_numpy(10, n_channels=4, n_timepoints=20)
+    assert isinstance(x, np.ndarray)
+    assert x.shape == (10, 4, 20)
 
 
-def _time_distance(callable: Callable, average: int = 30, **kwargs):
-    for _ in range(3):
-        callable(**kwargs)
+def test_incorrect_input():
+    """Test util function incorrect input."""
+    x = np.random.rand(10, 2, 2, 10)
+    y = np.random.rand(10, 2, 10)
+    with pytest.raises(
+        ValueError, match="The matrix provided has more than 3 " "dimensions"
+    ):
+        _make_3d_series(x)
+    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
+        reshape_pairwise_to_multiple(x, x)
+    with pytest.raises(ValueError, match="x and y must be 2D or 3D arrays"):
+        reshape_pairwise_to_multiple(x, y)
 
-    total = 0
-    for _ in range(average):
-        start = time.time()
-        callable(**kwargs)
-        total += time.time() - start
 
-    return total / average
-
-
-def _make_3d_series(x: np.ndarray) -> np.ndarray:
-    """Check a series being passed into pairwise is 3d.
-
-    Pairwise assumes it has been passed two sets of series, if passed a single
-    series this function reshapes.
-
-    If given a 1d array the time series is reshaped to (m, 1, 1). This is so when
-    looped over x[i] = (1, m).
-
-    If given a 2d array then the time series is reshaped to (d, 1, m). The dimensions
-    are put to the start so the ts can be looped through correctly. When looped over
-    the time series x[i] = (d, m).
-
-    Parameters
-    ----------
-    x: np.ndarray, 2d or 3d
-
-    Returns
-    -------
-    np.ndarray, 3d
-    """
-    num_dims = x.ndim
-    if num_dims == 1:
-        shape = x.shape
-        _x = np.reshape(x, (1, 1, shape[0]))
-    elif num_dims == 2:
-        shape = x.shape
-        _x = np.reshape(x, (shape[0], 1, shape[1]))
-    elif num_dims > 3:
-        raise ValueError(
-            "The matrix provided has more than 3 dimensions. This is not"
-            "supported. Please provide a matrix with less than "
-            "3 dimensions"
-        )
-    else:
-        _x = x
-    return _x
+def test_reshape_pairwise_to_multiple():
+    x = np.random.rand(5, 2, 10)
+    y = np.random.rand(5, 2, 10)
+    x2, y2 = reshape_pairwise_to_multiple(x, y)
+    assert x2.shape == y2.shape == (5, 2, 10)
+    x = np.random.rand(5, 10)
+    y = np.random.rand(5, 10)
+    x2, y2 = reshape_pairwise_to_multiple(x, y)
+    assert x2.shape == y2.shape == (5, 1, 10)
+    y = np.random.rand(5)
+    assert x2.shape == y2.shape == (5, 1, 10)
