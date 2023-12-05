@@ -67,6 +67,7 @@ DIST_PARAMS = {
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
     "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.1}],
     "adtw": BASIC_BOUNDING_PARAMS + [{"warp_penalty": 5.0}],
+    "minkowski": [{"p": 1.0}, {"p": 2.0}],
 }
 
 

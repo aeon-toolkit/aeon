@@ -70,62 +70,58 @@ def minkowski_distance(
     if p < 1:
         raise ValueError("p should be greater or equal to 1")
 
-    # Handle weights
-    # Numba is not handing `None` type
-    # if w is not None:
-    #     if x.shape != w.shape:
-    #         raise ValueError("Weights w must have the same shape as x and y")
-    #     for weight in w:
-    #         if weight.any() < 0:
-    #             raise ValueError("Input weights should be all non-negative")
-    #     w = w.astype(x.dtype)
+    # Handle Weight
+    if w is None:
+        if x.ndim == 1:
+            _w = np.ones(x.shape[0])  # For 1D arrays
+        else:
+            _w = np.ones_like(x)  # For 2D arrays
+    else:
+        _w = w
+        if x.shape != _w.shape:
+            raise ValueError("Weights w must have the same shape as x")
+        if np.any(_w < 0):
+            raise ValueError("Input weights should be all non-negative")
+    _w = _w.astype(x.dtype)
 
     if x.ndim == 1 and y.ndim == 1:
-        return _univariate_minkowski_distance(x, y, p, w)
+        return _univariate_minkowski_distance(x, y, p, _w)
     if x.ndim == 2 and y.ndim == 2:
-        return _multivariate_minkowski_distance(x, y, p, w)
+        return _multivariate_minkowski_distance(x, y, p, _w)
 
     raise ValueError("Inconsistent dimensions.")
 
 
 @njit(cache=True, fastmath=True)
 def _univariate_minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
+    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
 ) -> float:
     min_length = min(x.shape[0], y.shape[0])
 
-    # Slice x and y to the minimum length
     x = x[:min_length]
     y = y[:min_length]
+    w = w[:min_length]
 
-    if w is not None:
-        # Also slice w to the minimum length
-        w = w[:min_length]
-        dist = np.sum(w * (np.abs(x - y) ** p))
-    else:
-        dist = np.sum(np.abs(x - y) ** p)
+    dist = np.sum(w * (np.abs(x - y) ** p))
 
     return dist ** (1.0 / p)
 
 
 @njit(cache=True, fastmath=True)
 def _multivariate_minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
+    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
 ) -> float:
     dist = 0.0
     min_rows = min(x.shape[0], y.shape[0])
+
     for i in range(min_rows):
-        min_cols = min(x[i].shape[0], y[i].shape[0])  # Find the minimum column length
+        min_cols = min(x[i].shape[0], y[i].shape[0])
         x_row = x[i][:min_cols]
         y_row = y[i][:min_cols]
+        w_row = w[i][:min_cols]
 
         diff = np.abs(x_row - y_row) ** p
-
-        if w is None:
-            dist += np.sum(diff)
-        else:
-            w_row = w[i][:min_cols]
-            dist += np.sum(w_row * diff)
+        dist += np.sum(w_row * diff)
 
     return dist ** (1.0 / p)
 
