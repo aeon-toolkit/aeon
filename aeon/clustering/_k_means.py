@@ -135,7 +135,7 @@ class TimeSeriesKMeans(BaseClusterer):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.clustering.k_means import TimeSeriesKMeans
+    >>> from aeon.clustering import TimeSeriesKMeans
     >>> X = np.random.random(size=(10,2,20))
     >>> clst= TimeSeriesKMeans(distance="euclidean",n_clusters=2)
     >>> clst.fit(X)

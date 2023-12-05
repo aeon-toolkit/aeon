@@ -6,6 +6,7 @@ An ensemble of elastic nearest neighbour classifiers.
 __author__ = ["jasonlines", "TonyBagnall"]
 __all__ = ["ElasticEnsemble"]
 
+import math
 import time
 from itertools import product
 
@@ -279,7 +280,7 @@ class ElasticEnsemble(BaseClassifier):
                     param_distributions=ElasticEnsemble._get_100_param_options(
                         self._distance_measures[dm], X
                     ),
-                    n_iter=100 * self.proportion_of_param_options,
+                    n_iter=math.ceil(100 * self.proportion_of_param_options),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
                     n_jobs=self._n_jobs,
