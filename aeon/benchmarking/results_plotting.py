@@ -266,6 +266,9 @@ def plot_scatter(
     import seaborn as sns
     from matplotlib.offsetbox import AnchoredText
 
+    if results.shape[1] != 2:
+        raise ValueError("Please provide a results array only for 2 methods.")
+
     if statistic_tests:
         fig, ax = plt.subplots(figsize=(10, 6), gridspec_kw=dict(bottom=0.2))
     else:
