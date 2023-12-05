@@ -48,7 +48,7 @@ dependencies = [
     "numba>=0.55",
     "numpy>=1.21.0,<1.27.0",
     "packaging>=20.0",
-    "pandas>=1.5.3,<2.1.0",
+    "pandas>=1.5.3,<2.2.0",
     "scikit-learn>=1.0.0,<1.4.0",
     "scipy>=1.2.0,<2.0.0",
 ]
@@ -81,7 +81,7 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
-    "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
+    "mlflow<2.9.0", # see https://github.com/mlflow/mlflow/issues/8629
     "imbalanced-learn",
 ]
 dl = [
