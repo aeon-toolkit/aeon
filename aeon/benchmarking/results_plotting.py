@@ -81,7 +81,7 @@ def plot_boxplot_median(
         where=sum_results_medians != 0,
     )
 
-    fig = plt.figure(layout="tight")
+    fig = plt.figure(figsize=(10, 6), layout="tight")
 
     # Plots violin or boxplots
     if plot_type == "violin":
@@ -404,7 +404,7 @@ def plot_scatter(
             alternative="less" if lower_better else "greater",
         )[1]
 
-        wil = f"Wilcoxon test for equality of means, p-value={p_value_w:.3f}"
+        wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
             0.5,
