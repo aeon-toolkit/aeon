@@ -7,7 +7,6 @@ __all__ = [
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
-    "Catch22",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
@@ -21,11 +20,8 @@ __all__ = [
     "RandomIntervalSegmenter",
     "SlidingWindowSegmenter",
     "SlopeTransformer",
-    "SevenNumberSummaryTransformer",
     "TimeSeriesScaler",
     "TruncationTransformer",
-    "TSFreshFeatureExtractor",
-    "TSFreshRelevantFeatureExtractor",
 ]
 
 from aeon.transformations.collection._collection_wrapper import (
@@ -34,7 +30,6 @@ from aeon.transformations.collection._collection_wrapper import (
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.collection.catch22 import Catch22
 from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
@@ -53,9 +48,4 @@ from aeon.transformations.collection.segment import (
     SlidingWindowSegmenter,
 )
 from aeon.transformations.collection.slope import SlopeTransformer
-from aeon.transformations.collection.summary import SevenNumberSummaryTransformer
 from aeon.transformations.collection.truncate import TruncationTransformer
-from aeon.transformations.collection.tsfresh import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
