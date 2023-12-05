@@ -64,7 +64,7 @@ def plot_boxplot_median(
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
     >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
     >>> plot.show() # doctest: +SKIP
-    >>> plot.savefig("boxplot.pdf", bbox_inches="tight") # doctest: +SKIP
+    >>> plot.savefig("boxplot.pdf") # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -180,14 +180,14 @@ def plot_scatter_predictions(
     >>> plot = plot_scatter_predictions(y_test, y_pred_fp, title="FP-Covid3Month")\
         # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
-    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")\
+    >>> plot.savefig("scatterplot_predictions.pdf")\
         # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    fig = plt.figure(layout="tight")
+    fig = plt.figure(figsize=(10, 6), layout="tight")
     min_value = min(y.min(), y_pred.min()) * 0.97
     max_value = max(y.max(), y_pred.max()) * 1.03
 
@@ -241,7 +241,7 @@ def plot_scatter(
     lower_better : bool, default = False
         If True, lower values are considered better, i.e. errors.
     statistic_tests : bool, default = True
-        If True, ttest and wilcoxon p-values are shown in the bottom of the plot.
+        If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
     title : str, default = None
         Title to be shown in the top of the plot.
 
