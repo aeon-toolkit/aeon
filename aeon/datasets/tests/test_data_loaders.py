@@ -52,7 +52,7 @@ def test_load_forecasting_from_repo():
     ):
         load_forecasting(name)
     name = "m1_quarterly_dataset"
-    data, meta = load_forecasting(name)
+    data, meta = load_forecasting(name, return_metadata=True)
     assert isinstance(data, pd.DataFrame)
     assert isinstance(meta, dict)
     assert meta["frequency"] == "quarterly"
