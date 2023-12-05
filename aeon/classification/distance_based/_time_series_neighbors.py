@@ -107,9 +107,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array-like, shape = (n_cases)
             The class labels.
         """
-        if isinstance(self.distance, str):
-            self.metric_ = get_distance_function(metric=self.distance)
-
+        self.metric_ = get_distance_function(metric=self.distance)
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self
