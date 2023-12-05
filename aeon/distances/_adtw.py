@@ -40,10 +40,9 @@ def adtw_distance(
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1`` then
         10% of the series length is the max warping allowed.
-        is used.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
-        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+        Itakura parallelogram on the bounding matrix. Must be between 0.0 and 1.0
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
 
@@ -59,9 +58,8 @@ def adtw_distance(
 
     References
     ----------
-    .. [1] Matthieu Herrmann, Geoffrey I. Webb: Amercing: An intuitive and
-    effective constraint for dynamic time warping, Pattern Recognition,
-    Volume 137, 2023.
+    .. [1] Matthieu Herrmann, Geoffrey I. Webb: Amercing: An intuitive and effective
+    constraint for dynamic time warping, Pattern Recognition, Volume 137, 2023.
 
     Examples
     --------
@@ -214,6 +212,10 @@ def adtw_pairwise_distance(
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the squared pairwise distance between the instances of X is
+        calculated.
+
+
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
