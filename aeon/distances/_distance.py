@@ -725,18 +725,7 @@ def get_distance_function_names() -> List[str]:
     'adtw'
 
     """
-    import aeon.distances as dist
-
-    names = dist.__all__
-    distance_functions = set()
-    excluded = ["distance", "pairwise", "alignment", "cost", "get", "create"]
-    for s in names:
-        prefix = s.split("_")[0]
-        if prefix not in excluded:
-            if prefix == "shape":
-                prefix = prefix + "_dtw"
-            distance_functions.add(prefix)
-    return sorted(list(distance_functions))
+    return sorted(DISTANCES_DICT.keys())
 
 
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
