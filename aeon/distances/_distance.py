@@ -702,23 +702,6 @@ def cost_matrix(
         raise ValueError("Metric must be one of the supported strings")
 
 
-distance_function_names = [
-    "dtw",
-    "ddtw",
-    "wdtw",
-    "wddtw",
-    "adtw",
-    "erp",
-    "edr",
-    "twe",
-    "msm",
-    "lcss",
-    "euclidean",
-    "shape_dtw",
-    "squared",
-]
-
-
 def get_distance_function_names() -> List[str]:
     """Get a list of distance function names in aeon.
 
@@ -727,7 +710,7 @@ def get_distance_function_names() -> List[str]:
         name_pairwise_distance
     Elastic distances have two additional functions associated with them:
         name_alignment_path
-        name_cost_matrix.
+        name_cost_matrix
 
     Returns
     -------
@@ -739,22 +722,21 @@ def get_distance_function_names() -> List[str]:
     >>> from aeon.distances import get_distance_function_names
     >>> names = get_distance_function_names()
     >>> names[0]
-    'dtw'
+    'adtw'
 
     """
     import aeon.distances as dist
 
     names = dist.__all__
     distance_functions = set()
-    excluded = ["distance", "pairwise", "alignment", "cost_matrix", "get", "create"]
+    excluded = ["distance", "pairwise", "alignment", "cost", "get", "create"]
     for s in names:
         prefix = s.split("_")[0]
         if prefix not in excluded:
             if prefix == "shape":
                 prefix = prefix + "_dtw"
             distance_functions.add(prefix)
-
-    return list(distance_functions).sort()
+    return sorted(list(distance_functions))
 
 
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
