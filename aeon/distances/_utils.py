@@ -13,12 +13,13 @@ def reshape_pairwise_to_multiple(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
+    x : np.ndarray
+        One or more time series of shape (n_instances, n_channels,
+        n_timepoints) or
+            (n_instances, n_timepoints) or (n_timepoints,).
+    y : np.ndarray
+        One or more time series of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,)
-        A collection of time series instances.
 
     Returns
     -------
@@ -62,7 +63,7 @@ def reshape_pairwise_to_multiple(
         raise ValueError("x and y must be 2D or 3D arrays")
 
 
-def create_test_distance_numpy(
+def _create_test_distance_numpy(
     n_instance: int,
     n_channels: int = None,
     n_timepoints: int = None,
