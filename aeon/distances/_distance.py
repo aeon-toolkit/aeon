@@ -447,7 +447,7 @@ def alignment_path(
         The distance metric to use.
         A list of valid alignment path metrics can be found in the documentation for
         :func:`aeon.distances.get_alignment_path_function`.
-    kwargs : Any
+    kwargs : any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
 
@@ -700,6 +700,61 @@ def cost_matrix(
         )
     else:
         raise ValueError("Metric must be one of the supported strings")
+
+
+distance_function_names = [
+    "dtw",
+    "ddtw",
+    "wdtw",
+    "wddtw",
+    "adtw",
+    "erp",
+    "edr",
+    "twe",
+    "msm",
+    "lcss",
+    "euclidean",
+    "shape_dtw",
+    "squared",
+]
+
+
+def get_distance_function_names() -> List[str]:
+    """Get a list of distance function names in aeon.
+
+    All distance function names have two associated functions:
+        name_distance
+        name_pairwise_distance
+    Elastic distances have two additional functions associated with them:
+        name_alignment_path
+        name_cost_matrix.
+
+    Returns
+    -------
+    List[str]
+        List of distance function names in aeon.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_distance_function_names
+    >>> names = get_distance_function_names()
+    >>> names[0]
+    'dtw'
+
+    """
+    import aeon.distances as dist
+
+    names = dist.__all__
+    distance_functions = set()
+    excluded = ["distance", "pairwise", "alignment", "cost_matrix", "get", "create"]
+    for s in names:
+        prefix = s.split("_")[0]
+        if prefix not in excluded:
+            if prefix == "shape":
+                prefix = prefix + "_dtw"
+            distance_functions.add(prefix)
+
+    return list(distance_functions).sort()
 
 
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:

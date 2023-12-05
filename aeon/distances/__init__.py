@@ -56,6 +56,7 @@ __all__ = [
     "cost_matrix",
     "get_cost_matrix_function",
     "get_distance_function",
+    "get_distance_function_names",
     "get_pairwise_distance_function",
     "get_alignment_path_function",
     "shape_dtw_distance",
@@ -85,6 +86,7 @@ from aeon.distances._distance import (
     get_alignment_path_function,
     get_cost_matrix_function,
     get_distance_function,
+    get_distance_function_names,
     get_pairwise_distance_function,
     pairwise_distance,
 )
