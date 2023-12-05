@@ -18,7 +18,7 @@ from aeon.utils.validation._convert_collection import (
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_nested_univ,
     _from_numpy3d_to_np_list,
-    _from_numpy3d_to_numpy2D,
+    _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_pd_multiindex,
     _from_numpy3d_to_pd_wide,
     _is_nested_univ_dataframe,
@@ -240,7 +240,7 @@ NUMPY3D = [
     _from_numpy3d_to_np_list,
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_pd_wide,
-    _from_numpy3d_to_numpy2D,
+    _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_nested_univ,
     _from_numpy3d_to_pd_multiindex,
 ]
