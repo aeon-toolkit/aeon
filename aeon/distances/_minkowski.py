@@ -135,7 +135,7 @@ def minkowski_pairwise_distance(
     X : np.ndarray
         A collection of time series instances, of shape
         (n_instances, n_channels, n_timepoints) or
-        (n_instances, n_timepoints).
+        (n_instances, n_timepoints) or (n_timepoints,).
     y : np.ndarray, default=None
         A second collection of time series instances, of
         shape (m_instances, m_channels, m_timepoints) or
