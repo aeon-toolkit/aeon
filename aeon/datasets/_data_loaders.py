@@ -33,8 +33,8 @@ __all__ = [  # Load functions
 
 # Return appropriate return_type in case an alias was used
 def _alias_datatype_check(return_type):
-    if return_type in ["numpy2d", "numpy2D", "np2d", "np2D"]:
-        return_type = "numpyflat"
+    if return_type in ["numpy2d", "np2d", "np2D", "numpyflat"]:
+        return_type = "numpy2D"
     if return_type in ["numpy3d", "np3d", "np3D"]:
         return_type = "numpy3D"
     return return_type
