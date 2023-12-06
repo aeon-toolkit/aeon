@@ -90,7 +90,7 @@ class PCATransformer(BaseTransformer):
     >>> if sys.version_info < (3, 8):
     ...     pytest.skip("PCATransformer requires Python >= 3.8")
     >>>
-    >>> from aeon.transformations.series.pca import PCATransformer
+    >>> from aeon.transformations.pca import PCATransformer
     >>> from aeon.datasets import load_longley
     >>> _, X = load_longley()
     >>> transformer = PCATransformer(n_components=2)

@@ -42,7 +42,7 @@ class HampelFilter(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.outlier_detection import HampelFilter
+    >>> from aeon.transformations.outlier_detection import HampelFilter
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = HampelFilter(window_length=10)

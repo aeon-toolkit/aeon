@@ -50,7 +50,7 @@ class ThetaLinesTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.theta import ThetaLinesTransformer
+    >>> from aeon.transformations.theta import ThetaLinesTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = ThetaLinesTransformer([0, 0.25, 0.5, 0.75])

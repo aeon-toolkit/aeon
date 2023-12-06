@@ -66,7 +66,7 @@ class Imputer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> y = load_airline()

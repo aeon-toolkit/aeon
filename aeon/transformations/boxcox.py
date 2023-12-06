@@ -83,10 +83,10 @@ class BoxCoxTransformer(BaseTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    aeon.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -108,7 +108,7 @@ class BoxCoxTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.boxcox import BoxCoxTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = BoxCoxTransformer()
@@ -226,10 +226,10 @@ class LogTransformer(BaseTransformer):
     BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    aeon.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -239,7 +239,7 @@ class LogTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.boxcox import LogTransformer
+    >>> from aeon.transformations.boxcox import LogTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = LogTransformer()

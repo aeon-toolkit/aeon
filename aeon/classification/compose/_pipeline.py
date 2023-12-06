@@ -362,8 +362,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsClassifier
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import SklearnClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")

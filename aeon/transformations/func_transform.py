@@ -52,20 +52,20 @@ class FunctionTransformer(BaseTransformer):
 
     See Also
     --------
-    aeon.transformations.series.boxcox.LogTransformer :
+    aeon.transformations.boxcox.LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    aeon.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.series.func_transform import FunctionTransformer
+    >>> from aeon.transformations.func_transform import FunctionTransformer
     >>> transformer = FunctionTransformer(np.log1p, np.expm1)
     >>> X = np.array([[0, 1], [2, 3]])
     >>> transformer.fit_transform(X)

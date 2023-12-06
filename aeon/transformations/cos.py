@@ -19,7 +19,7 @@ class CosineTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.cos import CosineTransformer
+    >>> from aeon.transformations.cos import CosineTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = CosineTransformer()

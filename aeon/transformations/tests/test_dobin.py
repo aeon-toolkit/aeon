@@ -5,7 +5,7 @@ __author__ = ["KatieBuc"]
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
-from aeon.transformations.series.dobin import DOBIN
+from aeon.transformations.dobin import DOBIN
 
 
 def test_fit_default():

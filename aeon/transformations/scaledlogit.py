@@ -36,16 +36,16 @@ class ScaledLogitTransformer(BaseTransformer):
 
     See Also
     --------
-    aeon.transformations.series.boxcox.LogTransformer :
+    aeon.transformations.boxcox.LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.boxcox.BoxCoxTransformer :
+    aeon.transformations.boxcox.BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
-    aeon.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -75,7 +75,7 @@ class ScaledLogitTransformer(BaseTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.scaledlogit import ScaledLogitTransformer
+    >>> from aeon.transformations.scaledlogit import ScaledLogitTransformer
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> y = load_airline()

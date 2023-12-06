@@ -27,7 +27,7 @@ class IndexSubset(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.subset import IndexSubset
+    >>> from aeon.transformations.subset import IndexSubset
     >>> from aeon.datasets import load_airline
     >>> X = load_airline()[0:32]
     >>> y = load_airline()[24:42]
@@ -141,7 +141,7 @@ class ColumnSelect(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.subset import ColumnSelect
+    >>> from aeon.transformations.subset import ColumnSelect
     >>> from aeon.datasets import load_longley
     >>> X = load_longley()[1]
     >>> transformer =  ColumnSelect(columns=["GNPDEFL", "POP", "FOO"])

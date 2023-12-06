@@ -57,7 +57,7 @@ class Detrender(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.detrend import Detrender
+    >>> from aeon.transformations.detrend import Detrender
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()

@@ -61,7 +61,7 @@ class FourierFeatures(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.fourier import FourierFeatures
+    >>> from aeon.transformations.fourier import FourierFeatures
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = FourierFeatures(sp_list=[12], fourier_terms_list=[4])

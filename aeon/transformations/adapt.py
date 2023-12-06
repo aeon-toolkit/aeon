@@ -76,7 +76,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.adapt import TabularToSeriesAdaptor
+    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
@@ -247,7 +247,7 @@ class PandasTransformAdaptor(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.adapt import PandasTransformAdaptor
+    >>> from aeon.transformations.adapt import PandasTransformAdaptor
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
 

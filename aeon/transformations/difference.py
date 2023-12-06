@@ -208,7 +208,7 @@ class Differencer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.difference import Differencer
+    >>> from aeon.transformations.difference import Differencer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = Differencer(lags=[1, 12])

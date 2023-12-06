@@ -50,7 +50,7 @@ class ExponentTransformer(BaseTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.SqrtTransformer :
+    aeon.transformations.exponent.SqrtTransformer :
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
@@ -61,7 +61,7 @@ class ExponentTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = ExponentTransformer()
@@ -218,7 +218,7 @@ class SqrtTransformer(ExponentTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.series.exponent.ExponentTransformer :
+    aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
 
@@ -229,7 +229,7 @@ class SqrtTransformer(ExponentTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import SqrtTransformer
+    >>> from aeon.transformations.exponent import SqrtTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = SqrtTransformer()

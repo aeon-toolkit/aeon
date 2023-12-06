@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_solar
-from aeon.transformations.series.clear_sky import ClearSky
+from aeon.transformations.clear_sky import ClearSky
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 output_chk = [0.0, 0.0, 0.901, 0.739, 0.618, 0.0]

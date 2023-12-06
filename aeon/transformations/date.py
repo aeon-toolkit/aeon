@@ -83,7 +83,7 @@ class DateTimeFeatures(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.date import DateTimeFeatures
+    >>> from aeon.transformations.date import DateTimeFeatures
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
 

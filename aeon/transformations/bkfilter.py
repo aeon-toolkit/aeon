@@ -54,7 +54,7 @@ class BKFilter(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.bkfilter import BKFilter # doctest: +SKIP
+    >>> from aeon.transformations.bkfilter import BKFilter # doctest: +SKIP
     >>> import pandas as pd # doctest: +SKIP
     >>> import statsmodels.api as sm # doctest: +SKIP
     >>> dta = sm.datasets.macrodata.load_pandas().data # doctest: +SKIP

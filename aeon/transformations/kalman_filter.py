@@ -390,7 +390,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     --------
         Basic example:
     >>> import numpy as np  # doctest: +SKIP
-    >>> import aeon.transformations.series.kalman_filter as kf
+    >>> import aeon.transformations.kalman_filter as kf
     >>> time_steps, state_dim, measurement_dim = 10, 2, 3
     >>>
     >>> X = np.random.rand(time_steps, measurement_dim) * 10
@@ -399,7 +399,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
 
         Example of - denoising, matrix estimation, missing values and transform with y:
     >>> import numpy as np  # doctest: +SKIP
-    >>> import aeon.transformations.series.kalman_filter as kf
+    >>> import aeon.transformations.kalman_filter as kf
     >>> time_steps, state_dim, measurement_dim = 10, 3, 3
     >>> control_variable_dim = 2
     >>>
@@ -421,7 +421,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
 
         Example of - dynamic inputs (matrix per time-step), missing values:
     >>> import numpy as np  # doctest: +SKIP
-    >>> import aeon.transformations.series.kalman_filter as kf
+    >>> import aeon.transformations.kalman_filter as kf
     >>> time_steps, state_dim, measurement_dim = 10, 4, 4
     >>> control_variable_dim = 4
     >>>

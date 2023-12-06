@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.transformations.series.difference import Differencer
+from aeon.transformations.difference import Differencer
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -113,7 +113,7 @@ def test_differencer_cutoff():
         ForecastingGridSearchCV,
         temporal_train_test_split,
     )
-    from aeon.transformations.series.difference import Differencer
+    from aeon.transformations.difference import Differencer
 
     y, X = load_longley()
 
@@ -169,7 +169,7 @@ def test_differencer_inverse_does_not_memorize():
     from aeon.forecasting.base import ForecastingHorizon
     from aeon.forecasting.model_selection import temporal_train_test_split
     from aeon.forecasting.naive import NaiveForecaster
-    from aeon.transformations.series.difference import Differencer
+    from aeon.transformations.difference import Differencer
 
     y = load_airline()
 

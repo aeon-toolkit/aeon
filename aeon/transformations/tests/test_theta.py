@@ -8,7 +8,7 @@ import pytest
 from scipy.stats import linregress
 
 from aeon.datasets import load_airline
-from aeon.transformations.series.theta import ThetaLinesTransformer
+from aeon.transformations.theta import ThetaLinesTransformer
 
 
 def test_theta_0():

@@ -78,7 +78,7 @@ class Lag(BaseTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.lag import Lag
+    >>> from aeon.transformations.lag import Lag
     >>> X = load_airline()
 
     Single lag will yield a time series with the same variables:
@@ -99,8 +99,8 @@ class Lag(BaseTransformer):
     This may need to be handled, e.g., if a subsequent pipeline step does not accept NA.
     To deal with the NAs, pipeline with the Imputer:
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.impute import Imputer
-    >>> from aeon.transformations.series.lag import Lag
+    >>> from aeon.transformations.impute import Imputer
+    >>> from aeon.transformations.lag import Lag
     >>> X = load_airline()
     >>>
     >>> t = Lag([2, 4, -1]) * Imputer("nearest")
@@ -378,7 +378,7 @@ class ReducerTransform(BaseTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.lag import Lag
+    >>> from aeon.transformations.lag import Lag
     >>> X = load_airline()
 
     Single lag will yield a time series with the same variables:
@@ -399,8 +399,8 @@ class ReducerTransform(BaseTransformer):
     This may need to be handled, e.g., if a subsequent pipeline step does not accept NA.
     To deal with the NAs, pipeline with the Imputer:
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.impute import Imputer
-    >>> from aeon.transformations.series.lag import Lag
+    >>> from aeon.transformations.impute import Imputer
+    >>> from aeon.transformations.lag import Lag
     >>> X = load_airline()
     >>>
     >>> t = Lag([2, 4, -1]) * Imputer("nearest")
@@ -470,7 +470,7 @@ class ReducerTransform(BaseTransformer):
         self: reference to self
         """
         from aeon.transformations.compose import FeatureUnion, YtoX
-        from aeon.transformations.series.impute import Imputer
+        from aeon.transformations.impute import Imputer
 
         impute_method = self.impute_method
         lags = self._lags

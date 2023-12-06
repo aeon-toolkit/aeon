@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import get_examples
-from aeon.transformations.series.lag import Lag
+from aeon.transformations.lag import Lag
 from aeon.utils._testing.series import _make_series
 
 # some examples with range vs time index, univariate vs multivariate (mv)

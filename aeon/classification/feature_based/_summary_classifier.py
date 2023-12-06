@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.series.summarize import SummaryTransformer
+from aeon.transformations.summarize import SummaryTransformer
 
 
 class SummaryClassifier(BaseClassifier):

@@ -3,9 +3,9 @@
 __author__ = ["mloning", "eyalshafran", "SveaMeyer13"]
 __all__ = ["Detrender", "Deseasonalizer", "ConditionalDeseasonalizer", "STLTransformer"]
 
-from aeon.transformations.series.detrend._deseasonalize import (
+from aeon.transformations.detrend._deseasonalize import (
     ConditionalDeseasonalizer,
     Deseasonalizer,
     STLTransformer,
 )
-from aeon.transformations.series.detrend._detrend import Detrender
+from aeon.transformations.detrend._detrend import Detrender

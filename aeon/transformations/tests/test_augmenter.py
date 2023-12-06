@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_basic_motions
-from aeon.transformations.series import augmenter as aug
+from aeon.transformations import augmenter as aug
 
 
 def _load_test_data():

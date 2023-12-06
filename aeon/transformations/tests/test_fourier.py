@@ -8,7 +8,7 @@ import pytest
 from pandas.testing import assert_frame_equal, assert_index_equal
 
 from aeon.datasets import load_airline
-from aeon.transformations.series.fourier import FourierFeatures
+from aeon.transformations.fourier import FourierFeatures
 
 Y = load_airline()
 Y_datetime = deepcopy(Y)

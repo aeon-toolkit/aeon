@@ -381,7 +381,7 @@ class ClaSPTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.clasp import ClaSPTransformer
+    >>> from aeon.transformations.clasp import ClaSPTransformer
     >>> from aeon.segmentation import find_dominant_window_sizes
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> X, true_period_size, true_cps = load_electric_devices_segmentation()

@@ -1,6 +1,6 @@
 """Auto-correlation transformations.
 
-Module :mod:`aeon.transformations.series` implements auto-correlation
+Module :mod:`aeon.transformations` implements auto-correlation
 transformers.
 """
 
@@ -56,7 +56,7 @@ class AutoCorrelationTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.acf import AutoCorrelationTransformer
+    >>> from aeon.transformations.acf import AutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = AutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP
@@ -188,7 +188,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.acf import PartialAutoCorrelationTransformer
+    >>> from aeon.transformations.acf import PartialAutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = PartialAutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP

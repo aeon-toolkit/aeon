@@ -53,7 +53,7 @@ class Deseasonalizer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.detrend import Deseasonalizer
+    >>> from aeon.transformations.detrend import Deseasonalizer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = Deseasonalizer()  # doctest: +SKIP
@@ -282,7 +282,7 @@ class ConditionalDeseasonalizer(Deseasonalizer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.detrend import ConditionalDeseasonalizer
+    >>> from aeon.transformations.detrend import ConditionalDeseasonalizer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = ConditionalDeseasonalizer(sp=12)  # doctest: +SKIP
@@ -442,7 +442,7 @@ class STLTransformer(BaseTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.detrend import STLTransformer
+    >>> from aeon.transformations.detrend import STLTransformer
     >>> X = load_airline()  # doctest: +SKIP
     >>> transformer = STLTransformer(sp=12)  # doctest: +SKIP
     >>> Xt = transformer.fit_transform(X)  # doctest: +SKIP

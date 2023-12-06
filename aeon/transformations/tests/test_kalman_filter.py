@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series.kalman_filter import KalmanFilterTransformer
+from aeon.transformations.kalman_filter import KalmanFilterTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # ts stands for time steps

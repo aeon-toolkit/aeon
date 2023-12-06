@@ -2,7 +2,7 @@
 import numpy as np
 from sklearn.utils.validation import check_random_state
 
-from aeon.transformations.series.hidalgo import Hidalgo
+from aeon.transformations.hidalgo import Hidalgo
 
 # generate dataset
 np.random.seed(10002)

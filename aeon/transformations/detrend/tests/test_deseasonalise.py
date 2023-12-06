@@ -8,7 +8,7 @@ import pytest
 
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.tests import TEST_SPS
-from aeon.transformations.series.detrend import Deseasonalizer
+from aeon.transformations.detrend import Deseasonalizer
 from aeon.utils._testing.forecasting import make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -84,7 +84,7 @@ def test_deseasonalizer_in_pipeline():
     from aeon.datasets import load_airline
     from aeon.forecasting.compose import TransformedTargetForecaster
     from aeon.forecasting.theta import ThetaForecaster
-    from aeon.transformations.series.detrend import Deseasonalizer
+    from aeon.transformations.detrend import Deseasonalizer
 
     all_df = load_airline().to_frame()
 

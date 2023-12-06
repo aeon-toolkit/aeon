@@ -71,7 +71,7 @@ class Hidalgo(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.hidalgo import Hidalgo
+    >>> from aeon.transformations.hidalgo import Hidalgo
     >>> import numpy as np
     >>> np.random.seed(123)
     >>> X = np.random.rand(10,3)

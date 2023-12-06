@@ -129,7 +129,7 @@ class WindowSummarizer(BaseTransformer):
     Examples
     --------
     >>> import pandas as pd
-    >>> from aeon.transformations.series.summarize import WindowSummarizer
+    >>> from aeon.transformations.summarize import WindowSummarizer
     >>> from aeon.datasets import load_airline, load_longley
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.base import ForecastingHorizon
@@ -623,7 +623,7 @@ class SummaryTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = SummaryTransformer()

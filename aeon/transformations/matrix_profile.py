@@ -28,7 +28,7 @@ class MatrixProfileTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.matrix_profile import \
+    >>> from aeon.transformations.matrix_profile import \
     MatrixProfileTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()

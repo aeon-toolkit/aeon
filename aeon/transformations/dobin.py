@@ -59,7 +59,7 @@ class DOBIN(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.dobin import DOBIN
+    >>> from aeon.transformations.dobin import DOBIN
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
     >>> import pandas as pd

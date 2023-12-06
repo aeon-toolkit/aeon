@@ -6,8 +6,8 @@ from numpy.testing import assert_array_equal
 from aeon.datasets import load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.transformations.compose import YtoX
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.lag import Lag
+from aeon.transformations.exponent import ExponentTransformer
+from aeon.transformations.lag import Lag
 
 y, X = load_longley()
 y_train, y_test, X_train, X_test = temporal_train_test_split(y, X)

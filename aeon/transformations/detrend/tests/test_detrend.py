@@ -6,7 +6,7 @@ import pytest
 from aeon.datasets import load_airline
 from aeon.forecasting.tests.test_trend import get_expected_polynomial_coefs
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.transformations.series.detrend import Detrender
+from aeon.transformations.detrend import Detrender
 
 __author__ = ["mloning", "KishManani"]
 __all__ = []

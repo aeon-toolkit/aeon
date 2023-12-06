@@ -55,7 +55,7 @@ class TimeSince(BaseTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.series.time_since import TimeSince
+    >>> from aeon.transformations.time_since import TimeSince
     >>> X = load_airline()
 
         Create a single column with time elapsed since start date of time series.

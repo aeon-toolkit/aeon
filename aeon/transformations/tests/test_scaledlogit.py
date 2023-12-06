@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.transformations.series.scaledlogit import ScaledLogitTransformer
+from aeon.transformations.scaledlogit import ScaledLogitTransformer
 
 TEST_SERIES = np.array([30, 40, 60])
 

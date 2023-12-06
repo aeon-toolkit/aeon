@@ -44,7 +44,7 @@ class TimeBinAggregate(BaseTransformer):
     Example
     -------
     from aeon.datatypes import get_examples
-    from aeon.transformations.series.binning import TimeBinAggregate
+    from aeon.transformations.binning import TimeBinAggregate
 
     bins = [0, 2, 4]
     X = get_examples("pd.DataFrame")[0]

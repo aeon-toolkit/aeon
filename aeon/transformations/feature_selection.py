@@ -61,7 +61,7 @@ class FeatureSelection(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.feature_selection import FeatureSelection
+    >>> from aeon.transformations.feature_selection import FeatureSelection
     >>> from aeon.datasets import load_longley
     >>> y, X = load_longley()
     >>> transformer = FeatureSelection(method="feature-importances", n_columns=3)

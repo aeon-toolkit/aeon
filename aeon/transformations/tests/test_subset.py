@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline, load_longley
-from aeon.transformations.series.subset import ColumnSelect, IndexSubset
+from aeon.transformations.subset import ColumnSelect, IndexSubset
 
 
 @pytest.mark.parametrize("index_treatment", ["keep", "remove"])

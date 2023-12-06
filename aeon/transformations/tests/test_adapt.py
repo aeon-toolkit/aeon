@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.transformations.series.adapt import PandasTransformAdaptor
+from aeon.transformations.adapt import PandasTransformAdaptor
 from aeon.utils._testing.series import _make_series
 
 params_list = PandasTransformAdaptor.get_test_params()

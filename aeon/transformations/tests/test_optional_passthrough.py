@@ -3,8 +3,8 @@
 import pytest
 from pandas.testing import assert_series_equal
 
+from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import OptionalPassthrough
-from aeon.transformations.series.boxcox import BoxCoxTransformer
 from aeon.utils._testing.series import _make_series
 
 

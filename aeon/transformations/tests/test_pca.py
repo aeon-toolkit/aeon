@@ -2,7 +2,7 @@
 
 __author__ = ["aiwalter"]
 
-from aeon.transformations.series.pca import PCATransformer
+from aeon.transformations.pca import PCATransformer
 from aeon.utils._testing.series import _make_series
 from aeon.utils.validation._dependencies import _check_python_version
 
