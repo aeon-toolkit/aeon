@@ -37,10 +37,6 @@ mtype_to_scitype(mtype: str) - convenience function that returns scitype for an 
 ---
 """
 
-from aeon.datatypes._alignment._registry import (
-    MTYPE_LIST_ALIGNMENT,
-    MTYPE_REGISTER_ALIGNMENT,
-)
 from aeon.datatypes._hierarchical._registry import (
     MTYPE_LIST_HIERARCHICAL,
     MTYPE_REGISTER_HIERARCHICAL,
@@ -62,7 +58,6 @@ MTYPE_REGISTER = []
 MTYPE_REGISTER += MTYPE_REGISTER_SERIES
 MTYPE_REGISTER += MTYPE_REGISTER_PANEL
 MTYPE_REGISTER += MTYPE_REGISTER_HIERARCHICAL
-MTYPE_REGISTER += MTYPE_REGISTER_ALIGNMENT
 MTYPE_REGISTER += MTYPE_REGISTER_PROBA
 
 MTYPE_SOFT_DEPS = {}
@@ -86,7 +81,6 @@ __all__ = [
     "MTYPE_LIST_HIERARCHICAL",
     "MTYPE_LIST_PANEL",
     "MTYPE_LIST_SERIES",
-    "MTYPE_LIST_ALIGNMENT",
     "MTYPE_LIST_PROBA",
     "MTYPE_SOFT_DEPS",
     "DATATYPE_REGISTER",
@@ -97,7 +91,6 @@ DATATYPE_REGISTER = [
     ("Series", "uni- or multivariate time series"),
     ("Panel", "collection of uni- or multivariate time series"),
     ("Hierarchical", "hierarchical panel of time series with 3 or more levels"),
-    ("Alignment", "series or sequence alignment"),
     ("Proba", "probability distribution or distribution statistics, return types"),
 ]
 

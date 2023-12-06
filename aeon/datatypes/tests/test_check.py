@@ -12,11 +12,6 @@ from aeon.datatypes._registry import SCITYPE_LIST, scitype_to_mtype
 
 SCITYPES = SCITYPE_LIST
 
-# scitypes where mtype inference is not unique
-# alignment is excluded since mtypes can be ambiguous
-#   (indices could be both loc or iloc when integers)
-SCITYPES_AMBIGUOUS_MTYPE = ["Alignment"]
-
 
 def _generate_scitype_mtype_combinations():
     """Return scitype/mtype tuples for pytest_generate_tests.
@@ -191,10 +186,6 @@ def test_check_negative(scitype, mtype):
     AssertionError if a examples are correctly identified as incompatible
     error if check itself raises an error
     """
-    # if the scitype is ambiguous, we can't assume that other mtypes are negative
-    if scitype in SCITYPES_AMBIGUOUS_MTYPE:
-        return None
-
     mtypes = scitype_to_mtype(scitype)
     fixtures = dict()
 
@@ -238,9 +229,6 @@ def test_mtype_infer(scitype, mtype, fixture_index):
     AssertionError if mtype of examples is not correctly identified
     error if check itself raises an error
     """
-    # if mtypes are ambiguous, then this test should be skipped
-    if scitype in SCITYPES_AMBIGUOUS_MTYPE:
-        return None
 
     # retrieve fixture for checking
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
@@ -257,7 +245,7 @@ def test_mtype_infer(scitype, mtype, fixture_index):
 
 # exclude these scitypes in inference of scitype test
 #  would lead to ambiguous results
-SKIP_SCITYPES = ["Alignment", "Proba"]
+SKIP_SCITYPES = ["Proba"]
 SCITYPES_FOR_INFER_TEST = list(set(SCITYPE_LIST).difference(SKIP_SCITYPES))
 
 
