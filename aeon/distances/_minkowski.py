@@ -30,10 +30,10 @@ def minkowski_distance(
     y : np.ndarray
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
-    p : float, optional
+    p : float, default=2.0
         The order of the norm of the difference
         (default is 2.0, which represents the Euclidean distance).
-    w : np.ndarray, optional
+    w : np.ndarray, default=None
         An array of weights, of the same shape as x and y
         (default is None, which implies equal weights).
 
@@ -71,23 +71,21 @@ def minkowski_distance(
         raise ValueError("p should be greater or equal to 1")
 
     # Handle Weight
-    if w is None:
-        if x.ndim == 1:
-            _w = np.ones(x.shape[0])  # For 1D arrays
-        else:
-            _w = np.ones_like(x)  # For 2D arrays
-    else:
-        _w = w
+    if w is not None:
+        _w = w.astype(x.dtype)
         if x.shape != _w.shape:
             raise ValueError("Weights w must have the same shape as x")
         if np.any(_w < 0):
             raise ValueError("Input weights should be all non-negative")
-    _w = _w.astype(x.dtype)
 
     if x.ndim == 1 and y.ndim == 1:
-        return _univariate_minkowski_distance(x, y, p, _w)
+        return _univariate_minkowski_distance(
+            x, y, p, np.ones_like(x) if w is None else _w
+        )
     if x.ndim == 2 and y.ndim == 2:
-        return _multivariate_minkowski_distance(x, y, p, _w)
+        return _multivariate_minkowski_distance(
+            x, y, p, np.ones_like(x) if w is None else _w
+        )
 
     raise ValueError("Inconsistent dimensions.")
 
@@ -138,15 +136,15 @@ def minkowski_pairwise_distance(
         A collection of time series instances, of shape
         (n_instances, n_channels, n_timepoints) or
         (n_instances, n_timepoints) or (n_timepoints,).
-    y : np.ndarray, optional
+    y : np.ndarray, default=None
         A second collection of time series instances, of
         shape (m_instances, m_channels, m_timepoints) or
         (m_instances, m_timepoints) or (m_timepoints,).
         If None, the pairwise distances are calculated within X.
-    p : float, optional
+    p : float, default=2.0
         The order of the norm of the difference
         (default is 2.0, which represents the Euclidean distance).
-    w : np.ndarray, optional
+    w : np.ndarray, default=None
         An array of weights, applied to each pairwise calculation.
         The weights should match the shape of the time series in X and y.
 
@@ -170,8 +168,8 @@ def minkowski_pairwise_distance(
     >>> X = np.array([[[1, 2, 3, 4]],[[4, 5, 6, 3]], [[7, 8, 9, 3]]])
     >>> minkowski_pairwise_distance(X, p=1)
     array([[ 0., 10., 19.],
-            [10.,  0.,  9.],
-            [19.,  9.,  0.]])
+           [10.,  0.,  9.],
+           [19.,  9.,  0.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
@@ -184,8 +182,8 @@ def minkowski_pairwise_distance(
     >>> y = np.array([[11, 12, 13], [14, 15, 16]])
     >>> w = np.array([[21, 22, 23], [24, 25, 26]])
     >>> minkowski_pairwise_distance(X, y, p=2, w=w)
-    array([[ 81.24038405 105.61249926],
-        [ 60.62177826  86.60254038]])
+    array([[ 81.24038405, 105.61249926],
+           [ 60.62177826,  86.60254038]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
