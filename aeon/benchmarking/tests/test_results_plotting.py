@@ -22,7 +22,6 @@ data_path = os.path.join(test_path, "../example_results/")
     reason="skip test if required soft dependency not available",
 )
 def test_plot_boxplot_median():
-    _check_soft_dependencies("matplotlib")
     from matplotlib.figure import Figure
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
@@ -50,7 +49,6 @@ def test_plot_boxplot_median():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_scatter_predictions():
-    _check_soft_dependencies("matplotlib")
     from random import uniform
 
     from matplotlib.figure import Figure
@@ -61,7 +59,7 @@ def test_plot_scatter_predictions():
     method = "new method"
     dataset = "toy"
 
-    fig = plot_scatter_predictions(y, y_pred, method, dataset)
+    fig = plot_scatter_predictions(y, y_pred, title=f"{method}-{dataset}")
     assert isinstance(fig, Figure)
 
 
@@ -70,8 +68,6 @@ def test_plot_scatter_predictions():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_scatter():
-    _check_soft_dependencies("matplotlib")
-
     from matplotlib.figure import Figure
 
     cls = ["HC2", "FreshPRINCE"]
@@ -80,9 +76,7 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(
-        res, cls[0], cls[1], metric="accuracy", statistic_test="wilcoxon"
-    )
+    fig = plot_scatter(res, cls[0], cls[1], metric="accuracy", statistic_tests=True)
     assert isinstance(fig, Figure)
 
     cls = ["InceptionTime", "WEASEL-D"]
@@ -91,9 +85,7 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(
-        res, cls[0], cls[1], metric="accuracy", statistic_test="ttest", title="test"
-    )
+    fig = plot_scatter(res, cls[0], cls[1], metric="accuracy", title="test")
     assert isinstance(fig, Figure)
 
     cls = ["InceptionTime", "WEASEL-D"]
@@ -107,10 +99,25 @@ def test_plot_scatter():
         cls[0],
         cls[1],
         metric="error",
-        statistic_test="wilcoxon",
+        statistic_tests=True,
         lower_better=True,
     )
     assert isinstance(fig, Figure)
+
+    fig = plot_scatter(
+        1 - res,
+        cls[0],
+        cls[1],
+        metric="error",
+        statistic_tests=False,
+        lower_better=True,
+    )
+    assert isinstance(fig, Figure)
+
+    with pytest.raises(ValueError):
+        plot_scatter(res, cls[0], cls[1], metric="error", lower_better=False)
+    with pytest.raises(ValueError):
+        plot_scatter(res, cls[0], cls[1], metric="accuracy", lower_better=True)
 
 
 def test_plot_multi_comparison_matrix():
