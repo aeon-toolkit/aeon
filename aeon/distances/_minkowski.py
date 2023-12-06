@@ -190,7 +190,7 @@ def minkowski_pairwise_distance(
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     >>> minkowski_pairwise_distance(X, y, p=1)
-     array([[30.],
+    array([[30.],
            [21.],
            [12.]])
     """
@@ -198,7 +198,8 @@ def minkowski_pairwise_distance(
         if X.ndim == 3:
             return _minkowski_pairwise_distance(X, p, w)
         elif X.ndim == 2:
-            return _minkowski_pairwise_distance(X, p, w)
+            _X = X.reshape((X.shape[0], 1, X.shape[1]))
+            return _minkowski_pairwise_distance(_X, p, w)
         raise ValueError("X must be 2D or 3D array")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _minkowski_from_multiple_to_multiple_distance(_x, _y, p, w)
