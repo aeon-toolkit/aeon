@@ -40,6 +40,15 @@ content_labels = [
     if label in content_labels
 ]
 
+replacement_labels = [
+    ("anomalydetection", "anomaly detection"),
+    ("similaritysearch", "similarity search"),
+]
+for i, label in enumerate(content_labels):
+    for cur_label, new_label in replacement_labels:
+        if label == cur_label:
+            content_labels[i] = new_label
+
 title_labels_str = ""
 if len(title_labels) == 0:
     title_labels_str = (

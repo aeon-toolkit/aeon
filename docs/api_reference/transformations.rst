@@ -81,7 +81,6 @@ Sklearn and pandas adapters
     :template: class.rst
 
     Tabularizer
-    TimeBinner
 
 .. currentmodule:: aeon.transformations.series.adapt
 
@@ -190,7 +189,7 @@ Feature collections
 
 These transformers extract larger collections of features.
 
-.. currentmodule:: aeon.transformations.collection.tsfresh
+.. currentmodule:: aeon.transformations.collection.feature_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -198,13 +197,6 @@ These transformers extract larger collections of features.
 
     TSFreshRelevantFeatureExtractor
     TSFreshFeatureExtractor
-
-.. currentmodule:: aeon.transformations.collection.catch22
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
     Catch22
 
 Series-to-series transformers

@@ -41,15 +41,15 @@ aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @d
 aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
-aeon/transformations/collection/rocket/ @angus924
-aeon/transformations/collection/rocket/_multirocket.py @ChangWeiTan @fstinner @angus924
-aeon/transformations/collection/rocket/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
+aeon/transformations/collection/convolution_based/ @angus924
+aeon/transformations/collection/convolution_based/_multirocket.py @ChangWeiTan @fstinner @angus924
+aeon/transformations/collection/convolution_based/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
 aeon/transformations/collection/signature_based/ @jambo6
-aeon/transformations/collection/catch22.py @MatthewMiddlehurst
+aeon/transformations/collection/feature_based/_catch22.py @MatthewMiddlehurst
 aeon/transformations/collection/channel_selection.py @haskarb @TonyBagnall
-aeon/transformations/collection/dilated_shapelet_transform.py @baraline
-aeon/transformations/collection/random_intervals.py @MatthewMiddlehurst
-aeon/transformations/collection/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
+aeon/transformations/collection/interval_based/random_intervals.py @MatthewMiddlehurst
+aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @baraline
+aeon/transformations/collection/shapelet_based/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/supervised_intervals.py @MatthewMiddlehurst
 
 aeon/transformations/series/ @aiwalter
