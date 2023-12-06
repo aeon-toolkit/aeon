@@ -35,7 +35,7 @@ def msm_distance(
 
     For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
     x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` MSM works by iterating over
-    series lengths math:`i = 1 \ldots n` and math:`j = 1 \ldote m` to find the cost
+    series lengths :math:`i = 1 \ldots n` and :math:`j = 1 \ldote m` to find the cost
     matrix $D$ as follows.
 
     .. math::
@@ -59,9 +59,10 @@ def msm_distance(
                       &= c &  if\;\; & y \geq x \geq z \\
                       &= c+min(|x-y|,|x-z|) & & otherwise\\
 
-    If $x$ and $y$ are multivariate, then there are two ways of calculating the MSM
-    distance. The independent approach is to find the distance for each channel
-    independently, then return the sum. The dependent approach adopts the adaptation
+    If :math:`\mathbf{x}` and :math:`\mathbf{y$}` are multivariate, then there are two
+    ways of calculating the MSM distance. The independent approach is to find the
+    distance for each channel independently, then return the sum. The dependent
+    approach adopts the adaptation
     described in [2]_ for computing the pointwise MSM distance over channels.
     MSM satisfies triangular inequality and is a metric.
 
