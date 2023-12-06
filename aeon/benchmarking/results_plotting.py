@@ -302,7 +302,10 @@ def plot_scatter(
         second = results[:, 1]
         second_method = method_B
 
-    differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
+    differences = [
+        0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
+    ]
+
     first_avg = first.mean()
     second_avg = second.mean()
 
