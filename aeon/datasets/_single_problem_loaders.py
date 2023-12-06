@@ -382,7 +382,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  4
     Details:http://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
     """
-    if return_type == "numpy2d" or return_type == "numpyflat":
+    if return_type == "numpy2d" or return_type == "numpy2D":
         raise ValueError(
             f"BasicMotions loader: Error, attempting to load into a {return_type} "
             f"array, but cannot because it is a multivariate problem. Use "
