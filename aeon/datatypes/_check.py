@@ -32,7 +32,6 @@ from aeon.datatypes._panel import check_dict_Panel
 from aeon.datatypes._proba import check_dict_Proba
 from aeon.datatypes._registry import AMBIGUOUS_MTYPES, SCITYPE_LIST, mtype_to_scitype
 from aeon.datatypes._series import check_dict_Series
-from aeon.datatypes._table import check_dict_Table
 
 # pool convert_dict-s
 check_dict = dict()
@@ -40,7 +39,6 @@ check_dict.update(check_dict_Series)
 check_dict.update(check_dict_Panel)
 check_dict.update(check_dict_Hierarchical)
 check_dict.update(check_dict_Alignment)
-check_dict.update(check_dict_Table)
 check_dict.update(check_dict_Proba)
 
 
@@ -383,10 +381,6 @@ def check_is_scitype(
             "is_one_series": bool, True iff there is only one series in the panel
             "has_nans": bool, True iff the panel contains NaN values
             "n_instances": int, number of instances in the panel
-        For scitype "Table":
-            "is_univariate": bool, True iff table has one variable
-            "is_empty": bool, True iff table has no variables or no instances
-            "has_nans": bool, True iff the panel contains NaN values
         For scitype "Alignment":
             currently none
     Raises

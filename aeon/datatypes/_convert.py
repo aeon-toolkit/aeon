@@ -74,14 +74,12 @@ from aeon.datatypes._panel import convert_dict_Panel
 from aeon.datatypes._proba import convert_dict_Proba
 from aeon.datatypes._registry import AMBIGUOUS_MTYPES, mtype_to_scitype
 from aeon.datatypes._series import convert_dict_Series
-from aeon.datatypes._table import convert_dict_Table
 
 # pool convert_dict-s and infer_mtype_dict-s
 convert_dict = dict()
 convert_dict.update(convert_dict_Series)
 convert_dict.update(convert_dict_Panel)
 convert_dict.update(convert_dict_Hierarchical)
-convert_dict.update(convert_dict_Table)
 convert_dict.update(convert_dict_Proba)
 
 
