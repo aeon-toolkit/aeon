@@ -20,7 +20,6 @@ __all__ = [
     "get_examples",
 ]
 
-from aeon.datatypes._alignment import example_dict_Alignment
 from aeon.datatypes._hierarchical import (
     example_dict_Hierarchical,
     example_dict_lossy_Hierarchical,
@@ -49,7 +48,6 @@ from aeon.datatypes._table import (
 
 # pool example_dict-s
 example_dict = dict()
-example_dict.update(example_dict_Alignment)
 example_dict.update(example_dict_Series)
 example_dict.update(example_dict_Panel)
 example_dict.update(example_dict_Hierarchical)
