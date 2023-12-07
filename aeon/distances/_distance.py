@@ -103,7 +103,8 @@ def distance(
     metric : str or Callable
         The distance metric to use.
         A list of valid distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function`.
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -242,8 +243,9 @@ def pairwise_distance(
        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
     metric : str or Callable
         The distance metric to use.
-        A list of valid pairwise distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_pairwise_distance_function`.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
@@ -445,9 +447,10 @@ def alignment_path(
         Second time series.
     metric : str
         The distance metric to use.
-        A list of valid alignment path metrics can be found in the documentation for
-        :func:`aeon.distances.get_alignment_path_function`.
-    kwargs : Any
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
+    kwargs : any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
 
@@ -579,8 +582,9 @@ def cost_matrix(
         Second time series.
     metric : str or Callable
         The distance metric to use.
-        A list of valid alignment path metrics can be found in the documentation for
-        :func:`aeon.distances.get_cost_matrix_function`.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -702,6 +706,32 @@ def cost_matrix(
         raise ValueError("Metric must be one of the supported strings")
 
 
+def get_distance_function_names() -> List[str]:
+    """Get a list of distance function names in aeon.
+
+    All distance function names have two associated functions:
+        name_distance
+        name_pairwise_distance
+    Elastic distances have two additional functions associated with them:
+        name_alignment_path
+        name_cost_matrix
+
+    Returns
+    -------
+    List[str]
+        List of distance function names in aeon.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_distance_function_names
+    >>> names = get_distance_function_names()
+    >>> names[0]
+    'adtw'
+
+    """
+    return sorted(DISTANCES_DICT.keys())
+
+
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
     """Get the distance function for a given metric string or callable.
 
@@ -721,6 +751,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'lcss'          distance.lcss_distance
     'euclidean'     distance.euclidean_distance
     'squared'       distance.squared_distance
+    'manhattan'     manhattan.squared_distance
     =============== ========================================
 
     Parameters
@@ -775,6 +806,7 @@ def get_pairwise_distance_function(
     'lcss'          distance.lcss_pairwise_distance
     'euclidean'     distance.euclidean_pairwise_distance
     'squared'       distance.squared_pairwise_distance
+    'manhattan'     distance.manhattan_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -935,6 +967,11 @@ DISTANCES = [
         "name": "squared",
         "distance": squared_distance,
         "pairwise_distance": squared_pairwise_distance,
+    },
+    {
+        "name": "manhattan",
+        "distance": manhattan_distance,
+        "pairwise_distance": manhattan_pairwise_distance,
     },
     {
         "name": "dtw",

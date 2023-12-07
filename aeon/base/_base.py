@@ -96,14 +96,14 @@ class BaseObject(_BaseEstimator):
         """Reset the object to a clean post-init state.
 
         Equivalent to sklearn.clone but overwrites self.
-        After self.reset() call, self is equal in value to
-        `type(self)(**self.get_params(deep=False))`
+        After ``self.reset()`` call, self is equal in value to
+        ``type(self)(**self.get_params(deep=False))``
 
         Detail behaviour:
         removes any object attributes, except:
-            hyper-parameters = arguments of __init__
+            hyper-parameters = arguments of ``__init__``
             object attributes containing double-underscores, i.e., the string "__"
-        runs __init__ with current values of hyper-parameters (result of get_params)
+        runs ``__init__`` with current values of hyper-parameters (result of get_params)
 
         Not affected by the reset are:
         object attributes containing double-underscores
@@ -130,11 +130,11 @@ class BaseObject(_BaseEstimator):
 
         A clone is a different object without shared references, in post-init state.
         This function is equivalent to returning sklearn.clone of self.
-        Equal in value to `type(self)(**self.get_params(deep=False))`.
+        Equal in value to ``type(self)(**self.get_params(deep=False))``.
 
         Returns
         -------
-        instance of type(self), clone of self (see above)
+        instance of ``type(self)``, clone of self (see above)
         """
         return clone(self)
 
@@ -148,7 +148,7 @@ class BaseObject(_BaseEstimator):
 
         Raises
         ------
-        RuntimeError if cls has varargs in __init__
+        RuntimeError if cls has varargs in ``__init__``
         """
         # fetch the constructor or the original constructor before
         # deprecation wrapping if any
@@ -982,7 +982,7 @@ class BaseEstimator(BaseObject):
 
     @property
     def is_fitted(self):
-        """Whether `fit` has been called."""
+        """Whether ``fit`` has been called."""
         return self._is_fitted
 
     def check_is_fitted(self):
@@ -1023,13 +1023,13 @@ class BaseEstimator(BaseObject):
             Dictionary of fitted parameters, paramname : paramvalue
             keys-value pairs include:
 
-            * always: all fitted parameters of this object, as via `get_param_names`
+            * always: all fitted parameters of this object, as via ``get_param_names``
               values are fitted parameter value for that key, of this object
-            * if `deep=True`, also contains keys/value pairs of component parameters
-              parameters of components are indexed as `[componentname]__[paramname]`
-              all parameters of `componentname` appear as `paramname` with its value
-            * if `deep=True`, also contains arbitrary levels of component recursion,
-              e.g., `[componentname]__[componentcomponentname]__[paramname]`, etc.
+            * if ``deep=True``, also contains keys/value pairs of component parameters
+              parameters of components are indexed as ``[componentname]__[paramname]``
+              all parameters of ``componentname`` appear as ``paramname`` with its value
+            * if ``deep=True``, also contains arbitrary levels of component recursion,
+              e.g., ``[componentname]__[componentcomponentname]__[paramname]``, etc.
         """
         if not self.is_fitted:
             raise NotFittedError(

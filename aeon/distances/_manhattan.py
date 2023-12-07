@@ -11,6 +11,7 @@ def manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the manhattan distance between two time series.
 
     The manhattan distance between two time series is defined as:
+
     .. math::
         manhattan(x, y) = \sum_{i=1}^{n} |x_i - y_i|
 
@@ -22,6 +23,7 @@ def manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
     y : np.ndarray
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
+
 
     Returns
     -------
@@ -74,12 +76,14 @@ def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the manhattan pairwise distance between the instances of X is
+        calculated.
 
 
     Returns

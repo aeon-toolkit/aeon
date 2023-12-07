@@ -211,5 +211,6 @@ General methods to recover distance functions
 
     get_distance_function
     get_pairwise_distance_function
+    get_distance_function_names
     get_cost_matrix_function
     get_alignment_path_function
