@@ -1,7 +1,7 @@
 .. _transformations_ref:
 
-Time series transformations
-===========================
+Transformations
+===============
 
 The :mod:`aeon.transformations` module contains classes for data
 transformations.

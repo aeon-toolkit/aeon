@@ -1,7 +1,7 @@
 .. _distances_ref:
 
-Time series distances
-=====================
+Distances
+=========
 
 The :mod:`aeon.distances` module contains time series specific distance functions
 that can be used in aeon and scikit learn estimators. It also contains tools for
