@@ -87,16 +87,15 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : float[:,:,:]
-            an array of shape (n_time_series, n_channels,
-            time_series_length) containing the time series
-        y : Any[:]
-            an array of shape (n_time_series,), containing
-            the class label of each time series in X
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+            The training input samples.
+        y: array-like or list
+            The class values for X.
 
         Return
         ------
-        self
+        self : SASTClassifier
+            This pipeline classifier
 
         """
         self._transformer = SAST(
@@ -125,13 +124,12 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : float[:,:,:]
-            an array of shape (n_time_series, n_channels,
-            time_series_length) containing the time series
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+            The training input samples.
 
         Return
         ------
-        y : array-like, shape = [n_instances]
+        array-like or list
             Predicted class labels.
         """
         return self._pipeline.predict(X)
@@ -141,24 +139,23 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : float[:,:,:]
-            an array of shape (n_time_series, n_channels,
-            time_series_length) containing the time series
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+            The training input samples.
 
         Return
         ------
-        y : array-like, shape = [n_instances, n_classes]
+        dists : np.ndarray shape (n_time_series, n_timepoints)
             Predicted class probabilities.
         """
         m = getattr(self._classifier, "predict_proba", None)
         if callable(m):
-            return self._pipeline.predict_proba(X)
+            dists = self._pipeline.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
             preds = self._pipeline.predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
-            return dists
+        return dists
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         """Plot the most important features on ts.
@@ -174,7 +171,8 @@ class SASTClassifier(BaseClassifier):
 
         Returns
         -------
-        plt figure
+        fig : plt.figure
+            The figure
         """
         import matplotlib.pyplot as plt
 

@@ -109,16 +109,16 @@ class SAST(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : float[:,:,:]
-            an array of shape (n_time_series, n_channels,
-            time_series_length) containing the time series
-        y : Any[:]
-            an array of shape (n_time_series,), containing
-            the class label of each time series in X
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+            The training input samples.
+        y: array-like or list
+            The class values for X.
 
         Return
         ------
-        self
+        self : SAST
+            This transformer
+
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
         self._length_list = (
@@ -176,14 +176,15 @@ class SAST(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : float[:,:,:]
-            an array of shape (n_time_series, n_channels, time_series_length)
-            containing the time series
-        y : ignored argument for interface compatibility
+        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+            The training input samples.
+        y: array-like or list
+            Ignored argument, interface compatibility
 
         Return
         ------
-        np.ndarray [n_time_series, n_subsequences], the transformed data
+        X_transformed: np.ndarray shape (n_time_series, n_timepoints),
+            The transformed data
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
