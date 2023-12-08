@@ -1,17 +1,9 @@
-import multiprocessing
-
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
-
-
-@njit(fastmath=True)
-def _znormalize_array(arr):
-    m = np.mean(arr)
-    s = np.std(arr)
-
-    return (arr - m) / (s + 1e-8)
+from aeon.utils.numba.general import z_normalise_series
+from aeon.utils.validation import check_n_jobs
 
 
 @njit(fastmath=False)
@@ -22,7 +14,7 @@ def _apply_kernel(ts, arr):
 
     kernel_len = kernel.shape[0]
     for i in range(m - kernel_len + 1):
-        d = np.sum((_znormalize_array(ts[i : i + kernel_len]) - kernel) ** 2)
+        d = np.sum((z_normalise_series(ts[i : i + kernel_len]) - kernel) ** 2)
         if d < d_best:
             d_best = d
 
@@ -175,7 +167,7 @@ class SAST(BaseCollectionTransformer):
                     end = j + shp_length
                     can = np.squeeze(candidates_ts[i][j:end])
                     self._kernel_orig.append(can)
-                    self._kernels[k, :shp_length] = _znormalize_array(can)
+                    self._kernels[k, :shp_length] = z_normalise_series(can)
                     k += 1
         return self
 
@@ -197,10 +189,7 @@ class SAST(BaseCollectionTransformer):
 
         prev_threads = get_num_threads()
 
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
+        n_jobs = check_n_jobs(self.n_jobs)
 
         set_num_threads(n_jobs)
         X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X

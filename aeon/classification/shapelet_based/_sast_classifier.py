@@ -15,6 +15,7 @@ from sklearn.pipeline import make_pipeline
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import SAST
+from aeon.utils.numba.general import z_normalise_series
 
 
 class SASTClassifier(BaseClassifier):
@@ -188,11 +189,11 @@ class SASTClassifier(BaseClassifier):
 
         for f in range(max_):
             kernel, _ = sorted_features[f]
-            znorm_kernel = (kernel - kernel.mean()) / (kernel.std() + 1e-8)
+            znorm_kernel = z_normalise_series(kernel)
             d_best = np.inf
             for i in range(ts.size - kernel.size):
                 s = ts[i : i + kernel.size]
-                s = (s - s.mean()) / (s.std() + 1e-8)
+                s = z_normalise_series(s)
                 d = np.sum((s - znorm_kernel) ** 2)
                 if d < d_best:
                     d_best = d
