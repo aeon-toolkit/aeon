@@ -976,7 +976,7 @@ DISTANCES = [
         "distance": squared_distance,
         "pairwise_distance": squared_pairwise_distance,
     },
-     {
+    {
         "name": "manhattan",
         "distance": manhattan_distance,
         "pairwise_distance": manhattan_pairwise_distance,
