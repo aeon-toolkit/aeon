@@ -33,8 +33,8 @@ __all__ = [  # Load functions
 
 # Return appropriate return_type in case an alias was used
 def _alias_datatype_check(return_type):
-    if return_type in ["numpy2d", "numpy2D", "np2d", "np2D"]:
-        return_type = "numpyflat"
+    if return_type in ["numpy2d", "np2d", "np2D", "numpyflat"]:
+        return_type = "numpy2D"
     if return_type in ["numpy3d", "np3d", "np3D"]:
         return_type = "numpy3D"
     return return_type
@@ -154,7 +154,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         line = line.strip().lower()
         line = line.replace("nan", replace_missing_vals_with)
         line = line.replace("?", replace_missing_vals_with)
-        if meta_data["timestamps"]:
+        if "timestamps" in meta_data and meta_data["timestamps"]:
             channels = _get_channel_strings(line, target, replace_missing_vals_with)
         else:
             channels = line.split(":")
@@ -356,6 +356,52 @@ def _load_saved_dataset(
             return combo
 
 
+def download_dataset(name, save_path=None):
+    """
+
+    Download a dataset from the timeseriesclassification.com website.
+
+    Parameters
+    ----------
+    name : string,
+            name of the dataset to download
+
+    safe_path : string, optional (default: None)
+            Path to the directory where the dataset is downloaded into.
+
+    Returns
+    -------
+    if successful, string containing the path of the saved file
+
+    Raises
+    ------
+    ValueError if the dataset is not available on the website
+    or the extract path is invalid
+    """
+    if save_path is None:
+        save_path = os.path.join(MODULE, "local_data")
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    if name not in list_downloaded_tsc_tsr_datasets(
+        save_path
+    ) or name not in list_downloaded_tsf_datasets(save_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download it.
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        try:
+            _download_and_extract(url, extract_path=save_path)
+        except zipfile.BadZipFile as e:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{save_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/.",
+            ) from e
+
+    return os.path.join(save_path, name)
+
+
 def _download_and_extract(url, extract_path=None):
     """
     Download and unzip datasets (helper function).
@@ -471,8 +517,7 @@ def _load_tsc_dataset(
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on "
-                    f"https://timeseriesclassification.com/.",
+                    f"{extract_path}. Nor is it available on {url}",
                 ) from e
 
     return _load_saved_dataset(
@@ -1068,7 +1113,7 @@ def load_from_tsf_file(
         return loaded_data, metadata
 
 
-def load_forecasting(name, extract_path=None, return_metadata=True):
+def load_forecasting(name, extract_path=None, return_metadata=False):
     """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
@@ -1094,7 +1139,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_forecasting
-    >>> X, meta=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
+    >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
     # Allow user to have non standard extract path
     from aeon.datasets.tsf_data_lists import tsf_all
@@ -1149,7 +1194,7 @@ def load_forecasting(name, extract_path=None, return_metadata=True):
     return data
 
 
-def load_regression(name, split=None, extract_path=None, return_metadata=True):
+def load_regression(name, split=None, extract_path=None, return_metadata=False):
     """Download/load regression problem from http://tseregression.org/.
 
     If you want to load a problem from a local file, specify the
@@ -1202,7 +1247,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     Example
     -------
     >>> from aeon.datasets import load_regression
-    >>> X, y, meta=load_regression("FloodModeling1") # doctest: +SKIP
+    >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
     from aeon.datasets.tser_data_lists import tser_all
 
@@ -1264,7 +1309,7 @@ def load_regression(name, split=None, extract_path=None, return_metadata=True):
     )
 
 
-def load_classification(name, split=None, extract_path=None, return_metadata=True):
+def load_classification(name, split=None, extract_path=None, return_metadata=False):
     """Load a classification dataset.
 
     If you want to load a problem from a local file, specify the
@@ -1317,7 +1362,7 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Tru
     Examples
     --------
     >>> from aeon.datasets import load_classification
-    >>> X, y, meta = load_classification(name="ArrowHead")  # doctest: +SKIP
+    >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
     return _load_tsc_dataset(
         name,

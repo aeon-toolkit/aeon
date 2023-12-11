@@ -239,9 +239,9 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-        from aeon.transformations.series.detrend import Detrender
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations.detrend import Detrender
+        from aeon.transformations.exponent import ExponentTransformer
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -331,8 +331,8 @@ class ForecastingPipeline(_Pipeline):
     >>> from aeon.datasets import load_longley
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
+    >>> from aeon.transformations.impute import Imputer
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from sklearn.preprocessing import MinMaxScaler
@@ -750,9 +750,9 @@ class TransformedTargetForecaster(_Pipeline):
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.transformations.series.impute import Imputer
-    >>> from aeon.transformations.series.detrend import Detrender
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.impute import Imputer
+    >>> from aeon.transformations.detrend import Detrender
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> y = load_airline()
 
         Example 1: string/estimator pairs
@@ -1560,8 +1560,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.series.boxcox import BoxCoxTransformer
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
     >>> y = load_airline()
@@ -1684,8 +1684,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         # transformers mixed with-without fit, ForecastingPipeline
         # steps are (str, estimator)

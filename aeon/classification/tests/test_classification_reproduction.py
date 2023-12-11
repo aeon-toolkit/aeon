@@ -38,7 +38,7 @@ from aeon.classification.interval_based import (
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.transformations.series.summarize import SummaryTransformer
+from aeon.transformations.summarize import SummaryTransformer
 
 
 def _reproduce_classification_unit_test(estimator):

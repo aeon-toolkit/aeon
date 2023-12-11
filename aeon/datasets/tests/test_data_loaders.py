@@ -52,7 +52,7 @@ def test_load_forecasting_from_repo():
     ):
         load_forecasting(name)
     name = "m1_quarterly_dataset"
-    data, meta = load_forecasting(name)
+    data, meta = load_forecasting(name, return_metadata=True)
     assert isinstance(data, pd.DataFrame)
     assert isinstance(meta, dict)
     assert meta["frequency"] == "quarterly"
@@ -74,7 +74,7 @@ def test_load_classification_from_repo():
     ):
         load_classification(name)
     name = "SonyAIBORobotSurface1"
-    X, y, meta = load_classification(name)
+    X, y, meta = load_classification(name, return_metadata=True)
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
     assert isinstance(meta, dict)
@@ -101,20 +101,20 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    X, y, meta = load_regression(name)
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert isinstance(meta, dict)
-    assert len(X) == len(y)
-    assert X.shape == (673, 1, 266)
-    assert meta["problemname"] == "floodmodeling1"
-    assert not meta["timestamps"]
-    assert meta["univariate"]
-    assert meta["equallength"]
-    assert not meta["classlabel"]
-    assert meta["targetlabel"]
-    assert meta["class_values"] == []
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    with tempfile.TemporaryDirectory() as tmp:
+        X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(meta, dict)
+        assert len(X) == len(y)
+        assert X.shape == (673, 1, 266)
+        assert meta["problemname"] == "floodmodeling1"
+        assert not meta["timestamps"]
+        assert meta["univariate"]
+        assert meta["equallength"]
+        assert not meta["classlabel"]
+        assert meta["targetlabel"]
+        assert meta["class_values"] == []
 
 
 @pytest.mark.skipif(
@@ -127,19 +127,19 @@ def test_load_fails():
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y, meta = load_regression("FOOBAR", extract_path=data_path)
+        X, y = load_regression("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y, meta = load_classification("FOOBAR", extract_path=data_path)
+        X, y = load_classification("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y, meta = load_forecasting("FOOBAR", extract_path=data_path)
+        X, y = load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test__alias_datatype_check():
     """Test the alias check"""
     assert _alias_datatype_check("FOO") == "FOO"
-    assert _alias_datatype_check("np2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("np2d") == "numpy2D"
+    assert _alias_datatype_check("numpy2d") == "numpy2D"
+    assert _alias_datatype_check("numpyflat") == "numpy2D"
     assert _alias_datatype_check("numpy3d") == "numpy3D"
     assert _alias_datatype_check("np3d") == "numpy3D"
     assert _alias_datatype_check("np3D") == "numpy3D"
@@ -218,7 +218,12 @@ def test__load_data():
         "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0",
         "1.0,2.0,3.0:1.0,2.0,3.0, 4.0:0\n1.0,2.0,3.0,4.0:0",
     ]
-    meta_data = {"classlabel": True, "class_values": [0, 1], "equallength": False}
+    meta_data = {
+        "classlabel": True,
+        "class_values": [0, 1],
+        "equallength": False,
+        "timestamps": False,
+    }
     count = 1
     with tempfile.TemporaryDirectory() as tmp:
         for data in WRONG_DATA:
@@ -664,7 +669,7 @@ def test_load_forecasting():
         "contain_missing_values": False,
         "contain_equal_length": False,
     }
-    df, meta = load_forecasting("m1_yearly_dataset")
+    df, meta = load_forecasting("m1_yearly_dataset", return_metadata=True)
     assert meta == expected_metadata
     assert df.shape == (181, 3)
     df = load_forecasting("m1_yearly_dataset", return_metadata=False)
@@ -687,7 +692,7 @@ def test_load_regression():
         "classlabel": False,
         "class_values": [],
     }
-    X, y, meta = load_regression("Covid3Month")
+    X, y, meta = load_regression("Covid3Month", return_metadata=True)
     assert meta == expected_metadata
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
@@ -711,7 +716,7 @@ def test_load_classification():
         "classlabel": True,
         "class_values": ["1", "2"],
     }
-    X, y, meta = load_classification("UnitTest")
+    X, y, meta = load_classification("UnitTest", return_metadata=True)
     assert meta == expected_metadata
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
