@@ -78,6 +78,10 @@ def test_load_tsf_to_dataframe_simple():
     assert type(data) is pd.DataFrame
     assert data.shape == (181, 3)
     assert len(meta) == 4
+    data, meta = load_tsf_to_dataframe(data_path, return_type="pd-multiindex")
+    assert type(data) is pd.DataFrame
+    assert data.shape == (4515, 1)
+    assert len(meta) == 4
 
 
 @pytest.mark.skipif(
