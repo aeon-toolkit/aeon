@@ -1,4 +1,12 @@
-"""Abstract base class for time series segmenters."""
+"""Abstract base class for time series segmenters.
+
+Segmenters take a single time series of size n and return a segmentation. The
+segmentation can be
+in different forms
+sparse : a list of integers of length n indicating the segment of each time point
+dense : a list of start and end points of segments
+
+"""
 
 __all__ = ["BaseSegmenter"]
 __author__ = ["TonyBagnall"]
