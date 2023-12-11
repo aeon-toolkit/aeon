@@ -47,12 +47,12 @@ def manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_manhattan_distance(x, y)
     if x.ndim == 2 and y.ndim == 2:
-        return _manhattan_distance(x, y)
+        return _multivariate_manhattan_distance(x, y)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
-def _manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
+def _multivariate_manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
     distance = 0.0
     min_val = min(x.shape[0], y.shape[0])
     for i in range(min_val):

@@ -102,6 +102,18 @@ Manhattan
     manhattan_distance
     manhattan_pairwise_distance
 
+Minkowski
+---------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    minkowski_distance
+    minkowski_pairwise_distance
+
 Move-Split-Merge (MSM)
 ----------------------
 
