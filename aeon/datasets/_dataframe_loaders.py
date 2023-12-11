@@ -10,7 +10,6 @@ __author__ = [
 __all__ = [
     "load_from_tsfile_to_dataframe",
     "load_from_arff_to_dataframe",
-    "load_from_long_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
 ]
 
@@ -23,7 +22,6 @@ import pandas as pd
 
 from aeon.datasets._data_generators import _convert_tsf_to_hierarchical
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
-from aeon.datatypes._panel._convert import from_long_to_nested
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
@@ -755,38 +753,6 @@ def load_from_ucr_tsv_to_dataframe(
         return X, y
     X["class_val"] = y
     return X
-
-
-def load_from_long_to_dataframe(full_file_path_and_name, separator=","):
-    """Load data from a long format file into a Pandas DataFrame.
-
-    Parameters
-    ----------
-    full_file_path_and_name: str
-        The full pathname of the .csv file to read.
-    separator: str
-        The character that the csv uses as a delimiter
-
-    Returns
-    -------
-    DataFrame
-        A dataframe with aeon-formatted data
-    """
-    data = pd.read_csv(full_file_path_and_name, sep=separator, header=0)
-    # ensure there are 4 columns in the long_format table
-    if len(data.columns) != 4:
-        raise ValueError("dataframe must contain 4 columns of data")
-    # ensure that all columns contain the correct data types
-    if (
-        not data.iloc[:, 0].dtype == "int64"
-        or not data.iloc[:, 1].dtype == "int64"
-        or not data.iloc[:, 2].dtype == "int64"
-        or not data.iloc[:, 3].dtype == "float64"
-    ):
-        raise ValueError("one or more data columns contains data of an incorrect type")
-
-    data = from_long_to_nested(data)
-    return data
 
 
 def load_tsf_to_dataframe(

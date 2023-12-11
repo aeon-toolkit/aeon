@@ -18,7 +18,6 @@ from aeon.datasets import (
     load_classification,
     load_forecasting,
     load_from_arff_file,
-    load_from_long_to_dataframe,
     load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
@@ -26,10 +25,7 @@ from aeon.datasets import (
     load_tsf_to_dataframe,
     load_uschange,
 )
-from aeon.datasets._data_generators import (
-    _convert_tsf_to_hierarchical,
-    make_example_long_table,
-)
+from aeon.datasets._data_generators import _convert_tsf_to_hierarchical
 from aeon.datasets._data_loaders import (
     DIRNAME,
     MODULE,
@@ -391,35 +387,6 @@ def test_forecasting_data_loaders(dataset):
             assert X[col].dtype == dt
 
         assert len(X) == checks["len_X"]
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_from_long_to_dataframe(tmpdir):
-    """Test for loading from long to dataframe."""
-    # create and save a example long-format file to csv
-    test_dataframe = make_example_long_table()
-    dataframe_path = tmpdir.join("data.csv")
-    test_dataframe.to_csv(dataframe_path, index=False)
-    # load and convert the csv to aeon-formatted data
-    nested_dataframe = load_from_long_to_dataframe(dataframe_path)
-    assert isinstance(nested_dataframe, pd.DataFrame)
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_from_long_incorrect_format(tmpdir):
-    """Test for loading from long with incorrect format."""
-    with pytest.raises(ValueError):
-        dataframe = make_example_long_table()
-        dataframe.drop(dataframe.columns[[3]], axis=1, inplace=True)
-        dataframe_path = tmpdir.join("data.csv")
-        dataframe.to_csv(dataframe_path, index=False)
-        load_from_long_to_dataframe(dataframe_path)
 
 
 @pytest.mark.parametrize(

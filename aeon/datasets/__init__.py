@@ -66,7 +66,6 @@ from aeon.datasets._data_loaders import (
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (
-    load_from_long_to_dataframe,
     load_from_tsfile_to_dataframe,
     load_tsf_to_dataframe,
 )
