@@ -814,7 +814,6 @@ def get_pairwise_distance_function(
     'squared'       distances.squared_pairwise_distance
     'manhattan'     distances.manhattan_pairwise_distance
     'minkowski'     distances.minkowski_pairwise_distance
-    'manhattan'     distances.manhattan_pairwise_distance
     =============== ========================================
 
     Parameters
