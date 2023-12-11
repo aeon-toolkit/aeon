@@ -30,6 +30,7 @@ from aeon.datasets._data_loaders import (
     DIRNAME,
     MODULE,
     _alias_datatype_check,
+    _get_channel_strings,
     _load_data,
     _load_header_info,
     _load_saved_dataset,
@@ -811,3 +812,10 @@ def test_load_from_arff():
     assert isinstance(X, np.ndarray)
     assert isinstance(y2, np.ndarray)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
+
+
+def test__get_channel_strings():
+    line = "(2007-01-01 00:00:00,241.97),(2007-01-01 00:01:00,241.75):1"
+    channel_strings = _get_channel_strings(line)
+    assert len(channel_strings) == 2
+    assert channel_strings[0] == "241.97,241.75"
