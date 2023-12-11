@@ -24,8 +24,6 @@ from aeon.datasets import (
     load_uschange,
 )
 from aeon.datasets._data_loaders import (
-    DIRNAME,
-    MODULE,
     _alias_datatype_check,
     _get_channel_strings,
     _load_data,
@@ -144,8 +142,11 @@ def test__alias_datatype_check():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test__load_header_info():
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     """Test loading a header."""
-    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
     with open(path, "r", encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
@@ -188,20 +189,29 @@ def test__load_header_info():
 )
 def test__load_data():
     """Test loading after header."""
-    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         X, y, _ = _load_data(file, meta_data)
         assert X.shape == (20, 1, 24)
         assert len(y) == 20
-    path = os.path.join(MODULE, DIRNAME, "BasicMotions", "BasicMotions_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
         meta_data["univariate"] = True
         with pytest.raises(IOError):
             X, y, _ = _load_data(file, meta_data)
-    path = os.path.join(MODULE, DIRNAME, "JapaneseVowels", "JapaneseVowels_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
@@ -287,10 +297,14 @@ def test_load_from_tsfile():
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
     3. Univariate and multivariate unequal length (PLAID) return X as list of numpy
     """
-    data_path = MODULE + "/" + DIRNAME + "/UnitTest/UnitTest_TRAIN.ts"
+
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
@@ -304,7 +318,10 @@ def test_load_from_tsfile():
 
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
-    data_path = MODULE + "/data/BasicMotions/BasicMotions_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
+    )
     X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
@@ -317,13 +334,20 @@ def test_load_from_tsfile():
 
     # Test 3.1: load univariate unequal length (PLAID), should return a one column
     # dataframe,
-    data_path = MODULE + "/data/PLAID/PLAID_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/PLAID/PLAID_TRAIN.ts",
+    )
+
     X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 537 and y.shape == (537,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
-    data_path = MODULE + "/data/JapaneseVowels/JapaneseVowels_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
+    )
     X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 270 and y.shape == (270,)
@@ -482,7 +506,10 @@ def test_load_classification():
 def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/GunPoint/GunPoint_TRAIN.tsv",
+    )
     X2, y2 = load_from_tsv_file(data_path)
     y = y.astype(float)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
@@ -496,7 +523,10 @@ def test_load_from_ucr_tsv():
 def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/GunPoint/GunPoint_TRAIN.arff",
+    )
     X2, y2 = load_from_arff_file(data_path)
     assert isinstance(X2, np.ndarray)
     assert isinstance(y2, np.ndarray)
@@ -505,7 +535,10 @@ def test_load_from_arff():
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
     X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.arff",
+    )
     X2, y2 = load_from_arff_file(data_path)
     assert isinstance(X, np.ndarray)
     assert isinstance(y2, np.ndarray)
