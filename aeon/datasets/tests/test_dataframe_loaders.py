@@ -369,8 +369,6 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
     assert isinstance(metadata, dict)
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
-    # default_tsf"
-    #    assert check_is_mtype(obj=df, mtype=return_type)
     if return_type == "default_tsf":
         assert isinstance(df, pd.DataFrame)
     elif return_type == "pd-multiindex":

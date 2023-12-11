@@ -29,7 +29,6 @@ MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 def load_from_tsfile_to_dataframe(
     full_file_path_and_name,
-    return_separate_X_and_y=True,
     replace_missing_vals_with="NaN",
 ):
     """Load data from a .ts file into a nested pandas DataFrame.
@@ -57,8 +56,6 @@ def load_from_tsfile_to_dataframe(
 
 def load_from_arff_to_dataframe(
     full_file_path_and_name,
-    has_class_labels=True,
-    return_separate_X_and_y=True,
     replace_missing_vals_with="NaN",
 ):
     """Load data from a .arff file into a nested pandas DataFrame.
