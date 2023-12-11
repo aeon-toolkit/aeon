@@ -11,13 +11,17 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._dataframe_loaders import DIRNAME, MODULE
+import aeon
 from aeon.datasets.dataset_collections import (
     list_downloaded_tsc_tsr_datasets,
     list_downloaded_tsf_datasets,
 )
 from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
 from aeon.utils.validation.collection import convert_collection
+
+DIRNAME = "data"
+MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+
 
 __all__ = [  # Load functions
     "load_from_tsfile",
