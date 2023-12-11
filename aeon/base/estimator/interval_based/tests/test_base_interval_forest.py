@@ -13,7 +13,7 @@ from aeon.transformations.collection.feature_based import (
     Catch22,
     SevenNumberSummaryTransformer,
 )
-from aeon.transformations.series.func_transform import FunctionTransformer
+from aeon.transformations.func_transform import FunctionTransformer
 from aeon.utils._testing.collection import make_3d_test_data
 from aeon.utils.numba.stats import row_mean, row_numba_min
 

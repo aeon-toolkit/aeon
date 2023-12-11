@@ -12,7 +12,7 @@ from queue import PriorityQueue
 import numpy as np
 import pandas as pd
 
-from aeon.transformations.series.clasp import ClaSPTransformer
+from aeon.transformations.clasp import ClaSPTransformer
 from aeon.utils.validation.series import check_series
 
 
