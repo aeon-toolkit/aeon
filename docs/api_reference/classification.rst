@@ -1,7 +1,7 @@
 .. _classification_ref:
 
-Time series classification
-==========================
+Classification
+==============
 
 The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
 

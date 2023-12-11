@@ -11,7 +11,7 @@ from aeon.datasets import load_airline
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.series.boxcox import BoxCoxTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.utils.estimators import make_mock_estimator
 from aeon.utils.estimators._base import _method_logger, _MockEstimatorMixin
 
