@@ -328,12 +328,12 @@ of univariate series**</span>.
 
 
 The following example shows how to use the
-[Differencer](transformations.series.difference.Differencer) class to extract the first
+[Differencer](transformations.difference.Differencer) class to extract the first
 order difference of a time series. Usage is the same for both single series and
 collection input types.
 
 ```{code-block} python
->>> from aeon.transformations.series.difference import Differencer
+>>> from aeon.transformations.difference import Differencer
 >>> from aeon.datasets import load_airline
 >>> from aeon.datasets import load_italy_power_demand
 >>> diff = Differencer(lags=1)
@@ -368,11 +368,11 @@ Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
 
 As well as series-to-series transformations, the transformations module also contains
 features which transform series into a feature vector. The following example shows how
-to use the [SummaryTransformer](transformations.series.summarize.SummaryTransformer)
+to use the [SummaryTransformer](transformations.summarize.SummaryTransformer)
 class to extract summary statistics from a time series.
 
 ```{code-block} python
->>> from aeon.transformations.series.summarize import SummaryTransformer
+>>> from aeon.transformations.summarize import SummaryTransformer
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> summary = SummaryTransformer()
@@ -463,16 +463,16 @@ transformations and estimators together. The simplest pipeline for forecasting i
 [TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
 
 In the following example, we chain together a
-[BoxCoxTransformer](transformations.series.boxcox.BoxCoxTransformer),
-[Deseasonalizer](transformations.series.detrend.Deseasonalizer) and
+[BoxCoxTransformer](transformations.boxcox.BoxCoxTransformer),
+[Deseasonalizer](transformations.detrend.Deseasonalizer) and
 [ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
 yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -567,8 +567,8 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ...     ForecastingGridSearchCV,
 ... )
 >>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 ...
 >>> y = load_airline()
 ...
