@@ -132,11 +132,11 @@ def load_tsf_to_dataframe(
 
     Parameters
     ----------
-    full_file_path_and_name: str
+    full_file_path_and_name : str
         The full path to the .tsf file.
-    replace_missing_vals_with: str, default="NAN"
+    replace_missing_vals_with : str, default="NAN"
         A term to indicate the missing values in series in the returning dataframe.
-    value_column_name: str, default="series_value"
+    value_column_name : str, default="series_value"
         Any name that is preferred to have as the name of the column containing series
         values in the returning dataframe.
     return_type : str - "pd_multiindex_hier" or "tsf_default" (default)
