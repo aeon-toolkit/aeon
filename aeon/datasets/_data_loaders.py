@@ -715,19 +715,19 @@ def load_from_tsf_file(
 
     Parameters
     ----------
-    full_file_path_and_name: str
+    full_file_path_and_name : str
         The full path to the .tsf file.
-    replace_missing_vals_with: str, default="NAN"
+    replace_missing_vals_with : str, default="NAN"
         A term to indicate the missing values in series in the returning dataframe.
-    value_column_name: str, default="series_value"
+    value_column_name : str, default="series_value"
         Any name that is preferred to have as the name of the column containing series
         values in the returning dataframe.
 
     Returns
     -------
-    loaded_data: pd.DataFrame
+    loaded_data : pd.DataFrame
         The converted dataframe containing the time series.
-    metadata: dict
+    metadata : dict
         The metadata for the forecasting problem. The dictionary keys are:
         "frequency", "forecast_horizon", "contain_missing_values",
         "contain_equal_length"
