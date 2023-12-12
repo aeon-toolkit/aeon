@@ -267,13 +267,13 @@ KNeighborsTimeSeriesRegressor()
 
 Like classification and regression, time series clustering aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
-the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
 clusterer on the
 [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
 ```{code-block} python
->>> from aeon.clustering.k_means import TimeSeriesKMeans
+>>> from aeon.clustering import TimeSeriesKMeans
 >>> from aeon.datasets import load_arrow_head
 >>> from sklearn.metrics import rand_score
 >>> X, y = load_arrow_head()
@@ -328,12 +328,12 @@ of univariate series**</span>.
 
 
 The following example shows how to use the
-[Differencer](transformations.series.difference.Differencer) class to extract the first
+[Differencer](transformations.difference.Differencer) class to extract the first
 order difference of a time series. Usage is the same for both single series and
 collection input types.
 
 ```{code-block} python
->>> from aeon.transformations.series.difference import Differencer
+>>> from aeon.transformations.difference import Differencer
 >>> from aeon.datasets import load_airline
 >>> from aeon.datasets import load_italy_power_demand
 >>> diff = Differencer(lags=1)
@@ -368,11 +368,11 @@ Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
 
 As well as series-to-series transformations, the transformations module also contains
 features which transform series into a feature vector. The following example shows how
-to use the [SummaryTransformer](transformations.series.summarize.SummaryTransformer)
+to use the [SummaryTransformer](transformations.summarize.SummaryTransformer)
 class to extract summary statistics from a time series.
 
 ```{code-block} python
->>> from aeon.transformations.series.summarize import SummaryTransformer
+>>> from aeon.transformations.summarize import SummaryTransformer
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> summary = SummaryTransformer()
@@ -392,11 +392,11 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.catch22.Catch22), which calculates 22 summary
+[Catch22](transformations.collection.feauture_based), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> import numpy as np
 >>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
 >>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
@@ -444,7 +444,7 @@ multivariate series and automatically convert output.
 
 ```{code-block} python
 >>> from aeon.transformations.collection import CollectionToSeriesWrapper
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> c22 = Catch22(replace_nans=True)
@@ -463,16 +463,16 @@ transformations and estimators together. The simplest pipeline for forecasting i
 [TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
 
 In the following example, we chain together a
-[BoxCoxTransformer](transformations.series.boxcox.BoxCoxTransformer),
-[Deseasonalizer](transformations.series.detrend.Deseasonalizer) and
+[BoxCoxTransformer](transformations.boxcox.BoxCoxTransformer),
+[Deseasonalizer](transformations.detrend.Deseasonalizer) and
 [ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
 yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -526,7 +526,7 @@ feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
->>> from aeon.transformations.collection import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from sklearn.ensemble import RandomForestClassifier
 >>> from sklearn.pipeline import make_pipeline
 >>> from sklearn.metrics import accuracy_score
@@ -567,8 +567,8 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ...     ForecastingGridSearchCV,
 ... )
 >>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 ...
 >>> y = load_airline()
 ...
