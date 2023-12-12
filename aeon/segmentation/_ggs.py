@@ -42,7 +42,7 @@ import numpy.typing as npt
 from attrs import asdict, define, field
 from sklearn.utils.validation import check_random_state
 
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation.base import BaseSegmenter
 
 logger = logging.getLogger(__name__)
 
