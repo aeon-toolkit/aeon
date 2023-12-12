@@ -18,6 +18,8 @@ EXCLUDED_USERS = [
     "github-actions[bot]",
     "allcontributors[bot]",
     "sweep-ai[bot]",
+    "aeon-actions-bot[bot]",
+    "dependabot[bot]",
 ]
 
 
@@ -205,7 +207,7 @@ if __name__ == "__main__":
 
     # if you edit these, consider editing the PR template as well
     packages = [
-        ["Annotation", ["annotation"]],
+        ["Anomaly Detection", ["anomaly detection"]],
         ["Benchmarking", ["benchmarking"]],
         ["Classification", ["classification"]],
         ["Clustering", ["clustering"]],
@@ -214,6 +216,8 @@ if __name__ == "__main__":
         ["Forecasting", ["forecasting"]],
         ["Networks", ["networks"]],
         ["Regression", ["regression"]],
+        ["Segmentation", ["segmentation"]],
+        ["Similarity Search", ["similarity search"]],
         ["Transformations", ["transformations"]],
     ]
     categories = [
@@ -222,6 +226,7 @@ if __name__ == "__main__":
         ["Enhancements", ["enhancement"]],
         ["Maintenance", ["maintenance"]],
         ["Refactored", ["refactor"]],
+        ["Deprecation", ["deprecation"]],
     ]
 
     pulls = fetch_pull_requests_since_last_release()
