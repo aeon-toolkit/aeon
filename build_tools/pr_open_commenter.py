@@ -53,8 +53,8 @@ title_labels_str = ""
 if len(title_labels) == 0:
     title_labels_str = (
         "I did not find any labels to add based on the title. Please "
-        "add the ENH, MNT, BUG, DOC and/or GOV tag to your pull "
-        "requests titles. For now you can add the labels manually."
+        "add the [ENH], [MNT], [BUG], [DOC], [REF], [DEP] and/or [GOV] tags to your "
+        "pull requests titles. For now you can add the labels manually."
     )
 elif len(title_labels_new) != 0:
     arr_str = str(title_labels_new).strip("[]").replace("'", "")

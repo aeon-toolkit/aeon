@@ -48,7 +48,7 @@ Please go through the checklist below. Please feel free to remove points if they
 
 ##### For all contributions
 - [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc). Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage) bot to do this for you.
-- [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG], [REF] or [GOV] indicating whether the PR topic is related to enhancement, maintenance, documentation, bugs, refactoring or governance.
+- [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG], [REF], [DEP] or [GOV] indicating whether the PR topic is related to enhancement, maintenance, documentation, bugs, refactoring, deprecation or governance.
 
 ##### For new estimators and functions
 - [ ] I've added the estimator to the online [API documentation](https://www.aeon-toolkit.org/en/latest/api_reference.html).
