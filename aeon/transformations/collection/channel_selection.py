@@ -50,8 +50,8 @@ def create_distance_matrix(
 
     Parameters
     ----------
-    prototype : pd.DataFrame or np.ndarray
-        A multivatiate time series representation for entire dataset.
+    prototype : np.ndarray
+        A multivatiate time series for each class.
     class_vals : np.array
         Class values.
     distance : str, default="euclidean"
@@ -118,7 +118,7 @@ class ClassPrototype:
 
     Notes
     -----
-    For more information on the prototype types and class prototype, see [1] and [2].
+    For more information on the prototype types and class prototype, see [1]_ and [2]_.
 
     References
     ----------
@@ -126,7 +126,6 @@ class ClassPrototype:
     Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
     ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
-
     """
 
     def __init__(
@@ -155,7 +154,6 @@ class ClassPrototype:
 
         low_value = median - _mad * 0.50
         high_value = median + _mad * 0.50
-        # clip = lambda x: np.clip(x, low_value, high_value)
         class_X = np.apply_along_axis(
             lambda x: np.clip(x, a_min=low_value, a_max=high_value),
             axis=1,
@@ -235,7 +233,7 @@ class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
     Overview: From the input of multivariate time series data, create a distance
-    matrix [1, 2] by calculating the distance between each class prototype. The
+    matrix [1]_ and [2]_ by calculating the distance between each class prototype. The
     ECS selects the subset of channels using the elbow method, which maximizes the
     distance between the class centroids by aggregating the distance for every
     class pair across each channel.
@@ -245,15 +243,12 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     Parameters
     ----------
-    distance : str
+    distance : str, default = 'euclidean'
         Distance metric to use for creating the class prototype.
-        Default: 'euclidean'
-    prototype_type : str
+    prototype_type : str, default = 'mean'
         Type of class prototype to use for representing a class.
-        Default: 'mean'
-    mean_center : bool
+    mean_center : bool, default = False
         If True, mean centering is applied to the class prototype.
-        Default: False
 
     Attributes
     ----------
@@ -318,9 +313,9 @@ class ElbowClassSum(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X : np.ndarray
             The training input samples.
-        y: array-like or list
+        y : array-like or list
             The class values for X.
 
         Returns
@@ -352,13 +347,14 @@ class ElbowClassSum(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or np.ndarray
-            The input data to transform.
+        X : np.ndarray
+            The input data to transform shape ``(n_cases, n_channels, n_timepoints)``.
 
         Returns
         -------
-        output : pandas DataFrame
-            X with a subset of channels
+        output : np.ndarray
+            X with a subset of channels, shape The input data to transform
+            shape ``(n_cases, len(channels_selected_idx), n_timepoints)``
         """
         if not self._is_fitted:
             raise RuntimeError("fit() must be called before transform()")
@@ -378,15 +374,13 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     Parameters
     ----------
-    distance : str
+    distance : str, default = 'euclidean'
         Distance metric to use for creating the class prototype.
-        Default: 'euclidean'
-    prototype_type : str
+    prototype_type : str, default = 'mean'
         Type of class prototype to use for representing a class.
-        Default: 'mean', Options: ['mean', 'median', 'mad']
-    mean_center : bool
+        Options: ['mean', 'median', 'mad'].
+    mean_center : bool, default = False
         If True, mean centering is applied to the class prototype.
-        Default: False, Options: [True, False]
 
 
     Attributes
@@ -488,7 +482,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or np.ndarray
+        X : np.ndarray
             The input data to transform.
 
         Returns
