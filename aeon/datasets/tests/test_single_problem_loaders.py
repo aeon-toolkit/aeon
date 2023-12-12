@@ -74,11 +74,13 @@ def test_load_unit_test_tsf():
     """Test load unit test tsf."""
     tuple = load_unit_test_tsf()
     assert isinstance(tuple[0], pd.DataFrame)
-    assert tuple[0].shape == (15, 1)
+    assert tuple[0].shape == (3, 3)
     assert tuple[1] == "yearly"
     assert tuple[2] == 4
     assert not tuple[3]
     assert not tuple[4]
+    tuple = load_unit_test_tsf(return_type="pd_multiindex_hier")
+    assert tuple[0].shape == (15, 1)
 
 
 def test_basic_load_tsf_to_dataframe():

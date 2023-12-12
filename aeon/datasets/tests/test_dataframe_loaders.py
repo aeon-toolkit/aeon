@@ -174,7 +174,7 @@ def test_convert_tsf_to_multiindex(freq):
     [
         (
             "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
-            "default_tsf",
+            "tsf_default",
             pd.DataFrame(
                 {
                     "series_name": ["T1", "T2", "T3"],
@@ -289,7 +289,7 @@ def test_convert_tsf_to_multiindex(freq):
         ),
         (
             "datasets/data/UnitTest/UnitTest_Tsf_Loader_no_start_timestamp.tsf",
-            "default_tsf",
+            "tsf_default",
             pd.DataFrame(
                 {
                     "series_name": ["T1", "T2", "T3"],
@@ -373,7 +373,7 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
     assert isinstance(metadata, dict)
     assert_frame_equal(df, output_df, check_dtype=False)
     assert metadata == expected_metadata
-    if return_type == "default_tsf":
+    if return_type == "tsf_default":
         assert isinstance(df, pd.DataFrame)
     elif return_type == "pd-multiindex":
         assert isinstance(df.index, pd.MultiIndex)

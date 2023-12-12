@@ -312,7 +312,6 @@ def load_tsf_to_dataframe(
                 ),
             )
         )
-
         if return_type != "tsf_default":
             loaded_data = _convert_tsf_to_hierarchical(
                 loaded_data, metadata, value_column_name=value_column_name

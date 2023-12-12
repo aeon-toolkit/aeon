@@ -706,6 +706,7 @@ def load_from_tsf_file(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     value_column_name="series_value",
+    return_type="tsf_default",
 ):
     """
     Convert the contents in a .tsf file into a dataframe.
@@ -722,6 +723,10 @@ def load_from_tsf_file(
     value_column_name : str, default="series_value"
         Any name that is preferred to have as the name of the column containing series
         values in the returning dataframe.
+    return_type : str - "pd_multiindex_hier" or "tsf_default" (default)
+        - "tsf_default" = container that faithfully mirrors tsf format from the original
+            implementation in: https://github.com/rakshitha123/TSForecasting/
+            blob/master/utils/data_loader.py.
 
     Returns
     -------
@@ -891,6 +896,10 @@ def load_from_tsf_file(
                 ),
             )
         )
+        if return_type != "tsf_default":
+            loaded_data = _convert_tsf_to_hierarchical(
+                loaded_data, metadata, value_column_name=value_column_name
+            )
         return loaded_data, metadata
 
 
