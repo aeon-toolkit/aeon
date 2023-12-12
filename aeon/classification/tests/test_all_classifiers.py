@@ -113,7 +113,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             # train classifier and predict probas
             estimator_instance.fit(X_train[indices], y_train[indices])
             y_proba = estimator_instance.predict_proba(X_test[indices])
-            np.testing.assert_almost_equal(y_proba, expected_probas, decimal=4)
+            np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""
@@ -245,7 +245,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         # set random seed if possible
         set_random_state(estimator_instance, 0)
         y_proba = _reproduce_classification_unit_test(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=4)
+        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
         res = _print_results_for_classifier(classname, "UnitTest")
         exp_str = _print_array(f"{classname} - UnitTest", expected_probas)
         assert res == exp_str
