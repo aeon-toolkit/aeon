@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection import RandomIntervals
+from aeon.transformations.collection.interval_based import RandomIntervals
 
 
 class RandomIntervalRegressor(BaseRegressor):

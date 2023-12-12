@@ -1,7 +1,7 @@
 .. _annotation_ref:
 
-Time Series Segmentation
-========================
+Segmentation
+============
 
 Time Series Segmentation aims to discover regions of a time series that are
 semantically dissimilar to neighboring regions. The :mod:`aeon.segmentation` module

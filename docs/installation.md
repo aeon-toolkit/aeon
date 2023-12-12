@@ -53,10 +53,17 @@ required.
 pip install -U aeon[all_extras]
 ```
 
+```{note}
+    If this results in a "no matches found" error, it may be due to how your shell
+    handles special characters. Try surrounding the dependency portion with quotes i.e.
+
+    pip install -U aeon"[all_extras]"
+```
+
 ```{warning}
-Some of the dependencies included in `all_extras` do not work on Mac ARM-based
-processors, such as M1, M2, M1Pro, M1Max or M1Ultra. This may cause an error during
-installation. Mode details can be found in the troubleshooting section below.
+    Some of the dependencies included in `all_extras` do not work on Mac ARM-based
+    processors, such as M1, M2, M1Pro, M1Max or M1Ultra. This may cause an error during
+    installation. Mode details can be found in the troubleshooting section below.
 ```
 
 After installation, you can verify that `aeon` has been installed correctly by
@@ -203,3 +210,14 @@ Also, ARM-based processors have issues when installing packages distributed as s
 distributions instead of Python wheels. To avoid this issue when installing a package,
 you can try installing it through `conda` or use a prior version of the package that
 was distributed as a wheel.
+
+### `no matches found` when installing `all_extras`
+
+Some shells (i.e. the commonly used [Zsh](https://en.wikipedia.org/wiki/Z_shell)) use
+square brackets as a special character. If you are using such a shell, you may
+encounter an error when installing `aeon[all_extras]`. This can be resolved by
+surrounding the dependency portion with quotes i.e.
+
+```{code-block} powershell
+pip install -U aeon"[all_extras]"
+```
