@@ -13,7 +13,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from scipy.stats import median_abs_deviation
+from packaging import version
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import distance as aeon_distance
@@ -145,7 +145,13 @@ class ClassPrototype:
 
     def _mad_median(self, class_X, median=None):
         """Calculate upper and lower bounds for median absolute deviation."""
-        _mad = median_abs_deviation(class_X, axis=0)
+        import scipy
+
+        installed_version = scipy.__version__
+        if version.parse(installed_version) < version.parse("1.9"):
+            _mad = scipy.stats.median_absolute_deviation(class_X, axis=0)
+        else:
+            _mad = scipy.stats.median_abs_deviation(class_X, axis=0)
 
         low_value = median - _mad * 0.50
         high_value = median + _mad * 0.50
