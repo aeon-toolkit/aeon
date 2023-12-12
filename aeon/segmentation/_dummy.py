@@ -3,7 +3,7 @@
 
 import random
 
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation.base import BaseSegmenter
 
 
 class DummySegmenter(BaseSegmenter):
@@ -23,7 +23,7 @@ class DummySegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 2D np.array of shape = [n_channels, series_length]
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -33,8 +33,9 @@ class DummySegmenter(BaseSegmenter):
         self.n_segments_ = self.n_segments
         if self.n_segments_ is None:
             self.n_segments_ = 2
-        length = len(X)
-        self.breakpoints_ = random.sample(range(0, length), self.n_segments_ - 1)
+        length = X.shape[1]
+        points = random.sample(range(0, length), self.n_segments_ - 1)
+        self.breakpoints_ = sorted(points)
         return self
 
     def _predict(self, X):

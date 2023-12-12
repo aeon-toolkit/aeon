@@ -89,7 +89,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
         self._check_input_series(X)
-        self._check_capabilities(X)
+        self._check_capabilities(X, axis)
         X = self._convert_X(X, axis)
         if y is not None:
             self._check_y(y)
@@ -102,7 +102,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         if axis is None:
             axis = self.axis
         self._check_input_series(X)
-        self._check_capabilities(X)
+        self._check_capabilities(X, axis)
         return self._predict(X)
 
     def fit_predict(self, X, y=None):
@@ -149,11 +149,19 @@ class BaseSegmenter(BaseEstimator, ABC):
                 raise ValueError("pd.DataFrame must be numeric")
 
     def _check_capabilities(
-        self, X
+        self, X, axis
     ):  # Check can handle multivariate and missing values
         if self.get_tag("capability:multivariate") is False:
-            if not isinstance(X, pd.Series) and X.ndim > 1:
-                raise ValueError("Multivariate data not supported")
+            if isinstance(X, pd.Series):
+                return
+            if isinstance(X, np.ndarray):
+                if X.squeeze().ndim > 1:
+                    raise ValueError("Multivariate data not supported")
+            elif isinstance(X, pd.DataFrame):
+                if axis == 0 and X.shape[1] > 1:
+                    raise ValueError("Multivariate data not supported")
+                elif axis == 1 and X.shape[0] > 1:
+                    raise ValueError("Multivariate data not supported")
 
     def _convert_X(self, X, axis):
         # Check axis
@@ -163,7 +171,7 @@ class BaseSegmenter(BaseEstimator, ABC):
             if inner == "ndarray":
                 X = X.to_numpy()
             elif inner == "Series":
-                if input == "np.ndarray":
+                if input == "ndarray":
                     X = pd.Series(X)
                 elif input == "DataFrame":
                     X = pd.Series(X.iloc[:, 0])
@@ -174,4 +182,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         if not isinstance(X, pd.Series):
             if self.axis != axis:
                 X = X.T
+        if not self.get_tag("capability:multivariate"):  # univariate numpy
+            if inner == "ndarray":
+                X = np.squeeze(X)
         return X
