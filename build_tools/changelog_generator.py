@@ -18,6 +18,8 @@ EXCLUDED_USERS = [
     "github-actions[bot]",
     "allcontributors[bot]",
     "sweep-ai[bot]",
+    "aeon-actions-bot[bot]",
+    "dependabot[bot]",
 ]
 
 
@@ -224,6 +226,7 @@ if __name__ == "__main__":
         ["Enhancements", ["enhancement"]],
         ["Maintenance", ["maintenance"]],
         ["Refactored", ["refactor"]],
+        ["Deprecation", ["deprecation"]],
     ]
 
     pulls = fetch_pull_requests_since_last_release()
