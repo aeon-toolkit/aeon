@@ -45,7 +45,6 @@ __all__ = [
     # legacy load functions
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
-    "load_tsf_to_dataframe",
     "load_from_tsfile_to_dataframe",
 ]
 
@@ -70,7 +69,6 @@ from aeon.datasets._dataframe_loaders import (
     load_from_arff_to_dataframe,
     load_from_tsfile_to_dataframe,
     load_from_ucr_tsv_to_dataframe,
-    load_tsf_to_dataframe,
 )
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,

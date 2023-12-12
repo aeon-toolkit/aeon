@@ -5,21 +5,21 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import aeon
 from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_acsf1,
     load_arrow_head,
     load_basic_motions,
     load_covid_3month,
+    load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
     load_osuleaf,
     load_plaid,
     load_solar,
-    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
-from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -85,9 +85,11 @@ def test_load_unit_test_tsf():
 
 def test_basic_load_tsf_to_dataframe():
     """Simple loader test."""
-
-    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    df, metadata = load_tsf_to_dataframe(full_path)
+    full_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    df, metadata = load_from_tsf_file(full_path)
     assert isinstance(df, pd.DataFrame)
     assert metadata["frequency"] == "yearly"
     assert metadata["forecast_horizon"] == 4

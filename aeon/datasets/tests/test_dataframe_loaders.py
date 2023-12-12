@@ -8,9 +8,9 @@ from pandas.testing import assert_frame_equal
 import aeon
 from aeon.datasets import (
     load_from_arff_to_dataframe,
+    load_from_tsf_file,
     load_from_tsfile_to_dataframe,
     load_from_ucr_tsv_to_dataframe,
-    load_tsf_to_dataframe,
 )
 from aeon.datasets._data_generators import _convert_tsf_to_hierarchical
 from aeon.tests.test_config import PR_TESTING
@@ -74,11 +74,11 @@ def test_load_tsf_to_dataframe_simple():
         "datasets/data/m1_yearly_dataset/m1_yearly_dataset.tsf",
     )
 
-    data, meta = load_tsf_to_dataframe(data_path)
+    data, meta = load_from_tsf_file(data_path)
     assert type(data) is pd.DataFrame
     assert data.shape == (181, 3)
     assert len(meta) == 4
-    data, meta = load_tsf_to_dataframe(data_path, return_type="pd-multiindex")
+    data, meta = load_from_tsf_file(data_path, return_type="pd-multiindex")
     assert type(data) is pd.DataFrame
     assert data.shape == (4515, 1)
     assert len(meta) == 4
@@ -368,7 +368,7 @@ def test_load_tsf_to_dataframe(input_path, return_type, output_df):
         "contain_equal_length": False,
     }
 
-    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
+    df, metadata = load_from_tsf_file(data_path, return_type=return_type)
     assert isinstance(df, pd.DataFrame)
     assert isinstance(metadata, dict)
     assert_frame_equal(df, output_df, check_dtype=False)
