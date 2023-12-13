@@ -11,11 +11,8 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.datatypes._panel._check import is_nested_dataframe
-from aeon.datatypes._panel._convert import (
-    from_3d_numpy_to_nested,
-    from_nested_to_3d_numpy,
-)
+from aeon.utils.validation._convert_collection import _is_nested_univ_dataframe
+from aeon.utils.validation.collection import convert_collection
 
 VALID_X_TYPES = (pd.DataFrame, np.ndarray)  # nested pd.DataFrame, 2d or 3d np.array
 VALID_Y_TYPES = (pd.Series, np.ndarray)  # 1-d vector
@@ -79,7 +76,7 @@ def check_X(
                 f"array, but found shape: {X.shape}"
             )
         if coerce_to_pandas:
-            X = from_3d_numpy_to_nested(X)
+            X = convert_collection(X, "nested_univ")
 
     # enforce minimum number of columns
     n_columns = X.shape[1]
@@ -102,14 +99,14 @@ def check_X(
 
     # check pd.DataFrame
     if isinstance(X, pd.DataFrame):
-        if not is_nested_dataframe(X):
+        if not _is_nested_univ_dataframe(X):
             raise ValueError(
                 "If passed as a pd.DataFrame, X must be a nested "
                 "pd.DataFrame, with pd.Series or np.arrays inside cells."
             )
         # convert pd.DataFrame
         if coerce_to_numpy:
-            X = from_nested_to_3d_numpy(X)
+            X = convert_collection(X, "numpy3D")
 
     return X
 
