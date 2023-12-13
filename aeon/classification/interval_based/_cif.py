@@ -11,7 +11,7 @@ import numpy as np
 from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.transformations.collection import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 

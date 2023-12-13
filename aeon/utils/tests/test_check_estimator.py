@@ -5,7 +5,7 @@ __author__ = ["fkiraly"]
 import pytest
 
 from aeon.classification import DummyClassifier
-from aeon.transformations.series.exponent import ExponentTransformer
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.utils.estimator_checks import check_estimator
 from aeon.utils.estimators import MockForecaster
 

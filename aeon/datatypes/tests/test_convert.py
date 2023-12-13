@@ -9,10 +9,6 @@ from aeon.utils._testing.deep_equals import deep_equals
 
 SCITYPES = [sci[0] for sci in DATATYPE_REGISTER]
 
-# scitypes which have no conversions defined
-# should be listed here to avoid false positive test errors
-SCITYPES_NO_CONVERSIONS = ["Alignment"]
-
 
 def _generate_fixture_tuples():
     """Return fixture tuples for pytest_generate_tests."""
@@ -20,12 +16,7 @@ def _generate_fixture_tuples():
     fixture_tuples = []
 
     for scitype in SCITYPES:
-        # if we know there are no conversions defined, skip this scitype
-        if scitype in SCITYPES_NO_CONVERSIONS:
-            continue
-
         conv_mat = _conversions_defined(scitype)
-
         mtypes = scitype_to_mtype(scitype, softdeps="exclude")
 
         if len(mtypes) == 0:

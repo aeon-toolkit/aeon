@@ -1,7 +1,7 @@
 .. _annotation_ref:
 
-Time series annotation
-======================
+Annotation
+==========
 
 The :mod:`aeon.annotation` module contains algorithms and tools
 for time series annotation. This no longer includes anomaly/outlier

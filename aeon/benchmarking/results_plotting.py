@@ -64,7 +64,7 @@ def plot_boxplot_median(
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
     >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
     >>> plot.show() # doctest: +SKIP
-    >>> plot.savefig("boxplot.pdf", bbox_inches="tight") # doctest: +SKIP
+    >>> plot.savefig("boxplot.pdf") # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -72,9 +72,16 @@ def plot_boxplot_median(
 
     # Obtains deviation from median for each independent experiment.
     medians = np.median(results, axis=1)
-    deviation_from_median = results / (results + medians[:, np.newaxis])
+    sum_results_medians = results + medians[:, np.newaxis]
 
-    fig = plt.figure(figsize=(10, 6))
+    deviation_from_median = np.divide(
+        results,
+        sum_results_medians,
+        out=np.zeros_like(results),
+        where=sum_results_medians != 0,
+    )
+
+    fig = plt.figure(figsize=(10, 6), layout="tight")
 
     # Plots violin or boxplots
     if plot_type == "violin":
@@ -120,8 +127,13 @@ def plot_boxplot_median(
 
     plot.set_ylim(y_min, y_max)
 
-    # Setting labels for x-axis.
-    plot.set_xticklabels(labels, rotation=45, ha="right")
+    # Setting labels for x-axis. Rotate only if labels are too long.
+    plot.set_xticks(np.arange(len(labels)))
+    label_lengths = np.array([len(i) for i in labels])
+    if (sum(label_lengths) > 40) or (max(label_lengths[:-1] + label_lengths[1:]) > 20):
+        plot.set_xticklabels(labels, rotation=45, ha="right")
+    else:
+        plot.set_xticklabels(labels)
 
     # Setting title if provided.
     if title is not None:
@@ -133,8 +145,7 @@ def plot_boxplot_median(
 def plot_scatter_predictions(
     y,
     y_pred,
-    method,
-    dataset,
+    title=None,
 ):
     """Plot a scatter that compares actual and predicted values for a given dataset.
 
@@ -148,10 +159,8 @@ def plot_scatter_predictions(
         Actual values.
     y_pred: np.array
         Predicted values.
-    method: str
-        Method's name for title.
-    dataset: str
-        Dataset's name for title.
+    title: str, default = None
+        Title to be shown in the top of the plot.
 
     Returns
     -------
@@ -168,17 +177,17 @@ def plot_scatter_predictions(
     >>> fp = FreshPRINCERegressor(n_estimators=10)  # doctest: +SKIP
     >>> fp.fit(X_train, y_train)  # doctest: +SKIP
     >>> y_pred_fp = fp.predict(X_test)  # doctest: +SKIP
-    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, method="FreshPRINCE",\
-        dataset="Covid3Month")  # doctest: +SKIP
+    >>> plot = plot_scatter_predictions(y_test, y_pred_fp, title="FP-Covid3Month")\
+        # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
-    >>> plot.savefig("scatterplot_predictions.pdf", bbox_inches="tight")\
+    >>> plot.savefig("scatterplot_predictions.pdf")\
         # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(10, 6), layout="tight")
     min_value = min(y.min(), y_pred.min()) * 0.97
     max_value = max(y.max(), y_pred.max()) * 1.03
 
@@ -202,7 +211,8 @@ def plot_scatter_predictions(
     plot.set_xlabel("Actual values")
     plot.set_ylabel("Predicted values")
 
-    plot.set_title(rf"{method} - {dataset}")
+    if title is not None:
+        plot.set_title(rf"{title}")
 
     return fig
 
@@ -211,19 +221,28 @@ def plot_scatter(
     results,
     method_A,
     method_B,
+    metric="accuracy",
+    lower_better=False,
+    statistic_tests=True,
     title=None,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
     Parameters
     ----------
-    results: np.array
+    results : np.array
         Scores (either accuracies or errors) of dataset x strategy.
-    method_A: str
+    method_A : str
         Method name of the first approach.
-    method_B: str
+    method_B : str
         Method name of the second approach.
-    title: str, default = None
+    metric : str, default = "accuracy"
+        Metric to be used for the comparison.
+    lower_better : bool, default = False
+        If True, lower values are considered better, i.e. errors.
+    statistic_tests : bool, default = True
+        If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
+    title : str, default = None
         Title to be shown in the top of the plot.
 
     Returns
@@ -239,39 +258,89 @@ def plot_scatter(
     >>> results = get_estimator_results_as_array(estimators=methods)
     >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
-    >>> plot.savefig("scatterplot.pdf", bbox_inches="tight")  # doctest: +SKIP
+    >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
 
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns
+    from matplotlib.offsetbox import AnchoredText
 
-    fig = plt.figure(figsize=(10, 6))
+    if results.shape[1] != 2:
+        raise ValueError("Please provide a results array only for 2 methods.")
 
-    differences = [0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in results]
+    if statistic_tests:
+        fig, ax = plt.subplots(figsize=(10, 6), gridspec_kw=dict(bottom=0.2))
+    else:
+        fig, ax = plt.subplots(figsize=(10, 6))
 
-    min_value = results.min() * 0.97
+    min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
+
+    if metric == "accuracy":
+        max_value = min(max_value, 1)
+        if lower_better:
+            raise ValueError("lower_better must be False when metric is 'accuracy'.")
+    elif metric == "error":
+        if not lower_better:
+            raise ValueError("lower_better must be True when metric is 'error'.")
 
     x, y = [min_value, max_value], [min_value, max_value]
     plt.plot(x, y, color="black", alpha=0.5, zorder=1)
 
+    # Choose the appropriate order for the methods. Best method is shown in the y-axis.
+    if (results[:, 0].mean() <= results[:, 1].mean() and not lower_better) or (
+        results[:, 0].mean() >= results[:, 1].mean() and lower_better
+    ):
+        first = results[:, 1]
+        first_method = method_B
+        second = results[:, 0]
+        second_method = method_A
+    else:
+        first = results[:, 0]
+        first_method = method_A
+        second = results[:, 1]
+        second_method = method_B
+
+    differences = [
+        0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
+    ]
+
+    first_avg = first.mean()
+    second_avg = second.mean()
+
     plot = sns.scatterplot(
-        x=results[:, 1],  # second method
-        y=results[:, 0],  # first method
+        x=second,
+        y=first,
         hue=differences,
         palette="pastel",
         zorder=2,
     )
 
-    # Compute the W, T, and L per methods
-    wins_A = sum(i == 1 for i in differences)
-    ties_A = sum(i == 0 for i in differences)
-    losses_A = sum(i == -1 for i in differences)
+    # Draw the average value per method as a dashed line from 0 to the mean value.
+    plt.plot(
+        [first_avg, min_value],
+        [first_avg, first_avg],
+        linestyle="--",
+        color="#ccebc5",
+        zorder=3,
+    )
 
-    wins_B = sum(i == -1 for i in differences)
-    ties_B = sum(i == 0 for i in differences)
-    losses_B = sum(i == 1 for i in differences)
+    plt.plot(
+        [second_avg, second_avg],
+        [second_avg, min_value],
+        linestyle="--",
+        color="#b3cde3",
+        zorder=3,
+    )
+
+    # Compute the W, T, and L per methods
+    if lower_better:
+        differences = [-i for i in differences]
+
+    wins_A = losses_B = sum(i == 1 for i in differences)
+    ties_A = ties_B = sum(i == 0 for i in differences)
+    losses_A = wins_B = sum(i == -1 for i in differences)
 
     # Setting x and y limits
     plot.set_ylim(min_value, max_value)
@@ -280,47 +349,83 @@ def plot_scatter(
     # Remove legend
     plot.get_legend().remove()
 
-    # these are matplotlib.patch.Patch properties
-    props = dict(boxstyle="round", facecolor="wheat", alpha=0.5)
-    min_value_text = results.min()
-    max_value_text = results.max()
-
     # Setting labels for x and y axis
-    plot.set_xlabel(f"{method_B} accuracy")
-    plot.set_ylabel(f"{method_A} accuracy")
+    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})")
+    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})")
 
     # Setting text with W, T and L for each method
-    plt.text(
-        min_value_text,
-        max_value_text * 0.98,
-        f"{method_A} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
-        fontsize=13,
-        va="top",
-        ha="left",
-        ma="center",
-        bbox=props,
-        clip_on=True,
-        color="darkseagreen",
-        fontweight="bold",
+    anc = AnchoredText(
+        f"{first_method} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
+        loc="upper left",
+        frameon=True,
+        prop=dict(
+            color="darkseagreen",
+            fontweight="bold",
+            fontsize=13,
+            ha="center",
+        ),
     )
+    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc.patch.set_color("wheat")
+    anc.patch.set_edgecolor("black")
+    anc.patch.set_alpha(0.5)
+    ax.add_artist(anc)
 
-    plt.text(
-        max_value_text,
-        min_value_text * 1.02,
-        f"{method_B} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
-        fontsize=13,
-        va="bottom",
-        ha="right",
-        ma="center",
-        bbox=props,
-        clip_on=True,
-        color="cornflowerblue",
-        fontweight="bold",
+    anc = AnchoredText(
+        f"{second_method} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
+        loc="lower right",
+        frameon=True,
+        prop=dict(
+            color="cornflowerblue",
+            fontweight="bold",
+            fontsize=13,
+            ha="center",
+        ),
     )
+    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc.patch.set_color("wheat")
+    anc.patch.set_edgecolor("black")
+    anc.patch.set_alpha(0.5)
+    ax.add_artist(anc)
 
     # Setting title if provided.
     if title is not None:
-        plot.set_title(rf"{title}")
+        plot.set_title(rf"{title}", fontsize=16)
+
+    # Adding p-value if desired.
+    if statistic_tests:
+        from scipy.stats import ttest_rel, wilcoxon
+
+        p_value_t = ttest_rel(
+            first,
+            second,
+            alternative="less" if lower_better else "greater",
+        )[1]
+        ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
+
+        p_value_w = wilcoxon(
+            first,
+            second,
+            zero_method="wilcox",
+            alternative="less" if lower_better else "greater",
+        )[1]
+
+        wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
+
+        plt.figtext(
+            0.5,
+            0.03,
+            f"{wil}\n{ttes}",
+            fontsize=10,
+            wrap=True,
+            horizontalalignment="center",
+            bbox=dict(
+                facecolor="wheat",
+                edgecolor="black",
+                boxstyle="round,pad=0.5",
+                alpha=0.5,
+            ),
+        )
 
     return fig
 

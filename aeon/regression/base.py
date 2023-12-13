@@ -76,9 +76,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         RegressorPipeline object, concatenation of `other` (first) with `self` (last).
         """
         from aeon.regression.compose import RegressorPipeline
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 
         # behaviour is implemented only if other inherits from BaseTransformer
         #  in that case, distinctions arise from whether self or other is a pipeline

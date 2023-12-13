@@ -5,7 +5,6 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 from sklearn import clone
-from sklearn.utils.metaestimators import if_delegate_has_method
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.datatypes import ALL_TIME_SERIES_MTYPES
@@ -51,7 +50,7 @@ CORE_MTYPES = [
 
 def _coerce_to_aeon(other):
     """Check and format inputs to dunders for compose."""
-    from aeon.transformations.series.adapt import TabularToSeriesAdaptor
+    from aeon.transformations.adapt import TabularToSeriesAdaptor
 
     # if sklearn transformer, adapt to aeon transformer first
     if is_sklearn_transformer(other):
@@ -122,7 +121,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> t1 = ExponentTransformer(power=2)
     >>> t2 = ExponentTransformer(power=0.5)
 
@@ -145,7 +144,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         If applied to Series, sklearn transformers are applied by series instance.
         If applied to Table, sklearn transformers are applied to the table as a whole.
     >>> from sklearn.preprocessing import StandardScaler
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
 
         This applies the scaler per series, then summarizes:
     >>> pipe = StandardScaler() * SummaryTransformer()
@@ -414,7 +413,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # imports
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         t1 = ExponentTransformer(power=2)
         t2 = ExponentTransformer(power=0.5)
@@ -646,8 +645,8 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Test parameters for FeatureUnion."""
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         # with name and estimator tuple, all transformers don't have fit
         TRANSFORMERS = [
@@ -701,7 +700,7 @@ class FitInTransform(BaseTransformer):
     >>> from aeon.forecasting.compose import ForecastingPipeline
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from aeon.transformations.compose import FitInTransform
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> y, X = load_longley()
     >>> y_train, y_test, X_train, X_test = temporal_train_test_split(y, X)
     >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
@@ -796,7 +795,7 @@ class FitInTransform(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
 
         params = [
             {"transformer": BoxCoxTransformer()},
@@ -854,7 +853,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     >>> from aeon.datasets import load_shampoo_sales
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.transformations.compose import MultiplexTransformer
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.forecasting.model_selection import (
     ...     ForecastingGridSearchCV,
@@ -973,7 +972,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         -------
         params : dict or list of dict
         """
-        from aeon.transformations.series.impute import Imputer
+        from aeon.transformations.impute import Imputer
 
         # test with 2 simple detrend transformations with selected_transformer
         params1 = {
@@ -1066,7 +1065,7 @@ class InvertTransform(_DelegatedTransformer):
     --------
     >>> from aeon.datasets import load_airline
     >>> from aeon.transformations.compose import InvertTransform
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>>
     >>> inverse_exponent = InvertTransform(ExponentTransformer(power=3))
     >>> X = load_airline()
@@ -1191,8 +1190,8 @@ class InvertTransform(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         # ExponentTransformer skips fit
         params1 = {"transformer": ExponentTransformer()}
@@ -1298,8 +1297,8 @@ class OptionalPassthrough(_DelegatedTransformer):
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.transformations.compose import OptionalPassthrough
-    >>> from aeon.transformations.series.detrend import Deseasonalizer
-    >>> from aeon.transformations.series.adapt import TabularToSeriesAdaptor
+    >>> from aeon.transformations.detrend import Deseasonalizer
+    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.forecasting.model_selection import (
     ...     ForecastingGridSearchCV,
@@ -1393,7 +1392,7 @@ class OptionalPassthrough(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
 
         return {"transformer": BoxCoxTransformer(), "passthrough": False}
 
@@ -1428,7 +1427,7 @@ class ColumnwiseTransformer(BaseTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_longley
-    >>> from aeon.transformations.series.detrend import Detrender
+    >>> from aeon.transformations.detrend import Detrender
     >>> from aeon.transformations.compose import ColumnwiseTransformer
     >>> _, X = load_longley()
     >>> transformer = ColumnwiseTransformer(Detrender())
@@ -1563,7 +1562,6 @@ class ColumnwiseTransformer(BaseTransformer):
 
         return X
 
-    @if_delegate_has_method(delegate="transformer")
     def update(self, X, y=None, update_params=True):
         """Update parameters.
 
@@ -1612,7 +1610,7 @@ class ColumnwiseTransformer(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.series.detrend import Detrender
+        from aeon.transformations.detrend import Detrender
 
         return {"transformer": Detrender()}
 

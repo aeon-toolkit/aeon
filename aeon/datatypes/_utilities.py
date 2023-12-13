@@ -25,7 +25,7 @@ def get_time_index(X):
     in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
     pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
     assumes all time series have equal length and equal index set
-    will *not* work for list-of-df, pd-wide, pd-long, numpyflat
+    will *not* work for list-of-df, pd-wide, pd-long, numpy2D
 
     Returns
     -------
