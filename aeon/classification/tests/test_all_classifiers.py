@@ -276,5 +276,5 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         y_proba = _reproduce_classification_basic_motions(estimator_instance)
         np.testing.assert_almost_equal(y_proba, expected_probas, decimal=4)
         res = _print_results_for_classifier(classname, "BasicMotions")
-        exp_str = _print_array(f"{classname} - UnitTest", expected_probas)
+        exp_str = _print_array(f"{classname} - BasicMotions", expected_probas)
         assert res == exp_str
