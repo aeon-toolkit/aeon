@@ -22,41 +22,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     """
     BaseSimilaritySearch.
 
-    The following distance functions are available from the
-    aeon distance module :
-    =============== ========================================
-    distance        Distance Function
-    =============== ========================================
-    'dtw'           distance.dtw_distance
-    'shape_dtw'     distance.shape_dtw_distance
-    'ddtw'          distance.ddtw_distance
-    'wdtw'          distance.wdtw_distance
-    'wddtw'         distance.wddtw_distance
-    'adtw'          distance.adtw_distance
-    'erp'           distance.erp_distance
-    'edr'           distance.edr_distance
-    'msm'           distance.msm_distance
-    'twe'           distance.twe_distance
-    'lcss'          distance.lcss_distance
-    'euclidean'     distance.euclidean_distance
-    'squared'       distance.squared_distance
-    =============== ========================================
-
-    And the following speed ups are available for
-    similarity search module:
-    =============== =============== ===============
-    speed_up        distance        normalize
-    =============== =============== ===============
-
-    =============== =============== ===============
-
     Parameters
     ----------
     distance : str, default="euclidean"
-        Name of the distance function to use. The distance function
-        must be one of the distance avaialble in the aeon distance module.
-        This can also be a numba njit function used to compute the
-        distance between two 1D vectors.
+        Name of the distance function to use. A list of valid strings can be found in
+        the documentation for :func:`aeon.distances.get_distance_function`.
+        If a callable is passed it must be a numba function with nopython=True, that
+        takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalize : bool, default=False
@@ -150,12 +122,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ----------
         q :  array, shape (n_channels, q_length)
             Input query used for similarity search.
-        q_index : Iterable, default=None
-            An Interable (tuple, list, array) used to specify the index of Q if it is
-            extracted from the input data X given during the fit method.
-            Given the tuple (id_sample, id_timestamp), the similarity search will define
-            an exclusion zone around the q_index in order to avoid matching q with
-            itself. If None, it is considered that the query is not extracted from X.
+        q_index : Iterable
+            An Interable (tuple, list, array) of length two used to specify the index of
+            the query q if it was extracted from the input data X given during the fit
+            method. Given the tuple (id_sample, id_timestamp), the similarity search
+            will define an exclusion zone around the q_index in order to avoid matching
+            q with itself. If None, it is considered that the query is not extracted
+            from X.
         exclusion_factor : float, default=2.
             The factor to apply to the query length to define the exclusion zone. The
             exclusion zone is define from id_timestamp - q_length//exclusion_factor to
@@ -191,6 +164,43 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return self._predict(self._call_distance_profile(q, mask))
 
     def _apply_q_index_mask(self, q_index, q_dim, q_length, exclusion_factor=2.0):
+        """
+        Initiliaze the mask indicating the candidates to be evaluated in the search.
+
+        Parameters
+        ----------
+        q_index : Iterable
+            An Interable (tuple, list, array) of length two used to specify the index of
+            the query q if it was extracted from the input data X given during the fit
+            method. Given the tuple (id_sample, id_timestamp), the similarity search
+            will define an exclusion zone around the q_index in order to avoid matching
+            q with itself. If None, it is considered that the query is not extracted
+            from X.
+        q_dim : int
+            Number of channels of the queries.
+        q_length : int
+            Length of the queries.
+        exclusion_factor : float, optional
+            The exclusion factor is used to prevent candidates close or equal to the
+            query sample point to be returned as best matches. It is used to define a
+            region between :math:`id_timestamp - q_length//exclusion_factor` and
+            :math:`id_timestamp - q_length//exclusion_factor` which cannot be used in
+            the search. The default is 2.0.
+
+        Raises
+        ------
+        ValueError
+            If the length of the q_index iterable is not two, will raise a ValueError.
+        TypeError
+            If q_index is not an iterable, will raise a TypeError.
+
+        Returns
+        -------
+        mask : array, shape=(n_instances, n_channels, n_timestamps)
+            Boolean array of the size of the input given in fit, which indicates the
+            candidates that should be evaluated in the similarity search.
+
+        """
         n_instances, _, n_timestamps = self._X.shape
         mask = np.ones((n_instances, q_dim, n_timestamps), dtype=bool)
 
@@ -250,6 +260,22 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return q_dim, q_length
 
     def _get_distance_profile_function(self):
+        """
+        Given distance and speed_up parameters, return the distance profile function.
+
+        Raises
+        ------
+        ValueError
+            If the distance parameter given at initialization is not a string nor a
+            numba function, or if the speedup parameter is unknow or unsupported, raise
+            a ValueError..
+
+        Returns
+        -------
+        function
+            The distance profile function matching the distance argument.
+
+        """
         if isinstance(self.distance, str):
             if self.speed_up is None:
                 self.distance_function_ = get_distance_function(self.distance)
@@ -279,6 +305,19 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             return naive_distance_profile
 
     def _store_mean_std_from_inputs(self, q_length):
+        """
+        Compute and store the mean and std of each subsequence of size q_length in _X.
+
+        Parameters
+        ----------
+        q_length : int
+            Length of the query.
+
+        Returns
+        -------
+        None.
+
+        """
         n_instances, n_channels, X_length = self._X.shape
         search_space_size = X_length - q_length + 1
 
@@ -294,6 +333,23 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self._X_stds = stds
 
     def _call_distance_profile(self, q, mask):
+        """
+        Obtain the distance profile function and call it with the query and the mask.
+
+        Parameters
+        ----------
+        q :  array, shape (n_channels, q_length)
+            Input query used for similarity search.
+         mask : array, shape=(n_instances, n_channels, n_timestamps)
+             Boolean array of the size of the input given in fit, which indicates the
+             candidates that should be evaluated in the similarity search.
+
+        Returns
+        -------
+        distance_profile : array, shape=(n_instances, n_timestamps - q_length + 1)
+            The distance profiles between the input time series and the query.
+
+        """
         if self.normalize:
             distance_profile = self.distance_profile_function(
                 self._X,
