@@ -83,6 +83,15 @@ def subsample_by_version_os(x):
     return res
 
 
+def test_subsample_by_version_os():
+    """Test subsample_by_version_os."""
+    with pytest.raises(ValueError, match="found unexpected OS string"):
+        subsample_by_version_os(["ARSENAL"])
+    res = subsample_by_version_os(["Windows", "Linux", "Darwin"])
+    assert len(res) == 1
+    assert res in [["Windows"], ["Linux"], ["Darwin"]]
+
+
 class BaseFixtureGenerator:
     """Fixture generator for base testing functionality in aeon.
 
