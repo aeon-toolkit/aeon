@@ -25,7 +25,7 @@ import numpy.typing as npt
 import pandas as pd
 from attrs import asdict, define, field
 
-from aeon.base import BaseEstimator
+from aeon.segmentation.base import BaseSegmenter
 
 __all__ = ["InformationGainSegmentation"]
 __author__ = ["lmmentel"]
@@ -280,39 +280,7 @@ class IGTS:
         return current_change_points
 
 
-class SegmentationMixin:
-    """Mixin with methods useful for segmentation problems."""
-
-    def to_classification(self, change_points: List[int]) -> npt.ArrayLike:
-        """Convert change point locations to a classification vector.
-
-        Change point detection results can be treated as classification
-        with true change point locations marked with 1's at position of
-        the change point and remaining non-change point locations being
-        0's.
-
-        For example change points [2, 8] for a time series of length 10
-        would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
-        """
-        return np.bincount(change_points[1:-1], minlength=change_points[-1])
-
-    def to_clusters(self, change_points: List[int]) -> npt.ArrayLike:
-        """Convert change point locations to a clustering vector.
-
-        Change point detection results can be treated as clustering
-        with each segment separated by change points assigned a
-        distinct dummy label.
-
-        For example change points [2, 8] for a time series of length 10
-        would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
-        """
-        labels = np.zeros(change_points[-1], dtype=np.int32)
-        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
-            labels[start:stop] = i
-        return labels
-
-
-class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
+class InformationGainSegmentation(BaseSegmenter):
     """Information Gain based Temporal Segmentation (IGTS) Estimator.
 
     IGTS is a n unsupervised method for segmenting multivariate time series
@@ -380,8 +348,9 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmentation(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
-
     """
+
+    _tags = {"capability:multivariate": True}
 
     def __init__(
         self,
@@ -390,13 +359,13 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
     ):
         self.k_max = k_max
         self.step = step
-        self._adaptee_class = IGTS
-        self._adaptee = self._adaptee_class(
+        self._igts = IGTS(
             k_max=k_max,
             step=step,
         )
+        super(InformationGainSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
 
-    def fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
+    def _fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
         """Fit method for compatibility with sklearn-type estimator interface.
 
         It sets the internal state of the estimator and returns the initialized
@@ -413,7 +382,7 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
         """
         return self
 
-    def predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
+    def _predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
         """Perform segmentation.
 
         Parameters
@@ -432,32 +401,9 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self._adaptee.find_change_points(X)
-        self.intermediate_results_ = self._adaptee.intermediate_results_
+        self.change_points_ = self._igts.find_change_points(X)
+        self.intermediate_results_ = self._igts.intermediate_results_
         return self.to_clusters(self.change_points_)
-
-    def fit_predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
-        """Perform segmentation.
-
-        A convenience method for compatibility with sklearn-like api.
-
-        Parameters
-        ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-
-        Returns
-        -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
-        """
-        return self.fit(X=X, y=y).predict(X=X, y=y)
 
     def get_params(self, deep: bool = True) -> Dict:
         """Return initialization parameters.
@@ -473,7 +419,7 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
             Dictionary with the estimator's initialization parameters, with
             keys being argument names and values being argument values.
         """
-        return asdict(self._adaptee, filter=lambda attr, value: attr.init is True)
+        return asdict(self._igts, filter=lambda attr, value: attr.init is True)
 
     def set_params(self, **parameters):
         """Set the parameters of this object.
@@ -488,12 +434,12 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
         self : reference to self (after parameters have been set)
         """
         for key, value in parameters.items():
-            setattr(self._adaptee, key, value)
+            setattr(self._igts, key, value)
         return self
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
-        return self._adaptee.__repr__()
+        return self._igts.__repr__()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

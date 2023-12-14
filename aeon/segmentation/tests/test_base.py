@@ -109,13 +109,20 @@ def test__convert_X():
             assert isinstance(res, pd.Series)
             assert len(res) == 10
     seg2._tags["X_inner_type"] = "ndarray"
-    seg1.axis = 1
     for m in multi:
-        res = seg1._convert_X(m)
+        res = seg2._convert_X(m, axis=1)
         assert isinstance(res, np.ndarray)
         assert res.shape == (4, 10)
-
+        res = seg2._convert_X(m, axis=0)
+        assert res.shape == (10, 4)
     seg2._tags["X_inner_type"] = "DataFrame"
+    seg2.axis = 1
+    for m in multi:
+        res = seg2._convert_X(m, axis=1)
+        assert isinstance(res, pd.DataFrame)
+        assert res.shape == (4, 10)
+        res = seg2._convert_X(m, axis=0)
+        assert res.shape == (10, 4)
 
 
 #    for m in multi:

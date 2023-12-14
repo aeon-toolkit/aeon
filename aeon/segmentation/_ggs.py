@@ -443,6 +443,8 @@ class GreedyGaussianSegmentation(BaseSegmenter):
     >>> y = ggs.fit_predict(X_scaled)
     """
 
+    _tags = {"capability:multivariate": True}
+
     def __init__(
         self,
         k_max: int = 10,
@@ -463,7 +465,7 @@ class GreedyGaussianSegmentation(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=1)
+        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
 
     def _fit(self, X, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.

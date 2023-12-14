@@ -4,7 +4,7 @@ __all__ = ["BaseSegmenter"]
 __author__ = ["TonyBagnall"]
 
 from abc import ABC, abstractmethod
-from typing import final
+from typing import List, final
 
 import numpy as np
 import pandas as pd
@@ -189,3 +189,31 @@ class BaseSegmenter(BaseEstimator, ABC):
             if self.axis != axis:
                 X = X.T
         return X
+
+    def to_classification(self, change_points: List[int]):
+        """Convert change point locations to a classification vector.
+
+        Change point detection results can be treated as classification
+        with true change point locations marked with 1's at position of
+        the change point and remaining non-change point locations being
+        0's.
+
+        For example change points [2, 8] for a time series of length 10
+        would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
+        """
+        return np.bincount(change_points[1:-1], minlength=change_points[-1])
+
+    def to_clusters(self, change_points: List[int]):
+        """Convert change point locations to a clustering vector.
+
+        Change point detection results can be treated as clustering
+        with each segment separated by change points assigned a
+        distinct dummy label.
+
+        For example change points [2, 8] for a time series of length 10
+        would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
+        """
+        labels = np.zeros(change_points[-1], dtype=np.int32)
+        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
+            labels[start:stop] = i
+        return labels
