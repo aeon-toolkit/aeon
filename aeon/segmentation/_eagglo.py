@@ -7,13 +7,13 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-from aeon.transformations.base import BaseTransformer
+from aeon.segmentation.base import BaseSegmenter
 
 __author__ = ["KatieBuc", "patrickzib"]
-__all__ = ["EAgglo"]
+__all__ = ["EAggloSegmenter"]
 
 
-class EAgglo(BaseTransformer):
+class EAggloSegmenter(BaseSegmenter):
     """
     Hierarchical agglomerative estimation of multiple change points.
 
@@ -82,7 +82,8 @@ class EAgglo(BaseTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
+        "X_inner_type": "DataFrame",  # One of ALLOWED_INPUT_TYPES
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -94,7 +95,7 @@ class EAgglo(BaseTransformer):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAgglo, self).__init__()
+        super(EAggloSegmenter, self).__init__()
 
     def _fit(self, X: pd.DataFrame, y=None):
         """Find optimally clustered segments.
@@ -104,18 +105,6 @@ class EAgglo(BaseTransformer):
         until all observations belong to a single cluster. Finally, the estimated number
         of change points is estimated by the clustering that maximizes the goodness-of-
         fit statistic over the entire merging sequence.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Data for anomaly detection (time series).
-        y : pd.Series, optional
-            Not used for this unsupervised method.
-
-        Returns
-        -------
-        self :
-            Reference to self.
         """
         self._X = X
 
@@ -200,7 +189,7 @@ class EAgglo(BaseTransformer):
         # fit again if indices not seen, but don't store anything
         if not X.index.equals(self._X.index):
             X_full = X.combine_first(self._X)
-            new_eagglo = EAgglo(
+            new_eagglo = EAggloSegmenter(
                 member=self.member,
                 alpha=self.alpha,
                 penalty=self.penalty,
