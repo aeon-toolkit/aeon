@@ -12,11 +12,12 @@ import pandas as pd
 from aeon.base import BaseEstimator
 
 # allowed input and internal data types for Segmenters
-ALLOWED_INPUT_TYPES = [
+VALID_INNER_TYPES = [
     "ndarray",
     "Series",
     "DataFrame",
 ]
+VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
 
 class BaseSegmenter(BaseEstimator, ABC):
@@ -28,9 +29,15 @@ class BaseSegmenter(BaseEstimator, ABC):
     1. input and internal data format
 
     Univariate series:
-        Numpy array, shape (n,), (n, 1) or (1, n), all converted to (n,)
-        pandas Series shape (n,)
-        pandas DataFrame single column shape (n,1), (1,n) converted to Series shape (n,)
+        Numpy array, shape (m,), (m, 1) or (1, m)
+            if no multivariate capability, all converted to 1D numpy (m,)
+            if has multivariate capability, converted to 2D numpy (m,1) or (1,
+            m) depending on axis
+        pandas DataFrame single column shape (m,1), (1,m) pandas Series shape (m,)
+            if no multivariate capability, all converted to Series (m,)
+            if has multivariate capability, all converted to Pandas DataFrame shape (
+            m,1), (1,m) depending on axis
+
     Multivariate series:
         Numpy array, shape (n,d) or (d,n)
         pandas DataFrame (n,d) or (d,n)
@@ -39,7 +46,10 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     Conversion between numpy and pandas is handled by the base class. Sub classses
     can assume the data is in the correct format (determined by
-    "X_inner_type", one of ALLOWED_INPUT_TYPES) and represented with the expected axis.
+    "X_inner_type", one of VALID_INNER_TYPES) and represented with the expected axis.
+
+
+
     Multivariate series are segmented along an axis determined by ``self.axis``. Axis
     plays two roles:
     1) the axis the segmenter expects the data to be in for its internal methods _fit
@@ -47,6 +57,8 @@ class BaseSegmenter(BaseEstimator, ABC):
     time series channel (sometimes called wide
     format). This should be set for a given child class through the BaseSegmenter
     constructor.
+
+
     2) The axis passed to the fit and predict methods. If the data axis is different to
     the axis expected, then it is transposed in this base class.
 
@@ -82,7 +94,7 @@ class BaseSegmenter(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "ndarray",  # One of ALLOWED_INPUT_TYPES
+        "X_inner_type": "ndarray",  # One of VALID_INNER_TYPES
         "capability:unequal_length": False,
         "capability:multivariate": False,
         "capability:missing_values": False,
@@ -104,7 +116,6 @@ class BaseSegmenter(BaseEstimator, ABC):
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
         self._check_input_series(X)
-        X = X.squeeze()  # Remove any single dimensions
         self._check_capabilities(X, axis)
         X = self._convert_X(X, axis)
         if y is not None:
@@ -140,14 +151,10 @@ class BaseSegmenter(BaseEstimator, ABC):
     def _check_input_series(self, X):
         """Check input is a data structure only containing floats."""
         # Checks: check valid type and axis
-        if not (
-            isinstance(X, np.ndarray)
-            or isinstance(X, pd.Series)
-            or isinstance(X, pd.DataFrame)
-        ):
+        if type(X) not in VALID_INPUT_TYPES:
             raise ValueError(
                 f" Error in input type should be one onf "
-                f" {ALLOWED_INPUT_TYPES}, saw {type(X)}"
+                f" {VALID_INNER_TYPES}, saw {type(X)}"
             )
         if isinstance(X, np.ndarray):
             # Check valid shape
@@ -172,7 +179,6 @@ class BaseSegmenter(BaseEstimator, ABC):
                 raise ValueError("Multivariate data not supported")
 
     def _convert_X(self, X, axis):
-        # Check axis
         inner = self.get_tag("X_inner_type")
         input = type(X).__name__
         if inner != input:
@@ -185,6 +191,10 @@ class BaseSegmenter(BaseEstimator, ABC):
                 X = pd.DataFrame(X)
         if axis > 1 or axis < 0:
             raise ValueError(" Axis should be 0 or 1")
+        if self.get_tag("capability:multivariate") and X.ndim == 1:
+            X = X.reshape(1, -1)
+        else:
+            X = X.squeeze()
         if X.ndim > 1:
             if self.axis != axis:
                 X = X.T
