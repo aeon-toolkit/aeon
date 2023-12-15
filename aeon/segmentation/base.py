@@ -117,7 +117,7 @@ class BaseSegmenter(BaseEstimator, ABC):
             axis = self.axis
         self._check_input_series(X)
         self._check_capabilities(X, axis)
-        X = self._convert_X(X, axis)
+        X = self._convert_series(X, axis)
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
@@ -178,7 +178,7 @@ class BaseSegmenter(BaseEstimator, ABC):
             if X.ndim > 1:
                 raise ValueError("Multivariate data not supported")
 
-    def _convert_X(self, X, axis):
+    def _convert_series(self, X, axis):
         inner = self.get_tag("X_inner_type")
         input = type(X).__name__
         if inner != input:

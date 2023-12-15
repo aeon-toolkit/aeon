@@ -79,8 +79,8 @@ def test__check_capabilities():
             seg1._check_capabilities(m, axis=1)
 
 
-def test__convert_X():
-    """Test _convert_X method."""
+def test__convert_series():
+    """Test _convert_series method."""
     seg1 = TestSegmenter()
     seg2 = TestMultivariateSegmenter()
     seg1._tags["X_inner_type"] = "ndarray"
@@ -88,29 +88,29 @@ def test__convert_X():
     for axis in [0, 1]:
         for u in uni:
             u = u.squeeze()
-            res = seg1._convert_X(u, axis)
+            res = seg1._convert_series(u, axis)
             assert isinstance(res, np.ndarray)
             assert len(res) == 10
             assert len(res.shape) == 1
     for m in multi:
         m = m.squeeze()
-        res = seg1._convert_X(m, 0)
+        res = seg1._convert_series(m, 0)
         assert isinstance(res, np.ndarray)
         assert res.shape == (4, 10)
     for m in multi:
-        res = seg1._convert_X(m, 1)
+        res = seg1._convert_series(m, 1)
         assert isinstance(res, np.ndarray)
         assert res.shape == (10, 4)
     seg1._tags["X_inner_type"] = "Series"
     for axis in [0, 1]:
         for u in uni:
             u = u.squeeze()
-            res = seg1._convert_X(u, axis)
+            res = seg1._convert_series(u, axis)
             assert isinstance(res, pd.Series)
             assert len(res) == 10
     seg2._tags["X_inner_type"] = "ndarray"
     for m in multi:
-        res = seg2._convert_X(m, axis=1)
+        res = seg2._convert_series(m, axis=1)
         assert isinstance(res, np.ndarray)
         assert res.shape == (4, 10)
         res = seg2._convert_X(m, axis=0)
@@ -118,10 +118,10 @@ def test__convert_X():
     seg2._tags["X_inner_type"] = "DataFrame"
     seg2.axis = 1
     for m in multi:
-        res = seg2._convert_X(m, axis=1)
+        res = seg2._convert_series(m, axis=1)
         assert isinstance(res, pd.DataFrame)
         assert res.shape == (4, 10)
-        res = seg2._convert_X(m, axis=0)
+        res = seg2._convert_series(m, axis=0)
         assert res.shape == (10, 4)
 
 
