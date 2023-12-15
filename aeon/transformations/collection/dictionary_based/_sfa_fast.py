@@ -29,7 +29,6 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -258,8 +257,6 @@ class SFAFast(BaseCollectionTransformer):
         self.support = np.arange(self.word_length_actual)
         self.letter_bits = np.uint32(math.ceil(math.log2(self.alphabet_size)))
         # self.word_bits = self.word_length_actual * self.letter_bits
-
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.dilation >= 1 or self.first_difference:
@@ -326,7 +323,6 @@ class SFAFast(BaseCollectionTransformer):
         -------
         List of dictionaries containing SFA words
         """
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.dilation >= 1 or self.first_difference:
