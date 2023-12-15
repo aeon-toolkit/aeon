@@ -130,6 +130,7 @@ class BaseSegmenter(BaseEstimator, ABC):
             axis = self.axis
         self._check_input_series(X)
         self._check_capabilities(X, axis)
+        X = self._convert_series(X, axis)
         return self._predict(X)
 
     def fit_predict(self, X, y=None):
@@ -138,10 +139,9 @@ class BaseSegmenter(BaseEstimator, ABC):
         # method is possible for a given algorithm.
         return self.fit(X, y).predict(X)
 
-    @abstractmethod
     def _fit(self, X, y):
         """Fit time series classifier to training data."""
-        ...
+        return self
 
     @abstractmethod
     def _predict(self, X) -> np.ndarray:

@@ -210,19 +210,15 @@ class ClaSPSegmentation(BaseSegmenter):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
-        super(ClaSPSegmentation, self).__init__(n_segments=n_cps)
+        super(ClaSPSegmentation, self).__init__(n_segments=n_cps, axis=1)
 
-    def _fit(self, X, y=None):
-        """Do nothing, as there is no need to fit a model for ClaSP."""
-        return True
-
-    def _predict(self, X):
+    def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
 
         Parameters
         ----------
         X : np.ndarray
-            Data to annotate (time series).
+            1D time series to be segmented.
 
         Returns
         -------
@@ -239,35 +235,21 @@ class ClaSPSegmentation(BaseSegmenter):
             self.found_cps, self.profiles, self.scores = self._run_clasp(X)
             return self.found_cps
 
-        # Segmentation not sure we need this?
-
-    #        elif self.fmt == "dense":
-    #            return self._get_interval_series(X, self.found_cps)
-
-    def _predict_scores(self, X):
+    def predict_scores(self, X):
         """Return scores in ClaSP's profile for each annotation.
 
         Parameters
         ----------
-        X : pd.DataFrame
-            Data to annotate (time series).
+        np.ndarray
+            1D time series to be segmented.
 
         Returns
         -------
-        Y : pd.Series
-            Scores for sequence X exact format depends on annotation type.
+        np.ndarray
+            Scores for sequence X
         """
         self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-
-        # Scores of the Change Points
         return self.scores
-
-        # Full Profile of Segmentation
-        # ClaSP creates multiple profiles. Hard to map.
-        # Thus, we return the main (first) one
-
-    #        elif self.fmt == "dense":
-    #            return pd.Series(self.profiles[0])
 
     def get_fitted_params(self):
         """Get fitted parameters.

@@ -84,6 +84,7 @@ class EAggloSegmenter(BaseSegmenter):
     _tags = {
         "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(
@@ -95,7 +96,7 @@ class EAggloSegmenter(BaseSegmenter):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAggloSegmenter, self).__init__()
+        super(EAggloSegmenter, self).__init__(axis=0)
 
     def _fit(self, X: pd.DataFrame, y=None):
         """Find optimally clustered segments.

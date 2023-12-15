@@ -365,41 +365,20 @@ class InformationGainSegmentation(BaseSegmenter):
         )
         super(InformationGainSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
 
-    def _fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
-        """Fit method for compatibility with sklearn-type estimator interface.
-
-        It sets the internal state of the estimator and returns the initialized
-        instance.
-
-        Parameters
-        ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-        """
-        return self
-
-    def _predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
+    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Perform segmentation.
 
         Parameters
         ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
+        X: np.ndarray
+            2D time series shape (n_timepoints, n_channels).
 
         Returns
         -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
+        y_pred : np.ndarray
+            1D array with predicted segmentation of the same size as X.
+            The numerical values represent distinct segment labels for each of the
+            data points.
         """
         self.change_points_ = self._igts.find_change_points(X)
         self.intermediate_results_ = self._igts.intermediate_results_

@@ -467,7 +467,7 @@ class GreedyGaussianSegmentation(BaseSegmenter):
         )
         super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
 
         Initialises the ggs segmenter.
@@ -475,7 +475,7 @@ class GreedyGaussianSegmentation(BaseSegmenter):
         Parameters
         ----------
         X: np.ndarray
-            Time series shape (n_timepoints, n_channels).
+            2D time series shape (n_timepoints, n_channels).
         y: array_like
             Placeholder for compatibility with sklearn-api, not used, default=None.
         """
