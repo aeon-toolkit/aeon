@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_random_state
 
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation.base import BaseSegmenter
 
 
 class HidalgoSegmenter(BaseSegmenter):

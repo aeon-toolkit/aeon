@@ -124,6 +124,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X, axis=None):
         """Create segmentation."""
         if axis is None:
