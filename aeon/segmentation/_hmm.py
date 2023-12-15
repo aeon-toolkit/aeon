@@ -1,7 +1,7 @@
 """
 HMM annotation Estimator.
 
-Implements a basic Hidden Markov Model (HMM) as an annotation estimator.
+Implements a basic Hidden Markov Model (HMM) as a segmentor.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
@@ -11,13 +11,13 @@ from typing import Tuple
 import numpy as np
 from scipy.stats import norm
 
-from aeon.annotation.base._base import BaseSeriesAnnotator
+from aeon.segmentation.base import BaseSegmenter
 
 __author__ = ["miraep8"]
 __all__ = ["HMM"]
 
 
-class HMM(BaseSeriesAnnotator):
+class HMM(BaseSegmenter):
     """Implements a simple HMM fitted with Viterbi algorithm.
 
     The HMM annotation estimator uses the
@@ -128,8 +128,7 @@ class HMM(BaseSeriesAnnotator):
     >>> labels = hmm_est.predict(obs)
     """
 
-    # plan to update to make multivariate.
-    _tags = {"univariate-only": True, "fit_is_empty": True}
+    _tags = {"fit_is_empty": True}
 
     def __init__(
         self,
@@ -140,8 +139,8 @@ class HMM(BaseSeriesAnnotator):
         self.initial_probs = initial_probs
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
-        super(HMM, self).__init__(fmt="dense", labels="int_label")
         self._validate_init()
+        super(HMM, self).__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.
@@ -346,21 +345,6 @@ class HMM(BaseSeriesAnnotator):
             max_inds[index - 1] = trans_id[max_inds[index], index]
             hmm_fit[index - 1] = states[max_inds[index - 1]]
         return hmm_fit
-
-    def _fit(self, X, Y=None):
-        """Do nothing, currently empty.
-
-        Parameters
-        ----------
-        X : 1D np.array, shape = [num_observations]
-            Observations to apply labels to.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-        """
-        return self
 
     def _predict(self, X):
         """Determine the most likely seq of hidden states by Viterbi algorithm.
