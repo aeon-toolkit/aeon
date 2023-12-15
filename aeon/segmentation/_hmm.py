@@ -14,10 +14,10 @@ from scipy.stats import norm
 from aeon.segmentation.base import BaseSegmenter
 
 __author__ = ["miraep8"]
-__all__ = ["HMM"]
+__all__ = ["HMMSegmenter"]
 
 
-class HMM(BaseSegmenter):
+class HMMSegmenter(BaseSegmenter):
     """Implements a simple HMM fitted with Viterbi algorithm.
 
     The HMM annotation estimator uses the
@@ -140,7 +140,7 @@ class HMM(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super(HMM, self).__init__()
+        super(HMMSegmenter, self).__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.
