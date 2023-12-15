@@ -83,8 +83,8 @@ class EAgglo(BaseTransformer):
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
-    >>> from aeon.annotation.eagglo import EAggloSegmenter
-    >>> model = EAggloSegmenter()
+    >>> from aeon.annotation.eagglo import EAgglo
+    >>> model = EAgglo()
     >>> model.fit_transform(X)
     array([0, 0, 0, 1, 1, 1, 1])
     """
