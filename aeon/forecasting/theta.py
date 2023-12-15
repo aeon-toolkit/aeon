@@ -226,9 +226,6 @@ class ThetaForecaster(ExponentialSmoothing):
         # we assume normal additive noise with sem variance
         for a in alpha:
             pred_quantiles[("Quantiles", a)] = y_pred + norm.ppf(a) * sem
-        # todo: should this not increase with the horizon?
-        # i.e., sth like norm.ppf(a) * sem * fh.to_absolute(cutoff) ?
-        # I've just refactored this so will leave it for now
 
         return pred_quantiles
 

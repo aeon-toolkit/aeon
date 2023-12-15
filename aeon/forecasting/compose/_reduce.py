@@ -973,7 +973,6 @@ class _DirRecReducer(_Reducer):
         self : Estimator
             An fitted instance of self.
         """
-        # todo: logic for X below is broken. Escape X until fixed.
         if X is not None:
             X = None
 
@@ -1033,7 +1032,7 @@ class _DirRecReducer(_Reducer):
         y_pred = pd.Series or pd.DataFrame
         """
         # Exogenous variables are not yet support for the dirrec strategy.
-        # todo: implement this. For now, we escape.
+
         if X is not None:
             X = None
 
@@ -2158,7 +2157,6 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         -------
         self : reference to self
         """
-        # todo: very similar to _fit_concurrent of DirectReductionForecaster - refactor?
         from aeon.transformations.impute import Imputer
         from aeon.transformations.lag import Lag
 

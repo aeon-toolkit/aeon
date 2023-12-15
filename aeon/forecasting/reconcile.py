@@ -5,7 +5,6 @@ __author__ = [
     "ciaran-g",
 ]
 
-# todo: top down historical proportions? -> new _get_g_matrix_prop(self)
 
 from warnings import warn
 
