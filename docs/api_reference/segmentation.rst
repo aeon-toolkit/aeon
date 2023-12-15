@@ -13,6 +13,13 @@ contains algorithms and tools for time series segmentation.
     :toctree: auto_generated/
     :template: class.rst
 
+    BaseSegmenter
     ClaSPSegmentation
     InformationGainSegmentation
     GreedyGaussianSegmentation
+    GreedyGaussianSegmentation
+    InformationGainSegmentation
+    DummySegmenter
+    EAggloSegmenter
+    HMMSegmenter
+    HidalgoSegmenter
