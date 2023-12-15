@@ -73,11 +73,11 @@ class EAggloSegmenter(BaseSegmenter):
     Examples
     --------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.segmentation import EAggloSegmenter
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
-    >>> from aeon.annotation.eagglo import EAggloSegmenter
     >>> model = EAggloSegmenter()
-    >>> model.fit_transform(X)
+    >>> model.fit_predict(X)
     array([0, 0, 0, 1, 1, 1, 1])
     """
 
@@ -170,7 +170,7 @@ class EAggloSegmenter(BaseSegmenter):
 
         return self
 
-    def _transform(self, X: pd.DataFrame, y=None):
+    def _predict(self, X: pd.DataFrame, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing core logic, called from transform
@@ -199,7 +199,7 @@ class EAggloSegmenter(BaseSegmenter):
                 "Warning: Input data X differs from that given to fit(). "
                 "Refitting with both the data in fit and new input data, not storing "
                 "updated public class attributes. For this, explicitly use fit(X) or "
-                "fit_transform(X).",
+                "fit_predict(X).",
                 stacklevel=1,
             )
             return new_eagglo.cluster_
