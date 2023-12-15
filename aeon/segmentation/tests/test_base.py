@@ -113,7 +113,7 @@ def test__convert_series():
         res = seg2._convert_series(m, axis=1)
         assert isinstance(res, np.ndarray)
         assert res.shape == (4, 10)
-        res = seg2._convert_X(m, axis=0)
+        res = seg2._convert_series(m, axis=0)
         assert res.shape == (10, 4)
     seg2._tags["X_inner_type"] = "DataFrame"
     seg2.axis = 1
