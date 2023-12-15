@@ -648,7 +648,7 @@ class HidalgoSegmenter(BaseSegmenter):
 
         return self
 
-    def _transform(self, X, y=None):
+    def _predict(self, X, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing core logic, called from transform
