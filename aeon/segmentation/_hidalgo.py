@@ -1,28 +1,20 @@
 """Hidalgo (Heterogeneous Intrinsic Dimensionality Algorithm) Segmentation."""
 
 __author__ = ["KatieBuc"]
-__all__ = ["Hidalgo"]
+__all__ = ["HidalgoSegmenter"]
 
 
 from functools import reduce
 from typing import Union
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_random_state
 
-from aeon.transformations.base import BaseTransformer
+from aeon.segmentation import BaseSegmenter
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.6.0",
-    reason="Hidalgo in transformations will be removed in v0.8.0, it has been replaced "
-    "by HidalgoSegmenter in the segmentation module.",
-    category=FutureWarning,
-)
-class Hidalgo(BaseTransformer):
+class HidalgoSegmenter(BaseSegmenter):
     """Heteregeneous Intrinsic Dimensionality Algorithm (Hidalgo) model.
 
     Hidalgo is a robust approach in discriminating regions with
@@ -93,12 +85,6 @@ class Hidalgo(BaseTransformer):
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
-        "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "transform-returns-same-time-index": True,
-        "univariate-only": False,
         "fit_is_empty": False,
     }
 
@@ -138,7 +124,7 @@ class Hidalgo(BaseTransformer):
         self.f = f
         self.seed = seed
 
-        super(Hidalgo, self).__init__()
+        super(HidalgoSegmenter, self).__init__(axis=1)
 
     def _get_neighbourhood_params(self, X):
         """
@@ -146,36 +132,38 @@ class Hidalgo(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray of shape (N, dim), where dim > 1
-            data to fit the algorithm to
+        X : np.ndarray
+            2D array of shape (n_timepoints, n_channels), where dim > 1 data to fit
+            the algorithm to
 
         Returns
         -------
-        N : int
-            number of rows of X
-        mu : 1D np.ndarray of length N
-            paramerer in Pereto distribtion estimated by r2/r1
-        Iin : 1D np.ndarray of length N * q
-            encodes the q neighbour index values for point index i in 0:N-1
+        m : int
+            Number of rows (timepoints) of X.
+        mu : np.ndarray
+            1D np.ndarray of length m. parameter in Pereto distribtion estimated by
+            ``r2/r1``
+        Iin : 1D np.ndarray of length m * q
+            encodes the q neighbour index values for point index i in 0:m-1
             e.g. popint i=0 has neighbours 2, 4, 7 and point i=1
             has neighbours 3, 9, 4
             Iin = np.array([2, 4, 7, 3, 9, 4,...])
-        Iout : 1D np.ndarray of length N * q
-            array of indices for which i is neighbour for i in 0:N-1
+        Iout : 1D np.ndarray of length m * q
+            array of indices for which i is neighbour for i in 0:m-1
             e.g. point i=0 is also neighbour of points 2, 4 and
             point i=1 is a neighbour of point 3 only
             Iout = np.array([2, 4, 3,...])
-        Iout_count : 1D np.ndarray of length N
-            count of how many neighbours point i has for i in 0:N-1
+        Iout_count : 1D np.ndarray of length m
+            count of how many neighbours point i has for i in 0:m-1
             e.g. Iout_count = np.array([2, 1, 1,...])
-        Iout_track : 1D np.ndarray of length N
-            cumulative sum of Iout_count at i-1 for i in 1:N-1
+        Iout_track : 1D np.ndarray of length m
+            cumulative sum of Iout_count at i-1 for i in 1:m-1
             e.g. Iout_track = np.array([0, 2, 3, 4,...])
         """
         q = self.q
         metric = self.metric
 
-        N, _ = np.shape(X)
+        m, _ = np.shape(X)
 
         nbrs = NearestNeighbors(
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
@@ -183,7 +171,7 @@ class Hidalgo(BaseTransformer):
         distances, Iin = nbrs.kneighbors(X)
         mu = np.divide(distances[:, 2], distances[:, 1])
 
-        nbrmat = np.zeros((N, N))
+        nbrmat = np.zeros((m, m))
         for n in range(q):
             nbrmat[Iin[:, 0], Iin[:, n + 1]] = 1
 
@@ -192,9 +180,9 @@ class Hidalgo(BaseTransformer):
         Iout_track = np.cumsum(Iout_count)
         Iout_track = np.append(0, Iout_track[:-1]).astype(int)
         Iin = Iin[:, 1:]
-        Iin = np.reshape(Iin, (N * q,)).astype(int)
+        Iin = np.reshape(Iin, (m * q,)).astype(int)
 
-        return N, mu, Iin, Iout, Iout_count, Iout_track
+        return m, mu, Iin, Iout, Iout_count, Iout_track
 
     def _update_zeta_prior(self, Z, N, Iin):
         """Update prior parameters for zeta."""
