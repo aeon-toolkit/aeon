@@ -11,8 +11,16 @@ from aeon.transformations.base import BaseTransformer
 
 __author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAgglo"]
+from deprecated.sphinx import deprecated
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="EAgglo will be removed in v0.8.0, it has been replaced by EAggloSegmenter"
+    "in the segmentation module.",
+    category=FutureWarning,
+)
 class EAgglo(BaseTransformer):
     """
     Hierarchical agglomerative estimation of multiple change points.
