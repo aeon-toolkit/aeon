@@ -34,7 +34,8 @@ class BaseSeriesEstimator(BaseEstimator):
         "capability:multithreading": False,
     }
 
-    def __init__(self):
+    def __init__(self, axis=0):
+        self.axis = axis
         super(BaseSeriesEstimator, self).__init__()
         _check_estimator_deps(self)
 
