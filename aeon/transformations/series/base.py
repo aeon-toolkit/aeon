@@ -21,6 +21,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
+        "X_inner_type": "ndarray",
         "fit_is_empty": False,
         "requires_y": False,
         "capability:inverse_transform": False,
