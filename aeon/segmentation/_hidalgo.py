@@ -85,6 +85,7 @@ class HidalgoSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 
@@ -645,26 +646,9 @@ class HidalgoSegmenter(BaseSegmenter):
         pZ = np.max(Pi, axis=0)
         Z[np.where(pZ < 0.8)] = -1
         self._Z = Z
-
         return self
 
     def _predict(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        private _transform containing core logic, called from transform
-
-        Parameters
-        ----------
-        X : Series of mtype X_inner_type
-            if X_inner_type is list, _transform must support all types in it
-            Data to be transformed
-        y : Series of mtype y_inner_type, default=None
-            Not used in this unsupervised implementation
-
-        Returns
-        -------
-        transformed version of X
-        """
         return self._Z
 
     @classmethod
