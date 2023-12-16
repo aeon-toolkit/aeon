@@ -23,51 +23,52 @@ VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 class BaseSegmenter(BaseEstimator, ABC):
     """Base class for segmentation algorithms.
 
-    Segmenters take a single time series of size $n$ and return a segmentation.
+    Segmenters take a single time series of size $m$ and return a segmentation.
     Series can be multivariate, with $d$ dimensions.
 
+    Design issues
     1. input and internal data format
-
     Univariate series:
-        Numpy array, shape (m,), (m, 1) or (1, m)
-            if no multivariate capability, all converted to 1D numpy (m,)
-            if has multivariate capability, converted to 2D numpy (m,1) or (1,
-            m) depending on axis
-        pandas DataFrame single column shape (m,1), (1,m) pandas Series shape (m,)
-            if no multivariate capability, all converted to Series (m,)
-            if has multivariate capability, all converted to Pandas DataFrame shape (
-            m,1), (1,m) depending on axis
+        Numpy array, shape $(m,)$, $(m, 1)$ or $(1, m)$
+            if self has no multivariate capability, all converted to 1D numpy $(m,)$
+            if self has multivariate capability, converted to 2D numpy $(m,1)$ or $(1,
+            m)$ depending on axis
+        pandas DataFrame single column shape $(m,1)$, $(1,m)$ pandas Series shape $(m,)$
+            if self has no multivariate capability, all converted to Series $(m,)$
+            if self has multivariate capability, all converted to Pandas DataFrame
+            shape $(m,1)$, $(1,m)$ depending on axis
 
     Multivariate series:
-        Numpy array, shape (n,d) or (d,n)
-        pandas DataFrame (n,d) or (d,n)
+        Numpy array, shape $(m,d)$ or $(d,m)$
+        pandas DataFrame $(m,d)$ or $(d,m)$
 
     2. Conversion and axis resolution for multivariate
 
     Conversion between numpy and pandas is handled by the base class. Sub classses
     can assume the data is in the correct format (determined by
-    "X_inner_type", one of VALID_INNER_TYPES) and represented with the expected axis.
-
-
+    ``"X_inner_type"``, one of ``VALID_INNER_TYPES)`` and represented with the expected
+    axis.
 
     Multivariate series are segmented along an axis determined by ``self.axis``. Axis
     plays two roles:
-    1) the axis the segmenter expects the data to be in for its internal methods _fit
-    and _predict: 0 means each column is a time series channel, 1 means each row is a
-    time series channel (sometimes called wide
-    format). This should be set for a given child class through the BaseSegmenter
-    constructor.
+    1) the axis the segmenter expects the data to be in for its internal methods
+    ``_fit`` and ``_predict``: 0 means each column is a time series channel $(m,d)$,
+    1 means each row is a time series channel, sometimes called wide
+    format, shape $(d,m)$. This should be set for a given child class through the
+    BaseSegmenter constructor.
 
 
-    2) The axis passed to the fit and predict methods. If the data axis is different to
-    the axis expected, then it is transposed in this base class.
+    2) The optional ``axis`` argument passed to the base class ``fit`` and ``predict``
+    methods. If the data ``axis`` is different to the ``axis`` expected (i.e. value
+    stored in ``self.axis``, then it is htransposed in this base class if self has
+    multivariate capability.
 
     3. Segmentation representation
 
     Given a time series of 10 points with two change points found in position 4 and 8
     (lets index from 1 for clarity)
 
-    The segmentation can be output in three forms:
+    The segmentation can be output in two forms:
     a) A list of change points: output example [4,8].
         This dense representation is the default behaviour, as it is the minimal
         representation.
@@ -76,10 +77,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         This sparse representation can be used to indicate shared segments (indicating
         segment 1 is somehow the same (perhaps in generative process) as segment 3.
 
-    May add others, such as intervals e) intervals [(1,3), (8,10)]
-
-    Segmenters can handle multivariate if the tag "capability:multivariate": is set
-    to True.
+    #TODO Add a tag to indicate which type of output
     Multivariate series are always segmented at the same points. If independent
     segmentation is required, fit a different segmenter to each channel.
 
@@ -100,6 +98,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         "capability:missing_values": False,
         "capability:multithreading": False,
         "fit_is_empty": True,
+        "requires_y": False,
     }
 
     def __init__(self, n_segments=None, axis=1):
@@ -110,7 +109,27 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     @final
     def fit(self, X, y=None, axis=None):
-        """Fit time series segmenter from training data."""
+        """Fit time series segmenter.
+
+        If the tag ``fit_is_empty`` is True, this just sets the ``is_fitted``  tag to
+        True. Otherwise, it checks ``self`` can handle ``X``, formats ``X`` into
+        the structure required by  ``self`` then passes ``X`` (and possibly ``y``) to
+        ``_fit``.
+
+        Parameters
+        ----------
+        X : One of ``VALID_INPUT_TYPES``
+            Input time series
+        y : One of ``VALID_INPUT_TYPES`` or None, default None
+            Training time series, labeled series same length as X for supervised
+            segmentation.
+        """
+        if self.get_tag("fit_is_empty"):
+            self._is_fitted = True
+            return self
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
         self.reset()
         if axis is None:  # If none given, assume it is correct.
@@ -119,14 +138,32 @@ class BaseSegmenter(BaseEstimator, ABC):
         self._check_capabilities(X, axis)
         X = self._convert_series(X, axis)
         if y is not None:
-            self._check_y(y)
+            self._check_input_series(y)
         self._fit(X=X, y=y)
         self._is_fitted = True
         return self
 
     @final
     def predict(self, X, axis=None):
-        """Create segmentation."""
+        """Create amd return segmentation of X.
+
+        Parameters
+        ----------
+        X : One of ``VALID_INPUT_TYPES``
+            Input time series
+        axis : int, default = None
+            Representation of X, ``axis == 0`` indicates ``(n_timepoints,n_channels)``,
+            ``axis == 1`` indicates ``(n_channels, n_timepoints)`, ``axis is None``
+            indicates that the axis of X is the same as ``self.axis``.
+
+        Returns
+        -------
+        List
+            Either a list of indexes of X indicating where each segment begins or a
+            list of integers of ``len(X)`` indicating which segment each time point
+            belongs to.
+        """
+        self.check_is_fitted()
         if axis is None:
             axis = self.axis
         self._check_input_series(X)
@@ -146,11 +183,11 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     @abstractmethod
     def _predict(self, X) -> np.ndarray:
-        """Predict."""
+        """Create and return a segmentation of X."""
         ...
 
     def _check_input_series(self, X):
-        """Check input is a data structure only containing floats."""
+        """Check input is one of ``VALID_INPUT_TYPES`` only containing floats."""
         # Checks: check valid type and axis
         if type(X) not in VALID_INPUT_TYPES:
             raise ValueError(
@@ -174,12 +211,13 @@ class BaseSegmenter(BaseEstimator, ABC):
                 raise ValueError("pd.DataFrame must be numeric")
 
     def _check_capabilities(self, X, axis):
-        """Check can handle multivariate and missing values."""
+        """Check self can handle multivariate series if X is multivariate."""
         if self.get_tag("capability:multivariate") is False:
             if X.ndim > 1:
                 raise ValueError("Multivariate data not supported")
 
     def _convert_series(self, X, axis):
+        """Convert X into "X_inner_type" data structure."""
         inner = self.get_tag("X_inner_type")
         input = type(X).__name__
         if inner != input:
