@@ -3,7 +3,7 @@
 import warnings
 
 __author__ = ["ermshaua", "patrickzib"]
-__all__ = ["ClaSPSegmentation", "find_dominant_window_sizes"]
+__all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 
 from queue import PriorityQueue
 
@@ -168,7 +168,7 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
     return np.array(change_points), np.array(profiles, dtype=object), np.array(scores)
 
 
-class ClaSPSegmentation(BaseSegmenter):
+class ClaSPSegmenter(BaseSegmenter):
     """ClaSP (Classification Score Profile) Segmentation.
 
     Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
@@ -193,12 +193,12 @@ class ClaSPSegmentation(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.segmentation import ClaSPSegmentation
+    >>> from aeon.segmentation import ClaSPSegmenter
     >>> from aeon.segmentation import find_dominant_window_sizes
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
     >>> dominant_period_size = find_dominant_window_sizes(X)
-    >>> clasp = ClaSPSegmentation(dominant_period_size, n_cps=1)
+    >>> clasp = ClaSPSegmenter(dominant_period_size, n_cps=1)
     >>> found_cps = clasp.fit_predict(X)
     >>> profiles = clasp.profiles
     >>> scores = clasp.scores
@@ -210,7 +210,7 @@ class ClaSPSegmentation(BaseSegmenter):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
-        super(ClaSPSegmentation, self).__init__(n_segments=n_cps, axis=1)
+        super(ClaSPSegmenter, self).__init__(n_segments=n_cps, axis=1)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.

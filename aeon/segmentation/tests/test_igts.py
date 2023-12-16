@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.segmentation import IGTS, InformationGainSegmentation, entropy
+from aeon.segmentation import IGTS, InformationGainSegmenter, entropy
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def test_IGTS_find_change_points(multivariate_mean_shift):
 
 def test_InformationGainSegmentation(multivariate_mean_shift):
     """Test the InformationGainSegmentation."""
-    igts = InformationGainSegmentation(k_max=3, step=1)
+    igts = InformationGainSegmenter(k_max=3, step=1)
     assert igts.get_params() == {"k_max": 3, "step": 1}
     pred = igts.fit_predict(multivariate_mean_shift)
     assert np.array_equal(

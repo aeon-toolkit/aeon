@@ -27,7 +27,7 @@ from attrs import asdict, define, field
 
 from aeon.segmentation.base import BaseSegmenter
 
-__all__ = ["InformationGainSegmentation"]
+__all__ = ["InformationGainSegmenter"]
 __author__ = ["lmmentel"]
 
 
@@ -159,12 +159,12 @@ class IGTS:
     -------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.segmentation import InformationGainSegmentation
+    >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> igts = InformationGainSegmentation(k_max=3, step=2)
+    >>> igts = InformationGainSegmenter(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
 
     """
@@ -280,7 +280,7 @@ class IGTS:
         return current_change_points
 
 
-class InformationGainSegmentation(BaseSegmenter):
+class InformationGainSegmenter(BaseSegmenter):
     """Information Gain based Temporal Segmentation (IGTS) Estimator.
 
     IGTS is a n unsupervised method for segmenting multivariate time series
@@ -339,14 +339,14 @@ class InformationGainSegmentation(BaseSegmenter):
     --------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.segmentation import InformationGainSegmentation
+    >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(
     ... lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> igts = InformationGainSegmentation(k_max=3, step=2)
+    >>> igts = InformationGainSegmenter(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
     """
 
@@ -366,7 +366,7 @@ class InformationGainSegmentation(BaseSegmenter):
             k_max=k_max,
             step=step,
         )
-        super(InformationGainSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
+        super(InformationGainSegmenter, self).__init__(n_segments=k_max + 1, axis=0)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Perform segmentation.

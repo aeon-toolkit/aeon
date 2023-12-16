@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.segmentation import GGS, GreedyGaussianSegmentation
+from aeon.segmentation import GGS, GreedyGaussianSegmenter
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def test_GGS_find_change_points(univariate_mean_shift):
 
 def test_GreedyGaussianSegmentation(univariate_mean_shift):
     """Test the GreedyGaussianSegmentation."""
-    ggs = GreedyGaussianSegmentation(k_max=5, lamb=0.5)
+    ggs = GreedyGaussianSegmenter(k_max=5, lamb=0.5)
     assert ggs.get_params() == {
         "k_max": 5,
         "lamb": 0.5,

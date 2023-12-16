@@ -4,7 +4,7 @@ __author__ = ["patrickzib"]
 __all__ = []
 
 from aeon.datasets import load_gun_point_segmentation
-from aeon.segmentation import ClaSPSegmentation
+from aeon.segmentation import ClaSPSegmenter
 
 
 def test_clasp_sparse():
@@ -16,7 +16,7 @@ def test_clasp_sparse():
     ts, period_size, cps = load_gun_point_segmentation()
 
     # compute a ClaSP segmentation
-    clasp = ClaSPSegmentation(period_size, n_cps=1)
+    clasp = ClaSPSegmenter(period_size, n_cps=1)
     clasp.fit(ts)
     found_cps = clasp.predict(ts)
     scores = clasp.predict_scores(ts)

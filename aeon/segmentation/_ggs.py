@@ -368,7 +368,7 @@ class GGS:
         return change_points
 
 
-class GreedyGaussianSegmentation(BaseSegmenter):
+class GreedyGaussianSegmenter(BaseSegmenter):
     """Greedy Gaussian Segmentation Estimator.
 
     The method approximates solutions for the problem of breaking a
@@ -432,14 +432,14 @@ class GreedyGaussianSegmentation(BaseSegmenter):
     --------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.segmentation import GreedyGaussianSegmentation
+    >>> from aeon.segmentation import GreedyGaussianSegmenter
     >>> X = piecewise_normal_multivariate(
     ... lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> ggs = GreedyGaussianSegmentation(k_max=3, max_shuffles=5)
+    >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
     >>> y = ggs.fit_predict(X_scaled)
     """
 
@@ -468,7 +468,7 @@ class GreedyGaussianSegmentation(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
+        super(GreedyGaussianSegmenter, self).__init__(n_segments=k_max + 1, axis=0)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
