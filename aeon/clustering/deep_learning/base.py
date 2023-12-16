@@ -3,8 +3,8 @@ __author__ = ["hadifawaz1999"]
 
 from abc import ABC, abstractmethod
 
+from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
-from aeon.clustering.k_means import TimeSeriesKMeans
 
 
 class BaseDeepClusterer(BaseClusterer, ABC):

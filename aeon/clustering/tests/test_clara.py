@@ -2,7 +2,7 @@
 import numpy as np
 from sklearn import metrics
 
-from aeon.clustering.clara import TimeSeriesCLARA
+from aeon.clustering._clara import TimeSeriesCLARA
 from aeon.datasets import load_basic_motions, load_gunpoint
 
 

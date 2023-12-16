@@ -2,8 +2,6 @@
 
 import warnings
 
-from aeon.annotation.base import BaseSeriesAnnotator
-
 __author__ = ["ermshaua", "patrickzib"]
 __all__ = ["ClaSPSegmentation", "find_dominant_window_sizes"]
 
@@ -12,8 +10,8 @@ from queue import PriorityQueue
 import numpy as np
 import pandas as pd
 
-from aeon.transformations.series.clasp import ClaSPTransformer
-from aeon.utils.validation.series import check_series
+from aeon.segmentation.base import BaseSegmenter
+from aeon.transformations.clasp import ClaSPTransformer
 
 
 def find_dominant_window_sizes(X, offset=0.05):
@@ -170,7 +168,7 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
     return np.array(change_points), np.array(profiles, dtype=object), np.array(scores)
 
 
-class ClaSPSegmentation(BaseSeriesAnnotator):
+class ClaSPSegmentation(BaseSegmenter):
     """ClaSP (Classification Score Profile) Segmentation.
 
     Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
@@ -183,10 +181,6 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
         Size of window for sliding, based on the period length of the data.
     n_cps : int, default = 1
         The number of change points to search.
-    fmt : str {"dense", "sparse"}, default="sparse"
-        Segmentation output format:
-        * If "sparse", a pd.Series of the found Change Points is returned
-        * If "dense", a pd.IndexSeries with the Segmenation of X is returned.
     exclusion_radius : int
         Exclusion Radius for change points to be non-trivial matches.
 
@@ -210,44 +204,26 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
     >>> scores = clasp.scores
     """
 
-    _tags = {"univariate-only": True, "fit_is_empty": True}  # for unit test cases
+    _tags = {"fit_is_empty": True}  # for unit test cases
 
-    def __init__(self, period_length=10, n_cps=1, fmt="sparse", exclusion_radius=0.05):
+    def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
-        super(ClaSPSegmentation, self).__init__(fmt)
+        super(ClaSPSegmentation, self).__init__(n_segments=n_cps, axis=1)
 
-    def _fit(self, X, Y=None):
-        """Do nothing, as there is no need to fit a model for ClaSP.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Training data to fit model to (time series).
-        Y : pd.Series, optional
-            Ground truth annotations for training if annotator is supervised.
-
-        Returns
-        -------
-        self : True
-        """
-        return True
-
-    def _predict(self, X):
+    def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
 
         Parameters
         ----------
-        X : pd.DataFrame
-            Data to annotate (time series).
+        X : np.ndarray
+            1D time series to be segmented.
 
         Returns
         -------
-        Y : pd.Series or an IntervalSeries
-            Annotations for sequence X exact format depends on annotation type.
-            fmt=sparse : only the found change point locations are returned
-            fnt=dense : an interval series is returned which contains the segmetation.
+        list
+            List of change points found in X.
         """
         if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
@@ -257,39 +233,23 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
             self.found_cps, self.profiles, self.scores = [], [], []
         else:
             self.found_cps, self.profiles, self.scores = self._run_clasp(X)
+            return self.found_cps
 
-        # Change Points
-        if self.fmt == "sparse":
-            return pd.Series(self.found_cps, dtype="int64")
-
-        # Segmentation
-        elif self.fmt == "dense":
-            return self._get_interval_series(X, self.found_cps)
-
-    def _predict_scores(self, X):
+    def predict_scores(self, X):
         """Return scores in ClaSP's profile for each annotation.
 
         Parameters
         ----------
-        X : pd.DataFrame
-            Data to annotate (time series).
+        np.ndarray
+            1D time series to be segmented.
 
         Returns
         -------
-        Y : pd.Series
-            Scores for sequence X exact format depends on annotation type.
+        np.ndarray
+            Scores for sequence X
         """
         self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-
-        # Scores of the Change Points
-        if self.fmt == "sparse":
-            return pd.Series(self.scores)
-
-        # Full Profile of Segmentation
-        # ClaSP creates multiple profiles. Hard to map.
-        # Thus, we return the main (first) one
-        elif self.fmt == "dense":
-            return pd.Series(self.profiles[0])
+        return self.scores
 
     def get_fitted_params(self):
         """Get fitted parameters.
@@ -301,11 +261,6 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
         return {"profiles": self.profiles, "scores": self.scores}
 
     def _run_clasp(self, X):
-        X = check_series(X, enforce_univariate=True, allow_numpy=True)
-
-        if isinstance(X, pd.Series):
-            X = X.to_numpy()
-
         clasp_transformer = ClaSPTransformer(
             window_length=self.period_length, exclusion_radius=self.exclusion_radius
         ).fit(X)
@@ -331,7 +286,7 @@ class ClaSPSegmentation(BaseSeriesAnnotator):
         Returns
         -------
         IntervalIndex:
-            Segmentation based on found change pints
+            Segmentation based on found change points
 
         """
         cps = np.array(found_cps)

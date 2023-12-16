@@ -131,8 +131,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -162,8 +162,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -193,8 +193,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import ForecastingPipeline
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -248,7 +248,7 @@ class BaseForecaster(BaseEstimator):
             where `columns1` is first or only item in `key`, and `columns2` is the last
             if only one item is passed in `key`, only `columns1` is applied to input
         """
-        from aeon.transformations.series.subset import ColumnSelect
+        from aeon.transformations.subset import ColumnSelect
 
         def is_noneslice(obj):
             res = isinstance(obj, slice)
@@ -1329,7 +1329,7 @@ class BaseForecaster(BaseEstimator):
         X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_MTYPES = ["numpyflat", "pd-wide"]
+        FORBIDDEN_MTYPES = ["numpy2D", "pd-wide"]
 
         for scitype in ALLOWED_SCITYPES:
             mtypes = set(scitype_to_mtype(scitype))

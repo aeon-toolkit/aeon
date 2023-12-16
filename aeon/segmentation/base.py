@@ -4,34 +4,97 @@ __all__ = ["BaseSegmenter"]
 __author__ = ["TonyBagnall"]
 
 from abc import ABC, abstractmethod
-from typing import final
+from typing import List, final
 
 import numpy as np
 import pandas as pd
 
 from aeon.base import BaseEstimator
 
-# allowed types for transformers - Series and Panel
-ALLOWED_INPUT_TYPES = [
-    "np.ndarray",
-    "pd.Series",
-    "pd.DataFrame",
+# allowed input and internal data types for Segmenters
+VALID_INNER_TYPES = [
+    "ndarray",
+    "Series",
+    "DataFrame",
 ]
+VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
 
 class BaseSegmenter(BaseEstimator, ABC):
-    """Docstring.
+    """Base class for segmentation algorithms.
+
+    Segmenters take a single time series of size $n$ and return a segmentation.
+    Series can be multivariate, with $d$ dimensions.
+
+    1. input and internal data format
+
+    Univariate series:
+        Numpy array, shape (m,), (m, 1) or (1, m)
+            if no multivariate capability, all converted to 1D numpy (m,)
+            if has multivariate capability, converted to 2D numpy (m,1) or (1,
+            m) depending on axis
+        pandas DataFrame single column shape (m,1), (1,m) pandas Series shape (m,)
+            if no multivariate capability, all converted to Series (m,)
+            if has multivariate capability, all converted to Pandas DataFrame shape (
+            m,1), (1,m) depending on axis
+
+    Multivariate series:
+        Numpy array, shape (n,d) or (d,n)
+        pandas DataFrame (n,d) or (d,n)
+
+    2. Conversion and axis resolution for multivariate
+
+    Conversion between numpy and pandas is handled by the base class. Sub classses
+    can assume the data is in the correct format (determined by
+    "X_inner_type", one of VALID_INNER_TYPES) and represented with the expected axis.
+
+
+
+    Multivariate series are segmented along an axis determined by ``self.axis``. Axis
+    plays two roles:
+    1) the axis the segmenter expects the data to be in for its internal methods _fit
+    and _predict: 0 means each column is a time series channel, 1 means each row is a
+    time series channel (sometimes called wide
+    format). This should be set for a given child class through the BaseSegmenter
+    constructor.
+
+
+    2) The axis passed to the fit and predict methods. If the data axis is different to
+    the axis expected, then it is transposed in this base class.
+
+    3. Segmentation representation
+
+    Given a time series of 10 points with two change points found in position 4 and 8
+    (lets index from 1 for clarity)
+
+    The segmentation can be output in three forms:
+    a) A list of change points: output example [4,8].
+        This dense representation is the default behaviour, as it is the minimal
+        representation.
+    b) A list of integers of length n indicating the segment of each time point:
+        output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
+        This sparse representation can be used to indicate shared segments (indicating
+        segment 1 is somehow the same (perhaps in generative process) as segment 3.
+
+    May add others, such as intervals e) intervals [(1,3), (8,10)]
+
+    Segmenters can handle multivariate if the tag "capability:multivariate": is set
+    to True.
+    Multivariate series are always segmented at the same points. If independent
+    segmentation is required, fit a different segmenter to each channel.
 
     Parameters
     ----------
     n_segments : int, default = 2
+        Number of segments to split the time series into. If None, then the number of
+        segments needs to be found in fit.
     axis : int, default = 0
+        Axis along which to segment if passed a multivariate series (2D input). If axis
+        is 0, it is assumed each row is a time series and each column is a channel.
     """
 
     _tags = {
-        "input_data_type": "Series",
-        "output_data_type": "Series",
-        "X_inner_type": "np.ndarray",  # One of ALLOWED_INPUT_TYPES
+        "X_inner_type": "ndarray",  # One of VALID_INNER_TYPES
         "capability:unequal_length": False,
         "capability:multivariate": False,
         "capability:missing_values": False,
@@ -39,7 +102,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         "fit_is_empty": True,
     }
 
-    def __init__(self, n_segments=None, axis=0):
+    def __init__(self, n_segments=None, axis=1):
         self.n_segments = n_segments
         self.axis = axis
         self._is_fitted = False
@@ -48,26 +111,27 @@ class BaseSegmenter(BaseEstimator, ABC):
     @final
     def fit(self, X, y=None, axis=None):
         """Fit time series segmenter from training data."""
-        if axis is None:
+        # reset estimator at the start of fit
+        self.reset()
+        if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        self._check_X(X, axis)
+        self._check_input_series(X)
+        self._check_capabilities(X, axis)
+        X = self._convert_series(X, axis)
         if y is not None:
             self._check_y(y)
-        if not isinstance(X, pd.Series):
-            if self.axis != axis:
-                X = X.T
         self._fit(X=X, y=y)
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X, axis=None):
         """Create segmentation."""
         if axis is None:
             axis = self.axis
-        self._check_X(X, axis)
-        if not isinstance(X, pd.Series):
-            if self.axis != axis:
-                X = X.T
+        self._check_input_series(X)
+        self._check_capabilities(X, axis)
+        X = self._convert_series(X, axis)
         return self._predict(X)
 
     def fit_predict(self, X, y=None):
@@ -76,32 +140,91 @@ class BaseSegmenter(BaseEstimator, ABC):
         # method is possible for a given algorithm.
         return self.fit(X, y).predict(X)
 
-    @abstractmethod
     def _fit(self, X, y):
         """Fit time series classifier to training data."""
-        ...
+        return self
 
     @abstractmethod
     def _predict(self, X) -> np.ndarray:
         """Predict."""
         ...
 
-    def _check_X(self, X, axis):
-        # Checks: check valid type
-        if not (
-            isinstance(X, np.ndarray)
-            or isinstance(X, pd.Series)
-            or isinstance(X, pd.DataFrame)
-        ):
-            raise ValueError(" Error in input type =  ", type(X))
+    def _check_input_series(self, X):
+        """Check input is a data structure only containing floats."""
+        # Checks: check valid type and axis
+        if type(X) not in VALID_INPUT_TYPES:
+            raise ValueError(
+                f" Error in input type should be one onf "
+                f" {VALID_INNER_TYPES}, saw {type(X)}"
+            )
         if isinstance(X, np.ndarray):
             # Check valid shape
-            if X.ndims > 2:
+            if X.ndim > 2:
                 raise ValueError(" Should be 1D or 2D")
-            # Check axis
-            if axis > 1 or axis < 0:
-                raise ValueError(" Axis should be 0 or 1")
+            if not (
+                issubclass(X.dtype.type, np.integer)
+                or issubclass(X.dtype.type, np.floating)
+            ):
+                raise ValueError(" array must contain floats or ints")
+        elif isinstance(X, pd.Series):
+            if not pd.api.types.is_numeric_dtype(X):
+                raise ValueError("pd.Series must be numeric")
+        else:
+            if not all(pd.api.types.is_numeric_dtype(X[col]) for col in X.columns):
+                raise ValueError("pd.DataFrame must be numeric")
 
-    def _check_y(self, y):
-        if not isinstance(y, np.ndarray):
-            raise ValueError("Error in y")
+    def _check_capabilities(self, X, axis):
+        """Check can handle multivariate and missing values."""
+        if self.get_tag("capability:multivariate") is False:
+            if X.ndim > 1:
+                raise ValueError("Multivariate data not supported")
+
+    def _convert_series(self, X, axis):
+        inner = self.get_tag("X_inner_type")
+        input = type(X).__name__
+        if inner != input:
+            if inner == "ndarray":
+                X = X.to_numpy()
+            elif inner == "Series":
+                if input == "ndarray":
+                    X = pd.Series(X)
+            elif inner == "DataFrame":
+                X = pd.DataFrame(X)
+        if axis > 1 or axis < 0:
+            raise ValueError(" Axis should be 0 or 1")
+        if self.get_tag("capability:multivariate") and X.ndim == 1:
+            X = X.reshape(1, -1)
+        else:
+            X = X.squeeze()
+        if X.ndim > 1:
+            if self.axis != axis:
+                X = X.T
+        return X
+
+    def to_classification(self, change_points: List[int]):
+        """Convert change point locations to a classification vector.
+
+        Change point detection results can be treated as classification
+        with true change point locations marked with 1's at position of
+        the change point and remaining non-change point locations being
+        0's.
+
+        For example change points [2, 8] for a time series of length 10
+        would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
+        """
+        return np.bincount(change_points[1:-1], minlength=change_points[-1])
+
+    def to_clusters(self, change_points: List[int]):
+        """Convert change point locations to a clustering vector.
+
+        Change point detection results can be treated as clustering
+        with each segment separated by change points assigned a
+        distinct dummy label.
+
+        For example change points [2, 8] for a time series of length 10
+        would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
+        """
+        labels = np.zeros(change_points[-1], dtype=np.int32)
+        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
+            labels[start:stop] = i
+        return labels

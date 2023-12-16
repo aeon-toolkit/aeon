@@ -35,10 +35,12 @@ __all__ = [
 ]
 import os
 
-from aeon.datasets._dataframe_loaders import MODULE
+import aeon
 from aeon.datasets.tsc_data_lists import multivariate, univariate
 from aeon.datasets.tser_data_lists import tser_all
 from aeon.datasets.tsf_data_lists import tsf_all
+
+MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
 def list_available_tser_datasets(name=None):

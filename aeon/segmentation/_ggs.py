@@ -443,6 +443,8 @@ class GreedyGaussianSegmentation(BaseSegmenter):
     >>> y = ggs.fit_predict(X_scaled)
     """
 
+    _tags = {"capability:multivariate": True}
+
     def __init__(
         self,
         k_max: int = 10,
@@ -463,9 +465,9 @@ class GreedyGaussianSegmentation(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=1)
+        super(GreedyGaussianSegmentation, self).__init__(n_segments=k_max + 1, axis=0)
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
 
         Initialises the ggs segmenter.
@@ -473,7 +475,7 @@ class GreedyGaussianSegmentation(BaseSegmenter):
         Parameters
         ----------
         X: np.ndarray
-            Time series shape (n_timepoints, n_channels).
+            2D time series shape (n_timepoints, n_channels).
         y: array_like
             Placeholder for compatibility with sklearn-api, not used, default=None.
         """
