@@ -121,14 +121,17 @@ class HMMSegmenter(BaseSegmenter):
     >>> sd = [.25 for i in centers]
     >>> emi_funcs = [(norm.pdf, {'loc': mean,
     ...  'scale': sd[ind]}) for ind, mean in enumerate(centers)]
-    >>> hmm_est = HMM(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
+    >>> hmm = HMM(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
     >>> # generate synthetic data (or of course use your own!)
     >>> obs = asarray([3.7,3.2,3.4,3.6,-5.1,-5.2,-4.9])
-    >>> hmm_est = hmm_est.fit(obs)
-    >>> labels = hmm_est.predict(obs)
+    >>> hmm.fit_predict(obs)
+    array([0., 0., 0., 0., 1., 1., 1.])
     """
 
-    _tags = {"fit_is_empty": True}
+    _tags = {
+        "fit_is_empty": True,
+        "returns_dense": False,
+    }
 
     def __init__(
         self,

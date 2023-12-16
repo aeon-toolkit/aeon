@@ -71,13 +71,13 @@ class BaseSegmenter(BaseEstimator, ABC):
     The segmentation can be output in two forms:
     a) A list of change points: output example [4,8].
         This dense representation is the default behaviour, as it is the minimal
-        representation.
+        representation. Indicated by tag "return_dense" being set to True.
     b) A list of integers of length n indicating the segment of each time point:
         output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
         This sparse representation can be used to indicate shared segments (indicating
         segment 1 is somehow the same (perhaps in generative process) as segment 3.
+        Indicated by tag "return_dense" being set to False.
 
-    #TODO Add a tag to indicate which type of output
     Multivariate series are always segmented at the same points. If independent
     segmentation is required, fit a different segmenter to each channel.
 
@@ -99,6 +99,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         "capability:multithreading": False,
         "fit_is_empty": True,
         "requires_y": False,
+        "returns_dense": True,
     }
 
     def __init__(self, n_segments=None, axis=1):

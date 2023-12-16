@@ -87,6 +87,7 @@ class HidalgoSegmenter(BaseSegmenter):
     _tags = {
         "capability:multivariate": True,
         "fit_is_empty": False,
+        "returns_dense": False,
     }
 
     def __init__(

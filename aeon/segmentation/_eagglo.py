@@ -85,6 +85,7 @@ class EAggloSegmenter(BaseSegmenter):
         "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
         "fit_is_empty": True,
+        "returns_dense": False,
     }
 
     def __init__(

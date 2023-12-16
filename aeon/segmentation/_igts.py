@@ -350,7 +350,10 @@ class InformationGainSegmentation(BaseSegmenter):
     >>> y = igts.fit_predict(X_scaled)
     """
 
-    _tags = {"capability:multivariate": True}
+    _tags = {
+        "capability:multivariate": True,
+        "returns_dense": False,
+    }
 
     def __init__(
         self,
