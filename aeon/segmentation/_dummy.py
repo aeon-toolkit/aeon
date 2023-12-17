@@ -7,7 +7,10 @@ from aeon.segmentation.base import BaseSegmenter
 
 
 class DummySegmenter(BaseSegmenter):
-    """Dummy Segmenter."""
+    """Dummy Segmenter.
+
+    Randomly segments a time series.
+    """
 
     _tags = {
         "capability:missing_values": True,
