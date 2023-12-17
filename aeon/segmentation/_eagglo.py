@@ -84,7 +84,7 @@ class EAggloSegmenter(BaseSegmenter):
     _tags = {
         "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
-        "fit_is_empty": True,
+        "fit_is_empty": False,
         "returns_dense": False,
     }
 
@@ -99,7 +99,7 @@ class EAggloSegmenter(BaseSegmenter):
         self.penalty = penalty
         super(EAggloSegmenter, self).__init__(axis=0)
 
-    def _fit(self, X: pd.DataFrame, y=None):
+    def _fit(self, X, y=None):
         """Find optimally clustered segments.
 
         First, by determining which pairs of adjacent clusters will be merged_. Then,
@@ -111,7 +111,9 @@ class EAggloSegmenter(BaseSegmenter):
         self._X = X
 
         if self.alpha <= 0 or self.alpha > 2:
-            raise ValueError(f"alowed values for 'alpha' are (0, 2], got: {self.alpha}")
+            raise ValueError(
+                f"allowed values for 'alpha' are (0, 2], " f"got: {self.alpha}"
+            )
 
         self._initialize_params(X)
 
