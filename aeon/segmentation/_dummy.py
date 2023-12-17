@@ -12,10 +12,12 @@ class DummySegmenter(BaseSegmenter):
     _tags = {
         "capability:missing_values": True,
         "capability:multivariate": True,
+        "fit_is_empty": False,
     }
 
     def __init__(self, random_state=None, n_segments=None):
         self.random_state = random_state
+        self.breakpoints_ = []
         super(DummySegmenter, self).__init__(n_segments=n_segments, axis=1)
 
     def _fit(self, X, y=None):
@@ -34,7 +36,11 @@ class DummySegmenter(BaseSegmenter):
         if self.n_segments_ is None:
             self.n_segments_ = 2
         length = X.shape[1]
-        points = random.sample(range(0, length), self.n_segments_ - 1)
+
+        rng = random.Random()
+        rng.seed(self.random_state)
+
+        points = rng.sample(range(0, length), self.n_segments_ - 1)
         self.breakpoints_ = sorted(points)
         return self
 

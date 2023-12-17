@@ -15,8 +15,9 @@ def test_dummy():
     segmenter.fit(data)
     assert segmenter.n_segments_ == 10
     segs = segmenter.predict(data)
+    assert len(segs) == 9
     df = pd.DataFrame(data)
     segmenter = DummySegmenter(random_state=49, n_segments=10)
     segmenter.fit(df)
-    # segs2 = segmenter.predict(df)
-    # assert segs == segs2
+    segs2 = segmenter.predict(df)
+    assert segs == segs2
