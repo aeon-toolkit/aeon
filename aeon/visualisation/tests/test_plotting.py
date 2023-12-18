@@ -7,9 +7,9 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.utils.plotting import plot_correlations, plot_lags, plot_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
+from aeon.visualisation.plotting import plot_correlations, plot_lags, plot_series
 
 y_airline = load_airline()
 y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]

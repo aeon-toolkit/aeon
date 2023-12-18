@@ -75,25 +75,6 @@ Estimator Search and Retrieval, Estimator Tags
     all_tags
     check_tag_is_valid
 
-Plotting
---------
-
-:mod:`aeon.utils.plotting`
-
-.. automodule:: aeon.utils.plotting
-    :no-members:
-    :no-inherited-members:
-
-.. currentmodule:: aeon.utils.plotting
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    plot_series
-    plot_lags
-    plot_correlations
-
 Estimator Validity Checking
 ---------------------------
 

@@ -58,7 +58,7 @@ def plot_boxplot_median(
 
     Example
     -------
-    >>> from aeon.benchmarking.results_plotting import plot_boxplot_median
+    >>> from aeon.visualisation.results_plotting import plot_boxplot_median
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
@@ -169,7 +169,7 @@ def plot_scatter_predictions(
 
     Example
     -------
-    >>> from aeon.benchmarking.results_plotting import plot_scatter_predictions
+    >>> from aeon.visualisation.results_plotting import plot_scatter_predictions
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.feature_based import FreshPRINCERegressor  # doctest: +SKIP
     >>> X_train, y_train = load_covid_3month(split="train")
@@ -252,7 +252,7 @@ def plot_scatter(
 
     Example
     -------
-    >>> from aeon.benchmarking.results_plotting import plot_scatter
+    >>> from aeon.visualisation.results_plotting import plot_scatter
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
     >>> results = get_estimator_results_as_array(estimators=methods)
