@@ -86,7 +86,6 @@ def convert_pred_interval_to_quantiles(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Quantiles" if x == "Coverage" else x for x in var_names]
 
@@ -153,7 +152,6 @@ def convert_pred_quantiles_to_interval(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Coverage" if x == "Quantiles" else x for x in var_names]
 
