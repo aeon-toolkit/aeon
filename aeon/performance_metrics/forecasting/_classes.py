@@ -430,7 +430,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             else:
                 y_pred_orig.columns = y_true.columns
         # check multioutput arg
-        # todo: add this back when variance_weighted is supported
+        # add this back when variance_weighted is supported
         # ("raw_values", "uniform_average", "variance_weighted")
         allowed_multioutput_str = ("raw_values", "uniform_average")
 
