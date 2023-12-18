@@ -45,6 +45,7 @@ from aeon.regression.base import BaseRegressor
 from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
@@ -63,6 +64,11 @@ BASE_CLASS_REGISTER = [
         "collection-transformer",
         BaseCollectionTransformer,
         "time series collection transformer",
+    ),
+    (
+        "series-transformer",
+        BaseSeriesTransformer,
+        "time series single series transformer",
     ),
     ("similarity-search", BaseSimiliaritySearch, "similarity search"),
 ]
