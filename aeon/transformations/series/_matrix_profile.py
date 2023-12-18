@@ -29,9 +29,8 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.matrix_profile import \
-    MatrixProfileTransformer
-    >>>import numpy as np
+    >>> from aeon.transformations.series import MatrixProfileTransformer
+    >>> import numpy as np
     >>> series = np.array([1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1])  # doctest: +SKIP
     >>> transformer = MatrixProfileTransformer(window_length=4)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(series)  # doctest: +SKIP
