@@ -88,7 +88,7 @@ def test__convert_series():
     """Test _convert_series method."""
     seg1 = TestSegmenter()
     seg2 = TestMultivariateSegmenter()
-    seg1.set_tags({"X_inner_type": "ndarray"})
+    seg1.set_class_tags({"X_inner_type": "ndarray"})
     seg1.axis = 0
     for axis in [0, 1]:
         for u in uni:
@@ -106,14 +106,14 @@ def test__convert_series():
         res = seg1._convert_series(m, 1)
         assert isinstance(res, np.ndarray)
         assert res.shape == (10, 4)
-    seg1.set_tags({"X_inner_type": "Series"})
+    seg1.set_class_tags({"X_inner_type": "Series"})
     for axis in [0, 1]:
         for u in uni:
             u = u.squeeze()
             res = seg1._convert_series(u, axis)
             assert isinstance(res, pd.Series)
             assert len(res) == 10
-    seg2.set_tags({"X_inner_type": "ndarray"})
+    seg2.set_class_tags({"X_inner_type": "ndarray"})
     for m in multi:
         res = seg2._convert_series(m, axis=1)
         assert isinstance(res, np.ndarray)
