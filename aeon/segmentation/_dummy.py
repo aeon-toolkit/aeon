@@ -29,8 +29,9 @@ class DummySegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : 2D np.array of shape = [n_channels, series_length]
-        y : array-like, shape = [n_instances] - the class labels
+        X : 2D np.ndarray
+            Time series of shape `(n_channels, series_length)`
+        y : np.ndarray or None, default = None
 
         Returns
         -------

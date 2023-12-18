@@ -23,24 +23,27 @@ VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 class BaseSegmenter(BaseEstimator, ABC):
     """Base class for segmentation algorithms.
 
-    Segmenters take a single time series of size $m$ and return a segmentation.
-    Series can be multivariate, with $d$ dimensions.
+    Segmenters take a single time series of length $m$ and returns a segmentation.
+    Series can be univariate (single series) or multivariate, with $d$ dimensions.
 
-    Design issues
-    1. input and internal data format
-    Univariate series:
-        Numpy array, shape $(m,)$, $(m, 1)$ or $(1, m)$
-            if self has no multivariate capability, all converted to 1D numpy $(m,)$
-            if self has multivariate capability, converted to 2D numpy $(m,1)$ or $(1,
-            m)$ depending on axis
-        pandas DataFrame single column shape $(m,1)$, $(1,m)$ pandas Series shape $(m,)$
-            if self has no multivariate capability, all converted to Series $(m,)$
-            if self has multivariate capability, all converted to Pandas DataFrame
-            shape $(m,1)$, $(1,m)$ depending on axis
+    input and internal data format
+        Univariate series:
+            Numpy array:
+            shape `(m,)`, `(m, 1)` or `(1, m)`. if ``self`` has no multivariate
+            capability, i.e.``self.get_tag(
+            ""capability:multivariate") == False``, all are converted to 1D
+            numpy `(m,)`
+            if ``self`` has multivariate capability, converted to 2D numpy `(m,1)` or
+            `(1, m)` depending on axis
+            pandas DataFrame or Series:
+            DataFrame single column shape `(m,1)`, `(1,m)` or Series shape `(m,)`
+            if ``self`` has no multivariate capability, all converted to Series `(m,)`
+            if ``self`` has multivariate capability, all converted to Pandas DataFrame
+            shape `(m,1)`, `(1,m)` depending on axis
 
     Multivariate series:
-        Numpy array, shape $(m,d)$ or $(d,m)$
-        pandas DataFrame $(m,d)$ or $(d,m)$
+        Numpy array, shape `(m,d)` or `(d,m)`.
+        pandas DataFrame `(m,d)` or `(d,m)`
 
     2. Conversion and axis resolution for multivariate
 
@@ -51,10 +54,11 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     Multivariate series are segmented along an axis determined by ``self.axis``. Axis
     plays two roles:
+
     1) the axis the segmenter expects the data to be in for its internal methods
-    ``_fit`` and ``_predict``: 0 means each column is a time series channel $(m,d)$,
+    ``_fit`` and ``_predict``: 0 means each column is a time series channel `(m,d)`,
     1 means each row is a time series channel, sometimes called wide
-    format, shape $(d,m)$. This should be set for a given child class through the
+    format, shape `(d,m)`. This should be set for a given child class through the
     BaseSegmenter constructor.
 
 
@@ -63,7 +67,7 @@ class BaseSegmenter(BaseEstimator, ABC):
     stored in ``self.axis``, then it is htransposed in this base class if self has
     multivariate capability.
 
-    3. Segmentation representation
+    Segmentation representation
 
     Given a time series of 10 points with two change points found in position 4 and 8
     (lets index from 1 for clarity)
@@ -110,10 +114,10 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     @final
     def fit(self, X, y=None, axis=None):
-        """Fit time series segmenter.
+        """Fit time series segmenter to X.
 
-        If the tag ``fit_is_empty`` is True, this just sets the ``is_fitted``  tag to
-        True. Otherwise, it checks ``self`` can handle ``X``, formats ``X`` into
+        If the tag ``fit_is_empty`` is true, this just sets the ``is_fitted``  tag to
+        true. Otherwise, it checks ``self`` can handle ``X``, formats ``X`` into
         the structure required by  ``self`` then passes ``X`` (and possibly ``y``) to
         ``_fit``.
 
@@ -173,7 +177,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         return self._predict(X)
 
     def fit_predict(self, X, y=None):
-        """Fit to data, then predict it."""
+        """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
         return self.fit(X, y).predict(X)

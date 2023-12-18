@@ -3,8 +3,8 @@
 Segmentation
 ============
 
-Time Series Segmentation aims to discover regions of a time series that are
-semantically dissimilar to neighboring regions. The :mod:`aeon.segmentation` module
+Time series segmentation involves partitioning a series into regions
+that are dissimilar to neighboring regions. The :mod:`aeon.segmentation` module
 contains algorithms and tools for time series segmentation.
 
 .. currentmodule:: aeon.segmentation
@@ -14,11 +14,11 @@ contains algorithms and tools for time series segmentation.
     :template: class.rst
 
     BaseSegmenter
-    ClaSPSegmentation
-    InformationGainSegmentation
-    GreedyGaussianSegmentation
-    GreedyGaussianSegmentation
-    InformationGainSegmentation
+    ClaSPSegmentater
+    InformationGainSegmenter
+    GreedyGaussianSegmenter
+    GreedyGaussianSegmenter
+    InformationGainSegmenter
     DummySegmenter
     EAggloSegmenter
     HMMSegmenter
