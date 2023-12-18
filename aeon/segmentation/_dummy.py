@@ -13,6 +13,7 @@ class DummySegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "X_inner_type": "ndarray",
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
