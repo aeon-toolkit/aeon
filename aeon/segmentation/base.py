@@ -125,10 +125,10 @@ class BaseSegmenter(BaseEstimator, ABC):
             Training time series, labeled series same length as X for supervised
             segmentation.
         """
-        if self.get_tag("fit_is_empty"):
+        if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
             return self
-        if self.get_tag("requires_y"):
+        if self.get_class_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
@@ -213,14 +213,18 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     def _check_capabilities(self, X, axis):
         """Check self can handle multivariate series if X is multivariate."""
-        if self.get_tag("capability:multivariate") is False:
+        if self.get_class_tag("capability:multivariate") is False:
             if X.ndim > 1:
                 raise ValueError("Multivariate data not supported")
 
     def _convert_series(self, X, axis):
         """Convert X into "X_inner_type" data structure."""
         inner = self.get_class_tag("X_inner_type")
-        input = type(X).__name__
+        input = "ndarray"
+        if isinstance(X, pd.Series):
+            input = "Series"
+        elif isinstance(X, pd.DataFrame):
+            input = "DataFrame"
         if inner != input:
             if inner == "ndarray":
                 X = X.to_numpy()
@@ -231,7 +235,7 @@ class BaseSegmenter(BaseEstimator, ABC):
                 X = pd.DataFrame(X)
         if axis > 1 or axis < 0:
             raise ValueError(" Axis should be 0 or 1")
-        if self.get_tag("capability:multivariate") and X.ndim == 1:
+        if self.get_class_tag("capability:multivariate") and X.ndim == 1:
             X = X.reshape(1, -1)
         else:
             X = X.squeeze()
