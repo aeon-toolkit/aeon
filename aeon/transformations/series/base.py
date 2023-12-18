@@ -27,8 +27,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, axis):
-        super(BaseSeriesEstimator, self).__init__(axis=axis)
+    def __init__(self, axis=1):
+        self.axis = axis
+        super(BaseSeriesEstimator, self).__init__()
 
     @final
     def fit(self, X, y=None, axis=None):
