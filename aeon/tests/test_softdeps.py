@@ -39,8 +39,6 @@ MODULES_TO_IGNORE = "aeon.utils._testing"
 # for the reason that they are composites which have soft dependencies in examples
 # but no soft dependencies themselves, so it's temporarily fine to raise this
 # e.g., forecasting pipeline with an ARIMA estimator
-# todo: long-term all example parameter settings should be soft dependency free
-# strings of class names to avoid the imports
 EXCEPTED_FROM_NO_DEP_CHECK = []
 
 

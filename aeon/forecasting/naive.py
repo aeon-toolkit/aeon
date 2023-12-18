@@ -120,7 +120,6 @@ class NaiveForecaster(_BaseWindowForecaster):
         self.window_length = window_length
 
         # Override tag for handling missing data
-        # todo: remove if GH1367 is fixed
         if self.strategy in ("last", "mean"):
             self.set_tags(**{"capability:missing_values": True})
 
@@ -335,7 +334,6 @@ class NaiveForecaster(_BaseWindowForecaster):
         # test_predict_time_index_in_sample_full[ForecastingPipeline-0-int-int-True]
         #   causes a pd.DataFrame to appear as y_pred, which upsets the next lines
         #   reasons are unclear, this is coming from the _BaseWindowForecaster
-        # todo: investigate this
         if isinstance(y_pred, pd.DataFrame):
             y_pred = y_pred.iloc[:, 0]
 
