@@ -219,7 +219,7 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     def _convert_series(self, X, axis):
         """Convert X into "X_inner_type" data structure."""
-        inner = self.get_tag("X_inner_type")
+        inner = self.get_class_tag("X_inner_type")
         input = type(X).__name__
         if inner != input:
             if inner == "ndarray":

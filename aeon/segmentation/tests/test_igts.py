@@ -39,8 +39,8 @@ def test_IGTS_find_change_points(multivariate_mean_shift):
     assert len(pred) == 5
 
 
-def test_InformationGainSegmentation(multivariate_mean_shift):
-    """Test the InformationGainSegmentation."""
+def test_InformationGainSegmenter(multivariate_mean_shift):
+    """Test the test_InformationGainSegmenter."""
     igts = InformationGainSegmenter(k_max=3, step=1)
     assert igts.get_params() == {"k_max": 3, "step": 1}
     pred = igts.fit_predict(multivariate_mean_shift)
