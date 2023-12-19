@@ -5,22 +5,15 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly"]
 import inspect
 
 import numpy as np
-import pytest
 from sklearn.utils._testing import set_random_state
 
-from aeon.classification.tests.test_classification_reproduction import (
-    _print_array,
-    _print_results_for_classifier,
-    _reproduce_classification_basic_motions,
-    _reproduce_classification_unit_test,
-)
 from aeon.classification.tests.test_expected_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.tests.test_config import PR_TESTING
+from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils._testing.scenarios_classification import ClassifierFitPredict
 from aeon.utils.validation.collection import get_n_cases
 
@@ -85,9 +78,9 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
             return None
 
-        for data_dict, data_loader, data_seed in [
-            [unit_test_proba, load_unit_test, 0],
-            [basic_motions_proba, load_basic_motions, 4],
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_proba, load_unit_test, 0],
+            ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
         ]:
             # retrieve expected predict_proba output, and skip test if not available
             if classname in data_dict.keys():
@@ -113,7 +106,14 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             # train classifier and predict probas
             estimator_instance.fit(X_train[indices], y_train[indices])
             y_proba = estimator_instance.predict_proba(X_test[indices])
-            np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
+
+            # assert probabilities are the same
+            _assert_array_almost_equal(
+                y_proba,
+                expected_probas,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""
@@ -219,62 +219,3 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             raise ValueError(
                 f"Classifier {estimator_class} overrides the method " f"predict_proba"
             )
-
-    @pytest.mark.skipif(
-        PR_TESTING,
-        reason="Only run on overnights because its slow and rarely needs testing",
-    )
-    def test__reproduce_classification_unit_test(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in unit_test_proba.keys():
-            expected_probas = unit_test_proba[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_classification_unit_test(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
-        res = _print_results_for_classifier(classname, "UnitTest")
-        exp_str = _print_array(f"{classname} - UnitTest", expected_probas)
-        assert res == exp_str
-
-    @pytest.mark.skipif(
-        PR_TESTING,
-        reason="Only run on overnights because its slow and rarely needs testing",
-    )
-    def test__reproduce_classification_basic_motions(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        if classname in basic_motions_proba.keys():
-            expected_probas = basic_motions_proba[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_classification_basic_motions(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=4)
-        res = _print_results_for_classifier(classname, "BasicMotions")
-        exp_str = _print_array(f"{classname} - BasicMotions", expected_probas)
-        assert res == exp_str
