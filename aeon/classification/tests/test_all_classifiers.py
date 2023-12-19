@@ -210,8 +210,9 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         multivariate = estimator_class.get_class_tag("capability:multivariate")
         if multivariate:
             X = np.random.random((10, 2, 20))
+            y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
             inst = estimator_class.create_test_instance(parameter_set="default")
-            inst.fit(X)
+            inst.fit(X, y)
             inst.predict(X)
             inst.predict_proba(X)
 

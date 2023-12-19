@@ -98,8 +98,9 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         multivariate = estimator_class.get_class_tag("capability:multivariate")
         if multivariate:
             X = np.random.random((10, 2, 20))
+            y = np.random.random(10)
             inst = estimator_class.create_test_instance(parameter_set="default")
-            inst.fit(X)
+            inst.fit(X, y)
             inst.predict(X)
 
     def test_does_not_override_final_methods(self, estimator_class):
