@@ -308,7 +308,7 @@ def plot_correlations(
 
     Examples
     --------
-    >>> from aeon.utils.visualisation import plot_correlations
+    >>> from `aeon.visualisation import plot_correlations
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> fig, ax = plot_correlations(y)  # doctest: +SKIP
