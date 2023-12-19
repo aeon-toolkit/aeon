@@ -4,7 +4,6 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 
 
 import numpy as np
-import pytest
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
@@ -12,14 +11,7 @@ from aeon.regression.tests.test_expected_outputs import (
     cardano_sentiment_preds,
     covid_3month_preds,
 )
-from aeon.regression.tests.test_regression_reproduction import (
-    _print_array,
-    _print_results_for_regressor,
-    _reproduce_regression_cardano_sentiment,
-    _reproduce_regression_covid_3month,
-)
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.tests.test_config import PR_TESTING
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
 
@@ -91,62 +83,3 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
                 decimal=2,
                 err_msg=f"Failed to reproduce results for {classname} on {data_name}",
             )
-
-    @pytest.mark.skipif(
-        PR_TESTING,
-        reason="Only run on overnights because its slow and rarely needs testing",
-    )
-    def test__reproduce_regression_covid_3month(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in covid_3month_preds.keys():
-            expected_probas = covid_3month_preds[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_regression_covid_3month(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
-        res = _print_results_for_regressor(classname, "Covid3Month")
-        exp_str = _print_array(f"{classname} - Covid3Month", expected_probas)
-        assert res == exp_str
-
-    @pytest.mark.skipif(
-        PR_TESTING,
-        reason="Only run on overnights because its slow and rarely needs testing",
-    )
-    def test__reproduce_regression_cardano_sentiment(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        if classname in cardano_sentiment_preds.keys():
-            expected_probas = cardano_sentiment_preds[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_regression_cardano_sentiment(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
-        res = _print_results_for_regressor(classname, "CardanoSentiment")
-        exp_str = _print_array(f"{classname} - UnitTest", expected_probas)
-        assert res == exp_str
