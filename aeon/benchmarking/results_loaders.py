@@ -523,7 +523,7 @@ def get_bake_off_2023_results(default_only=True):
     Examples
     --------
     >>> from aeon.benchmarking import get_bake_off_2023_results, uni_classifiers_2023
-    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
     >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]
     >>> # Get column positions of classifiers in results
