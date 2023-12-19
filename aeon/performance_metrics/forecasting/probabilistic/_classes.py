@@ -8,8 +8,6 @@ from sklearn.utils import check_array, check_consistent_length
 from aeon.datatypes import check_is_scitype, convert
 from aeon.performance_metrics.forecasting._classes import BaseForecastingErrorMetric
 
-# TODO: Rework tests now
-
 
 class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
     """Base class for probabilistic forecasting error metrics in aeon.
@@ -419,8 +417,6 @@ class PinballLoss(_BaseProbaForecastingErrorMetric):
             # if alpha was provided, check whether  they are predicted
             #   if not all alpha are observed, raise a ValueError
             if not np.isin(alpha, y_pred_alphas).all():
-                # todo: make error msg more informative
-                #   which alphas are missing
                 msg = "not all quantile values in alpha are available in y_pred"
                 raise ValueError(msg)
             else:
