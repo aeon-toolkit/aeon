@@ -128,7 +128,6 @@ class Lag(BaseTransformer):
         "remember_data": True,  # remember all data seen as _X
     }
 
-    # todo: add any hyper-parameters and components to constructor
     def __init__(
         self,
         lags=0,
@@ -264,10 +263,6 @@ class Lag(BaseTransformer):
 
         return Xt
 
-    # todo: consider implementing this, optional
-    # if not implementing, delete the _inverse_transform method
-    # inverse transform exists only if transform does not change scitype
-    #  i.e., Series transformed to Series
     def _inverse_transform(self, X, y=None):
         """Inverse transform, inverse operation to transform.
 
@@ -292,11 +287,6 @@ class Lag(BaseTransformer):
         #  return should be of same mtype as input, X_inner_type
         #  if multiple X_inner_type are supported, ensure same input/output
         #
-        # todo: add the return mtype/scitype to the docstring, e.g.,
-        #  Returns
-        #  -------
-        #  X_inv_transformed : Series of mtype pd.DataFrame
-        #       inverse transformed version of X
 
     def _update(self, X, y=None):
         """Update transformer with X and y.
@@ -315,8 +305,6 @@ class Lag(BaseTransformer):
         """
         return self
 
-    # todo: return default parameters, so that a test instance can be created
-    #   required for automated unit and integration testing of estimator
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -427,7 +415,6 @@ class ReducerTransform(BaseTransformer):
         "capability:missing_values:removes": False,
     }
 
-    # todo: add any hyper-parameters and components to constructor
     def __init__(
         self,
         lags=0,
@@ -564,8 +551,6 @@ class ReducerTransform(BaseTransformer):
         self.trafo_.update(X=X, y=y)
         return self
 
-    # todo: return default parameters, so that a test instance can be created
-    #   required for automated unit and integration testing of estimator
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.

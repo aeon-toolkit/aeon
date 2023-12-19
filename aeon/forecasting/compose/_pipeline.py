@@ -1461,8 +1461,6 @@ class ForecastX(BaseForecaster):
         y_pred = self.forecaster_y_.predict_var(fh=fh, X=X)
         return y_pred
 
-    # todo: does not work properly for multivariate or hierarchical
-    #   still need to implement this - once interface is consolidated
     def _predict_proba(self, fh, X, marginal=True):
         """Compute/return fully probabilistic forecasts.
 
