@@ -5,21 +5,13 @@ __all__ = []
 
 import numpy as np
 import pandas as pd
-import pytest
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.tests.test_config import PR_TESTING
 from aeon.transformations.tests.test_expected_outputs import (
     basic_motions_result,
     unit_test_result,
-)
-from aeon.transformations.tests.test_transformer_reproduction import (
-    _print_array,
-    _print_results_for_transformer,
-    _reproduce_transform_basic_motions,
-    _reproduce_transform_unit_test,
 )
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
@@ -131,58 +123,3 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
                 decimal=2,
                 err_msg=f"Failed to reproduce results for {classname} on {data_name}",
             )
-
-    def test__reproduce_transform_unit_test(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in unit_test_result.keys():
-            expected_probas = unit_test_result[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_transform_unit_test(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=2)
-        res = _print_results_for_transformer(classname, "UnitTest")
-        exp_str = _print_array(f"{classname} - UnitTest", expected_probas)
-        assert res == exp_str
-
-    @pytest.mark.skipif(
-        PR_TESTING,
-        reason="Only run on overnights because its slow and rarely needs testing",
-    )
-    def test__reproduce_transform_basic_motions(self, estimator_class):
-        """Test classifier against stored results."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # the test currently fails when numba is disabled. See issue #622
-        import os
-
-        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-            return None
-        if classname in basic_motions_result.keys():
-            expected_probas = basic_motions_result[classname]
-        else:
-            return None
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-        y_proba = _reproduce_transform_basic_motions(estimator_instance)
-        np.testing.assert_almost_equal(y_proba, expected_probas, decimal=4)
-        res = _print_results_for_transformer(classname, "BasicMotions")
-        exp_str = _print_array(f"{classname} - BasicMotions", expected_probas)
-        assert res == exp_str
