@@ -152,6 +152,14 @@ def _is_in_env(modules):
         return False
 
 
+def soft_deps_installed(estimator):
+    """Return whether soft dependencies of an estimator are installed in env."""
+    softdeps = _get_soft_deps(estimator)
+    if _is_in_env(softdeps):
+        return True
+    return False
+
+
 # all estimators - exclude estimators on the global exclusion list
 all_ests = all_estimators(return_names=False, exclude_estimators=EXCLUDE_ESTIMATORS)
 

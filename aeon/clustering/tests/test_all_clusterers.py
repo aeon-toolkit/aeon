@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
+from aeon.tests.test_softdeps import soft_deps_installed
 
 ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 
@@ -17,6 +18,8 @@ def test_interface_compliance(clst):
 @pytest.mark.parametrize("clst", ALL_CLUSTERERS)
 def test_capability_tags(clst):
     """Test all estimators capability tags reflect their capabilities."""
+    if not soft_deps_installed(clst):
+        return
     # Test the tag X_inner_type is consistent with capability:unequal_length
     unequal_length = clst.get_class_tag("capability:unequal_length")
     valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
