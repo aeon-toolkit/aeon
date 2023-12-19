@@ -209,6 +209,7 @@ ESTIMATOR_TAG_REGISTER = [
             "regressor",
             "transformer",
             "similarity-search",
+            "series-transformer",
         ],
         "bool",
         "can the estimator classify time series with 2 or more variables?",
