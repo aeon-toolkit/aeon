@@ -71,6 +71,18 @@ def _extract_dependency_from_error_msg(msg):
         raise ValueError("No dependency found in error msg.")
 
 
+def test___extract_dependency_from_error_msg():
+    """Test that _extract_dependency_from_error_msg works."""
+    msg = (
+        "No module named 'tensorflow'. "
+        "Tensorflow is a soft dependency. "
+        "To use tensorflow, please install it separately."
+    )
+    assert _extract_dependency_from_error_msg(msg) == "tensorflow"
+    with pytest.raises(ValueError, match="No dependency found in error msg"):
+        _extract_dependency_from_error_msg("No dependency.")
+
+
 # collect all modules
 modules = pkgutil.walk_packages(path=["./aeon/"], prefix="aeon.")
 modules = [x[1] for x in modules]
@@ -132,6 +144,13 @@ def _coerce_list_of_str(obj):
         return [obj]
     elif isinstance(obj, list):
         return obj
+
+
+def test__coerce_list_of_str():
+    """Test that _coerce_list_of_str works."""
+    assert _coerce_list_of_str(None) == []
+    assert _coerce_list_of_str("a") == ["a"]
+    assert _coerce_list_of_str(["a"]) == ["a"]
 
 
 def _get_soft_deps(est):
