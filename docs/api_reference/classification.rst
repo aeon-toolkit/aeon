@@ -127,6 +127,7 @@ Shapelet-based
     ShapeletTransformClassifier
     MrSQMClassifier
     RDSTClassifier
+    SASTClassifier
 
 sklearn
 -------

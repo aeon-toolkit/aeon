@@ -13,7 +13,7 @@ from aeon.utils.validation import is_int
 
 
 # copy-pasted from scipy 1.7.3 since it moved in 1.8.0 and broke this estimator
-# todo: find a suitable replacement
+# find a suitable replacement
 def _calc_uniform_order_statistic_medians(n):
     """Approximations of uniform order statistic medians.
 

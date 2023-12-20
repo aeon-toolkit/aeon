@@ -39,8 +39,6 @@ MODULES_TO_IGNORE = "aeon.utils._testing"
 # for the reason that they are composites which have soft dependencies in examples
 # but no soft dependencies themselves, so it's temporarily fine to raise this
 # e.g., forecasting pipeline with an ARIMA estimator
-# todo: long-term all example parameter settings should be soft dependency free
-# strings of class names to avoid the imports
 EXCEPTED_FROM_NO_DEP_CHECK = []
 
 
@@ -71,6 +69,18 @@ def _extract_dependency_from_error_msg(msg):
         return match.group(1)
     else:
         raise ValueError("No dependency found in error msg.")
+
+
+def test___extract_dependency_from_error_msg():
+    """Test that _extract_dependency_from_error_msg works."""
+    msg = (
+        "No module named 'tensorflow'. "
+        "Tensorflow is a soft dependency. "
+        "To use tensorflow, please install it separately."
+    )
+    assert _extract_dependency_from_error_msg(msg) == "tensorflow"
+    with pytest.raises(ValueError, match="No dependency found in error msg"):
+        _extract_dependency_from_error_msg("No dependency.")
 
 
 # collect all modules
@@ -134,6 +144,13 @@ def _coerce_list_of_str(obj):
         return [obj]
     elif isinstance(obj, list):
         return obj
+
+
+def test__coerce_list_of_str():
+    """Test that _coerce_list_of_str works."""
+    assert _coerce_list_of_str(None) == []
+    assert _coerce_list_of_str("a") == ["a"]
+    assert _coerce_list_of_str(["a"]) == ["a"]
 
 
 def _get_soft_deps(est):

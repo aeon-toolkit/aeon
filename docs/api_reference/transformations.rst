@@ -116,7 +116,7 @@ These transformers extract simple summary features.
     FittedParamExtractor
 
 
-Shapelets, wavelets, and convolution
+Shapelets, wavelets and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.shapelet_based
@@ -127,6 +127,7 @@ Shapelets, wavelets, and convolution
 
     RandomShapeletTransform
     RandomDilatedShapeletTransform
+    SAST
 
 .. currentmodule:: aeon.transformations.collection.convolution_based
 
