@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.utils.validation._convert_collection import _is_nested_univ_dataframe
+from aeon.utils.validation import is_nested_univ_dataframe
 from aeon.utils.validation.collection import convert_collection
 
 VALID_X_TYPES = (pd.DataFrame, np.ndarray)  # nested pd.DataFrame, 2d or 3d np.array
@@ -99,7 +99,7 @@ def check_X(
 
     # check pd.DataFrame
     if isinstance(X, pd.DataFrame):
-        if not _is_nested_univ_dataframe(X):
+        if not is_nested_univ_dataframe(X):
             raise ValueError(
                 "If passed as a pd.DataFrame, X must be a nested "
                 "pd.DataFrame, with pd.Series or np.arrays inside cells."

@@ -5,6 +5,7 @@ import pytest
 
 from aeon.datasets import make_example_multi_index_dataframe
 from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
+from aeon.utils.validation import is_nested_univ_dataframe
 from aeon.utils.validation._convert_collection import (
     _equal_length,
     _from_nested_univ_to_numpy2d,
@@ -21,7 +22,6 @@ from aeon.utils.validation._convert_collection import (
     _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_pd_multiindex,
     _from_numpy3d_to_pd_wide,
-    _is_nested_univ_dataframe,
     _is_pd_wide,
     _nested_univ_is_equal,
 )
@@ -222,9 +222,9 @@ def test_is_univariate(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__is_nested_univ_dataframe(data):
     if data == "nested_univ":
-        assert _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
     else:
-        assert not _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)

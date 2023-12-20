@@ -17,7 +17,7 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.tests.test_config import VALID_ESTIMATOR_TYPES
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation._convert_collection import _is_nested_univ_dataframe
+from aeon.utils.validation import is_nested_univ_dataframe
 
 
 def _get_err_msg(estimator):
@@ -110,7 +110,7 @@ def _compare_nested_frame(func, x, y, **kwargs):
     if x.empty:
         assert_frame_equal(x, y)
 
-    elif _is_nested_univ_dataframe(x):
+    elif is_nested_univ_dataframe(x):
         # Check if both inputs have the same shape
         if not x.shape == y.shape:
             raise ValueError("Found inputs with different shapes")

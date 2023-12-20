@@ -14,6 +14,7 @@ __all__ = [
     "is_equal_length",
     "has_missing",
     "is_univariate",
+    "is_nested_univ_dataframe",
 ]
 __author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
@@ -220,3 +221,15 @@ def check_window_length(
             f"`{name}` must be a positive integer >= 0, or "
             f"float in (0, 1) or None, but found: {window_length}."
         )
+
+
+def is_nested_univ_dataframe(X):
+    """Check if X is nested dataframe."""
+    # Otherwise check all entries are pd.Series
+    if not isinstance(X, pd.DataFrame):
+        return False
+    for _, series in X.items():
+        for cell in series:
+            if not isinstance(cell, pd.Series):
+                return False
+    return True

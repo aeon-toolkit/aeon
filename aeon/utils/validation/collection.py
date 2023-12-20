@@ -5,6 +5,7 @@ __author__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 
+import aeon.utils.validation
 import aeon.utils.validation._convert_collection as conv
 from aeon.utils.validation._convert_collection import _equal_length
 
@@ -230,7 +231,7 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if conv._is_nested_univ_dataframe(X):
+        if aeon.utils.validation.is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
