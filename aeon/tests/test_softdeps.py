@@ -29,18 +29,12 @@ SOFT_DEPENDENCIES = {
     "aeon.benchmarking.experiments": ["tsfresh", "esig"],
     "aeon.classification.deep_learning": ["tensorflow"],
     "aeon.regression.deep_learning": ["tensorflow"],
+    "aeon.clustering.deep_learning": ["tensorflow"],
     "aeon.networks": ["tensorflow"],
     "aeon.clustering.evaluation._plot_clustering": ["matplotlib"],
 }
 
 MODULES_TO_IGNORE = "aeon.utils._testing"
-
-# estimators excepted from checking that they raise no import exception when constructed
-# for the reason that they are composites which have soft dependencies in examples
-# but no soft dependencies themselves, so it's temporarily fine to raise this
-# e.g., forecasting pipeline with an ARIMA estimator
-EXCEPTED_FROM_NO_DEP_CHECK = []
-
 
 # estimators excepted from checking that get_test_params does not import soft deps
 # this is ok, in general, for adapters to soft dependency frameworks
@@ -177,6 +171,14 @@ def _is_in_env(modules):
         return False
 
 
+def soft_deps_installed(estimator):
+    """Return whether soft dependencies of an estimator are installed in env."""
+    softdeps = _get_soft_deps(estimator)
+    if _is_in_env(softdeps):
+        return True
+    return False
+
+
 # all estimators - exclude estimators on the global exclusion list
 all_ests = all_estimators(return_names=False, exclude_estimators=EXCLUDE_ESTIMATORS)
 
@@ -296,11 +298,6 @@ def test_est_get_params_without_modulenotfound(estimator):
 @pytest.mark.parametrize("estimator", est_pyok_without_soft_dep)
 def test_est_construct_without_modulenotfound(estimator):
     """Test that estimators that do not require soft dependencies construct properly."""
-    # skip composite estimators that have no soft dependencies
-    #   but which have soft dependencies in example components
-    if estimator.__name__ in EXCEPTED_FROM_NO_DEP_CHECK:
-        return None
-
     try:
         estimator.create_test_instance()
     except ModuleNotFoundError as e:
@@ -317,11 +314,6 @@ def test_est_construct_without_modulenotfound(estimator):
 @pytest.mark.parametrize("estimator", est_pyok_without_soft_dep)
 def test_est_fit_without_modulenotfound(estimator):
     """Test that estimators that do not require soft dependencies fit properly."""
-    # skip composite estimators that have no soft dependencies
-    #   but which have soft dependencies in example components
-    if estimator.__name__ in EXCEPTED_FROM_NO_DEP_CHECK:
-        return None
-
     try:
         scenarios = retrieve_scenarios(estimator)
         if len(scenarios) == 0:
