@@ -13,9 +13,9 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
     Takes as input a single time series dataset and returns the matrix profile
     for that time series dataset. The matrix profile is a vector that stores the
     z-normalized Euclidean distance between any subsequence within a
-    time series and its nearest neighbor.
+    time series and its nearest neighbour.
 
-    For more information on the matrix profile, see `stumpy's tutorial
+    For more information on the matrix profile, see `th stumpy tutorial
     <https://stumpy.readthedocs.io/en/latest/Tutorial_The_Matrix_Profile.html>`_
 
     Parameters
