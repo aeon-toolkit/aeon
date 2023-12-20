@@ -984,8 +984,18 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     return data
 
 
-def load_regression(name, split=None, extract_path=None, return_metadata=False):
-    """Download/load regression problem from http://tseregression.org/.
+def load_regression(
+    name,
+    split=None,
+    extract_path=None,
+    return_metadata=False,
+    load_equal_length=False,
+    load_no_missing=False,
+):
+    """Download/load regression problem.
+
+    Download from either https://timeseriesclassification.com or, if that fails,
+    http://tseregression.org/.
 
     If you want to load a problem from a local file, specify the
     location in ``extract_path``. This function assumes the data is stored in format
@@ -1019,6 +1029,20 @@ def load_regression(name, split=None, extract_path=None, return_metadata=False):
         format <name>_TRAIN.ts or <name>_TEST.ts.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)
+    load_equal_length : boolean, default=False
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=False
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
 
     Raises
     ------
