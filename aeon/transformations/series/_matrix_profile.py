@@ -44,7 +44,7 @@ class MatrixProfileTransformerTemp(BaseSeriesTransformer):
     def __init__(self, window_length=3):
         self.window_length = window_length
         self.matrix_profile_ = None
-        super(MatrixProfileTransformerTemp, self).__init__(axis=1)
+        super(MatrixProfileTransformerTemp, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -64,7 +64,7 @@ class MatrixProfileTransformerTemp(BaseSeriesTransformer):
             Matrix Profile of time series as output with length as
             (n_timepoints-window_length+1)
         """
-        _check_soft_dependencies("stumpy")
+        _check_soft_dependencies("stumpy", severity="error")
         import stumpy
 
         self.matrix_profile_ = stumpy.stump(X, self.window_length)
