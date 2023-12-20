@@ -1,13 +1,13 @@
 """Implements matrix profile transformation."""
 
-__author__ = ["mloning"]
-__all__ = ["MatrixProfileTransformer"]
+__author__ = ["mloning", "TonyBagnall"]
+__all__ = ["MatrixProfileSeriesTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class MatrixProfileTransformer(BaseSeriesTransformer):
+class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     """Calculate the matrix profile of a time series.
 
     Takes as input a single time series dataset and returns the matrix profile
@@ -29,10 +29,10 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series import MatrixProfileTransformer
+    >>> from aeon.transformations.series import MatrixProfileSeriesTransformer
     >>> import numpy as np
     >>> series = np.array([1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1])  # doctest: +SKIP
-    >>> transformer = MatrixProfileTransformer(window_length=4)  # doctest: +SKIP
+    >>> transformer = MatrixProfileSeriesTransformer(window_length=4)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(series)  # doctest: +SKIP
     """
 
@@ -44,7 +44,7 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
     def __init__(self, window_length=3):
         self.window_length = window_length
         self.matrix_profile_ = None
-        super(MatrixProfileTransformer, self).__init__()
+        super(MatrixProfileSeriesTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
