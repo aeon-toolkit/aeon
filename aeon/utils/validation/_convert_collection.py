@@ -20,7 +20,17 @@ legacy code supported "dask_panel" but it is not actually used anywhere.
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation import is_nested_univ_dataframe
+
+def is_nested_univ_dataframe(X):
+    """Check if X is nested dataframe."""
+    # Otherwise check all entries are pd.Series
+    if not isinstance(X, pd.DataFrame):
+        return False
+    for _, series in X.items():
+        for cell in series:
+            if not isinstance(cell, pd.Series):
+                return False
+    return True
 
 
 def _nested_univ_is_equal(X):

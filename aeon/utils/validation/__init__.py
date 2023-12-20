@@ -25,6 +25,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
+from aeon.utils.validation._convert_collection import is_nested_univ_dataframe
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_type,
@@ -221,15 +222,3 @@ def check_window_length(
             f"`{name}` must be a positive integer >= 0, or "
             f"float in (0, 1) or None, but found: {window_length}."
         )
-
-
-def is_nested_univ_dataframe(X):
-    """Check if X is nested dataframe."""
-    # Otherwise check all entries are pd.Series
-    if not isinstance(X, pd.DataFrame):
-        return False
-    for _, series in X.items():
-        for cell in series:
-            if not isinstance(cell, pd.Series):
-                return False
-    return True
