@@ -51,12 +51,12 @@ def fft_sliding_dot_product(X, q):
 
     Returns
     -------
-    output : shape=(n_features, n_timestamps - (length - 1))
+    output : shape=(n_features, n_timestamps - length + 1)
         Sliding dot product between q and X.
     """
-    n_features, n_timestamps = X.shape[0]
+    n_features, n_timestamps = X.shape
     length = q.shape[1]
-    out = np.zeros((n_features, n_timestamps - (length - 1)))
+    out = np.zeros((n_features, n_timestamps - length + 1))
     for i in range(n_features):
         out[i, :] = convolve(np.flipud(q[i, :]), X[i, :], mode="valid").real
     return out
