@@ -442,7 +442,7 @@ def plot_critical_difference(
             str(a),
             ha="center",
             va="bottom",
-            size=16,
+            size=11,
         )
 
     # sort out lines and text based on whether order is reversed or not
