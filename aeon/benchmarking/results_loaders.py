@@ -46,14 +46,14 @@ NAME_ALIASES = {
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
     "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL2"},
-    "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed"},
-    "kmeans-dtw": {"dtw-kmeans", "k-means-dtw"},
-    "kmeans-msm": {"msm-kmeans", "k-means-msm"},
-    "kmeans-twe": {"msm-kmeans", "k-means-msm"},
-    "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed"},
-    "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw"},
-    "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm"},
-    "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe"},
+    "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed", "KMeans-ED"},
+    "kmeans-dtw": {"dtw-kmeans", "k-means-dtw", "KMeans-DTW"},
+    "kmeans-msm": {"msm-kmeans", "k-means-msm", "KMeans-MSM"},
+    "kmeans-twe": {"twe-kmeans", "k-means-twe", "KMeans-TWE"},
+    "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed", "KMedoids-ED"},
+    "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw", "KMedoids-DTW"},
+    "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm", "KMedoids-MSM"},
+    "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe", "KMedoids-TWE"},
 }
 
 
@@ -79,7 +79,12 @@ def estimator_alias(name: str) -> str:
     for name_key in NAME_ALIASES.keys():
         if name in NAME_ALIASES[name_key]:
             return name_key
-    raise ValueError(f"Unknown estimator name {name}")
+    raise ValueError(
+        f"Unknown estimator name {name}. For a list of valid names and "
+        f"allowed aliases, see NAME_ALIASES in "
+        f"aeon/benchmarking/results_loaders.py. Note that estimator names are case "
+        f"sensitive."
+    )
 
 
 def get_available_estimators(task="classification") -> pd.DataFrame:
