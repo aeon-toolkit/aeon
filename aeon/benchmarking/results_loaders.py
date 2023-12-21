@@ -82,7 +82,8 @@ def estimator_alias(name: str) -> str:
     raise ValueError(
         f"Unknown estimator name {name}. For a list of valid names and "
         f"allowed aliases, see NAME_ALIASES in "
-        f"aeon/benchmarking/results_loaders.py"
+        f"aeon/benchmarking/results_loaders.py. Note that estimator names are case "
+        f"sensitive."
     )
 
 
