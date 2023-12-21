@@ -269,8 +269,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     def _check_query_format(self, q):
         if not isinstance(q, np.ndarray) or q.ndim != 2:
             raise TypeError(
-                "Error, only supports 2D numpy atm. If q is univariate "
-                " do q.reshape(1,-1)."
+                "Error, only supports 2D numpy for now. If the query q is univariate "
+                "do q.reshape(1,-1)."
             )
 
         query_dim, query_length = q.shape

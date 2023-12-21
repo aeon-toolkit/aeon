@@ -70,7 +70,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
         """
         return self
 
-    def _predict(self, distance_profile):
+    def _predict(self, distance_profile, exclusion_size=None):
         """
         Private predict method for DummySimilaritySearch.
 
@@ -80,6 +80,8 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
         ----------
         distance_profile : array, shape (n_samples, n_timestamps - q_length + 1)
             Precomputed distance profile.
+        exclusion_size : int, optional
+            This parameter has no effect on this dummy class as we do k=1.
 
         Returns
         -------

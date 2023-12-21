@@ -94,11 +94,9 @@ def normalized_squared_distance_profile(
 def _squared_distance_profile(QX, X, q, mask):
     distance_profile = np.full(QX.shape, np.inf)
     for i_instance in range(len(QX)):
-        distance_profile[i_instance][
-            :, mask[i_instance]
-        ] = _squared_dist_profile_one_series(QX[i_instance], X[i_instance], q)[
-            :, mask[i_instance]
-        ]
+        distance_profile[i_instance] = _squared_dist_profile_one_series(
+            QX[i_instance], X[i_instance], q
+        )
     return distance_profile
 
 
@@ -106,18 +104,20 @@ def _squared_distance_profile(QX, X, q, mask):
 def _squared_dist_profile_one_series(QT, T, Q):
     n_ft, profile_length = QT.shape
     length = Q.shape[1]
-    distance_profile = np.zeros((n_ft, profile_length))
+    distance_profile = -(QT + QT)
+    Q2 = Q**2
+    T2 = T**2
     for k in prange(n_ft):
-        distance_profile[k] = -2 * QT[k]
-        _sum2 = 0
+        _sum = 0
+        _qsum = 0
         for j in prange(length):
-            _sum2 += T[k, j] ** 2
-            distance_profile[k] += Q[k, j] ** 2
-        distance_profile[k, 0] += _sum2
-        for i in prange(1, profile_length):
-            _sum2 += T[k, i + (length - 1)] ** 2 - T[k, i - 1] ** 2
-            distance_profile[k, i] += _sum2
+            _sum += T2[k, j]
+            _qsum += Q2[k, j]
 
+        distance_profile[k, 0] += _qsum + _sum
+        for i in prange(1, profile_length):
+            _sum += T2[k, i + (length - 1)] - T2[k, i - 1]
+            distance_profile[k, i] += _qsum + _sum
     return distance_profile
 
 

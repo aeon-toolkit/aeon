@@ -49,7 +49,7 @@ def test_TopKSimilaritySearch_euclidean(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_custom_func(dtype):
-    @njit(cache=True, fastmath=True)
+    @njit(fastmath=True)
     def dist(x: np.ndarray, y: np.ndarray) -> float:
         return np.sqrt(np.sum((x - y) ** 2))
 
