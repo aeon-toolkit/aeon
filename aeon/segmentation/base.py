@@ -93,6 +93,10 @@ class BaseSegmenter(BaseEstimator, ABC):
     axis : int, default = 0
         Axis along which to segment if passed a multivariate series (2D input). If axis
         is 0, it is assumed each row is a time series and each column is a channel.
+        i.e. the shape of the data is ``(n_timepoints,n_channels)``. ``axis == 1``
+        indicates the time series are in rows, i.e. the shape of the data is ``(
+        n_channels, n_timepoints)`.
+
     """
 
     _tags = {
@@ -128,11 +132,18 @@ class BaseSegmenter(BaseEstimator, ABC):
         y : One of ``VALID_INPUT_TYPES`` or None, default None
             Training time series, labeled series same length as X for supervised
             segmentation.
-        axis : int, default = 0
+        axis : int, default = None
             Axis along which to segment if passed a multivariate series (2D input).
-            If axis is zero then the time series are assumed to be in columns. If
-            axis is 1 then the time series are assumed to be in rows.
+            If axis is 0, it is assumed each row is a time series and each column is
+            a channel. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
+        Returns
+        -------
+        self
+            Fitted estimator
         """
         if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
@@ -162,9 +173,12 @@ class BaseSegmenter(BaseEstimator, ABC):
         X : One of ``VALID_INPUT_TYPES``
             Input time series
         axis : int, default = None
-            Representation of X, ``axis == 0`` indicates ``(n_timepoints,n_channels)``,
-            ``axis == 1`` indicates ``(n_channels, n_timepoints)`, ``axis is None``
-            indicates that the axis of X is the same as ``self.axis``.
+            Axis along which to segment if passed a multivariate series (2D input).
+            If axis is 0, it is assumed each row is a time series and each column is
+            a channel. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
