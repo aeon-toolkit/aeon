@@ -76,7 +76,7 @@ class BaseSegmenter(BaseEstimator, ABC):
     a) A list of change points: output example [4,8].
         This dense representation is the default behaviour, as it is the minimal
         representation. Indicated by tag "return_dense" being set to True.
-    b) A list of integers of length n indicating the segment of each time point:
+    b) A list of integers of length m indicating the segment of each time point:
         output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
         This sparse representation can be used to indicate shared segments (indicating
         segment 1 is somehow the same (perhaps in generative process) as segment 3.
@@ -128,6 +128,11 @@ class BaseSegmenter(BaseEstimator, ABC):
         y : One of ``VALID_INPUT_TYPES`` or None, default None
             Training time series, labeled series same length as X for supervised
             segmentation.
+        axis : int, default = 0
+            Axis along which to segment if passed a multivariate series (2D input).
+            If axis is zero then the time series are assumed to be in columns. If
+            axis is 1 then the time series are assumed to be in rows.
+
         """
         if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
