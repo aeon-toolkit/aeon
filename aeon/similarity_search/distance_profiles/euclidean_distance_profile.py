@@ -18,14 +18,13 @@ def euclidean_distance_profile(X, q, mask):
     comptued using a dot product and a rolling sum to avoid recomputing parts of the
     operation.
 
-
     Parameters
     ----------
     X: array shape (n_cases, n_channels, series_length)
         The input samples.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_channels, n_timestamps - query_length + 1)
+    mask : array, shape (n_instances, n_channels, series_length - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
 
@@ -56,19 +55,13 @@ def normalized_euclidean_distance_profile(
     the specified distance. The search is made in a brute force way without any
     optimizations and can thus be slow.
 
-    A distance profile between a (univariate) time series :math:`X_i = {x_1, ..., x_m}`
-    and a query :math:`Q = {q_1, ..., q_m}` is defined as a vector of size :math:`m-(
-    l-1)`, such as :math:`P(X_i, Q) = {d(C_1, Q), ..., d(C_m-(l-1), Q)}` with d the
-    distance function, and :math:`C_j = {x_j, ..., x_{j+(l-1)}}` the j-th candidate
-    subsequence of size :math:`l` in :math:`X_i`.
-
     Parameters
     ----------
     X : array, shape (n_instances, n_channels, series_length)
         The input samples.
     q : array, shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_channels, n_timestamps - query_length + 1)
+    mask : array, shape (n_instances, n_channels, series_length - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
     X_means : array, shape (n_instances, n_channels, series_length - query_length + 1)

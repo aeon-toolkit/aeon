@@ -19,7 +19,6 @@ def squared_distance_profile(X, q, mask):
     comptued using a dot product and a rolling sum to avoid recomputing parts of the
     operation.
 
-
     Parameters
     ----------
     X: array shape (n_cases, n_channels, series_length)
@@ -57,12 +56,6 @@ def normalized_squared_distance_profile(
     It computes the distance profiles between the input time series and the query using
     the specified distance. The search is made in a brute force way without any
     optimizations and can thus be slow.
-
-    A distance profile between a (univariate) time series :math:`X_i = {x_1, ..., x_m}`
-    and a query :math:`Q = {q_1, ..., q_m}` is defined as a vector of size :math:`m-(
-    l-1)`, such as :math:`P(X_i, Q) = {d(C_1, Q), ..., d(C_m-(l-1), Q)}` with d the
-    distance function, and :math:`C_j = {x_j, ..., x_{j+(l-1)}}` the j-th candidate
-    subsequence of size :math:`l` in :math:`X_i`.
 
     Parameters
     ----------
