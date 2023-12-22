@@ -204,7 +204,6 @@ def check_dask_frame(
     # check whether index is equally spaced or if there are any nans
     #   compute only if needed
     if return_metadata:
-        # todo: logic for equal spacing
         metadata["is_equally_spaced"] = True
         metadata["has_nans"] = obj.isnull().values.any().compute()
 

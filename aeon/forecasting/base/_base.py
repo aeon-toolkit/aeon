@@ -1421,17 +1421,12 @@ class BaseForecaster(BaseEstimator):
         if X is not None and y is not None:
             if self.get_tag("X-y-must-have-same-index"):
                 # currently, check_equal_time_index only works for Series
-                # todo: fix this so the check is general, using get_time_index
                 if not self.get_tag("ignores-exogeneous-X") and X_scitype == "Series":
                     check_equal_time_index(X, y, mode="contains")
 
             if y_scitype != X_scitype:
                 raise TypeError("X and y must have the same scitype")
         # end compatibility checking X and y
-
-        # todo: add tests that :
-        #   y_inner_scitype are same as X_inner_scitype
-        #   y_inner_scitype always includes "less index" scitypes
 
         # convert X & y to supported inner type, if necessary
         #####################################################
@@ -1886,7 +1881,6 @@ class BaseForecaster(BaseEstimator):
             _converter_store_y = self._converter_store_y
             # refit with updated data, not only passed data
             self.fit(y=self._y, X=self._X, fh=self._fh)
-            # todo: should probably be self._fit, not self.fit
             # but looping to self.fit for now to avoid interface break
             self._y_mtype_last_seen = mtype_last_seen
             self._converter_store_y = _converter_store_y
@@ -2125,7 +2119,6 @@ class BaseForecaster(BaseEstimator):
             )
 
         if implements_proba:
-            # todo: this works only univariate now, need to implement multivariate
             pred_var = self._predict_proba(fh=fh, X=X)
             pred_var = pd.DataFrame(pred_var)
 
@@ -2165,8 +2158,6 @@ class BaseForecaster(BaseEstimator):
 
         return pred_var
 
-    # todo: does not work properly for multivariate or hierarchical
-    #   still need to implement this - once interface is consolidated
     def _predict_proba(self, fh, X, marginal=True):
         """Compute/return fully probabilistic forecasts.
 

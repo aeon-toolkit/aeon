@@ -167,7 +167,6 @@ def _bottom_hier_datagen(
                 node_lookup[name] = node_lookup.groupby([name_groupby])[
                     "l1_agg"
                 ].transform(
-                    # TODO: the lambda function below should use `x`` but doesn't
                     lambda x: "l"
                     + str(i)  # noqa: B023
                     + "_node"

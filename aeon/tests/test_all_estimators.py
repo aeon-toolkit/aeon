@@ -83,6 +83,13 @@ def subsample_by_version_os(x):
     return res
 
 
+def test_subsample_by_version_os():
+    """Test subsample_by_version_os."""
+    res = subsample_by_version_os(["Windows", "Linux", "Darwin"])
+    assert len(res) == 1
+    assert res in [["Windows"], ["Linux"], ["Darwin"]]
+
+
 class BaseFixtureGenerator:
     """Fixture generator for base testing functionality in aeon.
 
@@ -629,8 +636,6 @@ class QuickTester:
                 raise ValueError(msg)
         return obj
 
-    # todo: surely there is a pytest method that can be called instead of this?
-    #   find and replace if it exists
     @staticmethod
     def _get_pytest_mark_args(fun):
         """Get args from pytest mark annotation of function.
@@ -1319,7 +1324,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
             if vars(estimator._network).get(key) is not None:
                 assert vars(estimator._network)[key] == value
 
-    # todo: this needs to be diagnosed and fixed - temporary skip
     @pytest.mark.skip(reason="hangs on mac and unix remote tests")
     def test_multiprocessing_idempotent(
         self, estimator_instance, scenario, method_nsc_arraylike
