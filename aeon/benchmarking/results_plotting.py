@@ -259,7 +259,6 @@ def plot_scatter(
     >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
-
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -305,6 +304,12 @@ def plot_scatter(
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
     ]
+    # This line helps displaying ties on top of losses and wins, as in general there
+    # are less number of ties than wins/losses.
+    differences, first, second = map(
+        np.array,
+        zip(*sorted(zip(differences, first, second), key=lambda x: -abs(x[0]))),
+    )
 
     first_avg = first.mean()
     second_avg = second.mean()
