@@ -277,11 +277,11 @@ def plot_scatter(
     min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
 
-    if metric == "accuracy":
+    if metric in ["accuracy", "R2", "CCR", "AUC", "F1", "Kappa", "AUPRC"]:
         max_value = min(max_value, 1)
         if lower_better:
             raise ValueError("lower_better must be False when metric is 'accuracy'.")
-    elif metric == "error":
+    elif metric in ["error", "RMSE", "MSE", "MAE", "AMAE", "MAPE", "SMAPE"]:
         if not lower_better:
             raise ValueError("lower_better must be True when metric is 'error'.")
 
