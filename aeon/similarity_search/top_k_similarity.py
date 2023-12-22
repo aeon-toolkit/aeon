@@ -28,6 +28,9 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     store_distance_profile : bool, default = =False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
+    speed_up : str, default=None
+        Which speed up technique to use with for the selected distance
+        function.
 
     Attributes
     ----------
