@@ -230,7 +230,7 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if conv._is_nested_univ_dataframe(X):
+        if conv.is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"

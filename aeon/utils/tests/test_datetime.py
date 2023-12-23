@@ -9,11 +9,11 @@ import pandas as pd
 
 from aeon.datasets import load_airline
 from aeon.datatypes import VectorizedDF
-from aeon.datatypes._utilities import get_time_index
 from aeon.utils._testing.hierarchical import _bottom_hier_datagen
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_freq,
+    get_time_index,
     infer_freq,
     set_hier_freq,
 )

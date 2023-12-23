@@ -367,76 +367,12 @@ def convert_from_dictionary(ts_dict):
     return from_2d_array_to_nested(panda)
 
 
-def _concat_nested_arrays(arrs, cells_as_numpy=False):
-    """Nest tabular arrays from nested list.
-
-    Helper function to nest tabular arrays from nested list of arrays.
-
-    Parameters
-    ----------
-    arrs : list of numpy arrays
-        Arrays must have the same number of rows, but can have varying
-        number of columns.
-
-    cells_as_numpy : bool, default = False
-        If True, then nested cells contain NumPy array
-        If False, then nested cells contain pandas Series
-
-    Returns
-    -------
-    Xt : pandas DataFrame
-        Transformed dataframe with nested column for each input array.
-    """
-    if cells_as_numpy:
-        Xt = pd.DataFrame(
-            np.column_stack(
-                [pd.Series([np.array(vals) for vals in interval]) for interval in arrs]
-            )
-        )
-    else:
-        Xt = pd.DataFrame(
-            np.column_stack(
-                [pd.Series([pd.Series(vals) for vals in interval]) for interval in arrs]
-            )
-        )
-    return Xt
-
-
 def _get_index(x):
     if hasattr(x, "index"):
         return x.index
     else:
         # select last dimension for time index
         return pd.RangeIndex(x.shape[-1])
-
-
-def _get_time_index(X):
-    """Get index of time series data, helper function.
-
-    Parameters
-    ----------
-    X : pd.DataFrame
-
-    Returns
-    -------
-    time_index : pandas Index
-        Index of time series
-    """
-    # assumes that all samples share the same the time index, only looks at
-    # first row
-    if isinstance(X, pd.DataFrame):
-        return _get_index(X.iloc[0, 0])
-
-    elif isinstance(X, pd.Series):
-        return _get_index(X.iloc[0])
-
-    elif isinstance(X, np.ndarray):
-        return _get_index(X)
-
-    else:
-        raise ValueError(
-            f"X must be a pandas DataFrame or Series, but found: {type(X)}"
-        )
 
 
 def _make_column_names(column_count):
