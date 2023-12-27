@@ -43,7 +43,7 @@ def fft_sliding_dot_product(X, q):
 
     Parameters
     ----------
-    X : array, shape=(n_features, n_timestamps)
+    X : array, shape=(n_features, series_length)
         Input time series
 
     q : array, shape=(n_features, q_length)
@@ -51,7 +51,7 @@ def fft_sliding_dot_product(X, q):
 
     Returns
     -------
-    output : shape=(n_features, n_timestamps - length + 1)
+    output : shape=(n_features, series_length - length + 1)
         Sliding dot product between q and X.
     """
     n_features, n_timestamps = X.shape

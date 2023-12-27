@@ -109,7 +109,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        distance_profile : array, shape (n_samples, series_length - query_length + 1)
+        distance_profile : array, shape (n_instances, series_length - query_length + 1)
             Precomputed distance profile.
         exclusion_size : int, optional
             The size of the exclusion zone used to prevent returning as top k candidates

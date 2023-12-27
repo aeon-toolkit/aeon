@@ -20,7 +20,7 @@ def euclidean_distance_profile(X, q, mask):
 
     Parameters
     ----------
-    X: array shape (n_cases, n_channels, series_length)
+    X: array shape (n_instances, n_channels, series_length)
         The input samples.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
@@ -31,7 +31,7 @@ def euclidean_distance_profile(X, q, mask):
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_cases, n_channels, series_length - query_length + 1)
+        shape (n_instances, n_channels, series_length - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel.
 
