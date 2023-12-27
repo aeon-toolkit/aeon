@@ -104,20 +104,19 @@ def _squared_distance_profile(QX, X, q, mask):
 def _squared_dist_profile_one_series(QT, T, Q):
     n_ft, profile_length = QT.shape
     length = Q.shape[1]
-    distance_profile = -(QT + QT)
-    Q2 = Q**2
-    T2 = T**2
+    distance_profile = -2 * QT
     for k in prange(n_ft):
         _sum = 0
         _qsum = 0
         for j in prange(length):
-            _sum += T2[k, j]
-            _qsum += Q2[k, j]
+            _sum += T[k, j] ** 2
+            _qsum += Q[k, j] ** 2
 
-        distance_profile[k, 0] += _qsum + _sum
+        distance_profile[k, :] += _qsum
+        distance_profile[k, 0] += _sum
         for i in prange(1, profile_length):
-            _sum += T2[k, i + (length - 1)] - T2[k, i - 1]
-            distance_profile[k, i] += _qsum + _sum
+            _sum += T[k, i + (length - 1)] ** 2 - T[k, i - 1] ** 2
+            distance_profile[k, i] += _sum
     return distance_profile
 
 
@@ -162,18 +161,16 @@ def _normalized_eucldiean_dist_profile_one_series(
             # Two Constant case
             if Q_is_constant[k] and Sub_is_constant[k]:
                 _val = 0
+            # One Constant case
+            elif Q_is_constant[k] or Sub_is_constant[k]:
+                _val = q_length
             else:
-                # One Constant case
-                if Q_is_constant[k] or Sub_is_constant[k]:
-                    _val = q_length
-                else:
-                    denom = q_length * Q_stds[k] * T_stds[k, i]
-                    denom = max(denom, AEON_NUMBA_STD_THRESHOLD**2)
+                denom = q_length * Q_stds[k] * T_stds[k, i]
 
-                    p = (QT[k, i] - q_length * (Q_means[k] * T_means[k, i])) / denom
-                    p = min(p, 1.0)
+                p = (QT[k, i] - q_length * (Q_means[k] * T_means[k, i])) / denom
+                p = min(p, 1.0)
 
-                    _val = abs(2 * q_length * (1.0 - p))
+                _val = abs(2 * q_length * (1.0 - p))
             distance_profile[k, i] = _val
 
     return distance_profile
