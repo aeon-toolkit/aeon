@@ -334,7 +334,7 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns
