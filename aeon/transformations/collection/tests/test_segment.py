@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for IntervalSegmenter and RandomIntervalSegmenter."""
 import numpy as np
 import pandas as pd
@@ -10,7 +9,6 @@ from aeon.transformations.collection.segment import (
     _rand_intervals_fixed_n,
     _rand_intervals_rand_n,
 )
-from aeon.utils._testing.collection import _make_nested_from_array
 
 N_ITER = 10
 
@@ -51,7 +49,7 @@ def test_output_format_dim(n_timepoints, n_instances, n_intervals):
 @pytest.mark.parametrize("bad_interval", [0, -0, "str", 1.2, -1.2, -1])
 def test_bad_input_args(bad_interval):
     """Check that exception is raised for bad input args."""
-    X = _make_nested_from_array(np.ones(10), n_instances=10, n_columns=2)
+    X = np.random.random(size=(10, 1, 20))
     with pytest.raises(ValueError):
         RandomIntervalSegmenter(n_intervals=bad_interval).fit(X)
 

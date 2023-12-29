@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket).
 
 Pipeline classifier using the ROCKET transformer and an sklearn classifier.
@@ -14,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.collection.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
@@ -24,32 +23,33 @@ from aeon.transformations.collection.rocket import (
 
 
 class RocketClassifier(BaseClassifier):
-    """Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
+    """
+    Classifier wrapped for the Rocket transformer using RidgeClassifierCV.
 
     This classifier simply transforms the input data using a Rocket [1,2,3]_
     transformer, performs a Standard scaling and fits a sklearn classifier,
     using the transformed data (default classifier is RidgeClassifierCV).
 
-    The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The classifier can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------
     num_kernels : int, optional, default=10,000
         The number of kernels for the Rocket transform.
-    rocket_transform : str, optional, default="rocket"
+    rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
-        Valid inputs = ["rocket", "minirocket", "multirocket"]
-    max_dilations_per_kernel : int, optional, default=32
+        Valid inputs = ["rocket", "minirocket", "multirocket"].
+    max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
-    n_features_per_kernel : int, optional, default=4
+    n_features_per_kernel : int, default=4
         MultiRocket only. The number of features per kernel.
     random_state : int or None, default=None
         Seed for random number generation.
     estimator : sklearn compatible classifier or None, default=None
-        if none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used
+        If none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default 1
-        number of threads to use for the convolutional transform
+        Number of threads to use for the convolutional transform.
 
     Attributes
     ----------
@@ -61,6 +61,7 @@ class RocketClassifier(BaseClassifier):
     See Also
     --------
     Rocket
+        Rocket transformers are in transformations/collection.
 
     Notes
     -----
@@ -125,14 +126,14 @@ class RocketClassifier(BaseClassifier):
         super(RocketClassifier, self).__init__()
 
     def _fit(self, X, y):
-        """Fit Arsenal to training data.
+        """Fit Rocket variant to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data of shape = (n_instances, n_channels, n_timepoints).
+        y : 3D np.ndarray
+            The class labels shape = (n_instances,).
 
         Returns
         -------
@@ -145,14 +146,14 @@ class RocketClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
-
-        if self.rocket_transform == "rocket":
+        rocket_transform = self.rocket_transform.lower()
+        if rocket_transform == "rocket":
             self._transformer = Rocket(
                 num_kernels=self.num_kernels,
                 n_jobs=self.n_jobs,
                 random_state=self.random_state,
             )
-        elif self.rocket_transform == "minirocket":
+        elif rocket_transform == "minirocket":
             if self.n_dims_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
@@ -167,7 +168,7 @@ class RocketClassifier(BaseClassifier):
                     n_jobs=self.n_jobs,
                     random_state=self.random_state,
                 )
-        elif self.rocket_transform == "multirocket":
+        elif rocket_transform == "multirocket":
             if self.n_dims_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
@@ -206,7 +207,7 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -221,7 +222,7 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

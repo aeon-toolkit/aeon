@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Common timeseries plotting functionality."""
 
 __all__ = ["plot_series", "plot_correlations", "plot_windows"]
@@ -12,7 +9,6 @@ from warnings import simplefilter, warn
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
 from aeon.utils.validation.series import check_consistent_index_type
@@ -34,17 +30,17 @@ def plot_series(
     Parameters
     ----------
     series : pd.Series or iterable of pd.Series
-        One or more time series
+        One or more time series.
     labels : list, default = None
-        Names of series, will be displayed in figure legend
-    markers: list, default = None
+        Names of series, will be displayed in figure legend.
+    markers : list, default = None
         Markers of data points, if None the marker "o" is used by default.
         The length of the list has to match with the number of series.
-    colors: list, default = None
+    colors : list, default = None
         The colors to use for plotting each series. Must contain one color per series
-    title: str, default = None
-        The text to use as the figure's suptitle
-    pred_interval: pd.DataFrame, default = None
+    title : str, default = None
+        The text to use as the figure's suptitle.
+    pred_interval : pd.DataFrame, default = None
         Output of `forecaster.predict_interval()`. Contains columns for lower
         and upper boundaries of confidence interval.
 
@@ -70,7 +66,6 @@ def plot_series(
         check_y(y, allow_index_names=True)
 
     series = list(series)
-    series = [convert_to(y, "pd.Series", "Series") for y in series]
 
     n_series = len(series)
     _ax_kwarg_is_none = True if ax is None else False
@@ -323,7 +318,6 @@ def plot_correlations(
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
     series = check_y(series)
-    series = convert_to(series, "pd.Series", "Series")
 
     # Setup figure for plotting
     fig = plt.figure(constrained_layout=True, figsize=(12, 8))

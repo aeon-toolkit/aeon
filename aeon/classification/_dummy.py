@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dummy time series classifier."""
 
 __author__ = ["ZiyaoWei"]
@@ -11,7 +10,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class DummyClassifier(BaseClassifier):
-    """DummyClassifier makes predictions that ignore the input features.
+    """
+    DummyClassifier makes predictions that ignore the input features.
 
     This classifier is a wrapper for SklearnDummyClassifier that serves as a simple
     baseline to compare against other more complex classifiers.
@@ -64,7 +64,7 @@ class DummyClassifier(BaseClassifier):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     VALID_STRATEGIES = ["most_frequent", "prior", "stratified", "uniform", "constant"]
@@ -83,7 +83,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -111,7 +111,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------

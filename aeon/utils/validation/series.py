@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-
 """Functions for checking input data."""
 
 __author__ = ["mloning", "Drishti Bhasin", "khrapovs"]
@@ -24,6 +21,32 @@ RELATIVE_INDEX_TYPES = (pd.RangeIndex, pd.TimedeltaIndex)
 ABSOLUTE_INDEX_TYPES = (pd.RangeIndex, pd.DatetimeIndex, pd.PeriodIndex)
 assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
+
+
+def get_index_for_series(obj, cutoff=0):
+    """Get pandas index for a Series object.
+
+    Returns index even for numpy array, in that case a RangeIndex.
+
+    Assumptions on obj are not checked, these should be validated separately.
+    Function may return unexpected results without prior validation.
+
+    Parameters
+    ----------
+    obj : aeon data container
+        must be of one of the following mtypes:
+            pd.Series, pd.DataFrame, np.ndarray, of Series scitype
+    cutoff : int, or pd.datetime, optional, default=0
+        current cutoff, used to offset index if obj is np.ndarray
+
+    Returns
+    -------
+    index : pandas.Index, index for obj
+    """
+    if hasattr(obj, "index"):
+        return obj.index
+    # now we know the object must be an np.ndarray
+    return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
 
 
 def is_integer_index(x) -> bool:
@@ -60,7 +83,11 @@ def _check_is_univariate(y, var_name="input"):
 
 
 def _check_is_multivariate(Z, var_name="input"):
-    """Check if series is multivariate."""
+    """Check if series is multivariate.
+
+    Warning: this function assumes ndarrays are in (n_timepoints, n_channels) shape. Do
+    not use with collections of time series.
+    """
     if isinstance(Z, pd.Series):
         raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
     if isinstance(Z, pd.DataFrame):
@@ -253,9 +280,6 @@ def check_equal_time_index(*ys, mode="equal"):
             such that ys[i].index is not contained in ys[o].index
         np.ndarray are considered having (pandas) integer range index on axis 0
     """
-    from aeon.datatypes._utilities import get_index_for_series
-
-    # None entries are ignored
     y_not_None = [y for y in ys if y is not None]
 
     # if there is no or just one element, there is nothing to compare

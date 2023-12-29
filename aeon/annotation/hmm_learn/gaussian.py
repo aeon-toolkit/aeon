@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Hidden Markov Model with Gaussian emissions.
 
@@ -9,12 +7,9 @@ Please see the original library
 from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["miraep8"]
 __all__ = ["GaussianHMM"]
-
-_check_soft_dependencies("hmmlearn.hmm", severity="warning")
 
 
 class GaussianHMM(BaseHMMLearn):
@@ -24,7 +19,7 @@ class GaussianHMM(BaseHMMLearn):
     ----------
     n_components : int
         Number of states
-    covariance_type : {"sperical", "diag", "full", "tied"}, optional
+    covariance_type : {"spherical", "diag", "full", "tied"}, optional
         The type of covariance parameters to use:
         * "spherical" --- each state uses a single variance value that
             applies to all features.

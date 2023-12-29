@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test the Padder transformer."""
 
 import numpy as np

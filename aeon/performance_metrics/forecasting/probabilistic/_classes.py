@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 from logging import warning
 
 import numpy as np
@@ -10,8 +7,6 @@ from sklearn.utils import check_array, check_consistent_length
 
 from aeon.datatypes import check_is_scitype, convert
 from aeon.performance_metrics.forecasting._classes import BaseForecastingErrorMetric
-
-# TODO: Rework tests now
 
 
 class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
@@ -36,7 +31,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_quantiles",
+        "y_input_type_pred": "pred_quantiles",
         "lower_is_better": True,
     }
 
@@ -54,7 +49,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true.
 
         Returns
@@ -81,7 +76,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true
 
         multioutput : string "uniform_average" or "raw_values" determines how\
@@ -118,11 +113,11 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
 
         if self.score_average and multioutput == "uniform_average":
             out = float(out.mean(axis=1))  # average over all
-        if self.score_average and multioutput == "raw_values":
+        elif self.score_average and multioutput == "raw_values":
             out = out.groupby(axis=1, level=0).mean()  # average over scores
-        if not self.score_average and multioutput == "uniform_average":
+        elif not self.score_average and multioutput == "uniform_average":
             out = out.groupby(axis=1, level=1).mean()  # average over variables
-        if not self.score_average and multioutput == "raw_values":
+        elif not self.score_average and multioutput == "raw_values":
             out = out  # don't average
 
         if isinstance(out, pd.DataFrame):
@@ -168,7 +163,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
                 (fh, n_outputs) where fh is the forecasting horizon
             Ground truth (correct) target values.
 
-        y_pred : return object of probabilistic predictition method scitype:y_pred
+        y_pred : return object of probabilistic predictition method y_input_type_pred
             must be at fh and for variables equal to those in y_true
 
         multioutput : string "uniform_average" or "raw_values" determines how\
@@ -297,7 +292,7 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
             raise TypeError(msg)
 
         y_pred_mtype = metadata["mtype"]
-        inner_y_pred_mtype = self.get_tag("scitype:y_pred")
+        inner_y_pred_mtype = self.get_tag("y_input_type_pred")
 
         y_pred_inner = convert(
             y_pred,
@@ -389,7 +384,7 @@ class PinballLoss(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_quantiles",
+        "y_input_type_pred": "pred_quantiles",
         "lower_is_better": True,
     }
 
@@ -422,8 +417,6 @@ class PinballLoss(_BaseProbaForecastingErrorMetric):
             # if alpha was provided, check whether  they are predicted
             #   if not all alpha are observed, raise a ValueError
             if not np.isin(alpha, y_pred_alphas).all():
-                # todo: make error msg more informative
-                #   which alphas are missing
                 msg = "not all quantile values in alpha are available in y_pred"
                 raise ValueError(msg)
             else:
@@ -472,7 +465,7 @@ class EmpiricalCoverage(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_interval",
+        "y_input_type_pred": "pred_interval",
         "lower_is_better": False,
     }
 
@@ -539,7 +532,7 @@ class ConstraintViolation(_BaseProbaForecastingErrorMetric):
     """
 
     _tags = {
-        "scitype:y_pred": "pred_interval",
+        "y_input_type_pred": "pred_interval",
         "lower_is_better": True,
     }
 

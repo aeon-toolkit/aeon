@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-"""Utility function for estimator testing.
-
-copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""
+"""Utility function for estimator testing."""
 
 __author__ = ["mloning", "fkiraly"]
 
@@ -17,11 +13,11 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
-from aeon.datatypes._panel._check import is_nested_dataframe
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
-from aeon.tests._config import VALID_ESTIMATOR_TYPES
+from aeon.tests.test_config import VALID_ESTIMATOR_TYPES
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.validation import is_nested_univ_dataframe
 
 
 def _get_err_msg(estimator):
@@ -114,7 +110,7 @@ def _compare_nested_frame(func, x, y, **kwargs):
     if x.empty:
         assert_frame_equal(x, y)
 
-    elif is_nested_dataframe(x):
+    elif is_nested_univ_dataframe(x):
         # Check if both inputs have the same shape
         if not x.shape == y.shape:
             raise ValueError("Found inputs with different shapes")

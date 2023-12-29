@@ -5,7 +5,15 @@ set -euxo pipefail
 
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
-excluded=("examples/datasets/benchmarking_data.ipynb")
+excluded=(
+  "examples/datasets/load_data_from_web.ipynb"
+  "examples/benchmarking/reference_results.ipynb"
+  "examples/benchmarking/bakeoff_results.ipynb"
+)
+
+shopt -s lastpipe
+notebooks=()
+runtimes=()
 
 # Loop over all notebooks in the examples directory.
 find "examples/" -name "*.ipynb" -print0 |
@@ -16,6 +24,16 @@ find "examples/" -name "*.ipynb" -print0 |
     # Run the notebook.
     else
       echo "Running: $notebook"
+
+      start=$(date +%s)
       $CMD "$notebook"
+      end=$(date +%s)
+
+      notebooks+=("$notebook")
+      runtimes+=($((end-start)))
     fi
   done
+
+# print runtimes and notebooks
+echo "Runtimes:"
+paste <(printf "%s\n" "${runtimes[@]}") <(printf "%s\n" "${notebooks[@]}")

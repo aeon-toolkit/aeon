@@ -1,14 +1,16 @@
-# -*- coding: utf-8 -*-
 """Piecewise Aggregate Approximation Transformer (PAA)."""
-import numpy as np
 
-from aeon.transformations.base import BaseTransformer
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
+import numpy as np
 
-class PAA(BaseTransformer):
-    """Piecewise Aggregate Approximation Transformer (PAA).
+from aeon.transformations.collection import BaseCollectionTransformer
+
+
+class PAA(BaseCollectionTransformer):
+    """
+    Piecewise Aggregate Approximation Transformer (PAA).
 
     (PAA) Piecewise Aggregate Approximation Transformer, as described in [1]. For
     each series reduce the dimensionality to n_segments, where each value is the
@@ -16,8 +18,8 @@ class PAA(BaseTransformer):
 
     Parameters
     ----------
-    n_segments   : int, default = 8
-        Dimension of the transformed data
+    n_segments : int, default = 8
+        Dimension of the transformed data.
 
     Notes
     -----
@@ -37,15 +39,14 @@ class PAA(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
         "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
+
         super(PAA, self).__init__()
 
     def _transform(self, X, y=None):
@@ -97,11 +98,13 @@ class PAA(BaseTransformer):
         ----------
         X : np.ndarray of shape = (n_instances, n_channels, n_segments)
             The output of the PAA transformation
+        original_length : int
+            The original length of the series.
 
         Returns
         -------
-        paa_inverse : np.ndarray(n_instances, n_channels, series_length)
-            The inverse of paa transform
+        np.ndarray
+            (n_instances, n_channels, n_timepoints) the inverse of paa transform.
         """
         if original_length % self.n_segments == 0:
             return np.repeat(X, repeats=int(original_length / self.n_segments), axis=-1)

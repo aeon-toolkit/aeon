@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests for ThetaForecaster.
 
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 
 __author__ = ["@big-o", "kejsitake"]
@@ -11,7 +9,7 @@ import pytest
 
 from aeon.datasets import load_airline
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.forecasting.tests._config import TEST_OOS_FHS
+from aeon.forecasting.tests import TEST_OOS_FHS
 from aeon.forecasting.theta import ThetaForecaster, ThetaModularForecaster
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_fh
@@ -51,8 +49,8 @@ def test_pred_errors_against_y_test(fh):
 
     Y_test must lie in the prediction interval with coverage=0.9.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     fh: ForecastingHorizon, fh at which to test prediction
 
     Raises

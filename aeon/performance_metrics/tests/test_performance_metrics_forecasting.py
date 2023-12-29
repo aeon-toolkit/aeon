@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 __author__ = ["Tomasz Chodakowski", "Ryan Kuhns"]
 
 import numpy as np
@@ -47,8 +43,9 @@ from aeon.performance_metrics.forecasting import (
     median_squared_scaled_error,
     relative_loss,
 )
-from aeon.performance_metrics.tests._config import RANDOM_SEED
 from aeon.utils._testing.series import _make_series
+
+RANDOM_SEED = 42
 
 # For multiple comparisons of equality between functions and classes
 rng = np.random.default_rng(RANDOM_SEED)

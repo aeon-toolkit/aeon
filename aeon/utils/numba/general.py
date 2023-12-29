@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """General numba utilities."""
 
 __author__ = ["MatthewMiddlehurst", "baraline"]
 __all__ = [
+    "generate_new_default_njit_func",
     "unique_count",
     "first_order_differences",
     "first_order_differences_2d",
@@ -18,14 +18,86 @@ __all__ = [
     "sliding_mean_std_one_series",
     "sliding_dot_product",
     "combinations_1d",
+    "slope_derivative",
+    "slope_derivative_2d",
+    "slope_derivative_3d",
 ]
 
+
+import inspect
+import types
+from copy import deepcopy
 from typing import Tuple
 
 import numpy as np
 from numba import njit, prange
+from numba.core.registry import CPUDispatcher
 
 import aeon.utils.numba.stats as stats
+
+AEON_NUMBA_STD_THRESHOLD = 1e-8
+
+
+def generate_new_default_njit_func(base_func, new_defaults_args):
+    """
+    Return a function with same code, globals, defaults, closure, and name.
+
+    Parameters
+    ----------
+    base_func : CPUDispatcher
+        Numba function to copy.
+    new_defaults_args : dict
+        Dictionnary of new default keyword args. If new_defaults_args is None or empty,
+        directly return base_func.
+
+    Returns
+    -------
+    new_func_njit : CPUDispatcher
+        Created numba function with new default args.
+
+    """
+    if not isinstance(base_func, CPUDispatcher):
+        raise TypeError(
+            "Expected base_func to be of CPUDispatcher type (numba function),"
+            f"but got {type(base_func)}"
+        )
+    elif new_defaults_args is None:
+        return base_func
+    # empty dict evaluate to false
+    elif isinstance(new_defaults_args, dict) and not new_defaults_args:
+        return base_func
+    elif not isinstance(new_defaults_args, dict):
+        raise TypeError(
+            f"Expected new_defaults_args to be a dict but got {type(new_defaults_args)}"
+        )
+    else:
+        base_func_py = base_func.py_func
+        signature = inspect.signature(base_func_py)
+
+        _new_defaults = []
+        for k, v in signature.parameters.items():
+            if v.default is not inspect.Parameter.empty:
+                if k in new_defaults_args.keys():
+                    _new_defaults.append(new_defaults_args[k])
+                else:
+                    _new_defaults.append(v.default)
+
+        _new_name = "_tmp_" + base_func_py.__name__
+        new_func = types.FunctionType(
+            base_func_py.__code__,
+            base_func_py.__globals__,
+            _new_name,
+            tuple(_new_defaults),
+            base_func_py.__closure__,
+        )
+        # If new_func was given attrs (this dict is a shallow copy but we don't modify)
+        new_func.__dict__.update(base_func_py.__dict__)
+
+        numba_options = deepcopy(base_func.targetoptions)
+        # remove nopython option as we already use njit to avoid a warning
+        numba_options.pop("nopython")
+        new_func_njit = njit(new_func, **numba_options)
+        return new_func_njit
 
 
 @njit(fastmath=True, cache=True)
@@ -169,7 +241,7 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
     s = stats.std(X)
-    if s > 0:
+    if s > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - series_mean) / s
     else:
         arr = X - series_mean
@@ -198,10 +270,38 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X_norm = z_normalise_series(X)
     """
     s = stats.std(X)
-    if s > 0:
+    if s > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - stats.mean(X)) / s
     else:
         arr = X - stats.mean(X)
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def z_normalize_series_with_mean_std(
+    X: np.ndarray, series_mean: float, series_std: float
+):
+    """
+    Numba series normalization function for a 1d numpy array with mean and std.
+
+    Parameters
+    ----------
+    X : 1d numpy array
+        A 1d numpy array of values
+    series_mean : float
+        The mean of the series
+    series_std : float
+        The standard deviation of the series
+
+    Returns
+    -------
+    arr :  1d numpy array
+        The normalized series
+    """
+    if series_std > AEON_NUMBA_STD_THRESHOLD:
+        arr = (X - series_mean) / series_std
+    else:
+        arr = X - series_mean
     return arr
 
 
@@ -229,6 +329,33 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series(X[i])
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def z_normalize_series_2d_with_mean_std(
+    X: np.ndarray, series_mean: np.ndarray, series_std: np.ndarray
+) -> np.ndarray:
+    """
+    Numba series normalization function for a 2d numpy array with means and stds.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timestamps)
+        Input array to normalize.
+    mean : array, shape = (n_channels)
+        Mean of each channel of X.
+    std : array, shape = (n_channels)
+        Std of each channel of X.
+
+    Returns
+    -------
+    arr : array, shape = (n_channels, n_timestamps)
+        The normalized array
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -367,10 +494,9 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length))
-    means = np.zeros(n_channels)
-    stds = np.zeros(n_channels)
-
+    values = np.zeros((n_channels, length), dtype=np.float64)
+    means = np.zeros(n_channels, dtype=np.float64)
+    stds = np.zeros(n_channels, dtype=np.float64)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -385,7 +511,9 @@ def get_subsequence_with_mean_std(
             idx += dilation
 
         means[i_channel] = _sum / length
-        stds[i_channel] = ((_sum2 / length) - means[i_channel] ** 2) ** 0.5
+        _s = (_sum2 / length) - (means[i_channel] ** 2)
+        if _s > AEON_NUMBA_STD_THRESHOLD:
+            stds[i_channel] = _s**0.5
 
     return values, means, stds
 
@@ -444,7 +572,7 @@ def sliding_mean_std_one_series(
             for i_channel in prange(n_channels):
                 mean[i_channel, i_mod_dil] = _sum[i_channel] / length
                 _s = (_sum2[i_channel] / length) - (mean[i_channel, i_mod_dil] ** 2)
-                if _s > 0:
+                if _s > AEON_NUMBA_STD_THRESHOLD:
                     std[i_channel, i_mod_dil] = _s**0.5
 
         _idx_sub += dilation
@@ -459,7 +587,7 @@ def sliding_mean_std_one_series(
 
                 mean[i_channel, _idx_sub[0]] = _sum[i_channel] / length
                 _s = (_sum2[i_channel] / length) - (mean[i_channel, _idx_sub[0]] ** 2)
-                if _s > 0:
+                if _s > AEON_NUMBA_STD_THRESHOLD:
                     std[i_channel, _idx_sub[0]] = _s**0.5
             _idx_sub += dilation
 
@@ -536,3 +664,99 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
             u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = False
             i_comb += 1
     return combinations
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 1d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 1d numpy array
+        A 1d numpy array of values
+
+    Returns
+    -------
+    arr : 1d numpy array
+        The slope derivative of the series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative
+    >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
+    >>> X_der = slope_derivative(X)
+    """
+    m = len(X)
+    arr = np.zeros(m)
+    for i in range(1, m - 1):
+        arr[i] = ((X[i] - X[i - 1]) + ((X[i + 1] - X[i - 1]) / 2.0)) / 2.0
+    arr[0] = arr[1]
+    arr[m - 1] = arr[m - 2]
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 2d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 2d numpy array
+        A 2d numpy array of values
+
+    Returns
+    -------
+    arr : 2d numpy array
+        The slope derivative of each series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative_2d
+    >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
+    >>> X_der = slope_derivative_2d(X)
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = slope_derivative(X[i])
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
+    """Numba slope derivative transformation for a 3d numpy array.
+
+    Finds the derivative of the series, padding the first and last values so that the
+    length stays the same.
+
+    Parameters
+    ----------
+    X : 3d numpy array
+        A 3d numpy array of values
+
+    Returns
+    -------
+    arr : 3d numpy array
+        The slope derivative of each series
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import slope_derivative_3d
+    >>> X = np.array([
+    ...     [[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]],
+    ...     [[4, 4, 4, 4, 3, 3, 3, 2, 2, 1], [8, 8, 8, 8, 7, 7, 7, 6, 6, 5]],
+    ... ])
+    >>> X_der = slope_derivative_3d(X)
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = slope_derivative_2d(X[i])
+    return arr

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Fourier Approximation (SFA) Transformer.
 
 Configurable SFA transform for discretising time series into words.
@@ -29,8 +28,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
-from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation.panel import check_X
+from aeon.transformations.collection import BaseCollectionTransformer
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -46,7 +44,7 @@ simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
 
-class SFAFast(BaseTransformer):
+class SFAFast(BaseCollectionTransformer):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     Overview: for each series:
@@ -60,82 +58,64 @@ class SFAFast(BaseTransformer):
 
     Parameters
     ----------
-        word_length:         int, default = 8
-            length of word to shorten window to (using PAA)
-
-        alphabet_size:       int, default = 4
-            number of values to discretise each value to
-
-        window_size:         int, default = 12
-            size of window for sliding. Input series
-            length for whole series transform
-
-        norm:                boolean, default = False
-            mean normalise words by dropping first fourier coefficient
-
-        binning_method:      {"equi-depth", "equi-width", "information-gain",
-            "information-gain-mae", "kmeans"}, default="equi-depth"
-            the binning method used to derive the breakpoints.
-
-        anova:               boolean, default = False
-            If True, the Fourier coefficient selection is done via a one-way
-            ANOVA test. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-
-        variance:               boolean, default = False
-            If True, the Fourier coefficient selection is done via the largest
-            variance. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-
-        dilation:            int, default = 0
-            When set to dilation > 1, adds dilation to the sliding window operation.
-
-        save_words:          boolean, default = False
-            whether to save the words generated for each series (default False)
-
-        bigrams:             boolean, default = False
-            whether to create bigrams of SFA words.
-
-        feature_selection: {"chi2", "chi2_top_k", "none", "random"}, default: none
-            Sets the feature selections strategy to be used. Large amounts of memory
-            may be needed depending on the setting of bigrams (true is more) or
-            alpha (larger is more).
-            'chi2' reduces the number of words, keeping those above the 'p_threshold'.
-            'chi2_top_k' reduces the number of words to at most 'max_feature_count',
-            dropping values based on p-value.
-            'random' reduces the number to at most 'max_feature_count',
-            by randomly selecting features.
-            'none' does not apply any feature selection and yields large bag of words,
-
-        p_threshold:  int, default=0.05 (disabled by default)
-            If feature_selection=chi2 is chosen, feature selection is applied based on
-            the chi-squared test. This is the p-value threshold to use for chi-squared
-            test on bag-of-words (lower means more strict). 1 indicates that the test
-            should not be performed.
-
-        max_feature_count:  int, default=256
-            If feature_selection=random is chosen, this parameter defines the number of
-            randomly chosen unique words used.
-
-        skip_grams:     boolean, default = False
-            whether to create skip-grams of SFA words
-
-        remove_repeat_words: boolean, default = False
-            whether to use numerosity reduction (default False)
-
-        return_sparse:  boolean, default=True
-            if set to true, a scipy sparse matrix will be returned as BOP model.
-            If set to false a dense array will be returned as BOP model. Sparse
-            arrays are much more compact.
-
-        n_jobs:     int, optional, default = 1
-            The number of jobs to run in parallel for both `transform`.
-            ``-1`` means using all processors.
-
-        return_pandas_data_series:          boolean, default = False
-            set to true to return Pandas Series as a result of transform.
-            setting to true reduces speed significantly but is required for
-            automatic test.
+    word_length : int, default = 8
+        Length of word to shorten window to (using PAA).
+    alphabet_size : int, default = 4
+        Number of values to discretise each value to.
+    window_size : int, default = 12
+        Size of window for sliding. Input series length for whole series transform.
+    norm : boolean, default = False
+        Mean normalise words by dropping first fourier coefficient.
+    binning_method : str, default="equi-depth"
+        The binning method used to derive the breakpoints. One of {"equi-depth",
+        "equi-width", "information-gain", "information-gain-mae", "kmeans"},
+    anova : boolean, default = False
+        If True, the Fourier coefficient selection is done via a one-way ANOVA test.
+        If False, the first Fourier coefficients are selected. Only applicable if
+        labels are given.
+    variance : boolean, default = False
+        If True, the Fourier coefficient selection is done via the largest variance.
+        If False, the first Fourier coefficients are selected. Only applicable if
+        labels are given.
+    dilation : int, default = 0
+        When set to dilation > 1, adds dilation to the sliding window operation.
+    save_words : boolean, default = False
+        whether to save the words generated for each series (default False)
+    bigrams : boolean, default = False
+        Whether to create bigrams of SFA words.
+    feature_selection : {"chi2", "chi2_top_k", "none", "random"}, default: none
+        Sets the feature selections strategy to be used. Large amounts of memory
+        may be needed depending on the setting of bigrams (true is more) or
+        alpha (larger is more).
+        'chi2' reduces the number of words, keeping those above the 'p_threshold'.
+        'chi2_top_k' reduces the number of words to at most 'max_feature_count',
+        dropping values based on p-value.
+        'random' reduces the number to at most 'max_feature_count',
+        by randomly selecting features.
+        'none' does not apply any feature selection and yields large bag of words,
+    p_threshold :  int, default=0.05 (disabled by default)
+        If feature_selection=chi2 is chosen, feature selection is applied based on
+        the chi-squared test. This is the p-value threshold to use for chi-squared
+        test on bag-of-words (lower means more strict). 1 indicates that the test
+        should not be performed.
+    max_feature_count :  int, default=256
+        If feature_selection=random is chosen, this parameter defines the number of
+        randomly chosen unique words used.
+    skip_grams : boolean, default = False
+        Whether to create skip-grams of SFA words.
+    remove_repeat_words : boolean, default = False
+       Whether to use numerosity reduction.
+    return_sparse :  boolean, default=True
+        If set to true, a scipy sparse matrix will be returned as BOP model.
+        If set to false a dense array will be returned as BOP model. Sparse
+        arrays are much more compact.
+    n_jobs : int, default = 1
+        The number of jobs to run in parallel for both `transform`.
+        ``-1`` means using all processors.
+    return_pandas_data_series : boolean, default = False
+        set to true to return Pandas Series as a result of transform.
+        setting to true reduces speed significantly but is required for
+        automatic test.
 
     Attributes
     ----------
@@ -152,15 +132,8 @@ class SFAFast(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",  # which mtypes does y require?
-        "requires_y": True,  # does y need to be passed in fit?
+        "requires_y": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -239,7 +212,7 @@ class SFAFast(BaseTransformer):
         if not return_pandas_data_series:
             self._output_convert = "off"
 
-    def fit_transform(self, X, y=None):
+    def _fit_transform(self, X, y=None):
         """Fit to data, then transform it."""
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
@@ -274,8 +247,6 @@ class SFAFast(BaseTransformer):
         self.support = np.arange(self.word_length_actual)
         self.letter_bits = np.uint32(math.ceil(math.log2(self.alphabet_size)))
         # self.word_bits = self.word_length_actual * self.letter_bits
-
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.dilation >= 1 or self.first_difference:
@@ -314,12 +285,12 @@ class SFAFast(BaseTransformer):
         # fitting: learns the feature selection strategy, too
         return self.transform_to_bag(words, self.word_length_actual, y)
 
-    def fit(self, X, y=None):
+    def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
 
         Parameters
         ----------
-        X : pandas DataFrame or 3d numpy array, input time series.
+        X : 3d numpy array, input time series.
         y : array_like, target values (optional, ignored).
 
         Returns
@@ -327,23 +298,20 @@ class SFAFast(BaseTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self.fit_transform(X, y)
+        self._fit_transform(X, y)
         return self
 
-    def transform(self, X, y=None):
+    def _transform(self, X, y=None):
         """Transform data into SFA words.
 
         Parameters
         ----------
-        X : pandas DataFrame or 3d numpy array, input time series.
-        y : array_like, target values (optional, ignored).
+        X : 3d numpy array, input time series.
 
         Returns
         -------
         List of dictionaries containing SFA words
         """
-        self.check_is_fitted()
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.dilation >= 1 or self.first_difference:
@@ -693,14 +661,14 @@ class SFAFast(BaseTransformer):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
 
-        if type(state["relevant_features"]) == Dict:
+        if type(state["relevant_features"]) is Dict:
             state["relevant_features"] = dict(state["relevant_features"])
         return state
 
     def __setstate__(self, state):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
-        if type(self.relevant_features) == dict:
+        if isinstance(self.relevant_features, dict):
             typed_dict = Dict.empty(key_type=types.uint32, value_type=types.uint32)
             for key, value in self.relevant_features.items():
                 typed_dict[key] = value

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecaster for applying different univariates on hierarchical data."""
 
 __author__ = ["VyomkeshVyas"]
@@ -95,10 +93,10 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
     }

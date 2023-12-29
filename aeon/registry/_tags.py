@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Register of estimator and object tags.
 
 Note for extenders: new tags should be entered in ESTIMATOR_TAG_REGISTER.
@@ -6,13 +5,14 @@ No other place is necessary to add new tags.
 
 This module exports the following:
 
+
 ---
 ESTIMATOR_TAG_REGISTER - list of tuples
 
 each tuple corresponds to a tag, elements as follows:
     0 : string - name of the tag as used in the _tags dictionary
-    1 : string - name of the scitype this tag applies to
-                 must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+    1 : string - identifier for the base class of objects this tag applies to
+                 must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
     2 : string - expected type of the tag value
         should be one of:
             "bool" - valid values are True/False
@@ -82,18 +82,6 @@ ESTIMATOR_TAG_REGISTER = [
         "flag for estimators which are unable to be pickled",
     ),
     (
-        "non-deterministic",
-        "estimator",
-        "bool",
-        "does running the estimator multiple times generate the same output?",
-    ),
-    (
-        "cant-pickle",
-        "estimator",
-        "bool",
-        "flag for estimators which are unable to be pickled",
-    ),
-    (
         "skip-inverse-transform",
         "transformer",
         "bool",
@@ -118,20 +106,20 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:y",
+        "y_input_type",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
         "which series type does the forecaster support? multivariate means >1 vars",
     ),
     (
-        "y_inner_mtype",
+        "y_inner_type",
         ["forecaster", "transformer"],
         (
             "list",
             [
                 "pd.Series",
                 "pd.DataFrame",
-                "np.array",
+                "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
                 "numpy3D",
@@ -141,7 +129,7 @@ ESTIMATOR_TAG_REGISTER = [
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "X_inner_mtype",
+        "X_inner_type",
         ["forecaster"],
         (
             "list",
@@ -153,34 +141,40 @@ ESTIMATOR_TAG_REGISTER = [
                 "pd-multiindex",
                 "numpy3D",
                 "df-list",
-                "numpy-list",
+                "np-list",
             ],
         ),
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "scitype:transform-input",
+        "input_data_type",
         "transformer",
-        ("list", ["Series", "Panel"]),
-        "what is the scitype of the transformer input X",
+        ("list", ["Series", "Collection", "Panel"]),
+        "The input abstract data type of the transformer, input X. Series "
+        "indicates a single series input, Collection indicates a collection of "
+        "time series. Panel is a legacy term and equivalent to Collection.",
     ),
     (
-        "scitype:transform-output",
+        "output_data_type",
         "transformer",
-        ("list", ["Series", "Primitives", "Panel"]),
-        "what is the scitype of the transformer output, the transformed X",
+        ("list", ["Tabular", "Series", "Collection", "Primitives", "Panel"]),
+        "The output abstract data type of the transformer output, the transformed X. "
+        "Tabular indicates 2D output where rows are cases and unordered attributes are "
+        "columns. Series indicates a single series output and collection indicates "
+        "output is a collection of time series.  Primitives is a legacy term for "
+        "Tabular and Panel for Collection.",
     ),
     (
-        "scitype:instancewise",
+        "instancewise",
         "transformer",
         "bool",
-        "does the transformer transform instances independently?",
+        "Does the transformer transform instances independently?",
     ),
     (
-        "scitype:transform-labels",
+        "transform_labels",
         "transformer",
         ("list", ["None", "Series", "Primitives", "Panel"]),
-        "what is the scitype of y: None (not needed), Primitives, Series, Panel?",
+        "What is the type of y: None (not needed), Primitives, Series, Panel?",
     ),
     (
         "requires_y",
@@ -213,6 +207,8 @@ ESTIMATOR_TAG_REGISTER = [
             "clusterer",
             "early_classifier",
             "regressor",
+            "transformer",
+            "similarity-search",
         ],
         "bool",
         "can the estimator classify time series with 2 or more variables?",
@@ -281,20 +277,20 @@ ESTIMATOR_TAG_REGISTER = [
                 "deeplearning",
             ],
         ),
-        "which type the estimator falls under in the taxonomy of time series "
+        "Which type the estimator falls under in the taxonomy of time series "
         "machine learning algorithms.",
     ),
     (
         "requires-y-train",
         "metric",
         "bool",
-        "does metric require y-train data to be passed?",
+        "Does metric require y-train data to be passed?",
     ),
     (
         "requires-y-pred-benchmark",
         "metric",
         "bool",
-        "does metric require a predictive benchmark?",
+        "Does metric require a predictive benchmark?",
     ),
     (
         "univariate-metric",
@@ -303,10 +299,10 @@ ESTIMATOR_TAG_REGISTER = [
         "Does the metric only work on univariate y data?",
     ),
     (
-        "scitype:y_pred",
+        "y_input_type_pred",
         "metric",
         "str",
-        "What is the scitype of y_pred: quantiles, proba, interval?",
+        "What is the type of y_pred: quantiles, proba, interval?",
     ),
     (
         "lower_is_better",

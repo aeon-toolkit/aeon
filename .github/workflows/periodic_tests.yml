@@ -1,0 +1,171 @@
+name: Periodic Tests
+
+on:
+  schedule:
+    # every day at 1:30 AM UTC
+    - cron:  "30 1 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  check-manifest:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: check-manifest --hook-stage manual
+
+  pre-commit:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+
+      - name: Check for missing init files
+        run: build_tools/fail_on_missing_init_files.sh
+        shell: bash
+
+  run-notebook-examples:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,binder,dev]
+
+      - name: Run example notebooks
+        run: build_tools/run_examples.sh
+        shell: bash
+
+  test-nosoftdeps:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: |
+          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
+          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
+          python -m pytest --pyargs aeon.tests.test_softdeps
+
+  test-nosoftdeps-full:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+
+  pytest:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest
+
+  codecov:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Disable Numba JIT
+        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+
+      - uses: codecov/codecov-action@v3

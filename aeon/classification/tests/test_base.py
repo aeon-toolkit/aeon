@@ -1,28 +1,23 @@
-# -*- coding: utf-8 -*-
 """Unit tests for classifier base class functionality."""
 
-__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
-
 import numpy as np
+import numpy.random
 import pandas as pd
 import pytest
 
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes._panel._convert import (
-    from_nested_to_dflist_adp,
-    from_nested_to_multi_index,
-)
-from aeon.utils._testing.collection import (
-    make_2d_test_data,
-    make_3d_test_data,
-    make_nested_dataframe_data,
-    make_unequal_length_test_data,
+from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation.tests.test_collection import (
+    EQUAL_LENGTH_UNIVARIATE,
+    UNEQUAL_LENGTH_UNIVARIATE,
 )
 
+__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
-class _DummyClassifier(BaseClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
+
+class _TestClassifier(BaseClassifier):
+    """Classifier for testing base class fit/predict/predict_proba."""
 
     def _fit(self, X, y):
         """Fit dummy."""
@@ -30,28 +25,17 @@ class _DummyClassifier(BaseClassifier):
 
     def _predict(self, X):
         """Predict dummy."""
-        return self
-
-    def _predict_proba(self, X):
-        """Predict proba dummy."""
-        return self
+        return np.zeros(shape=(len(X),))
 
 
-class _DummyComposite(_DummyClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
-
-    def __init__(self, foo):
-        self.foo = foo
-
-
-class _DummyHandlesAllInput(BaseClassifier):
+class _TestHandlesAllInput(BaseClassifier):
     """Dummy classifier for testing base class fit/predict/predict_proba."""
 
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -60,196 +44,156 @@ class _DummyHandlesAllInput(BaseClassifier):
 
     def _predict(self, X):
         """Predict dummy."""
-        return self
+        return np.zeros(shape=(len(X),))
 
     def _predict_proba(self, X):
         """Predict proba dummy."""
-        return self
+        return np.zeros(shape=(len(X), 2))
 
 
 multivariate_message = r"multivariate series"
 missing_message = r"missing values"
 unequal_message = r"unequal length series"
-incorrect_X_data_structure = r"must be a np.array or a pd.Series"
+incorrect_X_data_structure = r"must be a np.ndarray or a pd.Series"
 incorrect_y_data_structure = r"must be 1-dimensional"
 
 
-def test_base_classifier_fit():
-    """Test function for the BaseClassifier class fit.
+def _assert_fit_predict(dummy, X, y):
+    result = dummy.fit(X, y)
+    # Fit returns self
+    assert result is dummy
+    preds = dummy.predict(X)
+    assert isinstance(preds, np.ndarray)
+    assert len(preds) == 10
+    preds = dummy.predict_proba(X)
+    assert preds.shape == (10, 2)
 
-    Test fit. It should:
-    1. Work with 2D, 3D and DataFrame for X and nparray for y.
-    2. Calculate the number of classes and record the fit time.
-    3. have self.n_jobs set or throw  an exception if the classifier can
-    multithread.
-    4. Set the class dictionary correctly.
-    5. Set is_fitted after a call to _fit.
-    6. Return self.
+
+def _assert_incorrect_input(dummy, correctX, correcty, X, y, msg):
+    with pytest.raises(TypeError, match=msg):
+        dummy.fit(X, y)
+    dummy.fit(correctX, correcty)
+    with pytest.raises(TypeError, match=msg):
+        dummy.predict(X)
+    with pytest.raises(TypeError, match=msg):
+        dummy.predict_proba(X)
+
+
+def test_incorrect_input():
+    """Test informative errors raised with wrong X and/or y.
+
+    Errors are raise in aeon/utils/validation/collection.py and tested again here.
     """
-    dummy = _DummyClassifier()
-    cases = 5
-    length = 10
-    test_X1 = np.random.uniform(-1, 1, size=(cases, length))
-    test_X2 = np.random.uniform(-1, 1, size=(cases, 2, length))
-    test_X3 = _create_example_dataframe(cases=cases, dimensions=1, length=length)
-    test_X4 = _create_example_dataframe(cases=cases, dimensions=3, length=length)
-    test_y1 = np.random.randint(0, 2, size=(cases))
-    result = dummy.fit(test_X1, test_y1)
-    assert result is dummy
-    with pytest.raises(ValueError, match=multivariate_message):
-        result = dummy.fit(test_X2, test_y1)
-    assert result is dummy
-    result = dummy.fit(test_X3, test_y1)
-    assert result is dummy
-    with pytest.raises(ValueError, match=multivariate_message):
-        result = dummy.fit(test_X4, test_y1)
-    assert result is dummy
-    # Raise a specific error if y is in a 2D matrix (1,cases)
-    test_y2 = np.array([test_y1])
-    # What if y is in a 2D matrix (cases,1)?
-    test_y2 = np.array([test_y1]).transpose()
-    with pytest.raises(ValueError, match=incorrect_y_data_structure):
-        result = dummy.fit(test_X1, test_y2)
-    # Pass a data fram
-    with pytest.raises(ValueError, match=incorrect_X_data_structure):
-        result = dummy.fit(test_X1, test_X3)
+    dummy = _TestClassifier()
+    correctX = np.random.random(size=(5, 1, 10))
+    correcty = np.array([0, 0, 1, 1, 1])
+    X = ["list", "of", "string", "invalid"]
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    m1 = r"ERROR passed a list containing <class 'str'>"
+    m2 = r"ERROR passed input of type <class 'dict'>"
+    m3 = r"y must be a np.array or a pd.Series, but found type: <class 'list'>"
+    m4 = r"Mismatch in number of cases"
+    m5 = r"y must be 1-dimensional"
+    m6 = r"y type is continuous which is not valid for classification"
+    _assert_incorrect_input(dummy, correctX, correcty, X, y, m1)
+    X = {"dict": 0, "is": "not", "valid": True}
+    _assert_incorrect_input(dummy, correctX, correcty, X, y, m2)
+    X = np.random.random(size=(5, 1, 10))
+    y = ["cannot", "pass", "list", "for", "y"]
+    with pytest.raises(TypeError, match=m3):
+        dummy.fit(X, y)
+    # Test size mismatch
+    y = np.array([0, 0, 1, 1, 1, 1])
+    with pytest.raises(ValueError, match=m4):
+        dummy.fit(X, y)
+    # Multivariate y
+    y = np.ndarray([0, 0, 1, 1, 1, 1])
+    with pytest.raises(TypeError, match=m5):
+        dummy.fit(X, y)
+    # Multivariate y
+    y = np.array([[0, 0], [1, 1], [1, 1]])
+    with pytest.raises(TypeError, match=m5):
+        dummy.fit(X, y)
+    # Continuous y
+    y = np.random.random(5)
+    with pytest.raises(ValueError, match=m6):
+        dummy.fit(X, y)
 
 
-@pytest.mark.parametrize("missing", [True, False])
-@pytest.mark.parametrize("multivariate", [True, False])
-@pytest.mark.parametrize("unequal", [True, False])
-def test_check_capabilities(missing, multivariate, unequal):
-    """Test the checking of capabilities."""
-    handles_none = _DummyClassifier()
-    handles_none_composite = _DummyComposite(_DummyClassifier())
+class _MutableClassifier(BaseClassifier):
+    """Classifier for testing with different internal_types."""
 
-    # checks that errors are raised
-    if missing:
-        with pytest.raises(ValueError, match=missing_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.raises(ValueError, match=multivariate_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.raises(ValueError, match=unequal_message):
-            handles_none._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none._check_capabilities(missing, multivariate, unequal)
+    def _fit(self, X, y):
+        """Fit dummy."""
+        return self
 
-    if missing:
-        with pytest.warns(UserWarning, match=missing_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if multivariate:
-        with pytest.warns(UserWarning, match=multivariate_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if unequal:
-        with pytest.warns(UserWarning, match=unequal_message):
-            handles_none_composite._check_capabilities(missing, multivariate, unequal)
-    if not missing and not multivariate and not unequal:
-        handles_none_composite._check_capabilities(missing, multivariate, unequal)
-
-    handles_all = _DummyHandlesAllInput()
-    handles_all._check_capabilities(missing, multivariate, unequal)
+    def _predict(self, X):
+        """Predict dummy."""
+        return np.zeros(shape=(len(X),))
 
 
-def test__check_classifier_input():
-    """Test for valid estimator format.
-
-    1. Test correct: X: np.array of 2 and 3 dimensions vs y:np.array and np.Series
-    2. Test correct: X: pd.DataFrame with 1 and 3 cols vs y:np.array and np.Series
-    3. Test incorrect: X with fewer cases than y
-    4. Test incorrect: y as a list
-    5. Test incorrect: too few cases or too short a series
-    """
-    cls = DummyClassifier()
-    # 1. Test correct: X: np.array of 2 and 3 dimensions vs y:np.array and np.Series
-    test_X1 = np.random.uniform(-1, 1, size=(5, 10))
-    test_X2 = np.random.uniform(-1, 1, size=(5, 2, 10))
-    test_y1 = np.random.randint(0, 1, size=5)
-    test_y2 = pd.Series(np.random.randn(5))
-    cls._check_classifier_input(test_X2)
-    cls._check_classifier_input(test_X2, test_y1)
-    cls._check_classifier_input(test_X2, test_y2)
-    # 2. Test correct: X: pd.DataFrame with 1 (univariate) and 3 cols(multivariate) vs
-    # y:np.array and np.Series
-    test_X3 = _create_example_dataframe(5, 1, 10)
-    test_X4 = _create_example_dataframe(5, 3, 10)
-    cls._check_classifier_input(test_X3, test_y1)
-    cls._check_classifier_input(test_X4, test_y1)
-    cls._check_classifier_input(test_X3, test_y2)
-    cls._check_classifier_input(test_X4, test_y2)
-    # 3. Test incorrect: X with fewer cases than y
-    test_X5 = np.random.uniform(-1, 1, size=(3, 4, 10))
-    with pytest.raises(ValueError, match=r".*Mismatch in number of cases*."):
-        cls._check_classifier_input(test_X5, test_y1)
-    # 4. Test incorrect data type: y is a List
-    test_y3 = [1, 2, 3, 4, 5]
-    with pytest.raises(
-        TypeError, match=r".*X is not of a supported input data " r"type.*"
-    ):
-        cls._check_classifier_input(test_X1, test_y3)
-    # 5. Test incorrect: too few cases or too short a series
-    with pytest.raises(ValueError, match=r".*Minimum number of cases required*."):
-        cls._check_classifier_input(test_X2, test_y1, enforce_min_instances=6)
+def test__check_y():
+    """Test private method _check_y."""
+    # Correct outcomes
+    cls = _TestClassifier()
+    y = np.random.randint(0, 4, 100, dtype=int)
+    cls._check_y(y, 100)
+    assert len(cls.classes_) == cls.n_classes_ == len(cls._class_dictionary) == 4
+    y = pd.Series(y)
+    cls._check_y(y, 100)
+    assert len(cls.classes_) == cls.n_classes_ == len(cls._class_dictionary) == 4
+    # Test error raising
+    # y wrong length
+    with pytest.raises(ValueError, match=r"Mismatch in number of cases"):
+        cls._check_y(y, 99)
+    # y invalid type
+    y = ["This", "is", "tested", "lots"]
+    with pytest.raises(TypeError, match=r"np.array or a pd.Series"):
+        cls._check_y(y, 4)
+    y = np.ndarray([1, 2, 1, 2, 1, 2])
+    with pytest.raises(TypeError, match=r"y must be 1-dimensional"):
+        cls._check_y(y, 6)
+    y = np.random.rand(10)
+    with pytest.raises(ValueError, match=r"Should be binary or multiclass"):
+        cls._check_y(y, 10)
 
 
-def _create_example_dataframe(cases=5, dimensions=1, length=10):
-    """Create a simple data frame set of time series (X) for testing."""
-    test_X = pd.DataFrame(dtype=np.float32)
-    for i in range(0, dimensions):
-        instance_list = []
-        for _ in range(0, cases):
-            instance_list.append(pd.Series(np.random.randn(length)))
-        test_X["dimension_" + str(i)] = instance_list
-    return test_X
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_unequal_length_input(data):
+    """Test with unequal length failures and passes."""
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+        dummy = _TestClassifier()
+        X = UNEQUAL_LENGTH_UNIVARIATE[data]
+        y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+        with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+            dummy.fit(X, y)
+        dummy = _TestHandlesAllInput()
+        _assert_fit_predict(dummy, X, y)
 
 
-def _create_unequal_length_nested_dataframe(cases=5, dimensions=1, length=10):
-    testy = pd.DataFrame(dtype=np.float32)
-    for i in range(0, dimensions):
-        instance_list = []
-        for _ in range(0, cases - 1):
-            instance_list.append(pd.Series(np.random.randn(length)))
-        instance_list.append(pd.Series(np.random.randn(length - 1)))
-        testy["dimension_" + str(i + 1)] = instance_list
-
-    return testy
-
-
-INPUT_TYPES = [
-    "np-list",
-    "numpy3D",
-    "pd-multiindex",
-    "df-list",
-    "numpyflat",
-    "nested_univ",
-]
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_equal_length_input(data):
+    """Test with unequal length failures and passes."""
+    dummy = _TestClassifier()
+    X = EQUAL_LENGTH_UNIVARIATE[data]
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    _assert_fit_predict(dummy, X, y)
+    dummy = _TestHandlesAllInput()
+    _assert_fit_predict(dummy, X, y)
 
 
-@pytest.mark.parametrize("input_type", INPUT_TYPES)
-def test_input_conversion_fit_predict(input_type):
-    """Test that base class lets all valid input types through."""
-    if input_type == "np-list":
-        X, y = make_unequal_length_test_data()
-    elif input_type == "numpy3D":
-        X, y = make_3d_test_data()
-    elif input_type == "numpyflat":
-        X, y = make_2d_test_data()
-    elif input_type == "nested_univ":
-        X, y = make_nested_dataframe_data()
-    elif input_type == "pd-multiindex":
-        X, y = make_nested_dataframe_data()
-        X = from_nested_to_multi_index(X)
-    elif input_type == "df-list":
-        X, y = make_nested_dataframe_data()
-        X = from_nested_to_dflist_adp(X)
-    clf = _DummyHandlesAllInput()
-    clf.fit(X, y)
-    clf.predict(X)
-
-    clf = _DummyHandlesAllInput()
-    clf.fit(X, y)
-    clf.predict(X)
+def test_classifier_score():
+    """Test the base class score() function."""
+    X = np.random.random(size=(6, 10))
+    y = np.array([0, 0, 0, 1, 1, 1])
+    dummy = DummyClassifier()
+    dummy.fit(X, y)
+    assert dummy.score(X, y) == 0.5
+    y2 = pd.Series([0, 0, 0, 1, 1, 1])
+    dummy.fit(X, y2)
+    assert dummy.score(X, y) == 0.5
+    assert dummy.score(X, y2) == 0.5
 
 
 def test_predict_single_class():
@@ -267,3 +211,15 @@ def test_predict_single_class():
     assert y_pred_proba.ndim == 2
     assert y_pred_proba.shape == (10, 1)
     assert all(list(y_pred_proba == 1))
+
+
+def test__predict_proba():
+    """Test default _predict_proba."""
+    cls = _TestClassifier()
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    with pytest.raises(KeyError):
+        cls._predict_proba(X)
+    cls.fit(X, y)
+    p = cls._predict_proba(X)
+    assert p.shape == (5, 2)

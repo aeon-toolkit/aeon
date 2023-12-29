@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """VECM Forecaster."""
 
 
@@ -78,9 +75,9 @@ class VECM(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "multivariate",
-        "y_inner_mtype": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "y_input_type": "multivariate",
+        "y_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,
         "ignores-exogeneous-X": False,
@@ -167,7 +164,7 @@ class VECM(_StatsModelsAdapter):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -229,7 +226,7 @@ class VECM(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -242,7 +239,7 @@ class VECM(_StatsModelsAdapter):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.

@@ -10,6 +10,8 @@ on macOS, Ubuntu and Windows servers by our development CI.
 When it comes to installing `aeon`, there are currently three primary options:
 - [Install the latest release from PyPi.](#Install-the-latest-release-from-PyPi)
 This is the recommended option for most users.
+- [Install the latest release from conda-forge.](#Install-the-latest-release-from-conda-forge)
+An alternative release installation using conda.
 - [Install the latest development version from GitHub via pip.](#Install-the-latest-development-version-using-pip)
 This will include the latest features and bug fixes, but can be more unstable than the
 latest release.
@@ -51,10 +53,17 @@ required.
 pip install -U aeon[all_extras]
 ```
 
+```{note}
+    If this results in a "no matches found" error, it may be due to how your shell
+    handles special characters. Try surrounding the dependency portion with quotes i.e.
+
+    pip install -U aeon"[all_extras]"
+```
+
 ```{warning}
-Some of the dependencies included in `all_extras` do not work on Mac ARM-based
-processors, such as M1, M2, M1Pro, M1Max or M1Ultra. This may cause an error during
-installation. Mode details can be found in the troubleshooting section below.
+    Some of the dependencies included in `all_extras` do not work on Mac ARM-based
+    processors, such as M1, M2, M1Pro, M1Max or M1Ultra. This may cause an error during
+    installation. Mode details can be found in the troubleshooting section below.
 ```
 
 After installation, you can verify that `aeon` has been installed correctly by
@@ -70,6 +79,27 @@ as only dependencies for deep learning, or a list less stable dependencies exclu
 from `all_extras`), see the
 [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
 configuration file.
+
+## Install the latest release from conda-forge
+
+`aeon` releases are also available via [conda-forge](https://anaconda.org/conda-forge/aeon).
+Run the following to create a new environment for aeon and install the package:
+
+```{code-block} powershell
+conda create -n aeon-env -c conda-forge aeon
+conda activate aeon-env
+```
+
+Post-installation you can verify that `aeon` has been installed correctly by running
+the following:
+
+```{code-block} powershell
+conda list aeon  # see information about the installation i.e. version and file location
+conda list  # see all installed packages for the current environment
+```
+
+Currently for `conda` installations, optional dependencies must be installed
+separately.
 
 ## Install the latest development version using pip
 
@@ -106,7 +136,7 @@ section apply here as well.
 
 In order to avoid potential conflicts with other packages, we strongly recommended
 using a [virtual environment (venv)](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)
-for the above installation options.
+or a fresh `conda` environment for the above installation options.
 
 You can create a virtual environment using the following commands. The name virtual
 environment name `aeon-venv` can be replaced with a name of your choosing.
@@ -180,3 +210,14 @@ Also, ARM-based processors have issues when installing packages distributed as s
 distributions instead of Python wheels. To avoid this issue when installing a package,
 you can try installing it through `conda` or use a prior version of the package that
 was distributed as a wheel.
+
+### `no matches found` when installing `all_extras`
+
+Some shells (i.e. the commonly used [Zsh](https://en.wikipedia.org/wiki/Z_shell)) use
+square brackets as a special character. If you are using such a shell, you may
+encounter an error when installing `aeon[all_extras]`. This can be resolved by
+surrounding the dependency portion with quotes i.e.
+
+```{code-block} powershell
+pip install -U aeon"[all_extras]"
+```

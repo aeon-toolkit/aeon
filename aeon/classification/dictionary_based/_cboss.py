@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ContractableBOSS classifier.
 
 Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
@@ -22,10 +21,11 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class ContractableBOSS(BaseClassifier):
-    """Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS).
+    """
+    Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015) with refinements
-    described in Middlehurst, Vickers and Bagnall (2019). [1, 2]_
+    Implementation of BOSS Ensemble from [1]_ with refinements
+    described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
     `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
@@ -68,11 +68,12 @@ class ContractableBOSS(BaseClassifier):
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    feature_selection: {"chi2", "none", "random"}, default: none
-        Sets the feature selections strategy to be used. Chi2 reduces the number
-        of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selectiona and yields large
-        bag of words, e.g. much memory may be needed.
+    feature_selection : str, default = "none"
+        Sets the feature selections strategy to be used. One of {"chi2", "none",
+        "random"}. "chi2" reduces the number of words significantly and is thus much
+        faster (preferred). Random also reduces the number significantly. None
+        applies not feature selectiona and yields large bag of words, e.g. much
+        memory may be needed.
     random_state : int or None, default=None
         Seed for random integer.
 
@@ -97,6 +98,7 @@ class ContractableBOSS(BaseClassifier):
     See Also
     --------
     BOSSEnsemble, IndividualBOSS
+        Variants of the BOSS classifier.
 
     Notes
     -----
@@ -182,10 +184,10 @@ class ContractableBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -300,13 +302,15 @@ class ContractableBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            Predicted class labels shape = (n_instances).
+
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -321,13 +325,14 @@ class ContractableBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+         X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        2D np.ndarray
+            Predicted class labels shape = (n_instances).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 

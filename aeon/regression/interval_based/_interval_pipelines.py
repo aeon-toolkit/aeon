@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Interval Pipeline Regressors.
 
 Pipeline regressors which extract interval features then build a base estimator.
@@ -13,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection import RandomIntervals
+from aeon.transformations.collection.interval_based import RandomIntervals
 
 
 class RandomIntervalRegressor(BaseRegressor):
@@ -64,7 +62,7 @@ class RandomIntervalRegressor(BaseRegressor):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -128,7 +126,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - target labels for fitting
             indices correspond to instance indices in X
@@ -138,7 +136,7 @@ class RandomIntervalRegressor(BaseRegressor):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -147,7 +145,7 @@ class RandomIntervalRegressor(BaseRegressor):
             features=self.features,
             dilation=self.dilation,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
@@ -160,7 +158,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
@@ -172,7 +170,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns

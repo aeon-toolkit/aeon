@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for (dunder) composition functionality attached to the base class."""
 
 __author__ = ["fkiraly"]
@@ -11,8 +9,8 @@ from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.transformations.collection.pad import PaddingTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
+from aeon.transformations.exponent import ExponentTransformer
+from aeon.transformations.impute import Imputer
 from aeon.utils._testing.collection import make_nested_dataframe_data
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 

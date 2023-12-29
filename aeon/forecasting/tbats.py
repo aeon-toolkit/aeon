@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements TBATS algorithm.
 
 TBATS refers to Exponential smoothing state space model with Trigonometric
@@ -13,9 +10,6 @@ __author__ = ["Martin Walter"]
 __all__ = ["TBATS"]
 
 from aeon.forecasting.base.adapters import _TbatsAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tbats", severity="warning")
 
 
 class TBATS(_TbatsAdapter):

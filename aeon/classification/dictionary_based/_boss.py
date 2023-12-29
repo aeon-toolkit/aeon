@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BOSS classifiers.
 
 Dictionary based BOSS classifiers based on SFA transform.
@@ -25,25 +24,24 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class BOSSEnsemble(BaseClassifier):
-    """Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
+    """
+    Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015). [1]_
+    Implementation of BOSS Ensemble from [1]_.
 
     Overview: Input *n* series of length *m* and BOSS performs a grid search over
     a set of parameter values, evaluating each with a LOOCV. It then retains
     all ensemble members within 92% of the best by default for use in the ensemble.
     There are three primary parameters:
-        - *alpha*: alphabet size
-        - *w*: window length
-        - *l*: word length.
-
+       - *alpha*: alphabet size
+       - *w*: window length
+       - *l*: word length.
     For any combination, a single BOSS slides a window length *w* along the
     series. The w length window is shortened to an *l* length word through
     taking a Fourier transform and keeping the first *l/2* complex coefficients.
     These *l* coefficients are then discretized into alpha possible values,
     to form a word length *l*. A histogram of words for each
     series is formed and stored.
-
     Fit involves finding "n" histograms.
 
     Predict uses 1 nearest neighbor with a bespoke BOSS distance function.
@@ -63,19 +61,20 @@ class BOSSEnsemble(BaseClassifier):
     save_train_predictions : bool, default=False
         Save the ensemble member train predictions in fit for use in _get_train_probs
         leave-one-out cross-validation.
+    feature_selection : str, default: "none"
+        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        "random"}. Chi2 reduces the number of words significantly and is thus much
+        faster (preferred). Random also reduces the number significantly. None
+        applies not feature selection and yields large bag of words, e.g. much memory
+        may be needed.
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
+    use_boss_distance : bool, default=True
+        The Boss-distance is an asymmetric distance measure. It provides higher
+        accuracy, yet is signifaicantly slower to compute.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    use_boss_distance : boolean, default=True
-        The Boss-distance is an asymmetric distance measure. It provides higher
-        accuracy, yet is signifaicantly slower to compute.
-    feature_selection: {"chi2", "none", "random"}, default: none
-        Sets the feature selections strategy to be used. Chi2 reduces the number
-        of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selection and yields large
-        bag of words, e.g. much memory may be needed.
     random_state : int or None, default=None
         Seed for random, integer.
 
@@ -94,6 +93,7 @@ class BOSSEnsemble(BaseClassifier):
     See Also
     --------
     IndividualBOSS, ContractableBOSS
+        Variants of the single BOSS classifier.
 
     Notes
     -----
@@ -101,7 +101,6 @@ class BOSSEnsemble(BaseClassifier):
     - `Original Publication <https://github.com/patrickzib/SFA>`_.
     - `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
     tsml/classifiers/dictionary_based/BOSS.java>`_.
-
 
     References
     ----------
@@ -170,10 +169,10 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -280,13 +279,14 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        y : 1D np.ndarray
+            The predicted class labels, shape = (n_instances).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -301,13 +301,15 @@ class BOSSEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        y : 2D np.ndarray
+            Predicted probabilities using the ordering in classes_ shape = (
+            n_instances, n_classes_).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
@@ -458,7 +460,8 @@ class BOSSEnsemble(BaseClassifier):
 
 
 class IndividualBOSS(BaseClassifier):
-    """Single bag of Symbolic Fourier Approximation Symbols (IndividualBOSS).
+    """
+    Single bag of Symbolic Fourier Approximation Symbols (IndividualBOSS).
 
     Bag of SFA Symbols Ensemble: implementation of a single BOSS Schaffer, the base
     classifier for the boss ensemble.
@@ -490,9 +493,20 @@ class IndividualBOSS(BaseClassifier):
         the dictionary of words is returned. If True, the array is saved, which
         can shorten the time to calculate dictionaries using a shorter
         `word_length` (since the last "n" letters can be removed).
+    feature_selection : str, default: "none"
+        Sets the feature selections strategy to be usedfrom  {"chi2", "none",
+        "random"}. Chi2 reduces the number of words significantly and is thus much
+        faster (preferred). Random also reduces the number significantly. None
+        applies not feature selection and yields large bag of words, e.g. much memory
+        may be needed.
+    alphabet_size : default = 4
+        Number of possible letters (values) for each word.
+    use_boss_distance : bool, default=True
+         The Boss-distance is an asymmetric distance measure. It provides higher
+         accuracy, yet is signifaicantly slower to compute.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+         The number of jobs to run in parallel for both `fit` and `predict`.
+         ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
 
@@ -506,6 +520,7 @@ class IndividualBOSS(BaseClassifier):
     See Also
     --------
     BOSSEnsemble, ContractableBOSS
+        Variants on the BOSS classifier.
 
     Notes
     -----
@@ -542,7 +557,6 @@ class IndividualBOSS(BaseClassifier):
         norm=False,
         alphabet_size=4,
         save_words=False,
-        typed_dict="deprecated",
         use_boss_distance=True,
         feature_selection="none",
         n_jobs=1,
@@ -556,7 +570,6 @@ class IndividualBOSS(BaseClassifier):
         self.use_boss_distance = use_boss_distance
 
         self.save_words = save_words
-        self.typed_dict = typed_dict
         self.n_jobs = n_jobs
         self.random_state = random_state
 
@@ -574,7 +587,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -612,7 +625,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

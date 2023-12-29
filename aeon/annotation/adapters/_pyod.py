@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements outlier detection from pyOD."""
 
 import numpy as np
@@ -12,8 +9,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 __author__ = ["mloning", "satya-pattnaik", "fkiraly"]
 
 import pandas as pd
-
-_check_soft_dependencies("pyod", severity="warning")
 
 
 class PyODAnnotator(BaseSeriesAnnotator):

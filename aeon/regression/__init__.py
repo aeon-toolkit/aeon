@@ -1,2 +1,7 @@
-# -*- coding: utf-8 -*-
-"""Implements aeon estimators for time series regression."""
+"""Regression Base."""
+__all__ = [
+    "BaseRegressor",
+    "DummyRegressor",
+]
+from aeon.regression._dummy import DummyRegressor
+from aeon.regression.base import BaseRegressor

@@ -26,29 +26,15 @@ What is my learning task?
 -------------------------
 
 ``aeon`` is structured along modules encompassing specific learning tasks,
-e.g., forecasting or time series classification.
-For brevity, we define an estimator's scientific type or "scitype" by the formal learning task that it solves.
-For example, the scitype of an estimator that solves the forecasting task is "forecaster".
-The scitype of an estimator that solves the time series classification task is "time series classifier".
+e.g., forecasting or time series classification, with a class structure to reflect that.
+We tag each estimator with a type associated with the relevant base classifier. For
+example, the type of an estimator that extends BaseForecaster is "forecaster" and the
+type of an estimator that solves the time series classification task is "classifier".
 
-Estimators for a given scitype should be located in the respective module.
-The estimator scitypes also map onto the different extension templates found in
+Estimators for a given task are located in the respective module.
+The estimator types also map onto the different extension templates found in
 the `extension_templates <https://github.com/aeon-toolkit/aeon/tree/main/extension_templates>`__
 directory of ``aeon``.
-
-Usually, the scitype of a given estimator is directly determined by what the estimator does.
-This is also, often, explicitly signposted in publications related to the estimator.
-For instance, most textbooks mention ARIMA in the context of forecasting, so in that hypothetical situation
-it makeas sense to consider the "forecaster" template.
-Then, inspect the template and check whether the methods of the class map clearly onto routines of the estimator.
-If not, another template might be more appropriate.
-
-The most common point of confusion here is between transformers and other estimator types,
-since transformers are often used as parts of algorithms of other type.
-
-If unsure, feel free to post your question on one of ``aeon``'s social channels.
-Don't panic - it is not uncommon that academic publications are not clear about the type of an estimator,
-and correct categorization may be difficult even to experts.
 
 
 What are ``aeon`` extension templates?
@@ -57,11 +43,13 @@ What are ``aeon`` extension templates?
 Extension templates are convenient "fill-in" templates for implementers of new estimators.
 They fit into ``aeon``'s unified interface as follows:
 
-*   for each scitype, there is a public user interface, defined by the respective base class.
+*   for each module, there is a public user interface, defined by the respective base
+class.
     For instance, ``BaseForecaster`` defines the ``fit`` and ``predict`` interfaces for forecasters.
     All forecasters will implement ``fit`` and ``predict`` the same way, by inheritance from ``BaseForecaster``.
     The public interface follows the "strategy" object orientation pattern.
-*   for each scitype, there is a private extender interface, defined by the extension contract in the extension template.
+*   for each type, there is a private extender interface, defined by the extension
+contract in the extension template.
     For instance, the ``forecaster.py`` extension template for forecasters explains what to fill in for a concrete forecaster
     inheriting from ``BaseForecaster``. In most extension templates, users should implement private methods ("inner" methods),
     e.g., ``_fit`` and ``_predict`` for forecasters. Boilerplate code rests within the public part of the interface, in ``fit`` and ``predict``.
@@ -91,13 +79,14 @@ Extension templates typically have the following ``todo``:
 *   filling in docstrings of the module and the estimator. This is recommended as early as parameters have been settled on,
     it tends to be useful as a specification to follow in implementation.
 *   filling in the tags for the estimator. Some tags are "capabilities", i.e., what the estimator can do, e.g., dealing with nans.
-    Other tags determine the format of inputs seen in the "inner" methods ``_fit`` etc, these tags are usually called ``X_inner_mtype`` or similar.
+    Other tags determine the format of inputs seen in the "inner" methods ``_fit``
+etc, these tags are usually called ``X_inner_type`` or similar.
     This is useful in case the inner functionality assumes ``numpy.ndarray``, or ``pandas.DataFrame``, and helps avoid conversion boilerplate.
     The type strings can be found in ``datatypes.MTYPE_REGISTER``. For a tutorial on data type conventions, see ``examples/AA_datatypes_and_datasets``.
 *   Filling in the "inner" methods, e.g., ``_fit`` and ``_predict``. The docstrings and comments in the extension template should be followed here.
     The docstrings also describe the guarantees on the inputs to the "inner" methods, which are typically stronger than the guarantees on
     inputs to the public methods, and determined by values of tags that have been set.
-    For instance, setting the tag ``y_inner_mtype`` to ``pd.DataFrame`` for a forecaster guarantees that the ``y`` seen by ``_fit`` will be
+    For instance, setting the tag ``y_inner_type`` to ``pd.DataFrame`` for a forecaster guarantees that the ``y`` seen by ``_fit`` will be
     a ``pandas.DataFrame``, complying with additional data container specifications in ``aeon`` (e.g., index types).
 *   filling in testing parameters in ``get_test_params``. The selection of parameters should cover major estimator internal case distinctions
     to achieve good coverage.

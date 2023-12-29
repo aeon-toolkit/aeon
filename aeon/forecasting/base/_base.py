@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for forecaster scitype.
 
@@ -88,12 +86,12 @@ class BaseForecaster(BaseEstimator):
     # default tag values - these typically make the "safest" assumption
     # for more extensive documentation, see extension_templates/forecasting.py
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:pred_int": False,  # can the estimator produce prediction intervals?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit/_predict, support for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit/_predict, support for X?
+        "y_inner_type": "pd.Series",  # which types do _fit/_predict, support for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit/_predict, support for X?
         "requires-fh-in-fit": True,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -104,7 +102,6 @@ class BaseForecaster(BaseEstimator):
 
     def __init__(self):
         self._is_fitted = False
-
         self._y = None
         self._X = None
 
@@ -134,8 +131,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -165,8 +162,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -196,8 +193,8 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import ForecastingPipeline
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
         from aeon.utils.sklearn import is_sklearn_transformer
 
         # we wrap self in a pipeline, and concatenate with the other
@@ -251,7 +248,7 @@ class BaseForecaster(BaseEstimator):
             where `columns1` is first or only item in `key`, and `columns2` is the last
             if only one item is passed in `key`, only `columns1` is applied to input
         """
-        from aeon.transformations.series.subset import ColumnSelect
+        from aeon.transformations.subset import ColumnSelect
 
         def is_noneslice(obj):
             res = isinstance(obj, slice)
@@ -302,23 +299,23 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply.
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
-            The forecasting horizon encoding the time stamps to forecast at.
-            if self.get_tag("requires-fh-in-fit"), must be passed, not optional
+                on usage, see forecasting examples/forecasting
+                on specification of formats, examples/datasets
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
-            there are no restrictions on number of columns (unlike for y)
+            there are no restrictions on number of columns (unlike for y).
+        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+            The forecasting horizon encoding the time stamps to forecast at.
+            if self.get_tag("requires-fh-in-fit"), must be passed, not optional.
 
         Returns
         -------
@@ -377,19 +374,19 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
-            if has not been passed in fit, must be passed, not optional
+            if has not been passed in fit, must be passed, not optional.
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), X.index must contain fh.index
-            there are no restrictions on number of columns (unlike for y)
+            there are no restrictions on number of columns (unlike for y).
 
         Returns
         -------
         y_pred : time series in aeon compatible data container format
             Point forecasts at fh, with same index as fh
             y_pred has same type as the y that has been passed most recently:
-                Series, Panel, Hierarchical scitype, same format (see above)
+                Series, Panel, Hierarchical scitype, same format (see above).
         """
         # handle inputs
 
@@ -441,15 +438,15 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                on usage, see  examples/forecasting
+                on specification of formats, examples/datasets
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
@@ -458,6 +455,9 @@ class BaseForecaster(BaseEstimator):
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain fh.index and y.index both
+        fh : int, list, np.array or ForecastingHorizon (not optional)
+            The forecasting horizon encoding the time stamps to forecast at.
+            if has not been passed in fit, must be passed, not optional
 
         Returns
         -------
@@ -588,17 +588,17 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
-            if has not been passed in fit, must be passed, not optional
+            if has not been passed in fit, must be passed, not optional.
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
-            if self.get_tag("X-y-must-have-same-index"), must contain fh.index
-        coverage : float or list of float of unique values, optional (default=0.90)
-           nominal coverage(s) of predictive interval(s)
+            if self.get_tag("X-y-must-have-same-index"), must contain fh.index.
+        coverage : float or list of float of unique values, default=0.9
+            Nominal coverage(s) of predictive interval(s).
 
         Returns
         -------
-        pred_int : pd.DataFrame
+        pd.DataFrame
             Column has multi-index: first level is variable name from y in fit,
                 second level coverage fractions for which intervals were computed.
                     in the same order as in input `coverage`.
@@ -712,7 +712,8 @@ class BaseForecaster(BaseEstimator):
         return pred_var
 
     def predict_proba(self, fh=None, X=None, marginal=True):
-        """Compute/return fully probabilistic forecasts.
+        """
+        Compute/return fully probabilistic forecasts.
 
         Note: currently only implemented for Series (non-panel, non-hierarchical) y.
 
@@ -728,15 +729,15 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        fh : int, list, np.array or ForecastingHorizon (not optional)
+        fh : int, list, np.array or ForecastingHorizon
             The forecasting horizon encoding the time stamps to forecast at.
-            if has not been passed in fit, must be passed, not optional
-        X : time series in aeon compatible format, optional (default=None)
-                Exogeneous time series to fit to
+            if has not been passed in fit, must be passed, not optional.
+        X : time series in aeon compatible format, default=None
+                Exogeneous time series to fit to.
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
-            if self.get_tag("X-y-must-have-same-index"), must contain fh.index
-        marginal : bool, optional (default=True)
-            whether returned distribution is marginal by time index
+            if self.get_tag("X-y-must-have-same-index"), must contain fh.index.
+        marginal : bool, default=True
+            Whether returned distribution is marginal by time index.
 
         Returns
         -------
@@ -817,18 +818,17 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
+                if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                See  examples/forecasting, or examples/datasets,
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series to fit to
-            Should be of same scitype (Series, Panel, or Hierarchical) as y
+            Should be of same type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
             there are no restrictions on number of columns (unlike for y)
         update_params : bool, optional (default=True)
@@ -898,17 +898,15 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                if self.get_tag("y_input_type")=="both": no restrictions apply
+            For further details see  examples/forecasting, or examples/datasets.
         cv : temporal cross-validation generator inheriting from BaseSplitter, optional
-            for example, SlidingWindowSplitter or ExpandingWindowSplitter
+            For example, SlidingWindowSplitter or ExpandingWindowSplitter
             default = ExpandingWindowSplitter with `initial_window=1` and defaults
                 = individual data points in y/X are added and forecast one-by-one,
                 `initial_window = 1`, `step_length = 1` and `fh = 1`
@@ -917,11 +915,11 @@ class BaseForecaster(BaseEstimator):
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain y.index and fh.index both
-            there are no restrictions on number of columns (unlike for y)
+            there are no restrictions on number of columns (unlike for y).
         update_params : bool, optional (default=True)
-            whether model parameters should be updated in each update step
+            Whether model parameters should be updated in each update step.
         reset_forecaster : bool, optional (default=True)
-            if True, will not change the state of the forecaster,
+            If True, will not change the state of the forecaster,
                 i.e., update/predict sequence is run with a copy,
                 and cutoff, model parameters, data memory of self do not change
             if False, will update self when the update/predict sequence is run
@@ -930,7 +928,7 @@ class BaseForecaster(BaseEstimator):
         Returns
         -------
         y_pred : object that tabulates point forecasts from multiple split batches
-            format depends on pairs (cutoff, absolute horizon) forecast overall
+            Format depends on pairs (cutoff, absolute horizon) forecast overall
             if collection of absolute horizon points is unique:
                 type is time series in aeon compatible data container format
                 cutoff is suppressed in output
@@ -941,7 +939,7 @@ class BaseForecaster(BaseEstimator):
                 row index corresponds to cutoffs that are predicted from
                 column index corresponds to absolut horizons that are predicted
                 entry is the point prediction of col index predicted from row index
-                entry is nan if no prediction is made at that (cutoff, horizon) pair
+                entry is nan if no prediction is made at that (cutoff, horizon) pair.
         """
         from aeon.forecasting.model_selection import ExpandingWindowSplitter
 
@@ -995,7 +993,7 @@ class BaseForecaster(BaseEstimator):
         Parameters
         ----------
         y : time series in aeon compatible data container format
-                Time series to which to fit the forecaster in the update.
+            Time series to which to fit the forecaster in the update.
             y can be in one of the following formats, must be same scitype as in fit:
             Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 for vanilla forecasting, one time series
@@ -1004,23 +1002,21 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                if self.get_tag("y_input_type")=="both": no restrictions apply
+            For further details see  examples/forecasting, or examples/datasets.
         fh : int, list, np.array or ForecastingHorizon, optional (default=None)
             The forecasting horizon encoding the time stamps to forecast at.
-            if has not been passed in fit, must be passed, not optional
+            if has not been passed in fit, must be passed, not optional.
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting
             Should be of same scitype (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
-                X.index must contain y.index and fh.index both
+                X.index must contain y.index and fh.index both.
         update_params : bool, optional (default=False)
 
         Returns
@@ -1070,7 +1066,8 @@ class BaseForecaster(BaseEstimator):
         return y_pred
 
     def predict_residuals(self, y=None, X=None):
-        """Return residuals of time series forecasts.
+        """
+        Return residuals of time series forecasts.
 
         Residuals will be computed for forecasts at y.index.
 
@@ -1096,11 +1093,11 @@ class BaseForecaster(BaseEstimator):
             Must have same type, dimension, and indices as expected return of predict.
             if None, the y seen so far (self._y) are used, in particular:
                 if preceded by a single fit call, then in-sample residuals are produced
-                if fit requires fh, it must have pointed to index of y in fit
-        X : pd.DataFrame, or 2D np.ndarray, optional (default=None)
+                if fit requires fh, it must have pointed to index of y in fit.
+        X : pd.DataFrame, or 2D np.ndarray, default=None
             Exogeneous time series to predict from
             if self.get_tag("X-y-must-have-same-index"),
-                X.index must contain fh.index and y.index both
+                X.index must contain fh.index and y.index both.
 
         Returns
         -------
@@ -1142,7 +1139,7 @@ class BaseForecaster(BaseEstimator):
 
         y_pred = self.predict(fh=fh, X=X)
 
-        if not type(y_pred) == type(y):
+        if type(y_pred) is not type(y):
             raise TypeError(
                 "y must have same type, dims, index as expected predict return. "
                 f"expected type {type(y_pred)}, but found {type(y)}"
@@ -1163,16 +1160,16 @@ class BaseForecaster(BaseEstimator):
         ----------
         y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Time series to score
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 must have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
-                must have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="multivariate":
+                must have 2 or more columns.
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        X : pd.DataFrame, or 2D np.array, default=None
+            Exogeneous time series to score.
+            if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
         fh : int, list, array-like or ForecastingHorizon, optional (default=None)
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, or 2D np.array, optional (default=None)
-            Exogeneous time series to score
-            if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
 
         Returns
         -------
@@ -1191,7 +1188,8 @@ class BaseForecaster(BaseEstimator):
         return mean_absolute_percentage_error(y, self.predict(fh, X))
 
     def get_fitted_params(self, deep=True):
-        """Get fitted parameters.
+        """
+        Get fitted parameters.
 
         State required:
             Requires state to be "fitted".
@@ -1264,25 +1262,25 @@ class BaseForecaster(BaseEstimator):
         Returns
         -------
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("y_inner_mtype") format
-            Case 1: self.get_tag("y_inner_mtype") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_mtype" tag
-            Case 2: self.get_tag("y_inner_mtype") does not support scitype of y, then
+                compatible with self.get_tag("y_inner_type") format
+            Case 1: self.get_tag("y_inner_type") supports scitype of y, then
+                converted/coerced version of y, mtype determined by "y_inner_type" tag
+            Case 2: self.get_tag("y_inner_type") does not support scitype of y, then
                 VectorizedDF of y, iterated as the most complex supported scitype
                     (complexity order: Hierarchical > Panel > Series)
             Case 3: None if y was None
         X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") does not support scitype of X, then
+                compatible with self.get_tag("X_inner_type") format
+            Case 1: self.get_tag("X_inner_type") supports scitype of X, then
+                converted/coerced version of X, mtype determined by "X_inner_type" tag
+            Case 2: self.get_tag("X_inner_type") does not support scitype of X, then
                 VectorizedDF of X, iterated as the most complex supported scitype
             Case 3: None if X was None
 
         Raises
         ------
         TypeError if y or X is not one of the permissible Series mtypes
-        TypeError if y is not compatible with self.get_tag("scitype:y")
+        TypeError if y is not compatible with self.get_tag("y_input_type")
             if tag value is "univariate", y must be univariate
             if tag value is "multivariate", y must be bi- or higher-variate
             if tag value is "both", y can be either
@@ -1325,13 +1323,13 @@ class BaseForecaster(BaseEstimator):
                     raise ValueError(msg)
 
         # retrieve supported mtypes
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_mtype"))
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
-        X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
+        y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
+        X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
+        y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
+        X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_MTYPES = ["numpyflat", "pd-wide"]
+        FORBIDDEN_MTYPES = ["numpy2D", "pd-wide"]
 
         for scitype in ALLOWED_SCITYPES:
             mtypes = set(scitype_to_mtype(scitype))
@@ -1348,8 +1346,7 @@ class BaseForecaster(BaseEstimator):
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                " See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb,"
+                "For further details see  examples/forecasting, or examples/datasets"
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
@@ -1363,13 +1360,13 @@ class BaseForecaster(BaseEstimator):
 
             req_vec_because_rows = y_scitype not in y_inner_scitype
             req_vec_because_cols = (
-                self.get_tag("scitype:y") == "univariate"
+                self.get_tag("y_input_type") == "univariate"
                 and not y_metadata["is_univariate"]
             )
             requires_vectorization = req_vec_because_rows or req_vec_because_cols
 
             if (
-                self.get_tag("scitype:y") == "multivariate"
+                self.get_tag("y_input_type") == "multivariate"
                 and y_metadata["is_univariate"]
             ):
                 raise ValueError(
@@ -1395,8 +1392,7 @@ class BaseForecaster(BaseEstimator):
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                " See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb"
+                "For further details see  examples/forecasting, or examples/datasets."
                 "If you think X is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(X, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for X. "
@@ -1425,17 +1421,12 @@ class BaseForecaster(BaseEstimator):
         if X is not None and y is not None:
             if self.get_tag("X-y-must-have-same-index"):
                 # currently, check_equal_time_index only works for Series
-                # todo: fix this so the check is general, using get_time_index
                 if not self.get_tag("ignores-exogeneous-X") and X_scitype == "Series":
                     check_equal_time_index(X, y, mode="contains")
 
             if y_scitype != X_scitype:
                 raise TypeError("X and y must have the same scitype")
         # end compatibility checking X and y
-
-        # todo: add tests that :
-        #   y_inner_scitype are same as X_inner_scitype
-        #   y_inner_scitype always includes "less index" scitypes
 
         # convert X & y to supported inner type, if necessary
         #####################################################
@@ -1449,7 +1440,7 @@ class BaseForecaster(BaseEstimator):
             # converts y, skips conversion if already of right type
             y_inner = convert_to(
                 y,
-                to_type=y_inner_mtype,
+                to_type=y_inner_type,
                 as_scitype=y_scitype,  # we are dealing with series
                 store=self._converter_store_y,
                 store_behaviour="reset",
@@ -1458,7 +1449,7 @@ class BaseForecaster(BaseEstimator):
             # converts X, converts None to None if X is None
             X_inner = convert_to(
                 X,
-                to_type=X_inner_mtype,
+                to_type=X_inner_type,
                 as_scitype=X_scitype,  # we are dealing with series
             )
         else:
@@ -1790,19 +1781,19 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -1829,7 +1820,7 @@ class BaseForecaster(BaseEstimator):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -1857,15 +1848,15 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -1890,7 +1881,6 @@ class BaseForecaster(BaseEstimator):
             _converter_store_y = self._converter_store_y
             # refit with updated data, not only passed data
             self.fit(y=self._y, X=self._X, fh=self._fh)
-            # todo: should probably be self._fit, not self.fit
             # but looping to self.fit for now to avoid interface break
             self._y_mtype_last_seen = mtype_last_seen
             self._converter_store_y = _converter_store_y
@@ -1938,7 +1928,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : float or list, optional (default=0.95)
            nominal coverage(s) of predictive interval(s)
@@ -1951,7 +1941,7 @@ class BaseForecaster(BaseEstimator):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -2011,7 +2001,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -2022,7 +2012,7 @@ class BaseForecaster(BaseEstimator):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """
@@ -2086,7 +2076,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         cov : bool, optional (default=False)
             if True, computes covariance matrix forecast.
@@ -2099,7 +2089,7 @@ class BaseForecaster(BaseEstimator):
                 Column names are exactly those of `y` passed in `fit`/`update`.
                     For nameless formats, column index will be a RangeIndex.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are variance forecasts, for var in col index.
                 A variance forecast for given variable and fh index is a predicted
                     variance for that variable and index, given observed data.
@@ -2107,7 +2097,7 @@ class BaseForecaster(BaseEstimator):
                 Column index is a multiindex: 1st level is variable names (as above)
                     2nd level is fh.
                 Row index is fh, with additional levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
                 Entries are (co-)variance forecasts, for var in col index, and
                     covariance between time index in row and col.
                 Note: no covariance forecasts are returned between different variables.
@@ -2129,7 +2119,6 @@ class BaseForecaster(BaseEstimator):
             )
 
         if implements_proba:
-            # todo: this works only univariate now, need to implement multivariate
             pred_var = self._predict_proba(fh=fh, X=X)
             pred_var = pd.DataFrame(pred_var)
 
@@ -2169,8 +2158,6 @@ class BaseForecaster(BaseEstimator):
 
         return pred_var
 
-    # todo: does not work properly for multivariate or hierarchical
-    #   still need to implement this - once interface is consolidated
     def _predict_proba(self, fh, X, marginal=True):
         """Compute/return fully probabilistic forecasts.
 
@@ -2181,7 +2168,7 @@ class BaseForecaster(BaseEstimator):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
@@ -2248,15 +2235,13 @@ class BaseForecaster(BaseEstimator):
                 for global or panel forecasting
             Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
                 for hierarchical forecasting
-            Number of columns admissible depend on the "scitype:y" tag:
-                if self.get_tag("scitype:y")=="univariate":
+            Number of columns admissible depend on the "y_input_type" tag:
+                if self.get_tag("y_input_type")=="univariate":
                     y must have a single column/variable
-                if self.get_tag("scitype:y")=="multivariate":
+                if self.get_tag("y_input_type")=="multivariate":
                     y must have 2 or more columns
-                if self.get_tag("scitype:y")=="both": no restrictions on columns apply
-            For further details:
-                on usage, see forecasting tutorial examples/01_forecasting.ipynb
-                on specification of formats, examples/AA_datatypes_and_datasets.ipynb
+                if self.get_tag("y_input_type")=="both": no restrictions apply
+            For further details see  examples/forecasting, or examples/datasets
         cv : temporal cross-validation generator, optional (default=None)
         X : time series in aeon compatible format, optional (default=None)
                 Exogeneous time series for updating and forecasting

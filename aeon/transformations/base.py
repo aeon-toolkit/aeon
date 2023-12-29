@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for transformers.
 
@@ -7,24 +5,24 @@ Base class template for transformers.
 
 Covers all types of transformers.
 Type and behaviour of transformer is determined by the following tags:
-    "scitype:transform-input" tag with values "Primitives" or "Series"
+    "input_data_type" tag with values "Primitives" or "Series"
         this determines expected type of input of transform
         if "Primitives", expected inputs X are pd.DataFrame
         if "Series", expected inputs X are Series or Panel
-        Note: placeholder tag for upwards compatibility
-            currently only "Series" is supported
-    "scitype:transform-output" tag with values "Primitives", or "Series"
+        Note: placeholder tag for upwards compatibility currently only "Series" is
+        supported
+    "output_data_type" tag with values "Primitives", or "Series"
         this determines type of output of transform
         if "Primitives", output is pd.DataFrame with as many rows as X has instances
-            i-th instance of X is transformed into i-th row of output
-        if "Series", output is a Series or Panel, with as many instances as X
-            i-th instance of X is transformed into i-th instance of output
+        i-th instance of X is transformed into i-th row of output
+        if "Series", output is a Series or Panel, with as many instances as X i-th
+        instance of X is transformed into i-th instance of output
         Series are treated as one-instance-Panels
-            if Series is input, output is a 1-row pd.DataFrame or a Series
-    "scitype:instancewise" tag which is boolean
+        if Series is input, output is a 1-row pd.DataFrame or a Series
+    "instancewise" tag which is boolean
         if True, fit/transform is statistically independent by instance
 
-Scitype defining methods:
+Class defining methods:
     fitting         - fit(self, X, y=None)
     transform       - transform(self, X, y=None)
     fit&transform   - fit_transform(self, X, y=None)
@@ -97,18 +95,14 @@ class BaseTransformer(BaseEstimator):
 
     # default tag values - these typically make the "safest" assumption
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "capability:inverse_transform": False,  # can the transformer inverse transform?
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": True,
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -116,10 +110,9 @@ class BaseTransformer(BaseEstimator):
         "transform-returns-same-time-index": False,
         # does transform return have the same time index as input X
         "skip-inverse-transform": False,  # is inverse-transform skipped when called?
+        "capability:inverse_transform": False,  # can the transformer inverse transform?
         "capability:unequal_length": True,
-        # can the transformer handle unequal length time series (if passed Panel)?
         "capability:unequal_length:removes": False,
-        # is transform result always guaranteed to be equal length (and series)?
         "capability:missing_values": False,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
         # is transform result always guaranteed to contain no missing values?
@@ -134,7 +127,7 @@ class BaseTransformer(BaseEstimator):
         "np.ndarray",
         "nested_univ",
         "numpy3D",
-        # "numpyflat",
+        # "numpy2D",
         "pd-multiindex",
         # "pd-wide",
         # "pd-long",
@@ -320,7 +313,7 @@ class BaseTransformer(BaseEstimator):
             where `columns1` is first or only item in `key`, and `columns2` is the last
             if only one item is passed in `key`, only `columns1` is applied to input
         """
-        from aeon.transformations.series.subset import ColumnSelect
+        from aeon.transformations.subset import ColumnSelect
 
         def is_noneslice(obj):
             res = isinstance(obj, slice)
@@ -355,8 +348,8 @@ class BaseTransformer(BaseEstimator):
         Writes to self:
         _is_fitted : flag is set to True.
         _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
+        possibly coerced to inner type or update_data compatible type
+        by reference, when possible
         model attributes (ending in "_") : dependent on estimator
 
         Parameters
@@ -365,9 +358,9 @@ class BaseTransformer(BaseEstimator):
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
+                nested pd.DataFrame, or pd.DataFrame in long/wide format.
         y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -421,10 +414,10 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -471,8 +464,7 @@ class BaseTransformer(BaseEstimator):
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        State change:
-            Changes state to "fitted".
+        State change: changes state to "fitted".
 
         Writes to self:
         _is_fitted : flag is set to True.
@@ -488,17 +480,15 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |   `X`    | `tf-output`  |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -548,7 +538,7 @@ class BaseTransformer(BaseEstimator):
         """Inverse transform X and return an inverse transformed version.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
+            "input_data_type"="Series", "output_data_type"="Series",
         have an inverse_transform.
 
         State required:
@@ -566,8 +556,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
 
@@ -625,8 +613,6 @@ class BaseTransformer(BaseEstimator):
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
                     nested pd.DataFrame, or pd.DataFrame in long/wide format
-                subject to aeon mtype format specifications, for further details see
-                    examples/AA_datatypes_and_datasets.ipynb
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True
@@ -744,24 +730,24 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") supports *higher* scitype than X
+                compatible with self.get_tag("X_inner_type") format
+            Case 1: self.get_tag("X_inner_type") supports scitype of X, then
+                converted/coerced version of X, mtype determined by "X_inner_type" tag
+            Case 2: self.get_tag("X_inner_type") supports *higher* scitype than X
                 then X converted to "one-Series" or "one-Panel" sub-case of that scitype
                 always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("X_inner_mtype") supports only *simpler* scitype than X
+            Case 3: self.get_tag("X_inner_type") supports only *simpler* scitype than X
                 then VectorizedDF of X, iterated as the most complex supported scitype
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("y_inner_mtype") format
-            Case 1: self.get_tag("y_inner_mtype") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_mtype" tag
-            Case 2: self.get_tag("y_inner_mtype") supports *higher* scitype than y
+                compatible with self.get_tag("y_inner_type") format
+            Case 1: self.get_tag("y_inner_type") supports scitype of y, then
+                converted/coerced version of y, mtype determined by "y_inner_type" tag
+            Case 2: self.get_tag("y_inner_type") supports *higher* scitype than y
                 then X converted to "one-Series" or "one-Panel" sub-case of that scitype
                 always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("y_inner_mtype") supports only *simpler* scitype than y
+            Case 3: self.get_tag("y_inner_type") supports only *simpler* scitype than y
                 then VectorizedDF of X, iterated as the most complex supported scitype
-            Case 4: None if y was None, or self.get_tag("y_inner_mtype") is "None"
+            Case 4: None if y was None, or self.get_tag("y_inner_type") is "None"
 
             Complexity order above: Hierarchical > Panel > Series
 
@@ -813,10 +799,10 @@ class BaseTransformer(BaseEstimator):
             return False
 
         # retrieve supported mtypes
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_mtype"))
-        X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
-        y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
+        X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
+        y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
+        X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
+        y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
@@ -873,7 +859,7 @@ class BaseTransformer(BaseEstimator):
         requires_vectorization = req_vec_because_rows or req_vec_because_cols
         # end checking X
 
-        if y_inner_mtype != ["None"] and y is not None:
+        if y_inner_type != ["None"] and y is not None:
             if "Table" in y_inner_scitype:
                 y_possible_scitypes = "Table"
             elif X_scitype == "Series":
@@ -926,16 +912,16 @@ class BaseTransformer(BaseEstimator):
             # converts X
             X_inner = convert_to(
                 X,
-                to_type=X_inner_mtype,
+                to_type=X_inner_type,
                 store=metadata["_converter_store_X"],
                 store_behaviour="reset",
             )
 
             # converts y, returns None if y is None
-            if y_inner_mtype != ["None"] and y is not None:
+            if y_inner_type != ["None"] and y is not None:
                 y_inner = convert_to(
                     y,
-                    to_type=y_inner_mtype,
+                    to_type=y_inner_type,
                     as_scitype=y_scitype,
                 )
             else:
@@ -953,12 +939,12 @@ class BaseTransformer(BaseEstimator):
                 iterate_cols=req_vec_because_cols,
             )
             # we also assume that y must be vectorized in this case
-            if y_inner_mtype != ["None"] and y is not None:
+            if y_inner_type != ["None"] and y is not None:
                 # raise ValueError(
                 #     f"{type(self).__name__} does not support Panel X if y is not "
                 #     f"None, since {type(self).__name__} supports only Series. "
                 #     "Auto-vectorization to extend Series X to Panel X can only be "
-                #     'carried out if y is None, or "y_inner_mtype" tag is "None". '
+                #     'carried out if y is None, or "y_inner_type" tag is "None". '
                 #     "Consider extending _fit and _transform to handle the following "
                 #     "input types natively: Panel X and non-None y."
                 # )
@@ -998,9 +984,9 @@ class BaseTransformer(BaseEstimator):
 
         if inverse:
             # the output of inverse transform is equal to input of transform
-            output_scitype = self.get_tag("scitype:transform-input")
+            output_scitype = self.get_tag("input_data_type")
         else:
-            output_scitype = self.get_tag("scitype:transform-output")
+            output_scitype = self.get_tag("output_data_type")
 
         # if we converted Series to "one-instance-Panel/Hierarchical",
         #   or Panel to "one-instance-Hierarchical", then revert that
@@ -1147,10 +1133,10 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -1169,8 +1155,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -1178,10 +1164,10 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
+            |__________|______________|________________________|
             | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
             | `Panel`  | `Primitives` | `pd.DataFrame`         |
             | `Series` | `Series`     | `Series`               |
@@ -1203,10 +1189,10 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit_transform must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _fit_transform must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
@@ -1227,8 +1213,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _inverse_transform must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _inverse_transform must support all types in it
             Data to be transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -1249,10 +1235,10 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _update must support all types in it
+        X : Series or Panel of mtype X_inner_type
+            if X_inner_type is list, _update must support all types in it
             Data to update transformer with
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns

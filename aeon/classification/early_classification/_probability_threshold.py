@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Probability Threshold Early Classifier.
 
 An early classifier using a prediction probability threshold with a time series
@@ -18,11 +17,12 @@ from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.early_classification.base import BaseEarlyClassifier
-from aeon.classification.interval_based import DrCIF
+from aeon.classification.interval_based import DrCIFClassifier
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
-    """Probability Threshold Early Classifier.
+    """
+    Probability Threshold Early Classifier.
 
     An early classifier which uses a threshold of prediction probability to determine
     whether an early prediction is safe or not.
@@ -40,7 +40,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     consecutive_predictions : int, default=1
         The number of consecutive predictions for a class above the threshold required
         to deem a prediction as safe.
-    estimator: aeon classifier, default=None
+    estimator : aeon classifier, default=None
         An aeon estimator to be built using the transformed data. Defaults to a
         default DrCIF classifier.
     classification_points : List or None, default=None
@@ -126,7 +126,9 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     def _fit(self, X, y):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
-        self._estimator = DrCIF() if self.estimator is None else self.estimator
+        self._estimator = (
+            DrCIFClassifier() if self.estimator is None else self.estimator
+        )
 
         m = getattr(self._estimator, "predict_proba", None)
         if not callable(m):
@@ -154,11 +156,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         self._estimators = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -191,11 +196,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -255,11 +263,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         m = getattr(self._estimator, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
+        rng = check_random_state(self.random_state)
+
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -333,11 +344,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return accept_decision, state_info
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -351,11 +358,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return estimator
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )

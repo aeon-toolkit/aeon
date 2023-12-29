@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Data Generators."""
 
 __author__ = ["ltsaprounis", "ciaran-g"]
@@ -170,7 +167,6 @@ def _bottom_hier_datagen(
                 node_lookup[name] = node_lookup.groupby([name_groupby])[
                     "l1_agg"
                 ].transform(
-                    # TODO: the lambda function below should use `x`` but doesn't
                     lambda x: "l"
                     + str(i)  # noqa: B023
                     + "_node"

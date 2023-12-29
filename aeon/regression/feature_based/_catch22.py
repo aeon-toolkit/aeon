@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Catch22 Regressor.
 
 Pipeline regressor using the Catch22 transformer and an estimator.
@@ -13,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 
 
 class Catch22Regressor(BaseRegressor):
@@ -101,7 +99,7 @@ class Catch22Regressor(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
@@ -137,7 +135,7 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
@@ -156,7 +154,7 @@ class Catch22Regressor(BaseRegressor):
             outlier_norm=self.outlier_norm,
             replace_nans=self.replace_nans,
             use_pycatch22=self.use_pycatch22,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
@@ -169,7 +167,7 @@ class Catch22Regressor(BaseRegressor):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
@@ -181,7 +179,7 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where

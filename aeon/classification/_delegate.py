@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """Delegator mixin that delegates all methods to wrapped classifiers.
 
 Useful for building estimators where all but one or a few methods are delegated.
 For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 __all__ = ["_DelegatedClassifier"]
@@ -14,7 +12,8 @@ from aeon.classification.base import BaseClassifier
 
 
 class _DelegatedClassifier(BaseClassifier):
-    """Delegator mixin that delegates all methods to wrapped classifier.
+    """
+    Delegator mixin that delegates all methods to wrapped classifier.
 
     Delegates inner classifier methods to a wrapped estimator.
         Wrapped estimator is value of attribute with name self._delegate_name.
@@ -48,12 +47,18 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
-            indices correspond to instance indices in X
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+        y: np.array
+            shape ``(n_instances)`` - class labels for fitting indices correspond to
+            instance indices in X.
 
         Returns
         -------
@@ -76,10 +81,15 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
 
         Returns
         -------
@@ -102,10 +112,15 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
 
         Returns
         -------

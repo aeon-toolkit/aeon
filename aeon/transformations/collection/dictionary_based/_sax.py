@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
+
+__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__all__ = ["SAX", "_invert_sax_symbols"]
 
 import numpy as np
 import scipy.stats
 from numba import njit, prange
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.dictionary_based import PAA
 
-__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
-__all__ = ["SAX", "_invert_sax_symbols"]
 
-
-class SAX(BaseTransformer):
+class SAX(BaseCollectionTransformer):
     """Symbolic Aggregate approXimation (SAX) transformer.
 
     as described in
@@ -63,11 +62,9 @@ class SAX(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
         "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Functions to load and write datasets."""
 
 __all__ = [
@@ -45,8 +43,8 @@ __all__ = [
     "load_cardano_sentiment",
     "load_covid_3month",
     # legacy load functions
-    "load_from_long_to_dataframe",
-    "load_tsf_to_dataframe",
+    "load_from_arff_to_dataframe",
+    "load_from_ucr_tsv_to_dataframe",
     "load_from_tsfile_to_dataframe",
 ]
 
@@ -68,9 +66,9 @@ from aeon.datasets._data_loaders import (
 )
 from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
 from aeon.datasets._dataframe_loaders import (
-    load_from_long_to_dataframe,
+    load_from_arff_to_dataframe,
     load_from_tsfile_to_dataframe,
-    load_tsf_to_dataframe,
+    load_from_ucr_tsv_to_dataframe,
 )
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,

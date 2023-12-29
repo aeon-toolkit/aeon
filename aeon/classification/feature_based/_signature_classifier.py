@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of a SignatureClassifier.
 
 Utilises the signature method of feature extraction.
@@ -22,14 +21,14 @@ from aeon.transformations.collection.signature_based._signature_method import (
 
 
 class SignatureClassifier(BaseClassifier):
-    """Classification module using signature-based features.
+    """
+    Classification module using signature-based features.
 
     This simply initialises the SignatureTransformer class which builds
     the feature extraction pipeline, then creates a new pipeline by
     appending a classifier after the feature extraction step.
 
-    The default parameters are set to best practice parameters found in
-        "A Generalised Signature Method for Multivariate TimeSeries" [1]
+    The default parameters are set to best practice parameters found in [1]_.
 
     Note that the final classifier used on the UEA datasets involved tuning
     the hyper-parameters:
@@ -45,33 +44,33 @@ class SignatureClassifier(BaseClassifier):
     ----------
     estimator : sklearn estimator, default=RandomForestClassifier
         This should be any sklearn-type estimator. Defaults to RandomForestClassifier.
-    augmentation_list: list of tuple of strings, default=("basepoint", "addtime")
+    augmentation_list : list of tuple of str, default=("basepoint", "addtime")
         List of augmentations to be applied before the signature transform is applied.
-    window_name: str, default="dyadic"
+    window_name : str, default="dyadic"
         The name of the window transform to apply.
-    window_depth: int, default=3
+    window_depth : int, default=3
         The depth of the dyadic window. (Active only if `window_name == 'dyadic']`.
-    window_length: int, default=None
+    window_length : int, default=None
         The length of the sliding/expanding window. (Active only if `window_name in
         ['sliding, 'expanding'].
-    window_step: int, default=None
+    window_step : int, default=None
         The step of the sliding/expanding window. (Active only if `window_name in
         ['sliding, 'expanding'].
-    rescaling: str, default=None
+    rescaling : str, default=None
         The method of signature rescaling.
-    sig_tfm: str, default="signature"
+    sig_tfm : str, default="signature"
         String to specify the type of signature transform. One of:
         ['signature', 'logsignature']).
-    depth: int, default=4
+    depth : int, default=4
         Signature truncation depth.
-    random_state: int, default=None
+    random_state : int, default=None
         Random state initialisation.
 
     Attributes
     ----------
-    signature_method: sklearn.Pipeline
+    signature_method : sklearn.Pipeline
         An sklearn pipeline that performs the signature feature extraction step.
-    pipeline: sklearn.Pipeline
+    pipeline : sklearn.Pipeline
         The classifier appended to the `signature_method` pipeline to make a
         classification pipeline.
     n_classes_ : int
@@ -79,15 +78,16 @@ class SignatureClassifier(BaseClassifier):
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
 
+    See Also
+    --------
+    SignatureTransformer
+        SignatureTransformer in the transformations package.
+
     References
     ----------
     .. [1] Morrill, James, et al. "A generalised signature method for multivariate time
         series feature extraction." arXiv preprint arXiv:2006.00873 (2020).
-        https://arxiv.org/pdf/2006.00873.pdf
-
-    See Also
-    --------
-    SignatureTransformer
+        [https://arxiv.org/pdf/2006.00873.pdf]
     """
 
     _tags = {
@@ -177,7 +177,7 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------

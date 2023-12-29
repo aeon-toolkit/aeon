@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Testing utility to compare equality in value for nested objects.
 
 Objects compared can have one of the following valid types:
@@ -66,7 +65,7 @@ def deep_equals(x, y, return_msg=False):
         else:
             return is_equal
 
-    if type(x) != type(y):
+    if type(x) is not type(y):
         return ret(False, f".type, x.type = {type(x)} != y.type = {type(y)}")
 
     # compute delayed objects (dask)

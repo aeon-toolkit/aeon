@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements hierarchical reconciliation transformers.
 
 These reconcilers only depend on the structure of the hierarchy.
@@ -15,8 +13,6 @@ from numpy.linalg import inv
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.hierarchical.aggregate import _check_index_no_total
-
-# TODO: failing test which are escaped
 
 
 class Reconciler(BaseTransformer):
@@ -75,17 +71,17 @@ class Reconciler(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": [
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": False,  # is this an instance-wise transform?
+        "X_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?

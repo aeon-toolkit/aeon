@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
 Hybrid ensemble of classifiers from 4 separate time series classification
@@ -19,14 +17,15 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
 from aeon.classification.interval_based import (
-    RandomIntervalSpectralEnsemble,
+    RandomIntervalSpectralEnsembleClassifier,
     TimeSeriesForestClassifier,
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV1(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
     An ensemble of the STC, TSF, RISE and cBOSS classifiers from different feature
     representations using the CAWPE structure as described in [1]_. The default
@@ -66,7 +65,6 @@ class HIVECOTEV1(BaseClassifier):
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
 
-
     Attributes
     ----------
     n_classes_ : int
@@ -84,8 +82,11 @@ class HIVECOTEV1(BaseClassifier):
 
     See Also
     --------
-    HIVECOTEV2, ShapeletTransformClassifier, TimeSeriesForestClassifier,
+    ShapeletTransformClassifier, TimeSeriesForestClassifier,
     RandomIntervalSpectralForest, ContractableBOSS
+        All components of HIVECOTE.
+    HIVECOTEV2
+        Successor to HIVECOTEV1.
 
     Notes
     -----
@@ -145,12 +146,17 @@ class HIVECOTEV1(BaseClassifier):
 
         super(HIVECOTEV1, self).__init__()
 
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+
     def _fit(self, X, y):
         """Fit HIVE-COTE 1.0 to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -160,15 +166,17 @@ class HIVECOTEV1(BaseClassifier):
         self :
             Reference to self.
         """
-        # Default values from HC1 paper
         if self.stc_params is None:
-            self._stc_params = {"transform_limit_in_minutes": 120}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
         if self.tsf_params is None:
-            self._tsf_params = {"n_estimators": 500}
+            self._tsf_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.rise_params is None:
-            self._rise_params = {"n_estimators": 500}
+            self._rise_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.cboss_params is None:
-            self._cboss_params = {}
+            self._cboss_params = {
+                "n_parameter_samples": HIVECOTEV1._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE,
+            }
 
         # Cross-validation size for TSF and RISE
         cv_size = 10
@@ -232,7 +240,7 @@ class HIVECOTEV1(BaseClassifier):
             print("TSF weight = " + str(self.tsf_weight_))  # noqa
 
         # Build RISE
-        self._rise = RandomIntervalSpectralEnsemble(
+        self._rise = RandomIntervalSpectralEnsembleClassifier(
             **self._rise_params,
             random_state=self.random_state,
             n_jobs=self._n_jobs,
@@ -244,7 +252,7 @@ class HIVECOTEV1(BaseClassifier):
 
         # Find RISE weight using train set estimate found through CV
         train_preds = cross_val_predict(
-            RandomIntervalSpectralEnsemble(
+            RandomIntervalSpectralEnsembleClassifier(
                 **self._rise_params,
                 random_state=self.random_state,
             ),
@@ -289,7 +297,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
@@ -310,7 +318,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

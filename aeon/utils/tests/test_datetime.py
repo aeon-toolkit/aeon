@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for datetime functions."""
 
 __author__ = ["xiaobenbenecho", "khrapovs"]
@@ -9,12 +8,11 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets import load_airline
-from aeon.datatypes import VectorizedDF
-from aeon.datatypes._utilities import get_time_index
 from aeon.utils._testing.hierarchical import _bottom_hier_datagen
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_freq,
+    get_time_index,
     infer_freq,
     set_hier_freq,
 )
@@ -92,10 +90,6 @@ def test_infer_freq() -> None:
     )
     assert infer_freq(y) == "M"
 
-    y = _bottom_hier_datagen(no_levels=2)
-    y = VectorizedDF(X=y, iterate_as="Series", is_scitype="Hierarchical")
-    assert infer_freq(y) == "M"
-
 
 def test_set_freq() -> None:
     """Test frequency inference."""
@@ -121,8 +115,6 @@ def test_set_freq() -> None:
     assert infer_freq(y) == "M"
 
     y = _bottom_hier_datagen(no_levels=2)
-    y = VectorizedDF(X=y, iterate_as="Series", is_scitype="Hierarchical")
-    assert infer_freq(y) == "M"
 
 
 def test_set_freq_hier():

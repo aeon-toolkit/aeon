@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
 
 Lists of data available from timeseriesclassification.com. Data is available in .ts
@@ -29,8 +28,97 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
     Data Mining and Knowledge Discovery, 2020.
 
 """
+# The 85 UCR univariate time series classification problems in the 2015 version
+univariate2015 = {
+    "Adiac",
+    "ArrowHead",
+    "Beef",
+    "BeetleFly",
+    "BirdChicken",
+    "Car",
+    "CBF",
+    "ChlorineConcentration",
+    "CinCECGTorso",
+    "Coffee",
+    "Computers",
+    "CricketX",
+    "CricketY",
+    "CricketZ",
+    "DiatomSizeReduction",
+    "DistalPhalanxOutlineCorrect",
+    "DistalPhalanxOutlineAgeGroup",
+    "DistalPhalanxTW",
+    "Earthquakes",
+    "ECG200",
+    "ECG5000",
+    "ECGFiveDays",
+    "ElectricDevices",
+    "FaceAll",
+    "FaceFour",
+    "FacesUCR",
+    "FiftyWords",
+    "Fish",
+    "FordA",
+    "FordB",
+    "GunPoint",
+    "Ham",
+    "HandOutlines",
+    "Haptics",
+    "Herring",
+    "InlineSkate",
+    "InsectWingbeatSound",
+    "ItalyPowerDemand",
+    "LargeKitchenAppliances",
+    "Lightning2",
+    "Lightning7",
+    "Mallat",
+    "Meat",
+    "MedicalImages",
+    "MiddlePhalanxOutlineCorrect",
+    "MiddlePhalanxOutlineAgeGroup",
+    "MiddlePhalanxTW",
+    "MoteStrain",
+    "NonInvasiveFetalECGThorax1",
+    "NonInvasiveFetalECGThorax2",
+    "OliveOil",
+    "OSULeaf",
+    "PhalangesOutlinesCorrect",
+    "Phoneme",
+    "Plane",
+    "ProximalPhalanxOutlineCorrect",
+    "ProximalPhalanxOutlineAgeGroup",
+    "ProximalPhalanxTW",
+    "RefrigerationDevices",
+    "ScreenType",
+    "ShapeletSim",
+    "ShapesAll",
+    "SmallKitchenAppliances",
+    "SonyAIBORobotSurface1",
+    "SonyAIBORobotSurface2",
+    "StarlightCurves",
+    "Strawberry",
+    "SwedishLeaf",
+    "Symbols",
+    "SyntheticControl",
+    "ToeSegmentation1",
+    "ToeSegmentation2",
+    "Trace",
+    "TwoLeadECG",
+    "TwoPatterns",
+    "UWaveGestureLibraryX",
+    "UWaveGestureLibraryY",
+    "UWaveGestureLibraryZ",
+    "UWaveGestureLibraryAll",
+    "Wafer",
+    "Wine",
+    "WordSynonyms",
+    "Worms",
+    "WormsTwoClass",
+    "Yoga",
+}
 
-""" 128 UCR univariate time series classification problems [1]"""
+
+# 128 UCR univariate time series classification problems [1]
 univariate = {
     "ACSF1",
     "Adiac",
@@ -54,8 +142,8 @@ univariate = {
     "CricketZ",
     "Crop",
     "DiatomSizeReduction",
-    "DistalPhalanxOutlineCorrect",
     "DistalPhalanxOutlineAgeGroup",
+    "DistalPhalanxOutlineCorrect",
     "DistalPhalanxTW",
     "DodgerLoopDay",
     "DodgerLoopGame",
@@ -159,14 +247,12 @@ univariate = {
     "WordSynonyms",
     "Worms",
     "WormsTwoClass",
+    "Yoga",
 }
 
-""" 33 UEA multivariate time series classification problems [2]"""
+# 30 UEA multivariate time series classification problems [2]
 multivariate = {
     "ArticularyWordRecognition",
-    "AsphaltObstaclesCoordinates",
-    "AsphaltPavementTypeCoordinates",
-    "AsphaltRegularityCoordinates",
     "AtrialFibrillation",
     "BasicMotions",
     "CharacterTrajectories",
@@ -198,7 +284,7 @@ multivariate = {
     "UWaveGestureLibrary",
 }
 
-"""112 equal length/no missing univariate time series classification problems [3]"""
+# 112 equal length/no missing univariate time series classification problems [3]
 univariate_equal_length = {
     "ACSF1",
     "Adiac",
@@ -314,7 +400,7 @@ univariate_equal_length = {
     "Yoga",
 }
 
-"""11 variable length univariate time series classification problems [3]"""
+# 11 variable length univariate time series classification problems [3]
 univariate_variable_length = {
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
@@ -329,7 +415,7 @@ univariate_variable_length = {
     "ShakeGestureWiimoteZ",
 }
 
-"""4 fixed length univariate time series classification problems with missing values"""
+# 4 fixed length univariate time series classification problems with missing values"""
 univariate_missing_values = {
     "DodgerLoopDay",
     "DodgerLoopGame",
@@ -337,7 +423,7 @@ univariate_missing_values = {
     "MelbournePedestrian",
 }
 
-"""26 equal length multivariate time series classification problems [4]"""
+# 26 equal length multivariate time series classification problems [4]"""
 multivariate_equal_length = {
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -367,7 +453,7 @@ multivariate_equal_length = {
     "UWaveGestureLibrary",
 }
 
-"""7 variable length multivariate time series classification problems [4]"""
+# 7 variable length multivariate time series classification problems [4]"""
 multivariate_unequal_length = {
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Signature based panel transformations."""
 __all__ = [
     "SignatureTransformer",

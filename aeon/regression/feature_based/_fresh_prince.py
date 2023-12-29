@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FreshPRINCERegressor.
 
 Pipeline regressor using the full set of TSFresh features and a RotationForestRegressor
@@ -12,12 +11,13 @@ import numpy as np
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCERegressor(BaseRegressor):
-    """Fresh Pipeline with RotatIoN forest Regressor.
+    """
+    Fresh Pipeline with RotatIoN forest Regressor.
 
     This regressor simply transforms the input data using the TSFresh [1]_
     transformer with comprehensive features and builds a RotationForestRegressor
@@ -51,6 +51,16 @@ class FreshPRINCERegressor(BaseRegressor):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+
+    Examples
+    --------
+    >>> from aeon.regression.feature_based import FreshPRINCERegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+    >>> fp = FreshPRINCERegressor(n_estimators=10) # doctest: +SKIP
+    >>> fp.fit(X_train, y_train) # doctest: +SKIP
+    >>> y_pred = fp.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -58,7 +68,6 @@ class FreshPRINCERegressor(BaseRegressor):
         "capability:multithreading": True,
         "capability:train_estimate": True,
         "algorithm_type": "feature",
-        "python_version": "<3.10",
         "python_dependencies": "tsfresh",
     }
 
@@ -96,7 +105,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -116,12 +125,12 @@ class FreshPRINCERegressor(BaseRegressor):
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
             save_transformed_data=self.save_transformed_data,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._tsfresh = TSFreshFeatureExtractor(
             default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
             chunksize=self.chunksize,
             show_warnings=self.verbose > 1,
             disable_progressbar=self.verbose < 1,
@@ -140,7 +149,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

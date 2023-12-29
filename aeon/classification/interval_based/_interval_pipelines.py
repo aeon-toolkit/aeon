@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Interval Pipeline Classifiers.
 
 Pipeline classifiers which extract interval features then build a base estimator.
@@ -13,12 +11,15 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection import SupervisedIntervals
-from aeon.transformations.collection.random_intervals import RandomIntervals
+from aeon.transformations.collection.interval_based import (
+    RandomIntervals,
+    SupervisedIntervals,
+)
 
 
 class RandomIntervalClassifier(BaseClassifier):
-    """Random Interval Classifier.
+    """
+    Random Interval Classifier.
 
     Extracts multiple intervals with random length, position and dimension from series
     and concatenates them into a feature vector. Builds an estimator on the
@@ -65,7 +66,7 @@ class RandomIntervalClassifier(BaseClassifier):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -131,7 +132,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -141,7 +142,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -175,7 +176,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -190,7 +191,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -247,7 +248,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
 
 class SupervisedIntervalClassifier(BaseClassifier):
-    """Random Interval Classifier.
+    """Supervised Interval Classifier.
 
     Extracts multiple intervals from series with using a supervised process
     and concatenates them into a feature vector. Builds an estimator on the
@@ -256,7 +257,8 @@ class SupervisedIntervalClassifier(BaseClassifier):
     Parameters
     ----------
     n_intervals : int, default=50
-        The number of times the supervised interval selection process is run.
+        The number of times the supervised interval selection process is run. This
+        process will extract more then one interval per run.
         Each supervised extraction will output a varying amount of features based on
         series length, number of dimensions and the number of features.
     min_interval_length : int, default=3
@@ -299,7 +301,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
     ----------
     n_instances_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -367,7 +369,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -377,7 +379,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = SupervisedIntervals(
             n_intervals=self.n_intervals,
@@ -412,7 +414,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -427,7 +429,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns

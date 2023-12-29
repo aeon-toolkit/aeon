@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type converters for Table scitype.
 
 Exports conversion and mtype dictionary for Table scitype:
@@ -65,7 +64,7 @@ def convert_1D_to_2D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
     return res
 
 
-convert_dict[("numpy1D", "numpy2D", "Table")] = convert_1D_to_2D_numpy_as_Table
+convert_dict[("numpy1D", "numpy_Table", "Table")] = convert_1D_to_2D_numpy_as_Table
 
 
 def convert_2D_to_1D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
@@ -80,7 +79,7 @@ def convert_2D_to_1D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
     return res
 
 
-convert_dict[("numpy2D", "numpy1D", "Table")] = convert_2D_to_1D_numpy_as_Table
+convert_dict[("numpy_Table", "numpy1D", "Table")] = convert_2D_to_1D_numpy_as_Table
 
 
 def convert_df_to_2Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
@@ -93,7 +92,9 @@ def convert_df_to_2Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
     return obj.to_numpy()
 
 
-convert_dict[("pd_DataFrame_Table", "numpy2D", "Table")] = convert_df_to_2Dnp_as_Table
+convert_dict[
+    ("pd_DataFrame_Table", "numpy_Table", "Table")
+] = convert_df_to_2Dnp_as_Table
 
 
 def convert_df_to_1Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
@@ -122,7 +123,9 @@ def convert_2Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
     return res
 
 
-convert_dict[("numpy2D", "pd_DataFrame_Table", "Table")] = convert_2Dnp_to_df_as_Table
+convert_dict[
+    ("numpy_Table", "pd_DataFrame_Table", "Table")
+] = convert_2Dnp_to_df_as_Table
 
 
 def convert_1Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
