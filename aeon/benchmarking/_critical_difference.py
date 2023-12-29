@@ -347,7 +347,7 @@ def plot_critical_difference(
     # Step 3 : check whether Friedman test is significant
     p_value_friedman = _check_friedman(ranks)
     # Step 4: If Friedman test is significant find cliques
-    if p_value_friedman < alpha or True:
+    if p_value_friedman < alpha:
         if test == "nemenyi":
             cliques = _nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
         elif test == "wilcoxon":
