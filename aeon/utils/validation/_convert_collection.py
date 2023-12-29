@@ -21,6 +21,18 @@ import numpy as np
 import pandas as pd
 
 
+def is_nested_univ_dataframe(X):
+    """Check if X is nested dataframe."""
+    # Otherwise check all entries are pd.Series
+    if not isinstance(X, pd.DataFrame):
+        return False
+    for _, series in X.items():
+        for cell in series:
+            if not isinstance(cell, pd.Series):
+                return False
+    return True
+
+
 def _nested_univ_is_equal(X):
     """Check whether series in a nested DataFrame are of equal length.
 
@@ -54,23 +66,11 @@ def _nested_univ_is_equal(X):
     return True
 
 
-def _is_nested_univ_dataframe(X):
-    """Check if X is nested dataframe."""
-    # Otherwise check all entries are pd.Series
-    if not isinstance(X, pd.DataFrame):
-        return False
-    for _, series in X.items():
-        for cell in series:
-            if not isinstance(cell, pd.Series):
-                return False
-    return True
-
-
 def _is_pd_wide(X):
     """Check whether the input nested DataFrame is "pd-wide" type."""
     # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
-        if _is_nested_univ_dataframe(X):
+        if is_nested_univ_dataframe(X):
             return False
         float_cols = X.select_dtypes(include=[float]).columns
         for col in float_cols:
