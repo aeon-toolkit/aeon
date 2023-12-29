@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_integer_dtype
 
-from aeon.datatypes import VectorizedDF
 from aeon.utils.validation.series import check_time_index, is_integer_index
 
 
@@ -197,11 +196,6 @@ def infer_freq(y=None) -> Optional[str]:
 @infer_freq.register(np.ndarray)
 def _(y) -> Optional[str]:
     return _infer_freq_from_index(get_time_index(y))
-
-
-@infer_freq.register(VectorizedDF)
-def _(y) -> Optional[str]:
-    return _infer_freq_from_index(get_time_index(y.as_list()[0]))
 
 
 def _infer_freq_from_index(index: pd.Index) -> Optional[str]:
