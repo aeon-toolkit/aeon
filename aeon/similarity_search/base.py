@@ -50,7 +50,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
     Attributes
     ----------
-    _X : array, shape (n_instances, n_channels, series_length)
+    _X : array, shape (n_instances, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -91,7 +91,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : array, shape (n_instances, n_channels, series_length)
+        X : array, shape (n_instances, n_channels, n_timepoints)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -109,7 +109,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         if not isinstance(X, np.ndarray) or X.ndim != 3:
             raise TypeError(
                 "Error, only supports 3D numpy of shape "
-                "(n_instances, n_channels, series_length)."
+                "(n_instances, n_channels, n_timepoints)."
             )
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
@@ -174,7 +174,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         """
         query_dim, query_length = self._check_query_format(q)
-        n_instances, _, series_length = self._X.shape
+        n_instances, _, n_timepoints = self._X.shape
         mask = self._apply_q_index_mask(
             q_index, query_dim, query_length, exclusion_factor=exclusion_factor
         )
@@ -228,13 +228,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Returns
         -------
-        mask : array, shape=(n_instances, series_length - query_length + 1)
+        mask : array, shape=(n_instances, n_timepoints - query_length + 1)
             Boolean array which indicates the candidates that should be evaluated in the
             similarity search.
 
         """
-        n_instances, _, series_length = self._X.shape
-        mask = np.ones((n_instances, series_length - query_length + 1), dtype=bool)
+        n_instances, _, n_timepoints = self._X.shape
+        mask = np.ones((n_instances, n_timepoints - query_length + 1), dtype=bool)
 
         if q_index is not None:
             if isinstance(q_index, Iterable):
@@ -257,7 +257,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                 )
 
             i_instance, i_timestamp = q_index
-            profile_length = series_length - query_length + 1
+            profile_length = n_timepoints - query_length + 1
             exclusion_LB = max(0, int(i_timestamp - query_length // exclusion_factor))
             exclusion_UB = min(
                 profile_length, int(i_timestamp + query_length // exclusion_factor)
@@ -350,8 +350,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         None.
 
         """
-        n_instances, n_channels, X_length = self._X.shape
-        search_space_size = X_length - query_length + 1
+        n_instances, n_channels, n_timepoints = self._X.shape
+        search_space_size = n_timepoints - query_length + 1
 
         means = np.zeros((n_instances, n_channels, search_space_size))
         stds = np.zeros((n_instances, n_channels, search_space_size))
@@ -372,13 +372,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ----------
         q :  array, shape (n_channels, query_length)
             Input query used for similarity search.
-         mask : array, shape=(n_instances, series_length - query_length + 1)
+         mask : array, shape=(n_instances, n_timepoints - query_length + 1)
              Boolean array which indicates the candidates that should be evaluated in
              the similarity search.
 
         Returns
         -------
-        distance_profile : array, shape=(n_instances, series_length - query_length + 1)
+        distance_profile : array, shape=(n_instances, n_timepoints - query_length + 1)
             The distance profiles between the input time series and the query.
 
         """

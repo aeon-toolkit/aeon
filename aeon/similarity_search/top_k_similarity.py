@@ -34,7 +34,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
     Attributes
     ----------
-    _X : array, shape (n_instances, n_channels, series_length)
+    _X : array, shape (n_instances, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -89,7 +89,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        X : array, shape (n_instances, n_channels, series_length)
+        X : array, shape (n_instances, n_channels, n_timepoints)
             Input array to used as database for the similarity search.
         y : optional
             Not used.
@@ -109,7 +109,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        distance_profile : array, shape (n_instances, series_length - query_length + 1)
+        distance_profile : array, shape (n_instances, n_timepoints - query_length + 1)
             Precomputed distance profile.
         exclusion_size : int, optional
             The size of the exclusion zone used to prevent returning as top k candidates

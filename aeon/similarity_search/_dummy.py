@@ -23,7 +23,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
     Attributes
     ----------
-    _X : array, shape (n_instances, n_channels, n_timestamps)
+    _X : array, shape (n_instances, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -58,7 +58,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        X : array, shape (n_instances, n_channels, n_timestamps)
+        X : array, shape (n_instances, n_channels, n_timepoints)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -78,7 +78,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        distance_profile : array, shape (n_samples, n_timestamps - q_length + 1)
+        distance_profile : array, shape (n_samples, n_timepoints - query_length + 1)
             Precomputed distance profile.
         exclusion_size : int, optional
             This parameter has no effect on this dummy class as we do k=1.
