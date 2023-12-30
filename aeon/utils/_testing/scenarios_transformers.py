@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseObject
+from aeon.datatypes import mtype_to_scitype
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils._testing.collection import _make_classification_y, _make_collection_X
 from aeon.utils._testing.estimator_checks import _make_primitives, _make_tabular_X
@@ -71,25 +72,27 @@ class TransformerTestScenario(TestScenario, BaseObject):
             True if self is applicable to obj, False if not
         """
         # pre-refactor classes can't deal with Series *and* Panel both
-        X_type = self.get_tag("X_type")
-        y_type = self.get_tag("y_type", None, raise_error=False)
+        X_scitype = self.get_tag("X_type")
+        y_scitype = self.get_tag("y_type", None, raise_error=False)
 
         if (
             isinstance(obj, BaseCollectionTransformer)
             or (inspect.isclass(obj) and issubclass(obj, BaseCollectionTransformer))
-        ) and X_type != "Panel":
+        ) and X_scitype != "Panel":
             return False
 
         # if transformer requires y, the scenario also must pass y
         has_y = self.get_tag("has_y")
         if not has_y and get_tag(obj, "requires_y"):
             return False
-        SERIES_TYPES = {"pd.Series", "pd.DataFrame", "np.ndarray"}
-        PANEL_TYPES = {"nested_univ", "pd-multiindex", "numpy3D", "np-list"}
-        HIER_TYPES = {"pd_multiindex_hier"}
-        internalX = _internal_abstract_type(obj, "X_inner_type", SERIES_TYPES)
-        # Inner type is a single series
-        if X_type == "Panel" and internalX:
+
+        # the case that we would need to vectorize with y, skip
+        X_inner_type = get_tag(obj, "X_inner_type")
+        X_inner_scitypes = mtype_to_scitype(
+            X_inner_type, return_unique=True, coerce_to_list=True
+        )
+        # we require vectorization from of a Series trafo to Panel data ...
+        if X_scitype == "Panel" and "Panel" not in X_inner_scitypes:
             # ... but y is passed and y is not ignored internally ...
             if self.get_tag("has_y") and get_tag(obj, "y_inner_type") != "None":
                 # ... this would raise an error since vectorization is not defined
@@ -98,12 +101,11 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # ensure scenario y matches type of inner y
         y_inner_type = get_tag(obj, "y_inner_type")
         if y_inner_type not in [None, "None"]:
-            if y_type == "Series" or y_type == "Table":
-                return _internal_abstract_type(obj, "y_inner_type", SERIES_TYPES)
-            elif y_type == "Panel":
-                return _internal_abstract_type(obj, "y_inner_type", PANEL_TYPES)
-            elif y_type == "Hierarchical":
-                return _internal_abstract_type(obj, "y_inner_type", HIER_TYPES)
+            y_inner_scitypes = mtype_to_scitype(
+                y_inner_type, return_unique=True, coerce_to_list=True
+            )
+            if y_scitype not in y_inner_scitypes:
+                return False
 
         # only applicable if X of supported index type
         X = self.args["fit"]["X"]
