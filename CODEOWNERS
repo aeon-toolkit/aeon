@@ -60,6 +60,8 @@ aeon/transformations/scaledlogit.py @ltsaprounis
 aeon/transformations/theta.py @GuzalBulatova
 aeon/transformations/time_since.py @KishManani
 
+aeon/similarity_search/ @baraline
+
 aeon/utils/mlflow_aeon.py @benjaminbluhm
 
 docs/get_involved/code_of_conduct.rst @aeon/aeon-code-of-conduct-committee
