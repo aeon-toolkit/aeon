@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseObject
-from aeon.datatypes import mtype_to_scitype
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils._testing.collection import _make_classification_y, _make_collection_X
 from aeon.utils._testing.estimator_checks import _make_primitives, _make_tabular_X
@@ -47,9 +46,7 @@ def get_tag(obj, tag_name):
         return obj.get_tag(tag_name)
 
 
-def _single_series_internal(obj, inner_tag):
-    # the case that we would need to vectorize with y, skip
-    series_types = {"pd.Series", "pd.DataFrame", "np.ndarray"}
+def _internal_abstract_type(obj, inner_tag, series_types):
     inner_types = get_tag(obj, inner_tag)
     if isinstance(inner_types, str):
         inner_types = {inner_types}
@@ -87,7 +84,10 @@ class TransformerTestScenario(TestScenario, BaseObject):
         has_y = self.get_tag("has_y")
         if not has_y and get_tag(obj, "requires_y"):
             return False
-        internalX = _single_series_internal(obj, "X_inner_type")
+        SERIES_TYPES = {"pd.Series", "pd.DataFrame", "np.ndarray"}
+        PANEL_TYPES = {"nested_univ", "pd-multiindex", "numpy3D", "np-list"}
+        HIER_TYPES = {"pd_multiindex_hier"}
+        internalX = _internal_abstract_type(obj, "X_inner_type", SERIES_TYPES)
         # Inner type is a single series
         if X_type == "Panel" and internalX:
             # ... but y is passed and y is not ignored internally ...
@@ -98,11 +98,12 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # ensure scenario y matches type of inner y
         y_inner_type = get_tag(obj, "y_inner_type")
         if y_inner_type not in [None, "None"]:
-            y_inner_scitypes = mtype_to_scitype(
-                y_inner_type, return_unique=True, coerce_to_list=True
-            )
-            if y_type not in y_inner_scitypes:
-                return False
+            if y_type == "Series" or y_type == "Table":
+                return _internal_abstract_type(obj, "y_inner_type", SERIES_TYPES)
+            elif y_type == "Panel":
+                return _internal_abstract_type(obj, "y_inner_type", PANEL_TYPES)
+            elif y_type == "Hierarchical":
+                return _internal_abstract_type(obj, "y_inner_type", HIER_TYPES)
 
         # only applicable if X of supported index type
         X = self.args["fit"]["X"]
