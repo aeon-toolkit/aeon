@@ -4,8 +4,7 @@ __author__ = ["mloning", "xiaobenbenecho", "khrapovs"]
 __all__ = []
 
 import warnings
-from functools import singledispatch
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -174,13 +173,12 @@ def set_hier_freq(x):
     return x
 
 
-@singledispatch
-def infer_freq(y=None) -> Optional[str]:
+def infer_freq(y):
     """Infer frequency string from the time series object.
 
     Parameters
     ----------
-    y : Series, Panel, or Hierarchical object, or VectorizedDF, optional (default=None)
+    y : pd.DataFrame, pd.Series, or np.ndarray object
 
     Returns
     -------
@@ -188,29 +186,7 @@ def infer_freq(y=None) -> Optional[str]:
         Frequency string inferred from the pandas index,
         or `None`, if inference fails.
     """
-    return None
-
-
-@infer_freq.register(pd.DataFrame)
-@infer_freq.register(pd.Series)
-@infer_freq.register(np.ndarray)
-def _(y) -> Optional[str]:
-    return _infer_freq_from_index(get_time_index(y))
-
-
-def _infer_freq_from_index(index: pd.Index) -> Optional[str]:
-    """Infer frequency string from the pandas index.
-
-    Parameters
-    ----------
-    index : pd.Index
-
-    Returns
-    -------
-    str
-        Frequency string inferred from the pandas index,
-        or `None`, if inference fails.
-    """
+    index = get_time_index(y)
     if hasattr(index, "freqstr"):
         return index.freqstr
     else:
