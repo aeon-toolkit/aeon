@@ -413,11 +413,10 @@ def check_scoring(scoring, allow_y_pred_benchmark=False):
     NotImplementedError
         if metric requires y_pred_benchmark to be passed
     """
-    # Note symmetric=True is default arg for MeanAbsolutePercentageError
-    from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+    from aeon.performance_metrics.forecasting import mean_absolute_error
 
     if scoring is None:
-        return MeanAbsolutePercentageError()
+        return mean_absolute_error
 
     scoring_req_bench = scoring.get_class_tag("requires-y-pred-benchmark", False)
 

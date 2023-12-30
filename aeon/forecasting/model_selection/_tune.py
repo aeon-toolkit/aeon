@@ -526,19 +526,19 @@ class ForecastingGridSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+        from aeon.performance_metrics.forecasting import mean_absolute_error
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error(),
         }
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error(),
             "update_behaviour": "inner_only",
         }
         return [params, params2]
@@ -702,20 +702,20 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+        from aeon.performance_metrics.forecasting import mean_absolute_error
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
         }
 
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
             "update_behaviour": "inner_only",
         }
 

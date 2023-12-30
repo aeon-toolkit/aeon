@@ -6,7 +6,7 @@ import pytest
 from aeon.benchmarking import forecasting
 from aeon.forecasting.model_selection import ExpandingWindowSplitter
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.performance_metrics.forecasting import MeanSquaredPercentageError
+from aeon.performance_metrics.forecasting import mean_squared_percentage_error
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -30,7 +30,7 @@ def test_forecastingbenchmark(tmp_path):
         step_length=1,
         fh=1,
     )
-    benchmark.add_task(data_loader_simple, cv_splitter, [MeanSquaredPercentageError()])
+    benchmark.add_task(data_loader_simple, cv_splitter, [mean_squared_percentage_error])
 
     results_file = tmp_path / "results.csv"
     results_df = benchmark.run(results_file)
