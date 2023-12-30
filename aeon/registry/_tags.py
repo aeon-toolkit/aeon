@@ -122,6 +122,7 @@ ESTIMATOR_TAG_REGISTER = [
                 "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
+                "pd_multiindex_hier",
                 "numpy3D",
                 "df-list",
             ],
