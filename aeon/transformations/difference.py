@@ -380,10 +380,4 @@ class Differencer(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         params = [{"na_handling": x} for x in cls.VALID_NA_HANDLING_STR]
-        # we're testing that inverse_transform is inverse to transform
-        #   and that is only correct if the first observation is not dropped
-        # todo: ensure that we have proper tests or escapes for "incomplete inverses"
-        params = params[1:]
-        #   this removes "drop_na" setting where the inverse has problems
-        #   need to deal with this in a better way in testing
         return params

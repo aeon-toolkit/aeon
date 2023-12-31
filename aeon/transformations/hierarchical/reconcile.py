@@ -14,8 +14,6 @@ from numpy.linalg import inv
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.hierarchical.aggregate import _check_index_no_total
 
-# TODO: failing test which are escaped
-
 
 class Reconciler(BaseTransformer):
     """Hierarchical reconcilation transformer.

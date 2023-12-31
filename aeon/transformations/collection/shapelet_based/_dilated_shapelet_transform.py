@@ -16,6 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 from aeon.distances import manhattan_distance
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
+    AEON_NUMBA_STD_THRESHOLD,
     choice_log,
     combinations_1d,
     get_subsequence,
@@ -606,7 +607,7 @@ def random_dilated_shapelet_extraction(
                         X[idx_sample], idx_timestamp, length, dilation
                     )
                     for i_channel in prange(_val.shape[0]):
-                        if _stds[i_channel] > 0:
+                        if _stds[i_channel] > AEON_NUMBA_STD_THRESHOLD:
                             _val[i_channel] = (
                                 _val[i_channel] - _means[i_channel]
                             ) / _stds[i_channel]
@@ -751,7 +752,7 @@ def normalize_subsequences(X_subs, X_means, X_stds):
     X_new = np.zeros((n_subsequences, n_channels, length))
     for i_sub in prange(n_subsequences):
         for i_channel in prange(n_channels):
-            if X_stds[i_channel, i_sub] > 0:
+            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
                 X_new[i_sub, i_channel] = (
                     X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
                 ) / X_stds[i_channel, i_sub]

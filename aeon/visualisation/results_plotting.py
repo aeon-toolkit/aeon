@@ -259,7 +259,6 @@ def plot_scatter(
     >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
-
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
@@ -277,11 +276,11 @@ def plot_scatter(
     min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
 
-    if metric == "accuracy":
-        max_value = min(max_value, 1)
+    if metric in ["accuracy", "R2", "CCR", "AUC", "F1", "Kappa", "AUPRC"]:
+        max_value = min(max_value, 1.001)
         if lower_better:
             raise ValueError("lower_better must be False when metric is 'accuracy'.")
-    elif metric == "error":
+    elif metric in ["error", "RMSE", "MSE", "MAE", "AMAE", "MAPE", "SMAPE"]:
         if not lower_better:
             raise ValueError("lower_better must be True when metric is 'error'.")
 
@@ -305,6 +304,12 @@ def plot_scatter(
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
     ]
+    # This line helps displaying ties on top of losses and wins, as in general there
+    # are less number of ties than wins/losses.
+    differences, first, second = map(
+        np.array,
+        zip(*sorted(zip(differences, first, second), key=lambda x: -abs(x[0]))),
+    )
 
     first_avg = first.mean()
     second_avg = second.mean()
@@ -313,30 +318,42 @@ def plot_scatter(
         x=second,
         y=first,
         hue=differences,
+        hue_order=[1, 0, -1] if lower_better else [-1, 0, 1],
         palette="pastel",
         zorder=2,
     )
 
     # Draw the average value per method as a dashed line from 0 to the mean value.
     plt.plot(
-        [first_avg, min_value],
+        [first_avg, min_value] if not lower_better else [first_avg, max_value],
         [first_avg, first_avg],
         linestyle="--",
-        color="#ccebc5",
+        color="#8de5a1",
         zorder=3,
     )
 
     plt.plot(
         [second_avg, second_avg],
-        [second_avg, min_value],
+        [second_avg, min_value] if not lower_better else [second_avg, max_value],
         linestyle="--",
-        color="#b3cde3",
+        color="#a1c9f4",
         zorder=3,
     )
 
     # Compute the W, T, and L per methods
     if lower_better:
         differences = [-i for i in differences]
+        ax = plt.gca()
+        ax.xaxis.tick_top()
+        ax.xaxis.set_label_position("top")
+        ax.spines["top"].set_visible(True)
+        ax.yaxis.tick_right()
+        ax.yaxis.set_label_position("right")
+        ax.spines["right"].set_visible(True)
+
+    # Setting labels for x and y axis
+    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})")
+    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})")
 
     wins_A = losses_B = sum(i == 1 for i in differences)
     ties_A = ties_B = sum(i == 0 for i in differences)
@@ -349,17 +366,13 @@ def plot_scatter(
     # Remove legend
     plot.get_legend().remove()
 
-    # Setting labels for x and y axis
-    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})")
-    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})")
-
     # Setting text with W, T and L for each method
     anc = AnchoredText(
         f"{first_method} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
-        loc="upper left",
+        loc="upper left" if not lower_better else "lower right",
         frameon=True,
         prop=dict(
-            color="darkseagreen",
+            color="#8de5a1",
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -373,10 +386,10 @@ def plot_scatter(
 
     anc = AnchoredText(
         f"{second_method} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
-        loc="lower right",
+        loc="lower right" if not lower_better else "upper left",
         frameon=True,
         prop=dict(
-            color="cornflowerblue",
+            color="#a1c9f4",
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -414,7 +427,7 @@ def plot_scatter(
 
         plt.figtext(
             0.5,
-            0.03,
+            0.03 if not lower_better else 0.13,
             f"{wil}\n{ttes}",
             fontsize=10,
             wrap=True,

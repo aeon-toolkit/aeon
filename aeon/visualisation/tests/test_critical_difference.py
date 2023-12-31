@@ -67,8 +67,14 @@ def test_wilcoxon_test():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
-    p_vals = _wilcoxon_test(res)
+    p_vals = _wilcoxon_test(res, cls)
     assert_almost_equal(p_vals[0], np.array([1.0, 0.0, 0.0, 0.0]), decimal=2)
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+    p_vals = _wilcoxon_test(res, cls, lower_better=True)
+    assert_almost_equal(p_vals[0], np.array([1, 0.99, 0.99, 0.99]), decimal=2)
 
 
 def test__check_friedman():
@@ -203,3 +209,8 @@ def test_plot_critical_difference():
         reverse=True,
     )
     assert isinstance(plot, Figure)
+
+
+if __name__ == "__main__":
+    test_wilcoxon_test()
+    test_plot_critical_difference()
