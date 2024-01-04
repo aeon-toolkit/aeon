@@ -360,8 +360,8 @@ def plot_scatter(
         ax.spines["right"].set_visible(True)
 
     # Setting labels for x and y axis
-    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})")
-    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})")
+    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})", fontsize=13)
+    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})", fontsize=13)
 
     wins_A = losses_B = sum(i == 1 for i in differences)
     ties_A = ties_B = sum(i == 0 for i in differences)
