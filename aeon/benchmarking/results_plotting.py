@@ -271,7 +271,7 @@ def plot_scatter(
     import seaborn as sns
     from matplotlib.offsetbox import AnchoredText
 
-    palette = sns.color_palette(color_palette)
+    palette = sns.color_palette(color_palette, n_colors=3)
 
     if results.shape[1] != 2:
         raise ValueError("Please provide a results array only for 2 methods.")
