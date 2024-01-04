@@ -225,6 +225,8 @@ def plot_scatter(
     lower_better=False,
     statistic_tests=True,
     title=None,
+    figsize=(10, 6),
+    color_palette="tab10",
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -244,6 +246,10 @@ def plot_scatter(
         If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
     title : str, default = None
         Title to be shown in the top of the plot.
+    figsize : tuple, default = (10, 6)
+        Size of the figure.
+    color_palette : str, default = "tab10"
+        Color palette to be used for the plot.
 
     Returns
     -------
@@ -265,13 +271,15 @@ def plot_scatter(
     import seaborn as sns
     from matplotlib.offsetbox import AnchoredText
 
+    palette = sns.color_palette(color_palette)
+
     if results.shape[1] != 2:
         raise ValueError("Please provide a results array only for 2 methods.")
 
     if statistic_tests:
-        fig, ax = plt.subplots(figsize=(10, 6), gridspec_kw=dict(bottom=0.2))
+        fig, ax = plt.subplots(figsize=figsize, gridspec_kw=dict(bottom=0.2))
     else:
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=figsize)
 
     min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
@@ -319,7 +327,7 @@ def plot_scatter(
         y=first,
         hue=differences,
         hue_order=[1, 0, -1] if lower_better else [-1, 0, 1],
-        palette="pastel",
+        palette=palette,
         zorder=2,
     )
 
@@ -328,7 +336,7 @@ def plot_scatter(
         [first_avg, min_value] if not lower_better else [first_avg, max_value],
         [first_avg, first_avg],
         linestyle="--",
-        color="#8de5a1",
+        color=palette[2],
         zorder=3,
     )
 
@@ -336,7 +344,7 @@ def plot_scatter(
         [second_avg, second_avg],
         [second_avg, min_value] if not lower_better else [second_avg, max_value],
         linestyle="--",
-        color="#a1c9f4",
+        color=palette[0],
         zorder=3,
     )
 
@@ -372,7 +380,7 @@ def plot_scatter(
         loc="upper left" if not lower_better else "lower right",
         frameon=True,
         prop=dict(
-            color="#8de5a1",
+            color=palette[2],
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -389,7 +397,7 @@ def plot_scatter(
         loc="lower right" if not lower_better else "upper left",
         frameon=True,
         prop=dict(
-            color="#a1c9f4",
+            color=palette[0],
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -440,6 +448,7 @@ def plot_scatter(
             ),
         )
 
+    fig.tight_layout()
     return fig
 
 
