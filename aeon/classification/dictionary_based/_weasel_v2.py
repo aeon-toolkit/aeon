@@ -213,12 +213,12 @@ class WEASEL_V2(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.clf, "predict_proba", None)
         if callable(m):
-            return self.pipeline_.predict_proba(X)
+            return self.clf.predict_proba(X)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self.pipeline_.predict(X)
+            preds = self._predict(X)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
