@@ -4,18 +4,48 @@ __author__ = ["TonyBagnall", "baraline"]
 
 import numpy as np
 import pytest
+from numba import njit
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.utils.numba.general import (
     combinations_1d,
+    generate_new_default_njit_func,
     get_subsequence,
     get_subsequence_with_mean_std,
     sliding_dot_product,
     sliding_mean_std_one_series,
     z_normalise_series,
+    z_normalize_series_with_mean_std,
 )
 
 DATATYPES = ["int32", "int64", "float32", "float64"]
+
+
+def test_generate_new_default_njit_func():
+    @njit(fastmath=True)
+    def _dummy_func(x, arg1=0.0, arg2=1.0):
+        return x - arg1 + arg2
+
+    _new_dummy_func = generate_new_default_njit_func(_dummy_func, {"arg1": -1.0})
+
+    expected_targetoptions = {"fastmath": True, "nopython": True, "boundscheck": None}
+
+    assert _dummy_func.py_func.__defaults__ == (0.0, 1.0)
+    assert _new_dummy_func.py_func.__defaults__ == (-1.0, 1.0)
+
+    assert _dummy_func.targetoptions == expected_targetoptions
+    assert _new_dummy_func.targetoptions == expected_targetoptions
+
+    assert _dummy_func.__name__ != _new_dummy_func.__name__
+    assert _dummy_func.py_func.__code__ == _new_dummy_func.py_func.__code__
+
+
+@pytest.mark.parametrize("type", DATATYPES)
+def test_z_normalize_series_with_mean_std(type):
+    a = np.array([2, 2, 2], dtype=type)
+    a_expected = np.array([0, 0, 0], dtype=type)
+    a_result = z_normalize_series_with_mean_std(a, a.mean(), a.std())
+    assert_array_equal(a_result, a_expected)
 
 
 @pytest.mark.parametrize("type", DATATYPES)

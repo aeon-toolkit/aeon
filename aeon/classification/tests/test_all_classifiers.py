@@ -199,13 +199,22 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
     def test_classifier_tags_consistent(self, estimator_class):
         """Test the tag X_inner_type is consistent with capability:unequal_length."""
         valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
-        multi = estimator_class.get_class_tag("capability:unequal_length")
-        if multi:  # one of X_inner_types must be capable of storing unequal length
+        unequal = estimator_class.get_class_tag("capability:unequal_length")
+        if unequal:  # one of X_inner_types must be capable of storing unequal length
             internal_types = estimator_class.get_class_tag("X_inner_type")
             if isinstance(internal_types, str):
                 assert internal_types in valid_types
             else:  # must be a list
                 assert bool(set(internal_types) & valid_types)
+        # Test can actually fit/predict with multivariate if tag is set
+        multivariate = estimator_class.get_class_tag("capability:multivariate")
+        if multivariate:
+            X = np.random.random((10, 2, 20))
+            y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+            inst = estimator_class.create_test_instance(parameter_set="default")
+            inst.fit(X, y)
+            inst.predict(X)
+            inst.predict_proba(X)
 
     def test_does_not_override_final_methods(self, estimator_class):
         """Test does not override final methods."""

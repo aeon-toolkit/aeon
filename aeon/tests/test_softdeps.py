@@ -29,18 +29,12 @@ SOFT_DEPENDENCIES = {
     "aeon.benchmarking.experiments": ["tsfresh", "esig"],
     "aeon.classification.deep_learning": ["tensorflow"],
     "aeon.regression.deep_learning": ["tensorflow"],
+    "aeon.clustering.deep_learning": ["tensorflow"],
     "aeon.networks": ["tensorflow"],
     "aeon.clustering.evaluation._plot_clustering": ["matplotlib"],
 }
 
 MODULES_TO_IGNORE = "aeon.utils._testing"
-
-# estimators excepted from checking that they raise no import exception when constructed
-# for the reason that they are composites which have soft dependencies in examples
-# but no soft dependencies themselves, so it's temporarily fine to raise this
-# e.g., forecasting pipeline with an ARIMA estimator
-EXCEPTED_FROM_NO_DEP_CHECK = []
-
 
 # estimators excepted from checking that get_test_params does not import soft deps
 # this is ok, in general, for adapters to soft dependency frameworks
@@ -69,6 +63,18 @@ def _extract_dependency_from_error_msg(msg):
         return match.group(1)
     else:
         raise ValueError("No dependency found in error msg.")
+
+
+def test___extract_dependency_from_error_msg():
+    """Test that _extract_dependency_from_error_msg works."""
+    msg = (
+        "No module named 'tensorflow'. "
+        "Tensorflow is a soft dependency. "
+        "To use tensorflow, please install it separately."
+    )
+    assert _extract_dependency_from_error_msg(msg) == "tensorflow"
+    with pytest.raises(ValueError, match="No dependency found in error msg"):
+        _extract_dependency_from_error_msg("No dependency.")
 
 
 # collect all modules
@@ -134,6 +140,13 @@ def _coerce_list_of_str(obj):
         return obj
 
 
+def test__coerce_list_of_str():
+    """Test that _coerce_list_of_str works."""
+    assert _coerce_list_of_str(None) == []
+    assert _coerce_list_of_str("a") == ["a"]
+    assert _coerce_list_of_str(["a"]) == ["a"]
+
+
 def _get_soft_deps(est):
     """Return soft dependencies of an estimator, as list of str."""
     softdeps = est.get_class_tag("python_dependencies", None)
@@ -156,6 +169,14 @@ def _is_in_env(modules):
         return True
     except ModuleNotFoundError:
         return False
+
+
+def soft_deps_installed(estimator):
+    """Return whether soft dependencies of an estimator are installed in env."""
+    softdeps = _get_soft_deps(estimator)
+    if _is_in_env(softdeps):
+        return True
+    return False
 
 
 # all estimators - exclude estimators on the global exclusion list
@@ -277,11 +298,6 @@ def test_est_get_params_without_modulenotfound(estimator):
 @pytest.mark.parametrize("estimator", est_pyok_without_soft_dep)
 def test_est_construct_without_modulenotfound(estimator):
     """Test that estimators that do not require soft dependencies construct properly."""
-    # skip composite estimators that have no soft dependencies
-    #   but which have soft dependencies in example components
-    if estimator.__name__ in EXCEPTED_FROM_NO_DEP_CHECK:
-        return None
-
     try:
         estimator.create_test_instance()
     except ModuleNotFoundError as e:
@@ -298,11 +314,6 @@ def test_est_construct_without_modulenotfound(estimator):
 @pytest.mark.parametrize("estimator", est_pyok_without_soft_dep)
 def test_est_fit_without_modulenotfound(estimator):
     """Test that estimators that do not require soft dependencies fit properly."""
-    # skip composite estimators that have no soft dependencies
-    #   but which have soft dependencies in example components
-    if estimator.__name__ in EXCEPTED_FROM_NO_DEP_CHECK:
-        return None
-
     try:
         scenarios = retrieve_scenarios(estimator)
         if len(scenarios) == 0:
