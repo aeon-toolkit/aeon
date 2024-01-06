@@ -285,6 +285,12 @@ def write_to_arff_file(
             f"n_channels, n_timepoints) if possible."
         )
 
+    if len(X.shape) != 3 or X.shape[1] != 1:
+        raise ValueError(
+            f"X must be a 3D array with shape (n_cases, 1, n_timepoints), but "
+            f"received {X.shape}"
+        )
+
     file = open(f"{path}/{problem_name}{suffix}.arff", "w")
 
     # write comment if any as a block at start of file
@@ -296,7 +302,7 @@ def write_to_arff_file(
     file.write(f"@Relation {problem_name}\n")
 
     # write each attribute
-    for i in range(X.shape[1]):
+    for i in range(X.shape[2]):
         file.write(f"@attribute att{str(i)} numeric\n")
 
     # lass attribute if it exists
