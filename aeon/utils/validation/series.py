@@ -23,6 +23,32 @@ assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 
 
+def get_index_for_series(obj, cutoff=0):
+    """Get pandas index for a Series object.
+
+    Returns index even for numpy array, in that case a RangeIndex.
+
+    Assumptions on obj are not checked, these should be validated separately.
+    Function may return unexpected results without prior validation.
+
+    Parameters
+    ----------
+    obj : aeon data container
+        must be of one of the following mtypes:
+            pd.Series, pd.DataFrame, np.ndarray, of Series scitype
+    cutoff : int, or pd.datetime, optional, default=0
+        current cutoff, used to offset index if obj is np.ndarray
+
+    Returns
+    -------
+    index : pandas.Index, index for obj
+    """
+    if hasattr(obj, "index"):
+        return obj.index
+    # now we know the object must be an np.ndarray
+    return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
+
+
 def is_integer_index(x) -> bool:
     """Check that the input is an integer pd.Index."""
     return isinstance(x, pd.Index) and is_integer_dtype(x)
@@ -254,9 +280,6 @@ def check_equal_time_index(*ys, mode="equal"):
             such that ys[i].index is not contained in ys[o].index
         np.ndarray are considered having (pandas) integer range index on axis 0
     """
-    from aeon.datatypes._utilities import get_index_for_series
-
-    # None entries are ignored
     y_not_None = [y for y in ys if y is not None]
 
     # if there is no or just one element, there is nothing to compare

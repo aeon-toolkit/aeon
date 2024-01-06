@@ -3,10 +3,9 @@
 __author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
 
 import math
+import warnings
 
 import numpy as np
-
-# import pandas as pd
 from scipy.stats import distributions, find_repeats, rankdata, wilcoxon
 
 from aeon.benchmarking.utils import get_qalpha
@@ -89,7 +88,7 @@ def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     return cliques
 
 
-def _wilcoxon_test(results, lower_better=False):
+def _wilcoxon_test(results, labels, lower_better=False):
     """
     Perform Wilcoxon test.
 
@@ -113,13 +112,22 @@ def _wilcoxon_test(results, lower_better=False):
 
     for i in range(n_estimators - 1):
         for j in range(i + 1, n_estimators):
-            p_values[i, j] = wilcoxon(
-                results[:, i],
-                results[:, j],
-                zero_method="wilcox",
-                alternative="less" if lower_better else "greater",
-            )[1]
-
+            # if the difference is zero, the p-value is 1
+            if np.all(results[:, i] == results[:, j]):
+                p_values[i, j] = 1
+                # raise warning
+                warnings.warn(
+                    f"Estimators {labels[i]} and {labels[j]} have the same performance"
+                    "on all datasets. This may cause problems when forming cliques.",
+                    stacklevel=2,
+                )
+            else:
+                p_values[i, j] = wilcoxon(
+                    results[:, i],
+                    results[:, j],
+                    zero_method="wilcox",
+                    alternative="less" if lower_better else "greater",
+                )[1]
     return p_values
 
 
@@ -351,12 +359,13 @@ def plot_critical_difference(
                 adjusted_alpha = alpha
             else:
                 raise ValueError("correction available are None, Bonferroni and Holm.")
-            p_values = _wilcoxon_test(ordered_scores, lower_better)
+            p_values = _wilcoxon_test(ordered_scores, ordered_labels, lower_better)
             cliques = _build_cliques(p_values > adjusted_alpha)
         else:
             raise ValueError("tests available are only nemenyi and wilcoxon.")
     # If Friedman test is not significant everything has to be one clique
     else:
+        p_values = np.triu(np.ones((n_estimators, n_estimators)))
         cliques = [[1] * n_estimators]
 
     # Step 6 create the diagram:
@@ -442,7 +451,7 @@ def plot_critical_difference(
             str(a),
             ha="center",
             va="bottom",
-            size=16,
+            size=11,
         )
 
     # sort out lines and text based on whether order is reversed or not
