@@ -508,10 +508,6 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         super(FeatureUnion, self).__init__()
 
-        # todo: check for transform-input, transform-output
-        #   for now, we assume it's always Series/Series or Series/Panel
-        #   but no error is currently raised
-
         # abbreviate for readability
         ests = self.transformer_list_
 

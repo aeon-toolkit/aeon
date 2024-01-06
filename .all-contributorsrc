@@ -2237,6 +2237,17 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "frankl1",
+      "name": "Michael F. Mbouopda",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23366578?s=96&v=4",
+      "profile": "https://github.com/frankl1",
+      "contributions": [
+        "code",
+        "bug",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
