@@ -68,6 +68,14 @@ class WEASEL_V2(BaseClassifier):
         If the array contains True, words are computed over first order differences.
         If the array contains False, words are computed over the raw time series.
         If both are set, words are computed for both.
+    support_probabilities : bool, default = False
+         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
+         and is faster, yet does not support predict_proba.
+         If set to True, a LogisticRegression will be trained, which does support
+         predict_proba(), yet is slower and typically less accurate. predict_proba() is
+         needed for example in Early-Classification like TEASER.
+
+         Deprecated and will be removed in v0.6.2.
     feature_selection : str, default = "chi2_top_k"
         Sets the feature selections strategy to be used. Options from {"chi2_top_k",
         "none", "random"}. Large amounts of memory may be needed depending on the
@@ -126,6 +134,7 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
+        support_probabilities=False,
         n_jobs=4,
     ):
         self.norm_options = norm_options
@@ -141,6 +150,9 @@ class WEASEL_V2(BaseClassifier):
 
         self.clf = None
         self.n_jobs = n_jobs
+
+        # TODO remove 'y' in v0.6.2
+        self.support_probabilities = support_probabilities
 
         super(WEASEL_V2, self).__init__()
 
@@ -217,11 +229,14 @@ class WEASEL_V2(BaseClassifier):
         if callable(m):
             return self.clf.predict_proba(X)
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._predict(X)
-            for i in range(0, X.shape[0]):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
-            return dists
+            return super()._predict_proba(X)
+
+            # dists = np.zeros((X.shape[0], self.n_classes_))
+            # preds = self._predict(X)
+            # for i in range(0, X.shape[0]):
+            #    dists[i, np.where(self.classes_ == preds[i])] = 1
+            # assert np.all(dists == dists2)
+            # return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
