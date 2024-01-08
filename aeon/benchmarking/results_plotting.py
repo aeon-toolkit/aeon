@@ -9,6 +9,8 @@ __all__ = [
 
 __author__ = ["dguijo"]
 
+import warnings
+
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -415,22 +417,34 @@ def plot_scatter(
 
     # Adding p-value if desired.
     if statistic_tests:
-        from scipy.stats import ttest_rel, wilcoxon
+        if np.all(results[:, 0] == results[:, 1]):
+            # raise warning
+            warnings.warn(
+                f"Estimators {method_A} and {method_B} have the same performance"
+                "on all datasets. This may cause problems when forming cliques.",
+                stacklevel=2,
+            )
 
-        p_value_t = ttest_rel(
-            first,
-            second,
-            alternative="less" if lower_better else "greater",
-        )[1]
+            p_value_t = 1
+            p_value_w = 1
+
+        else:
+            from scipy.stats import ttest_rel, wilcoxon
+
+            p_value_t = ttest_rel(
+                first,
+                second,
+                alternative="less" if lower_better else "greater",
+            )[1]
+
+            p_value_w = wilcoxon(
+                first,
+                second,
+                zero_method="wilcox",
+                alternative="less" if lower_better else "greater",
+            )[1]
+
         ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
-
-        p_value_w = wilcoxon(
-            first,
-            second,
-            zero_method="wilcox",
-            alternative="less" if lower_better else "greater",
-        )[1]
-
         wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
