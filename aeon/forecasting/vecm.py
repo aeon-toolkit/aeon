@@ -14,7 +14,7 @@ class VECM(_StatsModelsAdapter):
     r"""
     A VECM model, or Vector Error Correction Model, is a restricted.
 
-    VAR model used for nonstationary series that are cointegrated.r
+    VAR model used for nonstationary series that are cointegrated.
 
     Parameters
     ----------
