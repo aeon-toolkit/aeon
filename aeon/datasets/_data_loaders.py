@@ -31,6 +31,7 @@ __all__ = [  # Load functions
     "load_forecasting",
     "load_regression",
     "download_all_regression",
+    "get_meta_data",
 ]
 
 
@@ -1198,3 +1199,75 @@ def download_all_regression(extract_path=None):
                 f"Unable to download {file_save} from {url}",
             )
     zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+
+
+PROBLEM_TYPES = [
+    "AUDIO",
+    "DEVICE",
+    "ECG",
+    "EEG",
+    "EMG",
+    "EOG",
+    "EPG",
+    "FINANCIAL",
+    "HAR",
+    "HEMODYNAMICS",
+    "IMAGE",
+    "MEG",
+    "MOTION",
+    "OTHER",
+    "SENSOR",
+    "SIMULATED",
+    "SPECTRO",
+]
+
+
+def get_meta_data(
+    data_names=None,
+    features=None,
+    url="https://timeseriesclassification.com/aeon-toolkit/metadata.csv",
+):
+    """Retrieve dataset meta data from timeseriesclassification.com.
+
+    Metadata includes the following information for each dataset:
+    - Dataset: name of the problem, set the lists in tsc_data_lists for valid names.
+    - TrainSize: number of series in the default train set.
+    - TestSize:	number of series in the default train set.
+    - Length: length of the series. If the series are not all the same length,
+        this is set to 0.
+    - NumberClasses: number of classes in the problem.
+    - Type: nature of the problem, one of PROBLEM_TYPES
+    - Channels: number of channels. If univariate, this is 1.
+
+
+    Parameters
+    ----------
+    data_names : list, default=None
+        List of dataset names to retrieve meta data for. If None, all datasets are
+        retrieved.
+    features : String or List, default=None
+        List of features to retrieve meta data for. Should be a subset of features
+        listed above. Dataset field is always returned.
+    url : String
+        default = "https://timeseriesclassification.com/aeon-toolkit/metadata.csv"
+        Location of the csv metadata file.
+
+    Returns
+    -------
+     Pandas dataframe containing meta data for each dataset.
+    """
+    if isinstance(features, str):
+        features = [features]
+    try:
+        if features is None:
+            df = pd.read_csv(url)
+        else:
+            features.append("Dataset")
+            df = pd.read_csv(url, usecols=features)
+        if data_names is not None:
+            df = df[df["Dataset"].isin(data_names)]
+        return df
+    except Exception as e:
+        raise ValueError(
+            f"Unable to access website {url} to retrieve meta data",
+        ) from e
