@@ -151,7 +151,7 @@ class WEASEL_V2(BaseClassifier):
         self.clf = None
         self.n_jobs = n_jobs
 
-        # TODO remove 'y' in v0.6.2
+        # TODO remove 'support_probabilities' in v0.6.2
         self.support_probabilities = support_probabilities
 
         super(WEASEL_V2, self).__init__()
