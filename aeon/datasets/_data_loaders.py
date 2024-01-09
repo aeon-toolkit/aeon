@@ -1081,6 +1081,12 @@ def load_regression(
     else:
         local_module = MODULE
         local_dirname = "data"
+    error_str = (
+        f"File name {name} is not in the list of valid files to download,"
+        f"see aeon.datasets.tser_data_lists.tser_soton for the list. "
+        f"If it is one tsc.com but not on the list, it means it may not "
+        f"have been fully validated. Download it from the website."
+    )
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
@@ -1091,38 +1097,37 @@ def load_regression(
             if not os.path.exists(os.path.join(local_module, local_dirname)):
                 os.makedirs(os.path.join(local_module, local_dirname))
         else:
-            raise ValueError(
-                f"File name {name} is not in the list of valid files to download"
-            )
+            raise ValueError(error_str)
         if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            if name in tser_monash.keys():
-                id = tser_monash[name]
-            else:
-                raise ValueError(
-                    f"File name {name} is not in the list of valid files to download"
-                )
-            # Dataset is not already present in the datasets directory provided.
-            # If it is not there, download and install it.
-            url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
-            url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-            if not os.path.exists(f"{local_module}/{local_dirname}/{name}"):
-                os.makedirs(f"{local_module}/{local_dirname}/{name}")
-
-            train_save = f"{local_module}/{local_dirname}/{name}/{name}_TRAIN.ts"
-            test_save = f"{local_module}/{local_dirname}/{name}/{name}_TEST.ts"
+            # Check if on timeseriesclassification.com
+            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+            # This also tests the validitiy of the URL, can't rely on the html
             try:
-                urllib.request.urlretrieve(url_train, train_save)
-                urllib.request.urlretrieve(url_test, test_save)
-            except Exception:
-                raise ValueError(
-                    f"Invalid dataset name ={name} one or both of TRAIN and TEST is "
-                    f"not available on path ={local_module}/{local_dirname}/{name}.\n "
-                    f"Nor is it available on tseregression.org via path {url_train} "
-                    f"or {url_test}"
+                _download_and_extract(
+                    url,
+                    extract_path=extract_path,
                 )
-    #            zipfile.ZipFile(file_save, "r").extractall(f"{extract_path}/{name}/")
+            except zipfile.BadZipFile:
+                # Try on monash
+                if name in tser_monash.keys():
+                    id = tser_monash[name]
+                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
+                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
+                    if not os.path.exists(f"{local_module}/{local_dirname}/{name}"):
+                        os.makedirs(f"{local_module}/{local_dirname}/{name}")
+
+                    train_save = (
+                        f"{local_module}/{local_dirname}/{name}/{name}_TRAIN.ts"
+                    )
+                    test_save = f"{local_module}/{local_dirname}/{name}/{name}_TEST.ts"
+                    try:
+                        urllib.request.urlretrieve(url_train, train_save)
+                        urllib.request.urlretrieve(url_test, test_save)
+                    except Exception:
+                        raise ValueError(error_str)
+
     return _load_saved_dataset(
         name=name,
         split=split,
