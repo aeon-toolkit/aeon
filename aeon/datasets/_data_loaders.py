@@ -989,8 +989,8 @@ def load_regression(
     split=None,
     extract_path=None,
     return_metadata=False,
-    load_equal_length=False,
-    load_no_missing=False,
+    load_equal_length=True,
+    load_no_missing=True,
 ):
     """Download/load regression problem.
 
@@ -1003,40 +1003,50 @@ def load_regression(
     If you want to load a file directly from a full path, use the function
     `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
     problem is not present in ``extract_path`` it will attempt to download the data
-    from http://tseregression.org/.
+    from https://timeseriesclassification.com or, if that fails,
+    http://tseregression.org/.
 
     The list of problems this function can download from the website is in
-    ``datasets/tser_lists.py``.  This function can load timestamped data, but it does
-    not store the time stamps. The time stamp loading is fragile, it will only work
-    if all data are floats.
+    ``datasets/tser_lists.py`` called ``tser_soton``. This function can load timestamped
+    data, but it does not store the time stamps. The time stamp loading is fragile,
+    it will only work if all data are floats.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
     multivariate) time series. Each dimension is separated by a colon, each value in
-    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
-    is an example of a univariate equal length problem, BasicMotions an equal length
-    multivariate problem.
+    a series is comma separated. For an example TSER problem see
+    aeon.datasets.data.Covid3Month. Some of the original problems are unequal length
+    and have missing values. By default, this function loads equal length no
+    missing value versions of the files that have been used in experimental studies.
+    These have suffixes `_eq` or `_nmv` after the name.
+    If you want to load a different version, set the flags load_equal_length and/or
+    load_no_missing to true. If present, the function will then load these versions
+    if it can. aeon supports loading series with missing values and or unequal
+    length between series, but it does not support loading multivariate series where
+    lengths differ between channels. The original PGDALIA is in this format. The data
+    PGDALIA_eq has length normalised series.
 
 
     Parameters
     ----------
-    name : string, file name to load from
-    extract_path : optional (default = None)
-        Path of the location for the data file. If none, data is written to
-        os.path.dirname(__file__)/data/<name>/
+    name : string
+        Name of the problem to load or download.
+    extract_path : None or str, default = None
+        Path of the location for the data file. If None, data is written to
+        os.path.dirname(__file__)/local_data/<name>/.
     split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
         loads both into a single dataset, otherwise it looks only for files of the
         format <name>_TRAIN.ts or <name>_TEST.ts.
-    return_metadata : boolean, default = True
+    return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata)
-    load_equal_length : boolean, default=False
+    load_equal_length : boolean, default=True
         This is for the case when the standard release has unequal length series. The
         downloaded zip for these contain a version made equal length through
         truncation. These versions all have the suffix _eq after the name. If this
         flag is set to True, the function first attempts to load files called
         <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
-    load_no_missing : boolean, default=False
+    load_no_missing : boolean, default=True
         This is for the case when the standard release has missing values. The
         downloaded zip for these contain a version with imputed missing values. These
         versions all have the suffix _nmv after the name. If this
@@ -1046,7 +1056,7 @@ def load_regression(
 
     Raises
     ------
-    Raise ValueException if the requested return type is not supported
+    Raise ValueException if the requested return type is not supported.
 
     Returns
     -------
@@ -1063,7 +1073,7 @@ def load_regression(
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
-    from aeon.datasets.tser_data_lists import tser_all
+    from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 
     if extract_path is not None:
         local_module = extract_path
@@ -1075,8 +1085,7 @@ def load_regression(
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     if name not in list_downloaded_tsc_tsr_datasets(extract_path):
-        if name in tser_all.keys():
-            id = tser_all[name]
+        if name in tser_soton:
             if extract_path is None:
                 local_dirname = "local_data"
             if not os.path.exists(os.path.join(local_module, local_dirname)):
@@ -1088,8 +1097,8 @@ def load_regression(
         if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            if name in tser_all.keys():
-                id = tser_all[name]
+            if name in tser_monash.keys():
+                id = tser_monash[name]
             else:
                 raise ValueError(
                     f"File name {name} is not in the list of valid files to download"

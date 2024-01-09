@@ -1,7 +1,7 @@
 """Datasets in the Monash tser data archives."""
 
 
-tser_all = {
+tser_monash = {
     "AppliancesEnergy": 3902637,
     "HouseholdPowerConsumption1": 3902704,
     "HouseholdPowerConsumption2": 3902706,
@@ -24,7 +24,7 @@ tser_all = {
     "Covid3Month": 3902690,
 }
 
-tser_new = {
+tser_soton = {
     "AcousticContaminationMadrid",
     "AluminiumConcentration",
     "AppliancesEnergy",
