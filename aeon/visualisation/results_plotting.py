@@ -9,6 +9,8 @@ __all__ = [
 
 __author__ = ["dguijo"]
 
+import warnings
+
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -225,6 +227,8 @@ def plot_scatter(
     lower_better=False,
     statistic_tests=True,
     title=None,
+    figsize=(10, 6),
+    color_palette="tab10",
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -244,6 +248,10 @@ def plot_scatter(
         If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
     title : str, default = None
         Title to be shown in the top of the plot.
+    figsize : tuple, default = (10, 6)
+        Size of the figure.
+    color_palette : str, default = "tab10"
+        Color palette to be used for the plot.
 
     Returns
     -------
@@ -265,13 +273,15 @@ def plot_scatter(
     import seaborn as sns
     from matplotlib.offsetbox import AnchoredText
 
+    palette = sns.color_palette(color_palette, n_colors=3)
+
     if results.shape[1] != 2:
         raise ValueError("Please provide a results array only for 2 methods.")
 
     if statistic_tests:
-        fig, ax = plt.subplots(figsize=(10, 6), gridspec_kw=dict(bottom=0.2))
+        fig, ax = plt.subplots(figsize=figsize, gridspec_kw=dict(bottom=0.2))
     else:
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=figsize)
 
     min_value = max(results.min() * 0.97, 0)
     max_value = results.max() * 1.03
@@ -319,7 +329,7 @@ def plot_scatter(
         y=first,
         hue=differences,
         hue_order=[1, 0, -1] if lower_better else [-1, 0, 1],
-        palette="pastel",
+        palette=palette,
         zorder=2,
     )
 
@@ -328,7 +338,7 @@ def plot_scatter(
         [first_avg, min_value] if not lower_better else [first_avg, max_value],
         [first_avg, first_avg],
         linestyle="--",
-        color="#8de5a1",
+        color=palette[2],
         zorder=3,
     )
 
@@ -336,7 +346,7 @@ def plot_scatter(
         [second_avg, second_avg],
         [second_avg, min_value] if not lower_better else [second_avg, max_value],
         linestyle="--",
-        color="#a1c9f4",
+        color=palette[0],
         zorder=3,
     )
 
@@ -352,8 +362,8 @@ def plot_scatter(
         ax.spines["right"].set_visible(True)
 
     # Setting labels for x and y axis
-    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})")
-    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})")
+    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})", fontsize=13)
+    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})", fontsize=13)
 
     wins_A = losses_B = sum(i == 1 for i in differences)
     ties_A = ties_B = sum(i == 0 for i in differences)
@@ -372,7 +382,7 @@ def plot_scatter(
         loc="upper left" if not lower_better else "lower right",
         frameon=True,
         prop=dict(
-            color="#8de5a1",
+            color=palette[2],
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -389,7 +399,7 @@ def plot_scatter(
         loc="lower right" if not lower_better else "upper left",
         frameon=True,
         prop=dict(
-            color="#a1c9f4",
+            color=palette[0],
             fontweight="bold",
             fontsize=13,
             ha="center",
@@ -407,22 +417,34 @@ def plot_scatter(
 
     # Adding p-value if desired.
     if statistic_tests:
-        from scipy.stats import ttest_rel, wilcoxon
+        if np.all(results[:, 0] == results[:, 1]):
+            # raise warning
+            warnings.warn(
+                f"Estimators {method_A} and {method_B} have the same performance"
+                "on all datasets. This may cause problems when forming cliques.",
+                stacklevel=2,
+            )
 
-        p_value_t = ttest_rel(
-            first,
-            second,
-            alternative="less" if lower_better else "greater",
-        )[1]
+            p_value_t = 1
+            p_value_w = 1
+
+        else:
+            from scipy.stats import ttest_rel, wilcoxon
+
+            p_value_t = ttest_rel(
+                first,
+                second,
+                alternative="less" if lower_better else "greater",
+            )[1]
+
+            p_value_w = wilcoxon(
+                first,
+                second,
+                zero_method="wilcox",
+                alternative="less" if lower_better else "greater",
+            )[1]
+
         ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
-
-        p_value_w = wilcoxon(
-            first,
-            second,
-            zero_method="wilcox",
-            alternative="less" if lower_better else "greater",
-        )[1]
-
         wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
@@ -440,6 +462,7 @@ def plot_scatter(
             ),
         )
 
+    fig.tight_layout()
     return fig
 
 
