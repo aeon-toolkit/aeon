@@ -89,3 +89,19 @@ tser_soton = {
     "WindTurbinePower",
     "ZincConcentration",
 }
+
+tser_soton_unequal_length = {
+    "ParkingBirmingham",
+    "PPGDalia",
+}
+tser_soton_missing_values = {
+    "AcousticContaminationMadrid",
+    "BeijingIntAirportPM10Quality",
+    "BeijingIntAirportPM25Quality",
+    "BenzeneConcentration",
+    "HouseholdPowerConsumption1",
+    "HouseholdPowerConsumption2",
+    "MadridPM10Quality",
+    "PrecipitationAndalusia",
+    "SolarRadiationAndalusia",
+}
