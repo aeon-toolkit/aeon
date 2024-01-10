@@ -274,13 +274,13 @@ def load_from_tsfile(
 
 def _load_saved_dataset(
     name,
-    dir_name=None,
     split=None,
     return_X_y=True,
     return_type=None,
     local_module=MODULE,
     local_dirname=DIRNAME,
     return_meta=False,
+    dir_name=None,
 ):
     """Load baked in time series classification datasets (helper function).
 
@@ -288,20 +288,28 @@ def _load_saved_dataset(
 
     Parameters
     ----------
-    name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    name : str
+        Base problem file name.
+    split: None or {"TRAIN", "TEST"}, default=None
         Whether to load the train or test instances of the problem.
-        By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for features and the target.
-    return_data_type : str, optional, default = None
-        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        By default it loads both train and test instances into a single data structure.
+    return_X_y: bool, default=True
+        If True, returns (time series, target) separately. If False it returns (X,
+        y) as a tuple.
+    return_data_type : str, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series, "np-list"
+        for unequal length series that cannot be stored in numpy arrays.
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
-        numpy2d. If None will load 3D numpy or list of numpy
+        numpy2d. If None will load 3D numpy or list of numpy.
     local_module: default = os.path.dirname(__file__),
-    local_dirname: default = "data"
+    local_dirname: str, default = "data"
+    return_meta: bool, default = False
+        Dictionary of characteristics "problemname" (string), booleans: "timestamps",
+        "missing", "univariate", "equallength", "classlabel", "targetlabel" and
+        "class_values": [].
+    dir_name: str, default = None
+        Directory in local_dirname containing the problem file. If None, dir_name = name
 
     Raises
     ------
@@ -314,6 +322,7 @@ def _load_saved_dataset(
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
+    meta: meta data dictionary, only returned if return_meta is True
     """
     if isinstance(split, str):
         split = split.upper()
