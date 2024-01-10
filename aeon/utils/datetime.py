@@ -12,8 +12,57 @@ import pandas as pd
 from pandas.api.types import is_integer_dtype
 
 from aeon.datatypes import VectorizedDF
-from aeon.datatypes._utilities import get_time_index
 from aeon.utils.validation.series import check_time_index, is_integer_index
+
+
+def _get_index(x):
+    if hasattr(x, "index"):
+        return x.index
+    else:
+        # select last dimension for time index
+        return pd.RangeIndex(x.shape[-1])
+
+
+def get_time_index(X):
+    """Get index of time series data, helper function.
+
+    Parameters
+    ----------
+    X : pd.DataFrame, pd.Series, np.ndarray
+
+    Returns
+    -------
+    time_index : pandas.Index
+        Index of time series
+    """
+    # assumes that all samples share the same the time index, only looks at
+    # first row
+    if isinstance(X, (pd.DataFrame, pd.Series)):
+        # pd-multiindex or pd_multiindex_hier
+        if isinstance(X.index, pd.MultiIndex):
+            index_tuple = tuple(list(X.index[0])[:-1])
+            index = X.loc[index_tuple].index
+            return index
+        # nested_univ
+        elif isinstance(X, pd.DataFrame) and isinstance(X.iloc[0, 0], pd.DataFrame):
+            return _get_index(X.iloc[0, 0])
+        # pd.Series or pd.DataFrame
+        else:
+            return X.index
+    # numpy3D and np.ndarray
+    elif isinstance(X, np.ndarray):
+        # np.ndarray
+        if X.ndim < 3:
+            return pd.RangeIndex(X.shape[0])
+        # numpy3D
+        else:
+            return pd.RangeIndex(X.shape[-1])
+    elif hasattr(X, "X"):
+        return get_time_index(X.X)
+    else:
+        raise ValueError(
+            f"X must be pd.DataFrame, pd.Series, or np.ndarray, but found: {type(X)}"
+        )
 
 
 def _coerce_duration_to_int(

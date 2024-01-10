@@ -14,6 +14,7 @@ __all__ = [
     "is_equal_length",
     "has_missing",
     "is_univariate",
+    "is_nested_univ_dataframe",
 ]
 __author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
@@ -24,6 +25,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
+from aeon.utils.validation._convert_collection import is_nested_univ_dataframe
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_type,
