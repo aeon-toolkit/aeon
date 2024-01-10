@@ -16,6 +16,7 @@ from aeon.datasets.dataset_collections import (
     list_downloaded_tsc_tsr_datasets,
     list_downloaded_tsf_datasets,
 )
+from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 from aeon.utils.validation.collection import convert_collection
 
 DIRNAME = "data"
@@ -273,6 +274,7 @@ def load_from_tsfile(
 
 def _load_saved_dataset(
     name,
+    dir_name=None,
     split=None,
     return_X_y=True,
     return_type=None,
@@ -318,19 +320,20 @@ def _load_saved_dataset(
     # This is also called in load_from_tsfile, but we need the value here and it
     # is required in load_from_tsfile since it is public
     return_type = _alias_datatype_check(return_type)
-
+    if dir_name is None:
+        dir_name = name
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
@@ -1023,7 +1026,10 @@ def load_regression(
     if it can. aeon supports loading series with missing values and or unequal
     length between series, but it does not support loading multivariate series where
     lengths differ between channels. The original PGDALIA is in this format. The data
-    PGDALIA_eq has length normalised series.
+    PGDALIA_eq has length normalised series. If a problem has unequal length series
+    and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
+    <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
+    missing and unequal length.
 
 
     Parameters
@@ -1073,8 +1079,6 @@ def load_regression(
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
-    from aeon.datasets.tser_data_lists import tser_monash, tser_soton
-
     if extract_path is not None:
         local_module = extract_path
         local_dirname = ""
@@ -1087,7 +1091,6 @@ def load_regression(
         f"If it is one tsc.com but not on the list, it means it may not "
         f"have been fully validated. Download it from the website."
     )
-
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     if name not in list_downloaded_tsc_tsr_datasets(extract_path):
@@ -1127,9 +1130,23 @@ def load_regression(
                         urllib.request.urlretrieve(url_test, test_save)
                     except Exception:
                         raise ValueError(error_str)
+    # Test for non missing or equal length versions
+    dir_name = name
+    if load_equal_length:
+        # If there exists a version with equal length, load that
+        train = os.path.join(extract_path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(extract_path, f"{name}/{name}_eq_TRAIN.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_eq"
+    if load_no_missing:
+        train = os.path.join(extract_path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(extract_path, f"{name}/{name}_nmv_TRAIN.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_nmv"
 
     return _load_saved_dataset(
         name=name,
+        dir_name=dir_name,
         split=split,
         local_module=local_module,
         local_dirname=local_dirname,
