@@ -321,8 +321,8 @@ def plot_scatter(
         zip(*sorted(zip(differences, first, second), key=lambda x: -abs(x[0]))),
     )
 
-    first_avg = first.mean()
-    second_avg = second.mean()
+    first_median = np.median(first)
+    second_median = np.median(second)
 
     plot = sns.scatterplot(
         x=second,
@@ -333,22 +333,31 @@ def plot_scatter(
         zorder=2,
     )
 
-    # Draw the average value per method as a dashed line from 0 to the mean value.
+    # Draw the median value per method as a dashed line from 0 to the median value.
     plt.plot(
-        [first_avg, min_value] if not lower_better else [first_avg, max_value],
-        [first_avg, first_avg],
+        [first_median, min_value] if not lower_better else [first_median, max_value],
+        [first_median, first_median],
         linestyle="--",
         color=palette[2],
         zorder=3,
     )
 
     plt.plot(
-        [second_avg, second_avg],
-        [second_avg, min_value] if not lower_better else [second_avg, max_value],
+        [second_median, second_median],
+        [second_median, min_value] if not lower_better else [second_median, max_value],
         linestyle="--",
         color=palette[0],
         zorder=3,
     )
+
+    legend_median = AnchoredText(
+        "*Dashed lines represent the median",
+        loc="lower right" if lower_better else "upper right",
+        prop=dict(size=8),
+        bbox_to_anchor=(1.01, 1.07 if lower_better else -0.07),
+        bbox_transform=ax.transAxes,
+    )
+    ax.add_artist(legend_median)
 
     # Compute the W, T, and L per methods
     if lower_better:
@@ -362,8 +371,10 @@ def plot_scatter(
         ax.spines["right"].set_visible(True)
 
     # Setting labels for x and y axis
-    plot.set_ylabel(f"{first_method} {metric}\n(avg.: {first_avg:.4f})", fontsize=13)
-    plot.set_xlabel(f"{second_method} {metric}\n(avg.: {second_avg:.4f})", fontsize=13)
+    plot.set_ylabel(f"{first_method} {metric}\n(mean: {first.mean():.4f})", fontsize=13)
+    plot.set_xlabel(
+        f"{second_method} {metric}\n(mean: {second.mean():.4f})", fontsize=13
+    )
 
     wins_A = losses_B = sum(i == 1 for i in differences)
     ties_A = ties_B = sum(i == 0 for i in differences)

@@ -37,7 +37,7 @@ import os
 
 import aeon
 from aeon.datasets.tsc_data_lists import multivariate, univariate
-from aeon.datasets.tser_data_lists import tser_all
+from aeon.datasets.tser_data_lists import tser_monash
 from aeon.datasets.tsf_data_lists import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
@@ -46,8 +46,8 @@ MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 def list_available_tser_datasets(name=None):
     """List available tser data."""
     if name is None:  # List them all
-        return sorted(list(tser_all))
-    if name in tser_all:
+        return sorted(list(tser_monash))
+    if name in tser_monash:
         return True
     return False
 
