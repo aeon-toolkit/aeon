@@ -16,7 +16,7 @@ VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 VALID_RESULT_MEASURES = {
     "classification": ["accuracy", "auroc", "balancedaccuracy", "nll"],
-    "clustering": ["ami", "ari", "mi", "nmi", "ri"],
+    "clustering": ["accuracy", "ami", "ari", "mi", "nmi", "ri"],
     "regression": ["mse", "mae", "r2", "mape", "rmse"],
 }
 
