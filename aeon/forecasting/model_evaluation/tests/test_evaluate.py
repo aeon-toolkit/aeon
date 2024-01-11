@@ -28,8 +28,8 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests import TEST_FHS, TEST_STEP_LENGTHS_INT
 from aeon.performance_metrics.forecasting import (
-    MeanAbsolutePercentageError,
-    MeanAbsoluteScaledError,
+    mean_absolute_percentage_error,
+    mean_absolute_scaled_error,
 )
 from aeon.tests.test_all_estimators import PR_TESTING
 from aeon.utils._testing.forecasting import make_forecasting_problem
@@ -39,13 +39,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 if PR_TESTING:
     BACKENDS = [None]
     CV = [SlidingWindowSplitter]
-    SCORING = [MeanAbsolutePercentageError(symmetric=True)]
+    SCORING = [mean_absolute_percentage_error]
     LENGTHS = [7]
     STRAT = ["update"]
 else:
     BACKENDS = [None, "dask", "loky", "threading"]
     CV = [SlidingWindowSplitter, ExpandingWindowSplitter]
-    SCORING = [MeanAbsolutePercentageError(symmetric=True), MeanAbsoluteScaledError()]
+    SCORING = [mean_absolute_percentage_error, mean_absolute_scaled_error]
     LENGTHS = [7, 10]
     STRAT = ["refit", "update"]
 
@@ -59,7 +59,7 @@ def _check_evaluate_output(out, cv, y, scoring):
         "fit_time",
         "len_train_window",
         "pred_time",
-        f"test_{scoring.name}",
+        f"test_{scoring.__name__}",
     }
 
     # Check number of rows against number of splits.
@@ -125,7 +125,7 @@ def test_evaluate_common_configs(
     _check_evaluate_output(out, cv, y, scoring)
 
     # check scoring
-    actual = out.loc[:, f"test_{scoring.name}"]
+    actual = out.loc[:, f"test_{scoring.__name__}"]
 
     n_splits = cv.get_n_splits(y)
     expected = np.empty(n_splits)
@@ -148,13 +148,13 @@ def test_scoring_list(return_data):
         y=y,
         cv=cv,
         scoring=[
-            MeanAbsolutePercentageError(symmetric=True),
-            MeanAbsoluteScaledError(),
+            mean_absolute_percentage_error,
+            mean_absolute_scaled_error,
         ],
         return_data=return_data,
     )
-    assert "test_MeanAbsolutePercentageError" in out.columns
-    assert "test_MeanAbsoluteScaledError" in out.columns
+    assert "test_mean_absolute_percentage_error" in out.columns
+    assert "test_mean_absolute_scaled_error" in out.columns
     if return_data:
         assert "y_pred" in out.columns
         assert "y_train" in out.columns
@@ -172,7 +172,7 @@ def test_evaluate_initial_window():
     forecaster = NaiveForecaster()
     fh = 1
     cv = SlidingWindowSplitter(fh=fh, initial_window=initial_window)
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
     out = evaluate(
         forecaster=forecaster, y=y, cv=cv, strategy="update", scoring=scoring
     )
@@ -180,7 +180,7 @@ def test_evaluate_initial_window():
     assert out.loc[0, "len_train_window"] == initial_window
 
     # check scoring
-    actual = out.loc[0, f"test_{scoring.name}"]
+    actual = out.loc[0, f"test_{scoring.__name__}"]
     train, test = next(cv.split(y))
     f = forecaster.clone()
     f.fit(y.iloc[train], fh=fh)
@@ -193,12 +193,12 @@ def test_evaluate_no_exog_against_with_exog():
     y, X = load_longley()
     forecaster = DirectReductionForecaster(LinearRegression())
     cv = SlidingWindowSplitter()
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
 
     out_exog = evaluate(forecaster, cv, y, X=X, scoring=scoring)
     out_no_exog = evaluate(forecaster, cv, y, X=None, scoring=scoring)
 
-    scoring_name = f"test_{scoring.name}"
+    scoring_name = f"test_{scoring.__name__}"
     assert np.all(out_exog[scoring_name] != out_no_exog[scoring_name])
 
 
@@ -234,9 +234,9 @@ def test_evaluate_error_score(error_score, return_data, strategy, backend):
                 backend=backend,
             )
         if isinstance(error_score, type(np.nan)):
-            assert results["test_MeanAbsolutePercentageError"].isna().sum() > 0
+            assert results["test_mean_absolute_error"].isna().sum() > 0
         if error_score == 1000:
-            assert results["test_MeanAbsolutePercentageError"].max() == 1000
+            assert results["test_mean_absolute_error"].max() == 1000
     if error_score == "raise":
         with pytest.raises(Exception):  # noqa: B017
             evaluate(
@@ -267,7 +267,7 @@ def test_evaluate_hierarchical(backend):
 
     forecaster = DirectReductionForecaster(LinearRegression())
     cv = SlidingWindowSplitter()
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
     out_exog = evaluate(
         forecaster, cv, y, X=X, scoring=scoring, error_score="raise", backend=backend
     )
@@ -275,5 +275,5 @@ def test_evaluate_hierarchical(backend):
         forecaster, cv, y, X=None, scoring=scoring, error_score="raise", backend=backend
     )
 
-    scoring_name = f"test_{scoring.name}"
+    scoring_name = f"test_{scoring.__name__}"
     assert np.all(out_exog[scoring_name] != out_no_exog[scoring_name])

@@ -149,15 +149,16 @@ def _evaluate_window(
         # predict
         start_pred = time.perf_counter()
 
-        if hasattr(scoring, "metric_args"):
-            metric_args = scoring.metric_args
+        scitype = None
+        metric_args = {}
+        from aeon.performance_metrics.forecasting.probabilistic import (
+            _BaseProbaForecastingErrorMetric,
+        )
 
-        try:
+        if isinstance(scoring, _BaseProbaForecastingErrorMetric):
+            if hasattr(scoring, "metric_args"):
+                metric_args = scoring.metric_args
             scitype = scoring.get_tag("y_input_type_pred")
-        except ValueError:
-            # If no scitype exists then metric is not proba and no args needed
-            scitype = None
-            metric_args = {}
 
         y_pred = eval(pred_type[scitype])(fh, X_test, **metric_args)
         pred_time = time.perf_counter() - start_pred
@@ -368,9 +369,9 @@ def evaluate(
         X = convert_to(X, to_type=PANDAS_MTYPES)
 
     score_name = (
-        f"test_{scoring.name}"
+        f"test_{scoring.__name__}"
         if not isinstance(scoring, List)
-        else f"test_{scoring[0].name}"
+        else f"test_{scoring[0].__name__}"
     )
     cutoff_dtype = str(y.index.dtype)
     _evaluate_window_kwargs = {
@@ -464,9 +465,9 @@ def evaluate(
 
     if isinstance(scoring, List):
         for s in scoring[1:]:
-            results[f"test_{s.name}"] = np.nan
+            results[f"test_{s.__name__}"] = np.nan
             for row in range(len(results)):
-                results[f"test_{s.name}"].iloc[row] = s(
+                results[f"test_{s.__name__}"].iloc[row] = s(
                     results["y_test"].iloc[row],
                     results["y_pred"].iloc[row],
                     y_train=results["y_train"].iloc[row],
