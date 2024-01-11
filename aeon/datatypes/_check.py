@@ -102,7 +102,7 @@ def check_is_mtype(
     ----------
     obj - object to check
     mtype: str or list of str, mtype to check obj as
-        valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.TYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
         valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
@@ -212,7 +212,7 @@ def check_raise(obj, mtype: str, scitype: str = None, var_name: str = "input"):
     ----------
     obj - object to check
     mtype: str or list of str, mtype to check obj as
-        valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.TYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
         valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
@@ -268,7 +268,7 @@ def mtype(
     -------
     str - the inferred mtype of "obj", a valid mtype string
             or None, if obj is None
-        mtype strings with explanation are in datatypes.MTYPE_REGISTER
+        mtype strings with explanation are in datatypes.TYPE_REGISTER
 
     Raises
     ------
@@ -363,7 +363,7 @@ def check_is_scitype(
         Fields depend on scitpe.
         Always returned:
             "mtype": str, mtype of obj (assumed or inferred)
-                mtype strings with explanation are in datatypes.MTYPE_REGISTER
+                mtype strings with explanation are in datatypes.TYPE_REGISTER
             "scitype": str, scitype of obj (assumed or inferred)
                 scitype strings with explanation are in datatypes.DATATYPE_REGISTER
         For scitype "Series":
@@ -451,7 +451,7 @@ def scitype(obj, candidate_scitypes=SCITYPE_LIST, exclude_mtypes=AMBIGUOUS_MTYPE
         valid scitype strings are in datatypes.DATATYPE_REGISTER
     exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
         which mtypes to ignore in inferring mtype, default = ambiguous ones
-        valid mtype strings are in datatypes.MTYPE_REGISTER
+        valid mtype strings are in datatypes.TYPE_REGISTER
 
     Returns
     -------

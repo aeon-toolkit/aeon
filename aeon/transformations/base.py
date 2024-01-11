@@ -1028,7 +1028,7 @@ class BaseTransformer(BaseEstimator):
                 if not valid:
                     raise TypeError(
                         f"_transform output of {type(self)} does not comply "
-                        "with aeon mtype specifications. See datatypes.MTYPE_REGISTER"
+                        "with aeon mtype specifications. See datatypes.TYPE_REGISTER"
                         " for mtype specifications. Returned error message:"
                         f" {msg}. Returned object: {Xt}"
                     )
