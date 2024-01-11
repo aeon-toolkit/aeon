@@ -47,7 +47,7 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -56,7 +56,7 @@ class _DelegatedClassifier(BaseClassifier):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
-        y: np.array
+        y: np.ndarray
             shape ``(n_instances)`` - class labels for fitting indices correspond to
             instance indices in X.
 
@@ -81,7 +81,7 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -93,8 +93,9 @@ class _DelegatedClassifier(BaseClassifier):
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
-            indices correspond to instance indices in X
+        np.array
+            1D of int, of shape [n_instances] - predicted class labels indices
+            correspond to instance indices in X.
         """
         estimator = self._get_delegate()
         return estimator.predict(X=X)
@@ -112,7 +113,7 @@ class _DelegatedClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -124,7 +125,8 @@ class _DelegatedClassifier(BaseClassifier):
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        np.ndarray
+            2D array of shape [n_instances, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
