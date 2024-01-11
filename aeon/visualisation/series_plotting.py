@@ -51,7 +51,7 @@ def plot_series(
 
     Examples
     --------
-    >>> from aeon.utils.plotting import plot_series
+    >>> from aeon.visualisation import plot_series
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
@@ -197,7 +197,7 @@ def plot_lags(series, lags=1, suptitle=None):
 
     Examples
     --------
-    >>> from aeon.utils.plotting import plot_lags
+    >>> from aeon.visualisation import plot_lags
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> fig, ax = plot_lags(y, lags=2) # plot of y(t) with y(t-2)  # doctest: +SKIP
@@ -308,7 +308,7 @@ def plot_correlations(
 
     Examples
     --------
-    >>> from aeon.utils.plotting import plot_correlations
+    >>> from aeon.visualisation import plot_correlations
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> fig, ax = plot_correlations(y)  # doctest: +SKIP

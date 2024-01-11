@@ -425,7 +425,7 @@ def get_bake_off_2017_results(default_only=True):
     Examples
     --------
     >>> from aeon.benchmarking import get_bake_off_2017_results, uni_classifiers_2017
-    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
     >>> classifiers = ["MSM_1NN","LPS","TSBF","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"]
     >>> # Get column positions of classifiers in results
@@ -477,7 +477,7 @@ def get_bake_off_2021_results(default_only=True):
     Examples
     --------
     >>> from aeon.benchmarking import get_bake_off_2021_results, multi_classifiers_2021
-    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2021_results(default_only=True) # doctest: +SKIP
     >>> cls = list(multi_classifiers_2021.keys()) # doctest: +SKIP
     >>> selected =default_results # doctest: +SKIP
@@ -528,7 +528,7 @@ def get_bake_off_2023_results(default_only=True):
     Examples
     --------
     >>> from aeon.benchmarking import get_bake_off_2023_results, uni_classifiers_2023
-    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
     >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]
     >>> # Get column positions of classifiers in results
