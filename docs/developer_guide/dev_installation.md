@@ -29,11 +29,12 @@ To build and install ``aeon`` from source, navigate to the local clone's root di
 and type:
 
 ```{code-block} powershell
-pip install --editable .[dev]
+pip install --editable .[dev] -r requirements.txt
 ```
 
 Alternatively, the `.` may be replaced with a full or relative path to the root
 directory.
+- `pip install --editable .[dev]` should be replaced with `pip install --editable .[dev] -r requirements.txt` to install the dependencies from the `requirements.txt` file.
 
 This will install the `aeon` package in editable mode with dependencies required for
 development. The `--editable` flag allows you to edit the code in-place and have the
@@ -43,7 +44,7 @@ If you need to work with optional dependencies, it you can also install the `all
 extras:
 
 ```{code-block} powershell
-pip install --editable .[dev,all_extras]
+pip install --editable .[dev,all_extras] -r requirements.txt
 ```
 
 ```{note}
@@ -67,3 +68,4 @@ potentially changing the formatting of your code.
 
 This is a requirement to make a pull request, and only in exceptional circumstances
 will a pull request be accepted without passing pre-commit checks.
+- `pip install --editable .[dev,all_extras]` should be replaced with `pip install --editable .[dev,all_extras] -r requirements.txt` to install the dependencies from the `requirements.txt` file.
