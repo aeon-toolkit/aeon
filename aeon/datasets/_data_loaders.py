@@ -1102,12 +1102,14 @@ def load_regression(
     )
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
+    path = os.path.join(local_module, local_dirname)
     if name not in list_downloaded_tsc_tsr_datasets(extract_path):
         if name in tser_soton:
             if extract_path is None:
                 local_dirname = "local_data"
-            if not os.path.exists(os.path.join(local_module, local_dirname)):
-                os.makedirs(os.path.join(local_module, local_dirname))
+                if not os.path.exists(os.path.join(local_module, local_dirname)):
+                    os.makedirs(os.path.join(local_module, local_dirname))
+                path = os.path.join(local_module, local_dirname)
         else:
             raise ValueError(error_str)
         if name not in list_downloaded_tsc_tsr_datasets(
@@ -1127,13 +1129,12 @@ def load_regression(
                     id = tser_monash[name]
                     url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
                     url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-                    if not os.path.exists(f"{local_module}/{local_dirname}/{name}"):
-                        os.makedirs(f"{local_module}/{local_dirname}/{name}")
+                    full_path = os.path.join(path, name)
+                    if not os.path.exists(full_path):
+                        os.makedirs(full_path)
 
-                    train_save = (
-                        f"{local_module}/{local_dirname}/{name}/{name}_TRAIN.ts"
-                    )
-                    test_save = f"{local_module}/{local_dirname}/{name}/{name}_TEST.ts"
+                    train_save = f"{full_path}/{name}_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_TEST.ts"
                     try:
                         urllib.request.urlretrieve(url_train, train_save)
                         urllib.request.urlretrieve(url_test, test_save)
@@ -1141,7 +1142,6 @@ def load_regression(
                         raise ValueError(error_str)
     # Test for non missing or equal length versions
     dir_name = name
-    path = os.path.join(local_module, local_dirname)
     if load_equal_length:
         # If there exists a version with equal length, load that
         train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
