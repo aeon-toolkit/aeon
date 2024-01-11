@@ -30,10 +30,10 @@ The release process is as follows, on high-level:
 4. __Create the GitHub release.__
   This release should create a new tag following the syntax v[MAJOR].[MINOR].[PATCH],
   e.g., the string `v0.10.0` for version 0.10.0. The release name should similarly be
-  `aeon v0.10.0`.  The GitHub release notes should contain only "hightlights",
+  `aeon v0.10.0`.  The GitHub release notes should contain only "highlights",
   "new contributors" and "all contributors" sections, and otherwise link to the release
   notes in the changelog, following the pattern of current GitHub release notes. The
-  full GitHub commit log between releases can also be included.
+  full GitHub commit log between releases should also be included.
 
 ## ``pypi`` release and release validation
 
