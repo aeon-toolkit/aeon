@@ -333,7 +333,7 @@ def plot_scatter(
         zorder=2,
     )
 
-    # Draw the average value per method as a dashed line from 0 to the median value.
+    # Draw the median value per method as a dashed line from 0 to the median value.
     plt.plot(
         [first_median, min_value] if not lower_better else [first_median, max_value],
         [first_median, first_median],
@@ -350,25 +350,8 @@ def plot_scatter(
         zorder=3,
     )
 
-    # if lower_better and not statistic_tests:
-    #     y_pos = 0
-    # elif not lower_better and not statistic_tests:
-    #     y_pos = 0.07
-    # elif not lower_better and statistic_tests:
-    #     y_pos = 0.13
-    # elif lower_better and statistic_tests:
-    #     y_pos = 0.18
-
-    # plt.figtext(
-    #     0.91,
-    #     y_pos,
-    #     "*Dotted lines represent the median",
-    #     fontsize=8,
-    #     wrap=True,
-    #     horizontalalignment="right",
-    # )
     legend_median = AnchoredText(
-        "*Dotted lines represent the median",
+        "*Dashed lines represent the median",
         loc="lower right" if lower_better else "upper right",
         prop=dict(size=8),
         bbox_to_anchor=(1.01, 1.07 if lower_better else -0.07),
