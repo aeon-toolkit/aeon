@@ -263,7 +263,7 @@ def get_estimator_results_as_array(
     datasets=UCR,
     default_only=True,
     task="Classification",
-    type="accuracy",
+    measure="accuracy",
     include_missing=False,
     path="https://timeseriesclassification.com/results/ReferenceResults",
 ):
@@ -308,7 +308,7 @@ def get_estimator_results_as_array(
         datasets=datasets,
         default_only=default_only,
         task=task,
-        type=type,
+        measure=measure,
         path=path,
     )
 
