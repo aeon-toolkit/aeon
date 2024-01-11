@@ -41,7 +41,7 @@ Creation of the GitHub release trigger the `pypi` release workflow.
 
 5. __Wait for the ``pypi`` release CI/CD to finish.__
   If tests fail due to sporadic unrelated failure, restart. If tests fail genuinely,
-  something went wrong in the above steps, investigate, fix, and repeat.
+  something went wrong in the above steps. Investigate the failure and take appropriate actions to fix any genuine test failures.
 
 6. __Release workflow completion tasks.__
   Once the release workflow has passed, check `aeon` version on `pypi`, this should be
