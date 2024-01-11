@@ -15,6 +15,13 @@ from aeon.datasets.tsc_data_lists import univariate as UCR
 VALID_RESULT_TYPES = ["accuracy", "auroc", "balancedaccuracy", "nll"]
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
+VALID_RESULT_TYPES = {
+    "classification": ["accuracy", "auroc", "balancedaccuracy", "nll"],
+    "clustering": ["silhouette", "calinski", "davies"],
+    "regression": ["mse", "mae", "r2"],
+}
+
+
 NAME_ALIASES = {
     "Arsenal": {"ARSENAL", "TheArsenal", "AFC", "ArsenalClassifier"},
     "BOSS": {"TheBOSS", "boss", "BOSSClassifier"},
@@ -167,14 +174,12 @@ def get_estimator_results(
     """
     task = task.lower()
     type = type.lower()
-    if type not in VALID_RESULT_TYPES:
+    if task not in VALID_TASK_TYPES:
+        raise ValueError(f"Error in get_estimator_results, {task} is not a valid task")
+    if type not in VALID_RESULT_TYPES[task]:
         raise ValueError(
             f"Error in get_estimator_results, {type} is not a valid type of " f"results"
         )
-
-    if task not in VALID_TASK_TYPES:
-        raise ValueError(f"Error in get_estimator_results, {task} is not a valid task")
-
     path = f"{path}/{task}/{type}/"
     all_results = {}
     for cls in estimators:
