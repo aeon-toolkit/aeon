@@ -96,8 +96,8 @@ tser_soton_unequal_length = {
 }
 tser_soton_missing_values = {
     "AcousticContaminationMadrid",
-    "BeijingIntAirportPM10Quality",
-    "BeijingIntAirportPM25Quality",
+    "BeijingPM10Quality",
+    "BeijingPM25Quality",
     "BenzeneConcentration",
     "HouseholdPowerConsumption1",
     "HouseholdPowerConsumption2",
