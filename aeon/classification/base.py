@@ -118,7 +118,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -195,7 +195,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -227,7 +227,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or 2D np.array (univariate, equal length series)
                 of shape (n_instances, n_timepoints)
