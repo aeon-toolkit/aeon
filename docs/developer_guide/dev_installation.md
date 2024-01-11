@@ -17,11 +17,11 @@ repository to a local directory:
 
 ```{code-block} powershell
 git clone https://github.com/aeon-toolkit/aeon.git
+# Replace the repository URL with the correct URL of the aeon repository.
 cd aeon
 ```
 
-If you plan to make a pull request on the GitHub repository, you should first [fork](https://github.com/aeon-toolkit/aeon/fork)
-the repository and clone your fork instead of the main repository.
+If you plan to make a pull request on the GitHub repository, you should first fork the repository by visiting the repository's GitHub page and clicking on the 'Fork' button. Once you have forked the repository, clone your fork instead of the main repository.
 
 ## Step 2 - Building `aeon` from source
 
