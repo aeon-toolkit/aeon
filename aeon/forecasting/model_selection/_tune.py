@@ -141,7 +141,7 @@ class BaseGridSearch(_DelegatedForecaster):
         cv = check_cv(self.cv)
 
         scoring = check_scoring(self.scoring)
-        scoring_name = f"test_{scoring.name}"
+        scoring_name = f"test_{scoring.__name__}"
 
         def _fit_and_score(params):
             # Clone forecaster.
@@ -208,7 +208,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         # Rank results, according to whether greater is better for the given scoring.
         results[f"rank_{scoring_name}"] = results.loc[:, f"mean_{scoring_name}"].rank(
-            ascending=scoring.get_tag("lower_is_better")
+            ascending=True
         )
 
         self.cv_results_ = results
@@ -231,9 +231,7 @@ class BaseGridSearch(_DelegatedForecaster):
             self.best_forecaster_.fit(y, X, fh)
 
         # Sort values according to rank
-        results = results.sort_values(
-            by=f"rank_{scoring_name}", ascending=scoring.get_tag("lower_is_better")
-        )
+        results = results.sort_values(by=f"rank_{scoring_name}", ascending=True)
         # Select n best forecaster
         self.n_best_forecasters_ = []
         self.n_best_scores_ = []
