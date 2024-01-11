@@ -1141,15 +1141,16 @@ def load_regression(
                         raise ValueError(error_str)
     # Test for non missing or equal length versions
     dir_name = name
+    path = os.path.join(local_module, local_dirname)
     if load_equal_length:
         # If there exists a version with equal length, load that
-        train = os.path.join(extract_path, f"{name}/{name}_eq_TRAIN.ts")
-        test = os.path.join(extract_path, f"{name}/{name}_eq_TRAIN.ts")
+        train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_eq"
     if load_no_missing:
-        train = os.path.join(extract_path, f"{name}/{name}_nmv_TRAIN.ts")
-        test = os.path.join(extract_path, f"{name}/{name}_nmv_TRAIN.ts")
+        train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
