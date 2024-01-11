@@ -1,4 +1,6 @@
 """
+
+# Add an informative docstring for the file or module.
 Extension template for forecasters.
 
 Purpose of this implementation template:
@@ -35,6 +37,41 @@ Optional implements:
 Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
+# Extension template for forecasters.
+# Purpose of this implementation template:
+#     quick implementation of new estimators following the template
+#     NOT a concrete class to import! This is NOT a base class or concrete class!
+#     This is to be used as a "fill-in" coding template.
+#
+# How to use this implementation template to implement a new estimator:
+# - make a copy of the template in a suitable location, give it a descriptive name.
+# - work through all the "todo" comments below
+# - fill in code for mandatory methods, and optionally for optional methods
+# - do not write to reserved variables: is_fitted, _is_fitted, _X, _y, cutoff, _fh,
+#     _cutoff, _converter_store_y, forecasters_, _tags, _tags_dynamic, _is_vectorized
+# - you can add more private methods, but do not override BaseEstimator's private methods
+#     an easy way to be safe is to prefix your methods with "_custom"
+# - change docstrings for functions and the file
+# - ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+# - once complete: use as a local library, or contribute to aeon via PR
+# - more details:
+#     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
+# 
+# Mandatory implements:
+#     fitting         - _fit(self, y, X=None, fh=None)
+#     forecasting     - _predict(self, fh=None, X=None)
+# 
+# Optional implements:
+#     updating                    - _update(self, y, X=None, update_params=True):
+#     predicting quantiles        - _predict_quantiles(self, fh, X=None, alpha=None)
+#     OR predicting intervals     - _predict_interval(self, fh, X=None, coverage=None)
+#     predicting variance         - _predict_var(self, fh, X=None, cov=False)
+#     distribution forecast       - _predict_proba(self, fh, X=None)
+#     fitted parameter inspection - _get_fitted_params()
+# 
+# Testing - implement if aeon forecaster (not needed locally):
+#     get default parameters for test instance(s) - get_test_params()
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
