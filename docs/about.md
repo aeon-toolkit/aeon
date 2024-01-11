@@ -195,3 +195,5 @@ Outreachy.
 We would also like to thank [GitHub Actions](https://github.com/features/actions)
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
+
+and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers and documentation hosting.
