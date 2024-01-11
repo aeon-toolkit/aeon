@@ -47,6 +47,15 @@ def get_tag(obj, tag_name):
         return obj.get_tag(tag_name)
 
 
+def _internal_abstract_type(obj, inner_tag, series_types):
+    inner_types = get_tag(obj, inner_tag)
+    if isinstance(inner_types, str):
+        inner_types = {inner_types}
+    else:
+        inner_types = set(inner_types)
+    return not inner_types.issubset(series_types)
+
+
 class TransformerTestScenario(TestScenario, BaseObject):
     """Generic test scenario for transformers."""
 
