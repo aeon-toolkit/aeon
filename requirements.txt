@@ -1,0 +1,7 @@
+# requirements.txt
+
+# Dependencies for aeon project
+numpy==1.19.5
+pandas==1.2.4
+scikit-learn==0.24.2
+matplotlib==3.4.2
