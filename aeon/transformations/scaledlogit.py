@@ -118,7 +118,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be transformed
-        y : Series or Panel of mtype y_inner_type, default=None
+        y : data structure of type y_inner_type, default=None
             Ignored argument for interface compatibility
 
         Returns

@@ -111,7 +111,7 @@ def check_series(
     allow_index_names=False,
     var_name="input",
 ):
-    """Validate input data to be a valid mtype for Series.
+    """Validate input data to be a valid type for Series.
 
     Parameters
     ----------

@@ -658,10 +658,10 @@ class Hidalgo(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_type
+        X : Series of type X_inner_type
             if X_inner_type is list, _transform must support all types in it
             Data to be transformed
-        y : Series of mtype y_inner_type, default=None
+        y : Series of type y_inner_type, default=None
             Not used in this unsupervised implementation
 
         Returns

@@ -134,10 +134,10 @@ class FourierFeatures(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_type
+        X: data structure of type X_inner_type
             If X_inner_type is list, _fit must support all types in it
             Data to fit transform to.
-        y : Series or Panel of mtype y_inner_type, default=None
+        y : data structure of type y_inner_type, default=None
             Additional data, e.g., labels for transformation.
         freq : str, optional, default = None
             Only used when X has a pd.DatetimeIndex without a specified frequency.
@@ -194,10 +194,10 @@ class FourierFeatures(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_type
+        X: data structure of type X_inner_type
             If X_inner_type is list, _transform must support all types in it
             Data to be transformed.
-        y : Series or Panel of mtype y_inner_type, default=None
+        y : data structure of type y_inner_type, default=None
             Additional data, e.g., labels for transformation.
 
         Returns

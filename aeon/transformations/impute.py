@@ -122,10 +122,10 @@ class Imputer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_type
+        X: data structure of type X_inner_type
             if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of mtype y_inner_type, default=None
+        y : data structure of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

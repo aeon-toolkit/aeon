@@ -12,15 +12,15 @@ from aeon.datatypes._check import (
 from aeon.datatypes._convert import convert, convert_to
 from aeon.datatypes._examples import get_examples
 from aeon.datatypes._registry import (
-    ALL_TIME_SERIES_MTYPES,
+    ALL_TIME_SERIES_TYPES,
     DATATYPE_REGISTER,
-    MTYPE_LIST_HIERARCHICAL,
-    MTYPE_LIST_PANEL,
     MTYPE_LIST_PROBA,
-    MTYPE_LIST_SERIES,
     MTYPE_LIST_TABLE,
     MTYPE_REGISTER,
     SCITYPE_LIST,
+    TYPE_LIST_HIERARCHICAL,
+    TYPE_LIST_PANEL,
+    TYPE_LIST_SERIES,
     mtype_to_scitype,
     scitype_to_mtype,
 )
@@ -28,7 +28,7 @@ from aeon.datatypes._utilities import get_cutoff, update_data
 from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
-    "ALL_TIME_SERIES_MTYPES",
+    "ALL_TIME_SERIES_TYPES",
     "check_is_mtype",
     "check_is_scitype",
     "check_raise",
@@ -39,10 +39,10 @@ __all__ = [
     "get_examples",
     "mtype_to_scitype",
     "MTYPE_REGISTER",
-    "MTYPE_LIST_HIERARCHICAL",
-    "MTYPE_LIST_PANEL",
+    "TYPE_LIST_HIERARCHICAL",
+    "TYPE_LIST_PANEL",
     "MTYPE_LIST_PROBA",
-    "MTYPE_LIST_SERIES",
+    "TYPE_LIST_SERIES",
     "MTYPE_LIST_TABLE",
     "scitype",
     "scitype_to_mtype",

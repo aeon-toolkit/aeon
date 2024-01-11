@@ -146,7 +146,7 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_type
+        X: data structure of type X_inner_type
             if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
         y : Ignored
@@ -177,7 +177,7 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_type
+        X: data structure of type X_inner_type
             if X_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Ignored

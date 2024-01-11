@@ -38,20 +38,20 @@ mtype_to_scitype(mtype: str) - convenience function that returns scitype for an 
 """
 
 from aeon.datatypes._hierarchical._registry import (
-    MTYPE_LIST_HIERARCHICAL,
     MTYPE_REGISTER_HIERARCHICAL,
     MTYPE_SOFT_DEPS_HIERARCHICAL,
+    TYPE_LIST_HIERARCHICAL,
 )
 from aeon.datatypes._panel._registry import (
-    MTYPE_LIST_PANEL,
     MTYPE_REGISTER_PANEL,
     MTYPE_SOFT_DEPS_PANEL,
+    TYPE_LIST_PANEL,
 )
 from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA, MTYPE_REGISTER_PROBA
 from aeon.datatypes._series._registry import (
-    MTYPE_LIST_SERIES,
     MTYPE_REGISTER_SERIES,
     MTYPE_SOFT_DEPS_SERIES,
+    TYPE_LIST_SERIES,
 )
 from aeon.datatypes._table._registry import MTYPE_LIST_TABLE, MTYPE_REGISTER_TABLE
 
@@ -72,17 +72,17 @@ MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_HIERARCHICAL)
 AMBIGUOUS_MTYPES = ["numpy2D"]
 
 # all time series mtypes excluding ambiguous ones
-ALL_TIME_SERIES_MTYPES = (
-    list(MTYPE_LIST_PANEL) + list(MTYPE_LIST_SERIES) + list(MTYPE_LIST_HIERARCHICAL)
+ALL_TIME_SERIES_TYPES = (
+    list(TYPE_LIST_PANEL) + list(TYPE_LIST_SERIES) + list(TYPE_LIST_HIERARCHICAL)
 )
-ALL_TIME_SERIES_MTYPES = list(set(ALL_TIME_SERIES_MTYPES).difference(AMBIGUOUS_MTYPES))
+ALL_TIME_SERIES_TYPES = list(set(ALL_TIME_SERIES_TYPES).difference(AMBIGUOUS_MTYPES))
 
 
 __all__ = [
     "MTYPE_REGISTER",
-    "MTYPE_LIST_HIERARCHICAL",
-    "MTYPE_LIST_PANEL",
-    "MTYPE_LIST_SERIES",
+    "TYPE_LIST_HIERARCHICAL",
+    "TYPE_LIST_PANEL",
+    "TYPE_LIST_SERIES",
     "MTYPE_LIST_TABLE",
     "MTYPE_LIST_PROBA",
     "MTYPE_SOFT_DEPS",
