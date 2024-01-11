@@ -70,17 +70,16 @@ class FourierFeatures(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "transform_labels": "None",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
-        "capability:inverse_transform": False,  # can the transformer inverse transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        # what is the abstract type of y: None (not needed), Primitives, Series, Panel
+        "instancewise": True,
+        "capability:inverse_transform": False,
+        "univariate-only": False,
+        "X_inner_type": "pd.DataFrame",
+        "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": [
             pd.PeriodIndex,

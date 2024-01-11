@@ -1070,13 +1070,12 @@ class InvertTransform(_DelegatedTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "univariate-only": False,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
@@ -1203,9 +1202,9 @@ class Id(BaseTransformer):
     _tags = {
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_type": CORE_MTYPES,  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": CORE_MTYPES,
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
         # does transform return have the same time index as input X
@@ -1326,13 +1325,12 @@ class OptionalPassthrough(_DelegatedTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
+        # what abstract type is returned: Primitives, Series, Panel
+        "instancewise": True,
         "X_inner_type": CORE_MTYPES,
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "univariate-only": False,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
@@ -1432,13 +1430,12 @@ class ColumnwiseTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "univariate-only": False,
         "fit_is_empty": False,
     }
@@ -1639,14 +1636,13 @@ class ColumnConcatenator(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "instancewise": False,  # is this an instance-wise transform?
+        # what abstract type is returned: Primitives, Series, Panel
+        "instancewise": False,
         "X_inner_type": ["pd-multiindex", "pd_multiindex_hier"],
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "y_inner_type": "None",
+        "fit_is_empty": True,
     }
 
     def _transform(self, X, y=None):

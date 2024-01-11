@@ -70,9 +70,9 @@ class TimeSince(BaseTransformer):
     """
 
     _tags = {
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "input_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "output_data_type": "Series",
         "instancewise": True,  # is this an instance-wise transform?
         "transform_labels": "None",

@@ -86,9 +86,8 @@ class Hidalgo(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "transform-returns-same-time-index": True,
         "univariate-only": False,
         "fit_is_empty": False,

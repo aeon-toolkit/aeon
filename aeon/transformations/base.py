@@ -100,9 +100,9 @@ class BaseTransformer(BaseEstimator):
         "transform_labels": "None",
         "instancewise": True,
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True

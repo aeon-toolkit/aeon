@@ -81,7 +81,7 @@ class Reconciler(BaseTransformer):
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?
