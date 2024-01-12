@@ -40,12 +40,21 @@ content_labels = [
     if label in content_labels
 ]
 
+replacement_labels = [
+    ("anomalydetection", "anomaly detection"),
+    ("similaritysearch", "similarity search"),
+]
+for i, label in enumerate(content_labels):
+    for cur_label, new_label in replacement_labels:
+        if label == cur_label:
+            content_labels[i] = new_label
+
 title_labels_str = ""
 if len(title_labels) == 0:
     title_labels_str = (
         "I did not find any labels to add based on the title. Please "
-        "add the ENH, MNT, BUG, DOC and/or GOV tag to your pull "
-        "requests titles. For now you can add the labels manually."
+        "add the [ENH], [MNT], [BUG], [DOC], [REF], [DEP] and/or [GOV] tags to your "
+        "pull requests titles. For now you can add the labels manually."
     )
 elif len(title_labels_new) != 0:
     arr_str = str(title_labels_new).strip("[]").replace("'", "")
@@ -92,7 +101,7 @@ elif title_labels_str == "":
 
 pr.create_issue_comment(
     f"""
-## Thank you for contributing to `aeon`!
+## Thank you for contributing to `aeon`
 
 {title_labels_str}
 {content_labels_str}
@@ -101,6 +110,7 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any!
+Don't hesitate to ask questions on the `aeon` [Slack](
+https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
     """  # noqa
 )

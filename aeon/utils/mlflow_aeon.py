@@ -129,7 +129,7 @@ def save_model(
     pip_requirements=None,
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """Save a aeon model to a path on the local file system.
 
     Parameters
@@ -318,7 +318,7 @@ def log_model(
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
     **kwargs,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """
     Log a aeon model as an MLflow artifact for the current run.
 
@@ -787,6 +787,3 @@ class _aeonModelWrapper:
             predictions = raw_predictions[list(raw_predictions.keys())[0]]
 
         return predictions
-
-
-# TODO: Add support for autologging

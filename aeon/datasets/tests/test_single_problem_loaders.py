@@ -5,21 +5,21 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import aeon
 from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_acsf1,
     load_arrow_head,
     load_basic_motions,
     load_covid_3month,
+    load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
     load_osuleaf,
     load_plaid,
     load_solar,
-    load_tsf_to_dataframe,
     load_unit_test,
     load_unit_test_tsf,
 )
-from aeon.datasets._single_problem_loaders import MODULE
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -74,18 +74,22 @@ def test_load_unit_test_tsf():
     """Test load unit test tsf."""
     tuple = load_unit_test_tsf()
     assert isinstance(tuple[0], pd.DataFrame)
-    assert tuple[0].shape == (15, 1)
+    assert tuple[0].shape == (3, 3)
     assert tuple[1] == "yearly"
     assert tuple[2] == 4
     assert not tuple[3]
     assert not tuple[4]
+    tuple = load_unit_test_tsf(return_type="pd_multiindex_hier")
+    assert tuple[0].shape == (15, 1)
 
 
 def test_basic_load_tsf_to_dataframe():
     """Simple loader test."""
-
-    full_path = os.path.join(MODULE, "data", "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    df, metadata = load_tsf_to_dataframe(full_path)
+    full_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
+    )
+    df, metadata = load_from_tsf_file(full_path)
     assert isinstance(df, pd.DataFrame)
     assert metadata["frequency"] == "yearly"
     assert metadata["forecast_horizon"] == 4
@@ -95,10 +99,10 @@ def test_basic_load_tsf_to_dataframe():
 
 def test_load_solar():
     solar = load_solar(api_version=None)
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version="WRONG")
-    assert type(solar) == pd.Series
+    assert type(solar) is pd.Series
     assert solar.shape == (289,)
     solar = load_solar(api_version=None, return_full_df=True)
     assert solar.name == "solar_gen"

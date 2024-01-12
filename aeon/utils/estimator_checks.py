@@ -60,7 +60,7 @@ def check_estimator(
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> from aeon.utils.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
@@ -133,12 +133,12 @@ def check_estimator(
         results.update(results_estimator)
 
     try:
-        scitype_of_estimator = get_identifiers(estimator)
+        type_of_estimator = get_identifiers(estimator)
     except Exception:
-        scitype_of_estimator = ""
+        type_of_estimator = ""
 
-    if scitype_of_estimator in testclass_dict.keys():
-        results_scitype = testclass_dict[scitype_of_estimator]().run_tests(
+    if type_of_estimator in testclass_dict.keys():
+        results_type = testclass_dict[type_of_estimator]().run_tests(
             estimator=estimator,
             raise_exceptions=raise_exceptions,
             tests_to_run=tests_to_run,
@@ -146,7 +146,7 @@ def check_estimator(
             tests_to_exclude=tests_to_exclude,
             fixtures_to_exclude=fixtures_to_exclude,
         )
-        results.update(results_scitype)
+        results.update(results_type)
 
     failed_tests = [key for key in results.keys() if results[key] != "PASSED"]
     if len(failed_tests) > 0:

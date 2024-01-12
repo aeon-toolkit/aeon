@@ -207,10 +207,14 @@ class BaseForecastingErrorMetric(BaseMetric):
             if multilevel == "uniform_average":
                 out_df = out_df.mean(axis=0)
                 # if level is averaged, but not variables, return numpy
-                if multioutput == "raw_values":
+                if isinstance(multioutput, str) and multioutput == "raw_values":
                     out_df = out_df.values
 
-        if multilevel == "uniform_average" and multioutput == "uniform_average":
+        if (
+            multilevel == "uniform_average"
+            and isinstance(multioutput, str)
+            and multioutput == "uniform_average"
+        ):
             out_df = _coerce_to_scalar(out_df)
         if multilevel == "raw_values":
             out_df = _coerce_to_df(out_df)
@@ -426,7 +430,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             else:
                 y_pred_orig.columns = y_true.columns
         # check multioutput arg
-        # todo: add this back when variance_weighted is supported
+        # add this back when variance_weighted is supported
         # ("raw_values", "uniform_average", "variance_weighted")
         allowed_multioutput_str = ("raw_values", "uniform_average")
 

@@ -36,7 +36,7 @@ from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
-from aeon.transformations.series.summarize import WindowSummarizer
+from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
 from aeon.utils.estimators.dispatch import construct_dispatch
 from aeon.utils.sklearn import is_sklearn_regressor
@@ -973,7 +973,6 @@ class _DirRecReducer(_Reducer):
         self : Estimator
             An fitted instance of self.
         """
-        # todo: logic for X below is broken. Escape X until fixed.
         if X is not None:
             X = None
 
@@ -1033,7 +1032,7 @@ class _DirRecReducer(_Reducer):
         y_pred = pd.Series or pd.DataFrame
         """
         # Exogenous variables are not yet support for the dirrec strategy.
-        # todo: implement this. For now, we escape.
+
         if X is not None:
             X = None
 
@@ -1819,7 +1818,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_shifted(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
         lags = self._lags
@@ -1898,7 +1897,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_concurrent(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
 
@@ -1963,7 +1962,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_concurrent(self, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.lag import Lag
 
         if X is not None and self._X is not None:
             X_pool = X.combine_first(self._X)
@@ -2144,23 +2143,22 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         Parameters
         ----------
         y : pd.DataFrame
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Time series to which to fit the forecaster.
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : pd.DataFrame optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series to fit to.
 
         Returns
         -------
         self : reference to self
         """
-        # todo: very similar to _fit_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         impute_method = self.impute_method
 
@@ -2211,7 +2209,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : pd.DataFrame, optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series for the forecast
 
         Returns
@@ -2246,8 +2244,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     def _predict_out_of_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (ahead of cutoff)."""
         # very similar to _predict_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2313,8 +2311,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_in_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (in past of of cutoff)."""
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2378,7 +2376,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         params1 = {
             "estimator": est,
             "window_length": 3,
-            "pooling": "global",  # all internal mtypes are tested across scenarios
+            "pooling": "global",
         }
 
         return params1

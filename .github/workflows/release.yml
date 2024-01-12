@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -22,13 +22,13 @@ jobs:
           extra_args: check-manifest --hook-stage manual
 
   build-project:
-    needs: check_manifest
+    needs: check-manifest
     runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -38,14 +38,14 @@ jobs:
           python -m build
 
       - name: Store build files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*
           retention-days: 5
 
   test-wheels:
-    needs: build_project
+    needs: build-project
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -57,11 +57,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
@@ -92,11 +92,11 @@ jobs:
         run: python -m pytest
 
   upload-wheels:
-    needs: test_wheels
+    needs: test-wheels
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist

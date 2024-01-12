@@ -9,8 +9,6 @@ import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
 
-# todo: add any necessary aeon internal imports here
-
 
 class Aggregator(BaseTransformer):
     """Prepare hierarchical data, including aggregate levels, from bottom level.
@@ -52,7 +50,6 @@ class Aggregator(BaseTransformer):
         "input_data_type": "Series",
         "output_data_type": "Series",
         "transform_labels": "None",
-        # todo instance wise?
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": [
             "pd.Series",
@@ -60,7 +57,7 @@ class Aggregator(BaseTransformer):
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?

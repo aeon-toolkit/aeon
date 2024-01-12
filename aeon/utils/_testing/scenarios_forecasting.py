@@ -17,7 +17,6 @@ from inspect import isclass
 import pandas as pd
 
 from aeon.base import BaseObject
-from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base import BaseForecaster
 from aeon.tests.test_config import PR_TESTING
 from aeon.utils._testing.collection import _make_collection_X
@@ -70,12 +69,15 @@ class ForecasterTestScenario(TestScenario, BaseObject):
         # run Panel/Hierarchical scenarios for genuinely Panel/Hierarchical forecasters
         y_type = self.get_tag("y_type", "Series", raise_error=False)
         scenario_is_hierarchical = y_type in ["Panel", "Hierarchical"]
+        series_types = {"pd.Series", "pd.DataFrame", "np.ndarray"}
+        y_inner_types = get_tag(obj, "y_inner_type")
+        if isinstance(y_inner_types, str):
+            y_inner_types = {y_inner_types}
+        else:
+            y_inner_types = set(y_inner_types)
+        obj_is_hierarchical = not y_inner_types.issubset(series_types)
 
-        obj_y_inner_types = get_tag(obj, "y_inner_type")
-        obj_types = mtype_to_scitype(obj_y_inner_types)
-        obj_is_hierarchical = "Panel" in obj_types or "Hierarchical" in obj_types
-
-        # if scenario is hierarchical and obj is not genuinely hierarchical,
+        # if scenario is hierarchical and obj is not capable of hierarchical y,
         # this would trigger generic vectorization, which is tested in test_base
         if scenario_is_hierarchical and not obj_is_hierarchical:
             return False
