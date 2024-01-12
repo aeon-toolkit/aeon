@@ -35,8 +35,7 @@ def forecasting_validation(
     y = dataset_loader()
     results = {}
     for scorer in scorers:
-        scorer_name = scorer.name
-        # TODO re-write evaluate to allow multiple scorers, to avoid recomputation
+        scorer_name = scorer.__name__
         scores_df = evaluate(forecaster=estimator, y=y, cv=cv_splitter, scoring=scorer)
         for ix, row in scores_df.iterrows():
             results[f"{scorer_name}_fold_{ix}_test"] = row[f"test_{scorer_name}"]
