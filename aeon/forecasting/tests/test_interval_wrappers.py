@@ -16,7 +16,7 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
 from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
-from aeon.testing import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 if PR_TESTING:
     INTERVAL_WRAPPERS = [NaiveVariance]

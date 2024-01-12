@@ -10,7 +10,7 @@ least once, but not necessarily on each operating system / python version combin
 
 __author__ = ["fkiraly", "MatthewMiddlehurst"]
 
-from aeon.testing.tests import test_config
+from aeon.testing import test_config
 
 
 def pytest_addoption(parser):

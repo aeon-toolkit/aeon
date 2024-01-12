@@ -15,7 +15,7 @@ from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
-from aeon.testing import VALID_ESTIMATOR_TYPES
+from aeon.testing.test_config import VALID_ESTIMATOR_TYPES
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import is_nested_univ_dataframe
 

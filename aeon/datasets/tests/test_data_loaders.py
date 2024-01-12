@@ -28,7 +28,7 @@ from aeon.datasets._data_loaders import (
     _load_header_info,
     _load_saved_dataset,
 )
-from aeon.testing import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 
 @pytest.mark.skipif(
