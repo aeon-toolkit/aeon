@@ -25,7 +25,7 @@ github_checks:
 ignore:
   - ".github/"
   - ".binder/"
-  - "aeon/tests/expected_results/"
+  - "aeon/testing/expected_results/"
   - "build_tools/"
   - "docs/"
   - "examples/"
