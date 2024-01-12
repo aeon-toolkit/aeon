@@ -81,7 +81,7 @@ class Reconciler(BaseTransformer):
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?
@@ -111,7 +111,7 @@ class Reconciler(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel of mtype pd_multiindex_hier
+        X : hierarchical multiindex pd.DataFrame
             Data to fit transform to
         y :  Ignored argument for interface compatibility.
 
@@ -156,7 +156,7 @@ class Reconciler(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel of mtype pd_multiindex_hier
+        X : hierarchical multiindex pd.DataFrame
             Data to be transformed
         y : Ignored argument for interface compatibility.
 
@@ -245,7 +245,7 @@ def _get_s_matrix(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -307,7 +307,7 @@ def _get_g_matrix_bu(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -354,7 +354,7 @@ def _get_g_matrix_ols(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -393,7 +393,7 @@ def _get_g_matrix_wls_str(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -441,7 +441,7 @@ def _get_g_matrix_td_fcst(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------

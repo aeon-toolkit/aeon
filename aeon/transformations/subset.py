@@ -37,9 +37,9 @@ class IndexSubset(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": ["pd.DataFrame", "pd.Series"],
@@ -150,9 +150,9 @@ class ColumnSelect(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",

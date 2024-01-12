@@ -90,12 +90,12 @@ class ScaledLogitTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "X_inner_type": "np.ndarray",
+        "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
         "univariate-only": False,
@@ -118,7 +118,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be transformed
-        y : Series or Panel of mtype y_inner_type, default=None
+        y : data structure of type y_inner_type, default=None
             Ignored argument for interface compatibility
 
         Returns

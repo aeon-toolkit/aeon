@@ -1,12 +1,12 @@
 import pandas as pd
 
 __all__ = [
-    "MTYPE_REGISTER_TABLE",
-    "MTYPE_LIST_TABLE",
+    "TYPE_REGISTER_TABLE",
+    "TYPE_LIST_TABLE",
 ]
 
 
-MTYPE_REGISTER_TABLE = [
+TYPE_REGISTER_TABLE = [
     ("pd_DataFrame_Table", "Table", "pd.DataFrame representation of a data table"),
     ("numpy1D", "Table", "1D np.narray representation of a univariate table"),
     ("numpy_Table", "Table", "2D np.narray representation of a univariate table"),
@@ -14,4 +14,4 @@ MTYPE_REGISTER_TABLE = [
     ("list_of_dict", "Table", "list of dictionaries with primitive entries"),
 ]
 
-MTYPE_LIST_TABLE = pd.DataFrame(MTYPE_REGISTER_TABLE)[0].values
+TYPE_LIST_TABLE = pd.DataFrame(TYPE_REGISTER_TABLE)[0].values

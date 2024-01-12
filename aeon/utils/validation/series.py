@@ -33,9 +33,8 @@ def get_index_for_series(obj, cutoff=0):
 
     Parameters
     ----------
-    obj : aeon data container
-        must be of one of the following mtypes:
-            pd.Series, pd.DataFrame, np.ndarray, of Series scitype
+    obj : data structure
+        must be of one of pd.Series, pd.DataFrame, np.ndarray
     cutoff : int, or pd.datetime, optional, default=0
         current cutoff, used to offset index if obj is np.ndarray
 
@@ -112,7 +111,7 @@ def check_series(
     allow_index_names=False,
     var_name="input",
 ):
-    """Validate input data to be a valid mtype for Series.
+    """Validate input data to be a valid type for Series.
 
     Parameters
     ----------
@@ -141,7 +140,7 @@ def check_series(
 
     Raises
     ------
-    TypeError - if Z is not in a valid type or format for scitype Series
+    TypeError - if Z is not in a valid type for Series
     if enforce_univariate is True:
         ValueError if Z has 2 or more columns
     if enforce_multivariate is True:
@@ -266,7 +265,6 @@ def check_equal_time_index(*ys, mode="equal"):
         must be pd.Series, pd.DataFrame or 1/2D np.ndarray, or None
         can be Series, Panel, Hierarchical, but must be pandas or numpy
         note: this assumption is not checked by the function itself
-            if check is needed, use check_is_scitype or check_is_mtype before call
     mode : str, "equal" or "contained", optional, default = "equal"
         if "equal" will check for all indices being exactly equal
         if "contained", will check whether all indices are subset of ys[0].index

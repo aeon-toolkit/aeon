@@ -186,7 +186,7 @@ class WindowSummarizer(BaseTransformer):
             "pd-multiindex",
             "pd.DataFrame",
             "pd_multiindex_hier",
-        ],  # which mtypes do _fit/_predict support for X?
+        ],
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "capability:missing_values": True,  # can estimator handle missing data?
@@ -632,13 +632,12 @@ class SummaryTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
-        # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for X?
+        "y_inner_type": "None",
         "fit_is_empty": True,
     }
 
@@ -841,12 +840,12 @@ class FittedParamExtractor(BaseTransformer):
         "fit_is_empty": True,
         "univariate-only": True,
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        # what is the abstract type of y: None (not needed), Primitives, Series, Panel
+        "instancewise": True,
+        "X_inner_type": "numpy3D",
+        "y_inner_type": "None",
     }
 
     def __init__(self, forecaster, param_names, n_jobs=None):

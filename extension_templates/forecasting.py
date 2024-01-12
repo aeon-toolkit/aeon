@@ -90,7 +90,7 @@ class MyForecaster(BaseForecaster):
         "y_inner_type": "pd.Series",
         "X_inner_type": "pd.DataFrame",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.TYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   in that case, all inputs are converted to that one type
         # if list of str, must be a list of valid str specifiers

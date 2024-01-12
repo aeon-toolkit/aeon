@@ -132,7 +132,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -176,7 +176,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -191,7 +191,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -369,7 +369,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -414,7 +414,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
@@ -429,7 +429,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns
