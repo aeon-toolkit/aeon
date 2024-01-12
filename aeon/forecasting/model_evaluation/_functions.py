@@ -367,7 +367,6 @@ def evaluate(
                 f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
             )
         X = convert_to(X, to_type=PANDAS_MTYPES)
-
     score_name = (
         f"test_{scoring.__name__}"
         if not isinstance(scoring, List)

@@ -122,7 +122,7 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__
-
+        self.__name__ = self.name
         super(BaseForecastingErrorMetric, self).__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
