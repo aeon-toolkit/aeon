@@ -4,7 +4,7 @@ Uses PR_TESTING flag to switch between full parameter combinations
 (PR_TESTING==False) and running a reduced parameter combination (PR_TESTING==True).
 """
 
-from aeon.tests.test_all_estimators import PR_TESTING
+from aeon.testing import PR_TESTING
 
 __all__ = [
     "TEST_CUTOFFS_INT_LIST",

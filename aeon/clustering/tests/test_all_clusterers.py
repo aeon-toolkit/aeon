@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.tests.test_softdeps import soft_deps_installed
+from aeon.testing import soft_deps_installed
 
 ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 

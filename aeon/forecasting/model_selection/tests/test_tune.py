@@ -23,7 +23,7 @@ from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanSquaredError,
 )
-from aeon.tests.test_all_estimators import PR_TESTING
+from aeon.testing import PR_TESTING
 from aeon.transformations.detrend import Detrender
 from aeon.utils._testing.hierarchical import _make_hierarchical
 
