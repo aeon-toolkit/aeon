@@ -303,7 +303,7 @@ class _DummyThree(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
     }
 

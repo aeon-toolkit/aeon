@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._panel._registry import MTYPE_LIST_PANEL
+from aeon.datatypes._panel._registry import TYPE_LIST_PANEL
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # dictionary indexed by triples of types
@@ -51,7 +51,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_PANEL:
+for tp in TYPE_LIST_PANEL:
     convert_dict[(tp, tp, "Panel")] = convert_identity
 
 
@@ -1091,7 +1091,7 @@ def from_numpy2d_to_numpy3d(obj, store=None):
 
 convert_dict[("numpy2D", "numpy3D", "Panel")] = from_numpy2d_to_numpy3d
 
-_extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=MTYPE_LIST_PANEL)
+_extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=TYPE_LIST_PANEL)
 
 
 if _check_soft_dependencies("dask", severity="none"):
@@ -1111,5 +1111,5 @@ if _check_soft_dependencies("dask", severity="none"):
     convert_dict[("pd-multiindex", "dask_panel", "Panel")] = convert_pd_to_dask_as_panel
 
     _extend_conversions(
-        "dask_panel", "pd-multiindex", convert_dict, mtype_universe=MTYPE_LIST_PANEL
+        "dask_panel", "pd-multiindex", convert_dict, mtype_universe=TYPE_LIST_PANEL
     )

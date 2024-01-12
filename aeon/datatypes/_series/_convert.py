@@ -37,7 +37,7 @@ import pandas as pd
 # methods to convert one machine type to another machine type
 ##############################################################
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._registry import MTYPE_LIST_SERIES
+from aeon.datatypes._registry import TYPE_LIST_SERIES
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 convert_dict = dict()
@@ -48,7 +48,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_SERIES:
+for tp in TYPE_LIST_SERIES:
     convert_dict[(tp, tp, "Series")] = convert_identity
 
 
@@ -207,7 +207,7 @@ if _check_soft_dependencies("xarray", severity="none"):
     ] = convert_Mvs_to_xrdatarray_as_Series
 
     _extend_conversions(
-        "xr.DataArray", "pd.DataFrame", convert_dict, mtype_universe=MTYPE_LIST_SERIES
+        "xr.DataArray", "pd.DataFrame", convert_dict, mtype_universe=TYPE_LIST_SERIES
     )
 
 
@@ -232,5 +232,5 @@ if _check_soft_dependencies("dask", severity="none"):
     ] = convert_mvs_to_dask_as_series
 
     _extend_conversions(
-        "dask_series", "pd.DataFrame", convert_dict, mtype_universe=MTYPE_LIST_SERIES
+        "dask_series", "pd.DataFrame", convert_dict, mtype_universe=TYPE_LIST_SERIES
     )

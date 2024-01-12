@@ -301,7 +301,6 @@ def test_load_provided_dataset(return_X_y, return_type):
         assert isinstance(X, np.ndarray) and X.ndim == 3
     elif return_type == "numpy2D":
         assert isinstance(X, np.ndarray) and X.ndim == 2
-    # Check whether object is same mtype or not, via bool
 
 
 @pytest.mark.skipif(
