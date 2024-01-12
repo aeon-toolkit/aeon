@@ -48,17 +48,6 @@ detection and time series segmentation, which are now in their own module.
 
     PoissonHMM
 
-Adapters
---------
-
-.. currentmodule:: aeon.annotation.adapters
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    PyODAnnotator
-
 Data Generation
 ---------------
 
