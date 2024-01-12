@@ -4,7 +4,7 @@ __author__ = ["fkiraly"]
 
 import pandas as pd
 
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
+from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.datatypes._utilities import get_window
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
@@ -51,8 +51,8 @@ class UpdateRefitsEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_type": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(
@@ -236,8 +236,8 @@ class UpdateEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_type": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster, update_interval=None):
@@ -401,8 +401,8 @@ class DontUpdate(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_type": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster):

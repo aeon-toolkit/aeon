@@ -34,7 +34,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._table._registry import MTYPE_LIST_TABLE
+from aeon.datatypes._table._registry import TYPE_LIST_TABLE
 
 ##############################################################
 # methods to convert one machine type to another machine type
@@ -48,7 +48,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_TABLE:
+for tp in TYPE_LIST_TABLE:
     convert_dict[(tp, tp, "Table")] = convert_identity
 
 
@@ -233,8 +233,6 @@ convert_dict[
 
 
 _extend_conversions(
-    "pd_Series_Table", "pd_DataFrame_Table", convert_dict, MTYPE_LIST_TABLE
+    "pd_Series_Table", "pd_DataFrame_Table", convert_dict, TYPE_LIST_TABLE
 )
-_extend_conversions(
-    "list_of_dict", "pd_DataFrame_Table", convert_dict, MTYPE_LIST_TABLE
-)
+_extend_conversions("list_of_dict", "pd_DataFrame_Table", convert_dict, TYPE_LIST_TABLE)
