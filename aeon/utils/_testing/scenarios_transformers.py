@@ -72,13 +72,13 @@ class TransformerTestScenario(TestScenario, BaseObject):
             True if self is applicable to obj, False if not
         """
         # pre-refactor classes can't deal with Series *and* Panel both
-        X_scitype = self.get_tag("X_type")
-        y_scitype = self.get_tag("y_type", None, raise_error=False)
+        X_type = self.get_tag("X_type")
+        y_type = self.get_tag("y_type", None, raise_error=False)
 
         if (
             isinstance(obj, BaseCollectionTransformer)
             or (inspect.isclass(obj) and issubclass(obj, BaseCollectionTransformer))
-        ) and X_scitype != "Panel":
+        ) and X_type != "Panel":
             return False
 
         # if transformer requires y, the scenario also must pass y
@@ -88,11 +88,11 @@ class TransformerTestScenario(TestScenario, BaseObject):
 
         # the case that we would need to vectorize with y, skip
         X_inner_type = get_tag(obj, "X_inner_type")
-        X_inner_scitypes = mtype_to_scitype(
+        X_inner_abstract_types = mtype_to_scitype(
             X_inner_type, return_unique=True, coerce_to_list=True
         )
         # we require vectorization from of a Series trafo to Panel data ...
-        if X_scitype == "Panel" and "Panel" not in X_inner_scitypes:
+        if X_type == "Panel" and "Panel" not in X_inner_abstract_types:
             # ... but y is passed and y is not ignored internally ...
             if self.get_tag("has_y") and get_tag(obj, "y_inner_type") != "None":
                 # ... this would raise an error since vectorization is not defined
@@ -101,10 +101,10 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # ensure scenario y matches type of inner y
         y_inner_type = get_tag(obj, "y_inner_type")
         if y_inner_type not in [None, "None"]:
-            y_inner_scitypes = mtype_to_scitype(
+            y_inner_abstract_types = mtype_to_scitype(
                 y_inner_type, return_unique=True, coerce_to_list=True
             )
-            if y_scitype not in y_inner_scitypes:
+            if y_type not in y_inner_abstract_types:
                 return False
 
         # only applicable if X of supported index type
@@ -141,19 +141,19 @@ class TransformerTestScenario(TestScenario, BaseObject):
             if obj is None:
                 raise ValueError('if key="inverse_transform", obj must be provided')
 
-            X_scitype = self.get_tag("X_type")
+            X_type = self.get_tag("X_type")
 
-            X_out_scitype = get_tag(obj, "output_data_type")
+            X_out_type = get_tag(obj, "output_data_type")
             X_panel = get_tag(obj, "instancewise")
 
-            X_out_series = X_out_scitype == "Series"
-            X_out_prim = X_out_scitype == "Primitives"
+            X_out_series = X_out_type == "Series"
+            X_out_prim = X_out_type == "Primitives"
 
-            # determine output by X_out_scitype
-            s2s = X_scitype == "Series" and X_out_series
-            s2p = X_scitype == "Series" and X_out_prim
-            p2t = X_scitype == "Panel" and X_out_prim
-            p2p = X_scitype == "Panel" and X_out_series
+            # determine output by X_type
+            s2s = X_type == "Series" and X_out_series
+            s2p = X_type == "Series" and X_out_prim
+            p2t = X_type == "Panel" and X_out_prim
+            p2p = X_type == "Panel" and X_out_series
 
             # expected input type of inverse_transform is expected output of transform
             if s2p:
@@ -171,7 +171,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             else:
                 raise RuntimeError(
                     "transformer with unexpected combination of tags: "
-                    f"X_out_scitype = {X_out_scitype}, instancewise = {X_panel}"
+                    f"X_out_type = {X_out_type}, instancewise = {X_panel}"
                 )
 
         else:

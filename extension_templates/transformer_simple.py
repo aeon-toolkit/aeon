@@ -75,7 +75,7 @@ class MyTransformer(BaseTransformer):
     #   X_inner_type - the internal mtype used for X in _fit and _transform
     #   y_inner_type - if y is used, the internal mtype used for y; usually "None"
     #   setting this guarantees that X, y passed to _fit, _transform are of above types
-    #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
+    #   for possible mtypes see datatypes.TYPE_REGISTER, or the datatypes tutorial
     #
     #  when input_data_type is set to Panel:
     #   X_inner_type must be changed to one or a list of aeon Panel mtypes
@@ -124,7 +124,7 @@ class MyTransformer(BaseTransformer):
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.TYPE_REGISTER
         #   of type Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   y_inner_type can also be of type Table (one row/instance per series)
         #   in that case, all inputs are converted to that one type

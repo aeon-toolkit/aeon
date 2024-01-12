@@ -28,17 +28,16 @@ class CosineTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        # what abstract type is returned: Primitives, Series, Panel
+        "instancewise": True,
+        "X_inner_type": "np.ndarray",
+        "y_inner_type": "None",
         "univariate-only": False,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
         "capability:inverse_transform": False,
-        # switching off, since cos is not invertible outside [-pi, pi], fails test
     }
 
     def _transform(self, X, y=None):

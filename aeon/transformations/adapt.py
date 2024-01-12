@@ -86,12 +86,12 @@ class TabularToSeriesAdaptor(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "X_inner_type": "np.ndarray",
+        "y_inner_type": "None",
         "univariate-only": False,
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
@@ -261,17 +261,17 @@ class PandasTransformAdaptor(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        # what abstract type is returned: Primitives, Series, Panel
+        "instancewise": True,
+        "X_inner_type": "pd.DataFrame",
+        "y_inner_type": "None",
         "univariate-only": False,
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
         "capability:inverse_transform": False,
-        "remember_data": False,  # remember all data seen as _X
+        "remember_data": False,
     }
 
     def __init__(self, method, kwargs=None, apply_to="call"):
