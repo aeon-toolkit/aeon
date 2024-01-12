@@ -38,7 +38,7 @@ def test_get_estimator_results():
     with pytest.raises(ValueError, match="not a valid task"):
         get_estimator_results(estimators=cls, task="skipping")
     with pytest.raises(ValueError, match="not a valid type "):
-        get_estimator_results(estimators=cls, type="madness")
+        get_estimator_results(estimators=cls, measure="madness")
 
 
 def test_get_estimator_results_as_array():
@@ -87,12 +87,12 @@ def test_alias():
 )
 def test_load_all_classifier_results():
     """Run through all classifiers in NAME_ALIASES."""
-    for type in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
+    for measure in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
         for name_key in NAME_ALIASES.keys():
             res, names = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=False,
-                type=type,
+                measure=measure,
                 default_only=False,
             )
             assert res.shape[0] >= 112
@@ -100,7 +100,7 @@ def test_load_all_classifier_results():
             res = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=True,
-                type=type,
+                measure=measure,
                 default_only=False,
             )
             from aeon.datasets.tsc_data_lists import univariate as UCR
