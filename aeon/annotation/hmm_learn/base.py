@@ -25,7 +25,7 @@ class BaseHMMLearn(BaseSeriesAnnotator):
         "fit_is_empty": True,
         "python_dependencies": "hmmlearn",
     }  # for unit test cases
-    _hmm_estimator = None
+    #    _hmm_estimator = None
 
     def __init__(self):
         super(BaseHMMLearn, self).__init__()
