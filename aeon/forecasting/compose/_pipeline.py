@@ -6,7 +6,7 @@ __all__ = ["TransformedTargetForecaster", "ForecastingPipeline", "ForecastX"]
 import pandas as pd
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
+from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.transformations.base import BaseTransformer
@@ -1597,8 +1597,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
 
     _tags = {
         "y_input_type": "both",
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_type": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
