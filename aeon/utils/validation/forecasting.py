@@ -414,10 +414,10 @@ def check_scoring(scoring, allow_y_pred_benchmark=False):
     NotImplementedError
         if metric requires y_pred_benchmark to be passed
     """
-    from aeon.performance_metrics.forecasting import mean_absolute_error
+    from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 
     if scoring is None:
-        return mean_absolute_error
+        return mean_absolute_percentage_error
 
     if not callable(scoring):
         raise TypeError("`scoring` must be a callable object")
