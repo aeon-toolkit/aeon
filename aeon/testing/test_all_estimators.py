@@ -24,7 +24,7 @@ from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.tests.test_config import (
+from aeon.testing.test_config import (
     EXCLUDE_ESTIMATORS,
     EXCLUDED_TESTS,
     NON_STATE_CHANGING_METHODS,
@@ -481,7 +481,7 @@ class QuickTester:
         Examples
         --------
         >>> from aeon.forecasting.naive import NaiveForecaster
-        >>> from aeon.tests.test_all_estimators import TestAllObjects
+        >>> from aeon.testing.test_all_estimators import TestAllObjects
         >>> TestAllObjects().run_tests(
         ...     NaiveForecaster,
         ...     tests_to_run="test_constructor"

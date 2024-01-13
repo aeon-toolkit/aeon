@@ -7,11 +7,11 @@ import numpy as np
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
-from aeon.regression.tests.test_expected_outputs import (
+from aeon.testing.expected_results.expected_regressor_outputs import (
     cardano_sentiment_preds,
     covid_3month_preds,
 )
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 
 
