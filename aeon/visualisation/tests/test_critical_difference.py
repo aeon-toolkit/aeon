@@ -6,19 +6,22 @@ import pytest
 from numpy.testing import assert_almost_equal
 from scipy.stats import rankdata
 
-from aeon.benchmarking._critical_difference import (
+import aeon
+from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+from aeon.datasets.tsc_data_lists import univariate_equal_length
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.visualisation._critical_difference import (
     _build_cliques,
     _check_friedman,
     _nemenyi_test,
     _wilcoxon_test,
     plot_critical_difference,
 )
-from aeon.benchmarking.results_loaders import get_estimator_results_as_array
-from aeon.datasets.tsc_data_lists import univariate_equal_length
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-test_path = os.path.dirname(__file__)
-data_path = os.path.join(test_path, "../example_results/")
+data_path = os.path.join(
+    os.path.dirname(aeon.__file__),
+    "benchmarking/example_results/",
+)
 
 
 def test_nemenyi_test():

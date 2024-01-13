@@ -443,16 +443,12 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
 
     _tags = {
         "transform_labels": "Series",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
-        # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for y?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "X_inner_type": "np.ndarray",
+        "y_inner_type": "np.ndarray",
+        "fit_is_empty": False,
         "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
         "capability:missing_values": True,  # can estimator handle missing data?
         "capability:missing_values:removes": False,
-        # is transform result always guaranteed to contain no missing values?
         "instancewise": True,  # is this an instance-wise transform?
         "python_dependencies": ["filterpy", "numpy<1.24.0"],
     }

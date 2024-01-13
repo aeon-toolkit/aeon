@@ -295,7 +295,7 @@ def plot_critical_difference(
 
     Example
     -------
-    >>> from aeon.benchmarking import plot_critical_difference
+    >>> from aeon.visualisation import plot_critical_difference
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP

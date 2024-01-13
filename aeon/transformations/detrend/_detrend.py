@@ -67,14 +67,12 @@ class Detrender(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
+        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        # which mtypes do _fit/_predict support for X?
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        # which mtypes do _fit/_predict support for y?
         "univariate-only": False,
         "fit_is_empty": False,
         "capability:inverse_transform": True,

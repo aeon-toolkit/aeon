@@ -37,7 +37,7 @@ def test_mock_univariate_forecaster_log(y, X_train, X_pred, fh):
     Tests the following:
     - log format and content
     - All the private methods that have logging enabled are in the log
-    - the correct inner mtypes are preserved, according to the forecaster tags
+    - the correct inner types are preserved, according to the forecaster tags
     """
     forecaster = MockUnivariateForecasterLogger()
     forecaster.fit(y, X_train, fh)
