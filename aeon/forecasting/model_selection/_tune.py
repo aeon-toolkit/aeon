@@ -530,13 +530,13 @@ class ForecastingGridSearchCV(BaseGridSearch):
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"window_length": [2, 5]},
-            "scoring": mean_absolute_error(),
+            "scoring": mean_absolute_error,
         }
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"degree": [1, 2]},
-            "scoring": mean_absolute_error(),
+            "scoring": mean_absolute_error,
             "update_behaviour": "inner_only",
         }
         return [params, params2]
