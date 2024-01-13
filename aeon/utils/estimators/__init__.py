@@ -1,4 +1,4 @@
-"""Utility estimator classes for testing and debugging."""
+"""Mock forecasters for testing and debugging."""
 
 __author__ = ["ltsaprounis"]
 
