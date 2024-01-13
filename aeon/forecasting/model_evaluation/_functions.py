@@ -309,7 +309,7 @@ def evaluate(
 
         Optionally, users can provide a list of metrics to `scoring` argument.
     >>> from aeon.performance_metrics.forecasting import mean_absolute_error as loss
-    >>> from aeon.performance_metrics.forecasting import mean_relative_error as loss2
+    >>> from aeon.performance_metrics.forecasting import mean_squared_error as loss2
     >>> results = evaluate(
     ...     forecaster=forecaster,
     ...     y=y,
