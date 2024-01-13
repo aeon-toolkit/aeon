@@ -65,9 +65,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        self._check_input_series(X)
+        self._check_X(X)
         self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._convert_X(X, axis)
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
@@ -102,9 +102,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
 
         if axis is None:
             axis = self.axis
-        self._check_input_series(X)
+        self._check_X(X)
         self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._convert_X(X, axis)
         return self._transform(X)
 
     @final
@@ -137,9 +137,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         """
         # input checks and datatype conversion, to avoid doing in both fit and transform
         self.reset()
-        self._check_input_series(X)
+        self._check_X(X)
         self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._convert_X(X, axis)
 
         Xt = self._fit_transform(X=X, y=y, axis=axis)
         self._is_fitted = True
@@ -180,9 +180,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         # check whether is fitted
         self.check_is_fitted()
 
-        self._check_input_series(X)
+        self._check_X(X)
         self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._convert_X(X, axis)
         return self._inverse_transform(X=X, y=y)
 
     def _fit(self, X, y=None):

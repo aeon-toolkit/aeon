@@ -6,7 +6,7 @@ import pandas as pd
 from aeon.base._base import BaseEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
-# allowed input and internal data types for Segmenters
+# allowed input and internal data types for Series
 VALID_INNER_TYPES = [
     "ndarray",
     "Series",
@@ -18,8 +18,8 @@ VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 class BaseSeriesEstimator(BaseEstimator):
     """Base class for estimators that use single (possibly multivariate) time series.
 
-    Provides functions that are common to BaseSegmenter,
-    BaseSeriesTransformer for the checking and
+    Provides functions that are common to BaseSeriesEstimator objects, including
+    BaseSeriesTransformer, for the checking and
     conversion of input to fit, predict and transform, where relevant.
 
     It also stores the common default tags used by all the subclasses and meta data
@@ -39,7 +39,7 @@ class BaseSeriesEstimator(BaseEstimator):
         super(BaseSeriesEstimator, self).__init__()
         _check_estimator_deps(self)
 
-    def _check_input_series(self, X):
+    def _check_X(self, X):
         """Check input is a data structure only containing floats."""
         # Checks: check valid type and axis
         if type(X) not in VALID_INPUT_TYPES:
@@ -69,7 +69,7 @@ class BaseSeriesEstimator(BaseEstimator):
             if X.ndim > 1:
                 raise ValueError("Multivariate data not supported")
 
-    def _convert_series(self, X, axis):
+    def _convert_X(self, X, axis):
         inner = self.get_tag("X_inner_type")
         input = type(X).__name__
         if inner != input:
