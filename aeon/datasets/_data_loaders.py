@@ -31,7 +31,7 @@ __all__ = [  # Load functions
     "load_forecasting",
     "load_regression",
     "download_all_regression",
-    "get_meta_data",
+    "get_dataset_meta_data",
 ]
 
 
@@ -1222,7 +1222,7 @@ PROBLEM_TYPES = [
 ]
 
 
-def get_meta_data(
+def get_dataset_meta_data(
     data_names=None,
     features=None,
     url="https://timeseriesclassification.com/aeon-toolkit/metadata.csv",
