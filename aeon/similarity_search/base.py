@@ -324,12 +324,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                     )
                 return speed_up_profile
         else:
-            if isinstance(self.distance, CPUDispatcher):
+            if isinstance(self.distance, CPUDispatcher) or callable(self.distance):
                 self.distance_function_ = self.distance
             else:
                 raise ValueError(
-                    "If distance argument is not a string, it is expected to be a "
-                    f"numba function (CPUDispatcher), but got {type(self.distance)}."
+                    "If distance argument is not a string, it is expected to be either "
+                    "a callable or a numba function (CPUDispatcher), but got "
+                    f"{type(self.distance)}."
                 )
         if self.normalize:
             return normalized_naive_distance_profile
