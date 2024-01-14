@@ -7,7 +7,7 @@ from aeon.datasets.dataset_collections import (
     list_available_tsf_datasets,
     list_downloaded_tsf_datasets,
 )
-from aeon.tests.test_config import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 
 @pytest.mark.skipif(

@@ -95,7 +95,7 @@ def check_estimator(
     from aeon.forecasting.tests.test_all_forecasters import TestAllForecasters
     from aeon.registry import get_identifiers
     from aeon.regression.tests.test_all_regressors import TestAllRegressors
-    from aeon.tests.test_all_estimators import TestAllEstimators, TestAllObjects
+    from aeon.testing.test_all_estimators import TestAllEstimators, TestAllObjects
     from aeon.transformations.tests.test_all_transformers import TestAllTransformers
 
     testclass_dict = dict()
