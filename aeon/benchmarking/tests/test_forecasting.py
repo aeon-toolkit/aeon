@@ -54,10 +54,10 @@ def test_forecastingbenchmark(tmp_path):
         columns=[
             "validation_id",
             "model_id",
-            "MeanSquaredPercentageError_fold_0_test",
-            "MeanSquaredPercentageError_fold_1_test",
-            "MeanSquaredPercentageError_mean",
-            "MeanSquaredPercentageError_std",
+            "mean_squared_percentage_error_fold_0_test",
+            "mean_squared_percentage_error_fold_1_test",
+            "mean_squared_percentage_error_mean",
+            "mean_squared_percentage_error_std",
         ],
     )
 
