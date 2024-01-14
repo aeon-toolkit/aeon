@@ -13,7 +13,7 @@ from inspect import getfullargspec, isclass, signature
 import joblib
 import numpy as np
 import pytest
-from sklearn.testing.utils import set_random_state
+from sklearn.utils._testing import set_random_state
 from sklearn.utils.estimator_checks import (
     check_get_params_invariance as _check_get_params_invariance,
 )

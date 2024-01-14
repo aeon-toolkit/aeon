@@ -2,7 +2,7 @@
 
 import numpy as np
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
-from sklearn.testing.utils import set_random_state
+from sklearn.utils._testing import set_random_state
 
 from aeon.classification import BaseClassifier
 from aeon.classification.compose import ChannelEnsembleClassifier

@@ -5,7 +5,7 @@ __all__ = []
 
 import numpy as np
 import pandas as pd
-from sklearn.testing.utils import set_random_state
+from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.testing.expected_results.expected_transform_outputs import (

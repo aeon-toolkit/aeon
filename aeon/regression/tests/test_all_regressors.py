@@ -4,7 +4,7 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 
 
 import numpy as np
-from sklearn.testing.utils import set_random_state
+from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.testing.expected_results.expected_regressor_outputs import (
