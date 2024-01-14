@@ -47,6 +47,9 @@ def generate_new_default_njit_func(
     """
     Return a function with same code, globals, defaults, closure, and name.
 
+    If the function is not a CPUDispatcher (numba) function, it will try to create
+    a numba function if the base function is callable.
+
     Parameters
     ----------
     base_func : function or CPUDispatcher
