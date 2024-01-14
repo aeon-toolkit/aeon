@@ -24,7 +24,9 @@ class MockClassifierPredictProba(MockClassifier):
 
     def _predict_proba(self, X):
         """Predict proba dummy."""
-        return np.zeros(shape=(len(X), 2))
+        pred = np.zeros(shape=(len(X), 2))
+        pred[:, 0] = 1
+        return pred
 
 
 class MockClassifierFullTags(MockClassifierPredictProba):
