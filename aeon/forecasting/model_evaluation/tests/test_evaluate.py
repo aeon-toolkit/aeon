@@ -234,9 +234,9 @@ def test_evaluate_error_score(error_score, return_data, strategy, backend):
                 backend=backend,
             )
         if isinstance(error_score, type(np.nan)):
-            assert results["test_mean_absolute_error"].isna().sum() > 0
+            assert results["test_mean_absolute_percentage_error"].isna().sum() > 0
         if error_score == 1000:
-            assert results["test_mean_absolute_error"].max() == 1000
+            assert results["test_mean_absolute_percentage_error"].max() == 1000
     if error_score == "raise":
         with pytest.raises(Exception):  # noqa: B017
             evaluate(
