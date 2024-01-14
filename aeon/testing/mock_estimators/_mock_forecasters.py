@@ -88,7 +88,7 @@ def make_mock_estimator(
     Examples
     --------
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.utils.estimators import make_mock_estimator
+    >>> from aeon.testing.mock_estimators import make_mock_estimator
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> mock_estimator_class = make_mock_estimator(NaiveForecaster)
@@ -134,7 +134,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.estimators import MockUnivariateForecasterLogger
+    >>> from aeon.testing.mock_estimators import MockUnivariateForecasterLogger
     >>> y = load_airline()
     >>> forecaster = MockUnivariateForecasterLogger()
     >>> forecaster.fit(y)
@@ -313,7 +313,7 @@ class MockForecaster(BaseForecaster):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.estimators import MockUnivariateForecasterLogger
+    >>> from aeon.testing.mock_estimators import MockUnivariateForecasterLogger
     >>> y = load_airline()
     >>> forecaster = MockUnivariateForecasterLogger()
     >>> forecaster.fit(y)
