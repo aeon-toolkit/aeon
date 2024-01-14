@@ -1,7 +1,7 @@
 """Functions for generating stored unit test results for transformers."""
 
 import numpy as np
-from sklearn.utils._testing import set_random_state
+from sklearn.testing.utils import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.collection.interval_based import (

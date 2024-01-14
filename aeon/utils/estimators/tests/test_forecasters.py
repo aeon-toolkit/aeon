@@ -8,7 +8,7 @@ import pytest
 
 from aeon.datasets import load_airline
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.utils.estimators import MockUnivariateForecasterLogger
 
 y_series = load_airline().iloc[:-5]

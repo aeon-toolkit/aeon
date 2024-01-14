@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from scipy.stats import linregress
 
-from aeon.utils._testing.forecasting import _generate_polynomial_series
+from aeon.testing.utils.forecasting import _generate_polynomial_series
 from aeon.utils.slope_and_trend import _fit_trend, _slope
 
 

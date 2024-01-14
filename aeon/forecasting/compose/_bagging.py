@@ -7,8 +7,8 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 from sklearn import clone
+from sklearn.testing.utils import set_random_state
 from sklearn.utils import check_random_state
-from sklearn.utils._testing import set_random_state
 
 from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster

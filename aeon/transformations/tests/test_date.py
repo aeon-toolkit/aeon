@@ -6,8 +6,8 @@ from pandas.testing import assert_frame_equal
 
 from aeon.datasets import load_airline, load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
+from aeon.testing.utils.hierarchical import _make_hierarchical
 from aeon.transformations.date import DateTimeFeatures
-from aeon.utils._testing.hierarchical import _make_hierarchical
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 if _check_estimator_deps(DateTimeFeatures, severity="none"):

@@ -5,7 +5,7 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly"]
 import inspect
 
 import numpy as np
-from sklearn.utils._testing import set_random_state
+from sklearn.testing.utils import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.testing.expected_results.expected_classifier_outputs import (
@@ -13,8 +13,8 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.scenarios_classification import ClassifierFitPredict
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.scenarios_classification import ClassifierFitPredict
 from aeon.utils.validation.collection import get_n_cases
 
 

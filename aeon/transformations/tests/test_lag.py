@@ -8,8 +8,8 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import get_examples
+from aeon.testing.utils.series import _make_series
 from aeon.transformations.lag import Lag
-from aeon.utils._testing.series import _make_series
 
 # some examples with range vs time index, univariate vs multivariate (mv)
 X_range_idx = get_examples("pd.DataFrame")[0]

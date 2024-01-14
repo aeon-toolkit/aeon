@@ -27,7 +27,7 @@ from aeon.forecasting.tests import (
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.forecasting import (
+from aeon.testing.utils.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
     _get_expected_index_for_update_predict,
@@ -35,7 +35,7 @@ from aeon.utils._testing.forecasting import (
     _make_fh,
     make_forecasting_problem,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation.forecasting import check_fh
 
 # get all forecasters
@@ -612,7 +612,7 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         """
         from aeon.datatypes import check_is_mtype
         from aeon.datatypes._utilities import get_window
-        from aeon.utils._testing.hierarchical import _make_hierarchical
+        from aeon.testing.utils.hierarchical import _make_hierarchical
 
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.utils._testing.collection import (
+from aeon.testing.utils.collection import (
     make_2d_test_data,
     make_3d_test_data,
     make_clustering_data,
