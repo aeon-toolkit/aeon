@@ -1,4 +1,4 @@
-.. _annotation_ref:
+.. _segmentation_ref:
 
 Segmentation
 ============

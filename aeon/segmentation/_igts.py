@@ -1,7 +1,7 @@
 """
-Information Gain-based Temporal Segmentation.
+Information Gain-based Temporal Segmenter.
 
-Information Gain Temporal Segmentation (IGTS) is a method for segmenting
+Information Gain Temporal Segmentation (_IGTS) is a method for segmenting
 multivariate time series based off reducing the entropy in each segment [1]_.
 
 The amount of entropy lost by the segmentations made is called the Information
@@ -104,11 +104,11 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: List) -> npt.Array
 
 
 @define
-class IGTS:
+class _IGTS:
     """
-    Information Gain based Temporal Segmentation (IGTS).
+    Information Gain based Temporal Segmentation (GTS).
 
-    IGTS is a n unsupervised method for segmenting multivariate time series
+    GTS is a n unsupervised method for segmenting multivariate time series
     into non-overlapping segments by locating change points that for which
     the information gain is maximized.
 
@@ -116,13 +116,13 @@ class IGTS:
     The aim is to find the segmentation that have the maximum information
     gain for a specified number of segments.
 
-    IGTS uses top-down search method to greedily find the next change point
+    GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
     repeats the process until it finds `k_max` splits of the time series.
 
     .. note::
 
-       IGTS does not work very well for univariate series but it can still be
+       GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
        dimensions. A technique proposed in the paper [1]_ us to subtract the
        series from it's largest element and append to the series.
@@ -249,7 +249,7 @@ class IGTS:
         n_samples, n_series = X.shape
         if n_series == 1:
             raise ValueError(
-                "Detected univariate series, IGTS will not work properly"
+                "Detected univariate series, GTS will not work properly"
                 " in this case. Consider augmenting your series to multivariate."
             )
         self.intermediate_results_ = []
@@ -281,9 +281,9 @@ class IGTS:
 
 
 class InformationGainSegmenter(BaseSegmenter):
-    """Information Gain based Temporal Segmentation (IGTS) Estimator.
+    """Information Gain based Temporal Segmentation (GTS) Estimator.
 
-    IGTS is a n unsupervised method for segmenting multivariate time series
+    GTS is a n unsupervised method for segmenting multivariate time series
     into non-overlapping segments by locating change points that for which
     the information gain is maximized.
 
@@ -291,13 +291,13 @@ class InformationGainSegmenter(BaseSegmenter):
     The aim is to find the segmentation that have the maximum information
     gain for a specified number of segments.
 
-    IGTS uses top-down search method to greedily find the next change point
+    GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
     repeats the process until it finds `k_max` splits of the time series.
 
     .. note::
 
-       IGTS does not work very well for univariate series but it can still be
+       GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
        dimensions. A technique proposed in the paper [1]_ us to subtract the
        series from it's largest element and append to the series.
@@ -362,7 +362,7 @@ class InformationGainSegmenter(BaseSegmenter):
     ):
         self.k_max = k_max
         self.step = step
-        self._igts = IGTS(
+        self._igts = _IGTS(
             k_max=k_max,
             step=step,
         )

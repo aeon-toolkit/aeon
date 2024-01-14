@@ -1,4 +1,4 @@
-"""DummySegmentation class, randomly segments."""
+"""RandomSegmenter class, randomly segments a series."""
 
 
 import random
@@ -6,7 +6,7 @@ import random
 from aeon.segmentation.base import BaseSegmenter
 
 
-class DummySegmenter(BaseSegmenter):
+class RandomSegmenter(BaseSegmenter):
     """Dummy Segmenter.
 
     Randomly segments a time series.
@@ -19,10 +19,10 @@ class DummySegmenter(BaseSegmenter):
         "fit_is_empty": False,
     }
 
-    def __init__(self, random_state=None, n_segments=None):
+    def __init__(self, random_state=None, n_segments=2):
         self.random_state = random_state
         self.breakpoints_ = []
-        super(DummySegmenter, self).__init__(n_segments=n_segments, axis=1)
+        super(RandomSegmenter, self).__init__(n_segments=n_segments, axis=1)
 
     def _fit(self, X, y=None):
         """Fit the dummy segmenter.
@@ -37,15 +37,12 @@ class DummySegmenter(BaseSegmenter):
         -------
         self : reference to self.
         """
-        self.n_segments_ = self.n_segments
-        if self.n_segments_ is None:
-            self.n_segments_ = 2
         length = X.shape[1]
 
         rng = random.Random()
         rng.seed(self.random_state)
 
-        points = rng.sample(range(0, length), self.n_segments_ - 1)
+        points = rng.sample(range(0, length), self.n_segments - 1)
         self.breakpoints_ = sorted(points)
         return self
 

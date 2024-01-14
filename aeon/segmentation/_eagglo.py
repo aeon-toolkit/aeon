@@ -97,7 +97,7 @@ class EAggloSegmenter(BaseSegmenter):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAggloSegmenter, self).__init__(axis=0)
+        super(EAggloSegmenter, self).__init__(axis=0, n_segments=None)
 
     def _fit(self, X, y=None):
         """Find optimally clustered segments.

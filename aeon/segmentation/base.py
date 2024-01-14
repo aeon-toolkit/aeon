@@ -56,15 +56,15 @@ class BaseSegmenter(BaseEstimator, ABC):
     plays two roles:
 
     1) the axis the segmenter expects the data to be in for its internal methods
-    ``_fit`` and ``_predict``: 0 means each column is a time series channel `(m,d)`,
-    1 means each row is a time series channel, sometimes called wide
-    format, shape `(d,m)`. This should be set for a given child class through the
-    BaseSegmenter constructor.
+    ``_fit`` and ``_predict``: 0 means each column is a time series, and the data is
+    shaped `(m,d)`, axis equal to 1 means each row is a time series, sometimes
+    called wide format, and the whole series is shape `(d,m)`. This should be set for a
+    given child class through the BaseSegmenter constructor.
 
 
     2) The optional ``axis`` argument passed to the base class ``fit`` and ``predict``
     methods. If the data ``axis`` is different to the ``axis`` expected (i.e. value
-    stored in ``self.axis``, then it is htransposed in this base class if self has
+    stored in ``self.axis``, then it is transposed in this base class if self has
     multivariate capability.
 
     Segmentation representation
@@ -90,12 +90,12 @@ class BaseSegmenter(BaseEstimator, ABC):
     n_segments : int, default = 2
         Number of segments to split the time series into. If None, then the number of
         segments needs to be found in fit.
-    axis : int, default = 0
+    axis : int, default = 1
         Axis along which to segment if passed a multivariate series (2D input). If axis
-        is 0, it is assumed each row is a time series and each column is a channel.
-        i.e. the shape of the data is ``(n_timepoints,n_channels)``. ``axis == 1``
-        indicates the time series are in rows, i.e. the shape of the data is ``(
-        n_channels, n_timepoints)`.
+        is 0, it is assumed each column is a time series and each row is a
+        timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+        ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
+        is ``(n_channels, n_timepoints)`.
 
     """
 
@@ -110,7 +110,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         "returns_dense": True,
     }
 
-    def __init__(self, n_segments=None, axis=1):
+    def __init__(self, n_segments=2, axis=1):
         self.n_segments = n_segments
         self.axis = axis
         self._is_fitted = False
@@ -134,8 +134,9 @@ class BaseSegmenter(BaseEstimator, ABC):
             segmentation.
         axis : int, default = None
             Axis along which to segment if passed a multivariate series (2D input).
-            If axis is 0, it is assumed each row is a time series and each column is
-            a channel. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
             ``axis == 1`` indicates the time series are in rows, i.e. the shape of
             the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
             that the axis of X is the same as ``self.axis``.
@@ -173,9 +174,10 @@ class BaseSegmenter(BaseEstimator, ABC):
         X : One of ``VALID_INPUT_TYPES``
             Input time series
         axis : int, default = None
-            Axis along which to segment if passed a multivariate series (2D input).
-            If axis is 0, it is assumed each row is a time series and each column is
-            a channel. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+            Axis along which to segment if passed a multivariate series (2D input)
+            with ``n_channels`` time series. If axis is 0, it is assumed each row is
+            a time series and each column is a time point. i.e. the shape of the data
+            is ``(n_timepoints,n_channels)``.
             ``axis == 1`` indicates the time series are in rows, i.e. the shape of
             the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
             that the axis of X is the same as ``self.axis``.

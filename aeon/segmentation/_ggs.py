@@ -1,5 +1,5 @@
 """
-Greedy Gaussian Segmentation (GGS).
+Greedy Gaussian Segmentation (_GGS).
 
 The method approximates solutions for the problem of breaking a
 multivariate time series into segments, where the data in each segment
@@ -8,15 +8,15 @@ distribution. It uses a dynamic programming search algorithm with
 a heuristic that allows finding approximate solution in linear time with
 respect to the data length and always yields locally optimal choice.
 
-This module is structured with the ``GGS`` that implements the actual
+This module is structured with the ``_GGS`` that implements the actual
 segmentation algorithm and a ``GreedyGaussianSegmentation`` that
 interfaces the algorithm with the sklearn/aeon api. The benefit
 behind that design is looser coupling between the logic and the
 interface introduced to allow for easier changes of either part
 since segmentation still has an experimental nature. When making
-algorithm changes you probably want to look into ``GGS`` when
+algorithm changes you probably want to look into ``_GGS`` when
 evolving the aeon/sklearn interface look into ``GreedyGaussianSegmentation``.
-This design also allows adapting ``GGS`` to other interfaces.
+This design also allows adapting ``_GGS`` to other interfaces.
 
 Notes
 -----
@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 
 @define
-class GGS:
+class _GGS:
     """
     Greedy Gaussian Segmentation.
 
@@ -461,7 +461,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         self.max_shuffles = max_shuffles
         self.verbose = verbose
         self.random_state = random_state
-        self.ggs = GGS(
+        self.ggs = _GGS(
             k_max=k_max,
             lamb=lamb,
             max_shuffles=max_shuffles,
