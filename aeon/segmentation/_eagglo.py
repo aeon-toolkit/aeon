@@ -7,21 +7,13 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-from aeon.transformations.base import BaseTransformer
+from aeon.segmentation.base import BaseSegmenter
 
 __author__ = ["KatieBuc", "patrickzib"]
-__all__ = ["EAgglo"]
-from deprecated.sphinx import deprecated
+__all__ = ["EAggloSegmenter"]
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.6.0",
-    reason="EAgglo will be removed from annotation in v0.8.0, it has been replaced by "
-    "EAggloSegmenter in the segmentation module.",
-    category=FutureWarning,
-)
-class EAgglo(BaseTransformer):
+class EAggloSegmenter(BaseSegmenter):
     """
     Hierarchical agglomerative estimation of multiple change points.
 
@@ -81,16 +73,19 @@ class EAgglo(BaseTransformer):
     Examples
     --------
     >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.segmentation import EAggloSegmenter
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
-    >>> from aeon.annotation.eagglo import EAgglo
-    >>> model = EAgglo()
-    >>> model.fit_transform(X)
+    >>> model = EAggloSegmenter()
+    >>> model.fit_predict(X)
     array([0, 0, 0, 1, 1, 1, 1])
     """
 
     _tags = {
+        "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
+        "capability:multivariate": True,
         "fit_is_empty": False,
+        "returns_dense": False,
     }
 
     def __init__(
@@ -102,9 +97,9 @@ class EAgglo(BaseTransformer):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAgglo, self).__init__()
+        super(EAggloSegmenter, self).__init__(axis=0, n_segments=None)
 
-    def _fit(self, X: pd.DataFrame, y=None):
+    def _fit(self, X, y=None):
         """Find optimally clustered segments.
 
         First, by determining which pairs of adjacent clusters will be merged_. Then,
@@ -112,23 +107,13 @@ class EAgglo(BaseTransformer):
         until all observations belong to a single cluster. Finally, the estimated number
         of change points is estimated by the clustering that maximizes the goodness-of-
         fit statistic over the entire merging sequence.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Data for anomaly detection (time series).
-        y : pd.Series, optional
-            Not used for this unsupervised method.
-
-        Returns
-        -------
-        self :
-            Reference to self.
         """
         self._X = X
 
         if self.alpha <= 0 or self.alpha > 2:
-            raise ValueError(f"alowed values for 'alpha' are (0, 2], got: {self.alpha}")
+            raise ValueError(
+                f"allowed values for 'alpha' are (0, 2], " f"got: {self.alpha}"
+            )
 
         self._initialize_params(X)
 
@@ -188,7 +173,7 @@ class EAgglo(BaseTransformer):
 
         return self
 
-    def _transform(self, X: pd.DataFrame, y=None):
+    def _predict(self, X: pd.DataFrame, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing core logic, called from transform
@@ -208,7 +193,7 @@ class EAgglo(BaseTransformer):
         # fit again if indices not seen, but don't store anything
         if not X.index.equals(self._X.index):
             X_full = X.combine_first(self._X)
-            new_eagglo = EAgglo(
+            new_eagglo = EAggloSegmenter(
                 member=self.member,
                 alpha=self.alpha,
                 penalty=self.penalty,
@@ -217,7 +202,7 @@ class EAgglo(BaseTransformer):
                 "Warning: Input data X differs from that given to fit(). "
                 "Refitting with both the data in fit and new input data, not storing "
                 "updated public class attributes. For this, explicitly use fit(X) or "
-                "fit_transform(X).",
+                "fit_predict(X).",
                 stacklevel=1,
             )
             return new_eagglo.cluster_

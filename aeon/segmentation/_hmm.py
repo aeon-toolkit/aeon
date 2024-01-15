@@ -1,7 +1,7 @@
 """
 HMM annotation Estimator.
 
-Implements a basic Hidden Markov Model (HMM) as an annotation estimator.
+Implements a basic Hidden Markov Model (HMM) as a segmentor.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
@@ -9,23 +9,15 @@ import warnings
 from typing import Tuple
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from scipy.stats import norm
 
-from aeon.annotation.base._base import BaseSeriesAnnotator
+from aeon.segmentation.base import BaseSegmenter
 
 __author__ = ["miraep8"]
-__all__ = ["HMM"]
+__all__ = ["HMMSegmenter"]
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.6.0",
-    reason="HMM will be removed from annotation module in v0.8.0, it has been replaced "
-    "by HMMSegmenter in the segmentation module.",
-    category=FutureWarning,
-)
-class HMM(BaseSeriesAnnotator):
+class HMMSegmenter(BaseSegmenter):
     """Implements a simple HMM fitted with Viterbi algorithm.
 
     The HMM annotation estimator uses the
@@ -129,15 +121,17 @@ class HMM(BaseSeriesAnnotator):
     >>> sd = [.25 for i in centers]
     >>> emi_funcs = [(norm.pdf, {'loc': mean,
     ...  'scale': sd[ind]}) for ind, mean in enumerate(centers)]
-    >>> hmm_est = HMM(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
+    >>> hmm = HMM(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
     >>> # generate synthetic data (or of course use your own!)
     >>> obs = asarray([3.7,3.2,3.4,3.6,-5.1,-5.2,-4.9])
-    >>> hmm_est = hmm_est.fit(obs)
-    >>> labels = hmm_est.predict(obs)
+    >>> hmm.fit_predict(obs)
+    array([0., 0., 0., 0., 1., 1., 1.])
     """
 
-    # plan to update to make multivariate.
-    _tags = {"univariate-only": True, "fit_is_empty": True}
+    _tags = {
+        "fit_is_empty": True,
+        "returns_dense": False,
+    }
 
     def __init__(
         self,
@@ -148,8 +142,8 @@ class HMM(BaseSeriesAnnotator):
         self.initial_probs = initial_probs
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
-        super(HMM, self).__init__(fmt="dense", labels="int_label")
         self._validate_init()
+        super(HMMSegmenter, self).__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.
@@ -354,21 +348,6 @@ class HMM(BaseSeriesAnnotator):
             max_inds[index - 1] = trans_id[max_inds[index], index]
             hmm_fit[index - 1] = states[max_inds[index - 1]]
         return hmm_fit
-
-    def _fit(self, X, Y=None):
-        """Do nothing, currently empty.
-
-        Parameters
-        ----------
-        X : 1D np.array, shape = [num_observations]
-            Observations to apply labels to.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-        """
-        return self
 
     def _predict(self, X):
         """Determine the most likely seq of hidden states by Viterbi algorithm.

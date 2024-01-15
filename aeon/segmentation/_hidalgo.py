@@ -1,28 +1,20 @@
 """Hidalgo (Heterogeneous Intrinsic Dimensionality Algorithm) Segmentation."""
 
 __author__ = ["KatieBuc"]
-__all__ = ["Hidalgo"]
+__all__ = ["HidalgoSegmenter"]
 
 
 from functools import reduce
 from typing import Union
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_random_state
 
-from aeon.transformations.base import BaseTransformer
+from aeon.segmentation.base import BaseSegmenter
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.6.0",
-    reason="Hidalgo in transformations will be removed in v0.8.0, it has been replaced "
-    "by HidalgoSegmenter in the segmentation module.",
-    category=FutureWarning,
-)
-class Hidalgo(BaseTransformer):
+class HidalgoSegmenter(BaseSegmenter):
     """Heteregeneous Intrinsic Dimensionality Algorithm (Hidalgo) model.
 
     Hidalgo is a robust approach in discriminating regions with
@@ -79,26 +71,22 @@ class Hidalgo(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.hidalgo import Hidalgo
+    >>> from aeon.segmentation import HidalgoSegmenter
     >>> import numpy as np
     >>> np.random.seed(123)
     >>> X = np.random.rand(10,3)
     >>> X[:6, 1:] += 10
     >>> X[6:, 1:] = 0
-    >>> model = Hidalgo(K=2, burn_in=0.8, n_iter=100, seed=10)
-    >>> fitted_model = model.fit(X)
-    >>> Z = fitted_model.transform(X)
-    >>> Z.tolist()
+    >>> model = HidalgoSegmenter(K=2, burn_in=0.8, n_iter=100, seed=10)
+    >>> seg = model.fit_predict(X)
+    >>> seg.tolist()
     [1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
     """
 
     _tags = {
-        "input_data_type": "Series",
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "transform-returns-same-time-index": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
+        "returns_dense": False,
     }
 
     def __init__(
@@ -137,7 +125,7 @@ class Hidalgo(BaseTransformer):
         self.f = f
         self.seed = seed
 
-        super(Hidalgo, self).__init__()
+        super(HidalgoSegmenter, self).__init__(axis=1)
 
     def _get_neighbourhood_params(self, X):
         """
@@ -145,36 +133,38 @@ class Hidalgo(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray of shape (N, dim), where dim > 1
-            data to fit the algorithm to
+        X : np.ndarray
+            2D array of shape (n_timepoints, n_channels), where dim > 1 data to fit
+            the algorithm to
 
         Returns
         -------
-        N : int
-            number of rows of X
-        mu : 1D np.ndarray of length N
-            paramerer in Pereto distribtion estimated by r2/r1
-        Iin : 1D np.ndarray of length N * q
-            encodes the q neighbour index values for point index i in 0:N-1
+        m : int
+            Number of rows (timepoints) of X.
+        mu : np.ndarray
+            1D np.ndarray of length m. parameter in Pereto distribtion estimated by
+            ``r2/r1``
+        Iin : 1D np.ndarray of length m * q
+            encodes the q neighbour index values for point index i in 0:m-1
             e.g. popint i=0 has neighbours 2, 4, 7 and point i=1
             has neighbours 3, 9, 4
             Iin = np.array([2, 4, 7, 3, 9, 4,...])
-        Iout : 1D np.ndarray of length N * q
-            array of indices for which i is neighbour for i in 0:N-1
+        Iout : 1D np.ndarray of length m * q
+            array of indices for which i is neighbour for i in 0:m-1
             e.g. point i=0 is also neighbour of points 2, 4 and
             point i=1 is a neighbour of point 3 only
             Iout = np.array([2, 4, 3,...])
-        Iout_count : 1D np.ndarray of length N
-            count of how many neighbours point i has for i in 0:N-1
+        Iout_count : 1D np.ndarray of length m
+            count of how many neighbours point i has for i in 0:m-1
             e.g. Iout_count = np.array([2, 1, 1,...])
-        Iout_track : 1D np.ndarray of length N
-            cumulative sum of Iout_count at i-1 for i in 1:N-1
+        Iout_track : 1D np.ndarray of length m
+            cumulative sum of Iout_count at i-1 for i in 1:m-1
             e.g. Iout_track = np.array([0, 2, 3, 4,...])
         """
         q = self.q
         metric = self.metric
 
-        N, _ = np.shape(X)
+        m, _ = np.shape(X)
 
         nbrs = NearestNeighbors(
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
@@ -182,7 +172,7 @@ class Hidalgo(BaseTransformer):
         distances, Iin = nbrs.kneighbors(X)
         mu = np.divide(distances[:, 2], distances[:, 1])
 
-        nbrmat = np.zeros((N, N))
+        nbrmat = np.zeros((m, m))
         for n in range(q):
             nbrmat[Iin[:, 0], Iin[:, n + 1]] = 1
 
@@ -191,9 +181,9 @@ class Hidalgo(BaseTransformer):
         Iout_track = np.cumsum(Iout_count)
         Iout_track = np.append(0, Iout_track[:-1]).astype(int)
         Iin = Iin[:, 1:]
-        Iin = np.reshape(Iin, (N * q,)).astype(int)
+        Iin = np.reshape(Iin, (m * q,)).astype(int)
 
-        return N, mu, Iin, Iout, Iout_count, Iout_track
+        return m, mu, Iin, Iout, Iout_count, Iout_track
 
     def _update_zeta_prior(self, Z, N, Iin):
         """Update prior parameters for zeta."""
@@ -656,26 +646,9 @@ class Hidalgo(BaseTransformer):
         pZ = np.max(Pi, axis=0)
         Z[np.where(pZ < 0.8)] = -1
         self._Z = Z
-
         return self
 
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        private _transform containing core logic, called from transform
-
-        Parameters
-        ----------
-        X : Series of type X_inner_type
-            if X_inner_type is list, _transform must support all types in it
-            Data to be transformed
-        y : Series of type y_inner_type, default=None
-            Not used in this unsupervised implementation
-
-        Returns
-        -------
-        transformed version of X
-        """
+    def _predict(self, X, y=None):
         return self._Z
 
     @classmethod
