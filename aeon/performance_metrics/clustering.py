@@ -37,4 +37,4 @@ def clustering_accuracy_score(y_true, y_pred):
     matrix = confusion_matrix(y_true, y_pred)
     row, col = linear_sum_assignment(matrix.max() - matrix)
     s = sum([matrix[row[i], col[i]] for i in range(len(row))])
-    return s / y_pred.size
+    return s / len(y_pred)
