@@ -204,8 +204,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         if any(self.shapelet_lengths_ > self.min_series_length_):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
-                "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
-                "with an input length = {}".format(self.min_series_length_),
+                f"but got shapelets_lengths = {self.shapelet_lengths_} ",
+                f"with an input length = {self.min_series_length_}",
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -272,12 +272,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def _check_input_params(self):
         if isinstance(self.max_shapelets, bool):
             raise TypeError(
-                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
             )
 
         if not isinstance(self.max_shapelets, (int, np.integer)):
             raise TypeError(
-                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
             )
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
@@ -355,7 +355,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             params = {"max_shapelets": 10}
         else:
             raise NotImplementedError(
-                "The parameter set {} is not yet implemented".format(parameter_set)
+                f"The parameter set {parameter_set} is not yet implemented"
             )
         return params
 

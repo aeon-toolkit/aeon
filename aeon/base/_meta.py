@@ -106,7 +106,7 @@ class _HeterogenousMetaEstimator:
             for name, estimator in estimators:
                 if hasattr(estimator, "get_params"):
                     for key, value in getattr(estimator, method)(**deepkw).items():
-                        out["{}__{}".format(name, key)] = value
+                        out[f"{name}__{key}"] = value
         return out
 
     def _set_params(self, attr, **params):
@@ -137,7 +137,7 @@ class _HeterogenousMetaEstimator:
 
     def _check_names(self, names):
         if len(set(names)) != len(names):
-            raise ValueError("Names provided are not unique: {!r}".format(list(names)))
+            raise ValueError(f"Names provided are not unique: {list(names)!r}")
         invalid_names = [name for name in names if "__" in name]
         if invalid_names:
             raise ValueError(

@@ -119,9 +119,7 @@ class _ExpandingSliding(_Window):
 
         windows = list(_call())
         if len(windows) == 0:
-            raise ValueError(
-                "Length {} too short for given window parameters.".format(length)
-            )
+            raise ValueError(f"Length {length} too short for given window parameters.")
         return [windows]
 
 
