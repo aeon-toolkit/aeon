@@ -71,9 +71,9 @@ class REDCOMETS(BaseClassifier):
 
     References
     ----------
-    .. [1] Luca A. Bennett and Zahraa S. Abdallah, "RED CoMETS: An ensemble classifier
-       for symbolically represented multivariate time series."
-       Preprint, https://arxiv.org/abs/2307.13679
+    .. [1] Luca A. Bennett and Zahraa S. Abdallah, "RED CoMETS: An Ensemble Classifier
+       for Symbolically Represented Multivariate Time Series." In proceedings of the
+       8th Workshop on Advanced Analytics and Learning on Temporal Data (AALTD 2023).
     .. [2] Zahraa S. Abdallah and Mohamed Medhat Gaber, "Co-eye: a multi-resolution
        ensemble classifier for symbolically approximated time series."
        Machine Learning (2020).
