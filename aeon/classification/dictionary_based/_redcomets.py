@@ -17,6 +17,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
+from sklearn.preprocessing import scale
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SAX, SFA
@@ -203,6 +204,8 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
+        X = scale(X, axis=1)  # Z-normalise
+
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
         else:
@@ -279,7 +282,7 @@ class REDCOMETS(BaseClassifier):
             sfa_clfs.append((rf, weight))
 
         sax_transforms = [
-            SAX(n_segments=w, alphabet_size=a, znormalized=False) for w, a in sax_lenses
+            SAX(n_segments=w, alphabet_size=a, znormalized=True) for w, a in sax_lenses
         ]
 
         sax_clfs = []
@@ -397,7 +400,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 2D np.ndarray of shape = [n_instances, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -405,6 +408,7 @@ class REDCOMETS(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in ``classes_``.
         """
+        X = scale(X, axis=1)  # Z-normalise
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
         placeholder_y = np.zeros(X.shape[0])
@@ -459,6 +463,7 @@ class REDCOMETS(BaseClassifier):
             sax_clfs = self.sax_clfs[d]
 
             X_d = X[:, d, :]
+            X_d = scale(X_d, axis=1)  # Z-normalise
 
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
