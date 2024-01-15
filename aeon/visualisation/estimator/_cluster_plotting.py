@@ -1,6 +1,7 @@
 """Cluster plotting tools."""
 
 __author__ = ["Christopher Holder", "Tony Bagnall"]
+
 __all__ = ["plot_cluster_algorithm"]
 
 import numpy as np
@@ -10,50 +11,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.collection import convert_collection
 
 
-def _plot(cluster_values, center, axes):
-    for cluster_series in cluster_values:
-        for cluster in cluster_series:
-            axes.plot(cluster, color="b")
-    axes.plot(center[0], color="r")
-
-
-def _get_cluster_values(cluster_indexes: np.ndarray, X: np.ndarray, k: int):
-    ts_in_center = []
-    for i in range(k):
-        curr_indexes = np.where(cluster_indexes == i)[0]
-        ts_in_center.append(X[curr_indexes])
-
-    return ts_in_center
-
-
-def plot_series(X):
-    _check_soft_dependencies("matplotlib")
-    import matplotlib.patches as mpatches
-    import matplotlib.pyplot as plt
-
-    X = convert_collection(X, "numpy3D")
-    plt.figure(figsize=(5, 10))
-    plt.rcParams["figure.dpi"] = 100
-
-    fig, axes = plt.subplots(nrows=len(X), ncols=1)
-    for i in range(len(X)):
-        curr = X[i][0]
-        curr_axes = axes[i]
-        curr_axes.plot(curr, color="b")
-
-    blue_patch = mpatches.Patch(color="blue", label="Series that belong to the cluster")
-    plt.legend(
-        handles=[blue_patch],
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.40),
-        fancybox=True,
-        shadow=True,
-        ncol=5,
-    )
-    plt.tight_layout()
-    plt.show()
-
-
 def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     """Plot the results from a univariate partitioning algorithm.
 
@@ -61,12 +18,22 @@ def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     ----------
     model: BaseClusterer
         Clustering model to plot
-    predict_series: np.ndarray or pd.Dataframe or List[pd.Dataframe]
+    X: np.ndarray or pd.Dataframe or List[pd.Dataframe]
         The series to predict the values for
     k: int
         Number of centers
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
+
+    Example
+    -------
+    >>> pass
     """
     _check_soft_dependencies("matplotlib")
+
     import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
 
@@ -95,3 +62,19 @@ def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
     )
     plt.tight_layout()
     plt.show()
+
+
+def _plot(cluster_values, center, axes):
+    for cluster_series in cluster_values:
+        for cluster in cluster_series:
+            axes.plot(cluster, color="b")
+    axes.plot(center[0], color="r")
+
+
+def _get_cluster_values(cluster_indexes: np.ndarray, X: np.ndarray, k: int):
+    ts_in_center = []
+    for i in range(k):
+        curr_indexes = np.where(cluster_indexes == i)[0]
+        ts_in_center.append(X[curr_indexes])
+
+    return ts_in_center

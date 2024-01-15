@@ -1,4 +1,5 @@
 """Tests for the critical difference diagram maker."""
+
 import os
 
 import numpy as np
@@ -8,7 +9,7 @@ import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.visualisation.results_plotting import (
+from aeon.visualisation import (
     plot_boxplot_median,
     plot_scatter,
     plot_scatter_predictions,
