@@ -52,10 +52,10 @@ jobs:
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 30
           max_attempts: 3
-          if: steps.cache.outputs.cache-hit != 'true'
           command: python -m pip install .[dev]
 
       - name: Show dependencies
@@ -102,10 +102,10 @@ jobs:
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
+        if: steps.cache.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 30
           max_attempts: 3
-          if: steps.cache.outputs.cache-hit != 'true'
           command: python -m pip install .[dev]
 
       - name: Show dependencies
