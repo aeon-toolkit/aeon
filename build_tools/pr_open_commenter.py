@@ -23,6 +23,15 @@ title_labels_new = sys.argv[3][1:-1].split(",")
 content_labels = sys.argv[4][1:-1].split(",")
 content_labels_status = sys.argv[5]
 
+replacement_labels = [
+    ("anomalydetection", "anomaly detection"),
+    ("similaritysearch", "similarity search"),
+]
+for i, label in enumerate(content_labels):
+    for cur_label, new_label in replacement_labels:
+        if label == cur_label:
+            content_labels[i] = new_label
+
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
     "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
@@ -39,15 +48,6 @@ content_labels = [
     for label, color in labels
     if label in content_labels
 ]
-
-replacement_labels = [
-    ("anomalydetection", "anomaly detection"),
-    ("similaritysearch", "similarity search"),
-]
-for i, label in enumerate(content_labels):
-    for cur_label, new_label in replacement_labels:
-        if label == cur_label:
-            content_labels[i] = new_label
 
 title_labels_str = ""
 if len(title_labels) == 0:
