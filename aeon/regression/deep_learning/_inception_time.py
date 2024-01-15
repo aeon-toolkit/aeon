@@ -495,9 +495,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__(
-            last_file_name=last_file_name
-        )
+        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer

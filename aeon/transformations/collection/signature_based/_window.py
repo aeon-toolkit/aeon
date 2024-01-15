@@ -140,9 +140,7 @@ class _Sliding(_ExpandingSliding):
         length: int, The length of the window.
         step: int, The sliding step size.
         """
-        super().__init__(
-            initial_length=length, start_step=step, end_step=step
-        )
+        super().__init__(initial_length=length, start_step=step, end_step=step)
 
 
 class _Expanding(_ExpandingSliding):
@@ -156,9 +154,7 @@ class _Expanding(_ExpandingSliding):
         length: int, The length of each window.
         step: int, The step size.
         """
-        super().__init__(
-            initial_length=length, start_step=0, end_step=step
-        )
+        super().__init__(initial_length=length, start_step=0, end_step=step)
 
 
 class _Dyadic(_Window):
