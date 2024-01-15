@@ -230,9 +230,7 @@ class ThetaForecaster(ExponentialSmoothing):
         return pred_quantiles
 
     def _update(self, y, X=None, update_params=True):
-        super()._update(
-            y, X, update_params=False
-        )  # use custom update_params routine
+        super()._update(y, X, update_params=False)  # use custom update_params routine
         if update_params:
             if self.deseasonalize:
                 y = self.deseasonalizer_.transform(self._y)  # use updated y

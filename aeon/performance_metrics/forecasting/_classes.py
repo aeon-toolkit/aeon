@@ -551,9 +551,7 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         self.name = name
         self.lower_is_better = lower_is_better
 
-        super().__init__(
-            multioutput=multioutput, multilevel=multilevel
-        )
+        super().__init__(multioutput=multioutput, multilevel=multilevel)
 
         self.set_tags(**{"lower_is_better": lower_is_better})
 

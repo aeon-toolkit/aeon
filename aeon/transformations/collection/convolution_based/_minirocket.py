@@ -97,8 +97,8 @@ class MiniRocket(BaseCollectionTransformer):
         _, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
-                    f"n_timepoints must be >= 9, but found {n_timepoints};"
-                    " zero pad shorter series so that n_timepoints == 9"
+                f"n_timepoints must be >= 9, but found {n_timepoints};"
+                " zero pad shorter series so that n_timepoints == 9"
             )
         self.parameters = _fit(
             X, self.num_kernels, self.max_dilations_per_kernel, random_state

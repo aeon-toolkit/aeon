@@ -141,8 +141,7 @@ class _HeterogenousMetaEstimator:
         invalid_names = [name for name in names if "__" in name]
         if invalid_names:
             raise ValueError(
-                "Estimator names must not contain __: got "
-                "{!r}".format(invalid_names)
+                "Estimator names must not contain __: got " "{!r}".format(invalid_names)
             )
         invalid_names = set(names).intersection(self.get_params(deep=False))
         if invalid_names:
