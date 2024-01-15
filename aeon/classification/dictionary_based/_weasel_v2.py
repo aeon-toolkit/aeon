@@ -142,7 +142,7 @@ class WEASEL_V2(BaseClassifier):
         self.clf = None
         self.n_jobs = n_jobs
 
-        super(WEASEL_V2, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Build a WEASEL classifiers from the training set (X, y).

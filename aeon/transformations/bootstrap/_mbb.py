@@ -226,7 +226,7 @@ class STLBootstrapTransformer(BaseTransformer):
         self.outer_iter = outer_iter
         self.random_state = random_state
 
-        super(STLBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -506,7 +506,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         self.return_actual = return_actual
         self.random_state = random_state
 
-        super(MovingBlockBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

@@ -159,7 +159,7 @@ class Catch22(BaseCollectionTransformer):
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
-        super(Catch22, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.

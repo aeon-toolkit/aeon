@@ -141,7 +141,7 @@ class Catch22Classifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(Catch22Classifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Catch22Classifier to training data.

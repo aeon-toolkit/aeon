@@ -10,7 +10,7 @@ __author__ = ["hadifawaz1999"]
 class DummyDeepNetwork(BaseDeepNetwork):
     def __init__(self):
         """Dummy Deep Network for testing empty base network class save utilities."""
-        super(DummyDeepNetwork, self).__init__()
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         import tensorflow as tf

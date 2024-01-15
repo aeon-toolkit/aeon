@@ -155,7 +155,7 @@ class LITETimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        super(LITETimeClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the ensemble of IndividualLITEClassifier models.
@@ -373,7 +373,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(IndividualLITEClassifier, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.strides = strides

@@ -211,7 +211,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(BaseIntervalForest, self).__init__()
+        super().__init__()
 
     # if subsampling attributes, an interval_features transformer must contain a
     # parameter name from transformer_feature_selection and an attribute name

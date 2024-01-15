@@ -107,7 +107,7 @@ class MLPClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(MLPClassifier, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.batch_size = batch_size

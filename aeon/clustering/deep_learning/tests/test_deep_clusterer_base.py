@@ -18,7 +18,7 @@ class _DummyDeepClusterer(BaseDeepClusterer):
 
     def __init__(self, last_file_name):
         self.last_file_name = last_file_name
-        super(_DummyDeepClusterer, self).__init__(
+        super().__init__(
             n_clusters=2, last_file_name=last_file_name
         )
 

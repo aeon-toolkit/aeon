@@ -52,7 +52,7 @@ class ClassifierTestScenario(TestScenario, BaseObject):
         if key in ["predict_proba", "decision_function"]:
             key = "predict"
 
-        return super(ClassifierTestScenario, self).get_args(
+        return super().get_args(
             key=key, obj=obj, deepcopy_args=deepcopy_args
         )
 
