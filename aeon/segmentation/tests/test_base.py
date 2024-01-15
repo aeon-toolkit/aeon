@@ -39,7 +39,6 @@ class TestMultivariateSegmenter2(TestMultivariateSegmenter):
 
 def test__check_input():
     """Test check_input method."""
-
     # Allow np.ndarray, pd.Series or pd.DataFrame of floats
     segmenter = TestSegmenter()
     assert segmenter._check_input_series(np.array([1, 2, 3])) is None
