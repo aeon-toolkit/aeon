@@ -169,7 +169,7 @@ testpaths = "aeon"
 addopts = '''
     --doctest-modules
     --durations 20
-     --timeout 600
+    --timeout 600
     --showlocals
     --numprocesses auto
 '''
