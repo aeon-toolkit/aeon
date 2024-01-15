@@ -19,8 +19,8 @@ from numpy.testing import assert_array_equal
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
 from aeon.transformations.base import BaseTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
-from aeon.transformations.series.boxcox import BoxCoxTransformer
 from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
@@ -35,11 +35,11 @@ from aeon.utils._testing.series import _make_series
 def inner_X_scitypes(est):
     """Return list of scitypes supported by class est, as list of str."""
     if isclass(est):
-        X_inner_mtype = est.get_class_tag("X_inner_mtype")
+        X_inner_type = est.get_class_tag("X_inner_type")
     else:
-        X_inner_mtype = est.get_tag("X_inner_mtype")
+        X_inner_type = est.get_tag("X_inner_type")
     X_inner_scitypes = mtype_to_scitype(
-        X_inner_mtype, return_unique=True, coerce_to_list=True
+        X_inner_type, return_unique=True, coerce_to_list=True
     )
     return X_inner_scitypes
 
@@ -48,7 +48,7 @@ class _DummyOne(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "fit_is_empty": False,
     }
 
@@ -66,7 +66,7 @@ def test_series_in_series_out_not_supported_but_panel():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" does not support "Series" but does support "Panel"
+        "X_inner_type" does not support "Series" but does support "Panel"
             i.e., none of the mtypes in the list is "Series" but some are "Panel"
 
     X input to fit/transform has Series scitype
@@ -93,7 +93,7 @@ def test_panel_in_panel_out_supported():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Panel"
+        "X_inner_type" supports "Panel"
 
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Panel
@@ -114,7 +114,7 @@ class _DummyTwo(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_mtype": "np.ndarray",
+        "X_inner_type": "np.ndarray",
         "univariate-only": True,
         "fit_is_empty": False,
     }
@@ -130,7 +130,7 @@ def test_series_in_series_out_supported():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Series
+        "X_inner_type" supports "Series
 
     X input to fit/transform has Series scitype
     X ouput from fit/transform should be Series
@@ -154,7 +154,7 @@ def test_panel_in_panel_out_not_supported_but_series():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
+        "X_inner_type" supports "Series" but not "Panel" and not "Hierarchical"
 
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Panel
@@ -183,7 +183,7 @@ def test_vectorization_multivariate_no_row_vectorization_empty_fit():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Series"
+        "X_inner_type" supports "Series"
 
     X input to fit/transform has Series scitype, is multivariate
     X output from fit/transform should be Series and multivariate
@@ -212,7 +212,7 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
+        "X_inner_type" supports "Series" but not "Panel" and not "Hierarchical"
 
     X input to fit/transform has Hierarchical scitype
     X output from fit/transform should be Hierarchical
@@ -243,7 +243,7 @@ def test_vectorization_multivariate_and_hierarchical():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical
+        "X_inner_type" supports "Series" but not "Panel" and not "Hierarchical
 
     X input to fit/transform has Hierarchical scitype
     X output from fit/transform should be Hierarchical
@@ -276,7 +276,7 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical
+        "X_inner_type" supports "Series" but not "Panel" and not "Hierarchical
 
     X input to fit/transform has Hierarchical scitype
     X output from fit/transform should be Hierarchical
@@ -303,7 +303,7 @@ class _DummyThree(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_mtype": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
     }
 
@@ -318,7 +318,7 @@ def test_series_in_series_out_supported_fit_in_transform():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Series"
+        "X_inner_type" supports "Series"
 
     X input to fit/transform has Series scitype
     X output from fit/transform should be Series
@@ -342,7 +342,7 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Series" but not "Panel" and not "Hierarchical"
+        "X_inner_type" supports "Series" but not "Panel" and not "Hierarchical"
 
     X input to fit/transform has Hierarchical scitype
     X output from fit/transform should be Hierarchical
@@ -367,7 +367,7 @@ class _DummyFour(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Primitives",
-        "X_inner_mtype": ["pd.DataFrame"],
+        "X_inner_type": ["pd.DataFrame"],
         "y_inner_type": "None",
         "fit_is_empty": True,
     }
@@ -383,7 +383,7 @@ def test_series_in_primitives_out_supported_fit_in_transform():
         "input_data_type" = "Series"
         "output_data_type" = "Primitives"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Series"
+        "X_inner_type" supports "Series"
 
     X input to fit/transform has Series scitype
     X output from fit/transform should be Table
@@ -409,7 +409,7 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
         "input_data_type" = "Series"
         "output_data_type" = "Primitives"
         "fit_is_empty" = True
-        "X_inner_mtype" does not support "Panel", but does supports "Series"
+        "X_inner_type" does not support "Panel", but does supports "Series"
 
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Table
@@ -461,7 +461,7 @@ class _DummyFive(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Primitives",
-        "X_inner_mtype": ["numpy3D"],
+        "X_inner_type": ["numpy3D"],
         "fit_is_empty": True,
     }
 
@@ -476,7 +476,7 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
         "input_data_type" = "Series"
         "output_data_type" = "Primitives"
         "fit_is_empty" = True
-        "X_inner_mtype" supports "Panel" but does not support "Series"
+        "X_inner_type" supports "Panel" but does not support "Series"
 
     X input to fit/transform has Series scitype
     X output from fit/transform should be Table
@@ -500,7 +500,7 @@ class _DummySix(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Primitives",
-        "X_inner_mtype": ["numpy3D"],
+        "X_inner_type": ["numpy3D"],
         "fit_is_empty": False,
         "requires_y": True,
     }
@@ -517,7 +517,7 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
         "output_data_type" = "Primitives"
         "fit_is_empty" = False
         "requires_y" = True
-        "X_inner_mtype" supports "Panel"
+        "X_inner_type" supports "Panel"
 
     X input to fit/transform has Panel scitype
     X output from fit/transform should be Table
@@ -547,7 +547,7 @@ def test_vectorization_multivariate_no_row_vectorization():
         "input_data_type" = "Series"
         "output_data_type" = "Series"
         "fit_is_empty" = False
-        "X_inner_mtype" supports "Series"
+        "X_inner_type" supports "Series"
 
     X input to fit/transform has Series scitype, is multivariate
     X output from fit/transform should be Series and multivariate
@@ -579,8 +579,8 @@ def test_vectorize_reconstruct_unique_columns():
     ------
     AssertionError if output columns are not as expected.
     """
-    from aeon.transformations.series.detrend import Detrender
-    from aeon.transformations.series.theta import ThetaLinesTransformer
+    from aeon.transformations.detrend import Detrender
+    from aeon.transformations.theta import ThetaLinesTransformer
 
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4], "c": [5, 6]})
     X_mi = get_examples("pd_multiindex_hier")[0]

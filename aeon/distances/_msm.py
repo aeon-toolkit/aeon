@@ -35,7 +35,7 @@ def msm_distance(
 
     For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
     x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` MSM works by iterating over
-    series lengths math:`i = 1 \ldots n` and math:`j = 1 \ldote m` to find the cost
+    series lengths :math:`i = 1 \ldots n` and :math:`j = 1 \ldote m` to find the cost
     matrix $D$ as follows.
 
     .. math::
@@ -59,9 +59,10 @@ def msm_distance(
                       &= c &  if\;\; & y \geq x \geq z \\
                       &= c+min(|x-y|,|x-z|) & & otherwise\\
 
-    If $x$ and $y$ are multivariate, then there are two ways of calculating the MSM
-    distance. The independent approach is to find the distance for each channel
-    independently, then return the sum. The dependent approach adopts the adaptation
+    If :math:`\mathbf{x}` and :math:`\mathbf{y$}` are multivariate, then there are two
+    ways of calculating the MSM distance. The independent approach is to find the
+    distance for each channel independently, then return the sum. The dependent
+    approach adopts the adaptation
     described in [2]_ for computing the pointwise MSM distance over channels.
     MSM satisfies triangular inequality and is a metric.
 
@@ -355,12 +356,14 @@ def msm_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the msm pairwise distance between the instances of X is
+        calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -501,10 +504,10 @@ def msm_alignment_path(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)`` or ``(n_timepoints,)``.
+    y : np.ndarray
+        Second time series, shape ``(m_channels, m_timepoints)`` or ``(m_timepoints,)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

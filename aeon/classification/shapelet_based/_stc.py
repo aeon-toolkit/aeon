@@ -180,7 +180,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -247,7 +247,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -264,7 +264,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

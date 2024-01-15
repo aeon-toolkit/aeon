@@ -7,7 +7,7 @@ This module exports the following:
 BASE_CLASS_REGISTER - list of tuples
 
 each tuple corresponds to a base class, elements as follows:
-    0 : string - shorthand identifie for base class type
+    0 : string - shorthand identifier for base class type
     1 : type - the base class itself
     2 : string - plain English description of the class
 
@@ -42,6 +42,8 @@ from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.networks.base import BaseDeepNetwork
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
+from aeon.segmentation.base import BaseSegmenter
+from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 
@@ -55,6 +57,7 @@ BASE_CLASS_REGISTER = [
     ("metric", BaseMetric, "performance metric"),
     ("network", BaseDeepNetwork, "deep learning network"),
     ("regressor", BaseRegressor, "time series regressor"),
+    ("segmenter", BaseSegmenter, "time series segmenter"),
     ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
     ("splitter", BaseSplitter, "time series splitter"),
     ("transformer", BaseTransformer, "time series transformer"),
@@ -63,6 +66,7 @@ BASE_CLASS_REGISTER = [
         BaseCollectionTransformer,
         "time series collection transformer",
     ),
+    ("similarity-search", BaseSimiliaritySearch, "similarity search"),
 ]
 
 

@@ -2,11 +2,11 @@
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import convert_to
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_regressor
+from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["RegressorPipeline", "SklearnRegressorPipeline"]
@@ -68,23 +68,23 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.convolution_based import Rocket
+    >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.compose import RegressorPipeline
-    >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+    >>> from aeon.regression import DummyRegressor
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     KNeighborsTimeSeriesRegressor(n_neighbors=2), [Rocket(num_kernels=100)]
+    ...     DummyRegressor(), [AutocorrelationFunctionTransformer(n_lags=10)]
     ... )
     >>> pipeline.fit(X_train, y_train)
-    RegressorPipeline(regressor=KNeighborsTimeSeriesRegressor(n_neighbors=2),
-                      transformers=[Rocket(num_kernels=100)])
+    RegressorPipeline(regressor=DummyRegressor(),
+                      transformers=[AutocorrelationFunctionTransformer(n_lags=10)])
     >>> y_pred = pipeline.predict(X_test)
     """
 
     _tags = {
-        "X_inner_mtype": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
+        "X_inner_type": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -180,7 +180,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -203,7 +203,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -300,8 +300,6 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `reg.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `reg.predict` on the numpy converted output of `trafoN.transform`,
@@ -356,7 +354,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "pd-multiindex",  # which type do _fit/_predict accept
+        "X_inner_type": "pd-multiindex",  # which type do _fit/_predict accept
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": True,
@@ -438,28 +436,9 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
             return NotImplemented
 
     def _convert_X_to_sklearn(self, X):
-        """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        if isinstance(X, np.ndarray):
-            if X.ndim == 2:
-                return X
-            elif X.ndim == 3:
-                return np.reshape(X, (X.shape[0], X.shape[1] * X.shape[2]))
-
-        output_type = self.transformers_.get_tag("output_data_type")
-        # if output_type is Primitives, output is Table, convert to 2D numpy array
-        if output_type == "Primitives":
-            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if output_type is Series, output is Panel, convert to 2D numpy array
-        elif output_type == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        else:
-            raise TypeError(
-                f"unexpected X output type "
-                f'in tag "output_data_type", found "{output_type}", '
-                'expected one of "Primitives" or "Series"'
-            )
-
-        return Xt
+        """Convert X to 2D numpy required by sklearn."""
+        Xt = convert_collection(X, "numpy3D")
+        return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _fit(self, X, y):
         """Fit time series regressor to training data.
@@ -468,7 +447,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -492,7 +471,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------

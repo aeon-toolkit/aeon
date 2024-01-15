@@ -100,9 +100,9 @@ class BaseTransformer(BaseEstimator):
         "transform_labels": "None",
         "instancewise": True,
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "pd.DataFrame",
         # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -127,7 +127,7 @@ class BaseTransformer(BaseEstimator):
         "np.ndarray",
         "nested_univ",
         "numpy3D",
-        # "numpyflat",
+        # "numpy2D",
         "pd-multiindex",
         # "pd-wide",
         # "pd-long",
@@ -313,7 +313,7 @@ class BaseTransformer(BaseEstimator):
             where `columns1` is first or only item in `key`, and `columns2` is the last
             if only one item is passed in `key`, only `columns1` is applied to input
         """
-        from aeon.transformations.series.subset import ColumnSelect
+        from aeon.transformations.subset import ColumnSelect
 
         def is_noneslice(obj):
             res = isinstance(obj, slice)
@@ -354,7 +354,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -403,7 +403,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -428,7 +428,7 @@ class BaseTransformer(BaseEstimator):
 
         Explicitly, with examples:
             if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
+                then the return is a single `Series` of the same type
                 Example: detrending a single series
             if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
                 then the return is `Panel` with same number of instances as `X`
@@ -475,7 +475,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -551,7 +551,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be inverse transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -608,7 +608,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -730,23 +730,27 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") supports *higher* scitype than X
-                then X converted to "one-Series" or "one-Panel" sub-case of that scitype
-                always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("X_inner_mtype") supports only *simpler* scitype than X
-                then VectorizedDF of X, iterated as the most complex supported scitype
+                compatible with self.get_tag("X_inner_type") format
+            Case 1: self.get_tag("X_inner_type") supports abstract type of X, then
+                converted/coerced version of X, mtype determined by "X_inner_type" tag
+            Case 2: self.get_tag("X_inner_type") supports *higher* abstract type than X
+                then X converted to "one-Series" or "one-Panel" sub-case of that
+                abstract type always pd-multiindex (Panel) or pd_multiindex_hier (
+                Hierarchical)
+            Case 3: self.get_tag("X_inner_type") supports only *simpler* abstract
+            type than X then VectorizedDF of X, iterated as the most complex
+            supported abstract type
         y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
                 compatible with self.get_tag("y_inner_type") format
-            Case 1: self.get_tag("y_inner_type") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_type" tag
-            Case 2: self.get_tag("y_inner_type") supports *higher* scitype than y
-                then X converted to "one-Series" or "one-Panel" sub-case of that scitype
-                always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("y_inner_type") supports only *simpler* scitype than y
-                then VectorizedDF of X, iterated as the most complex supported scitype
+            Case 1: self.get_tag("y_inner_type") supports abstract type of y, then
+                converted/coerced version of y, type determined by "y_inner_type" tag
+            Case 2: self.get_tag("y_inner_type") supports *higher* abstract type than y
+                then X converted to "one-Series" or "one-Panel" sub-case of that
+                abstract type always pd-multiindex (Panel) or pd_multiindex_hier (
+                Hierarchical)
+            Case 3: self.get_tag("y_inner_type") supports only *simpler* abstract
+                type than y then VectorizedDF of X, iterated as the most complex
+                supported abstract type
             Case 4: None if y was None, or self.get_tag("y_inner_type") is "None"
 
             Complexity order above: Hierarchical > Panel > Series
@@ -755,10 +759,10 @@ class BaseTransformer(BaseEstimator):
             dictionary with str keys, contents as follows
             _converter_store_X : dict, metadata from X conversion, for back-conversion
             _X_mtype_last_seen : str, mtype of X seen last
-            _X_input_scitype : str, scitype of X seen last
+            _X_input_type : str, abstract type of X seen last
             _convert_case : str, coversion case (see above), one of
-                "case 1: scitype supported"
-                "case 2: higher scitype supported"
+                "case 1: abstract type supported"
+                "case 2: higher abstract type supported"
                 "case 3: requires vectorization"
 
         Raises
@@ -776,7 +780,7 @@ class BaseTransformer(BaseEstimator):
         metadata["_converter_store_X"] = dict()
 
         def _most_complex_scitype(scitypes, smaller_equal_than=None):
-            """Return most complex scitype in a list of str."""
+            """Return most complex abstract type in a list of str."""
             if "Hierarchical" in scitypes and smaller_equal_than == "Hierarchical":
                 return "Hierarchical"
             elif "Panel" in scitypes and smaller_equal_than != "Series":
@@ -799,9 +803,9 @@ class BaseTransformer(BaseEstimator):
             return False
 
         # retrieve supported mtypes
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
+        X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
-        X_inner_scitype = mtype_to_scitype(X_inner_mtype, return_unique=True)
+        X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
         y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
@@ -912,7 +916,7 @@ class BaseTransformer(BaseEstimator):
             # converts X
             X_inner = convert_to(
                 X,
-                to_type=X_inner_mtype,
+                to_type=X_inner_type,
                 store=metadata["_converter_store_X"],
                 store_behaviour="reset",
             )
@@ -1024,7 +1028,7 @@ class BaseTransformer(BaseEstimator):
                 if not valid:
                     raise TypeError(
                         f"_transform output of {type(self)} does not comply "
-                        "with aeon mtype specifications. See datatypes.MTYPE_REGISTER"
+                        "with aeon mtype specifications. See datatypes.TYPE_REGISTER"
                         " for mtype specifications. Returned error message:"
                         f" {msg}. Returned object: {Xt}"
                     )
@@ -1133,8 +1137,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
@@ -1155,8 +1159,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -1189,8 +1193,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit_transform must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _fit_transform must support all types in it
             Data to fit transform to
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation
@@ -1213,8 +1217,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _inverse_transform must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _inverse_transform must support all types in it
             Data to be transformed
         y : Series or Panel, default=None
             Additional data, e.g., labels for transformation
@@ -1222,7 +1226,7 @@ class BaseTransformer(BaseEstimator):
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X, and conforming to type format specifications
 
         See extension_templates/transformer.py for implementation details.
         """
@@ -1235,8 +1239,8 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _update must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _update must support all types in it
             Data to update transformer with
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for tarnsformation

@@ -358,7 +358,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray, shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray, shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -375,7 +375,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray, shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray, shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -397,7 +397,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -439,9 +439,9 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
-            ``n_dimensions > 1``
+            ``n_channels > 1``
 
         Returns
         -------

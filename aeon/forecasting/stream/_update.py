@@ -4,12 +4,12 @@ __author__ = ["fkiraly"]
 
 import pandas as pd
 
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
+from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.datatypes._utilities import get_window
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
 # prepare tags to clone - exceptions are TAGS_TO_KEEP
-TAGS_TO_KEEP = ["fit_is_empty", "X_inner_mtype", "y_inner_type"]
+TAGS_TO_KEEP = ["fit_is_empty", "X_inner_type", "y_inner_type"]
 # fit must be executed to fit the wrapped estimator and remember the cutoff
 # mtype tags are set so X/y is passed through, conversions happen in wrapped estimator
 TAGS_TO_CLONE = _DelegatedForecaster().get_tags().keys()
@@ -51,8 +51,8 @@ class UpdateRefitsEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(
@@ -91,7 +91,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -236,8 +236,8 @@ class UpdateEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster, update_interval=None):
@@ -272,7 +272,7 @@ class UpdateEvery(_DelegatedForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -401,8 +401,8 @@ class DontUpdate(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster):

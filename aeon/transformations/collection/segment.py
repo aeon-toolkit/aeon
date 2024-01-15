@@ -5,9 +5,44 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.datetime import get_time_index
 from aeon.utils.validation import check_window_length
+
+
+def _concat_nested_arrays(arrs, cells_as_numpy=False):
+    """Nest tabular arrays from nested list.
+
+    Helper function to nest tabular arrays from nested list of arrays.
+
+    Parameters
+    ----------
+    arrs : list of numpy arrays
+        Arrays must have the same number of rows, but can have varying
+        number of columns.
+
+    cells_as_numpy : bool, default = False
+        If True, then nested cells contain NumPy array
+        If False, then nested cells contain pandas Series
+
+    Returns
+    -------
+    Xt : pandas DataFrame
+        Transformed dataframe with nested column for each input array.
+    """
+    if cells_as_numpy:
+        Xt = pd.DataFrame(
+            np.column_stack(
+                [pd.Series([np.array(vals) for vals in interval]) for interval in arrs]
+            )
+        )
+    else:
+        Xt = pd.DataFrame(
+            np.column_stack(
+                [pd.Series([pd.Series(vals) for vals in interval]) for interval in arrs]
+            )
+        )
+    return Xt
 
 
 class IntervalSegmenter(BaseCollectionTransformer):
@@ -175,7 +210,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(
@@ -224,7 +259,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.input_shape_ = X.shape
 
         # Retrieve time-series indexes from each column.
-        self._time_index = _get_time_index(X)
+        self._time_index = get_time_index(X)
 
         # Compute random intervals for each column.
         if self.n_intervals == "random":

@@ -77,7 +77,7 @@ class VECM(_StatsModelsAdapter):
     _tags = {
         "y_input_type": "multivariate",
         "y_inner_type": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,
         "ignores-exogeneous-X": False,
@@ -164,7 +164,7 @@ class VECM(_StatsModelsAdapter):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -226,7 +226,7 @@ class VECM(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

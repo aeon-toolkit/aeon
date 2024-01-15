@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.datatypes import convert_to
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,
@@ -47,11 +46,12 @@ def test_collection_transformer_invalid_input(dtype):
 @pytest.mark.parametrize("dtype", ["pd.Series", "pd.DataFrame", "np.ndarray"])
 def test_collection_transformer_wrapper_series(dtype):
     """Test that the wrapper for regular transformers works with series input."""
-    y = convert_to(
-        _make_series(),
-        to_type=dtype,
-    )
-
+    if dtype == "np.ndarray":
+        y = _make_series(return_numpy=True)
+    else:
+        y = _make_series()
+        if dtype == "pd.DataFrame":
+            y = y.to_frame(name="series1")
     wrap = CollectionToSeriesWrapper(transformer=_Dummy())
     yt = wrap.fit_transform(y)
 
@@ -99,7 +99,7 @@ class _Dummy(BaseCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": ["numpy3D", "np-list"],
+        "X_inner_type": ["numpy3D", "np-list"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
     }

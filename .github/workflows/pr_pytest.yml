@@ -27,9 +27,9 @@ jobs:
       CICD_RUNNING: 1
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         id: setup-python
         with:
           python-version: "3.10"
@@ -51,6 +51,11 @@ jobs:
           key: ${{ runner.os }}-numba-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
         if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[dev]
 
@@ -61,7 +66,7 @@ jobs:
         run: |
           python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.tests.test_softdeps
+          python -m pytest --pyargs aeon.testing.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
@@ -74,9 +79,9 @@ jobs:
       CICD_RUNNING: 1
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -97,6 +102,11 @@ jobs:
           key: ${{ runner.os }}-numba-3.10-nosoftdepfull-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
         if: steps.cache.outputs.cache-hit != 'true'
         run: python -m pip install .[dev]
 
@@ -115,21 +125,24 @@ jobs:
       matrix:
         os: [ ubuntu-22.04, macOS-12, windows-2022 ]
         python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-#        python-version: [ "3.8" ]
+        cpu-features: [ '+64bit', '+adx', '+aes', '+avx', '+avx2', '-avx512bf16', '-avx512bitalg', '-avx512bw', '-avx512cd', '-avx512dq', '-avx512er', '-avx512f', '-avx512ifma', '-avx512pf', '-avx512vbmi', '-avx512vbmi2', '-avx512vl', '-avx512vnni', '-avx512vpopcntdq', '+bmi', '+bmi2', '-cldemote', '-clflushopt', '-clwb', '-clzero', '+cmov', '+cx16', '+cx8', '-enqcmd', '+f16c', '+fma', '-fma4', '+fsgsbase', '+fxsr', '-gfni', '+invpcid', '-lwp', '+lzcnt', '+mmx', '+movbe', '-movdir64b', '-movdiri', '-mwaitx', '+pclmul', '-pconfig', '-pku', '+popcnt', '-prefetchwt1', '+prfchw', '-ptwrite', '-rdpid', '+rdrnd', '+rdseed', '+rtm', '+sahf', '-sgx', '-sha', '-shstk', '+sse', '+sse2', '+sse3', '+sse4.1', '+sse4.2', '-sse4a', '+ssse3', '-tbm', '-vaes', '-vpclmulqdq', '-waitpkg', '-wbnoinvd', '-xop', '+xsave', '-xsavec', '+xsaveopt', '-xsaves']
 
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
-      NUMBA_CPU_FEATURES: +64bit,+adx,+aes,+avx,-avx512bf16,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-clflushopt,-clwb,+cmov,+cx16,+cx8,-enqcmd,+f16c,-fma4,+fsgsbase,+fxsr,-gfni,+invpcid,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-mwaitx,-pconfig,+popcnt,-prefetchwt1,+prfchw,-ptwrite,-rdpid,+rdseed,+sahf,-sgx,-sha,-shstk,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop,+xsave,-xsavec,+xsaveopt,-xsaves
       CICD_RUNNING: 1
 
     steps:
       - name: Checkout main
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Set CPU Features
+        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
+        shell: bash
 
       # On Windows, GNU tar is much faster than the default BSD tar
       - name: "Use GNU tar instead BSD tar"
@@ -142,10 +155,14 @@ jobs:
         id: cache
         with:
           path: .numba_cache
-          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ matrix.cpu-features }}-${{ hashFiles('pyproject.toml') }}-4
 
       - name: Install aeon and dependencies
-        run: python -m pip install .[all_extras,dev]
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
@@ -163,9 +180,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -173,12 +190,16 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        run: python -m pip install .[all_extras,unstable_extras,dev]
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml
+        run: python -m pytest --cov=aeon --cov-report=xml  --timeout 1800
 
       - uses: codecov/codecov-action@v3

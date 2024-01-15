@@ -6,7 +6,7 @@ __all__ = ["TransformedTargetForecaster", "ForecastingPipeline", "ForecastX"]
 import pandas as pd
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
+from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.transformations.base import BaseTransformer
@@ -239,9 +239,9 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-        from aeon.transformations.series.detrend import Detrender
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations.detrend import Detrender
+        from aeon.transformations.exponent import ExponentTransformer
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -331,8 +331,8 @@ class ForecastingPipeline(_Pipeline):
     >>> from aeon.datasets import load_longley
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
+    >>> from aeon.transformations.impute import Imputer
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from sklearn.preprocessing import MinMaxScaler
@@ -370,7 +370,7 @@ class ForecastingPipeline(_Pipeline):
     _tags = {
         "y_input_type": "both",
         "y_inner_type": SUPPORTED_MTYPES,
-        "X_inner_mtype": SUPPORTED_MTYPES,
+        "X_inner_type": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
@@ -509,7 +509,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -544,7 +544,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -608,7 +608,7 @@ class ForecastingPipeline(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
@@ -750,9 +750,9 @@ class TransformedTargetForecaster(_Pipeline):
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.transformations.series.impute import Imputer
-    >>> from aeon.transformations.series.detrend import Detrender
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.impute import Imputer
+    >>> from aeon.transformations.detrend import Detrender
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> y = load_airline()
 
         Example 1: string/estimator pairs
@@ -782,7 +782,7 @@ class TransformedTargetForecaster(_Pipeline):
     _tags = {
         "y_input_type": "both",
         "y_inner_type": SUPPORTED_MTYPES,
-        "X_inner_mtype": SUPPORTED_MTYPES,
+        "X_inner_type": SUPPORTED_MTYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
@@ -1072,7 +1072,7 @@ class TransformedTargetForecaster(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -1110,7 +1110,7 @@ class TransformedTargetForecaster(_Pipeline):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -1200,7 +1200,7 @@ class ForecastX(BaseForecaster):
     """
 
     _tags = {
-        "X_inner_mtype": SUPPORTED_MTYPES,
+        "X_inner_type": SUPPORTED_MTYPES,
         "y_inner_type": SUPPORTED_MTYPES,
         "X-y-must-have-same-index": False,
         "fit_is_empty": False,
@@ -1367,7 +1367,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : float or list, optional (default=0.95)
            nominal coverage(s) of predictive interval(s)
@@ -1402,7 +1402,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -1431,7 +1431,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         cov : bool, optional (default=False)
             if True, computes covariance matrix forecast.
@@ -1461,8 +1461,6 @@ class ForecastX(BaseForecaster):
         y_pred = self.forecaster_y_.predict_var(fh=fh, X=X)
         return y_pred
 
-    # todo: does not work properly for multivariate or hierarchical
-    #   still need to implement this - once interface is consolidated
     def _predict_proba(self, fh, X, marginal=True):
         """Compute/return fully probabilistic forecasts.
 
@@ -1473,7 +1471,7 @@ class ForecastX(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         marginal : bool, optional (default=True)
             whether returned distribution is marginal by time index
@@ -1560,8 +1558,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.series.boxcox import BoxCoxTransformer
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
     >>> y = load_airline()
@@ -1599,8 +1597,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
 
     _tags = {
         "y_input_type": "both",
-        "y_inner_type": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": True,
@@ -1684,8 +1682,8 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.series.boxcox import BoxCoxTransformer
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.boxcox import BoxCoxTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         # transformers mixed with-without fit, ForecastingPipeline
         # steps are (str, estimator)

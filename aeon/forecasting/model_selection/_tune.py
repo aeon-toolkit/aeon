@@ -60,13 +60,13 @@ class BaseGridSearch(_DelegatedForecaster):
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_type",
-            "X_inner_mtype",
+            "X_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
         self.clone_tags(forecaster, tags_to_clone)
         self._extend_to_all_scitypes("y_inner_type")
-        self._extend_to_all_scitypes("X_inner_mtype")
+        self._extend_to_all_scitypes("X_inner_type")
 
     # attribute for _DelegatedForecaster, which then delegates
     #     all non-overridden methods are same as of getattr(self, _delegate_name)
@@ -81,7 +81,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_mtype".
+        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_type".
 
         Returns
         -------
@@ -265,7 +265,7 @@ class BaseGridSearch(_DelegatedForecaster):
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -416,7 +416,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
     >>> from aeon.forecasting.model_selection import ForecastingGridSearchCV
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.forecasting.theta import ThetaForecaster
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> y = load_shampoo_sales()
     >>> pipe = TransformedTargetForecaster(steps=[
     ...     ("imputer", Imputer()),

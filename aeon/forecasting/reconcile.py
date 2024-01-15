@@ -5,7 +5,6 @@ __author__ = [
     "ciaran-g",
 ]
 
-# todo: top down historical proportions? -> new _get_g_matrix_prop(self)
 
 from warnings import warn
 
@@ -89,7 +88,7 @@ class ReconcilerForecaster(BaseForecaster):
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "X_inner_mtype": [
+        "X_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",
