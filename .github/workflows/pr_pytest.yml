@@ -34,21 +34,19 @@ jobs:
         with:
           python-version: "3.10"
 
+      # Set CPU Features
+      - name: Set CPU Features
+        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
+        shell: bash
+
       # Python environment cache
       - uses: actions/cache@v3
-        name: Python environment cache
+        name: Numba cache
         id: cache
         with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
-
-      # Numba cache
-      - uses: actions/cache@v3
-        name: Numba cache
-        id: numba-cache
-        with:
           path: .numba_cache
-          key: ${{ runner.os }}-numba-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
+
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
@@ -84,21 +82,18 @@ jobs:
         with:
           python-version: "3.10"
 
-      # Python environment cache
-      - uses: actions/cache@v3
-        name: Python environment cache
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-pip-3.10-nosoftdep-${{ hashFiles('pyproject.toml') }}
+      # Set CPU Features
+      - name: Set CPU Features
+        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
+        shell: bash
 
       # Numba cache
       - uses: actions/cache@v3
         name: Numba cache
-        id: numba-cache
+        id: cache
         with:
           path: .numba_cache
-          key: ${{ runner.os }}-numba-3.10-nosoftdepfull-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
@@ -138,6 +133,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # Set CPU Features
       - name: Set CPU Features
         run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
         shell: bash
@@ -153,7 +149,7 @@ jobs:
         id: cache
         with:
           path: .numba_cache
-          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-4
+          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
