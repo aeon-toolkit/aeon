@@ -3,7 +3,6 @@
 __all__ = [
     # Series plotting
     "plot_series",
-    "plot_interval",
     "plot_lags",
     "plot_correlations",
     "plot_windows",

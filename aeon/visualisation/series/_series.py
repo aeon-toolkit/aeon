@@ -150,14 +150,14 @@ def plot_series(
         ax.legend()
     if pred_interval is not None:
         check_interval_df(pred_interval, series[-1].index)
-        ax = plot_interval(ax, pred_interval)
+        ax = _plot_interval(ax, pred_interval)
     if _ax_kwarg_is_none:
         return fig, ax
     else:
         return ax
 
 
-def plot_interval(ax, interval_df):
+def _plot_interval(ax, interval_df):
     cov = interval_df.columns.levels[1][0]
     ax.fill_between(
         ax.get_lines()[-1].get_xdata(),
@@ -173,6 +173,9 @@ def plot_interval(ax, interval_df):
 
 def plot_lags(series, lags=1, suptitle=None):
     """Plot one or more lagged versions of a time series.
+
+    A lag plot is a scatter plot of a time series against a lag of itself.
+    It is normally used to check for autocorrelation.
 
     Parameters
     ----------
