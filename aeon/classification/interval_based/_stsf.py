@@ -167,7 +167,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             row_numba_max,
         ]
 
-        super(SupervisedTimeSeriesForest, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="supervised",

@@ -107,7 +107,7 @@ class ForecasterTestScenario(TestScenario, BaseObject):
         if key in PREDICT_LIKE_FUNCTIONS:
             key = "predict"
 
-        return super(ForecasterTestScenario, self).get_args(
+        return super().get_args(
             key=key, obj=obj, deepcopy_args=deepcopy_args
         )
 

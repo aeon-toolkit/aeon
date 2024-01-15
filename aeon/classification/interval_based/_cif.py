@@ -206,7 +206,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             row_slope,
         ]
 
-        super(CanonicalIntervalForestClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

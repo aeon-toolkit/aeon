@@ -231,7 +231,7 @@ class InceptionTimeRegressor(BaseRegressor):
 
         self.regressors_ = []
 
-        super(InceptionTimeRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
@@ -495,7 +495,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(IndividualInceptionRegressor, self).__init__(
+        super().__init__(
             last_file_name=last_file_name
         )
         # predefined

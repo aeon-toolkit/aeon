@@ -163,7 +163,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        super(RandomDilatedShapeletTransform, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit the random dilated shapelet transform to a specified X and y.

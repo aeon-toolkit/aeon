@@ -76,7 +76,7 @@ class TimeSeriesKShapes(BaseClusterer):
 
         self._tslearn_k_shapes = None
 
-        super(TimeSeriesKShapes, self).__init__(n_clusters=n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.

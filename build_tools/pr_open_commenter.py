@@ -25,17 +25,17 @@ content_labels_status = sys.argv[5]
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{{#{}}}{{\\textsf{{{}}}}}$".format(color, label)
     for label, color in labels
     if label in title_labels
 ]
 title_labels_new = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{{#{}}}{{\\textsf{{{}}}}}$".format(color, label)
     for label, color in labels
     if label in title_labels_new
 ]
 content_labels = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    "$\\color{{#{}}}{{\\textsf{{{}}}}}$".format(color, label)
     for label, color in labels
     if label in content_labels
 ]

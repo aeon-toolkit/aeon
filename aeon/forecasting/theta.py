@@ -101,7 +101,7 @@ class ThetaForecaster(ExponentialSmoothing):
         self.initial_level_ = None
         self.drift_ = None
         self.se_ = None
-        super(ThetaForecaster, self).__init__(initial_level=initial_level, sp=sp)
+        super().__init__(initial_level=initial_level, sp=sp)
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -130,7 +130,7 @@ class ThetaForecaster(ExponentialSmoothing):
         self.initialization_method = "known" if self.initial_level else "estimated"
         # fit exponential smoothing forecaster
         # find theta lines: Theta lines are just SES + drift
-        super(ThetaForecaster, self)._fit(y, fh=fh)
+        super()._fit(y, fh=fh)
         self.initial_level_ = self._fitted_forecaster.params["smoothing_level"]
 
         # compute and store historical residual standard error
@@ -158,7 +158,7 @@ class ThetaForecaster(ExponentialSmoothing):
         y_pred : pandas.Series
             Returns series of predicted values.
         """
-        y_pred = super(ThetaForecaster, self)._predict(fh, X)
+        y_pred = super()._predict(fh, X)
 
         # Add drift.
         drift = self._compute_drift()
@@ -230,7 +230,7 @@ class ThetaForecaster(ExponentialSmoothing):
         return pred_quantiles
 
     def _update(self, y, X=None, update_params=True):
-        super(ThetaForecaster, self)._update(
+        super()._update(
             y, X, update_params=False
         )  # use custom update_params routine
         if update_params:
@@ -373,7 +373,7 @@ class ThetaModularForecaster(BaseForecaster):
         aggfunc="mean",
         weights=None,
     ):
-        super(ThetaModularForecaster, self).__init__()
+        super().__init__()
         self.forecasters = forecasters
         self.aggfunc = aggfunc
         self.weights = weights

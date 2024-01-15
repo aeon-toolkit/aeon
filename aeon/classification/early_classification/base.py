@@ -86,7 +86,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         """
         self.state_info = None
 
-        super(BaseEarlyClassifier, self).__init__()
+        super().__init__()
 
     def fit(self, X, y):
         """Fit time series classifier to training data.

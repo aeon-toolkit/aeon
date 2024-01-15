@@ -134,7 +134,7 @@ class RandomIntervals(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervals, self).__init__()
+        super().__init__()
 
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 

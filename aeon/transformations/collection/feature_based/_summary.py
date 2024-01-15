@@ -59,7 +59,7 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     ):
         self.summary_stats = summary_stats
 
-        super(SevenNumberSummaryTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         n_instances = len(X)
