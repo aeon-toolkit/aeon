@@ -16,8 +16,8 @@ from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors
-from sklearn.utils import check_random_state
 from sklearn.preprocessing import scale
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SAX, SFA
