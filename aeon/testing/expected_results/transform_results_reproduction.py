@@ -76,4 +76,4 @@ def _print_results_for_transformer(transformer_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new transformers, datasets or updating results
-    _print_results_for_transformer("RandomShapeletTransform", "BasicMotions")
+    _print_results_for_transformer("RandomIntervals", "BasicMotions")
