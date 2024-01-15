@@ -153,7 +153,7 @@ jobs:
         id: cache
         with:
           path: .numba_cache
-          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ matrix.cpu-features }}-${{ hashFiles('pyproject.toml') }}-4
+          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-4
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v2
