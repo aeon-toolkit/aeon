@@ -182,7 +182,7 @@ class REDCOMETS(BaseClassifier):
         X : np.ndarray
             2D np.ndarray of shape (n_instances, n_timepoints)
             The training data.
-        y : np.ndarray 
+        y : np.ndarray
             1D np.ndarray of shape (n_instances)
             The class labels.
 
@@ -373,7 +373,7 @@ class REDCOMETS(BaseClassifier):
 
         Returns
         -------
-        y : np.ndarray 
+        y : np.ndarray
             1D np.ndarray of shape (n_instances)
             Predicted class labels.
         """
@@ -410,7 +410,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray 
+        X : np.ndarray
             2D np.ndarray of shape (n_instances, n_timepoints)
             The data to make predict probabilities for.
 
@@ -559,7 +559,7 @@ class REDCOMETS(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray 
+        X : np.ndarray
             3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
             The training data.
         n_lenses : int
