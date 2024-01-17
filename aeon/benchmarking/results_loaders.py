@@ -63,6 +63,13 @@ NAME_ALIASES = {
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
     "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL2"},
+    "1NN-DTW": {
+        "1NNDTW",
+        "1nn-dtw",
+        "KNeighborsTimeSeriesRegressor",
+        "KNeighborsTimeSeriesClassifier",
+    },
+    "5NN-DTW": {"1NNDTW", "1nn-dtw"},
     # Clustering
     "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed", "KMeans-ED"},
     "kmeans-dtw": {"dtw-kmeans", "k-means-dtw", "KMeans-DTW"},
@@ -163,7 +170,7 @@ def _load_results(
             data = pd.read_csv(url)
         except Exception:
             raise ValueError(
-                f"Cannot connect to {url} website down or results not " f"present"
+                f"Cannot connect to {url} website down or results not present"
             )
         cls_results = {}
         problems = data[probs_names]
