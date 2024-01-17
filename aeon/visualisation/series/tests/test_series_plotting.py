@@ -30,7 +30,7 @@ univariate_plots = [plot_correlations, plot_lags]
 # Need to use _plot_series to make it easy for test cases to pass either a
 # single series or a tuple of multiple series to be unpacked as argss
 def _plot_series(series, ax=None, **kwargs):
-    if isinstance(series, tuple):
+    if isinstance(series, (tuple, list)):
         return plot_series(*series, ax=ax, **kwargs)
     else:
         return plot_series(series, ax=ax, **kwargs)
@@ -56,13 +56,13 @@ def test_plot_series():
 
     series = _make_series()
 
-    fig, ax = plot_series(series)
+    fig, ax = _plot_series(series)
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     # Test with labels specified
-    fig, ax = plot_series(series, labels=["Series 1"])
+    fig, ax = _plot_series(series, labels=["Series 1"])
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
@@ -83,13 +83,13 @@ def test_plot_series_multiple_series():
 
     series = [_make_series() for _ in range(3)]
 
-    fig, ax = plot_series(series)
+    fig, ax = _plot_series(series)
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     # Test with labels specified
-    fig, ax = plot_series(series, labels=[f"Series {i}" for i in range(3)])
+    fig, ax = _plot_series(series, labels=[f"Series {i}" for i in range(3)])
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
