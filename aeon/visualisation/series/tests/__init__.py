@@ -1,0 +1,1 @@
+"""Series plotting tests."""
