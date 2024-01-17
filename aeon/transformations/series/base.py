@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from typing import final
 
 from aeon.base import BaseSeriesEstimator
-from aeon.transformations import BaseTransformer
+from aeon.transformations.base import BaseTransformer
 
 
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):

@@ -21,8 +21,8 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.matrix_profile import _sliding_dot_products
+from aeon.transformations.series import BaseSeriesTransformer
 
 
 def _sliding_window(X, m):
@@ -351,7 +351,7 @@ def clasp(
     return profile, knn_mask
 
 
-class ClaSPTransformer(BaseTransformer):
+class ClaSPTransformer(BaseSeriesTransformer):
     """ClaSP (Classification Score Profile) Transformer.
 
     Implementation of the Classification Score Profile of a time series.
@@ -381,7 +381,7 @@ class ClaSPTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.clasp import ClaSPTransformer
+    >>> from aeon.transformations.series import ClaSPTransformer
     >>> from aeon.segmentation import find_dominant_window_sizes
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> X, true_period_size, true_cps = load_electric_devices_segmentation()
@@ -392,13 +392,9 @@ class ClaSPTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,
-        "X_inner_type": "np.ndarray",
+        "X_inner_type": "ndarray",
         "y_inner_type": "None",
-        "univariate-only": True,
         "fit_is_empty": True,
     }
 
@@ -436,8 +432,6 @@ class ClaSPTransformer(BaseTransformer):
             )
 
         scoring_metric_call = self._check_scoring_metric(self.scoring_metric)
-
-        X = X.flatten()
         Xt, _ = clasp(
             X,
             self.window_length,

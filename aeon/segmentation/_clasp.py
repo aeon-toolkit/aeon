@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.transformations.clasp import ClaSPTransformer
+from aeon.transformations.series import ClaSPTransformer
 
 
 def find_dominant_window_sizes(X, offset=0.05):
