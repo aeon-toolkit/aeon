@@ -14,9 +14,7 @@ from aeon.utils.numba.general import (
 )
 
 
-def naive_distance_profile(
-    X, q, mask, numba_distance_function, numba_distance_args=None
-):
+def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
     r"""
     Compute a distance profile in a brute force way.
 
@@ -39,10 +37,11 @@ def naive_distance_profile(
     mask : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    numba_distance_function : func
-        A numba njit function used to compute the distance between two 1D vectors.
-    numba_distance_args : dict, default=None
-        Dictionary containing keywords arguments to use for the numba_distance_function
+    distance_function : func
+        A python function or a numba njit function used to compute the distance between
+        two 1D vectors.
+    distance_args : dict, default=None
+        Dictionary containing keywords arguments to use for the distance_function
 
     Returns
     -------
@@ -52,9 +51,7 @@ def naive_distance_profile(
         for each channel.
 
     """
-    dist_func = generate_new_default_njit_func(
-        numba_distance_function, numba_distance_args
-    )
+    dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
     dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
     return _naive_distance_profile(X, q, mask, dist_func)
@@ -68,8 +65,8 @@ def normalized_naive_distance_profile(
     X_stds,
     q_means,
     q_stds,
-    numba_distance_function,
-    numba_distance_args=None,
+    distance_function,
+    distance_args=None,
 ):
     """
     Compute a distance profile in a brute force way.
@@ -101,10 +98,11 @@ def normalized_naive_distance_profile(
         Means of the query q
     q_stds : array, shape (n_channels)
         Stds of the query q
-    numba_distance_function : func
-         A numba njit function used to compute the distance between two 1D vectors.
-    numba_distance_args : dict, default=None
-        Dictionary containing keywords arguments to use for the numba_distance_function
+    distance_function : func
+        A python function or a numba njit function used to compute the distance between
+        two 1D vectors.
+    distance_args : dict, default=None
+        Dictionary containing keywords arguments to use for the distance_function
 
     Returns
     -------
@@ -114,9 +112,7 @@ def normalized_naive_distance_profile(
         for each channel.
 
     """
-    dist_func = generate_new_default_njit_func(
-        numba_distance_function, numba_distance_args
-    )
+    dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
     dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
     return _normalized_naive_distance_profile(

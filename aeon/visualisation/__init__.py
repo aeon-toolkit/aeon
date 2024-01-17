@@ -7,29 +7,30 @@ __all__ = [
     "plot_lags",
     "plot_correlations",
     "plot_windows",
+    "plot_time_series_with_change_points",
+    "plot_time_series_with_profiles",
     # Results plotting
     "plot_critical_difference",
     "plot_boxplot_median",
     "plot_scatter_predictions",
     "plot_scatter",
-    # Segmentation plotting
-    "plot_time_series_with_change_points",
-    "plot_time_series_with_profiles",
-    # Clustering plotting
+    # Estimator plotting
     "plot_cluster_algorithm",
+    "plot_temporal_importance_curves",
 ]
-from aeon.visualisation._cluster_plotting import plot_cluster_algorithm
-from aeon.visualisation._critical_difference import plot_critical_difference
-from aeon.visualisation.results_plotting import (
-    plot_boxplot_median,
-    plot_scatter,
-    plot_scatter_predictions,
+
+from aeon.visualisation.estimator._cluster_plotting import plot_cluster_algorithm
+from aeon.visualisation.estimator._temporal_importance_curves import (
+    plot_temporal_importance_curves,
 )
-from aeon.visualisation.segmentation_plotting import (
+from aeon.visualisation.results._boxplot import plot_boxplot_median
+from aeon.visualisation.results._critical_difference import plot_critical_difference
+from aeon.visualisation.results._scatter import plot_scatter, plot_scatter_predictions
+from aeon.visualisation.series._segmentation import (
     plot_time_series_with_change_points,
     plot_time_series_with_profiles,
 )
-from aeon.visualisation.series_plotting import (
+from aeon.visualisation.series._series import (
     plot_correlations,
     plot_interval,
     plot_lags,

@@ -31,17 +31,10 @@ SOFT_DEPENDENCIES = {
     "aeon.regression.deep_learning": ["tensorflow"],
     "aeon.clustering.deep_learning": ["tensorflow"],
     "aeon.networks": ["tensorflow"],
-    "aeon.clustering.evaluation._plot_clustering": ["matplotlib"],
+    "aeon.visualisation": ["matplotlib"],
 }
 
 MODULES_TO_IGNORE = "aeon.utils._testing"
-
-# estimators excepted from checking that get_test_params does not import soft deps
-# this is ok, in general, for adapters to soft dependency frameworks
-# since such adapters will import estimators from the adapted framework
-EXCEPTED_FROM_GET_PARAMS_CHECK = [
-    "PyODAnnotator",  # adapters always require soft dep. Here: pyod
-]
 
 
 def _is_test(module):
@@ -280,9 +273,6 @@ def test_est_construct_if_softdep_available(estimator):
 @pytest.mark.parametrize("estimator", all_ests)
 def test_est_get_params_without_modulenotfound(estimator):
     """Test that estimator test parameters do not rely on soft dependencies."""
-    if estimator.__name__ in EXCEPTED_FROM_GET_PARAMS_CHECK:
-        return None
-
     try:
         estimator.get_test_params()
     except ModuleNotFoundError as e:
