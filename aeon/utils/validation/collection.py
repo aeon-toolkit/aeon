@@ -18,7 +18,6 @@ COLLECTIONS_DATA_TYPES = [
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
     "pd-multiindex",  # pd.DataFrame with multi-index,
-    # To add "dask_panel": but not currently used anywhere
 ]
 
 convert_dictionary = dict()
@@ -242,7 +241,10 @@ def get_type(X):
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
-    raise TypeError(f"ERROR passed input of type {type(X)}")
+    raise TypeError(
+        f"ERROR passed input of type {type(X)}, must be of type "
+        f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
+    )
 
 
 def is_equal_length(X):

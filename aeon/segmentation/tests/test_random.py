@@ -4,8 +4,8 @@ import pandas as pd
 from aeon.segmentation import RandomSegmenter
 
 
-def test_dummy():
-    """Test dummy segmenter."""
+def test_random():
+    """Test random segmenter."""
     data = np.random.random((5, 100))  # 5 series of length 100
     segmenter = RandomSegmenter()
     segmenter.fit(data)

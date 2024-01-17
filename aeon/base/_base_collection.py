@@ -1,5 +1,4 @@
 """Base class for estimators that fit collections of time series."""
-
 from aeon.base._base import BaseEstimator
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
@@ -93,9 +92,9 @@ class BaseCollectionEstimator(BaseEstimator):
     def _check_X(self, X):
         """Check classifier input X is valid.
 
-        Check if the input data is a compatible type, and that this classifier is
+        Check if the input data is a compatible type, and that this estimator is
         able to handle the data characteristics. This is done by matching the
-        capabilities of the classifier against the metadata for X for
+        capabilities of the estimator against the metadata for X for
         univariate/multivariate, equal length/unequal length and no missing
         values/missing values.
 
@@ -123,7 +122,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> m = hc._check_X(X)    # HC2 can handle this
+        >>> meta=hc._check_X(X)    # HC2 can handle this
         """
         metadata = self._get_metadata(X)
         # Check classifier capabilities for X
