@@ -12,9 +12,10 @@ from abc import ABCMeta, abstractmethod
 from typing import final
 
 from aeon.base import BaseSeriesEstimator
+from aeon.transformations import BaseTransformer
 
 
-class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
+class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):
     """Transformer base class for collections."""
 
     # tag values specific to SeriesTransformers
@@ -29,7 +30,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
 
     def __init__(self, axis=1):
         self.axis = axis
-        super(BaseSeriesEstimator, self).__init__()
+        super(BaseSeriesTransformer, self).__init__(axis=axis)
 
     @final
     def fit(self, X, y=None, axis=None):
@@ -65,9 +66,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        self._check_X(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_X(X, axis)
+        X = self._preprocess_series(X, axis=axis)
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
@@ -102,9 +101,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
 
         if axis is None:
             axis = self.axis
-        self._check_X(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_X(X, axis)
+        X = self._preprocess_series(X, axis=axis)
         return self._transform(X)
 
     @final
@@ -137,11 +134,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         """
         # input checks and datatype conversion, to avoid doing in both fit and transform
         self.reset()
-        self._check_X(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_X(X, axis)
-
-        Xt = self._fit_transform(X=X, y=y, axis=axis)
+        X = self._preprocess_series(X, axis=axis)
+        Xt = self._fit_transform(X=X, y=y)
         self._is_fitted = True
         return Xt
 
@@ -179,11 +173,32 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
 
         # check whether is fitted
         self.check_is_fitted()
-
-        self._check_X(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_X(X, axis)
+        X = self._preprocess_series(X, axis=axis)
         return self._inverse_transform(X=X, y=y)
+
+    @final
+    def update(self, X, y=None, update_params=True, axis=None):
+        """Update transformer with X, optionally y.
+
+        Parameters
+        ----------
+        X : data to update of valid series type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
+        update_params : bool, default=True
+            whether the model is updated. Yes if true, if false, simply skips call.
+            argument exists for compatibility with forecasting module.
+        axis : int, default=None
+            axis along which to update. If None, uses self.axis.
+
+        Returns
+        -------
+        self : a fitted instance of the estimator
+        """
+        # check whether is fitted
+        self.check_is_fitted()
+        X = self._preprocess_series(X, axis=axis)
+        return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -200,8 +215,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         Returns
         -------
         self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
         """
         # default fit is "no fitting happens"
         return self
@@ -254,7 +267,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         Parameters
         ----------
         X : Input data
-            Data to fit transform to, of valid collection type.
+            Time series to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
 
@@ -266,3 +279,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"
         )
+
+    def _update(self, X, y=None):
+        # standard behaviour: no update takes place, new data is ignored
+        return self
