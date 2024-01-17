@@ -5,6 +5,7 @@ __all__ = [
     "plot_series",
     "plot_lags",
     "plot_correlations",
+    "plot_series_collection",
     "plot_windows",
     "plot_time_series_with_change_points",
     "plot_time_series_with_profiles",
@@ -18,13 +19,14 @@ __all__ = [
     "plot_temporal_importance_curves",
 ]
 
-from aeon.visualisation.estimator._cluster_plotting import plot_cluster_algorithm
+from aeon.visualisation.estimator._clustering import plot_cluster_algorithm
 from aeon.visualisation.estimator._temporal_importance_curves import (
     plot_temporal_importance_curves,
 )
 from aeon.visualisation.results._boxplot import plot_boxplot_median
 from aeon.visualisation.results._critical_difference import plot_critical_difference
 from aeon.visualisation.results._scatter import plot_scatter, plot_scatter_predictions
+from aeon.visualisation.series._collections import plot_series_collection
 from aeon.visualisation.series._forecasting import plot_windows
 from aeon.visualisation.series._segmentation import (
     plot_time_series_with_change_points,

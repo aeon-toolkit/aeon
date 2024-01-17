@@ -151,6 +151,7 @@ def plot_series(
     if pred_interval is not None:
         check_interval_df(pred_interval, series[-1].index)
         ax = _plot_interval(ax, pred_interval)
+
     if _ax_kwarg_is_none:
         return fig, ax
     else:
