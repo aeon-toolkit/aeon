@@ -7,15 +7,6 @@ The :mod:`aeon.annotation` module contains algorithms and tools
 for time series annotation. This no longer includes anomaly/outlier
 detection and time series segmentation, which are now in their own module.
 
-
-.. currentmodule:: aeon.annotation.eagglo
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    EAgglo
-
 .. currentmodule:: aeon.annotation.hmm_learn.gaussian
 
 .. autosummary::
@@ -47,17 +38,6 @@ detection and time series segmentation, which are now in their own module.
     :template: class.rst
 
     PoissonHMM
-
-Adapters
---------
-
-.. currentmodule:: aeon.annotation.adapters
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    PyODAnnotator
 
 Data Generation
 ---------------

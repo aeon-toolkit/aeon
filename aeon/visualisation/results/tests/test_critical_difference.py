@@ -1,4 +1,5 @@
 """Tests for the critical difference diagram maker."""
+
 import os
 
 import numpy as np
@@ -10,7 +11,7 @@ import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.visualisation._critical_difference import (
+from aeon.visualisation.results._critical_difference import (
     _build_cliques,
     _check_friedman,
     _nemenyi_test,

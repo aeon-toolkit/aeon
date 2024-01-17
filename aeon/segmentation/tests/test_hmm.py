@@ -7,7 +7,7 @@ import pytest
 from numpy import array_equal, asarray
 from scipy.stats import norm
 
-from aeon.annotation.hmm import HMM
+from aeon.segmentation import HMMSegmenter as HMM
 
 
 def test_hmm_basic_gauss():

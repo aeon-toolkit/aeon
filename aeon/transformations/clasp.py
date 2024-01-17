@@ -418,8 +418,8 @@ class ClaSPTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D numpy.ndarray
-           A single pandas series or a 1d numpy array
+        X : numpy.ndarray
+            A univariate time series
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 

@@ -14,6 +14,7 @@ import pytest
 
 import aeon
 from aeon.datasets import (
+    get_dataset_meta_data,
     load_classification,
     load_forecasting,
     load_from_arff_file,
@@ -470,3 +471,23 @@ def test__get_channel_strings():
     channel_strings = _get_channel_strings(line)
     assert len(channel_strings) == 2
     assert channel_strings[0] == "241.97,241.75"
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_get_meta_data():
+    """Test the get_dataset_meta_data function."""
+    df = get_dataset_meta_data()
+    assert isinstance(df, pd.DataFrame)
+    df = get_dataset_meta_data(features="TrainSize")
+    assert df.shape[1] == 2
+    df = get_dataset_meta_data(data_names=["Adiac", "Chinatown"])
+    assert df.shape[0] == 2
+    df = get_dataset_meta_data(
+        data_names=["Adiac", "Chinatown"], features=["TestSize", "Channels"]
+    )
+    assert df.shape == (2, 3)
+    with pytest.raises(ValueError):
+        df = get_dataset_meta_data(url="FOOBAR")
