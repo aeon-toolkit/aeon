@@ -1,9 +1,126 @@
+"""Mock forecasters useful for testing and debugging.
+
+Used in the forecasting module to test composites and pipelines.
+"""
+
 __author__ = ["ltsaprounis"]
+
+__all__ = ["MockForecaster", "MockUnivariateForecasterLogger"]
+
+
+import re
+from copy import deepcopy
+from functools import wraps
+from inspect import getcallargs, getfullargspec
 
 import pandas as pd
 
+from aeon.base import BaseEstimator
 from aeon.forecasting.base import BaseForecaster
-from aeon.utils.estimators._base import _method_logger, _MockEstimatorMixin
+
+
+class _MockEstimatorMixin:
+    """Mixin class for constructing mock estimators."""
+
+    @property
+    def log(self):
+        """Log of the methods called and the parameters passed in each method."""
+        if not hasattr(self, "_MockEstimatorMixin__log"):
+            return []
+        else:
+            return self._MockEstimatorMixin__log
+
+    def add_log_item(self, value):
+        """Append an item to the log.
+
+        State change:
+        self.log - `value` is appended to the list self.log
+
+        Parameters
+        ----------
+        value : any object
+        """
+        if not hasattr(self, "_MockEstimatorMixin__log"):
+            self._MockEstimatorMixin__log = [value]
+        else:
+            self._MockEstimatorMixin__log = self._MockEstimatorMixin__log + [value]
+
+
+def _method_logger(method):
+    """Log the method and it's arguments."""
+
+    @wraps(wrapped=method)
+    def wrapper(self, *args, **kwargs):
+        args_dict = getcallargs(method, self, *args, **kwargs)
+        if not isinstance(self, _MockEstimatorMixin):
+            raise TypeError("method_logger requires a MockEstimator class")
+        args_dict.pop("self")
+        self.add_log_item((method.__name__, deepcopy(args_dict)))
+        return method(self, *args, **kwargs)
+
+    return wrapper
+
+
+def make_mock_estimator(
+    estimator_class: BaseEstimator, method_regex: str = ".*"
+) -> BaseEstimator:
+    r"""Transform any estimator class into a mock estimator class.
+
+    The returned class will accept the original arguments passed in estimator_class
+    __init__ as a dictionary of kwargs.
+
+    Parameters
+    ----------
+    estimator_class : BaseEstimator
+        any aeon estimator
+    method_regex : str, optional
+        regex to filter methods on, by default ".*"
+        Useful regex examples:
+            - everything: '.*'
+            - private methods only: '^(?!^__\w+__$)^_\w'
+            - public methods only: '(?!^_\w+)'
+
+    Returns
+    -------
+    BaseEstimator
+        input estimator class with logging feature enabled
+
+    Examples
+    --------
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> from aeon.testing.mock_estimators import make_mock_estimator
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> mock_estimator_class = make_mock_estimator(NaiveForecaster)
+    >>> mock_estimator_instance = mock_estimator_class({"strategy": "last", "sp": 1})
+    >>> mock_estimator_instance.fit(y)
+    _MockEstimator(...)
+
+    """
+    dunder_methods_regex = r"^__\w+__$"
+
+    class _MockEstimator(estimator_class, _MockEstimatorMixin):
+        def __init__(self, estimator_kwargs=None):
+            self.estimator_kwargs = estimator_kwargs
+            if estimator_kwargs is not None:
+                super().__init__(**estimator_kwargs)
+            else:
+                super().__init__()
+
+    for attr_name in dir(estimator_class):
+        attr = getattr(_MockEstimator, attr_name)
+        # exclude dunder methods (e.g. __eq__, __class__ etc.) and non callables
+        # from logging
+        if not re.match(dunder_methods_regex, attr_name) and callable(attr):
+            # match the given regex pattern
+            # exclude static and class methods from logging
+            if (
+                re.match(method_regex, attr_name)
+                and "self" in getfullargspec(attr).args
+            ):
+                setattr(_MockEstimator, attr_name, _method_logger(attr))
+
+    return _MockEstimator
 
 
 class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
@@ -17,7 +134,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.estimators import MockUnivariateForecasterLogger
+    >>> from aeon.testing.mock_estimators import MockUnivariateForecasterLogger
     >>> y = load_airline()
     >>> forecaster = MockUnivariateForecasterLogger()
     >>> forecaster.fit(y)
@@ -196,7 +313,7 @@ class MockForecaster(BaseForecaster):
     Examples
     --------
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.estimators import MockUnivariateForecasterLogger
+    >>> from aeon.testing.mock_estimators import MockUnivariateForecasterLogger
     >>> y = load_airline()
     >>> forecaster = MockUnivariateForecasterLogger()
     >>> forecaster.fit(y)
