@@ -38,7 +38,6 @@ from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
 from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
-from aeon.utils.estimators.dispatch import construct_dispatch
 from aeon.utils.sklearn import is_sklearn_regressor
 from aeon.utils.validation import check_window_length
 
@@ -187,6 +186,36 @@ def _sliding_window_transform(
             return yt, Xt.reshape(Xt.shape[0], -1)
     else:
         return yt, Xt
+
+
+def construct_dispatch(cls, params=None):
+    """Construct an estimator with an overspecified parameter dictionary.
+
+    Constructs and returns an instance of `cls`, using parameters in a dict `params`.
+    The dict `params` may contain keys that `cls` does not have, which are ignored.
+
+    This is useful in multiplexing or dispatching over multiple `cls` which have
+    different and potentially intersecting parameter sets.
+
+    Parameters
+    ----------
+    cls : aeon estimator, inheriting from `BaseObject`
+    params : dict with str keys, optional, default = None = {}
+
+    Examples
+    --------
+    >>> from aeon.forecasting.compose._reduce import construct_dispatch
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> params = {"strategy": "drift", "foo": "bar", "bar": "foo"}
+    >>> construct_dispatch(NaiveForecaster, params)
+    NaiveForecaster(strategy='drift')
+    """
+    cls_param_names = cls.get_param_names()
+    cls_params_in_dict = set(cls_param_names).intersection(params.keys())
+    params_for_cls = {key: params[key] for key in cls_params_in_dict}
+
+    obj = cls(**params_for_cls)
+    return obj
 
 
 class _Reducer(_BaseWindowForecaster):
