@@ -199,7 +199,6 @@ def plot_lags(series, lags=1, suptitle=None):
 
         - int plots the specified lag
         - array-like  plots specified lags in the array/list
-
     suptitle : str, default=None
         The text to use as the Figure's suptitle. If None, then the title
         will be "Plot of series against lags {lags}"
@@ -207,7 +206,6 @@ def plot_lags(series, lags=1, suptitle=None):
     Returns
     -------
     fig : matplotlib.figure.Figure
-
     axes : np.ndarray
         Array of the figure's Axe objects
 
@@ -280,45 +278,34 @@ def plot_correlations(
     ----------
     series : pd.Series
         A time series.
-
     lags : int, default = 24
         Number of lags to include in ACF and PACF plots
-
     alpha : int, default = 0.05
         Alpha value used to set confidence intervals. Alpha = 0.05 results in
         95% confidence interval with standard deviation calculated via
         Bartlett's formula.
-
     zero_lag : bool, default = True
         If True, start ACF and PACF plots at 0th lag
-
     acf_fft : bool,  = False
         Whether to compute ACF via FFT.
-
     acf_adjusted : bool, default = True
         If True, denonimator of ACF calculations uses n-k instead of n, where
         n is number of observations and k is the lag.
-
     pacf_method : str, default = 'ywadjusted'
         Method to use in calculation of PACF.
-
     suptitle : str, default = None
         The text to use as the Figure's suptitle.
-
     series_title : str, default = None
         Used to set the title of the series plot if provided. Otherwise, series
         plot has no title.
-
     acf_title : str, default = 'Autocorrelation'
         Used to set title of ACF plot.
-
     pacf_title : str, default = 'Partial Autocorrelation'
         Used to set title of PACF plot.
 
     Returns
     -------
     fig : matplotlib.figure.Figure
-
     axes : np.ndarray
         Array of the figure's Axe objects
 
