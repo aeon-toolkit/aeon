@@ -277,7 +277,8 @@ def get_estimator_results_as_array(
     """Look for results for given estimators for a list of datasets.
 
     This function pulls down a CSV of results, scans it for datasets and returns any
-    results found. If a dataset is not present, it is ignored.
+    results found. If a dataset is not present, it is ignored if include_missing is
+    False, set to NaN if include_missing is True.
 
     Parameters
     ----------
