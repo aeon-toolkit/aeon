@@ -9,7 +9,7 @@ from pandas.testing import assert_frame_equal
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.reconcile import ReconcilerForecaster
-from aeon.tests.test_all_estimators import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.utils._testing.hierarchical import _bottom_hier_datagen, _make_hierarchical
 from aeon.utils.validation._dependencies import _check_soft_dependencies
