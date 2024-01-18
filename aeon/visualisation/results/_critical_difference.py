@@ -2,6 +2,10 @@
 
 __author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
 
+__all__ = [
+    "plot_critical_difference",
+]
+
 import math
 import warnings
 
@@ -10,162 +14,6 @@ from scipy.stats import distributions, find_repeats, rankdata, wilcoxon
 
 from aeon.benchmarking.utils import get_qalpha
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-
-def _check_friedman(ranks):
-    """
-    Check whether Friedman test is significant.
-
-    Parameters
-    ----------
-    ranks : np.array
-      Rank of estimators on datasets, shape (n_estimators, n_datasets).
-
-    Returns
-    -------
-    float
-      p-value of the test.
-    """
-    n_datasets, n_estimators = ranks.shape
-
-    if n_estimators < 3:
-        raise ValueError(
-            "At least 3 sets of measurements must be given for Friedmann test, "
-            f"got {n_estimators}."
-        )
-
-    # calculate c to correct chisq for ties:
-    ties = 0
-    for i in range(n_datasets):
-        replist, repnum = find_repeats(ranks[i])
-        for t in repnum:
-            ties += t * (t * t - 1)
-    c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
-
-    ssbn = np.sum(ranks.sum(axis=0) ** 2)
-    chisq = (
-        12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
-        - 3 * n_datasets * (n_estimators + 1)
-    ) / c
-    p_value = distributions.chi2.sf(chisq, n_estimators - 1)
-    return p_value
-
-
-def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
-    """
-    Find cliques using post hoc Nemenyi test.
-
-    Parameters
-    ----------
-    ordered_avg_ranks : np.array
-        Average ranks of estimators.
-    n_datasets : int
-        Mumber of datasets.
-    alpha : float
-        alpha level for Nemenyi test.
-
-    Returns
-    -------
-    list of lists
-        List of cliques. A clique is a group of estimators within which there is no
-        significant difference.
-    """
-    n_estimators = len(ordered_avg_ranks)
-    qalpha = get_qalpha(alpha)
-    # calculate critical difference with Nemenyi
-    cd = qalpha[n_estimators] * np.sqrt(
-        n_estimators * (n_estimators + 1) / (6 * n_datasets)
-    )
-    # compute statistically similar cliques
-    cliques = np.tile(ordered_avg_ranks, (n_estimators, 1)) - np.tile(
-        np.vstack(ordered_avg_ranks.T), (1, n_estimators)
-    )
-    cliques[cliques < 0] = np.inf
-    cliques = cliques < cd
-
-    cliques = _build_cliques(cliques)
-
-    return cliques
-
-
-def _wilcoxon_test(results, labels, lower_better=False):
-    """
-    Perform Wilcoxon test.
-
-    Parameters
-    ----------
-    results: np.array
-      results of estimators on datasets
-
-    lower_better : bool, default = False
-        Indicates whether smaller is better for the results in scores. For example,
-        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
-
-    Returns
-    -------
-    np.array
-        p-values of Wilcoxon sign rank test.
-    """
-    n_estimators = results.shape[1]
-
-    p_values = np.eye(n_estimators)
-
-    for i in range(n_estimators - 1):
-        for j in range(i + 1, n_estimators):
-            # if the difference is zero, the p-value is 1
-            if np.all(results[:, i] == results[:, j]):
-                p_values[i, j] = 1
-                # raise warning
-                warnings.warn(
-                    f"Estimators {labels[i]} and {labels[j]} have the same performance"
-                    "on all datasets. This may cause problems when forming cliques.",
-                    stacklevel=2,
-                )
-            else:
-                p_values[i, j] = wilcoxon(
-                    results[:, i],
-                    results[:, j],
-                    zero_method="wilcox",
-                    alternative="less" if lower_better else "greater",
-                )[1]
-    return p_values
-
-
-def _build_cliques(pairwise_matrix):
-    """
-    Build cliques from pairwise comparison matrix.
-
-    Parameters
-    ----------
-    pairwise_matrix : np.array
-        Pairwise matrix shape (n_estimators, n_estimators) indicating if there is a
-        significant difference between pairs. Assumed to be ordered by rank of
-        estimators.
-
-    Returns
-    -------
-    list of lists
-        cliques within which there is no significant different between estimators.
-    """
-    for i in range(0, pairwise_matrix.shape[0]):
-        for j in range(i + 1, pairwise_matrix.shape[1]):
-            if pairwise_matrix[i, j] == 0:
-                pairwise_matrix[i, j + 1 :] = 0  # noqa: E203
-                break
-
-    n = np.sum(pairwise_matrix, 1)
-    possible_cliques = pairwise_matrix[n > 1, :]
-
-    for i in range(possible_cliques.shape[0] - 1, 0, -1):
-        for j in range(i - 1, -1, -1):
-            if np.all(possible_cliques[j, possible_cliques[i, :]]):
-                possible_cliques[i, :] = 0
-                break
-
-    n = np.sum(possible_cliques, 1)
-    cliques = possible_cliques[n > 1, :]
-
-    return cliques
 
 
 def plot_critical_difference(
@@ -599,3 +447,159 @@ def plot_critical_difference(
         return fig, p_values
     else:
         return fig
+
+
+def _check_friedman(ranks):
+    """
+    Check whether Friedman test is significant.
+
+    Parameters
+    ----------
+    ranks : np.array
+      Rank of estimators on datasets, shape (n_estimators, n_datasets).
+
+    Returns
+    -------
+    float
+      p-value of the test.
+    """
+    n_datasets, n_estimators = ranks.shape
+
+    if n_estimators < 3:
+        raise ValueError(
+            "At least 3 sets of measurements must be given for Friedmann test, "
+            f"got {n_estimators}."
+        )
+
+    # calculate c to correct chisq for ties:
+    ties = 0
+    for i in range(n_datasets):
+        replist, repnum = find_repeats(ranks[i])
+        for t in repnum:
+            ties += t * (t * t - 1)
+    c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
+
+    ssbn = np.sum(ranks.sum(axis=0) ** 2)
+    chisq = (
+        12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
+        - 3 * n_datasets * (n_estimators + 1)
+    ) / c
+    p_value = distributions.chi2.sf(chisq, n_estimators - 1)
+    return p_value
+
+
+def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
+    """
+    Find cliques using post hoc Nemenyi test.
+
+    Parameters
+    ----------
+    ordered_avg_ranks : np.array
+        Average ranks of estimators.
+    n_datasets : int
+        Mumber of datasets.
+    alpha : float
+        alpha level for Nemenyi test.
+
+    Returns
+    -------
+    list of lists
+        List of cliques. A clique is a group of estimators within which there is no
+        significant difference.
+    """
+    n_estimators = len(ordered_avg_ranks)
+    qalpha = get_qalpha(alpha)
+    # calculate critical difference with Nemenyi
+    cd = qalpha[n_estimators] * np.sqrt(
+        n_estimators * (n_estimators + 1) / (6 * n_datasets)
+    )
+    # compute statistically similar cliques
+    cliques = np.tile(ordered_avg_ranks, (n_estimators, 1)) - np.tile(
+        np.vstack(ordered_avg_ranks.T), (1, n_estimators)
+    )
+    cliques[cliques < 0] = np.inf
+    cliques = cliques < cd
+
+    cliques = _build_cliques(cliques)
+
+    return cliques
+
+
+def _wilcoxon_test(results, labels, lower_better=False):
+    """
+    Perform Wilcoxon test.
+
+    Parameters
+    ----------
+    results: np.array
+      results of estimators on datasets
+
+    lower_better : bool, default = False
+        Indicates whether smaller is better for the results in scores. For example,
+        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
+
+    Returns
+    -------
+    np.array
+        p-values of Wilcoxon sign rank test.
+    """
+    n_estimators = results.shape[1]
+
+    p_values = np.eye(n_estimators)
+
+    for i in range(n_estimators - 1):
+        for j in range(i + 1, n_estimators):
+            # if the difference is zero, the p-value is 1
+            if np.all(results[:, i] == results[:, j]):
+                p_values[i, j] = 1
+                # raise warning
+                warnings.warn(
+                    f"Estimators {labels[i]} and {labels[j]} have the same performance"
+                    "on all datasets. This may cause problems when forming cliques.",
+                    stacklevel=2,
+                )
+            else:
+                p_values[i, j] = wilcoxon(
+                    results[:, i],
+                    results[:, j],
+                    zero_method="wilcox",
+                    alternative="less" if lower_better else "greater",
+                )[1]
+    return p_values
+
+
+def _build_cliques(pairwise_matrix):
+    """
+    Build cliques from pairwise comparison matrix.
+
+    Parameters
+    ----------
+    pairwise_matrix : np.array
+        Pairwise matrix shape (n_estimators, n_estimators) indicating if there is a
+        significant difference between pairs. Assumed to be ordered by rank of
+        estimators.
+
+    Returns
+    -------
+    list of lists
+        cliques within which there is no significant different between estimators.
+    """
+    for i in range(0, pairwise_matrix.shape[0]):
+        for j in range(i + 1, pairwise_matrix.shape[1]):
+            if pairwise_matrix[i, j] == 0:
+                pairwise_matrix[i, j + 1 :] = 0  # noqa: E203
+                break
+
+    n = np.sum(pairwise_matrix, 1)
+    possible_cliques = pairwise_matrix[n > 1, :]
+
+    for i in range(possible_cliques.shape[0] - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
+            if np.all(possible_cliques[j, possible_cliques[i, :]]):
+                possible_cliques[i, :] = 0
+                break
+
+    n = np.sum(possible_cliques, 1)
+    cliques = possible_cliques[n > 1, :]
+
+    return cliques

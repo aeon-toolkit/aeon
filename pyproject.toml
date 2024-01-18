@@ -68,7 +68,6 @@ all_extras = [
     "mne",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
-    "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
@@ -102,6 +101,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "pytest-rerunfailures",
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
@@ -173,6 +173,8 @@ addopts = '''
     --timeout 600
     --showlocals
     --numprocesses auto
+    --reruns 2
+    --only-rerun "crashed while running"
 '''
 filterwarnings = '''
     ignore::UserWarning
