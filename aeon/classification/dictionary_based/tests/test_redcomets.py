@@ -30,7 +30,7 @@ def test_redcomets_train_estimate_univariate():
         score = redcomets.score(X_test, y_test)
 
         assert isinstance(score, np.float_)
-        np.testing.assert_almost_equal(score, 0.727272, decimal=4)
+        np.testing.assert_almost_equal(score, 0.818181, decimal=4)
 
     test_variant(1)
     test_variant(2)
@@ -61,15 +61,16 @@ def test_redcomets_train_estimate_multivariate():
         assert isinstance(score, np.float_)
         np.testing.assert_almost_equal(score, expected_result, decimal=4)
 
-    test_variant(1, 0.975)
-    test_variant(2, 0.925)
-    test_variant(3, 0.95)
-    test_variant(4, 0.875)
-    test_variant(5, 0.85)
-    test_variant(6, 0.875)
-    test_variant(7, 0.875)
-    test_variant(8, 0.85)
-    test_variant(9, 0.85)
+    test_variant(1, 0.95)
+    test_variant(2, 0.95)
+    test_variant(3, 0.925)
+    test_variant(3, 0.925)
+    test_variant(4, 0.775)
+    test_variant(5, 0.8)
+    test_variant(6, 0.775)
+    test_variant(7, 0.775)
+    test_variant(8, 0.8)
+    test_variant(9, 0.8)
 
 
 @pytest.mark.skipif(

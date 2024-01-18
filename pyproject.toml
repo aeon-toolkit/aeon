@@ -101,6 +101,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "pytest-rerunfailures",
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
@@ -172,6 +173,8 @@ addopts = '''
     --timeout 600
     --showlocals
     --numprocesses auto
+    --reruns 2
+    --only-rerun "crashed while running"
 '''
 filterwarnings = '''
     ignore::UserWarning
