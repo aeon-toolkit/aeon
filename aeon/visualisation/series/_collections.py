@@ -1,3 +1,8 @@
+__all__ = [
+    "plot_series_collection",
+    "plot_collection_by_class",
+]
+
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
