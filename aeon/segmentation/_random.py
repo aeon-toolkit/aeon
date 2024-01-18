@@ -7,13 +7,12 @@ from aeon.segmentation.base import BaseSegmenter
 
 
 class RandomSegmenter(BaseSegmenter):
-    """Dummy Segmenter.
+    """Random Segmenter.
 
     Randomly segments a time series.
     """
 
     _tags = {
-        "X_inner_type": "np.ndarray",
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
