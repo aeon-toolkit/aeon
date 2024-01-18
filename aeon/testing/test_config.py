@@ -37,6 +37,8 @@ EXCLUDED_TESTS = {
     # test fails several variants of inversion, see
     # https://github.com/aeon-toolkit/aeon/issues/700
     "Differencer": ["test_transform_inverse_transform_equivalent"],
+    # Test fails, see https://github.com/aeon-toolkit/aeon/issues/1067
+    "MockUnivariateForecasterLogger": ["test_non_state_changing_method_contract"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
