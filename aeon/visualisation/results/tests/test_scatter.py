@@ -1,4 +1,4 @@
-"""Tests for the critical difference diagram maker."""
+"""Tests for the scatter diagram makers."""
 
 import os
 
@@ -6,46 +6,15 @@ import numpy as np
 import pytest
 
 import aeon
-from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+from aeon.benchmarking import get_estimator_results_as_array
 from aeon.datasets.tsc_data_lists import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.visualisation import (
-    plot_boxplot_median,
-    plot_scatter,
-    plot_scatter_predictions,
-)
+from aeon.visualisation import plot_pairwise_scatter, plot_scatter_predictions
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
     "benchmarking/example_results/",
 )
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("matplotlib", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_plot_boxplot_median():
-    from matplotlib.figure import Figure
-
-    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
-
-    data = univariate_equal_length
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
-    )
-
-    fig = plot_boxplot_median(res, cls, plot_type="violin")
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="boxplot", outliers=False)
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="swarm")
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="strip")
-    assert isinstance(fig, Figure)
-
-    with pytest.raises(ValueError):
-        plot_boxplot_median(res, cls, plot_type="error")
 
 
 @pytest.mark.skipif(
@@ -80,7 +49,9 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(res, cls[0], cls[1], metric="accuracy", statistic_tests=True)
+    fig = plot_pairwise_scatter(
+        res, cls[0], cls[1], metric="accuracy", statistic_tests=True
+    )
     assert isinstance(fig, Figure)
 
     cls = ["InceptionTime", "WEASEL-D"]
@@ -89,7 +60,7 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(res, cls[0], cls[1], metric="accuracy", title="test")
+    fig = plot_pairwise_scatter(res, cls[0], cls[1], metric="accuracy", title="test")
     assert isinstance(fig, Figure)
 
     cls = ["InceptionTime", "WEASEL-D"]
@@ -98,7 +69,7 @@ def test_plot_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_scatter(
+    fig = plot_pairwise_scatter(
         1 - res,
         cls[0],
         cls[1],
@@ -108,7 +79,7 @@ def test_plot_scatter():
     )
     assert isinstance(fig, Figure)
 
-    fig = plot_scatter(
+    fig = plot_pairwise_scatter(
         1 - res,
         cls[0],
         cls[1],
@@ -119,11 +90,6 @@ def test_plot_scatter():
     assert isinstance(fig, Figure)
 
     with pytest.raises(ValueError):
-        plot_scatter(res, cls[0], cls[1], metric="error", lower_better=False)
+        plot_pairwise_scatter(res, cls[0], cls[1], metric="error", lower_better=False)
     with pytest.raises(ValueError):
-        plot_scatter(res, cls[0], cls[1], metric="accuracy", lower_better=True)
-
-
-def test_plot_multi_comparison_matrix():
-    # to be completed when MCM is implemented
-    pass
+        plot_pairwise_scatter(res, cls[0], cls[1], metric="accuracy", lower_better=True)

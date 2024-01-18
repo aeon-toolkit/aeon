@@ -1,9 +1,9 @@
-"""Functions for plotting results boxplot diagrams."""
+"""Functions for plotting results scatter diagrams."""
 
 __author__ = ["dguijo"]
 
 __all__ = [
-    "plot_scatter",
+    "plot_pairwise_scatter",
     "plot_scatter_predictions",
 ]
 
@@ -14,7 +14,7 @@ import numpy as np
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def plot_scatter(
+def plot_pairwise_scatter(
     results,
     method_A,
     method_B,
@@ -55,11 +55,11 @@ def plot_scatter(
 
     Example
     -------
-    >>> from aeon.visualisation import plot_scatter
+    >>> from aeon.visualisation import plot_pairwise_scatter
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
     >>> results = get_estimator_results_as_array(estimators=methods)
-    >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
+    >>> plot = plot_pairwise_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
     """
@@ -345,3 +345,42 @@ def plot_scatter_predictions(
         plot.set_title(rf"{title}")
 
     return fig
+
+
+def plot_score_vs_time_scatter(rank, time, names=None, title=None, log_time=False):
+    """
+    Final version of the function that plots a scatter diagram of rank against time.
+    This version allows optional log scale for time and ensures that original time values are preserved on the axis.
+
+    :param rank: An array of ranks.
+    :param time: An array of time values.
+    :param names: An optional list of names for labeling each point.
+    :param title: An optional title for the plot. Defaults to 'Rank vs Time Scatter Plot'.
+    :param log_time: If True, plots time on a log10 scale, preserving original time values on the axis.
+    """
+    _check_soft_dependencies("matplotlib", "seaborn")
+    import matplotlib.pyplot as plt
+
+    scatter = plt.scatter(time, rank, c=range(len(time)), marker="o")
+
+    # Label points if names are provided
+    if names is not None:
+        for i, name in enumerate(names):
+            plt.annotate(
+                name,
+                (time[i], rank[i]),
+                textcoords="offset points",
+                xytext=(0, 10),
+                ha="center",
+            )
+
+    # Set x-axis to log scale if log_time is True
+    if log_time:
+        plt.xscale("log")
+        plt.xlabel("Time (log scale)")
+    else:
+        plt.xlabel("Time")
+
+    plt.ylabel("Rank")
+    plt.title(title)
+    plt.show()
