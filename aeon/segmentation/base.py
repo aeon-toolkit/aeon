@@ -91,7 +91,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "ndarray",  # One of VALID_INNER_TYPES
+        "X_inner_type": "np.ndarray",  # One of VALID_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
         "returns_dense": True,
@@ -145,7 +145,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             axis = self.axis
         X = self._preprocess_series(X, axis)
         if y is not None:
-            self._check_input_series(y)
+            y = self._preprocess_series(y, axis)
         self._fit(X=X, y=y)
         self._is_fitted = True
         return self
@@ -184,7 +184,8 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        return self.fit(X, y).predict(X)
+        self.fit(X, y)
+        return self.predict(X)
 
     def _fit(self, X, y):
         """Fit time series classifier to training data."""

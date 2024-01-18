@@ -8,9 +8,9 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # allowed input and internal data types for Series
 VALID_INNER_TYPES = [
-    "ndarray",
-    "Series",
-    "DataFrame",
+    "np.ndarray",
+    "pd.Series",
+    "pd.DataFrame",
 ]
 VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
@@ -57,7 +57,7 @@ class BaseSeriesEstimator(BaseEstimator):
     _tags = {
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "X_inner_type": "ndarray",
+        "X_inner_type": "np.ndarray",  # one of VALID_INNER_TYPES
     }
 
     def __init__(self, axis=0):
@@ -149,7 +149,7 @@ class BaseSeriesEstimator(BaseEstimator):
         return metadata
 
     def _convert_X(self, X, axis):
-        inner = self.get_tag("X_inner_type")
+        inner = self.get_tag("X_inner_type").split(".")[-1]
         input = type(X).__name__
         if inner != input:
             if inner == "ndarray":
@@ -159,6 +159,9 @@ class BaseSeriesEstimator(BaseEstimator):
                     X = pd.Series(X)
             elif inner == "DataFrame":
                 X = pd.DataFrame(X)
+            else:
+                tag = self.get_tag("X_inner_type")
+                raise ValueError(f"Unknown inner type {inner} derived from {tag}")
         if axis > 1 or axis < 0:
             raise ValueError(" Axis should be 0 or 1")
         if not self.get_tag("capability:multivariate"):

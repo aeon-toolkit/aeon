@@ -53,19 +53,19 @@ def test__check_X():
 
 
 UNIVARIATE = {
-    "ndarray": np.random.random(size=(20)),
-    "Series": pd.Series(np.random.random(size=(20))),
-    "DataFrame": pd.DataFrame(np.random.random(size=(20))),
+    "np.ndarray": np.random.random(size=(20)),
+    "pd.Series": pd.Series(np.random.random(size=(20))),
+    "pd.DataFrame": pd.DataFrame(np.random.random(size=(20))),
 }
 MULTIVARIATE = {
-    "ndarray": np.random.random(size=(5, 20)),
-    "Series": pd.Series(np.random.random(size=(20))),
-    "DataFrame": pd.DataFrame(np.random.random(size=(5, 20))),
+    "np.ndarray": np.random.random(size=(5, 20)),
+    "pd.Series": pd.Series(np.random.random(size=(20))),
+    "pd.DataFrame": pd.DataFrame(np.random.random(size=(5, 20))),
 }
 VALID_TYPES = [
-    "ndarray",
-    "Series",
-    "DataFrame",
+    "np.ndarray",
+    "pd.Series",
+    "pd.DataFrame",
 ]
 
 
@@ -73,13 +73,13 @@ def test_univariate_convert_X():
     # np.ndarray inner, no multivariate. Univariate are always series,
     # not dataframes, axis is ignored
     dummy1 = BaseSeriesEstimator()
-    for str in ["ndarray", "Series"]:  # Inner type, DataFrame not allowed for
+    for str in ["np.ndarray", "pd.Series"]:  # Inner type, DataFrame not allowed for
         # univariate
         for str2 in VALID_TYPES:  # input type
             X = UNIVARIATE[str2]
             dummy1.set_tags(**{"X_inner_type": str})
             X2 = dummy1._convert_X(X, axis=0)
-            assert type(X2).__name__ == str
+            assert type(X2).__name__ == str.split(".")[1]
             X2 = dummy1._convert_X(X, axis=1)
             assert len(X) == len(X2)
 
@@ -89,13 +89,15 @@ def test_multivariate_convert_X():
     # not Series. 1D np.ndarray converted to 2D. Capability is tested in check_X,
     # not here
     dummy1 = BaseSeriesEstimator(axis=0)
-    for str in ["ndarray", "DataFrame"]:  # Inner type, Series not allowed for
+    for st in ["np.ndarray", "pd.DataFrame"]:  # Inner type, Series not allowed for
         # Multivariate
-        for str2 in VALID_TYPES:  # input type
-            dummy1.set_tags(**{"X_inner_type": str, "capability:multivariate": True})
-            X = MULTIVARIATE[str2]
+        name = st.split(".")[1]
+        for st2 in VALID_TYPES:  # input type
+            dummy1.set_tags(**{"X_inner_type": st, "capability:multivariate": True})
+            X = MULTIVARIATE[st2]
             X2 = dummy1._convert_X(X, axis=0)
-            assert type(X2).__name__ == str
+            assert type(X2).__name__ == name
+
             shape1 = X2.shape
             X2 = dummy1._convert_X(X, axis=1)
             shape2 = X2.shape
@@ -106,13 +108,14 @@ def test_multivariate_convert_X():
 @pytest.mark.parametrize("inner_type", VALID_TYPES)
 def test__preprocess_series(input_type, inner_type):
     dummy1 = BaseSeriesEstimator(axis=0)
-    if inner_type != "DataFrame":
+    inner = inner_type.split(".")[1]
+    if inner_type != "pd.DataFrame":
         dummy1.set_tags(**{"X_inner_type": inner_type})
         X = UNIVARIATE[input_type]
         X2 = dummy1._preprocess_series(X)
-        assert type(X2).__name__ == inner_type
-    if inner_type != "Series":
+        assert type(X2).__name__ == inner
+    if inner_type != "pd.Series":
         dummy1.set_tags(**{"X_inner_type": inner_type, "capability:multivariate": True})
         X = UNIVARIATE[input_type]
         X2 = dummy1._preprocess_series(X)
-        assert type(X2).__name__ == inner_type
+        assert type(X2).__name__ == inner

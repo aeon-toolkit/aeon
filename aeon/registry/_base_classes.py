@@ -33,7 +33,12 @@ __author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import (
+    BaseCollectionEstimator,
+    BaseEstimator,
+    BaseObject,
+    BaseSeriesEstimator,
+)
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -51,26 +56,28 @@ from aeon.transformations.series import BaseSeriesTransformer
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    ("classifier", BaseClassifier, "time series classifier"),
-    ("clusterer", BaseClusterer, "time series clusterer"),
+    ("classifier", BaseClassifier, "classifier"),
+    ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
+    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
+    ("clusterer", BaseClusterer, "clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
     ("forecaster", BaseForecaster, "forecaster"),
     ("metric", BaseMetric, "performance metric"),
     ("network", BaseDeepNetwork, "deep learning network"),
-    ("regressor", BaseRegressor, "time series regressor"),
-    ("segmenter", BaseSegmenter, "time series segmenter"),
+    ("regressor", BaseRegressor, "regressor"),
+    ("segmenter", BaseSegmenter, "segmenter"),
     ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
-    ("splitter", BaseSplitter, "time series splitter"),
-    ("transformer", BaseTransformer, "time series transformer"),
+    ("splitter", BaseSplitter, "splitter"),
+    ("transformer", BaseTransformer, "transformer"),
     (
         "collection-transformer",
         BaseCollectionTransformer,
-        "time series collection transformer",
+        "collection transformer",
     ),
     (
         "series-transformer",
         BaseSeriesTransformer,
-        "time series single series transformer",
+        "single series transformer",
     ),
     ("similarity-search", BaseSimiliaritySearch, "similarity search"),
 ]
