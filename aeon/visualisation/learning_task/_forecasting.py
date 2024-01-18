@@ -3,7 +3,6 @@ __all__ = [
 ]
 
 import numpy as np
-from matplotlib.ticker import FuncFormatter
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_y
@@ -30,7 +29,7 @@ def plot_series_windows(y, cv, title=""):
 
     import matplotlib.pyplot as plt
     import seaborn as sns
-    from matplotlib.ticker import MaxNLocator
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
 
     y = check_y(y)
 
