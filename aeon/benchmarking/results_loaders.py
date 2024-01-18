@@ -70,6 +70,16 @@ NAME_ALIASES = {
         "KNeighborsTimeSeriesClassifier",
     },
     "5NN-DTW": {"5NNDTW", "5nn-dtw"},
+    "1NN-ED": {
+        "1NNED",
+        "1nn-ed",
+        "1nned",
+    },
+    "5NN-ED": {
+        "5NNED",
+        "5nn-ed",
+        "5nned",
+    },
     # Clustering
     "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed", "KMeans-ED"},
     "kmeans-dtw": {"dtw-kmeans", "k-means-dtw", "KMeans-DTW"},
