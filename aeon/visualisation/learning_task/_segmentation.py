@@ -46,7 +46,6 @@ def plot_series_with_change_points(y, change_points, title=None, font_size=16):
         ax.plot(
             range(segments[idx], segments[idx + 1] + 1),
             y[segments[idx] : segments[idx + 1] + 1],
-            color="C0",
         )
 
     lim1 = plt.ylim()[0]
@@ -54,9 +53,7 @@ def plot_series_with_change_points(y, change_points, title=None, font_size=16):
 
     colors = plt.cm.rainbow(np.linspace(0, 1, len(true_cps)))
     for i, idx in enumerate(true_cps):
-        ax.vlines(
-            idx, lim1, lim2, linestyles="--", label=f"Change point {i}", color=colors[i]
-        )
+        ax.vlines(idx, lim1, lim2, linestyles="--", label=f"ChP {i}", color=colors[i])
 
     plt.legend(loc="best")
 
