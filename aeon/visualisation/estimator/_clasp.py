@@ -83,7 +83,7 @@ def plot_series_with_profiles(
 
     # Set the figure's title
     if title is not None:
-        fig.suptitle(title, fontsize=font_size)
+        ax[0].set_title(title, fontsize=font_size)
 
     for a in ax:
         for tick in a.xaxis.get_major_ticks():
