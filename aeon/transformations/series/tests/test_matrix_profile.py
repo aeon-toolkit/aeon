@@ -1,9 +1,15 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from aeon.transformations.series import MatrixProfileTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("stumpy", severity="none"),
+    reason="skip test if required soft dependency stumpy is not available",
+)
 def test_matrix_profile():
     """Test on example in stumpy documentation."""
     series = np.array([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
