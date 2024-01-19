@@ -283,3 +283,19 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
     def _update(self, X, y=None):
         # standard behaviour: no update takes place, new data is ignored
         return self
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        return {}
