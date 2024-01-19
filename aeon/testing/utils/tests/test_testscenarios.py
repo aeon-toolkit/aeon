@@ -2,7 +2,7 @@ __author__ = ["fkiraly"]
 __all__ = []
 
 
-from aeon.utils._testing.scenarios import TestScenario
+from aeon.testing.utils.scenarios import TestScenario
 
 
 class TestedMockClass:
