@@ -21,6 +21,12 @@ pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 labels = [label.name for label in pr.get_labels()]
 
+if pr.user.login == "allcontributors[bot]":
+    pr.add_to_labels("documentation", "no changelog")
+    sys.exit(0)
+elif "[bot]" in pr.user.login:
+    sys.exit(0)
+
 # title labels
 title = pr.title
 
