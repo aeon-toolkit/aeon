@@ -38,17 +38,31 @@ import aeon.utils.numba.stats as stats
 AEON_NUMBA_STD_THRESHOLD = 1e-8
 
 
-def generate_new_default_njit_func(base_func, new_defaults_args):
+def generate_new_default_njit_func(
+    base_func,
+    new_defaults_args,
+    use_fastmath_for_callable=True,
+    use_cache_for_callable=True,
+):
     """
     Return a function with same code, globals, defaults, closure, and name.
 
+    If the function is not a CPUDispatcher (numba) function, it will try to create
+    a numba function if the base function is callable.
+
     Parameters
     ----------
-    base_func : CPUDispatcher
-        Numba function to copy.
+    base_func : function or CPUDispatcher
+        A Python or Numba function to modify.
     new_defaults_args : dict
         Dictionnary of new default keyword args. If new_defaults_args is None or empty,
         directly return base_func.
+    use_fastmath_for_callable : bool
+        If base_func is a callable, add fastmath as numba option when compiling
+        the new function to numba.
+    use_cache_for_callable : bool
+        If base_func is a callable, add cache as numba option when compiling
+        the new function to numba.
 
     Returns
     -------
@@ -56,48 +70,69 @@ def generate_new_default_njit_func(base_func, new_defaults_args):
         Created numba function with new default args.
 
     """
-    if not isinstance(base_func, CPUDispatcher):
-        raise TypeError(
-            "Expected base_func to be of CPUDispatcher type (numba function),"
-            f"but got {type(base_func)}"
-        )
-    elif new_defaults_args is None:
-        return base_func
     # empty dict evaluate to false
-    elif isinstance(new_defaults_args, dict) and not new_defaults_args:
-        return base_func
+    if new_defaults_args is None or (
+        isinstance(new_defaults_args, dict) and not new_defaults_args
+    ):
+        if isinstance(base_func, CPUDispatcher):
+            return base_func
+        else:
+            numba_args_for_callable = {}
+            if use_fastmath_for_callable:
+                numba_args_for_callable.update({"fastmath": True})
+            if use_cache_for_callable:
+                numba_args_for_callable.update({"cache": True})
+            return njit(base_func, **numba_args_for_callable)
+
     elif not isinstance(new_defaults_args, dict):
         raise TypeError(
-            f"Expected new_defaults_args to be a dict but got {type(new_defaults_args)}"
+            "Expected new_defaults_args to be a dict but got "
+            f"{type(new_defaults_args)}"
         )
-    else:
+    if isinstance(base_func, CPUDispatcher):
         base_func_py = base_func.py_func
-        signature = inspect.signature(base_func_py)
-
-        _new_defaults = []
-        for k, v in signature.parameters.items():
-            if v.default is not inspect.Parameter.empty:
-                if k in new_defaults_args.keys():
-                    _new_defaults.append(new_defaults_args[k])
-                else:
-                    _new_defaults.append(v.default)
-
-        _new_name = "_tmp_" + base_func_py.__name__
-        new_func = types.FunctionType(
-            base_func_py.__code__,
-            base_func_py.__globals__,
-            _new_name,
-            tuple(_new_defaults),
-            base_func_py.__closure__,
+    elif callable(base_func):
+        base_func_py = base_func
+    else:
+        raise TypeError(
+            "Expected base_func to be of callable or CPUDispatcher type (numba "
+            f"function), but got {type(base_func)}"
         )
-        # If new_func was given attrs (this dict is a shallow copy but we don't modify)
-        new_func.__dict__.update(base_func_py.__dict__)
+    signature = inspect.signature(base_func_py)
 
+    _new_defaults = []
+    for k, v in signature.parameters.items():
+        if v.default is not inspect.Parameter.empty:
+            if k in new_defaults_args.keys():
+                _new_defaults.append(new_defaults_args[k])
+            else:
+                _new_defaults.append(v.default)
+
+    new_func = types.FunctionType(
+        base_func_py.__code__,
+        base_func_py.__globals__,
+        "_tmp_" + base_func_py.__name__,
+        tuple(_new_defaults),
+        base_func_py.__closure__,
+    )
+    # If new_func was given attrs (dict is a shallow copy we shouldn't modify)
+    new_func.__dict__.update(base_func_py.__dict__)
+    if isinstance(base_func, CPUDispatcher):
         numba_options = deepcopy(base_func.targetoptions)
         # remove nopython option as we already use njit to avoid a warning
         numba_options.pop("nopython")
         new_func_njit = njit(new_func, **numba_options)
-        return new_func_njit
+
+    elif callable(base_func):
+        # This should return a Python function when DISABLE_NJIT = True
+        numba_args_for_callable = {}
+        if use_fastmath_for_callable:
+            numba_args_for_callable.update({"fastmath": True})
+        if use_cache_for_callable:
+            numba_args_for_callable.update({"cache": True})
+        new_func_njit = njit(new_func, **numba_args_for_callable)
+
+    return new_func_njit
 
 
 @njit(fastmath=True, cache=True)

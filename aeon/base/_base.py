@@ -410,7 +410,7 @@ class BaseObject(_BaseEstimator):
 
         Notes
         -----
-        Changes object state by settting tag values in tag_dict as dynamic tags
+        Changes object state by setting tag values in tag_dict as dynamic tags
         in self.
         """
         tag_update = deepcopy(tag_dict)

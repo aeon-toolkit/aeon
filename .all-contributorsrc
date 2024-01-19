@@ -2208,7 +2208,6 @@
       "profile": "https://github.com/wwzeng1",
       "contributions": [
         "bug"
-
       ]
     },
     {
@@ -2247,6 +2246,15 @@
         "code",
         "bug",
         "doc"
+      ]
+    },
+    {
+      "login": "andregdmitri",
+      "name": "André Guarnier De Mitri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51839703?v=4",
+      "profile": "https://www.linkedin.com/in/andre-de-mitri/",
+      "contributions": [
+        "code"
       ]
     }
   ],

@@ -26,6 +26,7 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.testing.utils.series import _make_series
 from aeon.transformations.adapt import TabularToSeriesAdaptor
@@ -37,7 +38,6 @@ from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
-from aeon.utils.estimators import MockForecaster
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
