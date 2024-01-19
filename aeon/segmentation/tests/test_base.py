@@ -1,37 +1,9 @@
 """Test base segmenter."""
 import numpy as np
-import pandas as pd
 import pytest
 
 from aeon.segmentation import BaseSegmenter
 from aeon.testing.mock_estimators import MockSegmenter, SupervisedMockSegmenter
-
-INPUT_CORRECT = [
-    np.array([0, 0, 0, 1, 1]),
-    pd.Series([0, 0, 0, 1, 1]),
-    pd.DataFrame([0, 0, 0, 1, 1]),
-]
-INPUT_WRONG = [
-    np.array([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
-    pd.DataFrame([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
-    np.array([0, 0, 0, 1, "FOO"]),
-    pd.Series([0, 0, 0, 1, "FOO"]),
-    pd.DataFrame([0, 0, 0, 1, "FOO"]),
-    "Up the arsenal",
-]
-
-
-@pytest.mark.parametrize("y_correct", INPUT_CORRECT)
-def test__check_y_correct(y_correct):
-    seg = SupervisedMockSegmenter()
-    assert seg._check_y(y_correct) is None
-
-
-@pytest.mark.parametrize("y_wrong", INPUT_WRONG)
-def test__check_y_wrong(y_wrong):
-    seg = SupervisedMockSegmenter()
-    with pytest.raises(ValueError, match="Error in input type for y"):
-        seg._check_y(y_wrong)
 
 
 def test_fit_predict_correct():

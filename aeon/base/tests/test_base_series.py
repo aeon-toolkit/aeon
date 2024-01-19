@@ -127,3 +127,29 @@ def test__preprocess_series(input_type, inner_type):
         X = UNIVARIATE[input_type]
         X2 = dummy1._preprocess_series(X)
         assert type(X2).__name__ == inner
+
+
+INPUT_CORRECT = [
+    np.array([0, 0, 0, 1, 1]),
+    pd.Series([0, 0, 0, 1, 1]),
+    pd.DataFrame([0, 0, 0, 1, 1]),
+]
+INPUT_WRONG = [
+    np.array([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
+    pd.DataFrame([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
+    np.array([0, 0, 0, 1, "FOO"]),
+    pd.Series([0, 0, 0, 1, "FOO"]),
+    pd.DataFrame([0, 0, 0, 1, "FOO"]),
+    "Up the arsenal",
+]
+
+
+@pytest.mark.parametrize("y_correct", INPUT_CORRECT)
+def test__check_y_correct(y_correct):
+    assert BaseSeriesEstimator._check_y(None, y_correct) is None
+
+
+@pytest.mark.parametrize("y_wrong", INPUT_WRONG)
+def test__check_y_wrong(y_wrong):
+    with pytest.raises(ValueError, match="Error in input type for y"):
+        BaseSeriesEstimator._check_y(None, y_wrong)
