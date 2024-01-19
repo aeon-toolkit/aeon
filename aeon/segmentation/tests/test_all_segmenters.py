@@ -63,7 +63,7 @@ def test_segmenter_instance(segmenter):
     X = np.random.random(size=(20))
     uni = segmenter.get_class_tag(tag_name="capability:univariate")
     if uni:
-        output = instance.fit_predict(X)
+        output = instance.fit_predict(X, y=X)
         _assert_output(output, dense, len(X))
     else:
         with pytest.raises(ValueError, match="Univariate data not supported"):

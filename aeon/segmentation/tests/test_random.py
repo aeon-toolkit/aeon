@@ -14,10 +14,14 @@ def test_random():
     segmenter = RandomSegmenter(random_state=49, n_segments=10)
     segmenter.fit(data)
     assert segmenter.n_segments == 10
-    segs = segmenter.predict(data)
+    segs2 = segmenter.predict(data)
+    np.array_equal(segs, segs2)
+    assert len(segs) == 1
+    segs = segmenter.fit_predict(data)
     assert len(segs) == 9
+
     df = pd.DataFrame(data)
     segmenter = RandomSegmenter(random_state=49, n_segments=10)
     segmenter.fit(df)
     segs2 = segmenter.predict(df)
-    assert segs == segs2
+    np.array_equal(segs, segs2)

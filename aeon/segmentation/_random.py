@@ -18,7 +18,7 @@ class RandomSegmenter(BaseSegmenter):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
-        "returns_dense": False,
+        "returns_dense": True,
     }
 
     def __init__(self, random_state=None, n_segments=2):

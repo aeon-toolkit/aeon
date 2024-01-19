@@ -14,7 +14,7 @@ class MockSegmenter(BaseSegmenter):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
-        "returns_dense": False,
+        "returns_dense": True,
     }
 
     def _fit(self, X, y=None):
@@ -47,3 +47,7 @@ class SupervisedMockSegmenter(MockSegmenter):
     _tags = {
         "requires_y": True,
     }
+
+    def _predict(self, X):
+        """Generate breakpoints."""
+        return np.array([1])

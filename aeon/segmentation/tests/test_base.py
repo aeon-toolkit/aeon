@@ -16,7 +16,7 @@ def test_fit_predict_correct():
     res = seg.fit(x_correct)
     assert isinstance(res, BaseSegmenter)
     assert res.is_fitted
-    assert res.axis == 0
+    assert res.axis == 1
     seg.set_tags(**{"fit_is_empty": True})
     res = seg.fit(x_correct)
     assert res.is_fitted

@@ -386,7 +386,7 @@ class InformationGainSegmenter(BaseSegmenter):
         """
         self.change_points_ = self._igts.find_change_points(X)
         self.intermediate_results_ = self._igts.intermediate_results_
-        return self.to_clusters(self.change_points_)
+        return self.to_clusters(self.change_points_[1:-1], X.shape[0])
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
