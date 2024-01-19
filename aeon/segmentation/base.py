@@ -197,7 +197,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         """Create and return a segmentation of X."""
         ...
 
-    def to_classification(self, change_points: List[int]):
+    def to_classification(self, change_points: List[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -208,9 +208,11 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         For example change points [2, 8] for a time series of length 10
         would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
         """
-        return np.bincount(change_points[1:-1], minlength=change_points[-1])
+        labels = np.zeros(length, dtype=int)
+        labels[change_points] = 1
+        return labels
 
-    def to_clusters(self, change_points: List[int]):
+    def to_clusters(self, change_points: List[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering
@@ -220,9 +222,9 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         For example change points [2, 8] for a time series of length 10
         would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
         """
-        labels = np.zeros(change_points[-1], dtype=np.int32)
-        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
-            labels[start:stop] = i
+        labels = np.zeros(length, dtype=int)
+        for cp in change_points:
+            labels[cp:] += 1
         return labels
 
     @classmethod
