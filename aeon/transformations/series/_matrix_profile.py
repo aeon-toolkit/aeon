@@ -69,3 +69,19 @@ class MatrixProfileTransformer(BaseSeriesTransformer):
 
         self.matrix_profile_ = stumpy.stump(X, self.window_length)
         return self.matrix_profile_[:, 0].astype("float")
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        return {}
