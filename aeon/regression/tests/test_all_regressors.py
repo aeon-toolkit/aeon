@@ -12,7 +12,7 @@ from aeon.testing.expected_results.expected_regressor_outputs import (
     covid_3month_preds,
 )
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class RegressorFixtureGenerator(BaseFixtureGenerator):

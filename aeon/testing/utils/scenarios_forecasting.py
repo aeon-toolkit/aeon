@@ -19,10 +19,10 @@ import pandas as pd
 from aeon.base import BaseObject
 from aeon.forecasting.base import BaseForecaster
 from aeon.testing.test_config import PR_TESTING
-from aeon.utils._testing.collection import _make_collection_X
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.scenarios import TestScenario
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.collection import _make_collection_X
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.scenarios import TestScenario
+from aeon.testing.utils.series import _make_series
 
 # random seed for generating data to keep scenarios exactly reproducible
 RAND_SEED = 42

@@ -5,7 +5,7 @@ __author__ = ["fkiraly"]
 from aeon.datatypes import DATATYPE_REGISTER, scitype_to_mtype
 from aeon.datatypes._convert import _conversions_defined, convert
 from aeon.datatypes._examples import get_examples
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 
 SCITYPES = [sci[0] for sci in DATATYPE_REGISTER]
 

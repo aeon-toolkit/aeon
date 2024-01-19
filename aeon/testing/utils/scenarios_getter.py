@@ -7,13 +7,13 @@ __all__ = ["retrieve_scenarios"]
 
 from aeon.base import BaseObject
 from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, get_identifiers
-from aeon.utils._testing.scenarios_classification import (
+from aeon.testing.utils.scenarios_classification import (
     scenarios_classification,
     scenarios_early_classification,
     scenarios_regression,
 )
-from aeon.utils._testing.scenarios_forecasting import scenarios_forecasting
-from aeon.utils._testing.scenarios_transformers import scenarios_transformers
+from aeon.testing.utils.scenarios_forecasting import scenarios_forecasting
+from aeon.testing.utils.scenarios_transformers import scenarios_transformers
 
 scenarios = dict()
 scenarios["classifier"] = scenarios_classification

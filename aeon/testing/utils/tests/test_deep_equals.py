@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 
 # examples used for comparison below
 EXAMPLES = [

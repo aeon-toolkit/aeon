@@ -82,7 +82,7 @@ class BaseObject(_BaseEstimator):
 
         Nested BaseObject descendants from get_params are compared via __eq__ as well.
         """
-        from aeon.utils._testing.deep_equals import deep_equals
+        from aeon.testing.utils.deep_equals import deep_equals
 
         if not isinstance(other, BaseObject):
             return False

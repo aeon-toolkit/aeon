@@ -43,7 +43,7 @@ from aeon.performance_metrics.forecasting import (
     median_squared_scaled_error,
     relative_loss,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 
 RANDOM_SEED = 42
 

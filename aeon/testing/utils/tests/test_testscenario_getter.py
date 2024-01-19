@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
-from aeon.utils._testing.scenarios import TestScenario
-from aeon.utils._testing.scenarios_getter import retrieve_scenarios
+from aeon.testing.utils.scenarios import TestScenario
+from aeon.testing.utils.scenarios_getter import retrieve_scenarios
 
 
 @pytest.mark.parametrize("estimator_class", BASE_CLASS_LIST)
