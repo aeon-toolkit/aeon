@@ -26,7 +26,7 @@ from aeon.forecasting.tests import (
     VALID_INDEX_FH_COMBINATIONS,
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils._testing.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,

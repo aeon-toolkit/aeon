@@ -8,12 +8,20 @@ from functools import reduce
 from typing import Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_random_state
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="Hidalgo in transformations will be removed in v0.8.0, it has been replaced "
+    "by HidalgoSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class Hidalgo(BaseTransformer):
     """Heteregeneous Intrinsic Dimensionality Algorithm (Hidalgo) model.
 
@@ -86,9 +94,8 @@ class Hidalgo(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the scitype of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
+        # what abstract type is returned: Primitives, Series, Panel
         "transform-returns-same-time-index": True,
         "univariate-only": False,
         "fit_is_empty": False,
@@ -659,10 +666,10 @@ class Hidalgo(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_type
+        X : Series of type X_inner_type
             if X_inner_type is list, _transform must support all types in it
             Data to be transformed
-        y : Series of mtype y_inner_type, default=None
+        y : Series of type y_inner_type, default=None
             Not used in this unsupervised implementation
 
         Returns

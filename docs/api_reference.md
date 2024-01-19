@@ -24,6 +24,7 @@ api_reference/forecasting
 api_reference/networks
 api_reference/performance_metrics
 api_reference/regression
+api_reference/segmentation
 api_reference/similarity_search
 api_reference/transformations
 api_reference/utils

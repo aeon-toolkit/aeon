@@ -24,7 +24,7 @@ def _make_hierarchical(
     random_state: Union[int, np.random.RandomState] = None,
     add_nan: bool = False,
 ) -> pd.DataFrame:
-    """Generate hierarchical multiindex mtype for testing.
+    """Generate hierarchical multiindex type for testing.
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def _make_hierarchical(
     Returns
     -------
     pd.DataFrame
-        hierarchical mtype dataframe
+        hierarchical dataframe
     """
     levels = [
         [f"h{i}_{j}" for j in range(hierarchy_levels[i])]

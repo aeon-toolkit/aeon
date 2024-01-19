@@ -245,7 +245,7 @@ class WEASEL_V2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -370,7 +370,7 @@ class WEASELTransformerV2:
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -455,7 +455,7 @@ class WEASELTransformerV2:
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
            The data to make predictions for.
         y : ignored argument for interface compatibility
 
