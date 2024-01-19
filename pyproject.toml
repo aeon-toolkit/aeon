@@ -68,7 +68,6 @@ all_extras = [
     "mne",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
-    "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
@@ -76,7 +75,7 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow",
+    "tensorflow<2.16.0",
     "tensorflow-probability",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
@@ -86,7 +85,7 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow",
+    "tensorflow<2.16.0",
     "tensorflow-probability",
 ]
 unstable_extras = [
@@ -102,6 +101,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "pytest-rerunfailures",
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
@@ -173,6 +173,8 @@ addopts = '''
     --timeout 600
     --showlocals
     --numprocesses auto
+    --reruns 2
+    --only-rerun "crashed while running"
 '''
 filterwarnings = '''
     ignore::UserWarning

@@ -1,4 +1,4 @@
-.. _annotation_ref:
+.. _anomaly_detection_ref:
 
 Anomaly Detection
 =================

@@ -15,8 +15,8 @@ from aeon.datasets._data_writers import (
     write_results_to_uea_format,
 )
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
-from aeon.tests.test_config import PR_TESTING
-from aeon.utils._testing.collection import (
+from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.collection import (
     make_3d_test_data,
     make_nested_dataframe_data,
     make_unequal_length_test_data,

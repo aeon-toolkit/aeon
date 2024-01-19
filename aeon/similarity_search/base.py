@@ -35,8 +35,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
-        If a callable is passed it must be a numba function with nopython=True, that
-        takes two 1d numpy arrays as input and returns a float.
+        If a callable is passed it must either be a python function or numba function
+        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalize : bool, default=False
@@ -299,8 +299,8 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ------
         ValueError
             If the distance parameter given at initialization is not a string nor a
-            numba function, or if the speedup parameter is unknow or unsupported, raise
-            a ValueError..
+            numba function or a callable, or if the speedup parameter is unknow or
+            unsupported, raisea ValueError.
 
         Returns
         -------
@@ -324,12 +324,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                     )
                 return speed_up_profile
         else:
-            if isinstance(self.distance, CPUDispatcher):
+            if isinstance(self.distance, CPUDispatcher) or callable(self.distance):
                 self.distance_function_ = self.distance
             else:
                 raise ValueError(
-                    "If distance argument is not a string, it is expected to be a "
-                    f"numba function (CPUDispatcher), but got {type(self.distance)}."
+                    "If distance argument is not a string, it is expected to be either "
+                    "a callable or a numba function (CPUDispatcher), but got "
+                    f"{type(self.distance)}."
                 )
         if self.normalize:
             return normalized_naive_distance_profile
@@ -393,7 +394,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                     self._q_means,
                     self._q_stds,
                     self.distance_function_,
-                    numba_distance_args=self.distance_args,
+                    distance_args=self.distance_args,
                 )
             else:
                 distance_profile = self.distance_profile_function(
@@ -401,7 +402,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                     q,
                     mask,
                     self.distance_function_,
-                    numba_distance_args=self.distance_args,
+                    distance_args=self.distance_args,
                 )
         else:
             if self.normalize:

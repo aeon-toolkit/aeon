@@ -8,8 +8,8 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.difference import Differencer
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 y_airline = load_airline()
