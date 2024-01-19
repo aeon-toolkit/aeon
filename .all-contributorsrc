@@ -2256,6 +2256,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jose-gilberto",
+      "name": "Gilberto Barbosa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32587935?v=4",
+      "profile": "https://jose-gilberto.github.io/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
