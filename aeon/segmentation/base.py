@@ -104,7 +104,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self.n_segments = n_segments
         self.axis = axis
         self._is_fitted = False
-        super(BaseSegmenter, self).__init__()
+        super(BaseSegmenter, self).__init__(axis=axis)
 
     @final
     def fit(self, X, y=None, axis=None):
@@ -268,3 +268,20 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
                     "Error in input type for y: y input as pd.DataFrame "
                     "must be numeric"
                 )
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        # default parameters = empty dict
+        return {"n_segments": 2, "axis": 1}

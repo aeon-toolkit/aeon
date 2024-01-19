@@ -35,11 +35,11 @@ References
 
 import logging
 import math
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from attrs import asdict, define, field
+from attrs import define, field
 from sklearn.utils.validation import check_random_state
 
 from aeon.segmentation.base import BaseSegmenter
@@ -510,37 +510,21 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             labels[start:stop] = i
         return labels
 
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
 
         Parameters
         ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
+        parameter_set : str, default="default"
 
         Returns
         -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
         """
-        return asdict(self.ggs, filter=lambda attr, value: attr.init is True)
-
-    def set_params(self, **parameters):
-        """Set the parameters of this object.
-
-        Parameters
-        ----------
-        parameters : dict
-            Initialization parameters for the estimator.
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        for key, value in parameters.items():
-            setattr(self.ggs, key, value)
-        return self
+        return {}
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""

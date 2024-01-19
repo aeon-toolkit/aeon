@@ -14,6 +14,7 @@ ALL_SEGMENTERS = all_estimators(
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_base_functionality(segmenter):
     """Test compliance with the base class contract."""
+    # Test they dont override final methods, because python does not enforce this
     assert "fit" not in segmenter.__dict__
     assert "predict" not in segmenter.__dict__
     assert "fit_predict" not in segmenter.__dict__
@@ -25,6 +26,7 @@ def test_segmenter_base_functionality(segmenter):
     # Test valid tag for X_inner_type
     X_inner_type = segmenter.get_class_tag(tag_name="X_inner_type")
     assert X_inner_type in VALID_INNER_TYPES
+    # Must have at least one set to True
     multi = segmenter.get_class_tag(tag_name="capability:multivariate")
     uni = segmenter.get_class_tag(tag_name="capability:univariate")
     assert multi or uni

@@ -18,12 +18,12 @@ References
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import List
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from attrs import asdict, define, field
+from attrs import define, field
 
 from aeon.segmentation.base import BaseSegmenter
 
@@ -387,38 +387,6 @@ class InformationGainSegmenter(BaseSegmenter):
         self.change_points_ = self._igts.find_change_points(X)
         self.intermediate_results_ = self._igts.intermediate_results_
         return self.to_clusters(self.change_points_)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self._igts, filter=lambda attr, value: attr.init is True)
-
-    def set_params(self, **parameters):
-        """Set the parameters of this object.
-
-        Parameters
-        ----------
-        parameters : dict
-            Initialization parameters for th estimator.
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        for key, value in parameters.items():
-            setattr(self._igts, key, value)
-        return self
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""

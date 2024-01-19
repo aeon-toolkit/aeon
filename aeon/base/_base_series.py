@@ -200,3 +200,20 @@ class BaseSeriesEstimator(BaseEstimator):
         if len(self.metadata_) == 0:
             self.metadata_ = meta
         return self._convert_X(X, axis)
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        # default parameters = empty dict
+        return {"axis": 0}

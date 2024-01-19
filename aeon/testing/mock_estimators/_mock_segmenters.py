@@ -7,6 +7,9 @@ from aeon.segmentation import BaseSegmenter
 class MockSegmenter(BaseSegmenter):
     """Mock segmenter for testing."""
 
+    def __init__(self):
+        super(MockSegmenter, self).__init__()
+
     _tags = {
         "capability:missing_values": True,
         "capability:multivariate": True,
@@ -20,6 +23,22 @@ class MockSegmenter(BaseSegmenter):
     def _predict(self, X):
         """Generate breakpoints."""
         return np.array([1])
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        return {}
 
 
 class SupervisedMockSegmenter(MockSegmenter):
