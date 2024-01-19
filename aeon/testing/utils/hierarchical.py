@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.datasets import load_airline
-from aeon.utils._testing.series import _make_index
+from aeon.testing.utils.series import _make_index
 
 
 def _make_hierarchical(

@@ -17,11 +17,11 @@ from aeon.base import BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.regression.base import BaseRegressor
-from aeon.utils._testing.collection import (
+from aeon.testing.utils.collection import (
     make_3d_test_data,
     make_unequal_length_test_data,
 )
-from aeon.utils._testing.scenarios import TestScenario
+from aeon.testing.utils.scenarios import TestScenario
 
 # random seed for generating data to keep scenarios exactly reproducible
 RAND_SEED = 42

@@ -30,6 +30,7 @@ title_regex_to_labels = [
     (r"\bBUG\b", "bug"),
     (r"\bDOC\b", "documentation"),
     (r"\bREF\b", "refactor"),
+    (r"\bDEP\b", "deprecation"),
     (r"\bGOV\b", "governance"),
 ]
 

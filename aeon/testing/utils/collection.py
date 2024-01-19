@@ -55,7 +55,7 @@ def make_3d_test_data(
 
     Examples
     --------
-    >>> from aeon.utils._testing.collection import make_3d_test_data
+    >>> from aeon.testing.utils.collection import make_3d_test_data
     >>> data, labels = make_3d_test_data(
     ...     n_cases=20,
     ...     n_channels=2,
@@ -114,7 +114,7 @@ def make_2d_test_data(
 
     Examples
     --------
-    >>> from aeon.utils._testing.collection import make_2d_test_data
+    >>> from aeon.testing.utils.collection import make_2d_test_data
     >>> data, labels = make_2d_test_data(
     ...     n_cases=20,
     ...     n_timepoints=10,
@@ -178,7 +178,7 @@ def make_unequal_length_test_data(
 
     Examples
     --------
-    >>> from aeon.utils._testing.collection import make_unequal_length_test_data
+    >>> from aeon.testing.utils.collection import make_unequal_length_test_data
     >>> data, labels = make_unequal_length_test_data(
     ...     n_cases=20,
     ...     n_channels=2,

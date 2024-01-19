@@ -1,3 +1,5 @@
+"""Forecasting testing utils."""
+
 __author__ = ["mloning"]
 __all__ = [
     "_get_expected_index_for_update_predict",
@@ -12,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation.forecasting import check_fh
 
 
