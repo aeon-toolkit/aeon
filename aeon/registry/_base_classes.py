@@ -58,7 +58,7 @@ BASE_CLASS_REGISTER = [
     ("estimator", BaseEstimator, "estimator = object with fit"),
     ("classifier", BaseClassifier, "classifier"),
     ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
-    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
+    ("collection-transformer", BaseCollectionTransformer, "collection transformer"),
     ("clusterer", BaseClusterer, "clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
     ("forecaster", BaseForecaster, "forecaster"),
@@ -66,20 +66,12 @@ BASE_CLASS_REGISTER = [
     ("network", BaseDeepNetwork, "deep learning network"),
     ("regressor", BaseRegressor, "regressor"),
     ("segmenter", BaseSegmenter, "segmenter"),
-    ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
+    ("series-annotator", BaseSeriesAnnotator, "annotator"),
+    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
+    ("series-transformer", BaseSeriesTransformer, "single series transformer"),
     ("splitter", BaseSplitter, "splitter"),
-    ("transformer", BaseTransformer, "transformer"),
-    (
-        "collection-transformer",
-        BaseCollectionTransformer,
-        "collection transformer",
-    ),
-    (
-        "series-transformer",
-        BaseSeriesTransformer,
-        "single series transformer",
-    ),
     ("similarity-search", BaseSimiliaritySearch, "similarity search"),
+    ("transformer", BaseTransformer, "transformer"),
 ]
 
 

@@ -1,4 +1,5 @@
 """"Test the base series transformer."""
+# from aeon.segmentation import BaseSegmenter
 
 
 def test_to_classification():
