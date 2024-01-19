@@ -16,7 +16,7 @@ import pytest
 
 from aeon.registry import all_estimators
 from aeon.testing.test_config import EXCLUDE_ESTIMATORS
-from aeon.utils._testing.scenarios_getter import retrieve_scenarios
+from aeon.testing.utils.scenarios_getter import retrieve_scenarios
 from aeon.utils.validation._dependencies import (
     _check_python_version,
     _check_soft_dependencies,
@@ -34,7 +34,7 @@ SOFT_DEPENDENCIES = {
     "aeon.visualisation": ["matplotlib"],
 }
 
-MODULES_TO_IGNORE = "aeon.utils._testing"
+MODULES_TO_IGNORE = "aeon.testing.utils"
 
 
 def _is_test(module):

@@ -3,9 +3,9 @@
 import pytest
 from pandas.testing import assert_series_equal
 
+from aeon.testing.utils.series import _make_series
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import OptionalPassthrough
-from aeon.utils._testing.series import _make_series
 
 
 @pytest.mark.parametrize("passthrough", [True, False])
