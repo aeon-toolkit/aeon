@@ -84,6 +84,7 @@ class HidalgoSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,

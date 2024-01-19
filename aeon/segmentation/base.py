@@ -7,8 +7,10 @@ from abc import ABC, abstractmethod
 from typing import List, final
 
 import numpy as np
+import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
+from aeon.base._base_series import VALID_INPUT_TYPES
 
 
 class BaseSegmenter(BaseSeriesEstimator, ABC):
@@ -40,7 +42,8 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     Conversion between numpy and pandas is handled by the base class. Sub classses
     can assume the data is in the correct format (determined by
-    ``"X_inner_type"``, one of ``VALID_INNER_TYPES)`` and represented with the expected
+    ``"X_inner_type"``, one of ``aeon.base._base_series.VALID_INNER_TYPES)`` and
+    represented with the expected
     axis.
 
     Multivariate series are segmented along an axis determined by ``self.axis``. Axis
@@ -117,10 +120,10 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         X : One of ``VALID_INPUT_TYPES``
             Input time series
         y : One of ``VALID_INPUT_TYPES`` or None, default None
-            Training time series, labeled series same length as X for supervised
+            Training time series, a labeled 1D series same length as X for supervised
             segmentation.
         axis : int, default = None
-            Axis along which to segment if passed a multivariate series (2D input).
+            Axis along which to segment if passed a multivariate X series (2D input).
             If axis is 0, it is assumed each column is a time series and each row is
             a time point. i.e. the shape of the data is ``(n_timepoints,
             n_channels)``.
@@ -145,7 +148,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             axis = self.axis
         X = self._preprocess_series(X, axis)
         if y is not None:
-            y = self._preprocess_series(y, axis)
+            y = self._check_y(y)
         self._fit(X=X, y=y)
         self._is_fitted = True
         return self
@@ -180,12 +183,12 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         X = self._preprocess_series(X, axis)
         return self._predict(X)
 
-    def fit_predict(self, X, y=None):
+    def fit_predict(self, X, y=None, axis=None):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        self.fit(X, y)
-        return self.predict(X)
+        self.fit(X, y, axis=axis)
+        return self.predict(X, axis=axis)
 
     def _fit(self, X, y):
         """Fit time series classifier to training data."""
@@ -223,3 +226,45 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
             labels[start:stop] = i
         return labels
+
+    def _check_y(self, y: VALID_INPUT_TYPES):
+        """Check y specific to segmentation.
+
+        y must be a univariate series
+        """
+        if type(y) not in VALID_INPUT_TYPES:
+            raise ValueError(
+                f" Error in input type for y: it should be one of "
+                f" {VALID_INPUT_TYPES}, saw {type(y)}"
+            )
+        if isinstance(y, np.ndarray):
+            # Check valid shape
+            if y.ndim > 1:
+                raise ValueError(
+                    "Error in input type for y: y input as np.ndarray " "should be 1D"
+                )
+            if not (
+                issubclass(y.dtype.type, np.integer)
+                or issubclass(y.dtype.type, np.floating)
+            ):
+                raise ValueError(
+                    "Error in input type for y: y input must contain " "floats or ints"
+                )
+        elif isinstance(y, pd.Series):
+            if not pd.api.types.is_numeric_dtype(y):
+                raise ValueError(
+                    "Error in input type for y: y input as pd.Series " "must be numeric"
+                )
+        else:  # pd.DataFrame
+            if y.shape[1] > 2:
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame "
+                    "should have a single "
+                    "column series"
+                )
+
+            if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame "
+                    "must be numeric"
+                )

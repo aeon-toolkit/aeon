@@ -351,6 +351,7 @@ class InformationGainSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "returns_dense": False,
     }

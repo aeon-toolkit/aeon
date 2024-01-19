@@ -55,6 +55,7 @@ class BaseSeriesEstimator(BaseEstimator):
     """
 
     _tags = {
+        "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
         "X_inner_type": "np.ndarray",  # one of VALID_INNER_TYPES
@@ -128,12 +129,8 @@ class BaseSeriesEstimator(BaseEstimator):
         metadata["multivariate"] = False
         # Need to differentiate because a 1D series stored in a dataframe will have
         # ndim=2. This case is dealt with in convert through squeezing to 1D
-        if not isinstance(X, pd.Series):
-            if X.ndim > 1:
-                metadata["multivariate"] = True
-        else:  # X is np.ndarray
-            if X.ndim > 1:
-                metadata["multivariate"] = True
+        if X.ndim > 1:
+            metadata["multivariate"] = True
         if isinstance(X, np.ndarray):
             metadata["missing_values"] = np.isnan(X).any()
         elif isinstance(X, pd.Series):
@@ -141,11 +138,14 @@ class BaseSeriesEstimator(BaseEstimator):
         elif isinstance(X, pd.DataFrame):
             metadata["missing_values"] = X.isna().any().any()
         allow_multivariate = self.get_tag("capability:multivariate")
+        allow_univariate = self.get_tag("capability:univariate")
         allow_missing = self.get_tag("capability:missing_values")
         if metadata["missing_values"] and not allow_missing:
             raise ValueError(" Missing values not supported")
         if metadata["multivariate"] and not allow_multivariate:
             raise ValueError(" Multivariate data not supported")
+        if not metadata["multivariate"] and not allow_univariate:
+            raise ValueError(" Univariate data not supported")
         return metadata
 
     def _convert_X(self, X, axis):
@@ -166,7 +166,7 @@ class BaseSeriesEstimator(BaseEstimator):
             raise ValueError(" Axis should be 0 or 1")
         if not self.get_tag("capability:multivariate"):
             X = X.squeeze()
-        elif X.ndim == 1:  # np.ndarray case
+        elif X.ndim == 1:  # np.ndarray case make 2D
             X = X.reshape(1, -1)
         if X.ndim > 1:
             if self.axis != axis:

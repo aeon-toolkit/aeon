@@ -444,6 +444,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "returns_dense": False,
     }
@@ -508,25 +509,6 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         ):
             labels[start:stop] = i
         return labels
-
-    def fit_predict(self, X, y=None):
-        """Perform segmentation.
-
-        Parameters
-        ----------
-        X: np.ndarray
-            Time series shape (n_timepoints, n_channels).
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-
-        Returns
-        -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
-        """
-        return self.fit(X, y).predict(X)
 
     def get_params(self, deep: bool = True) -> Dict:
         """Return initialization parameters.

@@ -50,6 +50,14 @@ def test__check_X():
     meta2 = dummy1._check_X(pd.Series(work_always))
     meta3 = dummy1._check_X(pd.DataFrame(work_always))
     assert meta == meta2 == meta3
+    all_tags = {"capability:univariate": False}
+    dummy2.set_tags(**all_tags)
+    uni_np = np.random.random(size=(10))
+    uni_pd = pd.Series(uni_np)
+    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+        dummy2._check_X(uni_np)
+    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+        dummy2._check_X(uni_pd)
 
 
 UNIVARIATE = {
@@ -73,13 +81,13 @@ def test_univariate_convert_X():
     # np.ndarray inner, no multivariate. Univariate are always series,
     # not dataframes, axis is ignored
     dummy1 = BaseSeriesEstimator()
-    for str in ["np.ndarray", "pd.Series"]:  # Inner type, DataFrame not allowed for
+    for st in ["np.ndarray", "pd.Series"]:  # Inner type, DataFrame not allowed for
         # univariate
-        for str2 in VALID_TYPES:  # input type
-            X = UNIVARIATE[str2]
-            dummy1.set_tags(**{"X_inner_type": str})
+        for st2 in VALID_TYPES:  # input type
+            X = UNIVARIATE[st2]
+            dummy1.set_tags(**{"X_inner_type": st})
             X2 = dummy1._convert_X(X, axis=0)
-            assert type(X2).__name__ == str.split(".")[1]
+            assert type(X2).__name__ == st.split(".")[1]
             X2 = dummy1._convert_X(X, axis=1)
             assert len(X) == len(X2)
 

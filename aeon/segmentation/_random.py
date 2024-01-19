@@ -3,6 +3,8 @@
 
 import random
 
+import numpy as np
+
 from aeon.segmentation.base import BaseSegmenter
 
 
@@ -16,6 +18,7 @@ class RandomSegmenter(BaseSegmenter):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
+        "returns_dense": False,
     }
 
     def __init__(self, random_state=None, n_segments=2):
@@ -47,4 +50,4 @@ class RandomSegmenter(BaseSegmenter):
 
     def _predict(self, X):
         """Generate breakpoints."""
-        return self.breakpoints_
+        return np.array(self.breakpoints_)
