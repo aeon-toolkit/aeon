@@ -111,7 +111,7 @@ Transformations
 :::
 
 :::{grid-item-card}
-:img-top: examples/distances/img/dtw_vis.png
+:img-top: examples/distances/img/distances.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -125,25 +125,6 @@ Get started with time series distances.
 :expand:
 
 Distances
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/networks/img/Inception.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/networks/deep_learning.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
 ```
 
 :::
@@ -168,12 +149,31 @@ Annotation
 :::
 
 :::{grid-item-card}
-:img-top: examples/similarity_search/img/sim_search.png
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/segmentation/segmentation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
 
 
-Similarity search
+Segmentation
 
 +++
 
@@ -192,7 +192,7 @@ Similarity search
 :class-img-top: aeon-card-image
 :text-align: center
 
-Data structures and containers used in aeon
+Data structures and containers used in `aeon`.
 
 +++
 
@@ -211,7 +211,7 @@ Data
 :class-img-top: aeon-card-image
 :text-align: center
 
-How to benchmark algorithms.
+How to benchmark algorithms with `aeon`.
 
 +++
 
@@ -221,6 +221,25 @@ How to benchmark algorithms.
 :expand:
 
 Benchmarking
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+`aeon` deep learning networks for time series.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
 ```
 
 :::
