@@ -150,10 +150,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y = self._check_y(y, self.metadata_["n_cases"])
         # escape early and do not fit if only one class label has been seen
         #   in this case, we later predict the single class label seen
-        # if len(self.classes_) == 1:
-        #     self.fit_time_ = int(round(time.time() * 1000)) - start
-        #     self._is_fitted = True
-        #     return self
+        if len(self.classes_) == 1:
+            self.fit_time_ = int(round(time.time() * 1000)) - start
+            self._is_fitted = True
+            return self
         self._fit(X, y)
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
