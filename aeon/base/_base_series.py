@@ -93,14 +93,6 @@ class BaseSeriesEstimator(BaseEstimator):
         See Also
         --------
         _convert_X : function that converts X after it has been checked.
-
-        Examples
-        --------
-        >>> from aeon.transformations.series import MatrixProfileTransformer
-        >>> import numpy as np
-        >>> X = np.random.random(size=(5,10)) # X multivariate
-        >>> mp = MatrixProfileTransformer()
-        >>> m = mp._check_X(X)
         """
         # Checks: check valid type and axis
         if type(X) not in VALID_INPUT_TYPES:
