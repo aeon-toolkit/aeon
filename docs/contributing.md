@@ -138,6 +138,26 @@ Reviewer Guide
 
 :::
 
+:::{grid-item-card}
+:text-align: center
+
+Google Summer of code (GSoC) projects
+
+^^^
+
+A list of GSoC project proposals for `aeon`.
+
++++
+
+```{button-ref} contributing/gsoc_projects
+:color: primary
+:click-parent:
+:expand:
+
+Google Summer of code (GSoC) projects
+```
+:::
+
 ::::
 
 ```{toctree}
