@@ -42,6 +42,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import (
@@ -2188,8 +2189,6 @@ class BaseForecaster(BaseEstimator):
                 i-th (event dim 1) distribution is forecast for i-th entry of fh
                 j-th (event dim 1) index is j-th variable, order as y in `fit`/`update`
         """
-        import tensorflow_probability as tfp
-
         # default behaviour is implemented if one of the following three is implemented
         implements_interval = self._has_implementation_of("_predict_interval")
         implements_quantiles = self._has_implementation_of("_predict_quantiles")
@@ -2209,14 +2208,7 @@ class BaseForecaster(BaseEstimator):
         pred_var = self._predict_var(fh=fh, X=X)
         pred_std = np.sqrt(pred_var)
         pred_mean = self.predict(fh=fh, X=X)
-        # ensure that pred_mean is a pd.DataFrame
-        df_types = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
-        pred_mean = convert_to(pred_mean, to_type=df_types)
-        # pred_mean and pred_var now have the same format
-
-        d = tfp.distributions.Normal
-        pred_dist = d(loc=pred_mean, scale=pred_std)
-
+        pred_dist = norm(loc=pred_mean, scale=pred_std)
         return pred_dist
 
     def _predict_moving_cutoff(
