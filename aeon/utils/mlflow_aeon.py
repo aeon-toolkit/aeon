@@ -730,9 +730,9 @@ class _aeonModelWrapper:
                 )
 
                 y_pred_dist = self.estimator.predict_proba(X=X, marginal=marginal)
-                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist.quantile(quantiles))
+                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist.ppf(quantiles))
                 y_pred_dist_quantiles.columns = [f"Quantiles_{q}" for q in quantiles]
-                y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
+                # y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
 
                 raw_predictions[AEON_PREDICT_PROBA] = y_pred_dist_quantiles
 
