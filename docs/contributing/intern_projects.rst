@@ -6,13 +6,18 @@ Google Summer of code (GSoC) projects
 
 Introduction
 ============
-Google Summer of Code (GSoC) is a global, online program that brings new contributors into open source software organizations.
-In aeon, core developers can act as mentors, in order to guide GSoC Contributors through the entire process, from learning about the community, becoming familiar with the code base and testing practices, to releasing their code in aeon for the world to use !
-The ultimate goal is that these GSoC Contributors will become involved in the communities they became familiar with during the program, and will continue to contribute after their GSoC program ends.
+We run a range of short projects with aeon, including undergraduate/postgraduate
+project and paid and unpaid internships. We aim to run schemes to help The goal is to
+help new contributors to become more familiar with aeon, time series machine
+learning, and open-source software development.
 
-GSoC projects for 2024
+aeon projects for 2024
 ======================
-For the 2024 edition of Google Summer of code, the following projects will be proposed in aeon. Feel free to contact us for further informations
+This is a list of some of the projects we are interested in running in 2024. We will
+more widelty advertise funding opportunities as and when they become available. Feel
+fre to propose your own project ideas, but please discuss them with us first. We have
+an active community of researchers and students who work on aeon. Please get in touch
+via slack if you are interested in any of these projects or have any questions.
 
 Optimizing the Shapelet Transform
 ---------------------------------
@@ -61,8 +66,42 @@ References
    for Time Series Shapelets", Pattern Recognition and Artificial Intelligence.
    ICPRAI 2022.
 
-Accepted 2024 GSoC projects
-===========================
+Time series segmentation
+------------------------
 
-Past GSoC projects
-==================
+Mentors : Tony Bagnall (@TonyBagnall) and ??
+********************************************
+
+The time series segmentation module contains a range of algorithms for segmenting time series.
+The goal of this project is to extend the functionality of segmentation in aeon
+and develop tools for comparing segmentation algorithms.
+
+Project stages
+**************
+    0. Learn about aeon best practices, coding standards and testing policies.
+    1. Study the existing segmentation algorithms in aeon.
+    2. Implement exsiting segmentation algorithms, e.g. https://github.com/aeon-toolkit/aeon/issues/948
+    3. Implement tools for comparing segmentation algorithms, e.g.
+    4. Conduct a bake off of segmentation algorithms on a range of datasets.
+
+Project evaluation
+******************
+As with all research programming based projects, progress can be hindered by many
+unforseen circumstances. Success will be measured by engagement, effort and
+willingness to join the community.
+
+References
+**********
+[1] Allegra, Michele, et al. "Data segmentation based on the local intrinsic
+dimension." Scientific reports 10.1 (2020): 1-12.
+[2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
+    time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
+[3]  Hallac, D., Nystrup, P. & Boyd, S.
+   "Greedy Gaussian segmentation of multivariate time series.",
+    Adv Data Anal Classif 13, 727–751 (2019).
+[4]  S. Matteson, David S., and Nicholas A. James. "A nonparametric approach for
+    multiple change point analysis of multivariate data." Journal of the American
+    Statistical Association 109.505 (2014): 334-345.
+[5] Sadri, Amin, Yongli Ren, and Flora D. Salim.
+       "Information gain-based metric for recognizing transitions in human activities.",
+       Pervasive and Mobile Computing, 38, 92-109, (2017).
