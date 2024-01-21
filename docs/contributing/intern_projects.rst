@@ -1,25 +1,25 @@
 .. _gsoc_projects:
 
-=====================================
-Google Summer of code (GSoC) projects
-=====================================
+========================
+Short projects with aeon
+========================
 
 Introduction
 ============
 We run a range of short projects with aeon, including undergraduate/postgraduate
-project and paid and unpaid internships. We aim to run schemes to help The goal is to
-help new contributors to become more familiar with aeon, time series machine
-learning, and open-source software development.
+project and paid and unpaid internships. We aim to run schemes to help new
+contributors to become more familiar with aeon, time series machine
+learning research, and open-source software development.
 
 aeon projects for 2024
 ======================
 This is a list of some of the projects we are interested in running in 2024. We will
-more widelty advertise funding opportunities as and when they become available. Feel
-fre to propose your own project ideas, but please discuss them with us first. We have
+more widely advertise funding opportunities as and when they become available. Feel
+free to propose your own project ideas, but please discuss them with us first. We have
 an active community of researchers and students who work on aeon. Please get in touch
 via slack if you are interested in any of these projects or have any questions.
 
-Optimizing the Shapelet Transform
+1. Optimizing the Shapelet Transform
 ---------------------------------
 
 Mentors : Antoine Guillaume (@baraline)
@@ -66,8 +66,8 @@ References
    for Time Series Shapelets", Pattern Recognition and Artificial Intelligence.
    ICPRAI 2022.
 
-Time series segmentation
-------------------------
+2. Time series segmentation
+---------------------------
 
 Mentors : Tony Bagnall (@TonyBagnall) and ??
 ********************************************
@@ -105,3 +105,46 @@ dimension." Scientific reports 10.1 (2020): 1-12.
 [5] Sadri, Amin, Yongli Ren, and Flora D. Salim.
        "Information gain-based metric for recognizing transitions in human activities.",
        Pervasive and Mobile Computing, 38, 92-109, (2017).
+
+More info to follow on:
+
+3. Forecasting 1: Machine Learning
+----------------------------------
+
+Implement and evaluate some of the recently proposed machine learning ree based
+algorithms.
+
+4. Forecasting 2: Forecasting as time serie regression
+------------------------------------------------------
+
+Evaluate TSER algorithms for TSFR
+
+5. Anomaly detection with matrix profile
+----------------------------------------
+
+Implement and evaluate matrix profile based anomaly detection
+
+6. Clustering: feature based or deep learning based algorithms
+--------------------------------------------------------------
+Implement and evaluate some of the recently proposed clustering algorithms
+
+7. Channel selection for classification
+---------------------------------------
+
+Try some simple channel filters for high
+dimensional data
+
+8. ROCKET transformers
+----------------------
+
+Sort out the implementation of ROCKET transformers
+
+9. QUANT transformer for regression
+-----------------------------------
+
+Port in QUANT, assess for regression
+
+10. EEG classification: work on aeon-neuro
+------------------------------------------
+
+Work on aeon-neuro, implement some of the recent EEG classification algorithms
