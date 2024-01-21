@@ -56,10 +56,7 @@ from aeon.datatypes import (
 )
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
-from aeon.utils.validation._dependencies import (
-    _check_dl_dependencies,
-    _check_estimator_deps,
-)
+from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
 
@@ -766,12 +763,6 @@ class BaseForecaster(BaseEstimator):
             raise NotImplementedError(
                 "automated vectorization for predict_proba is not implemented"
             )
-
-        msg = (
-            "tensorflow-probability must be installed for fully probabilistic forecasts"
-            "install `aeon` deep learning dependencies by `pip install aeon[dl]`"
-        )
-        _check_dl_dependencies(msg)
 
         self.check_is_fitted()
         # input checks
