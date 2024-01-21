@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract base class for the Keras neural network classifiers.
 
@@ -35,7 +34,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     ----------
     batch_size : int, default = 40
         training batch size for the model
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
@@ -46,10 +45,12 @@ class BaseDeepClassifier(BaseClassifier, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
-        "python_dependencies": "tensorflow",
         "algorithm_type": "deeplearning",
+        "non-deterministic": True,
+        "cant-pickle": True,
+        "python_dependencies": "tensorflow",
     }
 
     def __init__(
@@ -66,14 +67,14 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self.model_ = None
 
     @abstractmethod
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, n_classes):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         Parameters
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer
-        n_classes: int
+        n_classes : int
             The number of classes, which shall become the size of the output
             layer
 
@@ -89,14 +90,14 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Returns
         -------
-        history: dict or None,
+        history : dict or None,
             Dictionary containing model's train/validation losses and metrics
 
         """
         return self.history.history if self.history is not None else None
 
-    def _predict(self, X, **kwargs):
-        probs = self._predict_proba(X, **kwargs)
+    def _predict(self, X):
+        probs = self._predict_proba(X)
         rng = check_random_state(self.random_state)
         return np.array(
             [
@@ -105,14 +106,14 @@ class BaseDeepClassifier(BaseClassifier, ABC):
             ]
         )
 
-    def _predict_proba(self, X, **kwargs):
+    def _predict_proba(self, X):
         """Find probability estimates for each class for all cases in X.
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
-            The training input samples.         input_checks: boolean
-            whether to check the X parameter
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
+            The training input samples. input_checks : boolean
+            Whether to check the X parameter
 
         Returns
         -------
@@ -120,7 +121,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         """
         # Transpose to work correctly with keras
         X = X.transpose((0, 2, 1))
-        probs = self.model_.predict(X, self.batch_size, **kwargs)
+        probs = self.model_.predict(X, self.batch_size)
 
         # check if binary classification
         if probs.shape[1] == 1:
@@ -136,8 +137,18 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self.classes_ = self.label_encoder.classes_
         self.n_classes_ = len(self.classes_)
         y = y.reshape(len(y), 1)
-        self.onehot_encoder = OneHotEncoder(sparse=False, categories="auto")
+        # Adjustment to allow deprecated attribute "sparse for older versions
+        import sklearn
+        from packaging import version
+
+        # Get the installed version of scikit-learn
+        installed_version = sklearn.__version__
+        # Compare the installed version with the target version
         # categories='auto' to get rid of FutureWarning
+        if version.parse(installed_version) < version.parse("1.1"):
+            self.onehot_encoder = OneHotEncoder(sparse=False)
+        else:
+            self.onehot_encoder = OneHotEncoder(sparse_output=False)
         y = self.onehot_encoder.fit_transform(y)
         return y
 

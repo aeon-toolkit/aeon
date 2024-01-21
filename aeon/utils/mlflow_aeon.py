@@ -1,5 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """The ``mlflow_aeon`` module provides an MLflow API for ``aeon`` forecasters.
 
 This module exports ``aeon`` models in the following formats:
@@ -55,7 +53,7 @@ from aeon import utils
 from aeon.utils.multiindex import flatten_multiindex
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-if _check_soft_dependencies("mlflow", severity="warning"):
+if _check_soft_dependencies("mlflow", severity="none"):
     from mlflow import pyfunc
 
 FLAVOR_NAME = "mlflow_aeon"
@@ -131,7 +129,7 @@ def save_model(
     pip_requirements=None,
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """Save a aeon model to a path on the local file system.
 
     Parameters
@@ -320,7 +318,7 @@ def log_model(
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
     **kwargs,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """
     Log a aeon model as an MLflow artifact for the current run.
 
@@ -789,6 +787,3 @@ class _aeonModelWrapper:
             predictions = raw_predictions[list(raw_predictions.keys())[0]]
 
         return predictions
-
-
-# TODO: Add support for autologging

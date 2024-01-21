@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for time series classifiers.
 
@@ -12,7 +11,7 @@ How to use this implementation template to implement a new estimator:
 - work through all the "todo" comments below
 - fill in code for mandatory abstract methods, and optionally for optional methods
 - do not write to reserved variables: is_fitted, _is_fitted, classes_,
-    n_classes_, fit_time_, _class_dictionary, _threads_to_use, _tags, _tags_dynamic
+    n_classes_, fit_time_, _class_dictionary, _n_jobs, _tags, _tags_dynamic
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
@@ -36,12 +35,6 @@ import numpy as np
 from aeon.classification.base import BaseClassifier
 
 # todo: add any necessary imports here
-
-# todo: if any imports are aeon soft dependencies:
-#  * make sure to fill in the "python_dependencies" tag with the package import name
-#  * add a _check_soft_dependencies warning here, example:
-# from sktime.utils.validation._dependencies import check_soft_dependencies
-# _check_soft_dependencies("soft_dependency_name", severity="warning")
 
 
 class MyTimeSeriesClassifier(BaseClassifier):
@@ -82,12 +75,15 @@ class MyTimeSeriesClassifier(BaseClassifier):
     todo: Add a simple use case example here
     """
 
+    # todo: if any imports are aeon soft dependencies:
+    #  * make sure to fill in the "python_dependencies" tag with the package import name
+
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
-        # this is usually "numpy3D" Other types are allowable, see
-        # datatypes/panel/_registry.py for options.
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, usually
+        # this is usually "numpy3D" for equal length time series, np-list for unequal
+        # length time series, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -97,10 +93,11 @@ class MyTimeSeriesClassifier(BaseClassifier):
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
 
-    # todo: add any hyper-parameters and components to constructor
+    # todo: add any parameters to constructor
     def __init__(self, param_a, param_b="default", param_c=None):
-        # estimators should precede parameters
-        #  if estimators have default values, set None and initalize below
+        # Note that parameters passed and set in constructor should not be changed
+        # anywhere else. This is in order to comply with scikit learn structure.
+        # Instead, copy into local variables in fit and predict and use these.
 
         # todo: copy parameters to self, use same names
         self.param_a = param_a
@@ -121,8 +118,8 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -149,9 +146,11 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            if self.get_tag("X_inner_type") = "np-list":
+                list of 2D np.ndarray of shape = (n_instances,)
 
         Returns
         -------
@@ -176,9 +175,11 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
+                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            if self.get_tag("X_inner_type") = "np-list":
+                list of 2D np.ndarray of shape = (n_instances,)
 
         Returns
         -------

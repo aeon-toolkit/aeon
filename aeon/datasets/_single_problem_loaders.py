@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities for loading datasets."""
 
 __author__ = [
@@ -47,8 +46,8 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_dataframe_loaders import load_tsf_to_dataframe
-from aeon.datasets._data_loaders import _load_dataset, _load_provided_dataset
+from aeon.datasets import load_from_tsf_file
+from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
@@ -96,9 +95,9 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        50
     Test cases:         150
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.ph?Dataset=GunPoint
+    Details: http://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
-    return _load_dataset("GunPoint", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("GunPoint", split, return_X_y, return_type=return_type)
 
 
 def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
@@ -144,7 +143,7 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  6
     Details: http://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
     """
-    return _load_dataset("OSULeaf", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("OSULeaf", split, return_X_y, return_type=return_type)
 
 
 def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
@@ -192,7 +191,7 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     Details:http://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
     """
     name = "ItalyPowerDemand"
-    return _load_dataset(name, split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset(name, split, return_X_y, return_type=return_type)
 
 
 def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
@@ -245,7 +244,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     Details: http://timeseriesclassification.com/description.php?Dataset=Chinatown
     for the full dataset
     """
-    return _load_provided_dataset("UnitTest", split, return_X_y, return_type)
+    return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
 
 
 def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
@@ -292,7 +291,7 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  3
     Details: http://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="ArrowHead", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
@@ -340,7 +339,7 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  10
     Details: http://www.timeseriesclassification.com/description.php?Dataset=ACSF1
     """
-    return _load_dataset("ACSF1", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("ACSF1", split, return_X_y, return_type=return_type)
 
 
 def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
@@ -383,13 +382,13 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  4
     Details:http://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
     """
-    if return_type == "numpy2d" or return_type == "numpyflat":
+    if return_type == "numpy2d" or return_type == "numpy2D":
         raise ValueError(
             f"BasicMotions loader: Error, attempting to load into a {return_type} "
             f"array, but cannot because it is a multivariate problem. Use "
             f"numpy3d instead"
         )
-    return _load_provided_dataset(
+    return _load_saved_dataset(
         name="BasicMotions", split=split, return_X_y=return_X_y, return_type=return_type
     )
 
@@ -435,7 +434,7 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     >>> from aeon.datasets import load_plaid
     >>> X, y = load_plaid()
     """
-    return _load_dataset("PLAID", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("PLAID", split, return_X_y, return_type=return_type)
 
 
 def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
@@ -475,7 +474,9 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     Number of classes:  9
     Details: http://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
     """
-    return _load_dataset("JapaneseVowels", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset(
+        "JapaneseVowels", split, return_X_y, return_type=return_type
+    )
 
 
 # forecasting data sets
@@ -898,9 +899,16 @@ def load_macroeconomic():
     return y
 
 
-def load_unit_test_tsf():
+def load_unit_test_tsf(return_type="tsf_default"):
     """
     Load tsf UnitTest dataset.
+
+    Parameters
+    ----------
+    return_type : str - "pd_multiindex_hier" or "tsf_default" (default)
+        - "tsf_default" = container that faithfully mirrors tsf format from the original
+            implementation in: https://github.com/rakshitha123/TSForecasting/
+            blob/master/utils/data_loader.py.
 
     Returns
     -------
@@ -916,20 +924,13 @@ def load_unit_test_tsf():
         Whether the series have equal lengths or not.
     """
     path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    (
-        loaded_data,
-        frequency,
-        forecast_horizon,
-        contain_missing_values,
-        contain_equal_length,
-    ) = load_tsf_to_dataframe(path)
-
+    data, meta = load_from_tsf_file(path, return_type=return_type)
     return (
-        loaded_data,
-        frequency,
-        forecast_horizon,
-        contain_missing_values,
-        contain_equal_length,
+        data,
+        meta["frequency"],
+        meta["forecast_horizon"],
+        meta["contain_missing_values"],
+        meta["contain_equal_length"],
     )
 
 
@@ -963,6 +964,10 @@ def load_solar(
     api_version : string or None, default="v4"
         API version to call. If None then a stored sample of the data is loaded.
 
+    Return
+    ------
+    pd.Series
+
     References
     ----------
     .. [1] https://www.solar.sheffield.ac.uk/pvlive/
@@ -990,13 +995,11 @@ def load_solar(
         api_version="v4",
     ):
         """Private loader, for decoration with backoff."""
-        url = "https://api0.solar.sheffield.ac.uk/pvlive/api/"
-        url = url + api_version + "/gsp/0?"
-        url = url + "start=" + start + "T00:00:00&"
-        url = url + "end=" + end + "T00:00:00&"
-        url = url + "extra_fields=capacity_mwp&"
-        url = url + "data_format=csv"
-
+        url = (
+            f"https://api0.solar.sheffield.ac.uk/pvlive/api/"
+            f"{api_version}/gsp/0?start={start}T00:00:00&end={end}"
+            f"extra_fields=capacity_mwp&data_format=csv"
+        )
         df = (
             pd.read_csv(
                 url, index_col=["gsp_id", "datetime_gmt"], parse_dates=["datetime_gmt"]
@@ -1016,28 +1019,23 @@ def load_solar(
             else:
                 return df["generation_mw"].rename("solar_gen")
 
-    tries = 5
-    for i in range(tries):
-        try:
-            return _load_solar(
-                start=start,
-                end=end,
-                normalise=normalise,
-                return_full_df=return_full_df,
-                api_version=api_version,
-            )
-        except (URLError, HTTPError):
-            if i < tries - 1:
-                continue
-            else:
-                warn(
-                    """
+    try:
+        return _load_solar(
+            start=start,
+            end=end,
+            normalise=normalise,
+            return_full_df=return_full_df,
+            api_version=api_version,
+        )
+    except (URLError, HTTPError):
+        warn(
+            """
                     Error detected using API. Check connection, input arguments, and
                     API status here https://www.solar.sheffield.ac.uk/pvlive/api/.
                     Loading stored sample data instead.
                     """
-                )
-                return y
+        )
+        return y
 
 
 def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
@@ -1087,11 +1085,11 @@ def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
     """
     name = "Covid3Month"
     if return_X_y:
-        X, y = _load_dataset(name, split, return_X_y, return_type)
+        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
         y = y.astype(float)
         return X, y
     else:
-        X = _load_dataset(name, split, return_X_y, return_type)
+        X = _load_tsc_dataset(name, split, return_X_y, return_type)
         return X
 
 
@@ -1144,9 +1142,9 @@ def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
     """
     name = "CardanoSentiment"
     if return_X_y:
-        X, y = _load_dataset(name, split, return_X_y, return_type)
+        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
         y = y.astype(float)
         return X, y
     else:
-        X = _load_dataset(name, split, return_X_y, return_type)
+        X = _load_tsc_dataset(name, split, return_X_y, return_type)
         return X

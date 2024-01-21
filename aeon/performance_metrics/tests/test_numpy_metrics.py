@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for numpy metrics in _functions module."""
 from inspect import getmembers, isfunction
 
@@ -7,7 +6,7 @@ import pandas as pd
 import pytest
 
 from aeon.performance_metrics.forecasting import _functions
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 
 numpy_metrics = getmembers(_functions, isfunction)
 

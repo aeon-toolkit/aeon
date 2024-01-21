@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TDE classifiers.
 
 Dictionary based TDE classifiers based on SFA transform. Contains a single
@@ -9,6 +8,7 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["TemporalDictionaryEnsemble", "IndividualTDE", "histogram_intersection"]
 
 import math
+import os
 import time
 import warnings
 from collections import defaultdict
@@ -22,12 +22,13 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFA
+from aeon.transformations.collection.dictionary_based import SFA
 from aeon.utils.validation.panel import check_X_y
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
-    """Temporal Dictionary Ensemble (TDE).
+    """
+    Temporal Dictionary Ensemble (TDE).
 
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
@@ -66,10 +67,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Maximum window length as a proportion of series length, must be between 0 and 1.
     min_window : int, default=10
         Minimum window length.
-    randomly_selected_params: int, default=50
+    randomly_selected_params : int, default=50
         Number of parameters randomly selected before the Gaussian process parameter
         selection is used.
-    bigrams : boolean or None, default=None
+    bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
@@ -118,6 +119,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     See Also
     --------
     IndividualTDE, ContractableBOSS
+        Components usable in TDE.
 
     Notes
     -----
@@ -127,7 +129,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
     References
     ----------
-    ..  [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.
@@ -136,8 +138,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = TemporalDictionaryEnsemble(
     ...     n_parameter_samples=10,
     ...     max_ensemble_size=3,
@@ -219,10 +221,10 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The class labels shape = (n_instances).
 
         Returns
         -------
@@ -329,7 +331,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 dim_threshold=self.dim_threshold,
                 max_dims=self.max_dims,
                 typed_dict=self.typed_dict,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             tde.fit(X_subsample, y_subsample)
@@ -373,13 +375,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -390,17 +393,21 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         )
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
+        """
+        Predict class probabilities for n instances in X.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        1D np.ndarray
+            Predicted probabilities using the ordering in classes_, shape = (
+            n_instances, n_classes_).
+
         """
         _, _, series_length = X.shape
         if series_length != self.series_length_:
@@ -467,7 +474,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 preds = (
                     clf._train_predictions
                     if self.save_train_predictions
-                    else Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+                    else Parallel(n_jobs=self._n_jobs, prefer="threads")(
                         delayed(clf._train_predict)(
                             i,
                         )
@@ -511,8 +518,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        if self._threads_to_use > 1:
-            c = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        if self._n_jobs > 1:
+            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(tde._train_predict)(
                     i,
                 )
@@ -565,7 +572,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
@@ -600,10 +607,11 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
 
 class IndividualTDE(BaseClassifier):
-    """Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
+    """
+    Single TDE classifier, an extension of the Bag of SFA Symbols (BOSS) model.
 
     Base classifier for the TDE classifier. Implementation of single TDE base model
-    from Middlehurst (2021). [1]_
+    from [1]_.
 
     Overview: input "n" series of length "m" and IndividualTDE performs a SFA
     transform to form a sparse dictionary of discretised words. The resulting
@@ -662,6 +670,7 @@ class IndividualTDE(BaseClassifier):
     See Also
     --------
     TemporalDictinaryEnsemble, SFA
+        TDE extends BOSS and uses SFA.
 
     Notes
     -----
@@ -671,7 +680,7 @@ class IndividualTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [1] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.
@@ -728,6 +737,9 @@ class IndividualTDE(BaseClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
 
+        # we will disable typed_dict if numba is disabled
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
+
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
@@ -743,7 +755,7 @@ class IndividualTDE(BaseClassifier):
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, ndict in enumerate(state["_transformed_data"]):
                 pdict = dict()
@@ -756,7 +768,7 @@ class IndividualTDE(BaseClassifier):
     def __setstate__(self, state):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, pdict in enumerate(self._transformed_data):
                 ndict = (
@@ -776,10 +788,10 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -805,7 +817,7 @@ class IndividualTDE(BaseClassifier):
                     )
                     for _ in range(self.n_instances_)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(self.n_instances_)]
             )
 
@@ -815,7 +827,7 @@ class IndividualTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(self.n_instances_):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
@@ -843,7 +855,7 @@ class IndividualTDE(BaseClassifier):
                     save_words=False,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
             )
             # todo use fit_transform when SFA is interface compliant
@@ -856,13 +868,14 @@ class IndividualTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_instances).
         """
         num_cases = X.shape[0]
 
@@ -874,7 +887,7 @@ class IndividualTDE(BaseClassifier):
                     )
                     for _ in range(num_cases)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(num_cases)]
             )
 
@@ -884,7 +897,7 @@ class IndividualTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(num_cases):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
@@ -901,7 +914,7 @@ class IndividualTDE(BaseClassifier):
             test_bags = self._transformers[0].transform(X)
             test_bags = test_bags[0]
 
-        classes = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._test_nn)(
                 test_bag,
             )
@@ -948,7 +961,7 @@ class IndividualTDE(BaseClassifier):
                     keep_binning_dft=True,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
             )
 

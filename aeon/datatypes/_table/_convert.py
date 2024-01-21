@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type converters for Table scitype.
 
 Exports conversion and mtype dictionary for Table scitype:
@@ -35,7 +34,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._table._registry import MTYPE_LIST_TABLE
+from aeon.datatypes._table._registry import TYPE_LIST_TABLE
 
 ##############################################################
 # methods to convert one machine type to another machine type
@@ -49,7 +48,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_TABLE:
+for tp in TYPE_LIST_TABLE:
     convert_dict[(tp, tp, "Table")] = convert_identity
 
 
@@ -65,7 +64,7 @@ def convert_1D_to_2D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
     return res
 
 
-convert_dict[("numpy1D", "numpy2D", "Table")] = convert_1D_to_2D_numpy_as_Table
+convert_dict[("numpy1D", "numpy_Table", "Table")] = convert_1D_to_2D_numpy_as_Table
 
 
 def convert_2D_to_1D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
@@ -80,7 +79,7 @@ def convert_2D_to_1D_numpy_as_Table(obj: np.ndarray, store=None) -> np.ndarray:
     return res
 
 
-convert_dict[("numpy2D", "numpy1D", "Table")] = convert_2D_to_1D_numpy_as_Table
+convert_dict[("numpy_Table", "numpy1D", "Table")] = convert_2D_to_1D_numpy_as_Table
 
 
 def convert_df_to_2Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
@@ -93,7 +92,9 @@ def convert_df_to_2Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
     return obj.to_numpy()
 
 
-convert_dict[("pd_DataFrame_Table", "numpy2D", "Table")] = convert_df_to_2Dnp_as_Table
+convert_dict[
+    ("pd_DataFrame_Table", "numpy_Table", "Table")
+] = convert_df_to_2Dnp_as_Table
 
 
 def convert_df_to_1Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
@@ -122,7 +123,9 @@ def convert_2Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
     return res
 
 
-convert_dict[("numpy2D", "pd_DataFrame_Table", "Table")] = convert_2Dnp_to_df_as_Table
+convert_dict[
+    ("numpy_Table", "pd_DataFrame_Table", "Table")
+] = convert_2Dnp_to_df_as_Table
 
 
 def convert_1Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
@@ -230,8 +233,6 @@ convert_dict[
 
 
 _extend_conversions(
-    "pd_Series_Table", "pd_DataFrame_Table", convert_dict, MTYPE_LIST_TABLE
+    "pd_Series_Table", "pd_DataFrame_Table", convert_dict, TYPE_LIST_TABLE
 )
-_extend_conversions(
-    "list_of_dict", "pd_DataFrame_Table", convert_dict, MTYPE_LIST_TABLE
-)
+_extend_conversions("list_of_dict", "pd_DataFrame_Table", convert_dict, TYPE_LIST_TABLE)

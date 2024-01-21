@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 HMM annotation Estimator.
 
@@ -10,6 +9,7 @@ import warnings
 from typing import Tuple
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from scipy.stats import norm
 
 from aeon.annotation.base._base import BaseSeriesAnnotator
@@ -18,6 +18,13 @@ __author__ = ["miraep8"]
 __all__ = ["HMM"]
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="HMM will be removed from annotation module in v0.8.0, it has been replaced "
+    "by HMMSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class HMM(BaseSeriesAnnotator):
     """Implements a simple HMM fitted with Viterbi algorithm.
 
@@ -260,7 +267,9 @@ class HMM(BaseSeriesAnnotator):
             trans_prob[:, i] = np.max(paths, axis=0)
 
         if np.any(np.isinf(trans_prob[:, -1])):
-            warnings.warn("Change parameters, the distribution doesn't work")
+            warnings.warn(
+                "Change parameters, the distribution doesn't work", stacklevel=2
+            )
 
         return trans_prob, trans_id
 

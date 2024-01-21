@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements online algorithms for prediction weighted ensembles."""
 
 import numpy as np
@@ -24,7 +21,7 @@ class _PredictionWeightedEnsembler:
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, n_estimators=10, loss_func=None):
@@ -109,7 +106,7 @@ class HedgeExpertEnsemble(_PredictionWeightedEnsembler):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, n_estimators=10, T=10, a=1, loss_func=None):
@@ -142,7 +139,7 @@ class NormalHedgeEnsemble(HedgeExpertEnsemble):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, n_estimators=10, a=1, loss_func=None):
@@ -254,7 +251,7 @@ class NNLSEnsemble(_PredictionWeightedEnsembler):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, n_estimators=10, loss_func=None):

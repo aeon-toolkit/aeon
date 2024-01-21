@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for classes in _classes module."""
 from inspect import getmembers, isclass
 
@@ -12,8 +11,8 @@ from aeon.performance_metrics.forecasting import (
     _classes,
     make_forecasting_scorer,
 )
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.series import _make_series
 
 metric_classes = getmembers(_classes, isclass)
 

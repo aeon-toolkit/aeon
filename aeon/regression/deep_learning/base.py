@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract base class for the Keras neural network regressors.
 
@@ -30,16 +29,14 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     last_file_name      : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
-
-    Arguments
-    ---------
-    self.model = None
-
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+        "non-deterministic": True,
+        "cant-pickle": True,
         "python_dependencies": "tensorflow",
     }
 
@@ -51,7 +48,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         self.model_ = None
 
     @abstractmethod
-    def build_model(self, input_shape, **kwargs):
+    def build_model(self, input_shape):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -66,13 +63,25 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         """
         ...
 
-    def _predict(self, X, **kwargs):
+    def summary(self):
+        """
+        Summary function to return the losses/metrics for model fit.
+
+        Returns
+        -------
+        history: dict or None,
+            Dictionary containing model's train/validation losses and metrics
+
+        """
+        return self.history.history if self.history is not None else None
+
+    def _predict(self, X):
         """
         Find regression estimate for all cases in X.
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
             The training input samples.
 
         Returns
@@ -81,7 +90,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
             array of predictions of each instance
         """
         X = X.transpose((0, 2, 1))
-        y_pred = self.model_.predict(X, self.batch_size, **kwargs)
+        y_pred = self.model_.predict(X, self.batch_size)
         y_pred = np.squeeze(y_pred, axis=-1)
         return y_pred
 

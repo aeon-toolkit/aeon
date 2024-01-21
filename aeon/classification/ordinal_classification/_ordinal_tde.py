@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TDE classifiers.
 
 Dictionary based Ordinal TDE classifiers based on SFA transform. Contains a single
@@ -13,6 +12,7 @@ __all__ = [
 ]
 
 import math
+import os
 import time
 import warnings
 from collections import defaultdict
@@ -26,12 +26,13 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFA
+from aeon.transformations.collection.dictionary_based import SFA
 from aeon.utils.validation.panel import check_X_y
 
 
 class OrdinalTDE(BaseClassifier):
-    """Ordinal Temporal Dictionary Ensemble (O-TDE).
+    """
+    Ordinal Temporal Dictionary Ensemble (O-TDE).
 
     Implementation of the dictionary based Ordinal Temporal Dictionary
     Ensemble as described in [1]_. This method is an ordinal adaptation
@@ -59,10 +60,10 @@ class OrdinalTDE(BaseClassifier):
         Maximum window length as a proportion of series length, must be between 0 and 1.
     min_window : int, default=10
         Minimum window length.
-    randomly_selected_params: int, default=50
+    randomly_selected_params : int, default=50
         Number of parameters randomly selected before the Gaussian process parameter
         selection is used.
-    bigrams : boolean or None, default=None
+    bigrams : bool or None, default=None
         Whether to use bigrams, defaults to true for univariate data and false for
         multivariate data.
     dim_threshold : float, default=0.85
@@ -111,6 +112,7 @@ class OrdinalTDE(BaseClassifier):
     See Also
     --------
     IndividualOrdinalTDE, TDE, WEASEL
+        Normal versions of TDE.
 
     References
     ----------
@@ -209,7 +211,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -319,7 +321,7 @@ class OrdinalTDE(BaseClassifier):
                 dim_threshold=self.dim_threshold,
                 max_dims=self.max_dims,
                 typed_dict=self.typed_dict,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             tde.fit(X_subsample, y_subsample)
@@ -366,7 +368,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -387,7 +389,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -471,7 +473,7 @@ class OrdinalTDE(BaseClassifier):
                 preds = (
                     clf._train_predictions
                     if self.save_train_predictions
-                    else Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+                    else Parallel(n_jobs=self._n_jobs, prefer="threads")(
                         delayed(clf._train_predict)(
                             i,
                         )
@@ -515,8 +517,8 @@ class OrdinalTDE(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        if self._threads_to_use > 1:
-            c = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        if self._n_jobs > 1:
+            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(tde._train_predict)(
                     i,
                 )
@@ -550,8 +552,8 @@ class OrdinalTDE(BaseClassifier):
     def _individual_train_mae(self, tde, y, train_size, highest_mae):
         absolute_error = 0
 
-        if self._threads_to_use > 1:
-            c = Parallel(n_jobs=self._threads_to_use)(
+        if self._n_jobs > 1:
+            c = Parallel(n_jobs=self._n_jobs)(
                 delayed(tde._train_predict)(
                     i,
                 )
@@ -624,8 +626,9 @@ class OrdinalTDE(BaseClassifier):
 
 
 class IndividualOrdinalTDE(BaseClassifier):
-    """Single O-TDE classifier, an ordinal version of the IndividualTDE from [2]_.
+    """Single O-TDE classifier.
 
+    An ordinal version of the IndividualTDE described in [2]_.
     Base classifier for the O-TDE classifier. Implementation of single O-TDE base model
     from [1]_.
 
@@ -696,11 +699,11 @@ class IndividualOrdinalTDE(BaseClassifier):
 
     References
     ----------
-    ..  [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
+    .. [1] Rafael Ayllon-Gavilan, David Guijo-Rubio, Pedro Antonio Gutierrez and
         Cesar Hervas-Martinez.
         "A Dictionary-based approach to Time Series Ordinal Classification",
         IWANN 2023. 17th International Work-Conference on Artificial Neural Networks.
-    ..  [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
+    .. [2] Matthew Middlehurst, James Large, Gavin Cawley and Anthony Bagnall
         "The Temporal Dictionary Ensemble (TDE) Classifier for Time Series
         Classification", in proceedings of the European Conference on Machine Learning
         and Principles and Practice of Knowledge Discovery in Databases, 2020.
@@ -757,6 +760,9 @@ class IndividualOrdinalTDE(BaseClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
 
+        # we will disable typed_dict if numba is disabled
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
+
         self._transformers = []
         self._transformed_data = []
         self._class_vals = []
@@ -772,7 +778,7 @@ class IndividualOrdinalTDE(BaseClassifier):
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
         state = self.__dict__.copy()
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, ndict in enumerate(state["_transformed_data"]):
                 pdict = dict()
@@ -785,7 +791,7 @@ class IndividualOrdinalTDE(BaseClassifier):
     def __setstate__(self, state):
         """Set current state using input pickling, required for typed Dict objects."""
         self.__dict__.update(state)
-        if self.typed_dict:
+        if self._typed_dict:
             nl = [None] * len(self._transformed_data)
             for i, pdict in enumerate(self._transformed_data):
                 ndict = (
@@ -805,7 +811,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -834,7 +840,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     )
                     for _ in range(self.n_instances_)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(self.n_instances_)]
             )
 
@@ -844,7 +850,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(self.n_instances_):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
@@ -872,7 +878,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     save_words=False,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                     random_state=self.random_state,
                 )
             )
@@ -885,7 +891,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -903,7 +909,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     )
                     for _ in range(num_cases)
                 ]
-                if self.typed_dict
+                if self._typed_dict
                 else [defaultdict(int) for _ in range(num_cases)]
             )
 
@@ -913,7 +919,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                 dim_words = dim_words[0]
 
                 for n in range(num_cases):
-                    if self.typed_dict:
+                    if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
                                 words[n][
@@ -930,7 +936,7 @@ class IndividualOrdinalTDE(BaseClassifier):
             test_bags = self._transformers[0].transform(X)
             test_bags = test_bags[0]
 
-        classes = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        classes = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._test_nn)(
                 test_bag,
             )
@@ -977,7 +983,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     keep_binning_dft=True,
                     use_fallback_dft=True,
                     typed_dict=self.typed_dict,
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
             )
 
@@ -1038,7 +1044,8 @@ class IndividualOrdinalTDE(BaseClassifier):
 
 
 def histogram_intersection(first, second):
-    """Find the distance between two histograms using the histogram intersection.
+    """
+    Find the distance between two histograms using the histogram intersection.
 
     This distance function is designed for sparse matrix, represented as a
     dictionary or numba Dict, but can accept arrays.
@@ -1052,7 +1059,7 @@ def histogram_intersection(first, second):
 
     Returns
     -------
-    dist : float
+    float
         The histogram intersection distance between the first and second dictionaries.
     """
     if isinstance(first, dict):

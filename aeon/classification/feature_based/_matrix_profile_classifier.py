@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Matrix Profile classifier.
 
 Pipeline classifier using the Matrix Profile transformer and an estimator.
@@ -12,13 +11,14 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.matrix_profile import MatrixProfile
+from aeon.transformations.collection.matrix_profile import MatrixProfile
 
 
 class MatrixProfileClassifier(BaseClassifier):
-    """Martrix Profile (MP) classifier.
+    """
+    Matrix Profile (MP) classifier.
 
-    This classifier simply transforms the input data using the MatrixProfile [1]
+    This classifier simply transforms the input data using the MatrixProfile [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
@@ -45,6 +45,7 @@ class MatrixProfileClassifier(BaseClassifier):
     See Also
     --------
     MatrixProfile
+        MatrixProfile transformer.
 
     References
     ----------
@@ -93,10 +94,10 @@ class MatrixProfileClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The training data.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_instances, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -118,7 +119,7 @@ class MatrixProfileClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
@@ -130,13 +131,14 @@ class MatrixProfileClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        y : 1D np.ndarray
+            The predicted class labels, shape = (n_instances).
         """
         return self._estimator.predict(self._transformer.transform(X))
 
@@ -145,13 +147,15 @@ class MatrixProfileClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_instances, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        y : 2D np.ndarray
+            Predicted probabilities using the ordering in classes_ shape = (
+            n_instances, n_classes_).
         """
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility to check soft dependency imports, and raise warnings or errors."""
 
 __author__ = ["fkiraly", "mloning"]
@@ -83,10 +82,6 @@ def _check_soft_dependencies(
         class_name = type(obj).__name__
     elif isclass(obj):
         class_name = obj.__name__
-    elif isinstance(obj, str):
-        class_name = obj
-    else:
-        raise TypeError("obj must be a class, an object, a str, or None")
 
     for package in packages:
         try:
@@ -139,7 +134,7 @@ def _check_soft_dependencies(
             if severity == "error":
                 raise ModuleNotFoundError(msg) from e
             elif severity == "warning":
-                warnings.warn(msg)
+                warnings.warn(msg, stacklevel=2)
                 return False
             elif severity == "none":
                 return False
@@ -162,7 +157,7 @@ def _check_soft_dependencies(
             if obj is not None:
                 msg = msg + (
                     f"This version requirement is not one by aeon, but specific "
-                    f"to the module, class or object with name {obj}."
+                    f"to the module, class or object with name {class_name}."
                 )
 
             # raise error/warning or return False if version is incompatible
@@ -171,7 +166,7 @@ def _check_soft_dependencies(
                 if severity == "error":
                     raise ModuleNotFoundError(msg)
                 elif severity == "warning":
-                    warnings.warn(msg)
+                    warnings.warn(msg, stacklevel=2)
                 elif severity == "none":
                     return False
                 else:
@@ -223,7 +218,7 @@ def _check_dl_dependencies(msg=None, severity="error"):
         if severity == "error":
             raise ModuleNotFoundError(msg) from e
         elif severity == "warning":
-            warnings.warn(msg)
+            warnings.warn(msg, stacklevel=2)
             return False
         elif severity == "none":
             return False
@@ -295,7 +290,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     if severity == "error":
         raise ModuleNotFoundError(msg)
     elif severity == "warning":
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=2)
     elif severity == "none":
         return False
     else:

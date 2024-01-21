@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements trend based forecasters."""
 
 __author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
@@ -64,7 +61,7 @@ class TrendForecaster(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, regressor=None):
@@ -200,7 +197,7 @@ class PolynomialTrendForecaster(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, regressor=None, degree=1, with_intercept=True):
@@ -423,11 +420,11 @@ class STLForecaster(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "capability:missing_values": False,  # can estimator handle missing data?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "python_dependencies": "statsmodels",
     }

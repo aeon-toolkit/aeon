@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Arsenal classifier.
 
 kernel based ensemble of ROCKET classifiers.
@@ -18,7 +17,7 @@ from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.rocket import (
+from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
@@ -29,7 +28,8 @@ from aeon.utils.validation.panel import check_X_y
 
 
 class Arsenal(BaseClassifier):
-    """Arsenal ensemble.
+    """
+    Arsenal ensemble.
 
     Overview: an ensemble of ROCKET transformers using RidgeClassifierCV base
     classifier. Weights each classifier using the accuracy from the ridge
@@ -44,7 +44,7 @@ class Arsenal(BaseClassifier):
         Number of estimators to build for the ensemble.
     rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
-        Valid inputs = ["rocket","minirocket","multirocket"]
+        Valid inputs = ["rocket","minirocket","multirocket"].
     max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, default=4
@@ -78,14 +78,14 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances,total_intervals * att_subsample_size)
+    transformed_data_ : list of shape (n_estimators)
         The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 
     See Also
     --------
     RocketClassifier
+        Arsenal is an ensemble of RocketClassifier.
 
     Notes
     -----
@@ -160,7 +160,7 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -218,7 +218,7 @@ class Arsenal(BaseClassifier):
                 train_time < time_limit
                 and self.n_estimators < self.contract_max_n_estimators
             ):
-                fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+                fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_estimator)(
                         _clone_estimator(
                             base_rocket,
@@ -231,7 +231,7 @@ class Arsenal(BaseClassifier):
                         X,
                         y,
                     )
-                    for i in range(self._threads_to_use)
+                    for i in range(self._n_jobs)
                 )
 
                 estimators, transformed_data = zip(*fit)
@@ -239,10 +239,10 @@ class Arsenal(BaseClassifier):
                 self.estimators_ += estimators
                 self.transformed_data_ += transformed_data
 
-                self.n_estimators += self._threads_to_use
+                self.n_estimators += self._n_jobs
                 train_time = time.time() - start_time
         else:
-            fit = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+            fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_estimator)(
                     _clone_estimator(
                         base_rocket,
@@ -274,7 +274,7 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -295,7 +295,7 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -303,7 +303,7 @@ class Arsenal(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        y_probas = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 self.estimators_[i],
@@ -340,10 +340,13 @@ class Arsenal(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
-        p = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        rng = check_random_state(self.random_state)
+
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(self.n_estimators)
         )
@@ -382,15 +385,7 @@ class Arsenal(BaseClassifier):
             weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
         return weights
 
-    def _train_probas_for_estimator(self, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _train_probas_for_estimator(self, y, idx, rng):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]

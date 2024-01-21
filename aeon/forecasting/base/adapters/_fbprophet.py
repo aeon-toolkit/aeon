@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements adapter for Facebook prophet to be used in aeon framework."""
 
 __author__ = ["mloning", "aiwalter", "fkiraly"]
@@ -21,8 +18,8 @@ class _ProphetAdapter(BaseForecaster):
         "ignores-exogeneous-X": False,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
-        "y_inner_mtype": "pd.DataFrame",
+        "capability:missing_values": False,
+        "y_inner_type": "pd.DataFrame",
         "python_dependencies": "prophet",
     }
 
@@ -89,9 +86,9 @@ class _ProphetAdapter(BaseForecaster):
 
         # Add seasonality/seasonalities
         if self.add_seasonality:
-            if type(self.add_seasonality) == dict:
+            if isinstance(self.add_seasonality, dict):
                 self._forecaster.add_seasonality(**self.add_seasonality)
-            elif type(self.add_seasonality) == list:
+            elif isinstance(self.add_seasonality, list):
                 for seasonality in self.add_seasonality:
                     self._forecaster.add_seasonality(**seasonality)
 

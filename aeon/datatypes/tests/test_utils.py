@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Testing utilities in the datatype module."""
 
 __author__ = ["fkiraly"]
@@ -17,7 +16,7 @@ from aeon.datatypes._utilities import (
     get_time_index,
     get_window,
 )
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.utils.hierarchical import _make_hierarchical
 
 SCITYPE_MTYPE_PAIRS = [
     ("Series", "pd.Series"),

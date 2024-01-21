@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for series annotation.
 
@@ -108,9 +107,9 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
         #
         # example 1: conditional setting of a tag
         # if est.foo == 42:
-        #   self.set_tags(handles-missing-data=True)
+        #   self.set_tags(capability:missing_values=True)
         # example 2: cloning tags from component
-        #   self.clone_tags(est2, ["enforce_index_type", "handles-missing-data"])
+        #   self.clone_tags(est2, ["enforce_index_type", "capability:missing_values"])
 
     # todo: implement this, mandatory
     def _fit(self, X, Y=None):

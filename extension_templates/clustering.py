@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for clusterers.
 
@@ -12,7 +11,7 @@ How to use this implementation template to implement a new estimator:
 - work through all the "todo" comments below
 - fill in code for mandatory methods, and optionally for optional methods
 - do not write to reserved variables: is_fitted, _is_fitted, fit_time_,
-        _class_dictionary, _threads_to_use, n_clusters, _tags, _tags_dynamic
+        _class_dictionary, _n_jobs, n_clusters, _tags, _tags_dynamic
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
@@ -65,7 +64,7 @@ class MyClusterer(BaseClusterer):
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, Other
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, Other
         # types are allowable, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
         "capability:unequal_length": False,
@@ -103,7 +102,7 @@ class MyClusterer(BaseClusterer):
 
         Parameters
         ----------
-        X : Data to cluster, of type self.get_tag("X_inner_mtype")
+        X : Data to cluster, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -121,7 +120,7 @@ class MyClusterer(BaseClusterer):
         Parameters
         ----------
         X : data to cluster based on model formed in _fit, of type self.get_tag(
-        "X_inner_mtype")
+        "X_inner_type")
         y: ignored, exists for API consistency reasons.
 
         Returns

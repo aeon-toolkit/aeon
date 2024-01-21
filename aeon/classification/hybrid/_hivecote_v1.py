@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
 Hybrid ensemble of classifiers from 4 separate time series classification
@@ -18,20 +17,21 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
 from aeon.classification.interval_based import (
-    RandomIntervalSpectralEnsemble,
+    RandomIntervalSpectralEnsembleClassifier,
     TimeSeriesForestClassifier,
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
 
 
 class HIVECOTEV1(BaseClassifier):
-    """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
+    """
+    Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
     An ensemble of the STC, TSF, RISE and cBOSS classifiers from different feature
     representations using the CAWPE structure as described in [1]_. The default
     implementation differs from the one described in [1]_, in that the STC component
     uses the out of bag error (OOB) estimates for weights (described in [2]_) rather
-    than the cross validation estimate. OOB is an order of magnitude faster and on
+    than the cross-validation estimate. OOB is an order of magnitude faster and on
     average as good as CV. This means that this version of HIVE COTE is a bit faster
     than HC2, although less accurate on average.
 
@@ -51,11 +51,19 @@ class HIVECOTEV1(BaseClassifier):
         parameters.
     verbose : int, default=0
         Level of output printed to the console (for information only).
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib for Catch22,
+        if None a 'prefer' value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
@@ -74,8 +82,11 @@ class HIVECOTEV1(BaseClassifier):
 
     See Also
     --------
-    HIVECOTEV2, ShapeletTransformClassifier, TimeSeriesForestClassifier,
+    ShapeletTransformClassifier, TimeSeriesForestClassifier,
     RandomIntervalSpectralForest, ContractableBOSS
+        All components of HIVECOTE.
+    HIVECOTEV2
+        Successor to HIVECOTEV1.
 
     Notes
     -----
@@ -106,17 +117,18 @@ class HIVECOTEV1(BaseClassifier):
         rise_params=None,
         cboss_params=None,
         verbose=0,
-        n_jobs=1,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
         self.stc_params = stc_params
         self.tsf_params = tsf_params
         self.rise_params = rise_params
         self.cboss_params = cboss_params
-
         self.verbose = verbose
-        self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self.stc_weight_ = 0
         self.tsf_weight_ = 0
@@ -134,12 +146,17 @@ class HIVECOTEV1(BaseClassifier):
 
         super(HIVECOTEV1, self).__init__()
 
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+
     def _fit(self, X, y):
         """Fit HIVE-COTE 1.0 to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -148,26 +165,23 @@ class HIVECOTEV1(BaseClassifier):
         -------
         self :
             Reference to self.
-
-        Notes
-        -----
-        Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
         """
-        # Default values from HC1 paper
         if self.stc_params is None:
-            self._stc_params = {"transform_limit_in_minutes": 120}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
         if self.tsf_params is None:
-            self._tsf_params = {"n_estimators": 500}
+            self._tsf_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.rise_params is None:
-            self._rise_params = {"n_estimators": 500}
+            self._rise_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
         if self.cboss_params is None:
-            self._cboss_params = {}
+            self._cboss_params = {
+                "n_parameter_samples": HIVECOTEV1._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE,
+            }
 
         # Cross-validation size for TSF and RISE
         cv_size = 10
         _, counts = np.unique(y, return_counts=True)
-        min_class = np.min(counts)
+        min_class = max(2, np.min(counts))
         if min_class < cv_size:
             cv_size = min_class
 
@@ -176,7 +190,7 @@ class HIVECOTEV1(BaseClassifier):
             **self._stc_params,
             save_transformed_data=True,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._stc.fit(X, y)
 
@@ -199,7 +213,7 @@ class HIVECOTEV1(BaseClassifier):
         self._tsf = TimeSeriesForestClassifier(
             **self._tsf_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._tsf.fit(X, y)
 
@@ -214,7 +228,7 @@ class HIVECOTEV1(BaseClassifier):
             X=X,
             y=y,
             cv=cv_size,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self.tsf_weight_ = accuracy_score(y, train_preds) ** 4
 
@@ -226,10 +240,10 @@ class HIVECOTEV1(BaseClassifier):
             print("TSF weight = " + str(self.tsf_weight_))  # noqa
 
         # Build RISE
-        self._rise = RandomIntervalSpectralEnsemble(
+        self._rise = RandomIntervalSpectralEnsembleClassifier(
             **self._rise_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._rise.fit(X, y)
 
@@ -238,14 +252,14 @@ class HIVECOTEV1(BaseClassifier):
 
         # Find RISE weight using train set estimate found through CV
         train_preds = cross_val_predict(
-            RandomIntervalSpectralEnsemble(
+            RandomIntervalSpectralEnsembleClassifier(
                 **self._rise_params,
                 random_state=self.random_state,
             ),
             X=X,
             y=y,
             cv=cv_size,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self.rise_weight_ = accuracy_score(y, train_preds) ** 4
 
@@ -260,7 +274,7 @@ class HIVECOTEV1(BaseClassifier):
         self._cboss = ContractableBOSS(
             **self._cboss_params,
             random_state=self.random_state,
-            n_jobs=self._threads_to_use,
+            n_jobs=self._n_jobs,
         )
         self._cboss.fit(X, y)
 
@@ -283,7 +297,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
@@ -304,7 +318,7 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

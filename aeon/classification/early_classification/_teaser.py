@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TEASER early classifier.
 
 An early classifier using a one class SVM's to determine decision safety with a
@@ -24,7 +23,8 @@ from aeon.classification.early_classification.base import BaseEarlyClassifier
 
 
 class TEASER(BaseEarlyClassifier):
-    """Two-tier Early and Accurate Series Classifier (TEASER).
+    """
+    Two-tier Early and Accurate Series Classifier (TEASER).
 
     An early classifier which uses one class SVM's trained on prediction probabilities
     to determine whether an early prediction is safe or not.
@@ -42,13 +42,13 @@ class TEASER(BaseEarlyClassifier):
 
     Parameters
     ----------
-    estimator: aeon classifier, default=None
+    estimator : aeon classifier, default=None
         An aeon estimator to be built at each of the classification_points time
         stamps. Defaults to a WEASEL classifier.
-    one_class_classifier: one-class sklearn classifier, default=None
+    one_class_classifier : one-class sklearn classifier, default=None
         An sklearn one-class classifier used to determine whether an early decision is
         safe. Defaults to a tuned one-class SVM classifier.
-    one_class_param_grid: dict or list of dict, default=None
+    one_class_param_grid : dict or list of dict, default=None
         The hyper-parameters for the one-class classifier to learn using grid-search.
         Dictionary with parameters names (`str`) as keys and lists of parameter settings
         to try as values, or a list of such dictionaries.
@@ -181,13 +181,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         fit = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -240,13 +243,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -314,13 +320,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -362,11 +371,7 @@ class TEASER(BaseEarlyClassifier):
                 next_idx = idx
         return next_idx
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -374,7 +379,7 @@ class TEASER(BaseEarlyClassifier):
 
         m = getattr(estimator, "n_jobs", None)
         if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            estimator.n_jobs = self._n_jobs
 
         # fit estimator for this threshold
         estimator.fit(X[:, :, : self._classification_points[i]], y)
@@ -414,7 +419,7 @@ class TEASER(BaseEarlyClassifier):
             one_class_classifier = (
                 OneClassSVM(tol=self._svm_tol, nu=self._svm_nu)
                 if self.one_class_classifier is None
-                else _clone_estimator(self.one_class_classifier, random_state=rs)
+                else _clone_estimator(self.one_class_classifier, random_state=rng)
             )
             param_grid = (
                 {"gamma": self._svm_gammas}
@@ -435,11 +440,7 @@ class TEASER(BaseEarlyClassifier):
 
         return estimator, one_class_classifier, train_probas, train_preds
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )

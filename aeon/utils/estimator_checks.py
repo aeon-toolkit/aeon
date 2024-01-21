@@ -1,51 +1,34 @@
-# -*- coding: utf-8 -*-
 """Estimator checker for extension."""
 
 __author__ = ["fkiraly"]
 __all__ = ["check_estimator"]
 
 from inspect import isclass
-from warnings import warn
 
 
-# todo 0.17.0:
-# * remove the return_exceptions arg
-# * move the raise_exceptions arg to 2nd place
-# * change its default to False, from None
-# * update the docstring - remove return_exceptions
-# * update the docstring - move raise_exceptions block to 2nd place
-# * update the docstring - remove deprecation references
-# * update the docstring - condition in return block, refer only to raise_exceptions
-# * update the docstring - condition in raises block to refer only to raise_exceptions
-# * remove the code block for input handling
-# * remove import of warn
 def check_estimator(
     estimator,
-    return_exceptions=None,
+    raise_exceptions=False,
     tests_to_run=None,
     fixtures_to_run=None,
     verbose=True,
     tests_to_exclude=None,
     fixtures_to_exclude=None,
-    raise_exceptions=None,
 ):
     """Run all tests on one single estimator.
 
     Tests that are run on estimator:
         all tests in test_all_estimators
-        all interface compatibility tests from the module of estimator's scitype
+        all interface compatibility tests from the module of estimator's type
             for example, test_all_forecasters if estimator is a forecaster
 
     Parameters
     ----------
     estimator : estimator class or estimator instance
-    return_exceptions : bool, optional, default=True
-        whether to return exceptions/failures, or raise them
-            if True: returns exceptions in returned `results` dict
-            if False: raises exceptions as they occur
-        deprecated since 0.15.1, and will be replaced by `raise_exceptions` in 0.17.0.
-        Overridden to `False` if `raise_exceptions=True`.
-        For safe deprecation, use `raise_exceptions` instead of `return_exceptions`.
+    raise_exceptions : bool, optional, default=False
+        whether to return exceptions/failures in the results dict, or raise them
+            if False: returns exceptions in returned `results` dict
+            if True: raises exceptions as they occur
     tests_to_run : str or list of str, optional. Default = run all tests.
         Names (test/function name string) of tests to run.
         sub-sets tests that are run to the tests given here.
@@ -62,13 +45,6 @@ def check_estimator(
     fixtures_to_exclude : str or list of str, fixtures to exclude. default = None
         removes test-fixture combinations that should not be run.
         This is done after subsetting via fixtures_to_run.
-    raise_exceptions : bool, optional, default=False
-        whether to return exceptions/failures in the results dict, or raise them
-            if False: returns exceptions in returned `results` dict
-            if True: raises exceptions as they occur
-        Overrides `return_exceptions` if used as a keyword argument.
-        both `raise_exceptions=True` and `return_exceptions=True`.
-        Will move to replace `return_exceptions` as 2nd arg in 0.17.0.
 
     Returns
     -------
@@ -77,16 +53,14 @@ def check_estimator(
         entries are the string "PASSED" if the test passed,
             or the exception raised if the test did not pass
         returned only if all tests pass,
-        or both return_exceptions=True and raise_exceptions=False
 
     Raises
     ------
-    if return_exceptions=False, or raise_exceptions=True,
     raises any exception produced by the tests directly
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> from aeon.utils.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
@@ -119,26 +93,10 @@ def check_estimator(
     )
     from aeon.classification.tests.test_all_classifiers import TestAllClassifiers
     from aeon.forecasting.tests.test_all_forecasters import TestAllForecasters
-    from aeon.registry import scitype
+    from aeon.registry import get_identifiers
     from aeon.regression.tests.test_all_regressors import TestAllRegressors
-    from aeon.tests.test_all_estimators import TestAllEstimators, TestAllObjects
+    from aeon.testing.test_all_estimators import TestAllEstimators, TestAllObjects
     from aeon.transformations.tests.test_all_transformers import TestAllTransformers
-
-    # todo 0.17.0: remove this code block
-    if return_exceptions is None and raise_exceptions is None:
-        raise_exceptions = False
-
-    if return_exceptions is not None and raise_exceptions is None:
-        warn(
-            "The return_exceptions argument of check_estimator has been deprecated "
-            "since 0.15.1, and will be replaced by raise_exceptions in 0.17.0. "
-            "For safe deprecation: use raise_exceptions argument instead of "
-            "return_exceptions when using keywords. Avoid positional use, instead "
-            "ensure to use keywords. When not using keywords, the "
-            "default behaviour will not change."
-        )
-        raise_exceptions = not return_exceptions
-    # end block to remove
 
     testclass_dict = dict()
     testclass_dict["classifier"] = TestAllClassifiers
@@ -175,12 +133,12 @@ def check_estimator(
         results.update(results_estimator)
 
     try:
-        scitype_of_estimator = scitype(estimator)
+        type_of_estimator = get_identifiers(estimator)
     except Exception:
-        scitype_of_estimator = ""
+        type_of_estimator = ""
 
-    if scitype_of_estimator in testclass_dict.keys():
-        results_scitype = testclass_dict[scitype_of_estimator]().run_tests(
+    if type_of_estimator in testclass_dict.keys():
+        results_type = testclass_dict[type_of_estimator]().run_tests(
             estimator=estimator,
             raise_exceptions=raise_exceptions,
             tests_to_run=tests_to_run,
@@ -188,7 +146,7 @@ def check_estimator(
             tests_to_exclude=tests_to_exclude,
             fixtures_to_exclude=fixtures_to_exclude,
         )
-        results.update(results_scitype)
+        results.update(results_type)
 
     failed_tests = [key for key in results.keys() if results[key] != "PASSED"]
     if len(failed_tests) > 0:

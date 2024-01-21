@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """Functions to test the functions in experiments.py."""
 
 from aeon.benchmarking.experiments import (
     run_classification_experiment,
     run_clustering_experiment,
 )
-from aeon.classification.interval_based import TimeSeriesForestClassifier
-from aeon.clustering.k_means import TimeSeriesKMeans
+from aeon.classification import DummyClassifier
+from aeon.clustering import TimeSeriesKMeans
 from aeon.datasets import load_unit_test
 
 
@@ -51,15 +50,19 @@ def test_run_classification_experiment(tmp_path):
         train_Y,
         test_X,
         test_Y,
-        TimeSeriesForestClassifier(n_estimators=10),
+        DummyClassifier(),
         str(tmp_path),
-        cls_name="TSF",
+        cls_name="DummyClassifier",
         dataset="UnitTest",
         resample_id=0,
         train_file=True,
     )
-    test_path = tmp_path.joinpath(f"TSF/Predictions/{dataset}/testResample0.csv")
-    train_path = tmp_path.joinpath(f"TSF/Predictions/{dataset}/trainResample0.csv")
+    test_path = tmp_path.joinpath(
+        f"DummyClassifier/Predictions/{dataset}/testResample0.csv"
+    )
+    train_path = tmp_path.joinpath(
+        f"DummyClassifier/Predictions/{dataset}/trainResample0.csv"
+    )
     assert test_path.is_file()
     assert train_path.is_file()
     # remove files

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements meta estimator for estimators composed of other estimators."""
 
 __author__ = ["mloning, fkiraly"]
@@ -141,17 +138,17 @@ class _HeterogenousMetaEstimator:
     def _check_names(self, names):
         if len(set(names)) != len(names):
             raise ValueError("Names provided are not unique: {0!r}".format(list(names)))
-        invalid_names = set(names).intersection(self.get_params(deep=False))
-        if invalid_names:
-            raise ValueError(
-                "Estimator names conflict with constructor "
-                "arguments: {0!r}".format(sorted(invalid_names))
-            )
         invalid_names = [name for name in names if "__" in name]
         if invalid_names:
             raise ValueError(
                 "Estimator names must not contain __: got "
                 "{0!r}".format(invalid_names)
+            )
+        invalid_names = set(names).intersection(self.get_params(deep=False))
+        if invalid_names:
+            raise ValueError(
+                "Estimator names conflict with constructor "
+                "arguments: {0!r}".format(sorted(invalid_names))
             )
 
     def _subset_dict_keys(self, dict_to_subset, keys, prefix=None):
@@ -303,7 +300,7 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        est_tuple : (str, stimator tuple)
+        est_tuple : (str, estimator tuple)
             obj if obj was (str, estimator) tuple
             (obj class name, obj) if obj was estimator
         """

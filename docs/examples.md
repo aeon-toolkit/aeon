@@ -6,48 +6,57 @@
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/img/forecasting2.png
-:link: /examples/01_forecasting.ipynb
+:img-top: /examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon
+Overview of forecasting
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01a_forecasting_sklearn.ipynb
+:img-top: examples/forecasting/img/proba.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting_proba.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon - appendix: forecasting, supervised regression, and pitfalls in confusing the two
+Probabilistic forecasting
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01b_forecasting_proba.ipynb
+:img-top: examples/forecasting/img/hierarchytree_grouped.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting_hierarchical_global.ipynb
 :link-type: ref
 :text-align: center
 
-Probabilistic Forecasting with aeon
+Hierarchical, global, and panel forecasting
 
 :::
 
 :::{grid-item-card}
-:link: /examples/01c_forecasting_hierarchical_global.ipynb
+:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
-Hierarchical, Global, and Panel Forecasting with aeon
+Forecasting with aeon and scikit-learn
 
 :::
 
 :::{grid-item-card}
-:link: /examples/window_splitters.ipynb
+:img-top: examples/forecasting/img/splitter.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/window_splitters.ipynb
 :link-type: ref
 :text-align: center
 
-Window Splitters in aeon
+Window splitters for forecasting
 
 :::
 
@@ -59,124 +68,253 @@ Window Splitters in aeon
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/classification.ipynb
 :link-type: ref
 :text-align: center
 
-Time Series Classification with aeon
+Overview of Time Series Classification (TSC)
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/convolution.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/convolution_based.ipynb
 :link-type: ref
 :text-align: center
 
-Convolution based time series classification in aeon
+Convolution based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/it.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/deep_learning.ipynb
 :link-type: ref
 :text-align: center
-
-Deep learning based time series classification in aeon
+Deep learning based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/hist.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/dictionary_based.ipynb
 :link-type: ref
 :text-align: center
 
-Dictionary based time series classification in aeon
+Dictionary based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/dtw.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/distance_based.ipynb
 :link-type: ref
 :text-align: center
 
-Distance based time series classification in aeon
+Distance based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/pipeline.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/feature_based.ipynb
 :link-type: ref
 :text-align: center
 
-Feature based time series classification in aeon
+Feature based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/hc2.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/hybrid.ipynb
 :link-type: ref
 :text-align: center
 
-Hybrid time series classification in aeon
+Hybrid TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/interval.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/interval_based.ipynb
 :link-type: ref
 :text-align: center
 
-Interval based time series classification in aeon
+Interval based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: examples/classification/img/shapelet.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/shapelet_based.ipynb
 :link-type: ref
 :text-align: center
 
-Shapelet based time series classification in aeon
+Shapelet based TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
 :text-align: center
 
-Early time series classification with aeon
+Early TSC
 
 :::
 
 :::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
 :link: /examples/classification/channel_selection.ipynb
 :link-type: ref
 :text-align: center
 
-Channel Selection in Multivariate Time Series Classification
+Channel selection in multivariate TSC
 
 :::
 
 ::::
 
-(examples-regression)=
 ## Regression
+::::{grid} 2 4 4 4
+:gutter: 1
 
-To come!
+:::{grid-item-card}
+:img-top: /examples/regression/img/tser.png
+:class-img-top: aeon-card-image-m
+:link: /examples/regression/regression.ipynb
+:link-type: ref
+:text-align: center
 
-(examples-clustering)=
+Overview of Time Series Regression (TSR)
+
+:::
+
+::::
+
 ## Clustering
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/partition_based_clustering.ipynb
+:img-top: examples/clustering/img/tscl.png
+:class-img-top: aeon-card-image-m
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
-Partition based time series clustering in aeon
+Overview of Time Series Clustering (TSCL)
+
+:::
+
+::::
+
+## Transformation
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/transformation.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/transformation.ipynb
+:link-type: ref
+:text-align: center
+
+Overview of Transformation
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/tsfresh.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
+:link-type: ref
+:text-align: center
+
+Feature based
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/rocket.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/rocket.ipynb
+:link-type: ref
+:text-align: center
+
+Convolution based
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/leaves_shapelets.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/shapelets.ipynb
+:link-type: ref
+:text-align: center
+
+Shapelet based
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/interpolation.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/interpolation.ipynb
+:link-type: ref
+:text-align: center
+
+Interpolation
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/plateau.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/plateau_finder.ipynb
+:link-type: ref
+:text-align: center
+
+Plateau finding
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/signature.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/signature_method.ipynb
+:link-type: ref
+:text-align: center
+
+Signature method
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/theta.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/theta_transform.ipynb
+:link-type: ref
+:text-align: center
+
+Theta transform
 
 :::
 
@@ -187,43 +325,33 @@ Partition based time series clustering in aeon
 ::::{grid} 2 4 4 4
 :gutter: 1
 
+
 :::{grid-item-card}
-:link: /examples/segmentation_with_clasp.ipynb
+:img-top: examples/annotation/img/segmentation_use_cases.png
+:class-img-top: aeon-card-image-m
+:link: /examples/annotation/annotation.ipynb
 :link-type: ref
 :text-align: center
 
-Time Series Segmentation with aeon and ClaSP
-
-:::
-
-::::
-
-(examples-transformation)=
-## Transformation
-
-::::{grid} 2 4 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:link: /examples/catch22.ipynb
-:link-type: ref
-:text-align: center
-
-The Canonical Time-series Characteristics (catch22) transform
+Intro to annotation
 
 :::
 
 :::{grid-item-card}
-:link: /examples/feature_extraction_with_tsfresh.ipynb
+:img-top: examples/annotation/img/clasp.png
+:class-img-top: aeon-card-image-m
+:link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
 
-Feature extraction with tsfresh transformer
+ClaSP segmentation
 
 :::
 
 :::{grid-item-card}
-:link: /examples/hidalgo_segmentation.ipynb
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -231,116 +359,182 @@ Hidalgo segmentation
 
 :::
 
-:::{grid-item-card}
-:link: /examples/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Time series interpolating with aeon
-
-:::
-
-:::{grid-item-card}
-:link: /examples/minirocket.ipynb
-:link-type: ref
-:text-align: center
-
-MiniRocket
-
-:::
-
-:::{grid-item-card}
-:link: /examples/plateau_finder.ipynb
-:link-type: ref
-:text-align: center
-
-Demo of the PlateauFinder transformer
-
-:::
-
-:::{grid-item-card}
-:link: /examples/rocket.ipynb
-:link-type: ref
-:text-align: center
-
-Demo of ROCKET transform
-
-:::
-
-:::{grid-item-card}
-:link: /examples/signature_method.ipynb
-:link-type: ref
-:text-align: center
-
-The Signature Method with aeon
-
-:::
-
-:::{grid-item-card}
-:link: /examples/theta_transform.ipynb
-:link-type: ref
-:text-align: center
-
-Theta Lines transformer
-
-:::
 
 ::::
 
-## Data
+
+## Distances
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/AA_datatypes_and_datasets.ipynb
+:img-top: examples/distances/img/dtw_vis.png
+:class-img-top: aeon-card-image-m
+:link: /examples/distances/distances.ipynb
 :link-type: ref
 :text-align: center
 
-In-memory data representations and data loading
+Distance functions
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/distances/img/svm.png
+:class-img-top: aeon-card-image-m
+:link: /examples/distances/sklearn_distances.ipynb
+:link-type: ref
+:text-align: center
+
+Using aeon distances with scikit-learn
+
+::::
+
+
+
+## Similarity search
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/similarity_search.ipynb
+:link-type: ref
+:text-align: center
+
+Intro to similarity search
 
 :::
 
 :::{grid-item-card}
-:link: /examples/loading_data.ipynb
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/distance_profiles.ipynb
 :link-type: ref
 :text-align: center
 
-Loading data into aeon
+Deep dive into distance profiles
 
 :::
 
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/code_speed.ipynb
+:link-type: ref
+:text-align: center
+
+Benchmarking of similarity search speed-ups
+
+:::
+
+
 ::::
 
-## Other
+
+## Data Formatting and Loading
 
 ::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:link: /examples/04_benchmarking.ipynb
+:img-top: examples/datasets/img/data.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/datasets.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking with aeon
+Data in aeon
 
 :::
 
 :::{grid-item-card}
-:link: /examples/distances.ipynb
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/data_structures.ipynb
 :link-type: ref
 :text-align: center
 
-Distances
+Data structures and containers used in aeon
 
 :::
 
 :::{grid-item-card}
-:link: /examples/mlflow.ipynb
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/data_conversions.ipynb
 :link-type: ref
 :text-align: center
 
-MLflow
+Conversions between data structures
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/data_loading.ipynb
+:link-type: ref
+:text-align: center
+
+How series are stored in file and loaded into memory
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/provided_data.ipynb
+:link-type: ref
+:text-align: center
+
+Example data sets
+
+:::
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/load_data_from_web.ipynb
+:link-type: ref
+:text-align: center
+
+Loading data from the web
+
+:::
+
+::::
+
+## Benchmarking
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/benchmarking/benchmarkings.ipynb
+:link-type: ref
+:text-align: center
+
+Benchmarking algorithms
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/benchmarking/results_loading.ipynb
+:link-type: ref
+:text-align: center
+
+Geting published results
 
 :::
 

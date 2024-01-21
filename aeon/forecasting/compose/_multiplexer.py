@@ -1,10 +1,7 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecaster for selecting among different model classes."""
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
+from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
@@ -80,10 +77,10 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
 
     _tags = {
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
-        "scitype:y": "both",
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "capability:missing_values": False,
+        "y_input_type": "both",
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "fit_is_empty": False,
     }
 
@@ -123,8 +120,8 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
         self.clone_tags(self.forecaster_)
         self.set_tags(**{"fit_is_empty": False})
         # this ensures that we convert in the inner estimator, not in the multiplexer
-        self.set_tags(**{"y_inner_mtype": ALL_TIME_SERIES_MTYPES})
-        self.set_tags(**{"X_inner_mtype": ALL_TIME_SERIES_MTYPES})
+        self.set_tags(**{"y_inner_type": ALL_TIME_SERIES_TYPES})
+        self.set_tags(**{"X_inner_type": ALL_TIME_SERIES_TYPES})
 
     @property
     def _forecasters(self):

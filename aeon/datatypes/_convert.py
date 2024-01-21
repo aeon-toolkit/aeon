@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Machine type converters for scitypes.
 
 Exports
@@ -74,7 +72,7 @@ from aeon.datatypes._check import mtype as infer_mtype
 from aeon.datatypes._hierarchical import convert_dict_Hierarchical
 from aeon.datatypes._panel import convert_dict_Panel
 from aeon.datatypes._proba import convert_dict_Proba
-from aeon.datatypes._registry import mtype_to_scitype
+from aeon.datatypes._registry import AMBIGUOUS_MTYPES, mtype_to_scitype
 from aeon.datatypes._series import convert_dict_Series
 from aeon.datatypes._table import convert_dict_Table
 
@@ -101,12 +99,12 @@ def convert(
     ----------
     obj : object to convert - any type, should comply with mtype spec for as_scitype
     from_type : str - the type to convert "obj" to, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     to_type : str - the type to convert "obj" to, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         default = inferred from from_type
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
     store : optional, reference of storage for lossy conversions, default=None (no ref)
         is updated by side effect if not None and store_behaviour="reset" or "update"
     store_behaviour : str, optional, one of None (default), "reset", "freeze", "update"
@@ -182,6 +180,7 @@ def convert_to(
     as_scitype: str = None,
     store=None,
     store_behaviour: str = None,
+    exclude_mtypes=AMBIGUOUS_MTYPES,
 ):
     """Convert object to a different machine representation, subject to scitype.
 
@@ -190,10 +189,10 @@ def convert_to(
     obj : object to convert - any type, should comply with mtype spec for as_scitype
     to_type : str - the type to convert "obj" to, a valid mtype string
             or list of str, this specifies admissible types for conversion to
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         pre-specifying the scitype reduces the number of checks done in type inference
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
         default = inferred from mtype of obj, which is in turn inferred internally
     store : reference of storage for lossy conversions, default=None (no store)
         is updated by side effect if not None and store_behaviour="reset" or "update"
@@ -202,6 +201,8 @@ def convert_to(
         "freeze" - store is read-only, may be read/used by conversion but not changed
         "update" - store is updated from conversion and retains previous contents
         None - automatic: "update" if store is empty and not None; "freeze", otherwise
+    exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
+        which mtypes to ignore in inferring mtype, default = ambiguous ones
 
     Returns
     -------
@@ -239,7 +240,9 @@ def convert_to(
         as_scitype = mtype_to_scitype(to_type)
 
     # now further narrow down as_scitype by inference from the obj
-    from_type = infer_mtype(obj=obj, as_scitype=as_scitype)
+    from_type = infer_mtype(
+        obj=obj, as_scitype=as_scitype, exclude_mtypes=exclude_mtypes
+    )
     as_scitype = mtype_to_scitype(from_type)
 
     # if to_type is a list, we do the following:
@@ -279,7 +282,7 @@ def _conversions_defined(scitype: str):
     Parameters
     ----------
     scitype: str - name of scitype for which conversions are queried
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
 
     Returns
     -------

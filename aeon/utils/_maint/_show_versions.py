@@ -1,7 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# License: BSD 3 clause
-
 """Utility methods to print system info for debugging.
 
 adapted from :func:`sklearn.show_versions`
@@ -47,7 +43,7 @@ def _get_deps_info():
     deps = [
         "pip",
         "setuptools",
-        "sklearn",
+        "scikit-learn",
         "aeon",
         "statsmodels",
         "numpy",

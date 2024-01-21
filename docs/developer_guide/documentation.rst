@@ -173,7 +173,7 @@ MeanAbsoluteScaledError_
 .. _MeanAbsoluteScaledError: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.performance_metrics.forecasting.MeanAbsoluteScaledError.html
 
 .. _sphinx: https://www.sphinx-doc.org/
-.. _readthedocs: https://readthedocs.org/projects/aeon/
+.. _readthedocs: https://readthedocs.org/projects/aeon-toolkit/
 
 Documentation Build
 -------------------
@@ -206,3 +206,5 @@ dependencies listed in
 
       cd docs
       make html
+
+You may need to install pandoc to build the documentation locally.

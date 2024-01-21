@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests of FitInTransform functionality."""
 
 __author__ = ["aiwalter"]
@@ -9,9 +6,9 @@ __all__ = []
 from pandas.testing import assert_series_equal
 
 from aeon.forecasting.model_selection import temporal_train_test_split
+from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
-from aeon.transformations.series.boxcox import BoxCoxTransformer
-from aeon.utils._testing.forecasting import make_forecasting_problem
 
 X = make_forecasting_problem()
 X_train, X_test = temporal_train_test_split(X)

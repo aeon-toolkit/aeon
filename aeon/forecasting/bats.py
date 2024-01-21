@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements BATS algorithm.
 
 BATS refers to Exponential smoothing state space model with Box-Cox
@@ -13,9 +10,6 @@ __author__ = ["Martin Walter"]
 __all__ = ["BATS"]
 
 from aeon.forecasting.base.adapters import _TbatsAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tbats", severity="warning")
 
 
 class BATS(_TbatsAdapter):
@@ -144,9 +138,4 @@ class BATS(_TbatsAdapter):
             "n_jobs": 1,
         }
 
-        params2 = {
-            "use_box_cox": False,
-            "sp": [2, 12],
-        }
-
-        return [params1, params2]
+        return [params1]

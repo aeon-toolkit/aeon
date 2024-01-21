@@ -1,13 +1,24 @@
 .. _regression_ref:
 
-Time series regression
-======================
+Regression
+==========
 
 The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
 
 All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
 using ``estimator_types="regressor"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
+
+Convolution-based
+-----------------
+
+.. currentmodule:: aeon.regression.convolution_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RocketRegressor
 
 Deep learning
 -------------
@@ -19,7 +30,11 @@ Deep learning
     :template: class.rst
 
     CNNRegressor
+    FCNRegressor
     TapNetRegressor
+    InceptionTimeRegressor
+    IndividualInceptionRegressor
+    ResNetRegressor
 
 Distance-based
 --------------
@@ -35,13 +50,25 @@ Distance-based
 Dummy
 -----
 
-.. currentmodule:: aeon.regression.dummy
+.. currentmodule:: aeon.regression
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     DummyRegressor
+
+Feature-based
+--------------
+
+.. currentmodule:: aeon.regression.feature_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    FreshPRINCERegressor
+
 
 Interval-based
 --------------
@@ -54,16 +81,16 @@ Interval-based
 
     TimeSeriesForestRegressor
 
-Kernel-based
-------------
+sklearn
+-------
 
-.. currentmodule:: aeon.regression.convolution_based
+.. currentmodule:: aeon.regression.sklearn
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    RocketRegressor
+    RotationForestRegressor
 
 Base
 ----

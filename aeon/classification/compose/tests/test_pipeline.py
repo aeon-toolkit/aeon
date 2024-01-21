@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Unit tests for composition functionality attached to the base class."""
+"""Unit tests for (dunder) composition functionality attached to the base class."""
 
 __author__ = ["fkiraly", "TonyBagnall"]
 
@@ -11,11 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline, SklearnClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.transformations.panel.pad import PaddingTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.utils._testing.collection import make_3d_test_data
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.collection import make_3d_test_data
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.transformations.collection import PaddingTransformer
+from aeon.transformations.exponent import ExponentTransformer
+from aeon.transformations.impute import Imputer
 
 
 def test_classifier_pipeline():

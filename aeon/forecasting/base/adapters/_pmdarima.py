@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements adapter for pmdarima forecasters to be used in aeon framework."""
 
 __author__ = ["mloning", "hyang1996", "kejsitake", "fkiraly"]
@@ -19,7 +16,7 @@ class _PmdArimaAdapter(BaseForecaster):
         "ignores-exogeneous-X": False,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
+        "capability:missing_values": True,
         "python_dependencies": "pmdarima",
     }
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Example generation for testing.
 
 Exports dict of examples, useful for testing as fixtures.
@@ -39,8 +38,8 @@ example_dict_lossy[("pd_DataFrame_Table", "Table", 0)] = False
 
 arr = np.array([[1], [4], [0.5], [-3]])
 
-example_dict[("numpy2D", "Table", 0)] = arr
-example_dict_lossy[("numpy2D", "Table", 0)] = True
+example_dict[("numpy_Table", "Table", 0)] = arr
+example_dict_lossy[("numpy_Table", "Table", 0)] = True
 
 arr = np.array([1, 4, 0.5, -3])
 
@@ -78,8 +77,8 @@ example_dict_lossy[("pd_DataFrame_Table", "Table", 1)] = False
 
 arr = np.array([[1, 3], [4, 7], [0.5, 2], [-3, -3 / 7]])
 
-example_dict[("numpy2D", "Table", 1)] = arr
-example_dict_lossy[("numpy2D", "Table", 1)] = True
+example_dict[("numpy_Table", "Table", 1)] = arr
+example_dict_lossy[("numpy_Table", "Table", 1)] = True
 
 example_dict[("pd_Series_Table", "Table", 1)] = None
 example_dict_lossy[("pd_Series_Table", "Table", 1)] = None

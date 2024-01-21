@@ -1,12 +1,21 @@
-# -*- coding: utf-8 -*-
 """Distance computation."""
-__author__ = ["chrisholder", "TonyBagnall"]
+
+__author__ = ["chrisholder", "TonyBagnall", "baraline", "akshatvishu"]
+
 __all__ = [
     "create_bounding_matrix",
     "squared_distance",
     "squared_pairwise_distance",
     "euclidean_distance",
     "euclidean_pairwise_distance",
+    "manhattan_distance",
+    "manhattan_pairwise_distance",
+    "minkowski_distance",
+    "minkowski_pairwise_distance",
+    "adtw_distance",
+    "adtw_pairwise_distance",
+    "adtw_cost_matrix",
+    "adtw_alignment_path",
     "dtw_distance",
     "dtw_pairwise_distance",
     "dtw_cost_matrix",
@@ -49,10 +58,22 @@ __all__ = [
     "cost_matrix",
     "get_cost_matrix_function",
     "get_distance_function",
+    "get_distance_function_names",
     "get_pairwise_distance_function",
     "get_alignment_path_function",
+    "shape_dtw_distance",
+    "shape_dtw_cost_matrix",
+    "shape_dtw_alignment_path",
+    "shape_dtw_pairwise_distance",
 ]
 
+
+from aeon.distances._adtw import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+)
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import (
     ddtw_alignment_path,
@@ -67,6 +88,7 @@ from aeon.distances._distance import (
     get_alignment_path_function,
     get_cost_matrix_function,
     get_distance_function,
+    get_distance_function_names,
     get_pairwise_distance_function,
     pairwise_distance,
 )
@@ -95,11 +117,19 @@ from aeon.distances._lcss import (
     lcss_distance,
     lcss_pairwise_distance,
 )
+from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
+from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
     msm_distance,
     msm_pairwise_distance,
+)
+from aeon.distances._shape_dtw import (
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (

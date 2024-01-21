@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TSFresh Classifier.
 
 Pipeline classifier using the TSFresh transformer and an estimator.
@@ -14,16 +13,17 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.tsfresh import (
+from aeon.transformations.collection.feature_based import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
 )
 
 
 class TSFreshClassifier(BaseClassifier):
-    """Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
+    """
+    Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
 
-    This classifier simply transforms the input data using the TSFresh [1]
+    This classifier simply transforms the input data using the TSFresh [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
@@ -37,7 +37,7 @@ class TSFreshClassifier(BaseClassifier):
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     verbose : int, default=0
-        level of output printed to the console (for information only)
+        Level of output printed to the console (for information only).
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -104,7 +104,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -122,13 +122,13 @@ class TSFreshClassifier(BaseClassifier):
         self._transformer = (
             TSFreshRelevantFeatureExtractor(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
             else TSFreshFeatureExtractor(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
         )
@@ -146,7 +146,7 @@ class TSFreshClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
@@ -171,7 +171,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -189,7 +189,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

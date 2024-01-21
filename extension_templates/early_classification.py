@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for early time series classifiers.
 
@@ -70,7 +69,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, usually
         # this is either "numpy3D". Other
         # types are allowable, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
@@ -111,9 +110,9 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
         #
         # example 1: conditional setting of a tag
         # if est.foo == 42:
-        #   self.set_tags(handles-missing-data=True)
+        #   self.set_tags(capability:missing_values=True)
         # example 2: cloning tags from component
-        #   self.clone_tags(est2, ["enforce_index_type", "handles-missing-data"])
+        #   self.clone_tags(est2, ["enforce_index_type", "capability:missing_values"])
 
     # todo: implement this, mandatory
     def _fit(self, X, y):
@@ -123,7 +122,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -157,7 +156,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -188,7 +187,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -224,7 +223,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -259,7 +258,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -284,7 +283,7 @@ class MyEarlyTimeSeriesClassifier(BaseEarlyClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns

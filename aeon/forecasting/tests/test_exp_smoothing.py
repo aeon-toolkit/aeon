@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test exponential smoothing forecasters."""
 
 __author__ = ["mloning", "@big-o"]
@@ -9,7 +8,7 @@ from numpy.testing import assert_array_equal
 
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.utils._testing.forecasting import make_forecasting_problem
+from aeon.testing.utils.forecasting import make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # load test data

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements forecaster for applying different univariates by column."""
 
 __author__ = ["GuzalBulatova", "mloning", "fkiraly"]
@@ -80,12 +77,12 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": PANDAS_MTYPES,
-        "X_inner_mtype": PANDAS_MTYPES,
+        "y_inner_type": PANDAS_MTYPES,
+        "X_inner_type": PANDAS_MTYPES,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "capability:pred_int": True,
     }
 
@@ -110,7 +107,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
                 "requires-fh-in-fit",
                 "capability:pred_int",
                 "ignores-exogeneous-X",
-                "handles-missing-data",
+                "capability:missing_values",
             ]
             self.clone_tags(forecasters, tags_to_clone)
         else:
@@ -118,7 +115,9 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
             self._anytagis_then_set("requires-fh-in-fit", True, False, l_forecasters)
             self._anytagis_then_set("capability:pred_int", False, True, l_forecasters)
             self._anytagis_then_set("ignores-exogeneous-X", False, True, l_forecasters)
-            self._anytagis_then_set("handles-missing-data", False, True, l_forecasters)
+            self._anytagis_then_set(
+                "capability:missing_values", False, True, l_forecasters
+            )
 
     @property
     def _forecasters(self):
@@ -291,7 +290,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -332,7 +331,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

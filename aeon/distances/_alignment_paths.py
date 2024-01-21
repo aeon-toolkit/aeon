@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -15,7 +14,7 @@ def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
 
     Parameters
     ----------
-    cost_matrix: np.ndarray, of shape (n_timepoints_x, n_timepoints_y)
+    cost_matrix : np.ndarray, of shape (n_timepoints_x, n_timepoints_y)
         Cost matrix.
 
     Returns
@@ -68,15 +67,15 @@ def compute_lcss_return_path(
 
     Parameters
     ----------
-    x: np.ndarray, of shape (n_channels, n_timepoints)
+    x : np.ndarray, of shape (n_channels, n_timepoints)
         First time series.
-    y: np.ndarray (m_channels, m_timepoints)
+    y : np.ndarray (m_channels, m_timepoints)
         Second time series.
-    epsilon: float
+    epsilon : float
         Threshold for the LCSS algorithm.
-    bounding_matrix: np.ndarray (n_timepoints_x, n_timepoints_y)
+    bounding_matrix : np.ndarray (n_timepoints_x, n_timepoints_y)
         Bounding matrix for the LCSS algorithm.
-    cost_matrix: np.ndarray (n_timepoints_x, n_timepoints_y)
+    cost_matrix : np.ndarray (n_timepoints_x, n_timepoints_y)
         Cost matrix for the LCSS algorithm.
 
     Returns

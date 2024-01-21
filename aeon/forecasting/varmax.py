@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Vector Autoregressive Moving Average with eXogenous regressors model (VARMAX)."""
 __all__ = ["VARMAX"]
 __author__ = ["KatieBuc"]
@@ -8,9 +7,6 @@ import warnings
 import pandas as pd
 
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("pandas<2.0.0", severity="warning")
 
 
 class VARMAX(_StatsModelsAdapter):
@@ -210,11 +206,11 @@ class VARMAX(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "multivariate",
+        "y_input_type": "multivariate",
         "ignores-exogeneous-X": False,
-        "handles-missing-data": False,
-        "y_inner_mtype": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "capability:missing_values": False,
+        "y_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "X-y-must-have-same-index": True,
         "enforce_index_type": None,
@@ -376,7 +372,7 @@ class VARMAX(_StatsModelsAdapter):
         # but only when out-of-sample forecasting, i.e. when forecasting horizon is
         # greater than zero
         if pd.__version__ < "2.0.0":
-            if (type(self._y.index) == pd.core.indexes.numeric.Int64Index) & (
+            if (type(self._y.index) is pd.core.indexes.numeric.Int64Index) & (
                 any(fh.to_relative(self.cutoff) > 0)
             ):
                 y_pred.index = y_pred.index + self._y.index[0]

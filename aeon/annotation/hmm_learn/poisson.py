@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Hidden Markov Model with Poisson emissions.
 
@@ -9,12 +7,9 @@ Please see the original library
 from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["klam-data", "pyyim", "mgorlin"]
 __all__ = ["PoissonHMM"]
-
-_check_soft_dependencies("hmmlearn.hmm", severity="warning")
 
 
 class PoissonHMM(BaseHMMLearn):

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implement dataset splitting for model evaluation and selection."""
 
 __all__ = [
@@ -522,7 +519,7 @@ class BaseSplitter(BaseObject):
             "np.ndarray",
             "nested_univ",
             "numpy3D",
-            # "numpyflat",
+            # "numpy2D",
             "pd-multiindex",
             # "pd-wide",
             # "pd-long",
@@ -539,8 +536,7 @@ class BaseSplitter(BaseObject):
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
                 f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
+                "For further details see  examples/forecasting, or examples/datasets"
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
@@ -552,8 +548,7 @@ class BaseSplitter(BaseObject):
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
                 f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
+                "See  examples/forecasting, or examples/datasets, "
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "

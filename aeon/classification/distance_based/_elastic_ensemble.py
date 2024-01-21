@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
 """The Elastic Ensemble (EE).
 
 An ensemble of elastic nearest neighbour classifiers.
 """
 
 __author__ = ["jasonlines", "TonyBagnall"]
-__all__ = ["ElasticEnsemble", "series_slope_derivative"]
+__all__ = ["ElasticEnsemble"]
 
+import math
 import time
 from itertools import product
 
@@ -24,20 +24,20 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
-from aeon.transformations.panel.summarize._extract import series_slope_derivative
+from aeon.utils.numba.general import slope_derivative_2d
 
 
 class ElasticEnsemble(BaseClassifier):
-    """The Elastic Ensemble (EE).
+    """The Elastic Ensemble (EE) of time series distance measures.
 
-    The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
+    The Elastic Ensemble [1]_ is an ensemble of 1-NN classifiers using elastic
     distances (as defined in aeon.distances). By default, each 1-NN classifier
     is tuned over 100 parameter values and the ensemble vote is weighted by
     an estimate of accuracy formed on the train set.
 
     Parameters
     ----------
-    distance_measures : list of strings, default="all"
+    distance_measures : str or list of str, default="all"
       A list of strings identifying which distance measures to include. Valid values
       are one or more of: euclidean, dtw, wdtw, ddtw, dwdtw, lcss, erp, msm, twe, all
     proportion_of_param_options : float, default=1
@@ -54,19 +54,20 @@ class ElasticEnsemble(BaseClassifier):
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False
-      Whether to use majority vote or weighted vote
+      Whether to use majority vote or weighted vote.
 
     Attributes
     ----------
     estimators_ : list
-      A list storing all classifiers
-    train_accs_by_classifier_ : ndarray
-      Store the train accuracies of the classifiers
-    constituent_build_times_ : build time for each member of the ensemble
+      A list storing all classifiers.
+    train_accs_by_classifier_ : np.ndarray
+      Store the train accuracies of the classifiers.
+    constituent_build_times_ : array of float
+        build time for each member of the ensemble.
 
     Notes
     -----
-    ..[1] Jason Lines and Anthony Bagnall,
+    .. [1] Jason Lines and Anthony Bagnall,
           "Time Series Classification with Ensembles of Elastic Distance Measures",
               Data Mining and Knowledge Discovery, 29(3), 2015.
     https://link.springer.com/article/10.1007/s10618-014-0361-2
@@ -89,8 +90,11 @@ class ElasticEnsemble(BaseClassifier):
     """
 
     _tags = {
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -123,9 +127,11 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = [n_instances, n_channels, series_length]
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
             The training input samples.
-        y : array-like, shape = [n_instances] The class labels.
+
+        y : array-like, shape = (n_cases) The class labels.
 
         Returns
         -------
@@ -149,7 +155,11 @@ class ElasticEnsemble(BaseClassifier):
         if self._distance_measures.__contains__(
             "ddtw"
         ) or self._distance_measures.__contains__("wddtw"):
-            der_X = series_slope_derivative(X)
+            der_X = []  # use list to allow for unequal length
+            for x in X:
+                der_X.append(slope_derivative_2d(x))
+            if isinstance(X, np.ndarray):
+                der_X = np.array(der_X)
         else:
             der_X = None
 
@@ -234,13 +244,13 @@ class ElasticEnsemble(BaseClassifier):
                     or self._distance_measures[dm] == "wddtw"
                 ):
                     print(  # noqa: T201
-                        f"Currently evaluating{self._distance_measures[dm].__name__} "
-                        f"implemented as {this_measure.__name__} with pre-transformed "
+                        f"Currently evaluating {self._distance_measures[dm]} "
+                        f"implemented as {this_measure} with pre-transformed "
                         f"derivative data)"
                     )
                 else:
                     print(  # noqa: T201
-                        "Currently evaluating {self._distance_measures[dm].__name__}"
+                        f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
             # If 100 parameter options are being considered per measure,
@@ -255,7 +265,7 @@ class ElasticEnsemble(BaseClassifier):
                     ),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                     verbose=self.verbose,
                 )
                 grid.fit(param_train_to_use, param_train_y)
@@ -270,10 +280,10 @@ class ElasticEnsemble(BaseClassifier):
                     param_distributions=ElasticEnsemble._get_100_param_options(
                         self._distance_measures[dm], X
                     ),
-                    n_iter=100 * self.proportion_of_param_options,
+                    n_iter=math.ceil(100 * self.proportion_of_param_options),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                     random_state=rand,
                     verbose=self.verbose,
                 )
@@ -292,7 +302,7 @@ class ElasticEnsemble(BaseClassifier):
                     n_neighbors=1,
                     distance=this_measure,
                     distance_params=grid.best_params_["distance_params"],
-                    n_jobs=self._threads_to_use,
+                    n_jobs=self._n_jobs,
                 )
                 preds = cross_val_predict(
                     best_model, full_train_to_use, y, cv=LeaveOneOut()
@@ -301,7 +311,7 @@ class ElasticEnsemble(BaseClassifier):
 
             if self.verbose > 0:
                 print(  # noqa: T201
-                    f"Training acc for {self._distance_measures[dm].__name__}: {acc}"
+                    f"Training acc for {self._distance_measures[dm]}: {acc}"
                 )
 
             # Finally, reset the classifier for this measure and parameter
@@ -324,18 +334,22 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, 1, series_length]
-            The data to make predictions for.
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
         if self._distance_measures.__contains__(
             "ddtw"
         ) or self._distance_measures.__contains__("wddtw"):
-            der_X = series_slope_derivative(X)
+            der_X = []  # use list to allow for unequal length
+            for x in X:
+                der_X.append(slope_derivative_2d(x))
+            if isinstance(X, np.ndarray):
+                der_X = np.array(der_X)
         else:
             der_X = None
 
@@ -361,38 +375,34 @@ class ElasticEnsemble(BaseClassifier):
         output_probas = np.divide(output_probas, train_sum)
         return output_probas
 
-    def _predict(self, X, return_preds_and_probas=False) -> np.ndarray:
+    def _predict(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, 1, series_length]
-            The data to make predictions for.
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
+            The training input samples.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = (n_cases) The class labels.
             Predicted class labels.
         """
         probas = self._predict_proba(X)
         idx = np.argmax(probas, axis=1)
         preds = np.asarray([self.classes_[x] for x in idx])
-        if return_preds_and_probas is False:
-            return preds
-        else:
-            return preds, probas
+        return preds
 
     def get_metric_params(self):
         """Return the parameters for the distance metrics used."""
         return {
-            self._distance_measures[dm].__name__: str(
-                self.estimators_[dm].metric_params
-            )
+            self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
             for dm in range(len(self.estimators_))
         }
 
     @staticmethod
-    def _get_100_param_options(distance_measure, train_x=None, data_dim_to_use=0):
+    def _get_100_param_options(distance_measure, train_x=None):
         def get_inclusive(min_val, max_val, num_vals):
             inc = (max_val - min_val) / (num_vals - 1)
             return np.arange(min_val, max_val + inc / 2, inc)
@@ -402,6 +412,8 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "wdtw" or distance_measure == "wddtw":
             return {"distance_params": [{"g": x / 100} for x in range(0, 100)]}
         elif distance_measure == "lcss":
+            if train_x is None:
+                raise ValueError(f"Error need train data for {distance_measure}")
             train_std = np.std(train_x)
             epsilons = get_inclusive(train_std * 0.2, train_std, 10)
             deltas = get_inclusive(0, 0.25, 10)
@@ -412,6 +424,8 @@ class ElasticEnsemble(BaseClassifier):
                 ]
             }
         elif distance_measure == "erp":
+            if train_x is None:
+                raise ValueError(f"Error need train data for {distance_measure}")
             train_std = np.std(train_x)
             band_sizes = get_inclusive(0, 0.25, 10)
             g_vals = get_inclusive(train_std * 0.2, train_std, 10)
@@ -432,7 +446,6 @@ class ElasticEnsemble(BaseClassifier):
                     {"c": x} for x in np.concatenate([a, b[1:], c[1:], d[1:]])
                 ]
             }
-        # elif distance_measure == twe_distance
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)

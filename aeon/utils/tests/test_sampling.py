@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
 """Testing sampling utilities."""
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from aeon.datasets import load_unit_test
-from aeon.datatypes import check_is_scitype
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.utils.sampling import random_partition, stratified_resample
 
 NK_FIXTURES = [(10, 3), (15, 5), (19, 6), (3, 1), (1, 2)]
 SEED_FIXTURES = [42, 0, 100, -5]
+INPUT_TYPES = ["numpy3D", "np-list", "pd.DataFrame"]
 
 
 @pytest.mark.parametrize("n, k", NK_FIXTURES)
@@ -47,21 +46,39 @@ def test_seed(n, k, seed):
     assert deep_equals(part, part2)
 
 
-def test_stratified_resample():
-    """Test resampling returns valid data structure and maintains class distribution."""
-    trainX, trainy = load_unit_test(split="TRAIN", return_type="nested_univ")
-    testX, testy = load_unit_test(split="TEST", return_type="nested_univ")
-    new_trainX, new_trainy, new_testX, new_testy = stratified_resample(
-        trainX, trainy, testX, testy, 0
+@pytest.mark.parametrize("input_type", INPUT_TYPES)
+def test_stratified_resample(input_type):
+    random_state = np.random.RandomState(0)
+    if input_type == "numpy3D":
+        X_train = random_state.random((10, 1, 100))
+        X_test = random_state.random((10, 1, 100))
+    elif input_type == "np-list":
+        X_train = [random_state.random((1, 100)) for _ in range(10)]
+        X_test = [random_state.random((1, 100)) for _ in range(10)]
+    else:
+        train_series = [pd.Series(random_state.random(100)) for _ in range(10)]
+        test_series = [pd.Series(random_state.random(100)) for _ in range(10)]
+        X_train = pd.DataFrame({"dim_0": train_series})
+        X_test = pd.DataFrame({"dim_0": test_series})
+    y_train = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+    y_test = np.array([0, 0, 0, 0, 0, 0, 0, 1, 1, 1])
+
+    new_X_train, new_y_train, new_X_test, new_y_test = stratified_resample(
+        X_train, y_train, X_test, y_test, random_state
     )
 
-    valid_train = check_is_scitype(new_trainX, scitype="Panel")
-    valid_test = check_is_scitype(new_testX, scitype="Panel")
-    assert valid_test and valid_train
-    # count class occurrences
-    unique_train, counts_train = np.unique(trainy, return_counts=True)
-    unique_test, counts_test = np.unique(testy, return_counts=True)
-    unique_train_new, counts_train_new = np.unique(new_trainy, return_counts=True)
-    unique_test_new, counts_test_new = np.unique(new_testy, return_counts=True)
-    assert list(counts_train_new) == list(counts_train)
-    assert list(counts_test_new) == list(counts_test)
+    # Valid return type
+    assert type(X_train) is type(new_X_train) and type(X_test) is type(new_X_test)
+
+    classes_train, classes_count_train = np.unique(y_train, return_counts=True)
+    classes_test, classes_count_test = np.unique(y_test, return_counts=True)
+    classes_new_train, classes_count_new_train = np.unique(
+        new_y_train, return_counts=True
+    )
+    classes_new_test, classes_count_new_test = np.unique(new_y_test, return_counts=True)
+
+    # Assert same class distributions
+    assert np.all(classes_train == classes_new_train)
+    assert np.all(classes_count_train == classes_count_new_train)
+    assert np.all(classes_test == classes_new_test)
+    assert np.all(classes_count_test == classes_count_new_test)

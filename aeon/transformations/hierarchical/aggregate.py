@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements a transfromer to generate hierarcical data from bottom level."""
 
 __author__ = ["ciaran-g"]
@@ -10,8 +8,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
-
-# todo: add any necessary aeon internal imports here
 
 
 class Aggregator(BaseTransformer):
@@ -40,7 +36,7 @@ class Aggregator(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.hierarchical import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -51,22 +47,21 @@ class Aggregator(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        # todo instance wise?
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": [
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
+        "X_inner_type": [
             "pd.Series",
             "pd.DataFrame",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "handles-missing-data": False,  # can estimator handle missing data?
+        "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": False,

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements Bagging Forecaster."""
 
 __author__ = ["ltsaprounis"]
@@ -16,12 +13,12 @@ from sklearn.utils._testing import set_random_state
 from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.bootstrap import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
-from aeon.utils.estimators import MockForecaster
 
 
 class BaggingForecaster(BaseForecaster):
@@ -42,8 +39,8 @@ class BaggingForecaster(BaseForecaster):
     bootstrap_transformer : BaseTransformer
         (aeon.transformations.bootstrap.STLBootstrapTransformer)
         Bootstrapping Transformer that takes a series (with tag
-        scitype:transform-input=Series) as input and returns a panel (with tag
-        scitype:transform-input=Panel) of bootstrapped time series if not specified
+        input_data_type=Series) as input and returns a panel (with tag
+        input_data_type=Panel) of bootstrapped time series if not specified
         aeon.transformations.bootstrap.STLBootstrapTransformer is used.
     forecaster : BaseForecaster (aeon.forecating.ets.AutoETS)
         A valid aeon Forecaster. If not specified aeon.forecating.ets.AutoETS is
@@ -89,11 +86,11 @@ class BaggingForecaster(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": True,  # does estimator ignore the exogeneous X?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "capability:missing_values": False,  # can estimator handle missing data?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "requires-fh-in-fit": False,  # like AutoETS overwritten if forecaster not None
         "enforce_index_type": None,  # like AutoETS overwritten if forecaster not None
@@ -139,19 +136,19 @@ class BaggingForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
+            if self.get_tag("y_input_type")=="both": no restrictions apply
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -169,12 +166,10 @@ class BaggingForecaster(BaseForecaster):
             self.forecaster_ = clone(self.forecaster)
 
         if (
-            self.bootstrap_transformer_.get_tag(
-                "scitype:transform-input", raise_error=False
-            )
+            self.bootstrap_transformer_.get_tag("input_data_type", raise_error=False)
             != "Series"
             and self.bootstrap_transformer_.get_tag(
-                "scitype:transform-output", raise_error=False
+                "output_data_type", raise_error=False
             )
             != "Panel"
             and not isinstance(self.bootstrap_transformer_, BaseTransformer)

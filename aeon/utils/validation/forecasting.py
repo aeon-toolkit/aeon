@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Validations for use with forecasting module."""
 
 __all__ = [
@@ -22,6 +20,7 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from sklearn.base import clone, is_regressor
 from sklearn.ensemble import GradientBoostingRegressor
 
@@ -119,7 +118,13 @@ def check_X(
     )
 
 
-def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
+def check_y(
+    y,
+    allow_empty=False,
+    allow_constant=True,
+    enforce_index_type=None,
+    allow_index_names=False,
+):
     """Validate input data.
 
     Parameters
@@ -131,6 +136,8 @@ def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
         If True, constant `y` does not raise an error.
     enforce_index_type : type, optional (default=None)
         type of time index
+    allow_index_names : bool, optional (default=None)
+        If False, names of y.index will be set to None
 
     Returns
     -------
@@ -147,6 +154,7 @@ def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
         allow_empty=allow_empty,
         allow_numpy=False,
         enforce_index_type=enforce_index_type,
+        allow_index_names=allow_index_names,
     )
 
     if not allow_constant:
@@ -460,20 +468,57 @@ def check_regressor(regressor=None, random_state=None):
     return regressor
 
 
+def _check_valid_prediction_intervals(obj):
+    """Check whether obj is a valid representation of probablity prediction intervals.
+
+    Parameters
+    ----------
+    obj : pd.DataFrame
+
+    Returns
+    -------
+    bool
+        True if obj is a valid representation of prediction intervals
+    """
+    # check if the input is a dataframe
+    if not isinstance(obj, pd.DataFrame):
+        return False
+    # check that column indices are unique
+    if not len(set(obj.columns)) == len(obj.columns):
+        return False
+    # check that all cols are numeric
+    if not np.all([is_numeric_dtype(obj[c]) for c in obj.columns]):
+        return False
+    # Check time index is ordered in time
+    if not obj.index.is_monotonic_increasing:
+        return False
+    # check column multiindex
+    colidx = obj.columns
+    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 3:
+        return False
+    coverages = colidx.get_level_values(1)
+    if not is_numeric_dtype(coverages):
+        return False
+    if not (coverages <= 1).all() or not (coverages >= 0).all():
+        return False
+    upper_lower = colidx.get_level_values(2)
+    if not upper_lower.isin(["upper", "lower"]).all():
+        return False
+    return True
+
+
 def check_interval_df(interval_df, index_to_match):
     """
     Verify that a predicted interval DataFrame is formatted correctly.
 
     Parameters
     ----------
-    interval_df : pandas DataFrame outputted from forecaster.predict_interval()
+    interval_df : pandas DataFrame output from forecaster.predict_interval()
     index_to_match : Index object that must match interval_df.index
     """
-    from aeon.datatypes import check_is_mtype
-
-    checked = check_is_mtype(interval_df, "pred_interval", return_metadata=True)
-    if not checked[0]:
-        raise ValueError(checked[1])
+    valid = _check_valid_prediction_intervals(interval_df)
+    if not valid:
+        raise ValueError("Aregument interval_df is not a valid prediction interval.")
     df_idx = interval_df.index
     if len(index_to_match) != len(df_idx) or not (index_to_match == df_idx).all():
         raise ValueError("Prediction interval index must match the final Series index.")

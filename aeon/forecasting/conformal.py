@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Implements simple conformal forecast intervals.
 
 Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __all__ = ["ConformalIntervals"]
 __author__ = ["fkiraly", "bethrice44"]
@@ -89,9 +87,9 @@ class ConformalIntervals(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "ignores-exogeneous-X": False,
         "capability:pred_int": True,
     }
@@ -133,9 +131,9 @@ class ConformalIntervals(BaseForecaster):
         tags_to_clone = [
             "requires-fh-in-fit",
             "ignores-exogeneous-X",
-            "handles-missing-data",
-            "y_inner_mtype",
-            "X_inner_mtype",
+            "capability:missing_values",
+            "y_inner_type",
+            "X_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
@@ -191,7 +189,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -204,7 +202,7 @@ class ConformalIntervals(BaseForecaster):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -274,7 +272,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -285,7 +283,7 @@ class ConformalIntervals(BaseForecaster):
             Column has multi-index: first level is variable name from y in fit,
                 second level being the values of alpha passed to the function.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                    from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                    from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are quantile forecasts, for var in col index,
                 at quantile probability in second col index, for the row index.
         """

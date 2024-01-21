@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A shapelet transform classifier (STC).
 
 Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
@@ -14,15 +13,16 @@ from sklearn.model_selection import cross_val_predict
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.panel.shapelet_transform import RandomShapeletTransform
+from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
 from aeon.utils.validation.panel import check_X_y
 
 
 class ShapeletTransformClassifier(BaseClassifier):
-    """A shapelet transform classifier (STC).
+    """
+    A shapelet transform classifier (STC).
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
-    of [1][2] but with random shapelet sampling. Transforms the data using the
+    of [1]_[2]_ but with random shapelet sampling. Transforms the data using the
     configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
     classifier.
 
@@ -180,7 +180,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -227,7 +227,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._threads_to_use
+            self._estimator.n_jobs = self._n_jobs
 
         m = getattr(self._estimator, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
@@ -247,7 +247,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -264,7 +264,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -323,7 +323,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
-                n_jobs=self._threads_to_use,
+                n_jobs=self._n_jobs,
             )
 
     @classmethod

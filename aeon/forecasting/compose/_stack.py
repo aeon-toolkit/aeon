@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecasters for combining forecasts via stacking."""
 
 __author__ = ["mloning", "fkiraly", "indinewton"]
@@ -64,8 +61,8 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
     _tags = {
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": True,
-        "handles-missing-data": True,
-        "scitype:y": "univariate",
+        "capability:missing_values": True,
+        "y_input_type": "univariate",
         "X-y-must-have-same-index": True,
     }
 
@@ -75,7 +72,7 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         self.random_state = random_state
 
         self._anytagis_then_set("ignores-exogeneous-X", False, True, forecasters)
-        self._anytagis_then_set("handles-missing-data", False, True, forecasters)
+        self._anytagis_then_set("capability:missing_values", False, True, forecasters)
         self._anytagis_then_set("fit_is_empty", False, True, forecasters)
 
     def _fit(self, y, X=None, fh=None):

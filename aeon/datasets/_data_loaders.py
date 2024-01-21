@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
 import os
+import re
 import shutil
 import tempfile
+import urllib
 import zipfile
 from datetime import datetime
 from distutils.util import strtobool
@@ -10,16 +11,35 @@ from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
 
-from aeon.datasets._data_dataframe_loaders import DIRNAME, MODULE
-from aeon.datasets.tsc_dataset_names import _list_available_datasets
-from aeon.datatypes import MTYPE_LIST_HIERARCHICAL, convert
-from aeon.datatypes._panel._convert import from_long_to_nested
+import aeon
+from aeon.datasets.dataset_collections import (
+    list_downloaded_tsc_tsr_datasets,
+    list_downloaded_tsf_datasets,
+)
+from aeon.datasets.tser_data_lists import tser_monash, tser_soton
+from aeon.utils.validation.collection import convert_collection
+
+DIRNAME = "data"
+MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+
+
+__all__ = [  # Load functions
+    "load_from_tsfile",
+    "load_from_tsf_file",
+    "load_from_arff_file",
+    "load_from_tsv_file",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
+    "download_all_regression",
+    "get_dataset_meta_data",
+]
 
 
 # Return appropriate return_type in case an alias was used
 def _alias_datatype_check(return_type):
-    if return_type in ["numpy2d", "numpy2D", "np2d", "np2D"]:
-        return_type = "numpyflat"
+    if return_type in ["numpy2d", "np2d", "np2D", "numpyflat"]:
+        return_type = "numpy2D"
     if return_type in ["numpy3d", "np3d", "np3D"]:
         return_type = "numpy3D"
     return return_type
@@ -51,6 +71,7 @@ def _load_header_info(file):
     boolean_keys = ["timestamps", "missing", "univariate", "equallength", "targetlabel"]
     for line in file:
         line = line.strip().lower()
+        line = re.sub(r"\s+", " ", line)
         if line and not line.startswith("#"):
             tokens = line.split(" ")
             token_len = len(tokens)
@@ -72,20 +93,36 @@ def _load_header_info(file):
                 elif key == "classlabel":
                     if tokens[1] == "true":
                         meta_data["classlabel"] = True
+                        if token_len == 2:
+                            raise IOError(
+                                "if the classlabel tag is true then class values "
+                                "must be supplied"
+                            )
                     elif tokens[1] == "false":
                         meta_data["classlabel"] = False
                     else:
                         raise IOError("invalid class label value")
-                    if token_len == 2:
-                        raise IOError(
-                            "if the classlabel tag is true then class values "
-                            "must be supplied"
-                        )
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
+        if meta_data["targetlabel"]:
+            meta_data["classlabel"] = False
     return meta_data
 
 
-def _load_data(file, meta_data):
+def _get_channel_strings(line, target=True, missing="NaN"):
+    """Split a string with timestamps into separate csv strings."""
+    channel_strings = re.sub(r"\s", "", line)
+    channel_strings = channel_strings.split("):")
+    c = len(channel_strings)
+    if target:
+        c = c - 1
+    for i in range(c):
+        channel_strings[i] = channel_strings[i] + ")"
+        numbers = re.findall(r"\d+\.\d+|" + missing, channel_strings[i])
+        channel_strings[i] = ",".join(numbers)
+    return channel_strings
+
+
+def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     """Load data from a file with no header.
 
     this assumes each time series has the same number of channels, but allows unequal
@@ -105,6 +142,8 @@ def _load_data(file, meta_data):
         numpy array of strings: the class/target variable values
     meta_data :  dict.
         dictionary of characteristics enhanced with number of channels and series length
+        "problemname" (string), booleans: "timestamps", "missing", "univariate",
+        "equallength", "classlabel", "targetlabel" and "class_values": [],
 
     """
     data = []
@@ -113,13 +152,20 @@ def _load_data(file, meta_data):
     current_channels = 0
     series_length = 0
     y_values = []
+    target = False
+    if meta_data["classlabel"] or meta_data["targetlabel"]:
+        target = True
     for line in file:
         line = line.strip().lower()
-        line = line.replace("?", "NaN")
-        channels = line.split(":")
+        line = line.replace("nan", replace_missing_vals_with)
+        line = line.replace("?", replace_missing_vals_with)
+        if "timestamps" in meta_data and meta_data["timestamps"]:
+            channels = _get_channel_strings(line, target, replace_missing_vals_with)
+        else:
+            channels = line.split(":")
         n_cases += 1
         current_channels = len(channels)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             current_channels -= 1
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
@@ -147,14 +193,19 @@ def _load_data(file, meta_data):
             data_series = single_channel.split(",")
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
+                equal_length = meta_data["equallength"]
                 raise IOError(
-                    f"Unequal length series, in case {n_cases} meta "
-                    f"data specifies all equal {series_length} but saw "
-                    f"{len(single_channel)}"
+                    f"channel {i} in case {n_cases} has a different number of "
+                    f"observations to the other channels. "
+                    f"Saw {current_length} in the first channel but"
+                    f" {len(data_series)} in the channel {i}. The meta data "
+                    f"specifies equal length == {equal_length}. But even if series "
+                    f"length are unequal, all channels for a single case must be the "
+                    f"same length"
                 )
             np_case[i] = np.array(data_series)
         data.append(np_case)
-        if meta_data["classlabel"] or meta_data["targetlabel"]:
+        if target:
             y_values.append(channels[n_channels])
     if meta_data["equallength"]:
         data = np.array(data)
@@ -165,6 +216,7 @@ def load_from_tsfile(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_meta_data=False,
+    return_type="auto",
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -174,14 +226,19 @@ def load_from_tsfile(
         full path of the file to load, .ts extension is assumed.
     replace_missing_vals_with : string, default="NaN"
         issing values in the file are replaces with this value
-    return_meta_data : boolean, default=True
+    return_meta_data : boolean, default=False
         return a dictionary with the meta data loaded from the file
+    return_type : string, default = "auto"
+        data type to convert to.
+        If "auto", returns numpy3D for equal length and list of numpy2D for unequal.
+        If "numpy2D", will squash a univariate equal length into a numpy2D (n_cases,
+        n_timepoints). Other options are available but not supported medium term.
 
     Returns
     -------
     data: Union[np.ndarray,list]
         time series data, np.ndarray (n_cases, n_channels, series_length) if equal
-        length time series, list of [n_cases] np.ndarray (n_channels, series_length)
+        length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
         if unequal length series.
     y : target variable, np.ndarray of string or int
     meta_data : dict (optional).
@@ -202,15 +259,21 @@ def load_from_tsfile(
         meta_data = _load_header_info(file)
         # load into list of numpy
         data, y, meta_data = _load_data(file, meta_data)
-        # if equal load to 3D numpy
-        if meta_data["equallength"]:
-            data = np.array(data)
+
+    # if equal load to 3D numpy
+    if meta_data["equallength"]:
+        data = np.array(data)
+        if return_type == "numpy2D" and meta_data["univariate"]:
+            data = data.squeeze()
+    # If regression problem, convert y to float
+    if meta_data["targetlabel"]:
+        y = y.astype(float)
     if return_meta_data:
         return data, y, meta_data
     return data, y
 
 
-def _load_provided_dataset(
+def _load_saved_dataset(
     name,
     split=None,
     return_X_y=True,
@@ -218,6 +281,7 @@ def _load_provided_dataset(
     local_module=MODULE,
     local_dirname=DIRNAME,
     return_meta=False,
+    dir_name=None,
 ):
     """Load baked in time series classification datasets (helper function).
 
@@ -225,22 +289,28 @@ def _load_provided_dataset(
 
     Parameters
     ----------
-    name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    name : str
+        Base problem file name.
+    split: None or {"TRAIN", "TEST"}, default=None
         Whether to load the train or test instances of the problem.
-        By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for features and the target.
-    return_data_type : str, optional, default = None
-        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
+        By default it loads both train and test instances into a single data structure.
+    return_X_y: bool, default=True
+        If True, returns (time series, target) separately. If False it returns (X,
+        y) as a tuple.
+    return_data_type : str, default = None
+        "numpy3D"/"numpy3d"/"np3D": recommended for equal length series, "np-list"
+        for unequal length series that cannot be stored in numpy arrays.
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
-        numpy2d. If None will load 3D numpy or list of numpy
-        There other options, see datatypes.SCITYPE_REGISTER, but these
-        will not necessarily be supported longterm.
+        numpy2d. If None will load 3D numpy or list of numpy.
     local_module: default = os.path.dirname(__file__),
-    local_dirname: default = "data"
+    local_dirname: str, default = "data"
+    return_meta: bool, default = False
+        Dictionary of characteristics "problemname" (string), booleans: "timestamps",
+        "missing", "univariate", "equallength", "classlabel", "targetlabel" and
+        "class_values": [].
+    dir_name: str, default = None
+        Directory in local_dirname containing the problem file. If None, dir_name = name
 
     Raises
     ------
@@ -253,25 +323,27 @@ def _load_provided_dataset(
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
+    meta: meta data dictionary, only returned if return_meta is True
     """
     if isinstance(split, str):
         split = split.upper()
     # This is also called in load_from_tsfile, but we need the value here and it
     # is required in load_from_tsfile since it is public
     return_type = _alias_datatype_check(return_type)
-
+    if dir_name is None:
+        dir_name = name
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, name, fname)
+        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
@@ -282,28 +354,66 @@ def _load_provided_dataset(
         y = np.concatenate([y_train, y_test])
     else:
         raise ValueError("Invalid `split` value =", split)
+    if return_type is not None:
+        X = convert_collection(X, return_type)
 
-    # All this is to allow for the user to configure to load into different data
-    # structures. Its all for backward compatibility.
-    if isinstance(X, list):
-        loaded_type = "np-list"
-    else:
-        loaded_type = "numpy3D"
-
-    if return_type == "nested_univ":
-        X = convert(X, from_type="np-list", to_type="nested_univ")
-        loaded_type = "nested_univ"
-    elif meta_data["equallength"]:
-        if return_type == "numpyflat" and X.shape[1] == 1:
-            X = X.squeeze()
-    elif return_type is not None and loaded_type != return_type:
-        X = convert(X, from_type=loaded_type, to_type=return_type)
     if return_X_y:
-        return X, y
-    else:  # TODO: do this better, do we want it all in dataframes?
-        X = convert(X, from_type=loaded_type, to_type="nested_univ")
-        X["class_val"] = pd.Series(y)
-        return X
+        if return_meta:
+            return X, y, meta_data
+        else:
+            return X, y
+    else:
+        combo = (X, y)
+        if return_meta:
+            return combo, meta_data
+        else:
+            return combo
+
+
+def download_dataset(name, save_path=None):
+    """
+
+    Download a dataset from the timeseriesclassification.com website.
+
+    Parameters
+    ----------
+    name : string,
+            name of the dataset to download
+
+    safe_path : string, optional (default: None)
+            Path to the directory where the dataset is downloaded into.
+
+    Returns
+    -------
+    if successful, string containing the path of the saved file
+
+    Raises
+    ------
+    ValueError if the dataset is not available on the website
+    or the extract path is invalid
+    """
+    if save_path is None:
+        save_path = os.path.join(MODULE, "local_data")
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    if name not in list_downloaded_tsc_tsr_datasets(
+        save_path
+    ) or name not in list_downloaded_tsf_datasets(save_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download it.
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        try:
+            _download_and_extract(url, extract_path=save_path)
+        except zipfile.BadZipFile as e:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{save_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/.",
+            ) from e
+
+    return os.path.join(save_path, name)
 
 
 def _download_and_extract(url, extract_path=None):
@@ -353,7 +463,9 @@ def _download_and_extract(url, extract_path=None):
         )
 
 
-def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=None):
+def _load_tsc_dataset(
+    name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=False
+):
     """Load time series classification datasets (helper function).
 
     Parameters
@@ -370,7 +482,7 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
         numpy2d.
-        "np-list": for unequal length series that cannot be storeed in numpy arrays
+        "np-list": for unequal length series that cannot be stored in numpy arrays
         if None returns either numpy3D for equal length or  "np-list" for unequal
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
@@ -390,25 +502,25 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
-        local_module = os.path.dirname(extract_path)
-        local_dirname = extract_path
+        local_module = extract_path
+        local_dirname = ""
     else:
         local_module = MODULE
         local_dirname = "data"
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in _list_available_datasets(extract_path):
+    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in _list_available_datasets(
+        if name not in list_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Dataset is not already present in the datasets directory provided.
             # If it is not there, download and install it.
-            url = "https://timeseriesclassification.com/Downloads/%s.zip" % name
+            url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
             # This also tests the validitiy of the URL, can't rely on the html
             # status code as it always returns 200
             try:
@@ -419,55 +531,221 @@ def _load_dataset(name, split, return_X_y=True, return_type=None, extract_path=N
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on "
-                    f"https://timeseriesclassification.com/.",
+                    f"{extract_path}. Nor is it available on {url}",
                 ) from e
 
-    return _load_provided_dataset(
-        name, split, return_X_y, return_type, local_module, local_dirname
+    return _load_saved_dataset(
+        name,
+        split=split,
+        return_X_y=return_X_y,
+        return_type=return_type,
+        local_module=local_module,
+        local_dirname=local_dirname,
+        return_meta=return_meta,
     )
 
 
-def load_tsf_to_dataframe(
+def load_from_arff_file(
+    full_file_path_and_name,
+    replace_missing_vals_with="NaN",
+):
+    """Load data from a classification/regression WEKA arff file to a 3D numpy array.
+
+    Parameters
+    ----------
+    full_file_path_and_name: str
+        The full pathname of the .ts file to read.
+    replace_missing_vals_with: str
+       The value that missing values in the text file should be replaced
+       with prior to parsing.
+
+    Returns
+    -------
+    data: np.ndarray
+        time series data, np.ndarray (n_cases, n_channels, series_length)
+    y : target variable, np.ndarray of string or int
+    """
+    instance_list = []
+    class_val_list = []
+    data_started = False
+    is_multi_variate = False
+    is_first_case = True
+    n_cases = 0
+    n_channels = 1
+    with open(full_file_path_and_name, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                if (
+                    is_multi_variate is False
+                    and "@attribute" in line.lower()
+                    and "relational" in line.lower()
+                ):
+                    is_multi_variate = True
+
+                if "@data" in line.lower():
+                    data_started = True
+                    continue
+                # if the 'data tag has been found, the header information
+                # has been cleared and now data can be loaded
+                if data_started:
+                    line = line.replace("?", replace_missing_vals_with)
+
+                    if is_multi_variate:
+                        line, class_val = line.split("',")
+                        class_val_list.append(class_val.strip())
+                        channels = line.split("\\n")
+                        channels[0] = channels[0].replace("'", "")
+                        if is_first_case:
+                            n_channels = len(channels)
+                            n_timepoints = len(channels[0].split(","))
+                            is_first_case = False
+                        elif len(channels) != n_channels:
+                            raise ValueError(
+                                f" Number of channels not equal in "
+                                f"dataset, first case had {n_channels} channel "
+                                f"but case number {n_cases+1} has "
+                                f"{len(channels)}"
+                            )
+                        inst = np.zeros(shape=(n_channels, n_timepoints))
+                        for c in range(len(channels)):
+                            split = channels[c].split(",")
+                            inst[c] = np.array([float(i) for i in split])
+                    else:
+                        line_parts = line.split(",")
+                        if is_first_case:
+                            is_first_case = False
+                            n_timepoints = len(line_parts) - 1
+                        class_val_list.append(line_parts[-1].strip())
+                        split = line_parts[: len(line_parts) - 1]
+                        inst = np.zeros(shape=(n_channels, n_timepoints))
+                        inst[0] = np.array([float(i) for i in split])
+                    instance_list.append(inst)
+    return np.asarray(instance_list), np.asarray(class_val_list)
+
+
+def load_from_tsv_file(full_file_path_and_name):
+    """Load data from a .tsv file into a numpy array.
+
+    tsv files are simply csv files with the class value as the first value. They only
+    store equal length, univariate data, so are simple.
+
+    Parameters
+    ----------
+    full_file_path_and_name: str
+        The full pathname of the .tsv file to read.
+
+    Returns
+    -------
+    data: np.ndarray
+        time series data, np.ndarray (n_cases, 1, series_length)
+    y : target variable, np.ndarray of string or int
+
+    """
+    df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
+    y = df.pop(0).values
+    df.columns -= 1
+    X = df.to_numpy()
+    X = np.expand_dims(X, axis=1)
+    return X, y
+
+
+def _convert_tsf_to_hierarchical(
+    data: pd.DataFrame,
+    metadata,
+    freq: str = None,
+    value_column_name: str = "series_value",
+) -> pd.DataFrame:
+    """Convert the data from default_tsf to pd_multiindex_hier.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        nested values dataframe
+    metadata : Dict
+        tsf file metadata
+    freq : str, optional
+        pandas compatible time frequency, by default None
+        if not specified it's automatically mapped from the tsf frequency to a pandas
+        frequency
+    value_column_name: str, optional
+        The name of the column that contains the values, by default "series_value"
+
+    Returns
+    -------
+    pd.DataFrame
+        hierarchical multiindex pd.Dataframe
+    """
+    df = data.copy()
+
+    if freq is None:
+        freq_map = {
+            "daily": "D",
+            "weekly": "W",
+            "monthly": "MS",
+            "yearly": "YS",
+        }
+        freq = freq_map[metadata["frequency"]]
+
+    # create the time index
+    if "start_timestamp" in df.columns:
+        df["timestamp"] = df.apply(
+            lambda x: pd.date_range(
+                start=x["start_timestamp"], periods=len(x[value_column_name]), freq=freq
+            ),
+            axis=1,
+        )
+        drop_columns = ["start_timestamp"]
+    else:
+        df["timestamp"] = df.apply(
+            lambda x: pd.RangeIndex(start=0, stop=len(x[value_column_name])), axis=1
+        )
+        drop_columns = []
+
+    # pandas implementation of multiple column explode
+    # can be removed and replaced by explode if we move to pandas version 1.3.0
+    columns = [value_column_name, "timestamp"]
+    index_columns = [c for c in list(df.columns) if c not in drop_columns + columns]
+    result = pd.DataFrame({c: df[c].explode() for c in columns})
+    df = df.drop(columns=columns + drop_columns).join(result)
+    if df["timestamp"].dtype == "object":
+        df = df.astype({"timestamp": "int64"})
+    df = df.set_index(index_columns + ["timestamp"])
+    df = df.astype({value_column_name: "float"}, errors="ignore")
+
+    return df
+
+
+def load_from_tsf_file(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     value_column_name="series_value",
-    return_type="pd_multiindex_hier",
+    return_type="tsf_default",
 ):
     """
     Convert the contents in a .tsf file into a dataframe.
 
     This code was extracted from
-    https://github.com/rakshitha123/TSForecasting/blob
-    /master/utils/data_loader.py.
+    https://github.com/rakshitha123/TSForecasting/blob/master/utils/data_loader.py.
 
     Parameters
     ----------
-    full_file_path_and_name: str
+    full_file_path_and_name : str
         The full path to the .tsf file.
-    replace_missing_vals_with: str, default="NAN"
+    replace_missing_vals_with : str, default="NAN"
         A term to indicate the missing values in series in the returning dataframe.
-    value_column_name: str, default="series_value"
+    value_column_name : str, default="series_value"
         Any name that is preferred to have as the name of the column containing series
         values in the returning dataframe.
-    return_type : str - "pd_multiindex_hier" (default), "tsf_default", or valid aeon
-        mtype string for in-memory data container format specification of the
-        return type:
-        - "pd_multiindex_hier" = pd.DataFrame of aeon type `pd_multiindex_hier`
+    return_type : str - "pd_multiindex_hier" or "tsf_default" (default)
         - "tsf_default" = container that faithfully mirrors tsf format from the original
             implementation in: https://github.com/rakshitha123/TSForecasting/
             blob/master/utils/data_loader.py.
-        - other valid mtype strings are Panel or Hierarchical mtypes in
-            datatypes.MTYPE_REGISTER. If Panel or Hierarchical mtype str is given, a
-            conversion to that mtype will be attempted
-        For tutorials and detailed specifications, see
-        examples/AA_datatypes_and_datasets.ipynb
 
     Returns
     -------
-    loaded_data: pd.DataFrame
+    loaded_data : pd.DataFrame
         The converted dataframe containing the time series.
-    metadata: dict
+    metadata : dict
         The metadata for the forecasting problem. The dictionary keys are:
         "frequency", "forecast_horizon", "contain_missing_values",
         "contain_equal_length"
@@ -631,847 +909,430 @@ def load_tsf_to_dataframe(
                 ),
             )
         )
-
-        if return_type != "default_tsf":
+        if return_type != "tsf_default":
             loaded_data = _convert_tsf_to_hierarchical(
                 loaded_data, metadata, value_column_name=value_column_name
             )
-            if (
-                loaded_data.index.nlevels == 2
-                and return_type not in MTYPE_LIST_HIERARCHICAL
-            ):
-                loaded_data = convert(
-                    loaded_data, from_type="pd-multiindex", to_type=return_type
-                )
-            else:
-                loaded_data = convert(
-                    loaded_data, from_type="pd_multiindex_hier", to_type=return_type
-                )
-
         return loaded_data, metadata
 
 
-def load_from_tsfile_to_dataframe(
-    full_file_path_and_name,
-    return_separate_X_and_y=True,
-    replace_missing_vals_with="NaN",
-):
-    """Load data from a .ts file into a Pandas DataFrame.
+def load_forecasting(name, extract_path=None, return_metadata=False):
+    """Download/load forecasting problem from https://forecastingdata.org/.
 
     Parameters
     ----------
-    full_file_path_and_name: str
-        The full pathname of the .ts file to read.
-    return_separate_X_and_y: bool
-        true if X and Y values should be returned as separate Data Frames (
-        X) and a numpy array (y), false otherwise.
-        This is only relevant for data that
-    replace_missing_vals_with: str
-       The value that missing values in the text file should be replaced
-       with prior to parsing.
+    name : string, file name to load from
+    extract_path : optional (default = None)
+        Path of the location for the data file. If none, data is written to
+        os.path.dirname(__file__)/data/
+    return_metadata : boolean, default = True
+        If True, returns a tuple (data, metadata)
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
 
     Returns
     -------
-    DataFrame (default) or ndarray (i
-        If return_separate_X_and_y then a tuple containing a DataFrame and a
-        numpy array containing the relevant time-series and corresponding
-        class values.
-    DataFrame
-        If not return_separate_X_and_y then a single DataFrame containing
-        all time-series and (if relevant) a column "class_vals" the
-        associated class values.
+    X: Data stored in a dataframe, each column a series
+    metadata: optional
+        returns the following meta data
+        frequency,forecast_horizon,contain_missing_values,contain_equal_length
+
+    Example
+    -------
+    >>> from aeon.datasets import load_forecasting
+    >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
-    # Initialize flags and variables used when parsing the file
-    metadata_started = False
-    data_started = False
+    # Allow user to have non standard extract path
+    from aeon.datasets.tsf_data_lists import tsf_all
 
-    has_problem_name_tag = False
-    has_timestamps_tag = False
-    has_univariate_tag = False
-    has_class_labels_tag = False
-    has_data_tag = False
-
-    previous_timestamp_was_int = None
-    prev_timestamp_was_timestamp = None
-    num_dimensions = None
-    is_first_case = True
-    instance_list = []
-    class_val_list = []
-    line_num = 0
-    # Parse the file
-    with open(full_file_path_and_name, "r", encoding="utf-8") as file:
-        for line in file:
-            # Strip white space from start/end of line and change to
-            # lowercase for use below
-            line = line.strip().lower()
-            # Empty lines are valid at any point in a file
-            if line:
-                # Check if this line contains metadata
-                # Please note that even though metadata is stored in this
-                # function it is not currently published externally
-                if line.startswith("@problemname"):
-                    # Check that the data has not started
-                    if data_started:
-                        raise IOError("metadata must come before data")
-                    # Check that the associated value is valid
-                    tokens = line.split(" ")
-                    token_len = len(tokens)
-                    if token_len == 1:
-                        raise IOError("problemname tag requires an associated value")
-                    # problem_name = line[len("@problemname") + 1:]
-                    has_problem_name_tag = True
-                    metadata_started = True
-                elif line.startswith("@timestamps"):
-                    # Check that the data has not started
-                    if data_started:
-                        raise IOError("metadata must come before data")
-                    # Check that the associated value is valid
-                    tokens = line.split(" ")
-                    token_len = len(tokens)
-                    if token_len != 2:
-                        raise IOError(
-                            "timestamps tag requires an associated Boolean " "value"
-                        )
-                    elif tokens[1] == "true":
-                        timestamps = True
-                    elif tokens[1] == "false":
-                        timestamps = False
-                    else:
-                        raise IOError("invalid timestamps value")
-                    has_timestamps_tag = True
-                    metadata_started = True
-                elif line.startswith("@univariate"):
-                    # Check that the data has not started
-                    if data_started:
-                        raise IOError("metadata must come before data")
-                    # Check that the associated value is valid
-                    tokens = line.split(" ")
-                    token_len = len(tokens)
-                    if token_len != 2:
-                        raise IOError(
-                            "univariate tag requires an associated Boolean  " "value"
-                        )
-                    elif tokens[1] == "true":
-                        # univariate = True
-                        pass
-                    elif tokens[1] == "false":
-                        # univariate = False
-                        pass
-                    else:
-                        raise IOError("invalid univariate value")
-                    has_univariate_tag = True
-                    metadata_started = True
-                elif line.startswith("@classlabel"):
-                    # Check that the data has not started
-                    if data_started:
-                        raise IOError("metadata must come before data")
-                    # Check that the associated value is valid
-                    tokens = line.split(" ")
-                    token_len = len(tokens)
-                    if token_len == 1:
-                        raise IOError(
-                            "classlabel tag requires an associated Boolean  " "value"
-                        )
-                    if tokens[1] == "true":
-                        class_labels = True
-                    elif tokens[1] == "false":
-                        class_labels = False
-                    else:
-                        raise IOError("invalid classLabel value")
-                    # Check if we have any associated class values
-                    if token_len == 2 and class_labels:
-                        raise IOError(
-                            "if the classlabel tag is true then class values "
-                            "must be supplied"
-                        )
-                    has_class_labels_tag = True
-                    class_label_list = [token.strip() for token in tokens[2:]]
-                    metadata_started = True
-                elif line.startswith("@targetlabel"):
-                    if data_started:
-                        raise IOError("metadata must come before data")
-                    tokens = line.split(" ")
-                    token_len = len(tokens)
-                    if token_len == 1:
-                        raise IOError(
-                            "targetlabel tag requires an associated Boolean value"
-                        )
-                    if tokens[1] == "true":
-                        class_labels = True
-                    elif tokens[1] == "false":
-                        class_labels = False
-                    else:
-                        raise IOError("invalid targetlabel value")
-                    if token_len > 2:
-                        raise IOError(
-                            "targetlabel tag should not be accompanied with info "
-                            "apart from true/false, but found "
-                            f"{tokens}"
-                        )
-                    has_class_labels_tag = True
-                    metadata_started = True
-                # Check if this line contains the start of data
-                elif line.startswith("@data"):
-                    if line != "@data":
-                        raise IOError("data tag should not have an associated value")
-                    if data_started and not metadata_started:
-                        raise IOError("metadata must come before data")
-                    else:
-                        has_data_tag = True
-                        data_started = True
-                # If the 'data tag has been found then metadata has been
-                # parsed and data can be loaded
-                elif data_started:
-                    # Check that a full set of metadata has been provided
-                    if (
-                        not has_problem_name_tag
-                        or not has_timestamps_tag
-                        or not has_univariate_tag
-                        or not has_class_labels_tag
-                        or not has_data_tag
-                    ):
-                        raise IOError(
-                            "a full set of metadata has not been provided "
-                            "before the data"
-                        )
-                    # Replace any missing values with the value specified
-                    line = line.replace("?", replace_missing_vals_with)
-                    # Check if we are dealing with data that has timestamps
-                    if timestamps:
-                        # We're dealing with timestamps so cannot just split
-                        # line on ':' as timestamps may contain one
-                        has_another_value = False
-                        has_another_dimension = False
-                        timestamp_for_dim = []
-                        values_for_dimension = []
-                        this_line_num_dim = 0
-                        line_len = len(line)
-                        char_num = 0
-                        while char_num < line_len:
-                            # Move through any spaces
-                            while char_num < line_len and str.isspace(line[char_num]):
-                                char_num += 1
-                            # See if there is any more data to read in or if
-                            # we should validate that read thus far
-                            if char_num < line_len:
-                                # See if we have an empty dimension (i.e. no
-                                # values)
-                                if line[char_num] == ":":
-                                    if len(instance_list) < (this_line_num_dim + 1):
-                                        instance_list.append([])
-                                    instance_list[this_line_num_dim].append(
-                                        pd.Series(dtype="object")
-                                    )
-                                    this_line_num_dim += 1
-                                    has_another_value = False
-                                    has_another_dimension = True
-                                    timestamp_for_dim = []
-                                    values_for_dimension = []
-                                    char_num += 1
-                                else:
-                                    # Check if we have reached a class label
-                                    if line[char_num] != "(" and class_labels:
-                                        class_val = line[char_num:].strip()
-                                        if class_val not in class_label_list:
-                                            raise IOError(
-                                                "the class value '"
-                                                + class_val
-                                                + "' on line "
-                                                + str(line_num + 1)
-                                                + " is not "
-                                                "valid"
-                                            )
-                                        class_val_list.append(class_val)
-                                        char_num = line_len
-                                        has_another_value = False
-                                        has_another_dimension = False
-                                        timestamp_for_dim = []
-                                        values_for_dimension = []
-                                    else:
-                                        # Read in the data contained within
-                                        # the next tuple
-                                        if line[char_num] != "(" and not class_labels:
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " does "
-                                                "not "
-                                                "start "
-                                                "with a "
-                                                "'('"
-                                            )
-                                        char_num += 1
-                                        tuple_data = ""
-                                        while (
-                                            char_num < line_len
-                                            and line[char_num] != ")"
-                                        ):
-                                            tuple_data += line[char_num]
-                                            char_num += 1
-                                        if (
-                                            char_num >= line_len
-                                            or line[char_num] != ")"
-                                        ):
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " does "
-                                                "not end"
-                                                " with a "
-                                                "')'"
-                                            )
-                                        # Read in any spaces immediately
-                                        # after the current tuple
-                                        char_num += 1
-                                        while char_num < line_len and str.isspace(
-                                            line[char_num]
-                                        ):
-                                            char_num += 1
-
-                                        # Check if there is another value or
-                                        # dimension to process after this tuple
-                                        if char_num >= line_len:
-                                            has_another_value = False
-                                            has_another_dimension = False
-                                        elif line[char_num] == ",":
-                                            has_another_value = True
-                                            has_another_dimension = False
-                                        elif line[char_num] == ":":
-                                            has_another_value = False
-                                            has_another_dimension = True
-                                        char_num += 1
-                                        # Get the numeric value for the
-                                        # tuple by reading from the end of
-                                        # the tuple data backwards to the
-                                        # last comma
-                                        last_comma_index = tuple_data.rfind(",")
-                                        if last_comma_index == -1:
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " contains a tuple that has "
-                                                "no comma inside of it"
-                                            )
-                                        try:
-                                            value = tuple_data[last_comma_index + 1 :]
-                                            value = float(value)
-                                        except ValueError:
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " contains a tuple that does "
-                                                "not have a valid numeric "
-                                                "value"
-                                            )
-                                        # Check the type of timestamp that
-                                        # we have
-                                        timestamp = tuple_data[0:last_comma_index]
-                                        try:
-                                            timestamp = int(timestamp)
-                                            timestamp_is_int = True
-                                            timestamp_is_timestamp = False
-                                        except ValueError:
-                                            timestamp_is_int = False
-                                        if not timestamp_is_int:
-                                            try:
-                                                timestamp = timestamp.strip()
-                                                timestamp_is_timestamp = True
-                                            except ValueError:
-                                                timestamp_is_timestamp = False
-                                        # Make sure that the timestamps in
-                                        # the file (not just this dimension
-                                        # or case) are consistent
-                                        if (
-                                            not timestamp_is_timestamp
-                                            and not timestamp_is_int
-                                        ):
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " contains a tuple that "
-                                                "has an invalid timestamp '"
-                                                + timestamp
-                                                + "'"
-                                            )
-                                        if (
-                                            previous_timestamp_was_int is not None
-                                            and previous_timestamp_was_int
-                                            and not timestamp_is_int
-                                        ):
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " contains tuples where the "
-                                                "timestamp format is "
-                                                "inconsistent"
-                                            )
-                                        if (
-                                            prev_timestamp_was_timestamp is not None
-                                            and prev_timestamp_was_timestamp
-                                            and not timestamp_is_timestamp
-                                        ):
-                                            raise IOError(
-                                                "dimension "
-                                                + str(this_line_num_dim + 1)
-                                                + " on line "
-                                                + str(line_num + 1)
-                                                + " contains tuples where the "
-                                                "timestamp format is "
-                                                "inconsistent"
-                                            )
-                                        # Store the values
-                                        timestamp_for_dim += [timestamp]
-                                        values_for_dimension += [value]
-                                        #  If this was our first tuple then
-                                        #  we store the type of timestamp we
-                                        #  had
-                                        if (
-                                            prev_timestamp_was_timestamp is None
-                                            and timestamp_is_timestamp
-                                        ):
-                                            prev_timestamp_was_timestamp = True
-                                            previous_timestamp_was_int = False
-
-                                        if (
-                                            previous_timestamp_was_int is None
-                                            and timestamp_is_int
-                                        ):
-                                            prev_timestamp_was_timestamp = False
-                                            previous_timestamp_was_int = True
-                                        # See if we should add the data for
-                                        # this dimension
-                                        if not has_another_value:
-                                            if len(instance_list) < (
-                                                this_line_num_dim + 1
-                                            ):
-                                                instance_list.append([])
-
-                                            if timestamp_is_timestamp:
-                                                timestamp_for_dim = pd.DatetimeIndex(
-                                                    timestamp_for_dim
-                                                )
-
-                                            instance_list[this_line_num_dim].append(
-                                                pd.Series(
-                                                    index=timestamp_for_dim,
-                                                    data=values_for_dimension,
-                                                )
-                                            )
-                                            this_line_num_dim += 1
-                                            timestamp_for_dim = []
-                                            values_for_dimension = []
-                            elif has_another_value:
-                                raise IOError(
-                                    "dimension " + str(this_line_num_dim + 1) + " on "
-                                    "line "
-                                    + str(line_num + 1)
-                                    + " ends with a ',' that "
-                                    "is not followed by "
-                                    "another tuple"
-                                )
-                            elif has_another_dimension and class_labels:
-                                raise IOError(
-                                    "dimension " + str(this_line_num_dim + 1) + " on "
-                                    "line "
-                                    + str(line_num + 1)
-                                    + " ends with a ':' while "
-                                    "it should list a class "
-                                    "value"
-                                )
-                            elif has_another_dimension and not class_labels:
-                                if len(instance_list) < (this_line_num_dim + 1):
-                                    instance_list.append([])
-                                instance_list[this_line_num_dim].append(
-                                    pd.Series(dtype=np.float32)
-                                )
-                                this_line_num_dim += 1
-                                num_dimensions = this_line_num_dim
-                            # If this is the 1st line of data we have seen
-                            # then note the dimensions
-                            if not has_another_value and not has_another_dimension:
-                                if num_dimensions is None:
-                                    num_dimensions = this_line_num_dim
-                                if num_dimensions != this_line_num_dim:
-                                    raise IOError(
-                                        "line "
-                                        + str(line_num + 1)
-                                        + " does not have the "
-                                        "same number of "
-                                        "dimensions as the "
-                                        "previous line of "
-                                        "data"
-                                    )
-                        # Check that we are not expecting some more data,
-                        # and if not, store that processed above
-                        if has_another_value:
-                            raise IOError(
-                                "dimension "
-                                + str(this_line_num_dim + 1)
-                                + " on line "
-                                + str(line_num + 1)
-                                + " ends with a ',' that is "
-                                "not followed by another "
-                                "tuple"
-                            )
-                        elif has_another_dimension and class_labels:
-                            raise IOError(
-                                "dimension "
-                                + str(this_line_num_dim + 1)
-                                + " on line "
-                                + str(line_num + 1)
-                                + " ends with a ':' while it "
-                                "should list a class value"
-                            )
-                        elif has_another_dimension and not class_labels:
-                            if len(instance_list) < (this_line_num_dim + 1):
-                                instance_list.append([])
-                            instance_list[this_line_num_dim].append(
-                                pd.Series(dtype="object")
-                            )
-                            this_line_num_dim += 1
-                            num_dimensions = this_line_num_dim
-                        # If this is the 1st line of data we have seen then
-                        # note the dimensions
-                        if (
-                            not has_another_value
-                            and num_dimensions != this_line_num_dim
-                        ):
-                            raise IOError(
-                                "line " + str(line_num + 1) + " does not have the same "
-                                "number of dimensions as the "
-                                "previous line of data"
-                            )
-                        # Check if we should have class values, and if so
-                        # that they are contained in those listed in the
-                        # metadata
-                        if class_labels and len(class_val_list) == 0:
-                            raise IOError("the cases have no associated class values")
-                    else:
-                        dimensions = line.split(":")
-                        # If first row then note the number of dimensions (
-                        # that must be the same for all cases)
-                        if is_first_case:
-                            num_dimensions = len(dimensions)
-                            if class_labels:
-                                num_dimensions -= 1
-                            for _dim in range(0, num_dimensions):
-                                instance_list.append([])
-                            is_first_case = False
-                        # See how many dimensions that the case whose data
-                        # in represented in this line has
-                        this_line_num_dim = len(dimensions)
-                        if class_labels:
-                            this_line_num_dim -= 1
-                        # All dimensions should be included for all series,
-                        # even if they are empty
-                        if this_line_num_dim != num_dimensions:
-                            raise IOError(
-                                "inconsistent number of dimensions. "
-                                "Expecting "
-                                + str(num_dimensions)
-                                + " but have read "
-                                + str(this_line_num_dim)
-                            )
-                        # Process the data for each dimension
-                        for dim in range(0, num_dimensions):
-                            dimension = dimensions[dim].strip()
-
-                            if dimension:
-                                data_series = dimension.split(",")
-                                data_series = [float(i) for i in data_series]
-                                instance_list[dim].append(pd.Series(data_series))
-                            else:
-                                instance_list[dim].append(pd.Series(dtype="object"))
-                        if class_labels:
-                            class_val_list.append(dimensions[num_dimensions].strip())
-            line_num += 1
-    # Check that the file was not empty
-    if line_num:
-        # Check that the file contained both metadata and data
-        if metadata_started and not (
-            has_problem_name_tag
-            and has_timestamps_tag
-            and has_univariate_tag
-            and has_class_labels_tag
-            and has_data_tag
-        ):
-            raise IOError("metadata incomplete")
-
-        elif metadata_started and not data_started:
-            raise IOError("file contained metadata but no data")
-
-        elif metadata_started and data_started and len(instance_list) == 0:
-            raise IOError("file contained metadata but no data")
-        # Create a DataFrame from the data parsed above
-        data = pd.DataFrame(dtype=np.float32)
-        for dim in range(0, num_dimensions):
-            data["dim_" + str(dim)] = instance_list[dim]
-        # Check if we should return any associated class labels separately
-        if class_labels:
-            if return_separate_X_and_y:
-                return data, np.asarray(class_val_list)
-            else:
-                data["class_vals"] = pd.Series(class_val_list)
-                return data
-        else:
-            return data
+    if extract_path is not None:
+        local_module = extract_path
+        local_dirname = ""
     else:
-        raise IOError("empty file")
+        local_module = MODULE
+        local_dirname = "data"
 
-
-def load_from_arff_to_dataframe(
-    full_file_path_and_name,
-    has_class_labels=True,
-    return_separate_X_and_y=True,
-    replace_missing_vals_with="NaN",
-):
-    """Load data from a .ts file into a Pandas DataFrame.
-
-    Parameters
-    ----------
-    full_file_path_and_name: str
-        The full pathname of the .ts file to read.
-    has_class_labels: bool
-        true then line contains separated strings and class value contains
-        list of separated strings, check for 'return_separate_X_and_y'
-        false otherwise.
-    return_separate_X_and_y: bool
-        true then X and Y values should be returned as separate Data Frames (
-        X) and a numpy array (y), false otherwise.
-        This is only relevant for data.
-    replace_missing_vals_with: str
-       The value that missing values in the text file should be replaced
-       with prior to parsing.
-
-    Returns
-    -------
-    DataFrame, ndarray
-        If return_separate_X_and_y then a tuple containing a DataFrame and a
-        numpy array containing the relevant time-series and corresponding
-        class values.
-    DataFrame
-        If not return_separate_X_and_y then a single DataFrame containing
-        all time-series and (if relevant) a column "class_vals" the
-        associated class values.
-    """
-    instance_list = []
-    class_val_list = []
-    data_started = False
-    is_multi_variate = False
-    is_first_case = True
-    # Parse the file
-    # print(full_file_path_and_name)
-    with open(full_file_path_and_name, "r", encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                if (
-                    is_multi_variate is False
-                    and "@attribute" in line.lower()
-                    and "relational" in line.lower()
-                ):
-                    is_multi_variate = True
-
-                if "@data" in line.lower():
-                    data_started = True
-                    continue
-                # if the 'data tag has been found, the header information
-                # has been cleared and now data can be loaded
-                if data_started:
-                    line = line.replace("?", replace_missing_vals_with)
-
-                    if is_multi_variate:
-                        if has_class_labels:
-                            line, class_val = line.split("',")
-                            class_val_list.append(class_val.strip())
-                        dimensions = line.split("\\n")
-                        dimensions[0] = dimensions[0].replace("'", "")
-
-                        if is_first_case:
-                            for _d in range(len(dimensions)):
-                                instance_list.append([])
-                            is_first_case = False
-
-                        for dim in range(len(dimensions)):
-                            instance_list[dim].append(
-                                pd.Series(
-                                    [float(i) for i in dimensions[dim].split(",")]
-                                )
-                            )
-
-                    else:
-                        if is_first_case:
-                            instance_list.append([])
-                            is_first_case = False
-
-                        line_parts = line.split(",")
-                        if has_class_labels:
-                            instance_list[0].append(
-                                pd.Series(
-                                    [
-                                        float(i)
-                                        for i in line_parts[: len(line_parts) - 1]
-                                    ]
-                                )
-                            )
-                            class_val_list.append(line_parts[-1].strip())
-                        else:
-                            instance_list[0].append(
-                                pd.Series(
-                                    [float(i) for i in line_parts[: len(line_parts)]]
-                                )
-                            )
-    x_data = pd.DataFrame(dtype=np.float32)
-    for dim in range(len(instance_list)):
-        x_data["dim_" + str(dim)] = instance_list[dim]
-    if has_class_labels:
-        if return_separate_X_and_y:
-            return x_data, np.asarray(class_val_list)
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    # Check if data already in extract path or, if extract_path None,
+    # in datasets/data directory
+    if name not in list_downloaded_tsf_datasets(extract_path):
+        # Dataset is not already present in the datasets directory provided.
+        # If it is not there, download and install it.
+        if name in tsf_all.keys():
+            id = tsf_all[name]
+            if extract_path is None:
+                local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
         else:
-            x_data["class_vals"] = pd.Series(class_val_list)
-    return x_data
-
-
-def load_from_ucr_tsv_to_dataframe(
-    full_file_path_and_name, return_separate_X_and_y=True
-):
-    """Load data from a .tsv file into a Pandas DataFrame.
-
-    Parameters
-    ----------
-    full_file_path_and_name: str
-        The full pathname of the .tsv file to read.
-    return_separate_X_and_y: bool
-        true then X and Y values should be returned as separate Data Frames (
-        X) and a numpy array (y), false otherwise.
-        This is only relevant for data.
-
-    Returns
-    -------
-    DataFrame, ndarray
-        If return_separate_X_and_y then a tuple containing a DataFrame and a
-        numpy array containing the relevant time-series and corresponding
-        class values.
-    DataFrame
-        If not return_separate_X_and_y then a single DataFrame containing
-        all time-series and (if relevant) a column "class_vals" the
-        associated class values.
-    """
-    df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
-    y = df.pop(0).values
-    df.columns -= 1
-    X = pd.DataFrame()
-    X["dim_0"] = [pd.Series(df.iloc[x, :]) for x in range(len(df))]
-    if return_separate_X_and_y is True:
-        return X, y
-    X["class_val"] = y
-    return X
-
-
-def load_from_long_to_dataframe(full_file_path_and_name, separator=","):
-    """Load data from a long format file into a Pandas DataFrame.
-
-    Parameters
-    ----------
-    full_file_path_and_name: str
-        The full pathname of the .csv file to read.
-    separator: str
-        The character that the csv uses as a delimiter
-
-    Returns
-    -------
-    DataFrame
-        A dataframe with aeon-formatted data
-    """
-    data = pd.read_csv(full_file_path_and_name, sep=separator, header=0)
-    # ensure there are 4 columns in the long_format table
-    if len(data.columns) != 4:
-        raise ValueError("dataframe must contain 4 columns of data")
-    # ensure that all columns contain the correct data types
-    if (
-        not data.iloc[:, 0].dtype == "int64"
-        or not data.iloc[:, 1].dtype == "int64"
-        or not data.iloc[:, 2].dtype == "int64"
-        or not data.iloc[:, 3].dtype == "float64"
-    ):
-        raise ValueError("one or more data columns contains data of an incorrect type")
-
-    data = from_long_to_nested(data)
+            raise ValueError(
+                f"File name {name} is not in the list of valid files to download"
+            )
+        if name not in list_downloaded_tsf_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            url = f"https://zenodo.org/record/{id}/files/{name}.zip"
+            file_save = f"{local_module}/{local_dirname}/{name}.zip"
+            if not os.path.exists(file_save):
+                try:
+                    urllib.request.urlretrieve(url, file_save)
+                except Exception:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is not available on extract path"
+                        f" {extract_path}.\n Nor is it available on "
+                        f"https://forecastingdata.org/ via path {url}",
+                    )
+            if not os.path.exists(
+                f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
+            ):
+                z = zipfile.ZipFile(file_save, "r")
+                z.extractall(f"{local_module}/{local_dirname}/{name}/")
+    full_name = f"{local_module}/{local_dirname}/{name}/{name}.tsf"
+    data, meta = load_from_tsf_file(full_file_path_and_name=full_name)
+    if return_metadata:
+        return data, meta
     return data
 
 
-def _convert_tsf_to_hierarchical(
-    data: pd.DataFrame,
-    metadata,
-    freq: str = None,
-    value_column_name: str = "series_value",
-) -> pd.DataFrame:
-    """Convert the data from default_tsf to pd_multiindex_hier.
+def load_regression(
+    name,
+    split=None,
+    extract_path=None,
+    return_metadata=False,
+    load_equal_length=True,
+    load_no_missing=True,
+):
+    """Download/load regression problem.
+
+    Download from either https://timeseriesclassification.com or, if that fails,
+    http://tseregression.org/.
+
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from https://timeseriesclassification.com or, if that fails,
+    http://tseregression.org/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tser_lists.py`` called ``tser_soton``. This function can load timestamped
+    data, but it does not store the time stamps. The time stamp loading is fragile,
+    it will only work if all data are floats.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For an example TSER problem see
+    aeon.datasets.data.Covid3Month. Some of the original problems are unequal length
+    and have missing values. By default, this function loads equal length no
+    missing value versions of the files that have been used in experimental studies.
+    These have suffixes `_eq` or `_nmv` after the name.
+    If you want to load a different version, set the flags load_equal_length and/or
+    load_no_missing to true. If present, the function will then load these versions
+    if it can. aeon supports loading series with missing values and or unequal
+    length between series, but it does not support loading multivariate series where
+    lengths differ between channels. The original PGDALIA is in this format. The data
+    PGDALIA_eq has length normalised series. If a problem has unequal length series
+    and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
+    <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
+    missing and unequal length.
+
 
     Parameters
     ----------
-    data : pd.DataFrame
-        nested values dataframe
-    metadata : Dict
-        tsf file metadata
-    freq : str, optional
-        pandas compatible time frequency, by default None
-        if not specified it's automatically mapped from the tsf frequency to a pandas
-        frequency
-    value_column_name: str, optional
-        The name of the column that contains the values, by default "series_value"
+    name : string
+        Name of the problem to load or download.
+    extract_path : None or str, default = None
+        Path of the location for the data file. If None, data is written to
+        os.path.dirname(__file__)/local_data/<name>/.
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_metadata : boolean, default = False
+        If True, returns a tuple (X, y, metadata)
+    load_equal_length : boolean, default=True
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=True
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported.
 
     Returns
     -------
-    pd.DataFrame
-        aeon pd_multiindex_hier mtype
+    X: np.ndarray or list of np.ndarray
+    y: numpy array
+        The target response variable for each case in X
+    metadata: optional
+        returns the following meta data
+        'problemname',timestamps, missing,univariate,equallength.
+        targetlabel should be true, and classlabel false
+
+    Example
+    -------
+    >>> from aeon.datasets import load_regression
+    >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
-    df = data.copy()
-
-    if freq is None:
-        freq_map = {
-            "daily": "D",
-            "weekly": "W",
-            "monthly": "MS",
-            "yearly": "YS",
-        }
-        freq = freq_map[metadata["frequency"]]
-
-    # create the time index
-    if "start_timestamp" in df.columns:
-        df["timestamp"] = df.apply(
-            lambda x: pd.date_range(
-                start=x["start_timestamp"], periods=len(x[value_column_name]), freq=freq
-            ),
-            axis=1,
-        )
-        drop_columns = ["start_timestamp"]
+    if extract_path is not None:
+        local_module = extract_path
+        local_dirname = ""
     else:
-        df["timestamp"] = df.apply(
-            lambda x: pd.RangeIndex(start=0, stop=len(x[value_column_name])), axis=1
-        )
-        drop_columns = []
+        local_module = MODULE
+        local_dirname = "data"
+    error_str = (
+        f"File name {name} is not in the list of valid files to download,"
+        f"see aeon.datasets.tser_data_lists.tser_soton for the list. "
+        f"If it is one tsc.com but not on the list, it means it may not "
+        f"have been fully validated. Download it from the website."
+    )
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    path = os.path.join(local_module, local_dirname)
+    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+        if name in tser_soton:
+            if extract_path is None:
+                local_dirname = "local_data"
+                if not os.path.exists(os.path.join(local_module, local_dirname)):
+                    os.makedirs(os.path.join(local_module, local_dirname))
+                path = os.path.join(local_module, local_dirname)
+        else:
+            raise ValueError(error_str)
+        if name not in list_downloaded_tsc_tsr_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            # Check if on timeseriesclassification.com
+            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+            # This also tests the validitiy of the URL, can't rely on the html
+            try:
+                _download_and_extract(
+                    url,
+                    extract_path=extract_path,
+                )
+            except zipfile.BadZipFile:
+                # Try on monash
+                if name in tser_monash.keys():
+                    id = tser_monash[name]
+                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
+                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
+                    full_path = os.path.join(path, name)
+                    if not os.path.exists(full_path):
+                        os.makedirs(full_path)
 
-    # pandas implementation of multiple column explode
-    # can be removed and replaced by explode if we move to pandas version 1.3.0
-    columns = [value_column_name, "timestamp"]
-    index_columns = [c for c in list(df.columns) if c not in drop_columns + columns]
-    result = pd.DataFrame({c: df[c].explode() for c in columns})
-    df = df.drop(columns=columns + drop_columns).join(result)
-    if df["timestamp"].dtype == "object":
-        df = df.astype({"timestamp": "int64"})
-    df = df.set_index(index_columns + ["timestamp"])
-    df = df.astype({value_column_name: "float"}, errors="ignore")
+                    train_save = f"{full_path}/{name}_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_TEST.ts"
+                    try:
+                        urllib.request.urlretrieve(url_train, train_save)
+                        urllib.request.urlretrieve(url_test, test_save)
+                    except Exception:
+                        raise ValueError(error_str)
+    # Test for non missing or equal length versions
+    dir_name = name
+    if load_equal_length:
+        # If there exists a version with equal length, load that
+        train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_eq"
+    if load_no_missing:
+        train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_nmv"
 
-    return df
+    return _load_saved_dataset(
+        name=name,
+        dir_name=dir_name,
+        split=split,
+        local_module=local_module,
+        local_dirname=local_dirname,
+        return_meta=return_metadata,
+    )
+
+
+def load_classification(name, split=None, extract_path=None, return_metadata=False):
+    """Load a classification dataset.
+
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a file directly from a full path, use the function
+    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data
+    from https://timeseriesclassification.com/.
+
+    The list of problems this function can download from the website is in
+    ``datasets/tsc_lists.py``.  This function can load timestamped data, but it does
+    not store the time stamps. The time stamp loading is fragile, it will only work
+    if all data are floats.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series. Each dimension is separated by a colon, each value in
+    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
+    is an example of a univariate equal length problem, BasicMotions an equal length
+    multivariate problem.
+
+    Parameters
+    ----------
+    name : str
+        Name of data set. If a dataset that is listed in tsc_data_lists is given,
+        this function will look in the extract_path first, and if it is not present,
+        attempt to download the data from www.timeseriesclassification.com, saving it to
+        the extract_path.
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    extract_path : str, default=None
+        the path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
+    return_metadata : boolean, default = True
+        If True, returns a tuple (X, y, metadata)
+
+    Returns
+    -------
+    X: np.ndarray or list of np.ndarray
+    y: numpy array
+        The class labels for each case in X
+    metadata: optional
+        returns the following meta data
+        'problemname',timestamps, missing,univariate,equallength, class_values
+        targetlabel should be false, and classlabel true
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_classification
+    >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
+    """
+    return _load_tsc_dataset(
+        name,
+        split,
+        return_X_y=True,
+        extract_path=extract_path,
+        return_meta=return_metadata,
+    )
+
+
+def download_all_regression(extract_path=None):
+    """Download and unpack all of the Monash TSER datasets.
+
+    Parameters
+    ----------
+    extract_path: str or None, default = None
+        where to download the fip file. If none, it goes in
+    """
+    if extract_path is not None:
+        local_module = extract_path
+        local_dirname = ""
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    url = (
+        "https://zenodo.org/record/4632512/files/Monash_UEA_UCR_Regression_Archive.zip"
+    )
+    if extract_path is None:
+        local_dirname = "local_data"
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+
+    file_save = f"{local_module}/{local_dirname}/Monash_UEA_UCR_Regression_Archive.zip"
+    # Check if it already exists at this location, to avoid repeated download
+    if not os.path.exists(file_save):
+        try:
+            urllib.request.urlretrieve(url, file_save)
+        except Exception:
+            raise ValueError(
+                f"Unable to download {file_save} from {url}",
+            )
+    zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+
+
+PROBLEM_TYPES = [
+    "AUDIO",
+    "DEVICE",
+    "ECG",
+    "EEG",
+    "EMG",
+    "EOG",
+    "EPG",
+    "FINANCIAL",
+    "HAR",
+    "HEMODYNAMICS",
+    "IMAGE",
+    "MEG",
+    "MOTION",
+    "OTHER",
+    "SENSOR",
+    "SIMULATED",
+    "SPECTRO",
+]
+
+
+def get_dataset_meta_data(
+    data_names=None,
+    features=None,
+    url="https://timeseriesclassification.com/aeon-toolkit/metadata.csv",
+):
+    """Retrieve dataset meta data from timeseriesclassification.com.
+
+    Metadata includes the following information for each dataset:
+    - Dataset: name of the problem, set the lists in tsc_data_lists for valid names.
+    - TrainSize: number of series in the default train set.
+    - TestSize:	number of series in the default train set.
+    - Length: length of the series. If the series are not all the same length,
+        this is set to 0.
+    - NumberClasses: number of classes in the problem.
+    - Type: nature of the problem, one of PROBLEM_TYPES
+    - Channels: number of channels. If univariate, this is 1.
+
+
+    Parameters
+    ----------
+    data_names : list, default=None
+        List of dataset names to retrieve meta data for. If None, all datasets are
+        retrieved.
+    features : String or List, default=None
+        List of features to retrieve meta data for. Should be a subset of features
+        listed above. Dataset field is always returned.
+    url : String
+        default = "https://timeseriesclassification.com/aeon-toolkit/metadata.csv"
+        Location of the csv metadata file.
+
+    Returns
+    -------
+     Pandas dataframe containing meta data for each dataset.
+    """
+    if isinstance(features, str):
+        features = [features]
+    try:
+        if features is None:
+            df = pd.read_csv(url)
+        else:
+            features.append("Dataset")
+            df = pd.read_csv(url, usecols=features)
+        if data_names is not None:
+            df = df[df["Dataset"].isin(data_names)]
+        return df
+    except Exception as e:
+        raise ValueError(
+            f"Unable to access website {url} to retrieve meta data",
+        ) from e

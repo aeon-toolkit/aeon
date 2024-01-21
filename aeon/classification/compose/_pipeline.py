@@ -1,19 +1,17 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Pipeline with a classifier."""
+
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
+__all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
 
 
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
-
-__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
-__all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
+from aeon.utils.validation.collection import convert_collection
 
 
 class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -59,22 +57,24 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Parameters
     ----------
     classifier : aeon classifier, i.e., estimator inheriting from BaseClassifier
-    transformers : list of aeon transformers, or
-        list of tuples (str, transformer) of aeon transformers
+        This is a "blueprint" classifier, state does not change when `fit` is called.
+    transformers : list of aeon transformers
+        List of tuples (str, transformer) of aeon transformers
+        these are "blueprint" transformers, states do not change when `fit` is called.
 
     Attributes
     ----------
     classifier_ : aeon classifier, clone of classifier in `classifier`
-        this clone is fitted in the pipeline when `fit` is called
+        This clone is fitted in the pipeline when `fit` is called
     transformers_ : list of tuples (str, transformer) of aeon transformers
-        clones of transformers in `transformers` which are fitted in the pipeline
+        Clones of transformers in `transformers` which are fitted in the pipeline
         is always in (str, transformer) format, even if transformers is just a list
         strings not passed in transformers are unique generated strings
         i-th transformer in `transformers_` is clone of i-th in `transformers`
 
     Examples
     --------
-    >>> from aeon.transformations.panel.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
@@ -104,7 +104,9 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         # can handle missing values iff: both classifier and all transformers can,
         #   *or* transformer chain removes missing data
         missing = classifier.get_tag("capability:missing_values", False)
-        missing = missing and self.transformers_.get_tag("handles-missing-data", False)
+        missing = missing and self.transformers_.get_tag(
+            "capability:missing_values", False
+        )
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )
@@ -129,7 +131,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         self.set_tags(**tags_to_set)
         if unequal:
             tags_to_set = {
-                "X_inner_mtype": ["np-list", "numpy3D"],
+                "X_inner_type": ["np-list", "numpy3D"],
             }
             self.set_tags(**tags_to_set)
 
@@ -172,7 +174,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -195,7 +197,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -213,7 +215,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -286,7 +288,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         return {
             "transformers": [
@@ -315,8 +317,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` scitype;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` scitype.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
@@ -346,8 +346,10 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Parameters
     ----------
     classifier : sklearn classifier, i.e., inheriting from sklearn ClassifierMixin
+        this is a "blueprint" classifier, state does not change when `fit` is called
     transformers : list of aeon transformers, or
         list of tuples (str, transformer) of aeon transformers
+        these are "blueprint" transformers, states do not change when `fit` is called
 
     Attributes
     ----------
@@ -362,8 +364,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsClassifier
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import SklearnClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
@@ -393,7 +395,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         # can handle missing values iff transformer chain removes missing data
         # sklearn classifiers might be able to handle missing data (but no tag there)
         # so better set the tag liberally
-        missing = self.transformers_.get_tag("handles-missing-data", False)
+        missing = self.transformers_.get_tag("capability:missing_values", False)
         missing = missing or self.transformers_.get_tag(
             "capability:missing_values:removes", False
         )
@@ -444,22 +446,9 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             return NotImplemented
 
     def _convert_X_to_sklearn(self, X):
-        """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        X_scitype = self.transformers_.get_tag("scitype:transform-output")
-        # if X_scitype is Primitives, output is Table, convert to 2D numpy array
-        if X_scitype == "Primitives":
-            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if X_scitype is Series, output is Panel, convert to 2D numpy array (numpyflat)
-        elif X_scitype == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        else:
-            raise TypeError(
-                f"unexpected X output type in {type(self.classifier).__name__}, "
-                f'in tag "scitype:transform-output", found "{X_scitype}", '
-                'expected one of "Primitives" or "Series"'
-            )
-
-        return Xt
+        """Convert X to 2D numpy required by sklearn."""
+        Xt = convert_collection(X, "numpy3D")
+        return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _fit(self, X, y):
         """Fit time series classifier to training data.
@@ -468,7 +457,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -492,7 +481,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -511,7 +500,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -587,7 +576,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.exponent import ExponentTransformer
 
         # example with series-to-series transformer before sklearn classifier
         return {

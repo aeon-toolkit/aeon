@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A Rotation Forest (RotF) vector regressor.
 
 A Rotation Forest aeon implementation for continuous values only. Fits sklearn
@@ -24,14 +23,15 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RotationForestRegressor(BaseEstimator):
-    """A Rotation Forest (RotF) vector regressor.
+    """
+    A Rotation Forest (RotF) vector regressor.
 
     Implementation of the Rotation Forest regressor described in Rodriguez et al
     (2013) [1]. Builds a forest of trees build on random portions of the data
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as ShapeletTransformRegressor, this aeon
+    transformation based appraoches such as FreshPRINCERegressor, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -46,7 +46,7 @@ class RotationForestRegressor(BaseEstimator):
         The proportion of cases to be removed per group.
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using entropy as a splitting measure.
+        `DecisionTreeRegressor` using MSE as a splitting measure.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -78,33 +78,29 @@ class RotationForestRegressor(BaseEstimator):
 
     See Also
     --------
-    ShapeletTransformRegressor: A shapelet-based regressor using Rotation Forest.
-
-    Notes
-    -----
-    For the Java version, see
-    `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java
-    /weka/regressors/meta/RotationForest.java>`_.
+    FreshPRINCERegressor: A feature-based regressor using Rotation Forest.
 
     References
     ----------
     .. [1] Rodriguez, Juan José, Ludmila I. Kuncheva, and Carlos J. Alonso. "Rotation
-       forest: A new regressor ensemble method." IEEE transactions on pattern analysis
+       forest: A new classifier ensemble method." IEEE transactions on pattern analysis
        and machine intelligence 28.10 (2006).
 
-    .. [2] Bagnall, A., et al. "Is rotation forest the best regressor for problems
+    .. [2] Bagnall, A., et al. "Is rotation forest the best classifier for problems
        with continuous features?." arXiv preprint arXiv:1809.06705 (2018).
 
     Examples
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
-    >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
-    >>> X_test, y_test = load_covid_3month(split="test", return_type="numpy2d")
-    >>> clf = RotationForestRegressor(n_estimators=10)
-    >>> clf.fit(X_train, y_train)
-    RotationForestRegressor(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> from aeon.datasets import make_example_2d_numpy
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12, return_y=True,
+    ...                              regression_target=True, random_state=0)
+    >>> reg = RotationForestRegressor(n_estimators=10)
+    >>> reg.fit(X, y)
+    RotationForestRegressor(n_estimators=10)
+    >>> reg.predict(X)
+    array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
+           0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
 
     def __init__(
@@ -189,6 +185,8 @@ class RotationForestRegressor(BaseEstimator):
         self._ptp = X.max(axis=0) - self._min
         X = (X - self._min) / self._ptp
 
+        rng = check_random_state(self.random_state)
+
         if time_limit > 0:
             self._n_estimators = 0
             self.estimators_ = []
@@ -204,9 +202,9 @@ class RotationForestRegressor(BaseEstimator):
                     delayed(self._fit_estimator)(
                         X,
                         y,
-                        i,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
                     )
-                    for i in range(self._n_jobs)
+                    for _ in range(self._n_jobs)
                 )
 
                 estimators, pcas, groups, transformed_data = zip(*fit)
@@ -225,9 +223,9 @@ class RotationForestRegressor(BaseEstimator):
                 delayed(self._fit_estimator)(
                     X,
                     y,
-                    i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
                 )
-                for i in range(self._n_estimators)
+                for _ in range(self._n_estimators)
             )
 
             self.estimators_, self._pcas, self._groups, self.transformed_data_ = zip(
@@ -317,10 +315,13 @@ class RotationForestRegressor(BaseEstimator):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
+        rng = check_random_state(self.random_state)
+
         p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_preds_for_estimator)(
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(self._n_estimators)
         )
@@ -339,15 +340,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return results
 
-    def _fit_estimator(self, X, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, rng):
         groups = self._generate_groups(rng)
         pcas = []
 
@@ -369,7 +362,7 @@ class RotationForestRegressor(BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rs).fit(X_t)
+                    pca = PCA(random_state=rng).fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break
@@ -384,12 +377,12 @@ class RotationForestRegressor(BaseEstimator):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
-        # todo hack
         X_t = X_t.astype(np.float32)
         X_t = np.nan_to_num(
             X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
         )
-        tree = _clone_estimator(self._base_estimator, random_state=rs)
+
+        tree = _clone_estimator(self._base_estimator, random_state=rng)
         tree.fit(X_t, y)
 
         return tree, pcas, groups, X_t if self.save_transformed_data else None
@@ -398,7 +391,6 @@ class RotationForestRegressor(BaseEstimator):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
-        # todo hack
         X_t = X_t.astype(np.float32)
         X_t = np.nan_to_num(
             X_t, False, 0, np.finfo(np.float32).max, np.finfo(np.float32).min
@@ -406,15 +398,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return clf.predict(X_t)
 
-    def _train_preds_for_estimator(self, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _train_preds_for_estimator(self, y, idx, rng):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]
@@ -423,7 +407,7 @@ class RotationForestRegressor(BaseEstimator):
         if len(oob) == 0:
             return [results, oob]
 
-        clf = _clone_estimator(self._base_estimator, rs)
+        clf = _clone_estimator(self._base_estimator, rng)
         clf.fit(self.transformed_data_[idx][subsample], y[subsample])
         preds = clf.predict(self.transformed_data_[idx][oob])
 

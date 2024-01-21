@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test suite for numba distances with parameters."""
 from typing import Callable, Dict, List
 
@@ -7,18 +6,18 @@ import pytest
 
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests._expected_results import _expected_distance_results_params
-from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_expected_results import _expected_distance_results_params
+from aeon.distances.tests.test_utils import _create_test_distance_numpy
 
 
 def _test_distance_params(
     param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
-    x_univ = create_test_distance_numpy(10, 1).reshape((1, 10))
-    y_univ = create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))
+    x_univ = _create_test_distance_numpy(10, 1).reshape((1, 10))
+    y_univ = _create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))
 
-    x_multi = create_test_distance_numpy(10, 10)
-    y_multi = create_test_distance_numpy(10, 10, random_state=2)
+    x_multi = _create_test_distance_numpy(10, 10)
+    y_multi = _create_test_distance_numpy(10, 10, random_state=2)
 
     test_ts = [[x_univ, y_univ], [x_multi, y_multi]]
     results_to_fill = []
@@ -33,7 +32,9 @@ def _test_distance_params(
         curr_results = []
         for x, y in test_ts:
             if g_none:
-                param_dict["g"] = np.std([x, y], axis=0).sum(axis=1)
+                param_dict["g_arr"] = np.std([x, y], axis=0).sum(axis=1)
+                if "g" in param_dict:
+                    del param_dict["g"]
             results = []
             results.append(distance_func(x, y, **param_dict))
             results.append(distance(x, y, metric=distance_str, **param_dict))
@@ -52,6 +53,7 @@ def _test_distance_params(
 
 BASIC_BOUNDING_PARAMS = [
     {"window": 0.2},
+    {"itakura_max_slope": 0.2},
 ]
 
 DIST_PARAMS = {
@@ -63,7 +65,9 @@ DIST_PARAMS = {
     "wdtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "wddtw": BASIC_BOUNDING_PARAMS + [{"g": 1.0}],
     "twe": BASIC_BOUNDING_PARAMS + [{"lmbda": 0.5}, {"nu": 0.9}],
-    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.2}],
+    "msm": BASIC_BOUNDING_PARAMS + [{"independent": False}, {"c": 0.1}],
+    "adtw": BASIC_BOUNDING_PARAMS + [{"warp_penalty": 5.0}],
+    "minkowski": [{"p": 1.0}, {"p": 2.0}],
 }
 
 
