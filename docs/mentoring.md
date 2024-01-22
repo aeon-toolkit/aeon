@@ -1,26 +1,25 @@
-.. _gsoc_projects:
+# aeon Mentoring and Projects
 
-========================
-Short projects with aeon
-========================
+`aeon` runs a range of short projects interacting with the community and the
+the code base. These projects are designed for internships, usage as part of
+undergraduate/postgraduate projects at academic institution and as options for programs
+such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
 
-Introduction
-============
-We run a range of short projects with aeon, including undergraduate/postgraduate
-project and paid and unpaid internships. We aim to run schemes to help new
-contributors to become more familiar with aeon, time series machine
-learning research, and open-source software development.
+For those interested in undertaking a project outside these scenarios, we recommend
+joining the Slack and discussing with the project mentors. We aim to run schemes to
+help new contributors to become more familiar with `aeon`, time series machine learning
+research, and open-source software development.
 
-aeon projects for 2024
-======================
-This is a list of some of the projects we are interested in running in 2024. We will
-more widely advertise funding opportunities as and when they become available. Feel
+## Current aeon projects
+
+This is a list of some of the projects we are interested in running in 2024. Feel
 free to propose your own project ideas, but please discuss them with us first. We have
-an active community of researchers and students who work on aeon. Please get in touch
-via slack if you are interested in any of these projects or have any questions.
+an active community of researchers and students who work on `aeon`. Please get in touch
+via Slack if you are interested in any of these projects or have any questions.
 
-1. Optimizing the Shapelet Transform
----------------------------------
+We will more widely advertise funding opportunities as and when they become available.
+
+### 1. Optimizing the Shapelet Transform
 
 Mentors : Antoine Guillaume (@baraline)
 ***************************************

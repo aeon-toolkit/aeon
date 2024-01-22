@@ -141,20 +141,20 @@ Reviewer Guide
 :::{grid-item-card}
 :text-align: center
 
-Google Summer of code (GSoC) projects
+Mentoring and Projects
 
 ^^^
 
-A list of GSoC project proposals for `aeon`.
+`aeon` projects and mentoring oppertunities.
 
 +++
 
-```{button-ref} contributing/gsoc_projects
+```{button-ref} mentoring
 :color: primary
 :click-parent:
 :expand:
 
-Google Summer of code (GSoC) projects
+Mentoring and Projects
 ```
 :::
 
