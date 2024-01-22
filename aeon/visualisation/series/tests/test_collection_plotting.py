@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from aeon.utils._testing.collection import (
+from aeon.testing.utils.collection import (
     make_3d_test_data,
     make_unequal_length_test_data,
 )
