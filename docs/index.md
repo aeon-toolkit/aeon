@@ -177,12 +177,12 @@ Segmentation
 
 +++
 
-```{button-ref} /examples/similarity_search/similarity_search.ipynb
+```{button-ref} /examples/segmentation/segmentation.ipynb
 :color: primary
 :click-parent:
 :expand:
 
-Similarity search
+Segmentation
 ```
 
 :::
