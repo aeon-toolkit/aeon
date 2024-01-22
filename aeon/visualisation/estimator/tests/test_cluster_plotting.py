@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.utils._testing.collection import make_3d_test_data
+from aeon.testing.utils.collection import make_3d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_cluster_algorithm
 
