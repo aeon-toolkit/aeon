@@ -1,4 +1,4 @@
-# aeon Mentoring and Projects
+# Mentoring and Projects
 
 `aeon` runs a range of short projects interacting with the community and the code
 base. These projects are designed for internships, usage as part of
@@ -6,7 +6,8 @@ undergraduate/postgraduate projects at academic institutions, and as options for
 programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
 
 For those interested in undertaking a project outside these scenarios, we recommend
-joining the Slack and discussing with the project mentors. We aim to run schemes to
+joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA))
+and discussing with the project mentors. We aim to run schemes to
 help new contributors to become more familiar with `aeon`, time series machine learning
 research, and open-source software development.
 
@@ -19,51 +20,136 @@ via Slack if you are interested in any of these projects or have any questions.
 
 We will more widely advertise funding opportunities as and when they become available.
 
-### 1. Optimizing the Shapelet Transform
+### Forecasting
+
+#### 1. Machine Learning
+
+Implement and evaluate some of the recently proposed machine learning ree based
+algorithms.
+
+#### 2. Forecasting as time series regression
+
+Evaluate TSER algorithms for TSFR
+
+#### 3. Deep Learning for Time Series Forecasting
+
+Mentors : For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
+
+##### Description
+
+Implement and evaluate some models from the literature, maybe benchmark them as well
+to non-deep models
+
+### Classification
+
+#### 1. Optimizing the Shapelet Transform
 
 Mentors : Antoine Guillaume (@baraline)
 
 ##### Description
 
-A shapelet is defined as a time series subsequence representing a pattern of interest that we wish to search for in time series data. Shapelet-based algorithm can be used for a wide range of time series task, in this project, we will focus on its core application, which is to create an embedding of the input time series.
+A shapelet is defined as a time series subsequence representing a pattern of interest
+that we wish to search for in time series data. Shapelet-based algorithm can be used
+for a wide range of time series task, in this project, we will focus on its core
+application, which is to create an embedding of the input time series.
 
-Our goal in this project will be to optimize the code related to the shapelet transform method, which takes as input a set of shapelets and a time series dataset, and give as output a tabular dataset containing the features characterizing the presence (or absence) of each shapelet in the input time series (more information in [1]_[2]_).
+Our goal in this project will be to optimize the code related to the shapelet
+transform method, which takes as input a set of shapelets and a time series dataset,
+and give as output a tabular dataset containing the features characterizing the
+presence (or absence) of each shapelet in the input time series (more information
+in [1] and [2]).
 
-Similarity search is another field of time series, which has proposed greatly optimized algorithms (see [3]_[4]_) for the task of finding the best matches of a subsequence inside another time series. As this task is extremely similar to what is done in the shapelet transform, we want to adapt these algorithms to the context of shapelets, in order to achieve significant speed-ups.
+Similarity search is another field of time series, which has proposed greatly optimized
+algorithms (see [3] and [4]) for the task of finding the best matches of a subsequence
+inside another time series. As this task is extremely similar to what is done in the
+shapelet transform, we want to adapt these algorithms to the context of shapelets,
+in order to achieve significant speed-ups.
 
 ##### Project stages
 
 To achieve this goal, with the assistance of the mentor, we identify the following steps for the future GSoC Contributor:
-    0. Learn about aeon best practices, coding standards and testing policies.
-	1. Study the shapelet transform algorithm and how it is related to the task of similarity search.
-	2. Study the similarity search algorithms for the Euclidean distance and the computational optimization they use.
-	3. Propose a candidate implementation for to increase the performance of the computations made by a single shapelet. This can be made with the help of the existing implementation of the similarity search module in aeon.
-    4. Measure the performance of this first candidate implementation against the current approach.
-	5. Implement this solution to the shapelet transform algorithm, which use multiple shapelets.
-	6. Benchmark the implementation against the original shapelet transform algorithm.
-	7. If time, generalize this new algorithm to the case of dilated shapelets (see [5]_)
+
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Study the shapelet transform algorithm and how it is related to the task of similarity search.
+3. Study the similarity search algorithms for the Euclidean distance and the computational optimization they use.
+4. Propose a candidate implementation for to increase the performance of the computations made by a single shapelet. This can be made with the help of the existing implementation of the similarity search module in aeon.
+5. Measure the performance of this first candidate implementation against the current approach.
+6. Implement this solution to the shapelet transform algorithm, which use multiple shapelets.
+7. Benchmark the implementation against the original shapelet transform algorithm.
+8. If time, generalize this new algorithm to the case of dilated shapelets (see [5])
 
 ##### Project evaluation
 
-Based on the benchmark of the different implementations, we will evaluate the performance gains of the new shapelet transform and the success of this project.
+Based on the benchmark of the different implementations, we will evaluate the
+performance gains of the new shapelet transform and the success of this project.
 
 ##### References
-.. [1] Jon Hills et al., "Classification of time series by shapelet transformation",
-   Data Mining and Knowledge Discovery, 28(4), 851--881, 2014.
-.. [2] A. Bostrom and A. Bagnall, "Binary Shapelet Transform for Multiclass Time
-   Series Classification", Transactions on Large-Scale Data and Knowledge Centered
-   Systems, 32, 2017.
-.. [3] Chin-Chia Michael Yeh et al., "Matrix Profile I: All Pairs Similarity Joins for
-   Time Series: A Unifying View that Includes Motifs, Discords and Shapelets",
-   IEEE ICDM, 2016
-.. [4] Yan Zhu et al., "Matrix Profile II: Exploiting a Novel Algorithm and GPUs to
-   break the one Hundred Million Barrier for Time Series Motifs and Joins",
-   IEEE ICDM, 2016.
-.. [5] Antoine Guillaume et al. "Random Dilated Shapelet Transform: A New Approach
-   for Time Series Shapelets", Pattern Recognition and Artificial Intelligence.
-   ICPRAI 2022.
 
-### 2. Time series segmentation
+1. Jon Hills et al., "Classification of time series by shapelet transformation",
+Data Mining and Knowledge Discovery, 28(4), 851--881, 2014.
+2. A. Bostrom and A. Bagnall, "Binary Shapelet Transform for Multiclass Time
+Series Classification", Transactions on Large-Scale Data and Knowledge Centered
+Systems, 32, 2017.
+3. Chin-Chia Michael Yeh et al., "Matrix Profile I: All Pairs Similarity Joins for
+Time Series: A Unifying View that Includes Motifs, Discords and Shapelets",
+IEEE ICDM, 2016
+4. Yan Zhu et al., "Matrix Profile II: Exploiting a Novel Algorithm and GPUs to
+break the one Hundred Million Barrier for Time Series Motifs and Joins",
+IEEE ICDM, 2016.
+5. Antoine Guillaume et al. "Random Dilated Shapelet Transform: A New Approach
+for Time Series Shapelets", Pattern Recognition and Artificial Intelligence.
+ICPRAI 2022.
+
+#### 2. Channel selection for classification
+
+Try some simple channel filters for high
+dimensional data
+
+#### 3. EEG classification: work on aeon-neuro
+
+Work on aeon-neuro, implement some of the recent EEG classification algorithms
+
+### Regression
+
+#### 1. QUANT transformer for regression
+
+Port in QUANT, assess for regression
+
+### Clustering
+
+#### 1. Clustering: feature based or deep learning based algorithms
+
+Mentors : Tony Bagnall (@TonyBagnall) and Ali Ismail-Fawaz (@hadifawaz1999) @Chris?
+
+##### Description
+
+Implement and evaluate some of the recently proposed clustering algorithms
+
+The clustering module in Aeon, up until now, primarily consists of distance-based algorithms
+like kmeans, kmedoids, and clara, among others. Recently, we introduced an initial deep
+clustering module featuring an FCN auto-encoder, incorporating distance-based algorithms
+in the latent space. However, there is currently a shortage of feature-based clustering algorithms.
+
+The objective of this project is to enhance Aeon by incorporating more deep learning approaches
+for time series clustering. This involves adapting the FCN auto-encoder to leverage the ResNet model.
+Additionally, the project aims to integrate feature-based algorithms for time series clustering into
+the system.
+
+##### References
+
+1. Lafabregue, Baptiste, et al. "End-to-end deep representation learning
+for time series clustering: a comparative study." Data Mining and Knowledge
+Discovery 36.1 (2022): 29-81.
+
+### Anomaly detection
+
+#### 1. Anomaly detection with matrix profile
+
+Implement and evaluate matrix profile based anomaly detection
+
+### Segmentation
+
+#### 1. Time series segmentation
 
 Mentors : Tony Bagnall (@TonyBagnall) and ??
 
@@ -75,11 +161,11 @@ and develop tools for comparing segmentation algorithms.
 
 ##### Project stages
 
-    0. Learn about aeon best practices, coding standards and testing policies.
-    1. Study the existing segmentation algorithms in aeon.
-    2. Implement exsiting segmentation algorithms, e.g. https://github.com/aeon-toolkit/aeon/issues/948
-    3. Implement tools for comparing segmentation algorithms, e.g.
-    4. Conduct a bake off of segmentation algorithms on a range of datasets.
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Study the existing segmentation algorithms in aeon.
+3. Implement exsiting segmentation algorithms, e.g. https://github.com/aeon-toolkit/aeon/issues/948
+4. Implement tools for comparing segmentation algorithms, e.g.
+5. Conduct a bake off of segmentation algorithms on a range of datasets.
 
 ##### Project evaluation
 
@@ -103,53 +189,9 @@ dimension." Scientific reports 10.1 (2020): 1-12.
        "Information gain-based metric for recognizing transitions in human activities.",
        Pervasive and Mobile Computing, 38, 92-109, (2017).
 
+### Transformation
 
-### 3. Forecasting 1: Machine Learning
-
-
-Implement and evaluate some of the recently proposed machine learning ree based
-algorithms.
-
-### 4. Forecasting 2: Forecasting as time series regression
-
-Evaluate TSER algorithms for TSFR
-
-### 5. Anomaly detection with matrix profile
-
-
-Implement and evaluate matrix profile based anomaly detection
-
-### 6. Clustering: feature based or deep learning based algorithms
-
-Mentors : Tony Bagnall (@TonyBagnall) and Ali Ismail-Fawaz (@hadifawaz1999) @Chris?
-
-##### Description
-
-Implement and evaluate some of the recently proposed clustering algorithms
-
-The clustering module in Aeon, up until now, primarily consists of distance-based algorithms
-like kmeans, kmedoids, and clara, among others. Recently, we introduced an initial deep
-clustering module featuring an FCN auto-encoder, incorporating distance-based algorithms
-in the latent space. However, there is currently a shortage of feature-based clustering algorithms.
-
-The objective of this project is to enhance Aeon by incorporating more deep learning approaches
-for time series clustering. This involves adapting the FCN auto-encoder to leverage the ResNet model.
-Additionally, the project aims to integrate feature-based algorithms for time series clustering into
-the system.
-
-References
-**********
-[1]  Lafabregue, Baptiste, et al. "End-to-end deep representation learning
-     for time series clustering: a comparative study." Data Mining and Knowledge
-     Discovery 36.1 (2022): 29-81.
-propositions ?
-
-### 7. Channel selection for classification
-
-Try some simple channel filters for high
-dimensional data
-
-### 8. ROCKET transformers
+#### 1. ROCKET transformers
 
 Mentors : Ali Ismail-Fawaz (@hadifawaz1999) and ?
 
@@ -161,17 +203,6 @@ cpu implementation ?
 
 Sort out the implementation of ROCKET transformers
 
-### 9. QUANT transformer for regression
-
-Port in QUANT, assess for regression
-
-### 10. EEG classification: work on aeon-neuro
-
-Work on aeon-neuro, implement some of the recent EEG classification algorithms
-
-### 11. Deep Learning for Time Series Forecasting
-
-Mentors : For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
 
 ##### Description
 
